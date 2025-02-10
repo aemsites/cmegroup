@@ -6,8 +6,8 @@ function toggleCollapsible(e) {
   collapsible.classList.toggle('open');
   const collapsibleItems = collapsible.querySelector('ul');
   if (collapsible.classList.contains('open')) {
-    const scrollHeight = collapsibleItems.scrollHeight;
-    collapsibleItems.style.height = scrollHeight + 'px';
+    const { scrollHeight } = collapsibleItems;
+    collapsibleItems.style.height = `${scrollHeight}px`;
   } else {
     collapsibleItems.style.height = '0px';
   }
@@ -43,7 +43,7 @@ function toggleLanguageSelector(e) {
 
 function closeOnDocClick(e) {
   const button = document.querySelector('button.language-selector-button[aria-expanded=true]');
-  if (button && !button.contains(event.target)) {
+  if (button && !button.contains(e.target)) {
     button.setAttribute('aria-expanded', false);
   }
 }
