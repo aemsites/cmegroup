@@ -33,8 +33,46 @@ footer .footer .footer-section .footer-links .footer-collapsible p {
     text-transform: uppercase;
 }
 
-footer .footer .footer-section .footer-links .footer-collapsible ul {
+footer .footer .footer-section .footer-links .footer-collapsible p .arrow-up {
     display: none;
+}
+
+footer .footer .footer-section .footer-links .footer-collapsible.open p .arrow-down {
+    display: none;
+}
+
+footer .footer .footer-section .footer-links .footer-collapsible.open p .arrow-up {
+    display: inline;
+}
+
+footer .footer .footer-section .footer-links .footer-collapsible p .arrow-up,
+footer .footer .footer-section .footer-links .footer-collapsible p .arrow-down {
+    float: right;
+    padding-top: 5px;
+    filter: brightness(0) saturate(100%) invert(38%) sepia(29%) saturate(235%) hue-rotate(166deg) brightness(97%) contrast(92%);
+}
+
+footer .footer .footer-section .footer-links .footer-collapsible ul {
+    height: 0;
+    transition: height .35s ease;
+    overflow: hidden;
+}
+
+footer .footer .footer-section .footer-links .footer-collapsible ul li {
+    margin: 0;
+    padding: 7px 0;
+    font-family: 'Averta';
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+}
+
+footer .footer .footer-section .footer-links .footer-collapsible ul li:last-child {
+    margin-bottom: 25px;
+}
+
+footer .footer .footer-section .footer-links .footer-collapsible ul li a {
+    color: #112b4a;
 }
 
 footer .footer .footer-section .footer-social ul li {
@@ -117,7 +155,7 @@ footer .footer .footer-languages {
     position: relative;
 }
 
-.language-selector-button {
+footer .footer .footer-languages .language-selector-button {
     background-color: transparent;
     border: none;
     border-radius: 0;
@@ -134,7 +172,7 @@ footer .footer .footer-languages {
     letter-spacing: normal;
   }
     
-  .language-selector-button::after {
+  footer .footer .footer-languages .language-selector-button::after {
     border-bottom: 0;
     border-left: .3em solid transparent;
     border-right: .3em solid transparent;
@@ -145,7 +183,7 @@ footer .footer .footer-languages {
     vertical-align: .155em;
   }
 
-  .language-selector-button[aria-expanded=true]::after {
+  footer .footer .footer-languages .language-selector-button[aria-expanded=true]::after {
     border-bottom: .3em solid;
     border-left: .3em solid transparent;
     border-right: .3em solid transparent;
@@ -156,25 +194,25 @@ footer .footer .footer-languages {
     vertical-align: .155em;
   }
 
-  .language-selector-button[aria-expanded=true] + .language-selector-dropdown {
+  footer .footer .footer-languages .language-selector-button[aria-expanded=true] + .language-selector-dropdown {
     visibility: visible;
   }
   
-  .language-selector-button[aria-expanded=false] + .language-selector-dropdown {
+  footer .footer .footer-languages .language-selector-button[aria-expanded=false] + .language-selector-dropdown {
     visibility: hidden;
   }
   
-  .language-selector-button:hover,
-  .language-selector-button:focus {
+  footer .footer .footer-languages .language-selector-button:hover,
+  footer .footer .footer-languages .language-selector-button:focus {
     color: #006eb6;
     text-decoration: none;
   }
 
-  .language-selector-button:focus {
+  footer .footer .footer-languages .language-selector-button:focus {
     border: 1px solid #3cc8ff;
   }
 
-  .language-selector-dropdown {
+  footer .footer .footer-languages .language-selector-dropdown {
     background-color: #fff;
     color: #112b4a;
     border: 0;
@@ -190,12 +228,12 @@ footer .footer .footer-languages {
     z-index: 1000;
   }
 
-  .language-selector-dropdown li {
+  footer .footer .footer-languages .language-selector-dropdown li {
     list-style-type: none;
     margin-bottom: 0;
   }
 
-  .language-selector-dropdown li a {
+  footer .footer .footer-languages .language-selector-dropdown li a {
     cursor: pointer;
     position: relative;
     background-color: transparent;
@@ -209,4 +247,11 @@ footer .footer .footer-languages {
     text-align: inherit;
     text-decoration: none;
     white-space: nowrap;
+  }
+
+  footer .footer .footer-languages .language-selector-dropdown li a img {
+    position: absolute;
+    left: 12px;
+    top: 10px;
+    filter: brightness(0) saturate(100%) invert(24%) sepia(99%) saturate(1553%) hue-rotate(183deg) brightness(98%) contrast(101%);
   }

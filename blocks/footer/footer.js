@@ -1,10 +1,34 @@
 import { getMetadata, decorateIcons } from '../../scripts/aem.js';
 
+// Footer Links collapsible - Start
+function toggleCollapsible(e) {
+  const collapsible = e.target.closest('.footer-collapsible');
+  collapsible.classList.toggle('open');
+  const collapsibleItems = collapsible.querySelector('ul');
+  if (collapsible.classList.contains('open')) {
+    const scrollHeight = collapsibleItems.scrollHeight;
+    collapsibleItems.style.height = scrollHeight + 'px';
+  } else {
+    collapsibleItems.style.height = '0px';
+  }
+}
+
 function decorateCollapsibles(footerLinks) {
   footerLinks.firstElementChild.querySelectorAll('div').forEach((elem) => {
     elem.classList.add('footer-collapsible');
+    const button = elem.querySelector('p');
+    button.addEventListener('click', toggleCollapsible);
+    const arrowDown = document.createElement('img');
+    arrowDown.classList.add('arrow-down');
+    arrowDown.setAttribute('src', '/icons/chevron-down.svg');
+    button.append(arrowDown);
+    const arrowUp = document.createElement('img');
+    arrowUp.classList.add('arrow-up');
+    arrowUp.setAttribute('src', '/icons/chevron-up.svg');
+    button.append(arrowUp);
   });
 }
+// Footer Links collapsible - End
 
 // Language Dropdown - Start
 function toggleLanguageSelector(e) {
@@ -19,9 +43,23 @@ function toggleLanguageSelector(e) {
 
 function closeOnDocClick(e) {
   const button = document.querySelector('button.language-selector-button[aria-expanded=true]');
-  if (!button.contains(event.target)) {
+  if (button && !button.contains(event.target)) {
     button.setAttribute('aria-expanded', false);
   }
+}
+
+function getCurrentLanguageOption(languages) {
+  let curr;
+  [...languages.children].forEach((elem) => {
+    const href = elem.firstElementChild.getAttribute('href');
+    if (window.location.href.startsWith(href)) {
+      curr = elem;
+    }
+  });
+  if (!curr) {
+    curr = languages.firstElementChild.firstElementChild;
+  }
+  return curr;
 }
 
 function decorateLanguageSelector(footerLanguages) {
@@ -31,7 +69,6 @@ function decorateLanguageSelector(footerLanguages) {
   button.setAttribute('aria-haspopup', true);
   button.setAttribute('aria-expanded', false);
   button.setAttribute('type', 'button');
-  button.textContent = 'English'; // TODO: Set current lang
   button.addEventListener('click', toggleLanguageSelector);
   document.addEventListener('click', closeOnDocClick);
 
@@ -43,6 +80,13 @@ function decorateLanguageSelector(footerLanguages) {
   const languages = footerLanguages.querySelector('ul');
   languages.remove();
   languages.classList.add('language-selector-options');
+  const currentLang = getCurrentLanguageOption(languages);
+  if (currentLang) {
+    button.textContent = currentLang.innerText;
+    const check = document.createElement('img');
+    check.setAttribute('src', '/icons/check.svg');
+    currentLang.prepend(check);
+  }
   dropdown.append(languages);
   footerLanguages.append(button, dropdown);
 }
