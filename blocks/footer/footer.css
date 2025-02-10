@@ -60,12 +60,14 @@ footer .footer .footer-languages .language-selector-dropdown {
     background-color: #fff;
     color: #112b4a;
     border: 0;
-    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .3), 0 2px 6px 2px rgba(60, 64, 67, .15);
+    box-shadow: 
+        0 1px 2px 0 rgb(60 64 67 / 30%), 
+        0 2px 6px 2px rgb(60 64 67 / 15%);
     margin: 0 !important;
     padding: 0;
     position: absolute;
-    inset: 0px auto auto 0px;
-    transform: translate3d(0px, 22px, 0px);
+    inset: 0 auto auto 0;
+    transform: translate3d(0, 22px, 0);
     overflow: auto;
     max-width: 95vw;
     border-radius: 6px;
