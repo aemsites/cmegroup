@@ -50,6 +50,7 @@
 @media (width > 1200px) {
   main > .section > div:has(.columns.article) {
     max-width: 100%;
+    width: unset;
     padding-inline: 5.5rem;
   }
 
