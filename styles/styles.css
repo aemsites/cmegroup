@@ -75,6 +75,7 @@ body {
     color: var(--text-color);
     font-family: var(--body-font-family);
     font-size: var(--body-font-size-s);
+    margin: 0;
 }
 
 @media (width >=769px) {
@@ -83,8 +84,8 @@ body {
     }
 }
 
-body.include-nav {
-    margin-top: 100px; /* navbar height */
+body.curtain-visible {
+    overflow: hidden;
 }
 
 @media (width >=993px) {
@@ -93,8 +94,23 @@ body.include-nav {
     }
 }
 
-header {
-    height: var(--nav-height);
+@media (width >=993px) {
+    main {
+        padding-top: 100px;
+    }
+}
+
+.header {
+    left: 0;
+    position: fixed;
+    right: 0;
+    z-index: 1030;
+}
+
+@media (width >= 993px) {
+    .header {
+        background-color: var(--white);
+    }
 }
 
 header .header,
@@ -434,10 +450,12 @@ main>.section {
     margin: 40px 0;
 }
 
-main>.section>div {
-    max-width: 1200px;
-    margin: auto;
-    padding: 0 24px;
+@media (width > 1200px) {
+  main > .section:not(.full-width) > div {
+      max-width: 1200px;
+      margin: auto;
+      padding: 0 24px;
+  }
 }
 
 main>.section:first-of-type {
@@ -456,4 +474,18 @@ main .section.highlight {
     background-color: var(--light-color);
     margin: 0;
     padding: 40px 0;
+}
+
+main .section.blue2-background {
+    background-color: var(--blue2);
+}
+
+main .section.reverse,
+main .section.reverse h2 {
+    color: var(--white);
+}
+
+main .section.align-center {
+    padding-bottom: 3.75rem;
+    padding-top: 3.75rem;
 }

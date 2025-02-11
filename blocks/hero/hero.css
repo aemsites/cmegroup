@@ -1,12 +1,27 @@
-.hero-container .hero-wrapper {
+.hero-container .hero-wrapper:not(:has(.article)) {
   max-width: unset;
   padding: 0;
+}
+
+.hero-container .hero-wrapper:has(.article) {
+  padding-inline: 10px;
 }
 
 .hero {
   position: relative;
   padding: 40px 24px;
   min-height: 300px;
+
+  --centered-title-width: 60%;
+}
+
+.hero.article {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 3.875rem;
+  padding-top: 3.8125rem;
 }
 
 .hero h1 {
@@ -14,6 +29,67 @@
   margin-left: auto;
   margin-right: auto;
   color: var(--background-color);
+}
+
+.hero.article h1 {
+  text-align: center;
+  width: var(--centered-title-width);
+}
+
+.hero.article > .labels-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: var(--centered-title-width);
+}
+
+.hero.article .row {
+  flex: 1;
+  display: flex;
+  color: var(--background-color);
+  align-items: center;
+  font-size: var(--body-font-size-s);
+  line-height: 1.25rem;
+  letter-spacing: .0906rem;
+}
+
+.hero.article .row > * {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.hero.article .row > *:first-child {
+  justify-content: flex-start;
+}
+
+.hero.article .row > *:last-child {
+  justify-content: flex-end;
+}
+
+.hero.article .row .article-time {
+  text-transform: uppercase;
+}
+
+.hero.article .row .icon {
+  width: 0.9375rem;
+  height: 0.9375rem;
+  color: var(--blue5);
+}
+
+.hero.article .row .bookmark {
+  text-decoration: none;
+}
+
+.hero.article .bookmark .icon {
+  display: none;
+}
+
+.hero.article .bookmark .icon.show {
+  display: inline-block;
 }
 
 .hero picture {
@@ -28,10 +104,31 @@
   object-fit: cover;
   width: 100%;
   height: 100%;
+  object-position: 0 0;
 }
 
-@media (width >= 900px) {
+.hero.article .row .icon img {
+  filter: var(--blue5-filter);
+}
+
+@media (width > 768px) {
+  .hero-container .hero-wrapper:has(.article) {
+    padding-inline: 2rem;
+  }
+}
+
+@media (width > 992px) {
   .hero {
     padding: 40px 32px;
+  }
+
+  .hero-container .hero-wrapper:has(.article) {
+    padding-inline: 2.6875rem;
+  }
+}
+
+@media (width > 1200px) {
+  .hero-container .hero-wrapper:has(.article) {
+    padding-inline: 4.125rem;
   }
 }

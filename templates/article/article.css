@@ -1,0 +1,24 @@
+@media (width > 480px) {
+  main > .section:not(.full-width) > div {
+    padding-inline: 2rem;
+  }
+}
+
+@media (width > 768px) {
+  main > .section:not(.full-width) > div {
+    padding-inline: 3.375rem;
+  }
+}
+
+@media (width > 992px) {
+  main > .section:not(.full-width) > div {
+    padding-inline: 4.125rem;
+  }
+}
+
+@media (width > 1200px) {
+  main > .section:not(.full-width) > div {
+    max-width: calc(66.66666% - 13.625rem);
+    padding-inline: .9375rem;
+  }
+}

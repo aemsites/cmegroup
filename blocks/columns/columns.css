@@ -1,3 +1,8 @@
+.columns {
+  --columns-gap: 3rem;
+  --border-color: var(--gray4);
+}
+
 .columns > div {
   display: flex;
   flex-direction: column;
@@ -19,15 +24,37 @@
   display: block;
 }
 
-@media (width >= 900px) {
+@media (width > 768px) {
   .columns > div {
-    align-items: center;
     flex-direction: unset;
-    gap: 24px;
+    gap: var(--columns-gap);
   }
 
   .columns > div > div {
     flex: 1;
     order: unset;
+    position: relative;
+  }
+
+  .columns.article > div > div:not(:last-child) {
+    border-right: .0625rem solid var(--border-color);
+    padding-right: calc(var(--columns-gap) / 2);
+  }
+
+  .columns.article > div > div > *:first-child {
+    padding-top: 0;
+    margin-top: 0;
+  }
+}
+
+@media (width > 1200px) {
+  main > .section > div:has(.columns.article) {
+    max-width: 100%;
+    padding-inline: 5.5rem;
+  }
+
+  .columns.article {
+    padding-left: 1.875rem;
+    padding-right: 1.875rem;
   }
 }

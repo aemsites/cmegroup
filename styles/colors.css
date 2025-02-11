@@ -9,6 +9,7 @@
     --blue4: #006eb6;
     --blue4-a: #002658;
     --blue5: #3cc8ff;
+    --blue5-filter: brightness(0) saturate(100%) invert(83%) sepia(45%) saturate(5962%) hue-rotate(172deg) brightness(104%) contrast(109%);
     --blue6: #ebf9ff;
     --blue7: #0090ff;
     --blue-active: #354a66;
