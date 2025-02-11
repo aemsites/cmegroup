@@ -95,17 +95,20 @@ function decorateLanguageSelector(footerLanguages) {
 function decorateFooter(footer) {
   const footerSection = document.createElement('div');
   footerSection.classList.add('footer-section');
+  const footerContainer = document.createElement('div');
+  footerContainer.classList.add('footer-container');
+  footerSection.append(footerContainer);
 
   const footerLinks = footer.querySelector('.footer-links');
   decorateCollapsibles(footerLinks);
-  footerSection.append(footerLinks);
+  footerContainer.append(footerLinks);
 
   const footerSocial = footer.querySelector('.footer-social');
-  footerSection.append(footerSocial);
+  footerContainer.append(footerSocial);
 
   const footerLanguages = footer.querySelector('.footer-languages');
   decorateLanguageSelector(footerLanguages);
-  footerSection.append(footerLanguages);
+  footerContainer.append(footerLanguages);
   footer.append(footerSection);
 }
 
@@ -114,6 +117,7 @@ function decorateFeedback(footer) {
   feedbackButton.classList.add('primary');
 
   const footerFeedback = footer.querySelector('.footer-feedback');
+  footerFeedback.classList.add('footer-container');
   feedbackButton.append(...footerFeedback.firstElementChild.firstElementChild.childNodes);
   footerFeedback.innerText = '';
   footerFeedback.append(feedbackButton);
@@ -124,6 +128,7 @@ function decorateDisclaimer(footer) {
   const footerDisclaimerSection = document.createElement('div');
   footerDisclaimerSection.classList.add('footer-disclaimer-wrapper');
   const footerDisclaimer = footer.querySelector('.footer-disclaimer');
+  footerDisclaimer.classList.add('footer-container');
   footerDisclaimerSection.append(footerDisclaimer);
   footer.append(footerDisclaimerSection);
 }
