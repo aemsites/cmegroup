@@ -18,7 +18,7 @@
 
 @media (width > 1200px) {
   main > .section:not(.full-width) > div {
-    max-width: calc(66.66666% - 13.625rem);
+    width: calc(54% - 13.625rem);
     padding-inline: .9375rem;
   }
 }

@@ -321,6 +321,13 @@ hr {
     margin-bottom: 20px;
 }
 
+.block-divider-line hr {
+  background-color: var(--gray4);
+  color: var(--gray5);
+  margin-top: 1.25rem;
+  margin-bottom: 0.625rem;
+}
+
 main img {
     max-width: 100%;
     width: auto;
