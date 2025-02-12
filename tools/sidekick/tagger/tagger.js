@@ -65,16 +65,11 @@ function displaySelected() {
       const { fullPath } = path.dataset;
       const pathParts = fullPath.split('/');
 
-      // If path has only two parts (first level items), return just the last part
-      if (pathParts.length === 2) {
-        return {
-          fullPath: pathParts[pathParts.length - 1],
-          label: path.querySelector('.tag').dataset.title,
-        };
-      }
+      // Skip the first part (type/category) and join the rest
+      const valuePath = pathParts.slice(1).join('/');
 
       return {
-        fullPath,
+        fullPath: valuePath,
         label: path.querySelector('.tag').dataset.title,
       };
     });
