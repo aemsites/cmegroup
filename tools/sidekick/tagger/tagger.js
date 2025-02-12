@@ -64,8 +64,6 @@ function displaySelected() {
     .map((path) => {
       const { fullPath } = path.dataset;
       const pathParts = fullPath.split('/');
-
-      // Skip the first part (type/category) and join the rest
       const valuePath = pathParts.slice(1).join('/');
 
       return {
@@ -87,8 +85,8 @@ function displaySelected() {
       selTagsEl.appendChild(div);
     });
 
-    selEl.classList.remove('hidden');
     document.getElementById('copybuffer').value = selectedTags.map((tag) => tag.fullPath).join(', ');
+    selEl.classList.remove('hidden');
   } else {
     selEl.classList.add('hidden');
   }
@@ -194,4 +192,5 @@ async function init() {
   }
 }
 
-init();
+// Make sure all event listeners are set up after DOM is loaded
+document.addEventListener('DOMContentLoaded', init);
