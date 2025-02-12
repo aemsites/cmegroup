@@ -1,122 +1,189 @@
+/* eslint-disable no-console */
 import { getTaxonomy } from '../../../scripts/taxonomy.js';
 
 function renderItem(item, catId) {
-  const pathStr = item.path.split('/').slice(0, -1).join('<span class="psep"> / </span>');
+  const pathParts = item.path.split('/');
+  const pathStr = pathParts.slice(0, -1).join('/');
+
+  // Truncate long paths with ellipsis
+  const displayPath = pathParts.length > 3
+    ? `.../${pathParts.slice(-2).join('/')}`
+    : pathStr;
+
   return `
-  <span class="path">${pathStr}
-    <span data-title="${item.title}" class="tag cat-${catId % 4}">${item.title}</span>
-  </span>
-`;
+    <span class="path" data-full-path="${item.path}">
+      <span class="path-hierarchy" title="${pathStr}">
+        ${displayPath}
+      </span>
+      <span data-title="${item.title}" data-path="${item.path}" class="tag cat-${catId % 4}">
+        ${item.title}
+      </span>
+    </span>
+  `;
 }
 
-function renderItems(item, catId) {
-  let html = item.hide ? '' : renderItem(item, catId);
+function renderItems(item, catId, level = 0) {
+  let html = '';
+  if (!item.hide) {
+    if (level === 0) {
+      html += `<div class="category-group collapsed">
+                <div class="category-header">
+                  <span class="expand-icon">+</span>
+                  <span class="category-title">${item.title}</span>
+                </div>
+                <div class="category-content">`;
+    } else if (Object.keys(item).some((key) => !['title', 'name', 'path', 'hide'].includes(key))) {
+      html += `<div class="subcategory-group collapsed">
+                <div class="category-header">
+                  <span class="expand-icon">+</span>
+                  <span class="category-title">${item.title}</span>
+                </div>
+                <div class="category-content">`;
+    } else {
+      html += '<div class="path-wrapper">';
+      html += renderItem(item, catId);
+      html += '</div>';
+    }
+  }
+
   Object.keys(item).forEach((key) => {
     if (!['title', 'name', 'path', 'hide'].includes(key)) {
-      html += renderItems(item[key], catId);
+      html += renderItems(item[key], catId, level + 1);
     }
   });
+
+  if (!item.hide && (level === 0 || Object.keys(item).some((key) => !['title', 'name', 'path', 'hide'].includes(key)))) {
+    html += '</div></div>';
+  }
 
   return html;
 }
 
-function initTaxonomy(taxonomy) {
-  let html = '';
-  Object.values(taxonomy).forEach((cat, idx) => {
-    html += '<div class="category">';
-    html += `<h2>${cat.title}</h2>`;
-    Object.keys(cat).forEach((key) => {
-      if (!['title', 'name', 'path', 'hide'].includes(key)) {
-        html += renderItems(cat[key], idx);
-      }
-    });
-    html += '</div>';
-  });
-  const results = document.getElementById('results');
-  results.innerHTML = html;
-}
-
-function filter() {
-  const searchTerm = document.getElementById('search').value.toLowerCase();
-  document.querySelectorAll('#results .tag').forEach((tag) => {
-    const { title } = tag.dataset;
-    const offset = title.toLowerCase().indexOf(searchTerm);
-    if (offset >= 0) {
-      const before = title.substring(0, offset);
-      const term = title.substring(offset, offset + searchTerm.length);
-      const after = title.substring(offset + searchTerm.length);
-      tag.innerHTML = `${before}<span class="highlight">${term}</span>${after}`;
-      tag.closest('.path').classList.remove('filtered');
-    } else {
-      tag.closest('.path').classList.add('filtered');
-    }
-  });
-}
-
-function toggleTag(target) {
-  target.classList.toggle('selected');
-  // eslint-disable-next-line no-use-before-define
-  displaySelected();
-}
-
 function displaySelected() {
+  const selectedTags = Array.from(document.querySelectorAll('#results .path.selected'))
+    .map((path) => ({
+      fullPath: path.dataset.fullPath,
+      label: path.querySelector('.tag').dataset.title,
+    }));
+
   const selEl = document.getElementById('selected');
   const selTagsEl = selEl.querySelector('.selected-tags');
-  const toCopyBuffer = [];
-
   selTagsEl.innerHTML = '';
-  const selectedTags = document.querySelectorAll('#results .path.selected');
-  if (selectedTags.length > 0) {
-    selectedTags.forEach((path) => {
-      const clone = path.cloneNode(true);
-      clone.classList.remove('filtered', 'selected');
-      const tag = clone.querySelector('.tag');
-      tag.innerHTML = tag.dataset.title;
-      clone.addEventListener('click', () => {
-        toggleTag(path);
-      });
-      toCopyBuffer.push(tag.dataset.title);
-      selTagsEl.append(clone);
+
+  if (selectedTags.length) {
+    selectedTags.forEach((tag) => {
+      const div = document.createElement('div');
+      div.className = 'selected-tag';
+      div.textContent = tag.label;
+      div.title = tag.fullPath;
+      selTagsEl.appendChild(div);
     });
 
     selEl.classList.remove('hidden');
+    document.getElementById('copybuffer').value = selectedTags.map((tag) => tag.fullPath).join(', ');
   } else {
     selEl.classList.add('hidden');
   }
+}
 
-  const copybuffer = document.getElementById('copybuffer');
-  copybuffer.value = toCopyBuffer.join(', ');
+function filter() {
+  const searchTerm = document.getElementById('search').value.toLowerCase().trim();
+
+  if (!searchTerm) {
+    document.querySelectorAll('#results .path').forEach((path) => {
+      path.classList.remove('filtered');
+    });
+    document.querySelectorAll('.category-group, .subcategory-group').forEach((group) => {
+      group.classList.add('collapsed');
+      const icon = group.querySelector('.expand-icon');
+      if (icon) icon.textContent = '+';
+      group.style.display = 'block';
+    });
+    return;
+  }
+
+  document.querySelectorAll('#results .path').forEach((path) => {
+    const tag = path.querySelector('.tag');
+    const title = tag.dataset.title.toLowerCase();
+    const fullPath = path.dataset.fullPath.toLowerCase();
+
+    if (title.includes(searchTerm) || fullPath.includes(searchTerm)) {
+      path.classList.remove('filtered');
+      let parent = path.closest('.category-group, .subcategory-group');
+      while (parent) {
+        parent.classList.remove('collapsed');
+        const icon = parent.querySelector('.expand-icon');
+        if (icon) icon.textContent = '−';
+        parent.style.display = 'block';
+        parent = parent.parentElement.closest('.category-group, .subcategory-group');
+      }
+    } else {
+      path.classList.add('filtered');
+    }
+  });
+
+  document.querySelectorAll('.category-group, .subcategory-group').forEach((category) => {
+    const hasVisiblePaths = category.querySelectorAll('.path:not(.filtered)').length > 0;
+    category.style.display = hasVisiblePaths ? 'block' : 'none';
+  });
 }
 
 async function init() {
-  const tax = await getTaxonomy();
+  try {
+    const tax = await getTaxonomy();
+    const results = document.getElementById('results');
+    results.innerHTML = Object.values(tax).map((cat, idx) => renderItems(cat, idx)).join('');
 
-  initTaxonomy(tax);
-
-  const selEl = document.getElementById('selected');
-  const copyButton = selEl.querySelector('button.copy');
-  copyButton.addEventListener('click', () => {
-    const copyText = document.getElementById('copybuffer');
-    navigator.clipboard.writeText(copyText.value);
-
-    copyButton.disabled = true;
-  });
-
-  selEl.querySelector('button.clear').addEventListener('click', () => {
-    const selectedTags = document.querySelectorAll('#results .path.selected');
-    selectedTags.forEach((tag) => {
-      toggleTag(tag);
+    document.querySelectorAll('.category-header').forEach((header) => {
+      header.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const group = header.closest('.category-group, .subcategory-group');
+        const icon = header.querySelector('.expand-icon');
+        group.classList.toggle('collapsed');
+        icon.textContent = group.classList.contains('collapsed') ? '+' : '−';
+      });
     });
-  });
 
-  document.querySelector('#search').addEventListener('keyup', filter);
+    document.addEventListener('click', (e) => {
+      const pathEl = e.target.closest('.path');
+      if (pathEl) {
+        pathEl.classList.toggle('selected');
+        displaySelected();
+      }
+    });
 
-  document.addEventListener('click', (e) => {
-    const target = e.target.closest('.category .path');
-    if (target) {
-      toggleTag(target);
-    }
-  });
+    document.querySelector('button.copy').addEventListener('click', async () => {
+      const copyButton = document.querySelector('button.copy');
+      const originalText = copyButton.textContent;
+
+      try {
+        await navigator.clipboard.writeText(document.getElementById('copybuffer').value);
+        copyButton.textContent = 'Copied!';
+        setTimeout(() => {
+          copyButton.textContent = originalText;
+        }, 2000);
+      } catch (err) {
+        copyButton.textContent = 'Failed to copy';
+        setTimeout(() => {
+          copyButton.textContent = originalText;
+        }, 2000);
+      }
+    });
+
+    document.querySelector('button.clear').addEventListener('click', () => {
+      document.querySelectorAll('.path.selected').forEach((path) => {
+        path.classList.remove('selected');
+      });
+      displaySelected();
+    });
+
+    document.querySelector('#search').addEventListener('input', filter);
+  } catch (error) {
+    console.error('Failed to initialize tagger:', error);
+    document.getElementById('results').innerHTML = `
+      <div class="error">Failed to load taxonomy data. Please try refreshing the page.</div>
+    `;
+  }
 }
 
 init();
