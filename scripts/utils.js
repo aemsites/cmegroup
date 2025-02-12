@@ -36,7 +36,14 @@ function getArticleRelatedMetadata() {
   };
 }
 
+function addBlockDividerLine(block) {
+  const hr = createElement('hr');
+  const divider = createElement('div', { class: 'block-divider-line' }, hr);
+  block.appendChild(divider);
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
+  addBlockDividerLine,
 };

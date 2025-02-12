@@ -75,9 +75,9 @@
 }
 
 .cta.promo .footer .icon {
+  position: absolute;
   background-color: var(--green);
-  padding: 1rem 1rem;
+  padding: 1rem;
   bottom: 0;
   right: 0;
-  position: absolute;
 }
