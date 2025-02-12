@@ -61,10 +61,23 @@ function renderItems(item, catId, level = 0) {
 
 function displaySelected() {
   const selectedTags = Array.from(document.querySelectorAll('#results .path.selected'))
-    .map((path) => ({
-      fullPath: path.dataset.fullPath,
-      label: path.querySelector('.tag').dataset.title,
-    }));
+    .map((path) => {
+      const { fullPath } = path.dataset;
+      const pathParts = fullPath.split('/');
+
+      // If path has only two parts (first level items), return just the last part
+      if (pathParts.length === 2) {
+        return {
+          fullPath: pathParts[pathParts.length - 1],
+          label: path.querySelector('.tag').dataset.title,
+        };
+      }
+
+      return {
+        fullPath,
+        label: path.querySelector('.tag').dataset.title,
+      };
+    });
 
   const selEl = document.getElementById('selected');
   const selTagsEl = selEl.querySelector('.selected-tags');
