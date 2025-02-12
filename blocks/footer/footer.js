@@ -1,4 +1,5 @@
 import { getMetadata, decorateIcons } from '../../scripts/aem.js';
+import { createElement } from '../../scripts/utils.js';
 
 // Footer Links collapsible - Start
 function toggleCollapsible(e) {
@@ -18,13 +19,15 @@ function decorateCollapsibles(footerLinks) {
     elem.classList.add('footer-collapsible');
     const button = elem.querySelector('p');
     button.addEventListener('click', toggleCollapsible);
-    const arrowDown = document.createElement('img');
-    arrowDown.classList.add('arrow-down');
-    arrowDown.setAttribute('src', '/icons/chevron-down.svg');
+    const arrowDown = createElement('img', {
+      class: 'arrow-down',
+      src: '/icons/chevron-down.svg'
+    });
     button.append(arrowDown);
-    const arrowUp = document.createElement('img');
-    arrowUp.classList.add('arrow-up');
-    arrowUp.setAttribute('src', '/icons/chevron-up.svg');
+    const arrowUp = createElement('img', {
+      class: 'arrow-up',
+      src: '/icons/chevron-up.svg'
+    });
     button.append(arrowUp);
   });
 }
@@ -63,19 +66,15 @@ function getCurrentLanguageOption(languages) {
 }
 
 function decorateLanguageSelector(footerLanguages) {
-  const button = document.createElement('button');
-  button.classList.add('language-selector-button');
+  const button = createElement('button', {
+    class: 'language-selector-button',
+    'aria-haspopup': true,
+    'aria-expanded': false,
+    type: 'button'
+  });
   button.id = 'language-selector-button';
-  button.setAttribute('aria-haspopup', true);
-  button.setAttribute('aria-expanded', false);
-  button.setAttribute('type', 'button');
   button.addEventListener('click', toggleLanguageSelector);
   document.addEventListener('click', closeOnDocClick);
-
-  const dropdown = document.createElement('div');
-  dropdown.classList.add('language-selector-dropdown');
-  dropdown.setAttribute('aria-labelledby', 'language-selector-button');
-  dropdown.setAttribute('role', 'menu');
 
   const languages = footerLanguages.querySelector('ul');
   languages.remove();
@@ -83,53 +82,43 @@ function decorateLanguageSelector(footerLanguages) {
   const currentLang = getCurrentLanguageOption(languages);
   if (currentLang) {
     button.textContent = currentLang.innerText;
-    const check = document.createElement('img');
-    check.setAttribute('src', '/icons/check.svg');
+    const check = createElement('img', {src: '/icons/check.svg'});
     currentLang.prepend(check);
   }
-  dropdown.append(languages);
+  const dropdown = createElement('div', {
+    class: 'language-selector-dropdown',
+    'aria-labelledby': 'language-selector-button',
+    role: 'menu'
+  }, languages);
   footerLanguages.append(button, dropdown);
 }
 // Language Dropdown - End
 
 function decorateFooter(footer) {
-  const footerSection = document.createElement('div');
-  footerSection.classList.add('footer-section');
-  const footerContainer = document.createElement('div');
-  footerContainer.classList.add('footer-container');
-  footerSection.append(footerContainer);
-
   const footerLinks = footer.querySelector('.footer-links');
   decorateCollapsibles(footerLinks);
-  footerContainer.append(footerLinks);
-
   const footerSocial = footer.querySelector('.footer-social');
-  footerContainer.append(footerSocial);
-
   const footerLanguages = footer.querySelector('.footer-languages');
   decorateLanguageSelector(footerLanguages);
-  footerContainer.append(footerLanguages);
+  const footerContainer = createElement('div', {class: 'footer-container'}, footerLinks, footerSocial, footerLanguages);
+  const footerSection = createElement('div', {class: 'footer-section'}, footerContainer);
   footer.append(footerSection);
 }
 
 function decorateFeedback(footer) {
-  const feedbackButton = document.createElement('button');
-  feedbackButton.classList.add('primary');
-
   const footerFeedback = footer.querySelector('.footer-feedback');
-  footerFeedback.classList.add('footer-container');
+  const feedbackButton = createElement('button', {class: 'primary'}); 
   feedbackButton.append(...footerFeedback.firstElementChild.firstElementChild.childNodes);
+  footerFeedback.classList.add('footer-container');
   footerFeedback.innerText = '';
   footerFeedback.append(feedbackButton);
   footer.append(footerFeedback);
 }
 
 function decorateDisclaimer(footer) {
-  const footerDisclaimerSection = document.createElement('div');
-  footerDisclaimerSection.classList.add('footer-disclaimer-wrapper');
   const footerDisclaimer = footer.querySelector('.footer-disclaimer');
   footerDisclaimer.classList.add('footer-container');
-  footerDisclaimerSection.append(footerDisclaimer);
+  const footerDisclaimerSection = createElement('div', {class: 'footer-disclaimer-wrapper'}, footerDisclaimer);
   footer.append(footerDisclaimerSection);
 }
 
@@ -149,7 +138,7 @@ export default async function decorate(block) {
 
   if (resp.ok) {
     const html = await resp.text();
-    const footer = document.createElement('div');
+    const footer = createElement('div');
     footer.innerHTML = html;
 
     decorateIcons(footer);
