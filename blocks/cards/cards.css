@@ -1,4 +1,4 @@
-.cards > ul {
+.cards div > ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -7,29 +7,26 @@
   grid-gap: 24px;
 }
 
-.cards > ul > li {
+.cards div > ul > li {
   border: 1px solid #dadada;
   background-color: var(--background-color);
 }
 
-.cards .cards-card-body {
+.cards div .cards-card-body {
   margin: 16px;
 }
 
-.cards .cards-card-image {
+.cards div .cards-card-image {
   line-height: 0;
 }
 
-.cards > ul > li img {
+.cards div > ul > li img {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
 }
 
 /* blue box variation*/
-.cards.blue-box {
-    margin-top: -90px;
-}
 
 .cards.blue-box ul {
     display: block;
@@ -89,10 +86,6 @@
 }
 
 @media (width >= 993px) {
-    .cards.blue-box {
-        margin-top: -120px;
-    }
-
     .cards.blue-box ul {
         display: flex;
     }
@@ -292,6 +285,7 @@
     display: block;
     list-style-type: disc;
     margin-top: 0;
+    padding: inherit;
 }
 
 .cards.white-raised-box li .cards-card-body ul li{
@@ -311,25 +305,14 @@
 }
 
 /* links variation*/
-
-.cards.links ul {
-    display: block;
-    justify-content: space-between;
-}
-
-.cards.links li {
-    width: 100%;
+.cards.links {
     background-color: var(--white);
     border: none;
+    padding: 20px;
     box-shadow: 0 1px 2px 0 rgba(60 64 67 / 20%), 0 2px 6px 2px rgba(60 64 67 / 15%);
 }
 
-.cards.links li .cards-card-body {
-    padding: 20px;
-    margin: 0;
-}
-
-.cards.links li .cards-card-body h6{
+.cards.links h6{
     color: var(--blue2);
     margin: 0 0 10px;
     letter-spacing: 0.33px;
@@ -338,18 +321,23 @@
     font-weight: 700;
 }
 
-.cards.links li .cards-card-body ul {
+.cards.links .cards-card-body {
+    margin: 0;
+}
+
+.cards.links .cards-card-body ul {
     list-style-type: none;
     margin: 0;
     padding: 0;
 }
 
-.cards.links li .cards-card-body ul li {
+.cards.links .cards-card-body ul li {
     box-shadow: none;
     background-color: transparent;
+    border: none;
 }
 
-.cards.links li .cards-card-body ul li a {
+.cards.links .cards-card-body ul li a {
     color: var(--blue4);
     font-family: var(--averta);
     font-size: 16px;
@@ -357,7 +345,7 @@
     line-height: 24px;
 }
 
-.cards.links li .cards-card-body ul li a::before {
+.cards.links .cards-card-body ul li a::before {
     font-family: var(--cme-group-icons);
     content: var(--icon-arrow-right);
     color: var(--blue4);
@@ -367,6 +355,88 @@
     display: inline-block;
 }
 
-.cards.links li .cards-card-body ul li a:hover::before {
+.cards.links .cards-card-body ul li a:hover::before {
     text-decoration: none;
+}
+
+@media (width >= 993px) {
+    .cards.links .main-list-container>div {
+        display: flex;
+    } 
+
+    .cards.links .cards-card-body {
+        width: -webkit-fill-available;
+    }
+}
+
+/* event variation*/
+.cards.event .cards-body-container{
+    background-repeat: repeat;
+    background-position: center bottom;
+    background-size: cover;
+    padding: 60px 30px;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.cards.event .cards-body-container .title-container h3{
+    color: var(--white);
+    margin: 0 0 20px;
+    letter-spacing: 0.26px;
+    font-size: 26px;
+    line-height: 34px;
+    font-weight: 600;
+}
+
+.cards.event .cards-body-container .text-container p {
+    font-family: var(--averta);
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 0.6px;
+    line-height: 28px;
+    margin-top: 0;
+    margin-bottom: 30px;
+    color: var(--white);
+}
+
+.cards.event .cards-body-container .text-container .button-container {
+    margin: 0;
+}
+
+.cards.event .cards-body-container .text-container .button-container a {
+    color: var(--blue5);
+    font-family: var(--averta);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    padding: 0;
+    text-transform: none;
+}
+
+.cards.event .cards-body-container .text-container .button-container a::before {
+    font-family: var(--cme-group-icons);
+    content: var(--icon-arrow-right);
+    color: var(--blue5);
+    margin-right: 4px;
+    font-size: 14px;
+    font-weight: 400;
+    display: inline-block;
+}
+
+.cards.event .cards-body-container .text-container .button-container a:hover::before {
+    text-decoration: none;
+}
+
+@media (width >= 993px) {
+    .cards.event .cards-body-container{
+        display: flex;
+    }
+
+    .cards.event .cards-body-container .title-container {
+        width: 33%;
+    }
+
+    .cards.event .cards-body-container .text-container {
+        width: 66%;
+    }
 }
