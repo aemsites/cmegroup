@@ -51,9 +51,16 @@ function decorateArticlePageHero(block) {
   });
 }
 
+function decorateGenericHero(block) {
+  const contentDiv = block.children.item(0);
+  contentDiv.classList.add('container');
+}
+
 export default function decorate(block) {
   const isArticleVariant = block.classList.contains('article');
   if (isArticleVariant) {
     decorateArticlePageHero(block);
+  } else {
+    decorateGenericHero(block);
   }
 }

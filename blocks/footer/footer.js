@@ -100,7 +100,7 @@ function decorateFooter(footer) {
   const footerSocial = footer.querySelector('.footer-social');
   const footerLanguages = footer.querySelector('.footer-languages');
   decorateLanguageSelector(footerLanguages);
-  const footerContainer = createElement('div', { class: 'footer-container' }, footerLinks, footerSocial, footerLanguages);
+  const footerContainer = createElement('div', { class: 'container' }, footerLinks, footerSocial, footerLanguages);
   const footerSection = createElement('div', { class: 'footer-section' }, footerContainer);
   footer.append(footerSection);
 }
@@ -109,7 +109,7 @@ function decorateFeedback(footer) {
   const footerFeedback = footer.querySelector('.footer-feedback');
   const feedbackButton = createElement('button', { class: 'primary' });
   feedbackButton.append(...footerFeedback.firstElementChild.firstElementChild.childNodes);
-  footerFeedback.classList.add('footer-container');
+  footerFeedback.classList.add('container');
   footerFeedback.innerText = '';
   footerFeedback.append(feedbackButton);
   footer.append(footerFeedback);
@@ -117,7 +117,7 @@ function decorateFeedback(footer) {
 
 function decorateDisclaimer(footer) {
   const footerDisclaimer = footer.querySelector('.footer-disclaimer');
-  footerDisclaimer.classList.add('footer-container');
+  footerDisclaimer.classList.add('container');
   const footerDisclaimerSection = createElement('div', { class: 'footer-disclaimer-wrapper' }, footerDisclaimer);
   footer.append(footerDisclaimerSection);
 }
