@@ -1,6 +1,6 @@
 .columns {
-  --columns-gap: 48px;
-  --border-color: #c2cace;
+  --columns-gap: 3rem;
+  --border-color: var(--gray4);
 }
 
 .columns > div {
@@ -36,13 +36,26 @@
     position: relative;
   }
 
-  .columns.right-border > div > div:not(:last-child) {
+  .columns.article > div > div:not(:last-child) {
     border-right: .0625rem solid var(--border-color);
     padding-right: calc(var(--columns-gap) / 2);
   }
 
-  .columns.no-gap-top > div > div > *:first-child {
+  .columns.article > div > div > *:first-child {
     padding-top: 0;
     margin-top: 0;
+  }
+}
+
+@media (width > 1200px) {
+  main > .section > div:has(.columns.article) {
+    max-width: 100%;
+    width: unset;
+    padding-inline: 5.5rem;
+  }
+
+  .columns.article {
+    padding-left: 1.875rem;
+    padding-right: 1.875rem;
   }
 }

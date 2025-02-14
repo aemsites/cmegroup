@@ -1,4 +1,4 @@
-import { createTag } from '../block-helpers.js';
+import { createElement } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 const BRAND_IMG = '<img loading="lazy" alt="Adobe" src="/blocks/nav/adobe-logo.svg">';
@@ -24,9 +24,9 @@ class Nav {
 
   init = async () => {
     this.state = {};
-    this.curtain = createTag('div', { class: 'nav-curtain' });
-    const nav = createTag('nav', { class: 'nav' });
-    const fauxNavbar = createTag('div', { class: 'nav-faux-navbar' });
+    this.curtain = createElement('div', { class: 'nav-curtain' });
+    const nav = createElement('nav', { class: 'nav' });
+    const fauxNavbar = createElement('div', { class: 'nav-faux-navbar' });
 
     const brand = this.decorateBrand();
     if (brand) {
@@ -46,7 +46,7 @@ class Nav {
       nav.append(mainNav);
     }
 
-    const wrapper = createTag('div', { class: 'nav-wrapper' }, nav);
+    const wrapper = createElement('div', { class: 'nav-wrapper' }, nav);
     this.el.append(this.curtain, fauxNavbar);
     this.el.append(this.curtain, wrapper);
 
@@ -91,7 +91,11 @@ class Nav {
   };
 
   decorateToggle = (nav) => {
-    const toggle = createTag('button', { class: 'icon-toggle nav-toggle', 'aria-label': 'Navigation menu', 'aria-expanded': false });
+    const toggle = createElement('button', {
+      class: 'icon-toggle nav-toggle',
+      'aria-label': 'Navigation menu',
+      'aria-expanded': false,
+    });
     const onMediaChange = (e) => {
       if (e.matches) {
         nav.parentElement.classList.remove(IS_OPEN);
@@ -106,7 +110,11 @@ class Nav {
   };
 
   decorateCloseNav = (nav) => {
-    const closeNav = createTag('button', { class: 'icon-close nav-close', 'aria-label': 'Navigation close menu', 'aria-expanded': false });
+    const closeNav = createElement('button', {
+      class: 'icon-close nav-close',
+      'aria-label': 'Navigation close menu',
+      'aria-expanded': false,
+    });
     closeNav.addEventListener('click', async () => {
       this.closeNav(nav);
     });
@@ -114,7 +122,7 @@ class Nav {
   };
 
   decorateCurtain = (nav) => {
-    const curtain = createTag('div', { class: 'nav-curtain' });
+    const curtain = createElement('div', { class: 'nav-curtain' });
     const desktop = window.matchMedia('(min-width: 993px)');
     if (desktop.matches) {
       curtain.addEventListener('click', async () => {
@@ -143,7 +151,7 @@ class Nav {
   };
 
   decorateMainNav = async () => {
-    const mainNav = createTag('ul', { class: 'nav-main-nav' });
+    const mainNav = createElement('ul', { class: 'nav-main-nav' });
     const primaryLinks = this.body.querySelectorAll('.primary h2 > a');
     const secondaryLinks = this.body.querySelectorAll('.secondary h2 > a');
 
@@ -159,7 +167,7 @@ class Nav {
     const promises = [];
     // eslint-disable-next-line no-restricted-syntax
     for (const [idx, navLink] of navLinks.entries()) {
-      const navItem = createTag('li', { class: 'nav-nav-item' });
+      const navItem = createElement('li', { class: 'nav-nav-item' });
       const navItemMenuContainer = navLink.closest('div');
       const mainHomeContainer = navItemMenuContainer.nextElementSibling;
       const menu = mainHomeContainer.parentElement.nextElementSibling;
@@ -194,8 +202,8 @@ class Nav {
   buildSubNav = (menu, subNav, subNavLinks, subMenuType) => {
     const groupMap = new Map();
     subNavLinks.forEach((subNavLink, idx) => {
-      const subNavItem = createTag('li', { class: 'nav-subnav-item' });
-      const subNavItemLink = createTag('a', { class: 'nav-subnav-item-link' });
+      const subNavItem = createElement('li', { class: 'nav-subnav-item' });
+      const subNavItemLink = createElement('a', { class: 'nav-subnav-item-link' });
       const subMenu = subNavLink.parentElement.nextElementSibling.getElementsByTagName('li')[0].getElementsByTagName('ul')[0];
       subNavItemLink.appendChild(subNavLink.cloneNode(true));
       subNavItem.appendChild(subNavItemLink);
@@ -215,7 +223,7 @@ class Nav {
         if (parentDiv && parentDiv.querySelector('ul + p em')) {
           const groupName = parentDiv.querySelector('ul + p em').textContent.trim();
           if (!groupMap.has(groupName)) {
-            groupMap.set(groupName, createTag('div', { class: `nav-subnav-item-group-${groupName}` }));
+            groupMap.set(groupName, createElement('div', { class: `nav-subnav-item-group-${groupName}` }));
             subNav.appendChild(groupMap.get(groupName));
           }
           groupMap.get(groupName).appendChild(subNavItem);
@@ -228,7 +236,7 @@ class Nav {
 
   // eslint-disable-next-line class-methods-use-this
   decoratePromoBox = async (menuPromo) => {
-    const promoBox = createTag('div', { class: 'promo-box-subnav' });
+    const promoBox = createElement('div', { class: 'promo-box-subnav' });
     const fragmentPromises = [];
 
     if (menuPromo) {
@@ -250,8 +258,8 @@ class Nav {
   decorateMenu = async (navItem, navLink, menu, menuHomeLink) => {
     menu.className = 'nav-nav-item-menu';
     const menuPromo = menu.querySelector('div > a[href*="/fragment"]');
-    const container = createTag('div', { class: 'nav-menu-container' });
-    const subNav = createTag('ul', { class: 'nav-subnav' });
+    const container = createElement('div', { class: 'nav-menu-container' });
+    const subNav = createElement('ul', { class: 'nav-subnav' });
     const subMenuLi = menu.querySelectorAll('p em');
     const menuDivs = Array.from(menu.querySelectorAll('div'));
     const divsForMenu = menuDivs.filter((div) => div.querySelector('p'));
@@ -261,8 +269,8 @@ class Nav {
     }
     container.append(subNav);
     menu.innerHTML = '';
-    const desktopMenuContainer = createTag('div', { class: 'item-menu-container' });
-    const desktopMenuColumn = createTag('div', { class: 'item-menu-column' });
+    const desktopMenuContainer = createElement('div', { class: 'item-menu-container' });
+    const desktopMenuColumn = createElement('div', { class: 'item-menu-column' });
     desktopMenuContainer.classList.add(classColNumber);
     menu.append(desktopMenuContainer);
     desktopMenuContainer.append(desktopMenuColumn);
