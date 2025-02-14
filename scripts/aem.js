@@ -502,14 +502,14 @@ function decorateSections(main) {
           const blocks = meta.arrange
             .split('-')
             .filter((numberOfBlocks) => numberOfBlocks)
-            .map((numberOfBlocks) => parseInt(numberOfBlocks));
+            .map((numberOfBlocks) => parseInt(numberOfBlocks, 10));
           blocks.forEach((numberOfBlocks, colIndex) => {
-            for (let i = 0; i < numberOfBlocks; i++) {
+            for (let i = 0; i < numberOfBlocks; i+=1) {
               const child = section.children.item(0);
               if (child && colIndex < columns.length) {
                 columns[colIndex].append(child);
               }
-            }            
+            }
           });
           const container = document.createElement('div');
           container.classList.add('layout');
