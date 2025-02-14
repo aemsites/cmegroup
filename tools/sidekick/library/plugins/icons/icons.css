@@ -3,18 +3,18 @@
 .icon-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 50px 32px;
-  margin: 32px auto;
+  gap: 24px 16px;
+  margin: 24px auto;
 }
 
 .icon-grid sp-card {
-  height: 140px;
-  width: 120px;
+  height: 110px;
+  width: 100px;
   text-align: center;
   cursor: pointer;
   transition: transform 0.2s ease;
   position: relative;
-  padding-bottom: 24px;
+  padding-bottom: 20px;
 }
 
 .icon-grid sp-card:hover {
@@ -25,13 +25,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 48px;
-  margin: 16px 0;
+  height: 40px;
+  margin: 12px 0;
 }
 
 .icon-grid .icon svg {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   fill: currentcolor;
 }
 
