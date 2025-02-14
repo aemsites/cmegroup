@@ -528,11 +528,6 @@ main > .section:not(.full-width) > div,
     }
 }
 
-main>.section.gray5-background:last-of-type,
-main>.section.blue3-background:last-of-type {
-        margin-bottom: 0;
-}
-
 /* section metadata */
 main .section.light,
 main .section.highlight,
@@ -545,6 +540,11 @@ main .section.blue3-background {
     background-color: var(--blue3);
     padding: 30px 0;
     color: #fff;
+}
+
+main>.section.gray5-background:last-of-type,
+main>.section.blue3-background:last-of-type {
+        margin-bottom: 0;
 }
 
 main .section.blue3-background h2,
