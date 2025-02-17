@@ -1,4 +1,4 @@
-import { createElement, addBlockDividerLine } from '../../scripts/utils.js';
+import { createElement, addDividerLine } from '../../scripts/utils.js';
 
 export default function decorate(block) {
   if (block.classList.contains('promo')) {
@@ -32,6 +32,6 @@ export default function decorate(block) {
   }
 
   if (block.classList.contains('divider-line')) {
-    addBlockDividerLine(block);
+    addDividerLine(block);
   }
 }

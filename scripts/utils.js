@@ -49,17 +49,17 @@ function getArticleRelatedMetadata() {
 }
 
 /**
- * Adds a horizontal divider line at the end of a block element
- * @param {HTMLElement} block - The block element
+ * Adds a horizontal divider line at the end of an element
+ * @param {HTMLElement} element - The element to add the divider line to
  */
-function addBlockDividerLine(block) {
+function addDividerLine(element) {
   const hr = createElement('hr');
   const divider = createElement('div', { class: 'block-divider-line' }, hr);
-  block.appendChild(divider);
+  element.appendChild(divider);
 }
 
 export {
   createElement,
   getArticleRelatedMetadata,
-  addBlockDividerLine,
+  addDividerLine,
 };
