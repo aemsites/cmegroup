@@ -260,20 +260,20 @@ footer .footer .footer-feedback button:hover .icon img {
 }
 
 @media(width > 480px) {
-    footer .footer .footer-section .footer-container {
+    footer .footer .footer-section .container {
         display: flex;
         flex-flow: row wrap;
     }
 
-    footer .footer .footer-section .footer-container .footer-links {
+    footer .footer .footer-section .container .footer-links {
         flex: 0 0 100%;
     }
 
-    footer .footer .footer-section .footer-container .footer-social {
+    footer .footer .footer-section .container .footer-social {
         flex: 3;
     }
 
-    footer .footer .footer-section .footer-container .footer-languages .language-selector-dropdown {
+    footer .footer .footer-section .container .footer-languages .language-selector-dropdown {
         inset: 0 0 auto auto;
     }
 }
