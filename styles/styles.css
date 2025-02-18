@@ -454,12 +454,12 @@ button.secondary.disabled {
 
 /* sections */
 main>.section {
-    margin: 30px 0;
+    margin: 1.875rem 0;
 }
 
 @media (width > 768px) {
     main .section {
-        margin: 60px 0;
+        margin: 3.75rem 0;
     }
 }
 
@@ -472,59 +472,53 @@ main > .section:not(.full-width) > div,
     margin-left: auto;
     margin-right: auto;
     box-sizing: border-box;
+    padding-left: var(--container-padding-xs);
+    padding-right: var(--container-padding-xs);
+    max-width: var(--container-xs-max);
 }
 
-@media (width <= 480px) {
+@media (width > 480px) {
     main > .section:not(.full-width) > div,
     .container {
-        padding-left: 24px;
-        padding-right: 24px;
-        max-width: 480px;
+        padding-left: var(--container-padding-sm);
+        padding-right: var(--container-padding-sm);
+        max-width: var(--container-sm-max);
     }
 }
 
-@media (480px < width <= 768px) {
+@media (width > 768px) {
     main > .section:not(.full-width) > div,
     .container {
-        padding-left: 32px;
-        padding-right: 32px;
-        max-width: 768px;
+        padding-left: var(--container-padding-md);
+        padding-right: var(--container-padding-md);
+        max-width: var(--container-md-max);
     }
 }
 
-@media (768px < width <= 992px) {
+@media (width > 992px) {
     main > .section:not(.full-width) > div,
     .container {
-        padding-left: 54px;
-        padding-right: 54px;
-        max-width: 992px;
+        padding-left: var(--container-padding-lg);
+        padding-right: var(--container-padding-lg);
+        max-width: var(--container-lg-max);
     }
 }
 
-@media (992px < width <= 1200px) {
+@media (width > 1200px) {
     main > .section:not(.full-width) > div,
     .container {
-        padding-left: 66px;
-        padding-right: 66px;
-        max-width: 1200px;
-    }
-}
-
-@media (1200px < width <= 1400px) {
-    main > .section:not(.full-width) > div,
-    .container {
-        padding-left: 88px;
-        padding-right:88px;
-        max-width: 1400px;
+        padding-left: var(--container-padding-xl);
+        padding-right: var(--container-padding-xl);
+        max-width: var(--container-xl-max);
     }
 }
 
 @media (width > 1400px) {
     main > .section:not(.full-width) > div,
     .container {
-        padding-left: 88px;
-        padding-right:88px;
-        max-width: 1600px;
+        padding-left: var(--container-padding-xxl);
+        padding-right: var(--container-padding-xxl);
+        max-width: var(--container-xxl-max);
     }
 }
 
@@ -533,25 +527,25 @@ main .section.light,
 main .section.highlight,
 main .section.gray5-background {
     background-color: var(--gray5);
-    padding: 30px 0;
+    padding: 1.875rem 0;
 }
 
 main .section.blue3-background {
     background-color: var(--blue3);
-    padding: 30px 0;
-    color: #fff;
+    padding: 1.875rem 0;
+    color: var(--white);
 }
 
 main>.section.gray5-background:last-of-type,
 main>.section.blue3-background:last-of-type {
-        margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 main .section.blue3-background h2,
 main .section.blue3-background h3,
 main .section.blue3-background h4,
 main .section.blue3-background h5 {
-    color: #fff;
+    color: var(--white);
 }
 
 @media (width > 768px) {
@@ -559,7 +553,7 @@ main .section.blue3-background h5 {
     main .section.highlight,
     main .section.gray5-background,
     main .section.blue3-background {
-        padding: 60px 0;
+        padding: 3.75rem 0;
     }
 }
 
