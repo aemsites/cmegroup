@@ -480,7 +480,6 @@ function decorateSections(main) {
     const sectionMeta = section.querySelector('div.section-metadata');
     if (sectionMeta) {
       const meta = readBlockConfig(sectionMeta);
-      const columns = [];
       Object.keys(meta).forEach((key) => {
         if (key === 'style') {
           const styles = meta.style
@@ -488,35 +487,6 @@ function decorateSections(main) {
             .filter((style) => style)
             .map((style) => toClassName(style.trim()));
           styles.forEach((style) => section.classList.add(style));
-        } else if (key === 'layout') {
-          const columnWidths = meta.layout
-            .split('-')
-            .filter((width) => width)
-            .map((width) => toClassName(`w-${width.trim()}`));
-          columnWidths.forEach((columnWidth) => {
-            const column = document.createElement('div');
-            column.classList.add(columnWidth);
-            columns.push(column);
-          });
-        } else if (key === 'arrange') {
-          const blocks = meta.arrange
-            .split('-')
-            .filter((numberOfBlocks) => numberOfBlocks)
-            .map((numberOfBlocks) => parseInt(numberOfBlocks, 10));
-          blocks.forEach((numberOfBlocks, colIndex) => {
-            for (let i = 0; i < numberOfBlocks; i += 1) {
-              const child = section.children.item(0);
-              if (child && colIndex < columns.length) {
-                columns[colIndex].append(child);
-              }
-            }
-          });
-          const container = document.createElement('div');
-          container.classList.add('layout');
-          columns.forEach((column) => {
-            container.append(column);
-          });
-          section.append(container);
         } else {
           section.dataset[toCamelCase(key)] = meta[key];
         }
@@ -654,8 +624,7 @@ function decorateBlock(block) {
  * @param {Element} main The container element
  */
 function decorateBlocks(main) {
-  main.querySelectorAll('div.section > div:not(.layout) > div').forEach(decorateBlock);
-  main.querySelectorAll('div.section > div.layout > div > div > div').forEach(decorateBlock);
+  main.querySelectorAll('div.section > div > div').forEach(decorateBlock);
 }
 
 /**
