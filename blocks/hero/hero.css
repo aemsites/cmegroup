@@ -1,9 +1,19 @@
+.hero-container .hero-wrapper:not(:has(.article)) {
+  max-width: unset;
+  padding: 0;
+}
+
 .hero-container .hero-wrapper:has(.article) {
   padding-inline: 10px;
 }
 
+.hero-container .hero-wrapper:has(.article.faq) {
+  padding-inline: 0;
+}
+
 .hero {
   position: relative;
+  padding: 40px 24px;
   min-height: 300px;
 }
 
@@ -18,28 +28,79 @@
   --centered-title-width: 90%;
 }
 
-.hero.article h1 {
-  text-align: center;
-  width: var(--centered-title-width);
+.hero.article.faq {
+  padding: 0;
+
+  --centered-title-width: 90%;
+}
+
+.hero h1 {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
   color: var(--background-color);
 }
 
-.hero.article > .labels-wrapper {
+.hero picture {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  object-fit: cover;
+  box-sizing: border-box;
+}
+
+.hero img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-position: 0 0;
+}
+
+.hero.article h1 {
+  text-align: center;
+  width: var(--centered-title-width);
+}
+
+.hero.article.faq h1 {
+  text-align: left;
+  margin: 0;
+}
+
+.hero.article.faq picture {
+  height: 6.25rem;
+  display: block;
+  position: unset;
+  margin-top: var(--nav-faux-height);
+}
+
+.hero.article.faq > div:has(picture) {
+  width: 100%;
+}
+
+.hero.article.faq p {
+  margin: 0;
+}
+
+.hero.article > .article-info {
   display: flex;
   flex-direction: column;
   gap: 2rem;
   width: var(--centered-title-width);
-  margin-top: 4rem;
+  color: var(--white);
+}
+
+.hero.article.faq > .article-info {
+  background-color: var(--white);
+  color: var(--blue2);
+  height: 100%;
+  padding-top: 2rem;
 }
 
 .hero.article .row {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
-  color: var(--background-color);
+  color: inherit;
   align-items: center;
   font-size: var(--body-font-size-s);
   line-height: 1.25rem;
@@ -54,6 +115,7 @@
   justify-content: center;
   gap: 0.5rem;
   order: 0;
+  color: inherit;
 }
 
 .hero.article .row > .article-featured-tag {
@@ -92,23 +154,16 @@
   display: inline-block;
 }
 
-.hero picture {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  object-fit: cover;
-  box-sizing: border-box;
-}
-
-.hero img {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
-  object-position: 0 0;
-}
-
 .hero.article .row .icon img {
   filter: var(--blue5-filter);
+}
+
+.hero.article.faq .row:first-of-type {
+  color: var(--blue4);
+}
+
+.hero.article.faq .row:last-of-type {
+  color: var(--gray3);
 }
 
 @media (width > 500px) {
@@ -122,6 +177,11 @@
     padding-inline: 2rem;
   }
 
+  .hero.article.faq picture {
+    height: 11.5625rem;
+    margin-top: 0;
+  }
+
   .hero.article .row .article-featured-tag {
     flex-basis: auto;
     order: 0;
@@ -130,11 +190,15 @@
 }
 
 @media (width > 992px) {
+  .hero {
+    padding: 40px 32px;
+  }
+
   .hero-container .hero-wrapper:has(.article) {
     padding-inline: 2.6875rem;
   }
 
-  .hero.article > .labels-wrapper {
+  .hero.article > .article-info {
     margin-top: 0;
   }
 }
@@ -142,6 +206,27 @@
 @media (width > 1200px) {
   .hero-container .hero-wrapper:has(.article) {
     padding-inline: 4.125rem;
+  }
+
+  .hero.article.faq {
+    height: 28.4375rem;
+
+    --centered-title-width: 50%;
+  }
+
+  .hero.article.faq > div {
+    width: var(--centered-title-width);
+  }
+
+  .hero.article.faq picture {
+    height: unset;
+    position: absolute;
+  }
+
+  .hero.article.faq > .article-info {
+    margin-top: 2.8rem;
+    padding-inline: 5rem;
+    padding-block: 4rem;
   }
 }
 
@@ -208,4 +293,3 @@
         margin-bottom: -9.375rem;
     }
 }
-

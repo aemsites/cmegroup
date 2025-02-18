@@ -42,6 +42,7 @@
 
     /* nav height */
     --nav-height: 64px;
+    --nav-faux-height: 50px;
 
     /* Global breakpoints */
     --screen-xs-min: 0;
