@@ -10,10 +10,11 @@ function decorateArticlePageHero(block) {
     alt: 'Read Time',
     loading: 'lazy',
   });
-  const readIconSpan = createElement('span', { class: 'icon icon-list' }, readIcon);
-  const readTimeText = createElement('span', null, `${readTime} READ`);
+
+  const readIconSpan = readTime ? createElement('span', { class: 'icon icon-list' }, readIcon) : null;
+  const readTimeText = readTime ? createElement('span', null, `${readTime} READ`) : null;
   const articleTime = createElement('span', { class: 'article-time' }, readIconSpan, readTimeText);
-  const featuredTag = createElement('span', { class: 'article-featured-tag' }, tag);
+  const featuredTag = tag ? createElement('span', { class: 'article-featured-tag' }, tag) : null;
   const saveIconOutlined = createElement('img', {
     src: '/icons/bookmark-outlined.svg',
     alt: 'Bookmark Icon',
@@ -31,12 +32,12 @@ function decorateArticlePageHero(block) {
   const row1 = createElement('div', { class: 'row' }, articleTime, featuredTag, bookmarkButton);
   const row2 = createElement('div', { class: 'row article-title' }, h1);
   const authorText = `By ${author}`;
-  const authors = createElement('span', { class: 'authors' }, authorText);
-  const articleDate = createElement('span', { class: 'article-date' }, date);
+  const authors = author ? createElement('span', { class: 'authors' }, authorText) : null;
+  const articleDate = date ? createElement('span', { class: 'article-date' }, date) : null;
   const row3 = createElement('div', { class: 'row' }, authors, articleDate);
 
-  const labelsWrapper = createElement('div', { class: 'labels-wrapper' }, row1, row2, row3);
-  block.append(labelsWrapper);
+  const articleInfo = createElement('div', { class: 'article-info' }, row1, row2, row3);
+  block.append(articleInfo);
 
   const bookmark = block.querySelector('.bookmark');
   const saveIcons = bookmark.querySelectorAll('.icon');
