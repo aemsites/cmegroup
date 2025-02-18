@@ -1,2 +1,5 @@
 mountpoints:
   /: https://drive.google.com/drive/folders/1efJvPLWKK0vdFzIWQPgFL0GP1skbXXek
+
+folders:
+  /education/events/econoday/: /education/events/econoday  
