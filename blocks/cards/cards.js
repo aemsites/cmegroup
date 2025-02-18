@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { createOptimizedPicture, readBlockConfig } from '../../scripts/aem.js';
-import { createElement } from '../../scripts/utils.js';
+import { createElement, parseTime } from '../../scripts/utils.js';
 
 const QUERY_INDEX_ENDPOINT = '/query-index.json';
 
@@ -41,6 +41,67 @@ function createStaticCards(block) {
     mainContainer.className = 'cards-body-container';
     mainContainer.style.backgroundImage = `url('${backgroundUrl}')`;
     cardsContainer.append(mainContainer);
+  } else if (block.classList.contains('promo-link')) {
+    const title = block.querySelector('h3');
+    const text = title.nextElementSibling;
+    const linkSrc = block.querySelector('p a').href;
+    const linkEl = document.createElement('a');
+    linkEl.href = linkSrc;
+    linkEl.append(title);
+    linkEl.append(text);
+    const mainContainer = document.createElement('div');
+    mainContainer.className = 'cards-body-container';
+    mainContainer.append(linkEl);
+    const backgroundUrl = block.querySelector('picture img');
+    if (backgroundUrl) {
+      mainContainer.style.backgroundImage = `url('${backgroundUrl.src}')`;
+    }
+    cardsContainer.append(mainContainer);
+  } else if (block.classList.contains('static')) {
+    const ul = document.createElement('ul');
+    [...block.children].forEach((row) => {
+      const li = document.createElement('li');
+      const image = row.querySelector('picture');
+      const title = row.querySelector('h3').innerText;
+      const linkSrc = row.querySelector('h3 a').href;
+      const date = row.querySelector('strong').innerText;
+      const format = row.querySelector('em').innerText;
+      const time = row.querySelector('em').parentNode.parentNode.nextElementSibling.querySelector('p').innerText;
+
+      const linkEl = document.createElement('a');
+      linkEl.href = linkSrc;
+
+      const imageContainer = document.createElement('div');
+      imageContainer.className = 'cards-image-container';
+      imageContainer.classList.add(`${format === 'video' ? 'video-card' : 'article-card'}`);
+      imageContainer.append(image);
+      imageContainer.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
+
+      const mainContainer = document.createElement('div');
+      mainContainer.className = 'cards-body-container';
+      const cardSubtitle = document.createElement('div');
+      cardSubtitle.className = 'cards-subtitle';
+      const cardTime = document.createElement('span');
+      cardTime.className = 'cards-time';
+      cardTime.innerText = `${time} ${format === 'video' ? 'Watch' : 'read'}`;
+      const cardDate = document.createElement('span');
+      cardDate.className = 'cards-date';
+      cardDate.innerText = date;
+      const cardTitle = document.createElement('h3');
+      cardTitle.innerText = title;
+
+      mainContainer.append(cardTime);
+      mainContainer.append(cardDate);
+      mainContainer.append(cardTitle);
+
+      linkEl.append(imageContainer);
+      linkEl.append(mainContainer);
+
+      li.append(linkEl);
+      ul.append(li);
+    });
+
+    cardsContainer.append(ul);
   } else {
     const ul = document.createElement('ul');
     [...block.children].forEach((row) => {
@@ -63,29 +124,28 @@ export function createDynamicCard({
   title,
   description,
   path,
+  'read-time': readTime,
 }) {
-  const img = createOptimizedPicture(
-    image,
-    title,
-    false,
-    [{ width: '750' }],
-  );
-
   const imageWrapper = createElement('div', { class: 'cards-card-image' });
-  const link = createElement('a', { href: path }, img);
-  imageWrapper.append(link);
+  const link = createElement('a', { href: path });
+  imageWrapper.style.backgroundImage = `url('${image}')`;
 
   const bodyWrapper = createElement('div', { class: 'cards-card-body' });
   bodyWrapper.innerHTML = `
+    <div class="card-subtitle">
+    course
+    <span>${parseTime(readTime)}</span>
+    </div>
     <div class="cards-card-title">
-      <h3><a href="${path}">${title}</a></h3>
+      <h3>${title}</h3>
     </div>
     <div class="cards-card-description">
       <p>${description}</p>
     </div>
   `;
+  link.append(bodyWrapper);
 
-  const li = createElement('li', { class: 'cards-card' }, imageWrapper, bodyWrapper);
+  const li = createElement('li', { class: 'cards-card' }, imageWrapper, link);
   return li;
 }
 

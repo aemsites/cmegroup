@@ -58,8 +58,30 @@ function addBlockDividerLine(block) {
   block.appendChild(divider);
 }
 
+function parseTime(time) {
+  if (!time) {
+    return '';
+  }
+  const parts = time.split(':');
+  if (parts.length !== 2) {
+    return '';
+  }
+  const timeInMins = parseInt(parts[1], 10) > 30
+    ? parseInt(parts[0], 10) + 1 : parseInt(parts[0], 10);
+  let hours = 0;
+  let mins = 0;
+
+  if (timeInMins > 60) {
+    hours = Math.floor(timeInMins / 60);
+    mins = timeInMins - 60 * hours;
+    return `${hours} hr ${mins} min`;
+  }
+  return `${timeInMins} min`;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
   addBlockDividerLine,
+  parseTime,
 };
