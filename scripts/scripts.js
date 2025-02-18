@@ -10,6 +10,7 @@ import {
   loadSections,
   loadCSS,
   readBlockConfig,
+  toCamelCase,
   toClassName,
   getMetadata,
 } from './aem.js';
