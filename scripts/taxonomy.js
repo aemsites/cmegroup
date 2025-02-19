@@ -4,7 +4,7 @@ function titleToName(name) {
   return name.toLowerCase().replace(' ', '-');
 }
 
-const taxonomyEndpoint = '/config/sidekick/test.json';
+const taxonomyEndpoint = '/config/sidekick/taxonomy.json';
 let taxonomyPromise;
 function fetchTaxonomy() {
   if (!taxonomyPromise) {
