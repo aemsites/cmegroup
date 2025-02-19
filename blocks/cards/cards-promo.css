@@ -1,0 +1,76 @@
+.cards.promo ul {
+    display: block;
+    justify-content: space-between;
+}
+
+.cards.promo li {
+    width: 100%;
+    border: none;
+}
+
+.cards.promo .cards-card-body {
+    padding: 1.875rem;
+    margin: 0;
+    position: relative;
+}
+
+.cards.promo .cards-card-body::after{
+    height: 3.75rem;
+    width: 3.75rem;
+    font-family: var(--cme-group-icons);
+    content: var(--icon-arrow-right-thin);
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: var(--blue4);
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cards.promo .cards-card-body h4 {
+    font-size: 1.25rem;
+    line-height: 2.1875rem;
+    letter-spacing: 0.0125rem;
+    font-weight: 600;
+    font-family: var(--averta);
+    margin: 0;
+}
+
+.cards.promo .cards-card-body h4 strong {
+    font-weight: 600;
+}
+
+.cards.promo .cards-card-body h4 a {
+    color: var(--blue2);
+    display: block;
+}
+
+.cards.promo .cards-card-body p a{
+    color: var(--gray3);
+    padding: 0;
+    font-size: 0.875rem;
+    line-height: 24px;
+    text-transform: none;
+    font-weight: 400;
+    letter-spacing: normal;
+}
+
+.cards.promo .cards-card-body h4 a:hover {
+    text-decoration: none;
+}
+
+.cards.promo .cards-card-body p{
+    margin-bottom: 0;
+}
+
+.cards.promo .cards-card-body p a:hover{
+    text-decoration: none;
+}
+
+@media (width >= 993px) {
+    .cards.promo ul {
+        display: flex;
+    }
+}

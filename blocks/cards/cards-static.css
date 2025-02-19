@@ -1,0 +1,101 @@
+.cards.static li {
+    box-shadow: 0 .0625rem .3125rem .0625rem hsla(0deg 0% 70% / 70%);
+    display: block;
+    width: 100%;
+}
+
+.cards.static li a {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.cards.static li a.video-card .cards-image-container {
+    position: relative;
+}
+
+.cards.static li a.video-card .cards-image-container::before {
+    background-color: var(--gray2);
+    border-radius: 2.5rem;
+    height: 5rem;
+    left: calc(50% - 40px);
+    opacity: .8;
+    top: 4.9375rem;
+    transition: all .2s ease-in-out;
+    width: 5rem;
+    position: absolute;
+    content: '';
+}
+
+.cards.static li a.video-card .cards-image-container::after {
+    font-family: var(--cme-group-icons);
+    color: var(--white);
+    font-style: normal;
+    content: var(--icon-play);
+    left: calc(50% - 0.4375rem);
+    top: calc(50% - 0.875rem);
+    position: absolute;
+}
+
+.cards.static li a .cards-image-container img{
+    height: 14.375rem;
+}
+
+.cards.static li a .cards-body-container {
+    min-height: 8.125rem;
+    padding: 1.25rem 1.25rem 2.5rem;
+}
+
+.cards.static li a .cards-body-container .cards-time,
+.cards.static li a .cards-body-container .cards-date {
+    color: var(--blue1);
+    font-family: var(--averta);
+    font-style: italic;
+    font-weight: 400;
+    font-size: .6875rem;
+    line-height: .6875rem;
+    margin-top: 0;
+    display: inline-block;
+}
+
+.cards.static li a:hover .cards-body-container .cards-time,
+.cards.static li a:hover .cards-body-container .cards-date {
+    text-decoration: none;
+}
+
+.cards.static li a .cards-body-container .cards-time::before {
+    font-family: var(--cme-group-icons);
+    padding-right: .625rem;
+    color: var(--blue5);
+    font-style: normal;
+}
+
+.cards.static li a.video-card .cards-body-container .cards-time::before {
+    content: var(--icon-play);
+}
+
+.cards.static li a.article-card .cards-body-container .cards-time::before {
+    content: var(--icon-list);
+}
+
+.cards.static li a .cards-body-container .cards-date::before {
+    content: '.';
+    padding: .625rem;
+    position: relative;
+    top: -.1875rem;
+}
+
+.cards.static li a .cards-body-container h3 {
+    color: var(--blue1);
+    font-family: var(--averta);
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.625rem;
+    margin-bottom: 0;
+    margin-top: 1.25rem;
+    display: inline-block;
+}
+
+.cards.static li a:hover .cards-body-container h3 {
+    text-decoration: none;
+}

@@ -70,10 +70,10 @@ function createStaticCards(block) {
 
       const linkEl = document.createElement('a');
       linkEl.href = linkSrc;
+      linkEl.classList.add(`${format === 'video' ? 'video-card' : 'article-card'}`);
 
       const imageContainer = document.createElement('div');
       imageContainer.className = 'cards-image-container';
-      imageContainer.classList.add(`${format === 'video' ? 'video-card' : 'article-card'}`);
       imageContainer.append(image);
       imageContainer.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
 
