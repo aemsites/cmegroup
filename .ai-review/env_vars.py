@@ -12,8 +12,12 @@ class EnvVars:
         self.base_ref = os.getenv('GITHUB_BASE_REF') 
         self.head_ref = os.getenv('GITHUB_HEAD_REF') 
 
-        self.chat_gpt_token = os.getenv('CHATGPT_KEY') 
-        self.chat_gpt_model = os.getenv('CHATGPT_MODEL') 
+        # self.chat_gpt_token = os.getenv('CHATGPT_KEY') 
+        # self.chat_gpt_model = os.getenv('CHATGPT_MODEL')
+        self.gpt_model = os.getenv('GPT_MODEL')
+        self.azure_api_version = os.getenv('AZURE_API_VERSION')
+        self.azure_endpoint = os.getenv('AZURE_ENDPOINT')
+        self.azure_openai_api_key = os.getenv('AZURE_OPENAI_API_KEY')
 
         self.target_extensions = os.getenv('TARGET_EXTENSIONS')
         self.target_extensions = [lang.strip() for lang in self.target_extensions.split(",")]
@@ -27,8 +31,11 @@ class EnvVars:
             "token" : self.token,
             "base_ref" : self.base_ref,
             "pull_number" : self.pull_number,
-            "chat_gpt_token" : self.chat_gpt_token,
-            "chat_gpt_model" : self.chat_gpt_model,
+            # "chat_gpt_token" : self.chat_gpt_token,
+            "gpt_model" : self.gpt_model,
+            "api_version" : self.azure_api_version,
+            "endpoint" : self.azure_endpoint,
+            "openai_api_key" : self.azure_openai_api_key,
         }
 
     def check_vars(self):

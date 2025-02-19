@@ -1,12 +1,19 @@
 import os
-from openai import OpenAI
+# from openai import OpenAI
+from openai import AzureOpenAI
 from ai.ai_bot import AiBot
 
-class ChatGPT(AiBot):
+class GPT(AiBot):
 
-    def __init__(self, token, model):
+    def __init__(self, api_key, model, endpoint, api_version):
         self.__chat_gpt_model = model
-        self.__client = OpenAI(api_key = token)
+        # self.__client = OpenAI(api_key = token)
+        self.__client = AzureOpenAI(
+            api_key=api_key,
+            api_version=api_version,
+            azure_endpoint=endpoint
+        )
+
 
     def ai_request_diffs(self, code, diffs):
         stream = self.__client.chat.completions.create(
