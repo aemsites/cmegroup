@@ -10,6 +10,8 @@ from repository.pr_history import PRHistory
 from dataclasses import dataclass
 from typing import List, Optional
 from log_manager import LogManager
+import re
+from ai.line_comment import Severity
 
 @dataclass
 class FileReviewData:
@@ -243,20 +245,36 @@ def process_single_file(file: str, vars, ai: GPT, pr_history: PRHistory) -> File
 
 def post_review_comments(github: GitHub, files_reviewed: List[FileReviewData]) -> None:
     """Post all review comments for processed files"""
+    # Track which lines we've already commented on for each file
+    commented_lines = {}
+    
     for file_data in files_reviewed:
         if not file_data.success:
             continue
-
+            
+        commented_lines[file_data.file] = set()
+        
         # Post individual comments
         for response_item in file_data.responses:
             if response_item.line:
-                result = post_line_comment(github=github, file=file_data.file, text=response_item.text, line=response_item.line)
-                if not result:
-                    result = post_general_comment(github=github, file=file_data.file, text=response_item.text)
+                # Skip if we already commented on this line
+                if response_item.line in commented_lines[file_data.file]:
+                    continue
+                    
+                # Try to post as line comment first
+                result = post_line_comment(github=github, file=file_data.file, 
+                                        text=response_item.text, line=response_item.line, severity=response_item.severity)
+                
+                if result:
+                    # Track that we commented on this line
+                    commented_lines[file_data.file].add(response_item.line)
+                else:
+                    # If line comment fails, post as general comment
+                    post_general_comment(github=github, file=file_data.file, 
+                                      text=f"Line {response_item.line}: {response_item.text}")
             else:
-                result = post_general_comment(github=github, file=file_data.file, text=response_item.text)
-
-        # Note: Removed individual file summary posting
+                # Only post general comments that aren't tied to specific lines
+                post_general_comment(github=github, file=file_data.file, text=response_item.text)
 
 def main():
     Log.print_green("Starting AI Review process...")
@@ -316,19 +334,47 @@ def main():
 
     Log.print_green("AI Review process completed successfully")
 
-def post_line_comment(github: GitHub, file: str, text:str, line: int):
-    Log.print_green("Posting line", file, line, text)
+def post_line_comment(github: GitHub, file: str, text: str, line: int, severity: Severity) -> bool:
+    # Add severity emoji to the start of the comment
+    text_with_severity = f"{severity.value} {text}"
+    
+    Log.print_green("Posting line", file, line, text_with_severity)
     try:
+        # 1) Retrieve the unified diff from wherever you stored it (e.g., from the FileReviewData)
+        file_review_data = next((f for f in files_reviewed if f.file == file), None)
+        if not file_review_data:
+            Log.print_red("No review data found for", file)
+            return False
+        
+        # 2) Convert AI line to GitHub diff position
+        #    If it's a newly created file, you might pass is_new_file=True
+        #    e.g. if file_review_data.history suggests it's new
+        is_new_file = False  # or compute it
+        position = compute_diff_position(
+            diff_text=file_review_data.diffs, 
+            ai_line=line,
+            is_new_file=is_new_file
+        )
+        if position == 0:
+            Log.print_red("Unable to find correct diff position for line", line)
+            return False
+        
+        # 3) Use the position in the GitHub API call
+        commit_id = Git.get_last_commit_sha(file=file)
         git_response = github.post_comment_to_line(
-            text=text, 
-            commit_id=Git.get_last_commit_sha(file=file), 
+            text=text_with_severity, 
+            commit_id=commit_id, 
             file_path=file, 
-            line=line,
+            line=position  # This is the diff-based position
         )
         Log.print_yellow("Posted", git_response)
         return True
+
     except RepositoryError as e:
         Log.print_red("Failed line comment", e)
+        return False
+    except Exception as e:
+        Log.print_red("Unexpected error posting line comment", e)
         return False
 
 def post_general_comment(github: GitHub, file: str, text:str) -> bool:
@@ -341,6 +387,79 @@ def post_general_comment(github: GitHub, file: str, text:str) -> bool:
     except RepositoryError:
         Log.print_red("Failed general comment")
         return False
+
+def compute_diff_position(diff_text: str, ai_line: int, is_new_file: bool = False) -> int:
+    """
+    Convert an AI line number (ai_line) into a GitHub diff-based 'position'.
+    diff_text is the unified diff for a single file. 
+    For new files, old lines won't exist, so we just map from the new hunk lines.
+    
+    Returns the GitHub position within the diff, or 0 if not found.
+    """
+    # Basic pattern to match hunk headers like: @@ -12,6 +14,7 @@
+    hunk_header_pattern = re.compile(r"^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@")
+    
+    # We'll track how many lines are in the diff so far (GitHub's 'position')
+    position_in_diff = 0
+
+    # We'll use these to track the current old/new active line numbers for each hunk
+    old_line = 0
+    new_line = 0
+
+    # Are we reading lines from within a hunk?
+    in_hunk = False
+
+    # For each line in the diff...
+    for diff_line in diff_text.splitlines():
+        position_in_diff += 1  # Each line in the unified diff is 1 "position"
+        
+        # Check if line is a hunk header
+        match = hunk_header_pattern.match(diff_line)
+        if match:
+            # Extract hunk ranges
+            old_line_start = int(match.group(1))
+            new_line_start = int(match.group(3))
+            
+            old_line = old_line_start
+            new_line = new_line_start
+            in_hunk = True
+            continue
+        
+        if not in_hunk:
+            # We haven't encountered a hunk header yet, so keep going
+            continue
+        
+        if diff_line.startswith('---') or diff_line.startswith('+++'):
+            # Usually the file header lines
+            continue
+        
+        # If line starts with '-', it's removed from original
+        if diff_line.startswith('-'):
+            # Use old_line, but do not increment new_line
+            if not is_new_file and old_line == ai_line:
+                return position_in_diff
+            old_line += 1
+        
+        # If line starts with '+', it's added
+        elif diff_line.startswith('+'):
+            # Use new_line, but do not increment old_line
+            if is_new_file or new_line == ai_line:
+                return position_in_diff
+            new_line += 1
+        
+        # If line starts with neither '-' nor '+', it's context
+        else:
+            # Mapped to old_line and new_line
+            if not is_new_file and old_line == ai_line:
+                return position_in_diff
+            if is_new_file and new_line == ai_line:
+                return position_in_diff
+            
+            old_line += 1
+            new_line += 1
+
+    # If we never found a match, return 0 (or you can pick another sentinel)
+    return 0
 
 if __name__ == "__main__":
     try:

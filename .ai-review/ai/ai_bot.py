@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from ai.line_comment import LineComment
+from ai.line_comment import Severity
 
 class AiBot(ABC):
     
@@ -251,24 +252,43 @@ Full code from the file:
         lines = input.strip().split("\n")
         models = []
 
+        severity_map = {
+            "CRITICAL": Severity.CRITICAL,
+            "HIGH": Severity.HIGH,
+            "MEDIUM": Severity.MEDIUM,
+            "LOW": Severity.LOW
+        }
+
         for full_text in lines:
-            number_str = ''
-            number = 0
             full_text = full_text.strip()
             if len(full_text) == 0:
                 continue
 
-            reading_number = True
-            for char in full_text.strip():
-                if reading_number:
-                    if char.isdigit():
-                        number_str += char
-                    else:
-                        break
+            # Extract line number
+            number_str = ''
+            for char in full_text:
+                if char.isdigit():
+                    number_str += char
+                else:
+                    break
+            
+            if not number_str:
+                continue
+                
+            line = int(number_str)
+            
+            # Extract severity
+            severity = Severity.MEDIUM  # Default
+            for sev_text, sev_enum in severity_map.items():
+                if f"[{sev_text}]" in full_text:
+                    severity = sev_enum
+                    break
 
-            if number_str:
-                number = int(number_str)
-
-            models.append(LineComment(line=number, text=full_text))
+            models.append(LineComment(
+                line=line,
+                text=full_text,
+                severity=severity
+            ))
+            
         return models
     
