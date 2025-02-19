@@ -219,8 +219,10 @@ class PRHistory:
             
             for comment in review_comments:
                 try:
+                    thread_id = None
+                    
                     # If this is a reply to another comment
-                    if hasattr(comment, 'in_reply_to_id'):
+                    if hasattr(comment, 'in_reply_to_id') and comment.in_reply_to_id:
                         thread_id = comment.in_reply_to_id
                         if thread_id in threads:
                             threads[thread_id]['replies'].append({
@@ -228,9 +230,16 @@ class PRHistory:
                                 'author': comment.user.login,
                                 'reactions': self._get_reactions(comment)
                             })
+                            
+                            # Update resolution after adding reply
+                            threads[thread_id]['resolution'] = self._determine_thread_resolution(
+                                threads[thread_id]['original_comment'],
+                                threads[thread_id]['replies']
+                            )
                     else:
                         # This is a new thread
-                        threads[comment.id] = {
+                        thread_id = comment.id
+                        threads[thread_id] = {
                             'original_comment': {
                                 'body': comment.body,
                                 'author': comment.user.login,
@@ -241,12 +250,6 @@ class PRHistory:
                             'replies': [],
                             'resolution': None
                         }
-                        
-                    # Try to determine if there was a resolution
-                    threads[thread_id]['resolution'] = self._determine_thread_resolution(
-                        threads[thread_id]['original_comment'],
-                        threads[thread_id]['replies']
-                    )
                     
                 except Exception as e:
                     Log.print_yellow(f"Error processing comment thread: {str(e)}")
