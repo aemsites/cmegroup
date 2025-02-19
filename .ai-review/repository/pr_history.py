@@ -16,6 +16,7 @@ class PRHistory:
             if self._is_new_file(file_path):
                 Log.print_green(f"New file detected: {file_path}")
                 similar_files = self._get_similar_files(file_path)
+                Log.print_green(f"Similar files: {similar_files}")
                 if similar_files:  # Only proceed if similar files found
                     Log.print_green(f"Found {len(similar_files)} similar files in the same directory")
                     

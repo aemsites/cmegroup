@@ -107,13 +107,13 @@ def create_review_summary(file_path, file_content, file_diffs, pr_history, respo
 
     return "\n".join(summary)
 
-def create_overall_summary(pr_title, pr_description, files_reviewed):
+def create_overall_summary(pr_title, pr_description, files_reviewed: List[FileReviewData]):
     """Create an overall summary of all files reviewed"""
     
     # Group files by type/directory
     files_by_type = {}
     for file_data in files_reviewed:
-        file_type = os.path.splitext(file_data['file'])[1].lstrip('.')
+        file_type = os.path.splitext(file_data.file)[1].lstrip('.')
         if file_type not in files_by_type:
             files_by_type[file_type] = []
         files_by_type[file_type].append(file_data)
@@ -128,8 +128,8 @@ def create_overall_summary(pr_title, pr_description, files_reviewed):
     ]
 
     # Add statistics
-    total_issues = sum(len(file_data['responses']) for file_data in files_reviewed)
-    files_with_issues = sum(1 for file_data in files_reviewed if file_data['responses'])
+    total_issues = sum(len(file_data.responses) for file_data in files_reviewed)
+    files_with_issues = sum(1 for file_data in files_reviewed if file_data.responses)
     
     summary.extend([
         f"- Total files reviewed: {len(files_reviewed)}",
@@ -153,7 +153,7 @@ def create_overall_summary(pr_title, pr_description, files_reviewed):
         # Collect common issues for this file type
         type_issues = defaultdict(int)
         for file_data in files:
-            for response in file_data['responses']:
+            for response in file_data.responses:
                 text = response.text.lower()
                 for issue_type, keywords in {
                     'style': ['style', 'format', 'spacing', 'naming'],
@@ -168,7 +168,7 @@ def create_overall_summary(pr_title, pr_description, files_reviewed):
                             common_patterns[issue_type].append(text)
 
         # Add file type summary
-        files_list = [f"- `{file_data['file']}` ({len(file_data['responses'])} issues)" 
+        files_list = [f"- `{file_data.file}` ({len(file_data.responses)} issues)" 
                      for file_data in files]
         summary.extend(files_list)
         
@@ -300,15 +300,7 @@ def post_review_comments(github: GitHub, files_reviewed: List[FileReviewData]) -
             else:
                 result = post_general_comment(github=github, file=file_data.file, text=response_item.text)
 
-        # Create and post file summary
-        summary = create_review_summary(
-            file_data.file,
-            file_data.content,
-            file_data.diffs,
-            file_data.history,
-            file_data.responses
-        )
-        post_general_comment(github=github, file=file_data.file, text=summary)
+        # Note: Removed individual file summary posting
 
 def main():
     Log.print_green("Starting AI Review process...")
@@ -365,10 +357,10 @@ def main():
                     error=str(e)
                 ))
 
-    # Post all comments
+    # Post line-specific comments
     post_review_comments(github, files_reviewed)
 
-    # Create and post overall summary
+    # Create and post single overall summary
     pr_title = github.get_pr_title()
     pr_description = github.get_pr_description()
     overall_summary = create_overall_summary(pr_title, pr_description, files_reviewed)
