@@ -1,6 +1,14 @@
+from enum import Enum
+from dataclasses import dataclass
 
+class Severity(Enum):
+    CRITICAL = "🔴"  # Critical bugs, security issues
+    HIGH = "🟠"      # Major code quality, performance issues
+    MEDIUM = "🟡"    # Best practices violations
+    LOW = "🔵"       # Minor improvements
+
+@dataclass
 class LineComment:
-
-    def __init__(self, line: int, text: str):
-        self.line = line
-        self.text = text
+    line: int
+    text: str
+    severity: Severity = Severity.MEDIUM  # Default severity

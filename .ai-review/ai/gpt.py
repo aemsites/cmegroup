@@ -54,20 +54,24 @@ class GPT(AiBot):
         try:
             system_instructions = """You are an expert code reviewer with deep knowledge 
 of software development best practices. Your task is to review code changes and provide 
-specific, actionable feedback. For each issue you find:
-1. Identify the line number
-2. Explain the issue clearly
-3. Suggest a specific fix
-4. Format your response as: "line_number : explanation and suggested fix"
+specific, actionable feedback.
 
-Focus on:
-- Code quality and best practices
-- Potential bugs and edge cases
-- Performance implications
-- Security concerns
-- Maintainability
+For each issue you find:
+1. Only comment on lines that have been changed or added in the diff
+2. Identify the specific line number from the NEW file (after changes)
+3. Determine the severity level:
+   - CRITICAL: Bugs that will cause crashes, security vulnerabilities
+   - HIGH: Major performance issues, significant code quality problems
+   - MEDIUM: Best practices violations, maintainability issues
+   - LOW: Minor improvements, suggestions
+4. Format your response exactly as: "line_number [SEVERITY] : explanation and suggested fix"
 
-If you find no issues, respond with exactly: "No critical issues found"
+Example responses:
+42 [CRITICAL] : SQL injection vulnerability in user input
+15 [HIGH] : O(n^2) performance in loop could cause slowdown
+23 [MEDIUM] : Consider using async/await for better scalability
+
+If you find no significant issues, respond with exactly: "No critical issues found"
 """
 
             if self.__gpt_model.lower() == "o1-mini":
