@@ -38,3 +38,21 @@ class GitHub(Repository):
         else:
             raise RepositoryError(f"Error with general comment {response.status_code} : {response.text}")
         
+    def get_pr_title(self):
+        """Get the PR title"""
+        url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/pulls/{self.pull_number}"
+        headers = self.__header_accept_json | self.__header_authorization
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            return response.json().get('title', '')
+        return ''
+
+    def get_pr_description(self):
+        """Get the PR description"""
+        url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/pulls/{self.pull_number}"
+        headers = self.__header_accept_json | self.__header_authorization
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            return response.json().get('body', '')
+        return ''
+        

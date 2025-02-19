@@ -25,7 +25,6 @@ jobs:
         env:
           GITHUB_HEAD_REF: ${{ github.head_ref }}
           GITHUB_BASE_REF: ${{ github.base_ref }}
-          # CHATGPT_KEY: ${{ secrets.CHATGPT_KEY }}
           GPT_MODEL: ${{ secrets.GPT_MODEL }}
           AZURE_API_VERSION: ${{ secrets.AZURE_API_VERSION }}
           AZURE_ENDPOINT: ${{ secrets.AZURE_ENDPOINT }}
