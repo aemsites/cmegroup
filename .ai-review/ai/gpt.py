@@ -33,6 +33,32 @@ class GPT(AiBot):
     def _make_request_with_timeout(self, messages, timeout=300):  # 5 minutes timeout
         """Make API request with timeout handling"""
         try:
+            # Add system message to define AI's role
+            system_message = {
+                "role": "system",
+                "content": """You are an expert code reviewer with deep knowledge of software development best practices. 
+                Your task is to review code changes and provide specific, actionable feedback.
+                
+                For each issue you find:
+                1. Identify the line number
+                2. Explain the issue clearly
+                3. Suggest a specific fix
+                4. Format your response as: "line_number : explanation and suggested fix"
+                
+                Focus on:
+                - Code quality and best practices
+                - Potential bugs and edge cases
+                - Performance implications
+                - Security concerns
+                - Maintainability
+                
+                If you find no issues, respond with exactly: "No critical issues found"
+                """
+            }
+            
+            # Combine system message with user message
+            all_messages = [system_message] + messages
+            
             request_content = messages[0]['content']
             Log.print_green(f"Making API request with {timeout}s timeout")
             Log.print_green(f"Request size: {len(request_content)} characters")
@@ -40,7 +66,7 @@ class GPT(AiBot):
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 future = executor.submit(
                     self.__client.chat.completions.create,
-                    messages=messages,
+                    messages=all_messages,  # Use combined messages
                     model=self.__gpt_model,
                     stream=False,
                     timeout=timeout
