@@ -121,9 +121,6 @@ def create_overall_summary(pr_title, pr_description, files_reviewed: List[FileRe
     # Build overall summary
     summary = [
         "# 🤖 AI Code Review Summary\n",
-        f"## PR Context",
-        f"**Title:** {pr_title}",
-        f"**Description:** {pr_description}\n",
         "## Overview"
     ]
 
@@ -137,20 +134,9 @@ def create_overall_summary(pr_title, pr_description, files_reviewed: List[FileRe
         f"- Total issues found: {total_issues}\n"
     ])
 
-    # Group common patterns/issues
-    common_patterns = {
-        'style': [],
-        'performance': [],
-        'accessibility': [],
-        'best_practices': [],
-        'security': []
-    }
-
     # Analyze each file type
     for file_type, files in files_by_type.items():
         summary.append(f"### {file_type.upper()} Files")
-        
-        # Add file list with issue count
         files_list = [f"- `{file_data.file}` ({len(file_data.responses)} issues)" 
                      for file_data in files]
         summary.extend(files_list)
@@ -171,9 +157,8 @@ def create_overall_summary(pr_title, pr_description, files_reviewed: List[FileRe
                         js_recs.append("- Follow consistent code style and naming conventions")
                     if 'performance' in response.text.lower():
                         js_recs.append("- Optimize performance critical code")
-                    # ... add other specific recommendations based on actual issues
             if js_recs:
-                summary.extend(list(set(js_recs)))  # Remove duplicates
+                summary.extend(list(set(js_recs)))
         
         if 'css' in files_by_type and any(len(f.responses) > 0 for f in files_by_type['css']):
             summary.append("\n### CSS Recommendations")
@@ -184,18 +169,8 @@ def create_overall_summary(pr_title, pr_description, files_reviewed: List[FileRe
                         css_recs.append("- Reduce selector specificity")
                     if 'responsive' in response.text.lower():
                         css_recs.append("- Improve responsive design patterns")
-                    # ... add other specific recommendations based on actual issues
             if css_recs:
-                summary.extend(list(set(css_recs)))  # Remove duplicates
-
-        # Add common patterns section only if patterns were found
-        patterns_found = any(patterns for patterns in common_patterns.values())
-        if patterns_found:
-            summary.append("\n## Common Patterns Found")
-            for pattern_type, patterns in common_patterns.items():
-                if patterns:
-                    summary.append(f"\n### {pattern_type.title()} Patterns")
-                    summary.extend([f"- {pattern}" for pattern in patterns[:3]])
+                summary.extend(list(set(css_recs)))
 
     return "\n".join(summary)
 

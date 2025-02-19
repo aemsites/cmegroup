@@ -6,7 +6,17 @@ class PRHistory:
     def __init__(self, token, repo_owner, repo_name):
         self.g = Github(token)
         self.repo = self.g.get_repo(f"{repo_owner}/{repo_name}")
+        self._cached_prs = None  # Cache for merged PRs
         
+    def _get_merged_prs(self):
+        """Get and cache merged PRs"""
+        if self._cached_prs is None:
+            Log.print_green("Fetching all merged PRs (this will be cached)...")
+            merged_prs = self.repo.get_pulls(state='closed', sort='updated', direction='desc')
+            self._cached_prs = [pr for pr in merged_prs if pr.merged]
+            Log.print_green(f"Cached {len(self._cached_prs)} merged PRs")
+        return self._cached_prs
+
     def get_relevant_prs(self, file_path, limit=5):
         """Get recent PRs that modified the given file or similar files in the same directory"""
         try:
@@ -21,12 +31,10 @@ class PRHistory:
                     Log.print_green(f"Found {len(similar_files)} similar files in the same directory")
                     
                     # Get PRs for each similar file
+                    merged_prs = self._get_merged_prs()  # Use cached PRs
                     for similar_file in similar_files:
                         try:
                             Log.print_green(f"Searching PRs that modified {similar_file}")
-                            
-                            # Get all merged PRs, sorted by most recent
-                            merged_prs = self.repo.get_pulls(state='closed', sort='updated', direction='desc')
                             
                             # Check each PR's files
                             pr_count = 0
@@ -35,9 +43,6 @@ class PRHistory:
                                     break
                                     
                                 try:
-                                    if not pr.merged:  # Skip PRs that weren't merged
-                                        continue
-                                        
                                     Log.print_green(f"Checking PR #{pr.number} for {similar_file}")
                                     files_changed = [f.filename for f in pr.get_files()]
                                     
@@ -143,8 +148,8 @@ class PRHistory:
             Log.print_green(f"Searching PRs that modified {file_path}")
             relevant_prs = []
             
-            # Get all merged PRs, sorted by most recent
-            merged_prs = self.repo.get_pulls(state='closed', sort='updated', direction='desc')
+            # Use cached PRs
+            merged_prs = self._get_merged_prs()
             
             # Check each PR's files
             for pr in merged_prs:
@@ -152,9 +157,6 @@ class PRHistory:
                     break
                     
                 try:
-                    if not pr.merged:  # Skip PRs that weren't merged
-                        continue
-                        
                     Log.print_green(f"Checking PR #{pr.number} for {file_path}")
                     files_changed = [f.filename for f in pr.get_files()]
                     
@@ -185,19 +187,28 @@ class PRHistory:
         try:
             # Get review comments (inline comments)
             for comment in pr.get_review_comments():
-                comments.append({
-                    'body': comment.body,
-                    'path': comment.path,
-                    'line': comment.line
-                })
+                try:
+                    comments.append({
+                        'body': comment.body,
+                        'path': comment.path if hasattr(comment, 'path') else None,
+                        'line': comment.position if hasattr(comment, 'position') else None
+                    })
+                except Exception as e:
+                    Log.print_yellow(f"Error processing review comment: {str(e)}")
+                    continue
             
             # Get issue comments (general PR comments)
             for comment in pr.get_issue_comments():
-                comments.append({
-                    'body': comment.body,
-                    'path': None,
-                    'line': None
-                })
+                try:
+                    comments.append({
+                        'body': comment.body,
+                        'path': None,
+                        'line': None
+                    })
+                except Exception as e:
+                    Log.print_yellow(f"Error processing issue comment: {str(e)}")
+                    continue
+
         except Exception as e:
             Log.print_yellow(f"Error fetching PR comments: {str(e)}")
         
