@@ -15,7 +15,7 @@ def main():
     vars = EnvVars()
     vars.check_vars()
 
-    ai = GPT(vars.openai_api_key, vars.gpt_model, vars.endpoint, vars.api_version)
+    ai = GPT(vars.azure_openai_api_key, vars.gpt_model, vars.azure_endpoint, vars.azure_api_version)
     github = GitHub(vars.token, vars.owner, vars.repo, vars.pull_number)
 
     remote_name = Git.get_remote_name()
