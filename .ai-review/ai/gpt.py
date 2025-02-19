@@ -22,11 +22,11 @@ class GPT(AiBot):
             api_key=token,
             api_version=os.getenv("AZURE_API_VERSION", "2024-02-15-preview"),
             azure_endpoint=os.getenv("AZURE_ENDPOINT"),
-            timeout=90  # Increased base client timeout to 90 seconds
+            timeout=300  # Increased to 5 minutes (300 seconds) to match our max retry wait
         )
         Log.print_green("GPT client initialized")
 
-    def _make_request_with_timeout(self, messages, timeout=60):
+    def _make_request_with_timeout(self, messages, timeout=180):  # Increased default to 3 minutes
         """Make API request with timeout handling"""
         try:
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -47,18 +47,23 @@ class GPT(AiBot):
             raise
 
     @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=2, max=10),
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(
+            multiplier=10,
+            min=10,
+            max=240
+        ),
         retry=(
             retry_if_exception_type(requests.exceptions.RequestException) |
             retry_if_exception_type(ConnectionError)
         ),
-        before_sleep=before_sleep_log(Log.print_yellow, "Retrying request"),
+        before_sleep=before_sleep_log(Log.print_yellow, "Retrying request after wait period"),
         reraise=True
     )
     def ai_request_diffs(self, code, diffs, file_path, pr_history=None):
         """
         Request AI review with improved error handling and timeout management.
+        Retry sequence: 10s → 30s → 1min → 2min → 4min
         Returns "No critical issues found" in case of timeout.
         """
         Log.print_green("Starting AI request for diffs")
@@ -75,10 +80,10 @@ class GPT(AiBot):
             
             messages = [{"role": "user", "content": content}]
             
-            # Use timeout handler
+            # Use timeout handler with increased timeout
             response = self._make_request_with_timeout(
                 messages,
-                timeout=60  # 60 seconds timeout for the request
+                timeout=180  # Increased to 3 minutes (180 seconds)
             )
             
             Log.print_green("Received response from Azure OpenAI")
