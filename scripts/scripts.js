@@ -3,15 +3,98 @@ import {
   loadFooter,
   decorateButtons,
   decorateIcons,
-  decorateSections,
-  decorateBlocks,
+  decorateBlock,
   decorateTemplateAndTheme,
   waitForFirstImage,
   loadSection,
   loadSections,
   loadCSS,
+  readBlockConfig,
+  toCamelCase,
+  toClassName,
   getMetadata,
 } from './aem.js';
+
+/**
+ * Decorates all blocks in a container element. (Override from aem.js)
+ * @param {Element} main The container element
+ */
+function decorateBlocks(main) {
+  main.querySelectorAll('div.section > div:not(.layout) > div').forEach(decorateBlock);
+  main.querySelectorAll('div.section > div.layout > div > div > div').forEach(decorateBlock);
+}
+
+/**
+ * Decorates all sections in a container element. (Override from aem.js)
+ * @param {Element} main The container element
+ */
+function decorateSections(main) {
+  main.querySelectorAll(':scope > div').forEach((section) => {
+    const wrappers = [];
+    let defaultContent = false;
+    [...section.children].forEach((e) => {
+      if (e.tagName === 'DIV' || !defaultContent) {
+        const wrapper = document.createElement('div');
+        wrappers.push(wrapper);
+        defaultContent = e.tagName !== 'DIV';
+        if (defaultContent) wrapper.classList.add('default-content-wrapper');
+      }
+      wrappers[wrappers.length - 1].append(e);
+    });
+    wrappers.forEach((wrapper) => section.append(wrapper));
+    section.classList.add('section');
+    section.dataset.sectionStatus = 'initialized';
+    section.style.display = 'none';
+
+    // Process section metadata
+    const sectionMeta = section.querySelector('div.section-metadata');
+    if (sectionMeta) {
+      const meta = readBlockConfig(sectionMeta);
+      const columns = [];
+      Object.keys(meta).forEach((key) => {
+        if (key === 'style') {
+          const styles = meta.style
+            .split(',')
+            .filter((style) => style)
+            .map((style) => toClassName(style.trim()));
+          styles.forEach((style) => section.classList.add(style));
+        } else if (key === 'layout') {
+          const columnWidths = meta.layout
+            .split('-')
+            .filter((width) => width)
+            .map((width) => toClassName(`w-${width.trim()}`));
+          columnWidths.forEach((columnWidth) => {
+            const column = document.createElement('div');
+            column.classList.add(columnWidth);
+            columns.push(column);
+          });
+        } else if (key === 'arrange') {
+          const blocks = meta.arrange
+            .split('-')
+            .filter((numberOfBlocks) => numberOfBlocks)
+            .map((numberOfBlocks) => parseInt(numberOfBlocks, 10));
+          blocks.forEach((numberOfBlocks, colIndex) => {
+            for (let i = 0; i < numberOfBlocks; i += 1) {
+              const child = section.children.item(0);
+              if (child && colIndex < columns.length) {
+                columns[colIndex].append(child);
+              }
+            }
+          });
+          const container = document.createElement('div');
+          container.classList.add('layout');
+          columns.forEach((column) => {
+            container.append(column);
+          });
+          section.append(container);
+        } else {
+          section.dataset[toCamelCase(key)] = meta[key];
+        }
+      });
+      sectionMeta.parentNode.remove();
+    }
+  });
+}
 
 /**
  * load fonts.css and set a session storage flag
