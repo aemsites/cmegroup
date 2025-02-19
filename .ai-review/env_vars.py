@@ -30,9 +30,9 @@ class EnvVars:
             "base_ref" : self.base_ref,
             "pull_number" : self.pull_number,
             "gpt_model" : self.gpt_model,
-            "api_version" : self.azure_api_version,
-            "endpoint" : self.azure_endpoint,
-            "openai_api_key" : self.azure_openai_api_key,
+            "azure_api_version" : self.azure_api_version,
+            "azure_endpoint" : self.azure_endpoint,
+            "azure_openai_api_key" : self.azure_openai_api_key,
         }
 
     def check_vars(self):
