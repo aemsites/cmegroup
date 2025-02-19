@@ -27,9 +27,12 @@ class GPT(AiBot):
         )
         Log.print_green("GPT client initialized")
 
-    def _count_tokens(self, text: str) -> int:
-        """Count the number of tokens in a text string"""
-        return len(self.__encoding.encode(text))
+    def before_sleep_callback(retry_state):
+        """Custom function to run before each retry attempt."""
+        attempt_num = retry_state.attempt_number
+        # Logging the last exception (reason) is optional
+        exception_str = str(retry_state.outcome.exception()) if retry_state.outcome else "Unknown error"
+        Log.print_yellow(f"Retrying request after wait period - Attempt #{attempt_num}, Reason: {exception_str}")
 
     @retry(
         stop=stop_after_attempt(3),
@@ -43,7 +46,7 @@ class GPT(AiBot):
             retry_if_exception_type(ConnectionError) |
             retry_if_exception_type(concurrent.futures.TimeoutError)
         ),
-        before_sleep=before_sleep_log(Log.print_yellow, "Retrying request after wait period"),
+        before_sleep=before_sleep_callback,
         reraise=True
     )
     def _make_request_with_timeout(self, messages, timeout=600):  # Increased to 10 minutes
