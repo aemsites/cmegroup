@@ -4,7 +4,7 @@ from ai.line_comment import LineComment
 class AiBot(ABC):
     
     __no_response = "No critical issues found"
-    __problems = "errors, issues, potential crashes or unhandled exceptions"
+    __problems = "Review the code changes using specific checks mentioned below and also use historical context from previous PRs"
     
     __css_specific_checks = """
 For CSS files, check for:
