@@ -22,7 +22,7 @@ class GPT(AiBot):
             api_key=token,
             api_version=os.getenv("AZURE_API_VERSION", "2024-02-15-preview"),
             azure_endpoint=os.getenv("AZURE_ENDPOINT"),
-            timeout=300  # Increased to 5 minutes (300 seconds) to match our max retry wait
+            timeout=300  # Back to 5 minutes, which should be sufficient
         )
         Log.print_green("GPT client initialized")
 
@@ -30,7 +30,7 @@ class GPT(AiBot):
         """Count the number of tokens in a text string"""
         return len(self.__encoding.encode(text))
 
-    def _make_request_with_timeout(self, messages, timeout=300):  # Increased default to 5 minutes
+    def _make_request_with_timeout(self, messages, timeout=300):  # 5 minutes timeout
         """Make API request with timeout handling"""
         try:
             request_content = messages[0]['content']
@@ -59,17 +59,17 @@ class GPT(AiBot):
             raise
 
     @retry(
-        stop=stop_after_attempt(5),
+        stop=stop_after_attempt(3),    # Reduced from 5 to 3 attempts
         wait=wait_exponential(
-            multiplier=10,
-            min=10,
-            max=240
+            multiplier=20,    
+            min=20,          
+            max=240          # Reduced max wait to 4 minutes
         ),
         retry=(
             retry_if_exception_type(requests.exceptions.RequestException) |
             retry_if_exception_type(ConnectionError)
         ),
-        before_sleep=before_sleep_log(Log.print_yellow, "Retrying request after wait period"),
+        before_sleep_log(Log.print_yellow, "Retrying request after wait period"),
         reraise=True
     )
     def ai_request_diffs(self, code, diffs, file_path, pr_history=None):
