@@ -20,61 +20,48 @@ class PRHistory:
     def get_relevant_prs(self, file_path, limit=5):
         """Get recent PRs that modified the given file or similar files in the same directory"""
         try:
-            relevant_prs = []
-            
-            # If file is new (doesn't exist in main branch), look at similar files
+            # If file is new, look for PRs that modified similar files
             if self._is_new_file(file_path):
                 Log.print_green(f"New file detected: {file_path}")
                 similar_files = self._get_similar_files(file_path)
                 Log.print_green(f"Similar files: {similar_files}")
-                if similar_files:  # Only proceed if similar files found
-                    Log.print_green(f"Found {len(similar_files)} similar files in the same directory")
-                    
-                    # Get PRs for each similar file
-                    merged_prs = self._get_merged_prs()  # Use cached PRs
-                    for similar_file in similar_files:
-                        try:
-                            Log.print_green(f"Searching PRs that modified {similar_file}")
-                            
-                            # Check each PR's files
-                            pr_count = 0
-                            for pr in merged_prs:
-                                if pr_count >= limit:
-                                    break
-                                    
-                                try:
-                                    Log.print_green(f"Checking PR #{pr.number} for {similar_file}")
-                                    files_changed = [f.filename for f in pr.get_files()]
-                                    
-                                    if similar_file in files_changed:
-                                        relevant_prs.append({
-                                            'number': pr.number,
-                                            'title': pr.title,
-                                            'body': pr.body,
-                                            'comments': self._get_pr_comments(pr),
-                                            'changes': self._get_file_changes(pr, similar_file),
-                                            'context': f"From similar file: {similar_file}"
-                                        })
-                                        Log.print_green(f"Found changes to {similar_file} in PR #{pr.number}")
-                                        pr_count += 1
-                                        
-                                except Exception as e:
-                                    Log.print_yellow(f"Error checking PR {pr.number}: {str(e)}")
-                                    continue
-                                    
-                        except Exception as e:
-                            Log.print_yellow(f"Error fetching PRs for similar file {similar_file}: {str(e)}")
-                            continue
-            else:
-                # Get PRs for the specific file
-                relevant_prs = self._search_file_prs(file_path, limit)
                 
-            Log.print_green(f"Total relevant PRs found: {len(relevant_prs)}")
-            if len(relevant_prs) > 0:
-                Log.print_green("Found PRs:")
-                for pr in relevant_prs:
-                    Log.print_green(f"- PR #{pr['number']}: {pr['title']}")
-            return relevant_prs
+                if similar_files:
+                    Log.print_green(f"Found {len(similar_files)} similar files in the same directory")
+                    context_prs = []
+                    
+                    # Use cached PRs
+                    merged_prs = self._get_merged_prs()
+                    
+                    # Look for PRs that modified similar files
+                    for pr in merged_prs:
+                        if len(context_prs) >= limit:
+                            break
+                            
+                        try:
+                            files_changed = [f.filename for f in pr.get_files()]
+                            # Check if any similar file was modified
+                            modified_similar_files = [f for f in similar_files if f in files_changed]
+                            
+                            if modified_similar_files:
+                                context_prs.append({
+                                    'number': pr.number,
+                                    'title': pr.title,
+                                    'body': pr.body,
+                                    'context': f"Similar files modified: {', '.join(modified_similar_files)}"
+                                })
+                                Log.print_green(f"Found PR #{pr.number} that modified similar files")
+                                
+                        except Exception as e:
+                            Log.print_yellow(f"Error checking PR {pr.number}: {str(e)}")
+                            continue
+                            
+                    return context_prs
+            else:
+                # For existing files, get PRs that modified this specific file
+                return self._search_file_prs(file_path, limit)
+                
+            return []
             
         except Exception as e:
             Log.print_yellow(f"Error fetching PR history: {str(e)}")
@@ -157,24 +144,20 @@ class PRHistory:
                     break
                     
                 try:
-                    Log.print_green(f"Checking PR #{pr.number} for {file_path}")
                     files_changed = [f.filename for f in pr.get_files()]
                     
                     if file_path in files_changed:
                         relevant_prs.append({
                             'number': pr.number,
                             'title': pr.title,
-                            'body': pr.body,
-                            'comments': self._get_pr_comments(pr),
-                            'changes': self._get_file_changes(pr, file_path)
+                            'body': pr.body
                         })
-                        Log.print_green(f"Found changes to {file_path} in PR #{pr.number}")
+                        Log.print_green(f"Found PR #{pr.number} that modified {file_path}")
                         
                 except Exception as e:
                     Log.print_yellow(f"Error checking PR {pr.number}: {str(e)}")
                     continue
             
-            Log.print_green(f"Found {len(relevant_prs)} PRs that modified {file_path}")
             return relevant_prs
             
         except Exception as e:
