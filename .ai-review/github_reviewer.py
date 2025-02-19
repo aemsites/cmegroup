@@ -9,9 +9,22 @@ from repository.github import GitHub
 from repository.repository import RepositoryError
 from repository.pr_history import PRHistory
 from collections import defaultdict
+import concurrent.futures
+from dataclasses import dataclass
+from typing import List, Optional
 
 separator = "\n\n----------------------------------------------------------------------\n\n"
 log_file = open('output.txt', 'a')
+
+@dataclass
+class FileReviewData:
+    file: str
+    content: str
+    diffs: str
+    history: list
+    responses: list
+    success: bool = True
+    error: Optional[str] = None
 
 def create_review_summary(file_path, file_content, file_diffs, pr_history, responses):
     """Create a summary of the review including context and suggestions"""
@@ -200,6 +213,103 @@ def create_overall_summary(pr_title, pr_description, files_reviewed):
 
     return "\n".join(summary)
 
+def process_single_file(file: str, vars, ai: GPT, pr_history: PRHistory) -> FileReviewData:
+    """Process a single file for review"""
+    try:
+        Log.print_green(f"Processing file: {file}")
+
+        # Check file extension
+        _, file_extension = os.path.splitext(file)
+        file_extension = file_extension.lstrip('.')
+        if file_extension not in vars.target_extensions:
+            Log.print_yellow(f"Skipping unsupported extension {file_extension} in file {file}")
+            return FileReviewData(file=file, content="", diffs="", history=[], responses=[], success=False)
+
+        # Read file content
+        try:
+            with open(file, 'r') as file_opened:
+                file_content = file_opened.read()
+        except FileNotFoundError:
+            Log.print_yellow(f"File was removed: {file}")
+            return FileReviewData(file=file, content="", diffs="", history=[], responses=[], success=False)
+
+        if len(file_content) == 0:
+            Log.print_red(f"File is empty: {file}")
+            return FileReviewData(file=file, content="", diffs="", history=[], responses=[], success=False)
+
+        # Get diffs
+        file_diffs = Git.get_diff_in_file(
+            remote_name=Git.get_remote_name(),
+            head_ref=vars.head_ref,
+            base_ref=vars.base_ref,
+            file_path=file
+        )
+        if len(file_diffs) == 0:
+            Log.print_red("No diffs found in file")
+            return FileReviewData(file=file, content="", diffs="", history=[], responses=[], success=False)
+
+        # Get PR history
+        file_history = pr_history.get_relevant_prs(file)
+        Log.print_green(f"Found {len(file_history)} relevant historical PRs for {file}")
+
+        # Get AI review
+        Log.print_green(f"Requesting AI review for {file}")
+        response = ai.ai_request_diffs(
+            code=file_content,
+            diffs=file_diffs,
+            file_path=file,
+            pr_history=file_history
+        )
+
+        responses = []
+        if not AiBot.is_no_issues_text(response):
+            responses = AiBot.split_ai_response(response)
+
+        return FileReviewData(
+            file=file,
+            content=file_content,
+            diffs=file_diffs,
+            history=file_history,
+            responses=responses
+        )
+
+    except Exception as e:
+        Log.print_red(f"Error processing {file}: {str(e)}")
+        return FileReviewData(
+            file=file,
+            content="",
+            diffs="",
+            history=[],
+            responses=[],
+            success=False,
+            error=str(e)
+        )
+
+def post_review_comments(github: GitHub, files_reviewed: List[FileReviewData]) -> None:
+    """Post all review comments for processed files"""
+    for file_data in files_reviewed:
+        if not file_data.success:
+            continue
+
+        # Post individual comments
+        for response_item in file_data.responses:
+            if response_item.line:
+                result = post_line_comment(github=github, file=file_data.file, text=response_item.text, line=response_item.line)
+                if not result:
+                    result = post_general_comment(github=github, file=file_data.file, text=response_item.text)
+            else:
+                result = post_general_comment(github=github, file=file_data.file, text=response_item.text)
+
+        # Create and post file summary
+        summary = create_review_summary(
+            file_data.file,
+            file_data.content,
+            file_data.diffs,
+            file_data.history,
+            file_data.responses
+        )
+        post_general_comment(github=github, file=file_data.file, text=summary)
+
 def main():
     Log.print_green("Starting AI Review process...")
     
@@ -228,83 +338,39 @@ def main():
     # Initialize PR history
     pr_history = PRHistory(vars.token, vars.owner, vars.repo)
 
-    files_reviewed = []
-    
-    # Get PR details for context
-    pr_title = github.get_pr_title()
-    pr_description = github.get_pr_description()
-
-    for file in changed_files:
-        Log.print_green(f"Processing file: {file}")
-
-        _, file_extension = os.path.splitext(file)
-        file_extension = file_extension.lstrip('.')
-        if file_extension not in vars.target_extensions:
-            Log.print_yellow(f"Skipping unsupported extension {file_extension} in file {file}")
-            continue
-
-        try:
-            Log.print_green(f"Reading file: {file}")
-            with open(file, 'r') as file_opened:
-                file_content = file_opened.read()
-        except FileNotFoundError:
-            Log.print_yellow(f"File was removed: {file}")
-            continue
-
-        if len(file_content) == 0: 
-            Log.print_red(f"File is empty: {file}")
-            continue
-
-        Log.print_green(f"Getting diffs for file: {file}")
-        file_diffs = Git.get_diff_in_file(remote_name=remote_name, head_ref=vars.head_ref, base_ref=vars.base_ref, file_path=file)
-        if len(file_diffs) == 0: 
-            Log.print_red("No diffs found in file")
-            continue
-        
-        # Get relevant PR history for this file
-        file_history = pr_history.get_relevant_prs(file)
-        
-        Log.print_green(f"Found {len(file_history)} relevant historical PRs for {file}")
-        
-        Log.print_green(f"Requesting AI review for {file}. Content Length: {len(file_content)}, Diff Length: {len(file_diffs)}")
-        response = ai.ai_request_diffs(
-            code=file_content, 
-            diffs=file_diffs, 
-            file_path=file,
-            pr_history=file_history
-        )
-        Log.print_green(f"Received AI response for {file}. Length: {len(response)}")
-
-        file_data = {
-            'file': file,
-            'content': file_content,
-            'diffs': file_diffs,
-            'history': file_history,
-            'responses': []
+    # Process files in parallel
+    Log.print_green(f"Processing {len(changed_files)} files in parallel...")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        future_to_file = {
+            executor.submit(process_single_file, file, vars, ai, pr_history): file
+            for file in changed_files
         }
 
-        if not AiBot.is_no_issues_text(response):
-            file_data['responses'] = AiBot.split_ai_response(response)
-            
-            # Post individual comments
-            for response_item in file_data['responses']:
-                if response_item.line:
-                    result = post_line_comment(github=github, file=file, text=response_item.text, line=response_item.line)
-                    if not result:
-                        result = post_general_comment(github=github, file=file, text=response_item.text)
-                else:
-                    result = post_general_comment(github=github, file=file, text=response_item.text)
-                
-                if not result:
-                    raise RepositoryError("Failed to post comments")
+        files_reviewed = []
+        for future in concurrent.futures.as_completed(future_to_file):
+            file = future_to_file[future]
+            try:
+                result = future.result()
+                files_reviewed.append(result)
+                Log.print_green(f"Completed review for {file}")
+            except Exception as e:
+                Log.print_red(f"Error processing {file}: {str(e)}")
+                files_reviewed.append(FileReviewData(
+                    file=file,
+                    content="",
+                    diffs="",
+                    history=[],
+                    responses=[],
+                    success=False,
+                    error=str(e)
+                ))
 
-        # Create and post file summary
-        summary = create_review_summary(file, file_content, file_diffs, file_history, file_data['responses'])
-        post_general_comment(github=github, file=file, text=summary)
-        
-        files_reviewed.append(file_data)
+    # Post all comments
+    post_review_comments(github, files_reviewed)
 
     # Create and post overall summary
+    pr_title = github.get_pr_title()
+    pr_description = github.get_pr_description()
     overall_summary = create_overall_summary(pr_title, pr_description, files_reviewed)
     post_general_comment(github=github, file="", text=overall_summary)
 
