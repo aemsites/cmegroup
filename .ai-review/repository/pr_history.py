@@ -43,23 +43,39 @@ class PRHistory:
             return True
 
     def _get_similar_files(self, file_path):
-        """Find similar files in the same directory with the same extension"""
+        """Find similar files in the blocks directory with the same extension"""
         try:
             # Get the directory and file extension
             directory = os.path.dirname(file_path)
             _, file_extension = os.path.splitext(file_path)
             
-            # Get all files in the directory
-            contents = self.repo.get_contents(directory, ref="main")
-            
-            # Filter for files with the same extension
-            similar_files = [
-                content.path for content in contents 
-                if isinstance(content, (str, bytes)) == False  # Filter out non-file objects
-                and os.path.splitext(content.path)[1] == file_extension
-            ]
-            
-            return similar_files
+            # If it's a new block, look in the blocks directory
+            if 'blocks/' in directory:
+                # Get the blocks directory
+                blocks_dir = 'blocks'
+                contents = self.repo.get_contents(blocks_dir, ref="main")
+                
+                # Recursively get all files in blocks directory
+                similar_files = []
+                for content in contents:
+                    if isinstance(content, (str, bytes)) == False:  # Filter out non-file objects
+                        if content.type == 'dir':
+                            # Get files in each block directory
+                            block_contents = self.repo.get_contents(content.path, ref="main")
+                            for block_file in block_contents:
+                                if isinstance(block_file, (str, bytes)) == False and os.path.splitext(block_file.path)[1] == file_extension:
+                                    similar_files.append(block_file.path)
+                
+                return similar_files
+            else:
+                # For non-block files, use original directory search
+                contents = self.repo.get_contents(directory, ref="main")
+                similar_files = [
+                    content.path for content in contents 
+                    if isinstance(content, (str, bytes)) == False
+                    and os.path.splitext(content.path)[1] == file_extension
+                ]
+                return similar_files
             
         except Exception as e:
             Log.print_yellow(f"Error finding similar files: {str(e)}")
