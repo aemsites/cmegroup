@@ -106,9 +106,9 @@ If you find no significant issues, respond with exactly: "No critical issues fou
                 
                 response_text = response.choices[0].message.content
                 
-                # Log the response
+                # Log the response with console output
                 Log.print_green(f"Response size: {len(response_text)} characters")
-                LogManager.write_log(f"\n=== RESPONSE ===\n{response_text}\n")
+                LogManager.write_log(f"\n=== AI RESPONSE ===\n{response_text}\n", print_to_console=True)
                 
                 return response_text
                 
