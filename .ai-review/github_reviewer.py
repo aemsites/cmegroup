@@ -305,62 +305,77 @@ def post_review_comments(github: GitHub, files_reviewed: List[FileReviewData]) -
                 post_general_comment(github=github, file=file_data.file, text=response_item.text)
 
 def main():
-    Log.print_green("Starting AI Review process...")
-    
-    Log.print_green("Checking environment variables...")
-    vars = EnvVars()
-    vars.check_vars()
+    try:
+        # Initialize logging first
+        LogManager.init_log()
+        LogManager.write_log("Starting AI PR Review\n")
+        
+        Log.print_green("Starting AI Review process...")
+        
+        Log.print_green("Checking environment variables...")
+        vars = EnvVars()
+        vars.check_vars()
 
-    Log.print_green("Initializing AI client...")
-    ai = GPT(vars.azure_openai_api_key, vars.gpt_model)
-    
-    Log.print_green("Initializing GitHub client...")
-    github = GitHub(vars.token, vars.owner, vars.repo, vars.pull_number)
+        Log.print_green("Initializing AI client...")
+        ai = GPT(vars.azure_openai_api_key, vars.gpt_model)
+        
+        Log.print_green("Initializing GitHub client...")
+        github = GitHub(vars.token, vars.owner, vars.repo, vars.pull_number)
 
-    Log.print_green("Getting Git remote name...")
-    remote_name = Git.get_remote_name()
-    Log.print_green("Remote is", remote_name)
-    
-    Log.print_green(f"Getting diff files between {vars.head_ref} and {vars.base_ref}...")
-    changed_files = Git.get_diff_files(remote_name=remote_name, head_ref=vars.head_ref, base_ref=vars.base_ref)
-    Log.print_green("Found changes in files:", changed_files)
-    
-    if len(changed_files) == 0: 
-        Log.print_red("No changes between branches")
-        return
+        Log.print_green("Getting Git remote name...")
+        remote_name = Git.get_remote_name()
+        Log.print_green("Remote is", remote_name)
+        
+        Log.print_green(f"Getting diff files between {vars.head_ref} and {vars.base_ref}...")
+        changed_files = Git.get_diff_files(remote_name=remote_name, head_ref=vars.head_ref, base_ref=vars.base_ref)
+        Log.print_green("Found changes in files:", changed_files)
+        
+        if len(changed_files) == 0: 
+            Log.print_red("No changes between branches")
+            return
 
-    # Initialize PR history
-    pr_history = PRHistory(vars.token, vars.owner, vars.repo)
+        # Initialize PR history
+        pr_history = PRHistory(vars.token, vars.owner, vars.repo)
 
-    # Process files sequentially instead of in parallel
-    Log.print_green(f"Processing {len(changed_files)} files sequentially...")
-    files_reviewed = []
-    
-    for file in changed_files:
-        try:
-            result = process_single_file(file, vars, ai, pr_history)
-            files_reviewed.append(result)
-            Log.print_green(f"Completed review for {file}")
-        except Exception as e:
-            Log.print_red(f"Error processing {file}: {str(e)}")
-            files_reviewed.append(FileReviewData(
-                file=file,
-                content="",
-                diffs="",
-                history=[],
-                responses=[],
-                success=False,
-                error=str(e)
-            ))
+        # Process files sequentially instead of in parallel
+        Log.print_green(f"Processing {len(changed_files)} files sequentially...")
+        files_reviewed = []
+        
+        for file in changed_files:
+            try:
+                result = process_single_file(file, vars, ai, pr_history)
+                files_reviewed.append(result)
+                Log.print_green(f"Completed review for {file}")
+            except Exception as e:
+                Log.print_red(f"Error processing {file}: {str(e)}")
+                files_reviewed.append(FileReviewData(
+                    file=file,
+                    content="",
+                    diffs="",
+                    history=[],
+                    responses=[],
+                    success=False,
+                    error=str(e)
+                ))
 
-    # Post line-specific comments
-    post_review_comments(github, files_reviewed)
+        # Post line-specific comments
+        post_review_comments(github, files_reviewed)
 
-    # Create and post single overall summary
-    overall_summary = create_overall_summary(files_reviewed)
-    post_general_comment(github=github, file="", text=overall_summary)
+        # Create and post single overall summary
+        overall_summary = create_overall_summary(files_reviewed)
+        post_general_comment(github=github, file="", text=overall_summary)
 
-    Log.print_green("AI Review process completed successfully")
+        Log.print_green("AI Review process completed successfully")
+
+    except Exception as e:
+        Log.print_red(f"Error in main: {str(e)}")
+    finally:
+        LogManager.close_log()
+        
+        # Print the log file location for debugging
+        log_path = LogManager.get_log_path()
+        if log_path:
+            print(f"Log file location: {log_path}")
 
 def post_line_comment(github: GitHub, file: str, text: str, line: int, severity: Severity, files_reviewed: List[FileReviewData]) -> bool:
     # Add severity emoji to the start of the comment
