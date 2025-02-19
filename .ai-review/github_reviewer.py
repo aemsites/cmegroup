@@ -1,6 +1,5 @@
 import os
-from git import Git 
-from pathlib import Path
+from git import Git
 from ai.gpt import GPT
 from ai.ai_bot import AiBot
 from log import Log
@@ -8,13 +7,9 @@ from env_vars import EnvVars
 from repository.github import GitHub
 from repository.repository import RepositoryError
 from repository.pr_history import PRHistory
-from collections import defaultdict
-import concurrent.futures
 from dataclasses import dataclass
 from typing import List, Optional
-
-separator = "\n\n----------------------------------------------------------------------\n\n"
-log_file = open('output.txt', 'a')
+from log_manager import LogManager
 
 @dataclass
 class FileReviewData:
@@ -107,7 +102,7 @@ def create_review_summary(file_path, file_content, file_diffs, pr_history, respo
 
     return "\n".join(summary)
 
-def create_overall_summary(pr_title, pr_description, files_reviewed: List[FileReviewData]):
+def create_overall_summary(files_reviewed: List[FileReviewData]):
     """Create an overall summary of all files reviewed"""
     
     # Group files by type/directory
@@ -291,40 +286,32 @@ def main():
     # Initialize PR history
     pr_history = PRHistory(vars.token, vars.owner, vars.repo)
 
-    # Process files in parallel
-    Log.print_green(f"Processing {len(changed_files)} files in parallel...")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-        future_to_file = {
-            executor.submit(process_single_file, file, vars, ai, pr_history): file
-            for file in changed_files
-        }
-
-        files_reviewed = []
-        for future in concurrent.futures.as_completed(future_to_file):
-            file = future_to_file[future]
-            try:
-                result = future.result()
-                files_reviewed.append(result)
-                Log.print_green(f"Completed review for {file}")
-            except Exception as e:
-                Log.print_red(f"Error processing {file}: {str(e)}")
-                files_reviewed.append(FileReviewData(
-                    file=file,
-                    content="",
-                    diffs="",
-                    history=[],
-                    responses=[],
-                    success=False,
-                    error=str(e)
-                ))
+    # Process files sequentially instead of in parallel
+    Log.print_green(f"Processing {len(changed_files)} files sequentially...")
+    files_reviewed = []
+    
+    for file in changed_files:
+        try:
+            result = process_single_file(file, vars, ai, pr_history)
+            files_reviewed.append(result)
+            Log.print_green(f"Completed review for {file}")
+        except Exception as e:
+            Log.print_red(f"Error processing {file}: {str(e)}")
+            files_reviewed.append(FileReviewData(
+                file=file,
+                content="",
+                diffs="",
+                history=[],
+                responses=[],
+                success=False,
+                error=str(e)
+            ))
 
     # Post line-specific comments
     post_review_comments(github, files_reviewed)
 
     # Create and post single overall summary
-    pr_title = github.get_pr_title()
-    pr_description = github.get_pr_description()
-    overall_summary = create_overall_summary(pr_title, pr_description, files_reviewed)
+    overall_summary = create_overall_summary(files_reviewed)
     post_general_comment(github=github, file="", text=overall_summary)
 
     Log.print_green("AI Review process completed successfully")
@@ -356,6 +343,7 @@ def post_general_comment(github: GitHub, file: str, text:str) -> bool:
         return False
 
 if __name__ == "__main__":
-    main()
-
-log_file.close()
+    try:
+        main()
+    finally:
+        LogManager.close_log()  # Ensure log file is closed even if there's an error

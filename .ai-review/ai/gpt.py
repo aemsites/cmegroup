@@ -12,6 +12,10 @@ from tenacity import (
 )
 import requests.exceptions
 import concurrent.futures
+from log_manager import LogManager
+
+# Get the log file handle from the main script
+from github_reviewer import log_file
 
 class GPT(AiBot):
 
@@ -22,7 +26,7 @@ class GPT(AiBot):
             api_key=token,
             api_version=os.getenv("AZURE_API_VERSION", "2024-02-15-preview"),
             azure_endpoint=os.getenv("AZURE_ENDPOINT"),
-            timeout=300  # Back to 5 minutes, which should be sufficient
+            timeout=600  # Increased to 10 minutes
         )
         Log.print_green("GPT client initialized")
 
@@ -30,7 +34,22 @@ class GPT(AiBot):
         """Count the number of tokens in a text string"""
         return len(self.__encoding.encode(text))
 
-    def _make_request_with_timeout(self, messages, timeout=300):  # 5 minutes timeout
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(
+            multiplier=20,    
+            min=20,          
+            max=240
+        ),
+        retry=(
+            retry_if_exception_type(requests.exceptions.RequestException) |
+            retry_if_exception_type(ConnectionError) |
+            retry_if_exception_type(concurrent.futures.TimeoutError)
+        ),
+        before_sleep=before_sleep_log(Log.print_yellow, "Retrying request after wait period"),
+        reraise=True
+    )
+    def _make_request_with_timeout(self, messages, timeout=600):  # Increased to 10 minutes
         """Make API request with timeout handling"""
         try:
             # Add system message to define AI's role
@@ -56,17 +75,18 @@ class GPT(AiBot):
                 """
             }
             
-            # Combine system message with user message
             all_messages = [system_message] + messages
-            
             request_content = messages[0]['content']
+            
+            # Log the request
             Log.print_green(f"Making API request with {timeout}s timeout")
             Log.print_green(f"Request size: {len(request_content)} characters")
+            LogManager.write_log(f"\n\n=== REQUEST ===\n{request_content}\n")
             
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 future = executor.submit(
                     self.__client.chat.completions.create,
-                    messages=all_messages,  # Use combined messages
+                    messages=all_messages,
                     model=self.__gpt_model,
                     stream=False,
                     timeout=timeout
@@ -74,36 +94,22 @@ class GPT(AiBot):
                 response = future.result(timeout=timeout)
                 
                 response_text = response.choices[0].message.content
+                
+                # Log the response
                 Log.print_green(f"Response size: {len(response_text)} characters")
+                LogManager.write_log(f"\n=== RESPONSE ===\n{response_text}\n")
                 
                 return response_text
-        except concurrent.futures.TimeoutError:
-            Log.print_yellow(f"Request timed out after {timeout} seconds, returning no issues")
-            return self._no_response
+                
+        except (concurrent.futures.TimeoutError, requests.exceptions.Timeout) as e:
+            Log.print_yellow(f"Request timed out after {timeout} seconds, retrying...")
+            raise  # Raise for retry
         except Exception as e:
             Log.print_red(f"Error in request: {str(e)}")
             raise
 
-    @retry(
-        stop=stop_after_attempt(3),    # Reduced from 5 to 3 attempts
-        wait=wait_exponential(
-            multiplier=20,    
-            min=20,          
-            max=240          # Reduced max wait to 4 minutes
-        ),
-        retry=(
-            retry_if_exception_type(requests.exceptions.RequestException) |
-            retry_if_exception_type(ConnectionError)
-        ),
-        before_sleep=before_sleep_log(Log.print_yellow, "Retrying request after wait period"),
-        reraise=True
-    )
     def ai_request_diffs(self, code, diffs, file_path, pr_history=None):
-        """
-        Request AI review with improved error handling and timeout management.
-        Retry sequence: 10s → 30s → 1min → 2min → 4min
-        Returns "No critical issues found" in case of timeout.
-        """
+        """Request AI review with improved error handling"""
         Log.print_green("Starting AI request for diffs")
         Log.print_green(f"Using model: {self.__gpt_model}")
         Log.print_green("Preparing request...")
@@ -118,22 +124,17 @@ class GPT(AiBot):
             
             messages = [{"role": "user", "content": content}]
             
-            # Use timeout handler with increased timeout
-            response = self._make_request_with_timeout(
-                messages,
-                timeout=300  # Increased to 5 minutes (300 seconds)
-            )
-            
-            Log.print_green("Received response from Azure OpenAI")
-            return response
-            
-        except Exception as e:
-            if isinstance(e, (concurrent.futures.TimeoutError, requests.exceptions.Timeout)):
-                Log.print_yellow(f"Request timed out: {str(e)}")
+            try:
+                response = self._make_request_with_timeout(messages)
+                Log.print_green("Received response from Azure OpenAI")
+                return response
+            except Exception as e:
+                Log.print_red(f"All retries failed: {str(e)}")
                 return self._no_response
-            else:
-                Log.print_red(f"Attempt failed: {str(e)}")
-                raise
+                
+        except Exception as e:
+            Log.print_red(f"Error preparing request: {str(e)}")
+            return self._no_response
 
     @property
     def _no_response(self):
