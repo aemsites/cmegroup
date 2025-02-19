@@ -343,13 +343,7 @@ def post_general_comment(github: GitHub, file: str, text:str) -> bool:
         return False
 
 if __name__ == "__main__":
-<<<<<<< Updated upstream
-    main()
-
-log_file.close()
-=======
     try:
         main()
     finally:
         LogManager.close_log()  # Ensure log file is closed even if there's an error
->>>>>>> Stashed changes
