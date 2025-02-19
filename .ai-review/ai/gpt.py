@@ -26,7 +26,7 @@ class GPT(AiBot):
         )
         Log.print_green("GPT client initialized")
 
-    def _make_request_with_timeout(self, messages, timeout=180):  # Increased default to 3 minutes
+    def _make_request_with_timeout(self, messages, timeout=300):  # Increased default to 5 minutes
         """Make API request with timeout handling"""
         try:
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -83,7 +83,7 @@ class GPT(AiBot):
             # Use timeout handler with increased timeout
             response = self._make_request_with_timeout(
                 messages,
-                timeout=180  # Increased to 3 minutes (180 seconds)
+                timeout=300  # Increased to 5 minutes (300 seconds)
             )
             
             Log.print_green("Received response from Azure OpenAI")
