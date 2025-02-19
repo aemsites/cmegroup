@@ -241,8 +241,16 @@ Full code from the file:
         models = []
         
         try:
+            # Clean up the input - remove markdown code block if present
+            cleaned_input = input.strip()
+            if cleaned_input.startswith('```json'):
+                cleaned_input = cleaned_input.replace('```json', '', 1)
+            if cleaned_input.endswith('```'):
+                cleaned_input = cleaned_input[:-3]
+            cleaned_input = cleaned_input.strip()
+            
             # Try to parse as JSON
-            issues = json.loads(input)
+            issues = json.loads(cleaned_input)
             
             if not isinstance(issues, list):
                 Log.print_yellow("Warning: Expected JSON array in response")
@@ -281,7 +289,10 @@ Full code from the file:
                     Log.print_yellow(f"Error processing issue: {str(e)}")
                     continue
                     
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            # Log the actual JSON error and content for debugging
+            Log.print_yellow(f"JSON decode error: {str(e)}")
+            Log.print_yellow(f"Content causing error: {input}")
             # Fallback to old format parsing if not JSON
             Log.print_yellow("Warning: Response is not valid JSON, falling back to text parsing")
             return AiBot._parse_text_format(input)
