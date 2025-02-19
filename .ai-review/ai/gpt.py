@@ -49,34 +49,41 @@ class GPT(AiBot):
         before_sleep=before_sleep_callback,
         reraise=True
     )
-    def _make_request_with_timeout(self, messages, timeout=600):  # Increased to 10 minutes
+    def _make_request_with_timeout(self, messages, timeout=600):
         """Make API request with timeout handling"""
         try:
-            # Add system message to define AI's role
-            system_message = {
-                "role": "system",
-                "content": """You are an expert code reviewer with deep knowledge of software development best practices. 
-                Your task is to review code changes and provide specific, actionable feedback.
-                
-                For each issue you find:
-                1. Identify the line number
-                2. Explain the issue clearly
-                3. Suggest a specific fix
-                4. Format your response as: "line_number : explanation and suggested fix"
-                
-                Focus on:
-                - Code quality and best practices
-                - Potential bugs and edge cases
-                - Performance implications
-                - Security concerns
-                - Maintainability
-                
-                If you find no issues, respond with exactly: "No critical issues found"
-                """
-            }
-            
-            all_messages = [system_message] + messages
-            request_content = messages[0]['content']
+            system_instructions = """You are an expert code reviewer with deep knowledge 
+of software development best practices. Your task is to review code changes and provide 
+specific, actionable feedback. For each issue you find:
+1. Identify the line number
+2. Explain the issue clearly
+3. Suggest a specific fix
+4. Format your response as: "line_number : explanation and suggested fix"
+
+Focus on:
+- Code quality and best practices
+- Potential bugs and edge cases
+- Performance implications
+- Security concerns
+- Maintainability
+
+If you find no issues, respond with exactly: "No critical issues found"
+"""
+
+            if self.__gpt_model.lower() == "o1-mini":
+                # Merge "system" instructions into the first user message
+                if messages and messages[0]['role'] == 'user':
+                    messages[0]['content'] = system_instructions + "\n\n" + messages[0]['content']
+                all_messages = messages
+            else:
+                # Use a traditional system message
+                system_message = {
+                    "role": "system",
+                    "content": system_instructions
+                }
+                all_messages = [system_message] + messages
+
+            request_content = all_messages[0]['content']
             
             # Log the request
             Log.print_green(f"Making API request with {timeout}s timeout")
@@ -103,7 +110,7 @@ class GPT(AiBot):
                 
         except (concurrent.futures.TimeoutError, requests.exceptions.Timeout) as e:
             Log.print_yellow(f"Request timed out after {timeout} seconds, retrying...")
-            raise  # Raise for retry
+            raise
         except Exception as e:
             Log.print_red(f"Error in request: {str(e)}")
             raise
