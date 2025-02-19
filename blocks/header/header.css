@@ -14,7 +14,7 @@ body.scrolling-down .header{
 .nav-faux-navbar {
     position: relative;
     width: 100%;
-    height: 50px;
+    height: var(--nav-faux-height);
     display: flex;
     align-items: center;
     flex-wrap: wrap;

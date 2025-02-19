@@ -1,3 +1,7 @@
+html {
+  scroll-behavior: smooth;
+}
+
 @media (width > 480px) {
   main > .section:not(.full-width) > div {
     padding-inline: 2rem;
