@@ -150,66 +150,52 @@ def create_overall_summary(pr_title, pr_description, files_reviewed: List[FileRe
     for file_type, files in files_by_type.items():
         summary.append(f"### {file_type.upper()} Files")
         
-        # Collect common issues for this file type
-        type_issues = defaultdict(int)
-        for file_data in files:
-            for response in file_data.responses:
-                text = response.text.lower()
-                for issue_type, keywords in {
-                    'style': ['style', 'format', 'spacing', 'naming'],
-                    'performance': ['performance', 'slow', 'memory', 'leak'],
-                    'accessibility': ['accessibility', 'a11y', 'aria'],
-                    'best_practices': ['practice', 'pattern', 'convention'],
-                    'security': ['security', 'vulnerability', 'safe']
-                }.items():
-                    if any(word in text for word in keywords):
-                        type_issues[issue_type] += 1
-                        if text not in common_patterns[issue_type]:
-                            common_patterns[issue_type].append(text)
-
-        # Add file type summary
+        # Add file list with issue count
         files_list = [f"- `{file_data.file}` ({len(file_data.responses)} issues)" 
                      for file_data in files]
         summary.extend(files_list)
-        
-        if type_issues:
-            summary.append("\nCommon issues in this file type:")
-            for issue_type, count in type_issues.items():
-                if count > 0:
-                    summary.append(f"- {count} {issue_type.replace('_', ' ')} related issues")
         summary.append("")
 
-    # Add overall recommendations
-    summary.append("## Overall Recommendations")
-    
-    # Add file-type specific recommendations
-    if 'js' in files_by_type:
-        summary.append("\n### JavaScript Recommendations")
-        summary.extend([
-            "- Ensure code modularity and reusability",
-            "- Utilize helper methods from utils.js",
-            "- Avoid hard-coding values",
-            "- Follow established patterns from similar components",
-            "- Consider performance implications",
-            "- Add proper documentation for functions"
-        ])
-    
-    if 'css' in files_by_type:
-        summary.append("\n### CSS Recommendations")
-        summary.extend([
-            "- Use CSS variables for consistent theming",
-            "- Prefer rem/em over px for better accessibility",
-            "- Follow BEM naming conventions",
-            "- Ensure responsive design patterns",
-            "- Minimize specificity issues"
-        ])
+    # Only add recommendations if there are issues
+    if total_issues > 0:
+        # Add overall recommendations
+        summary.append("## Overall Recommendations")
+        
+        # Add file-type specific recommendations only if that type has issues
+        if 'js' in files_by_type and any(len(f.responses) > 0 for f in files_by_type['js']):
+            summary.append("\n### JavaScript Recommendations")
+            js_recs = []
+            for file_data in files_by_type['js']:
+                for response in file_data.responses:
+                    if 'style' in response.text.lower():
+                        js_recs.append("- Follow consistent code style and naming conventions")
+                    if 'performance' in response.text.lower():
+                        js_recs.append("- Optimize performance critical code")
+                    # ... add other specific recommendations based on actual issues
+            if js_recs:
+                summary.extend(list(set(js_recs)))  # Remove duplicates
+        
+        if 'css' in files_by_type and any(len(f.responses) > 0 for f in files_by_type['css']):
+            summary.append("\n### CSS Recommendations")
+            css_recs = []
+            for file_data in files_by_type['css']:
+                for response in file_data.responses:
+                    if 'specificity' in response.text.lower():
+                        css_recs.append("- Reduce selector specificity")
+                    if 'responsive' in response.text.lower():
+                        css_recs.append("- Improve responsive design patterns")
+                    # ... add other specific recommendations based on actual issues
+            if css_recs:
+                summary.extend(list(set(css_recs)))  # Remove duplicates
 
-    # Add common patterns found
-    summary.append("\n## Common Patterns Found")
-    for pattern_type, patterns in common_patterns.items():
-        if patterns:
-            summary.append(f"\n### {pattern_type.title()} Patterns")
-            summary.extend([f"- {pattern}" for pattern in patterns[:3]])  # Show top 3 patterns
+        # Add common patterns section only if patterns were found
+        patterns_found = any(patterns for patterns in common_patterns.values())
+        if patterns_found:
+            summary.append("\n## Common Patterns Found")
+            for pattern_type, patterns in common_patterns.items():
+                if patterns:
+                    summary.append(f"\n### {pattern_type.title()} Patterns")
+                    summary.extend([f"- {pattern}" for pattern in patterns[:3]])
 
     return "\n".join(summary)
 

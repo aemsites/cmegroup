@@ -23,28 +23,40 @@ class PRHistory:
                     # Get PRs for each similar file
                     for similar_file in similar_files:
                         try:
-                            # Search for PRs that modified this similar file
-                            query = f"repo:{self.repo.full_name} is:pr is:merged path:{similar_file}"
-                            prs = self.g.search_issues(query)
+                            Log.print_green(f"Searching PRs that modified {similar_file}")
                             
-                            # Process each PR found
-                            for i, pr in enumerate(prs):
-                                if i >= limit:  # Limit PRs per similar file
+                            # Get all merged PRs, sorted by most recent
+                            merged_prs = self.repo.get_pulls(state='closed', sort='updated', direction='desc')
+                            
+                            # Check each PR's files
+                            pr_count = 0
+                            for pr in merged_prs:
+                                if pr_count >= limit:
                                     break
+                                    
                                 try:
-                                    pr_data = self.repo.get_pull(pr.number)
-                                    relevant_prs.append({
-                                        'number': pr.number,
-                                        'title': pr.title,
-                                        'body': pr.body,
-                                        'comments': self._get_pr_comments(pr_data),
-                                        'changes': self._get_file_changes(pr_data, similar_file),
-                                        'context': f"From similar file: {similar_file}"  # Add context
-                                    })
-                                    Log.print_green(f"Found historical PR #{pr.number} from similar file {similar_file}")
+                                    if not pr.merged:  # Skip PRs that weren't merged
+                                        continue
+                                        
+                                    Log.print_green(f"Checking PR #{pr.number} for {similar_file}")
+                                    files_changed = [f.filename for f in pr.get_files()]
+                                    
+                                    if similar_file in files_changed:
+                                        relevant_prs.append({
+                                            'number': pr.number,
+                                            'title': pr.title,
+                                            'body': pr.body,
+                                            'comments': self._get_pr_comments(pr),
+                                            'changes': self._get_file_changes(pr, similar_file),
+                                            'context': f"From similar file: {similar_file}"
+                                        })
+                                        Log.print_green(f"Found changes to {similar_file} in PR #{pr.number}")
+                                        pr_count += 1
+                                        
                                 except Exception as e:
-                                    Log.print_yellow(f"Error processing PR {pr.number} for {similar_file}: {str(e)}")
+                                    Log.print_yellow(f"Error checking PR {pr.number}: {str(e)}")
                                     continue
+                                    
                         except Exception as e:
                             Log.print_yellow(f"Error fetching PRs for similar file {similar_file}: {str(e)}")
                             continue
@@ -53,6 +65,10 @@ class PRHistory:
                 relevant_prs = self._search_file_prs(file_path, limit)
                 
             Log.print_green(f"Total relevant PRs found: {len(relevant_prs)}")
+            if len(relevant_prs) > 0:
+                Log.print_green("Found PRs:")
+                for pr in relevant_prs:
+                    Log.print_green(f"- PR #{pr['number']}: {pr['title']}")
             return relevant_prs
             
         except Exception as e:
@@ -124,29 +140,41 @@ class PRHistory:
     def _search_file_prs(self, file_path, limit):
         """Search for PRs that modified a specific file"""
         try:
-            query = f"repo:{self.repo.full_name} is:pr is:merged path:{file_path}"
-            Log.print_green(f"Searching PRs with query: {query}")
-            prs = self.g.search_issues(query)
-            
+            Log.print_green(f"Searching PRs that modified {file_path}")
             relevant_prs = []
-            # Use enumerate to avoid index errors if fewer PRs than limit
-            for i, pr in enumerate(prs):
-                if i >= limit:
+            
+            # Get all merged PRs, sorted by most recent
+            merged_prs = self.repo.get_pulls(state='closed', sort='updated', direction='desc')
+            
+            # Check each PR's files
+            for pr in merged_prs:
+                if len(relevant_prs) >= limit:
                     break
+                    
                 try:
-                    pr_data = self.repo.get_pull(pr.number)
-                    relevant_prs.append({
-                        'number': pr.number,
-                        'title': pr.title,
-                        'body': pr.body,
-                        'comments': self._get_pr_comments(pr_data),
-                        'changes': self._get_file_changes(pr_data, file_path)
-                    })
-                    Log.print_green(f"Found PR #{pr.number} for {file_path}")
+                    if not pr.merged:  # Skip PRs that weren't merged
+                        continue
+                        
+                    Log.print_green(f"Checking PR #{pr.number} for {file_path}")
+                    files_changed = [f.filename for f in pr.get_files()]
+                    
+                    if file_path in files_changed:
+                        relevant_prs.append({
+                            'number': pr.number,
+                            'title': pr.title,
+                            'body': pr.body,
+                            'comments': self._get_pr_comments(pr),
+                            'changes': self._get_file_changes(pr, file_path)
+                        })
+                        Log.print_green(f"Found changes to {file_path} in PR #{pr.number}")
+                        
                 except Exception as e:
-                    Log.print_yellow(f"Error processing PR {pr.number}: {str(e)}")
+                    Log.print_yellow(f"Error checking PR {pr.number}: {str(e)}")
                     continue
+            
+            Log.print_green(f"Found {len(relevant_prs)} PRs that modified {file_path}")
             return relevant_prs
+            
         except Exception as e:
             Log.print_yellow(f"Error searching PRs for {file_path}: {str(e)}")
             return []

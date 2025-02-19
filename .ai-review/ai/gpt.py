@@ -26,9 +26,17 @@ class GPT(AiBot):
         )
         Log.print_green("GPT client initialized")
 
+    def _count_tokens(self, text: str) -> int:
+        """Count the number of tokens in a text string"""
+        return len(self.__encoding.encode(text))
+
     def _make_request_with_timeout(self, messages, timeout=300):  # Increased default to 5 minutes
         """Make API request with timeout handling"""
         try:
+            request_content = messages[0]['content']
+            Log.print_green(f"Making API request with {timeout}s timeout")
+            Log.print_green(f"Request size: {len(request_content)} characters")
+            
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 future = executor.submit(
                     self.__client.chat.completions.create,
@@ -38,7 +46,11 @@ class GPT(AiBot):
                     timeout=timeout
                 )
                 response = future.result(timeout=timeout)
-                return response.choices[0].message.content
+                
+                response_text = response.choices[0].message.content
+                Log.print_green(f"Response size: {len(response_text)} characters")
+                
+                return response_text
         except concurrent.futures.TimeoutError:
             Log.print_yellow(f"Request timed out after {timeout} seconds, returning no issues")
             return self._no_response
