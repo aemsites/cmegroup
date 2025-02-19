@@ -23,10 +23,28 @@ class PRHistory:
                     # Get PRs for each similar file
                     for similar_file in similar_files:
                         try:
-                            similar_prs = self._search_file_prs(similar_file, limit)
-                            for pr in similar_prs:
-                                pr['context'] = f"From similar file: {similar_file}"
-                            relevant_prs.extend(similar_prs)
+                            # Search for PRs that modified this similar file
+                            query = f"repo:{self.repo.full_name} is:pr is:merged path:{similar_file}"
+                            prs = self.g.search_issues(query)
+                            
+                            # Process each PR found
+                            for i, pr in enumerate(prs):
+                                if i >= limit:  # Limit PRs per similar file
+                                    break
+                                try:
+                                    pr_data = self.repo.get_pull(pr.number)
+                                    relevant_prs.append({
+                                        'number': pr.number,
+                                        'title': pr.title,
+                                        'body': pr.body,
+                                        'comments': self._get_pr_comments(pr_data),
+                                        'changes': self._get_file_changes(pr_data, similar_file),
+                                        'context': f"From similar file: {similar_file}"  # Add context
+                                    })
+                                    Log.print_green(f"Found historical PR #{pr.number} from similar file {similar_file}")
+                                except Exception as e:
+                                    Log.print_yellow(f"Error processing PR {pr.number} for {similar_file}: {str(e)}")
+                                    continue
                         except Exception as e:
                             Log.print_yellow(f"Error fetching PRs for similar file {similar_file}: {str(e)}")
                             continue
@@ -34,6 +52,7 @@ class PRHistory:
                 # Get PRs for the specific file
                 relevant_prs = self._search_file_prs(file_path, limit)
                 
+            Log.print_green(f"Total relevant PRs found: {len(relevant_prs)}")
             return relevant_prs
             
         except Exception as e:
@@ -106,6 +125,7 @@ class PRHistory:
         """Search for PRs that modified a specific file"""
         try:
             query = f"repo:{self.repo.full_name} is:pr is:merged path:{file_path}"
+            Log.print_green(f"Searching PRs with query: {query}")
             prs = self.g.search_issues(query)
             
             relevant_prs = []
@@ -122,6 +142,7 @@ class PRHistory:
                         'comments': self._get_pr_comments(pr_data),
                         'changes': self._get_file_changes(pr_data, file_path)
                     })
+                    Log.print_green(f"Found PR #{pr.number} for {file_path}")
                 except Exception as e:
                     Log.print_yellow(f"Error processing PR {pr.number}: {str(e)}")
                     continue
