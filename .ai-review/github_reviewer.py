@@ -378,46 +378,45 @@ def main():
             print(f"Log file location: {log_path}")
 
 def post_line_comment(github: GitHub, file: str, text: str, line: int, severity: Severity, files_reviewed: List[FileReviewData]) -> bool:
-    # Add severity emoji to the start of the comment
+    """Post a review comment on a specific line"""
     text_with_severity = f"{severity.value} {text}"
     
-    Log.print_green("Posting line", file, line, text_with_severity)
+    Log.print_green(f"Posting line comment for {file}:{line}")
     try:
-        # 1) Retrieve the unified diff from wherever you stored it
+        # Get the file's review data
         file_review_data = next((f for f in files_reviewed if f.file == file), None)
         if not file_review_data:
-            Log.print_red("No review data found for", file)
+            Log.print_red(f"No review data found for {file}")
             return False
         
-        # 2) Convert AI line to GitHub diff position
-        #    If it's a newly created file, you might pass is_new_file=True
-        #    e.g. if file_review_data.history suggests it's new
-        is_new_file = False  # or compute it
+        # Determine if this is a new file
+        is_new_file = not any(line.startswith('-') for line in file_review_data.diffs.splitlines())
+        
+        # Convert AI line number to diff position
         position = compute_diff_position(
-            diff_text=file_review_data.diffs, 
+            diff_text=file_review_data.diffs,
             ai_line=line,
             is_new_file=is_new_file
         )
-        if position == 0:
-            Log.print_red("Unable to find correct diff position for line", line)
-            return False
         
-        # 3) Use the position in the GitHub API call
+        if position == 0:
+            Log.print_red(f"Could not find position for line {line} in {file}")
+            return False
+            
+        # Get the commit ID and post the comment
         commit_id = Git.get_last_commit_sha(file=file)
-        git_response = github.post_comment_to_line(
-            text=text_with_severity, 
-            commit_id=commit_id, 
-            file_path=file, 
-            line=position  # This is the diff-based position
+        Log.print_green(f"Posting comment at position {position} for commit {commit_id}")
+        
+        github.post_comment_to_line(
+            text=text_with_severity,
+            commit_id=commit_id,
+            file_path=file,
+            line=position
         )
-        Log.print_yellow("Posted", git_response)
         return True
-
-    except RepositoryError as e:
-        Log.print_red("Failed line comment", e)
-        return False
+        
     except Exception as e:
-        Log.print_red("Unexpected error posting line comment", e)
+        Log.print_red(f"Error posting line comment: {str(e)}")
         return False
 
 def post_general_comment(github: GitHub, file: str, text:str) -> bool:
@@ -433,75 +432,56 @@ def post_general_comment(github: GitHub, file: str, text:str) -> bool:
 
 def compute_diff_position(diff_text: str, ai_line: int, is_new_file: bool = False) -> int:
     """
-    Convert an AI line number (ai_line) into a GitHub diff-based 'position'.
-    diff_text is the unified diff for a single file. 
-    For new files, old lines won't exist, so we just map from the new hunk lines.
-    
-    Returns the GitHub position within the diff, or 0 if not found.
+    Convert an AI line number to a GitHub diff position.
+    Returns the position in the diff (1-based) or 0 if not found.
     """
-    # Basic pattern to match hunk headers like: @@ -12,6 +14,7 @@
-    hunk_header_pattern = re.compile(r"^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@")
-    
-    # We'll track how many lines are in the diff so far (GitHub's 'position')
-    position_in_diff = 0
-
-    # We'll use these to track the current old/new active line numbers for each hunk
-    old_line = 0
-    new_line = 0
-
-    # Are we reading lines from within a hunk?
+    # Track current line numbers
+    current_line = 0  # Current line in the new file
+    position = 0      # Position in the diff
     in_hunk = False
-
-    # For each line in the diff...
-    for diff_line in diff_text.splitlines():
-        position_in_diff += 1  # Each line in the unified diff is 1 "position"
+    
+    Log.print_yellow(f"Computing diff position for line {ai_line}, is_new_file: {is_new_file}")
+    
+    for line in diff_text.splitlines():
+        position += 1
         
-        # Check if line is a hunk header
-        match = hunk_header_pattern.match(diff_line)
-        if match:
-            # Extract hunk ranges
-            old_line_start = int(match.group(1))
-            new_line_start = int(match.group(3))
-            
-            old_line = old_line_start
-            new_line = new_line_start
+        # Check for hunk header
+        if line.startswith('@@'):
             in_hunk = True
+            # Extract the starting line number for this hunk
+            # Format: @@ -k,l +n,m @@ where n is the starting line
+            try:
+                current_line = int(line.split('+')[1].split(',')[0])
+                Log.print_yellow(f"Found hunk starting at line {current_line}")
+            except Exception as e:
+                Log.print_yellow(f"Error parsing hunk header: {str(e)}")
             continue
-        
-        if not in_hunk:
-            # We haven't encountered a hunk header yet, so keep going
-            continue
-        
-        if diff_line.startswith('---') or diff_line.startswith('+++'):
-            # Usually the file header lines
-            continue
-        
-        # If line starts with '-', it's removed from original
-        if diff_line.startswith('-'):
-            # Use old_line, but do not increment new_line
-            if not is_new_file and old_line == ai_line:
-                return position_in_diff
-            old_line += 1
-        
-        # If line starts with '+', it's added
-        elif diff_line.startswith('+'):
-            # Use new_line, but do not increment old_line
-            if is_new_file or new_line == ai_line:
-                return position_in_diff
-            new_line += 1
-        
-        # If line starts with neither '-' nor '+', it's context
-        else:
-            # Mapped to old_line and new_line
-            if not is_new_file and old_line == ai_line:
-                return position_in_diff
-            if is_new_file and new_line == ai_line:
-                return position_in_diff
             
-            old_line += 1
-            new_line += 1
-
-    # If we never found a match, return 0 (or you can pick another sentinel)
+        if not in_hunk:
+            continue
+            
+        # Skip file header lines
+        if line.startswith('---') or line.startswith('+++'):
+            continue
+            
+        # Handle different line types
+        if line.startswith('-'):
+            # Removed line - don't increment current_line
+            pass
+        elif line.startswith('+'):
+            # Added line
+            if current_line == ai_line:
+                Log.print_yellow(f"Found matching line at position {position}")
+                return position
+            current_line += 1
+        else:
+            # Context line
+            if current_line == ai_line:
+                Log.print_yellow(f"Found matching line at position {position}")
+                return position
+            current_line += 1
+    
+    Log.print_yellow(f"No matching position found for line {ai_line}")
     return 0
 
 if __name__ == "__main__":
