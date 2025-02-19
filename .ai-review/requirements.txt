@@ -1,4 +1,4 @@
-requests
+requests>=2.31.0
 openai
 tenacity==8.2.3
 PyGithub==2.1.1

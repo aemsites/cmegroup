@@ -8,16 +8,93 @@ class AiBot(ABC):
     
     __css_specific_checks = """
 For CSS files, check for:
-1. Usage of px instead of rem/em - suggest converting to rem
-2. Hardcoded color values (#hex or rgb) that should use CSS variables
-3. Missing responsive design patterns
-4. Inconsistent spacing units
-5. Specificity issues or overly specific selectors
-6. Missing vendor prefixes for cross-browser compatibility
-7. Unused or redundant CSS rules
-8. Z-index stacking context issues
-9. Accessibility concerns (color contrast, focus states)
-10. BEM naming convention violations
+1. Responsive Design:
+   - Ensure mobile-first approach is followed
+   - Default styles should target mobile/smaller screens
+   - Media queries should use the format: @media (width >= Xpx)
+   - Media query breakpoints should be consistent (900px, 1200px etc.)
+   - Avoid max-width queries unless absolutely necessary
+
+2. Selector Scoping:
+   - Always use proper parent block selectors to avoid collisions
+   - For blocks, start with the block name as parent (e.g., '.hero', '.modal')
+   - For variants, include both block and variant (e.g., '.cta.promo')
+   - Ensure child elements are properly scoped (e.g., '.cta.promo .button')
+   - Avoid generic class names without parent scoping
+   - Check for potential selector conflicts with other blocks
+
+3. Units and Values:
+   - Use rem/em instead of px for better accessibility
+   - Use CSS variables for colors instead of hex/rgb values
+   - Use CSS variables for consistent spacing
+   - Maintain consistent unit usage (rem for typography, px for borders)
+
+4. BEM Naming and Structure:
+   - Follow BEM naming: block__element--modifier
+   - Ensure block name matches directory/component name
+   - Use consistent element naming across similar blocks
+   - Keep modifier names descriptive and consistent
+   - Example: .block__element--modifier structure
+
+5. Specificity and Nesting:
+   - Minimize selector specificity
+   - Maximum 3 levels of nesting
+   - Avoid ID selectors (#id)
+   - Use classes over element selectors
+   - Group related properties logically
+   - Order selectors from least to most specific
+
+6. Performance:
+   - Avoid redundant CSS rules
+   - Check for unused selectors
+   - Optimize z-index stacking context
+   - Consider CSS property order for performance
+   - Minimize selector chain length
+
+7. Accessibility:
+   - Ensure sufficient color contrast
+   - Check focus states for interactive elements
+   - Verify hover/active states
+   - Support reduced motion preferences
+
+8. Cross-browser:
+   - Add necessary vendor prefixes
+   - Check flexbox/grid fallbacks
+   - Ensure consistent rendering across browsers
+
+9. Project Conventions:
+   - Use established class naming patterns
+   - Follow project's CSS architecture
+   - Maintain consistent file structure
+   - Use shared utility classes when available
+   - Follow established block patterns
+
+10. Common Issues to Check:
+    - Incorrect media query format (should be: @media (width >= Xpx))
+    - Non-mobile-first approach
+    - Hard-coded values instead of variables
+    - Inconsistent spacing or typography
+    - Missing responsive adjustments
+    - Unscoped selectors that could cause conflicts
+    - Missing parent block selectors
+    - Generic class names without proper scoping
+
+Example of proper selector scoping:
+✅ Good:
+.block-name {
+  /* Base styles */
+}
+.block-name.variant {
+  /* Variant styles */
+}
+.block-name .element {
+  /* Scoped element styles */
+}
+
+❌ Bad:
+.element { /* Too generic, no parent scope */
+.variant { /* Missing block name */
+.button { /* Generic, could conflict */
 """
 
     __js_specific_checks = """
