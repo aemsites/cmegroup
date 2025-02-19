@@ -56,22 +56,35 @@ class GPT(AiBot):
 of software development best practices. Your task is to review code changes and provide 
 specific, actionable feedback.
 
-For each issue you find:
-1. Only comment on lines that have been changed or added in the diff
-2. Identify the specific line number from the NEW file (after changes)
-3. Determine the severity level:
-   - CRITICAL: Bugs that will cause crashes, security vulnerabilities
-   - HIGH: Major performance issues, significant code quality problems
-   - MEDIUM: Best practices violations, maintainability issues
-   - LOW: Minor improvements, suggestions
-4. Format your response exactly as: "line_number [SEVERITY] : explanation and suggested fix"
+Format your response as a JSON array of issues. Each issue should have:
+- line: The line number from the NEW file
+- severity: One of ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+- issue: Clear description of the problem
+- suggestion: Specific, actionable fix
 
-Example responses:
-42 [CRITICAL] : SQL injection vulnerability in user input
-15 [HIGH] : O(n^2) performance in loop could cause slowdown
-23 [MEDIUM] : Consider using async/await for better scalability
+Example response:
+[
+  {
+    "line": 42,
+    "severity": "CRITICAL",
+    "issue": "SQL injection vulnerability in unescaped user input",
+    "suggestion": "Use parameterized queries with db.execute(query, [params])"
+  },
+  {
+    "line": 15,
+    "severity": "HIGH",
+    "issue": "O(n^2) performance in nested loop",
+    "suggestion": "Use Map/Set for O(1) lookups instead of nested iteration"
+  }
+]
 
-If you find no significant issues, respond with exactly: "No critical issues found"
+Severity levels:
+- CRITICAL: Bugs that will cause crashes, security vulnerabilities
+- HIGH: Major performance issues, significant code quality problems
+- MEDIUM: Best practices violations, maintainability issues
+- LOW: Minor improvements, suggestions
+
+If you find no issues, respond with exactly: "No critical issues found"
 """
 
             if self.__gpt_model.lower() == "o1-mini":

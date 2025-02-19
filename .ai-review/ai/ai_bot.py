@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from ai.line_comment import LineComment
 from ai.line_comment import Severity
+import json
+from typing import List
+from log import Log
 
 class AiBot(ABC):
     
@@ -30,12 +33,10 @@ For CSS files, check for:
    - Use CSS variables for consistent spacing
    - Maintain consistent unit usage (rem for typography, px for borders)
 
-4. BEM Naming and Structure:
-   - Follow BEM naming: block__element--modifier
+4. Naming and Structure:
    - Ensure block name matches directory/component name
    - Use consistent element naming across similar blocks
    - Keep modifier names descriptive and consistent
-   - Example: .block__element--modifier structure
 
 5. Specificity and Nesting:
    - Minimize selector specificity
@@ -142,11 +143,9 @@ Key Patterns Observed:
 """
 
     __chat_gpt_ask_long = """
-Could you review the following code with given git diffs for {problems}?
-Please format issues as: "line_number : description of the issue and suggested fix"
+Task: {problems}
+Historical context: {historical_context}
 If there are no issues, respond with "{no_response}".
-
-{historical_context}
 
 File type specific checks to include:
 {specific_checks}
@@ -236,11 +235,64 @@ Full code from the file:
     
     @staticmethod
     def split_ai_response(input) -> list[LineComment]:
-        if input is None or not input:
+        if input is None or not input or input.strip() == AiBot.__no_response:
             return []
         
+        models = []
+        
+        try:
+            # Try to parse as JSON
+            issues = json.loads(input)
+            
+            if not isinstance(issues, list):
+                Log.print_yellow("Warning: Expected JSON array in response")
+                return []
+                
+            severity_map = {
+                "CRITICAL": Severity.CRITICAL,
+                "HIGH": Severity.HIGH,
+                "MEDIUM": Severity.MEDIUM,
+                "LOW": Severity.LOW
+            }
+            
+            for issue in issues:
+                try:
+                    # Validate required fields
+                    if not all(k in issue for k in ['line', 'severity', 'issue', 'suggestion']):
+                        Log.print_yellow(f"Warning: Missing required fields in issue: {issue}")
+                        continue
+                        
+                    # Get severity enum
+                    severity = severity_map.get(issue['severity'].upper(), Severity.MEDIUM)
+                    
+                    # Format the comment text
+                    text = (
+                        f"{issue['line']} [{issue['severity']}] : {issue['issue']}\n"
+                        f"    Suggested fix: {issue['suggestion']}"
+                    )
+                    
+                    models.append(LineComment(
+                        line=int(issue['line']),
+                        text=text,
+                        severity=severity
+                    ))
+                    
+                except Exception as e:
+                    Log.print_yellow(f"Error processing issue: {str(e)}")
+                    continue
+                    
+        except json.JSONDecodeError:
+            # Fallback to old format parsing if not JSON
+            Log.print_yellow("Warning: Response is not valid JSON, falling back to text parsing")
+            return AiBot._parse_text_format(input)
+            
+        return models
+        
+    @staticmethod
+    def _parse_text_format(input: str) -> list[LineComment]:
+        """Fallback parser for old text format"""
         # Split by double newlines to separate different issues
-        issues = input.strip().split("\n\n")
+        issues = input.strip().split("\n")
         models = []
 
         severity_map = {
@@ -251,16 +303,13 @@ Full code from the file:
         }
 
         for issue in issues:
-            lines = issue.strip().split("\n")
-            if len(lines) < 2:  # Need at least issue and suggestion
+            issue = issue.strip()
+            if not issue or issue == AiBot.__no_response:
                 continue
-
-            issue_line = lines[0].strip()
-            suggestion = lines[1].strip()
 
             # Extract line number
             number_str = ''
-            for char in issue_line:
+            for char in issue:
                 if char.isdigit():
                     number_str += char
                 else:
@@ -271,19 +320,24 @@ Full code from the file:
                 
             line = int(number_str)
             
-            # Extract severity
-            severity = Severity.MEDIUM  # Default
+            # Extract severity - if not found, default to MEDIUM
+            severity = Severity.MEDIUM
             for sev_text, sev_enum in severity_map.items():
-                if f"[{sev_text}]" in issue_line:
+                if f"[{sev_text}]" in issue:
                     severity = sev_enum
                     break
-
-            # Combine issue and suggestion
-            full_text = f"{issue_line}\n{suggestion}"
+            
+            # If no severity marker found, log it
+            if "[" not in issue:
+                Log.print_yellow(f"Warning: No severity marker found in response: {issue}")
+                # Add severity marker to the text
+                parts = issue.split(":", 1)
+                if len(parts) == 2:
+                    issue = f"{parts[0]} [MEDIUM]:{parts[1]}"
 
             models.append(LineComment(
                 line=line,
-                text=full_text,
+                text=issue,
                 severity=severity
             ))
             
