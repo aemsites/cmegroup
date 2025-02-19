@@ -25,8 +25,11 @@ jobs:
         env:
           GITHUB_HEAD_REF: ${{ github.head_ref }}
           GITHUB_BASE_REF: ${{ github.base_ref }}
-          CHATGPT_KEY: ${{ secrets.CHATGPT_KEY }}
-          CHATGPT_MODEL: ${{ secrets.CHATGPT_MODEL }}
+          # CHATGPT_KEY: ${{ secrets.CHATGPT_KEY }}
+          GPT_MODEL: ${{ secrets.GPT_MODEL }}
+          AZURE_API_VERSION: ${{ secrets.AZURE_API_VERSION }}
+          AZURE_ENDPOINT: ${{ secrets.AZURE_ENDPOINT }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.API_KEY }}
           TARGET_EXTENSIONS: ${{ vars.TARGET_EXTENSIONS }}
           REPO_OWNER: ${{ github.repository_owner }}
