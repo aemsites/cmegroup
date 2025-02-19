@@ -16,14 +16,19 @@ class PRHistory:
             if self._is_new_file(file_path):
                 Log.print_green(f"New file detected: {file_path}")
                 similar_files = self._get_similar_files(file_path)
-                Log.print_green(f"Found {len(similar_files)} similar files in the same directory")
-                
-                # Get PRs for each similar file
-                for similar_file in similar_files:
-                    similar_prs = self._search_file_prs(similar_file, limit)
-                    for pr in similar_prs:
-                        pr['context'] = f"From similar file: {similar_file}"
-                    relevant_prs.extend(similar_prs)
+                if similar_files:  # Only proceed if similar files found
+                    Log.print_green(f"Found {len(similar_files)} similar files in the same directory")
+                    
+                    # Get PRs for each similar file
+                    for similar_file in similar_files:
+                        try:
+                            similar_prs = self._search_file_prs(similar_file, limit)
+                            for pr in similar_prs:
+                                pr['context'] = f"From similar file: {similar_file}"
+                            relevant_prs.extend(similar_prs)
+                        except Exception as e:
+                            Log.print_yellow(f"Error fetching PRs for similar file {similar_file}: {str(e)}")
+                            continue
             else:
                 # Get PRs for the specific file
                 relevant_prs = self._search_file_prs(file_path, limit)
@@ -51,52 +56,78 @@ class PRHistory:
             
             # If it's a new block, look in the blocks directory
             if 'blocks/' in directory:
-                # Get the blocks directory
-                blocks_dir = 'blocks'
-                contents = self.repo.get_contents(blocks_dir, ref="main")
-                
-                # Recursively get all files in blocks directory
-                similar_files = []
-                for content in contents:
-                    if isinstance(content, (str, bytes)) == False:  # Filter out non-file objects
+                try:
+                    # Get the blocks directory
+                    blocks_dir = 'blocks'
+                    contents = self.repo.get_contents(blocks_dir, ref="main")
+                    
+                    # Recursively get all files in blocks directory
+                    similar_files = []
+                    for content in contents:
+                        if isinstance(content, (str, bytes)):
+                            continue  # Skip non-file objects
                         if content.type == 'dir':
-                            # Get files in each block directory
-                            block_contents = self.repo.get_contents(content.path, ref="main")
-                            for block_file in block_contents:
-                                if isinstance(block_file, (str, bytes)) == False and os.path.splitext(block_file.path)[1] == file_extension:
-                                    similar_files.append(block_file.path)
-                
-                return similar_files
+                            try:
+                                # Get files in each block directory
+                                block_contents = self.repo.get_contents(content.path, ref="main")
+                                for block_file in block_contents:
+                                    if isinstance(block_file, (str, bytes)):
+                                        continue
+                                    if os.path.splitext(block_file.path)[1] == file_extension:
+                                        similar_files.append(block_file.path)
+                            except Exception as e:
+                                Log.print_yellow(f"Error accessing block directory {content.path}: {str(e)}")
+                                continue
+                    
+                    return similar_files
+                except Exception as e:
+                    Log.print_yellow(f"Error accessing blocks directory: {str(e)}")
+                    return []
             else:
                 # For non-block files, use original directory search
-                contents = self.repo.get_contents(directory, ref="main")
-                similar_files = [
-                    content.path for content in contents 
-                    if isinstance(content, (str, bytes)) == False
-                    and os.path.splitext(content.path)[1] == file_extension
-                ]
-                return similar_files
-            
+                try:
+                    contents = self.repo.get_contents(directory, ref="main")
+                    similar_files = [
+                        content.path for content in contents 
+                        if not isinstance(content, (str, bytes))
+                        and os.path.splitext(content.path)[1] == file_extension
+                    ]
+                    return similar_files
+                except Exception as e:
+                    Log.print_yellow(f"Error searching directory {directory}: {str(e)}")
+                    return []
+                
         except Exception as e:
             Log.print_yellow(f"Error finding similar files: {str(e)}")
             return []
 
     def _search_file_prs(self, file_path, limit):
         """Search for PRs that modified a specific file"""
-        query = f"repo:{self.repo.full_name} is:pr is:merged path:{file_path}"
-        prs = self.g.search_issues(query)
-        
-        relevant_prs = []
-        for pr in prs[:limit]:
-            pr_data = self.repo.get_pull(pr.number)
-            relevant_prs.append({
-                'number': pr.number,
-                'title': pr.title,
-                'body': pr.body,
-                'comments': self._get_pr_comments(pr_data),
-                'changes': self._get_file_changes(pr_data, file_path)
-            })
-        return relevant_prs
+        try:
+            query = f"repo:{self.repo.full_name} is:pr is:merged path:{file_path}"
+            prs = self.g.search_issues(query)
+            
+            relevant_prs = []
+            # Use enumerate to avoid index errors if fewer PRs than limit
+            for i, pr in enumerate(prs):
+                if i >= limit:
+                    break
+                try:
+                    pr_data = self.repo.get_pull(pr.number)
+                    relevant_prs.append({
+                        'number': pr.number,
+                        'title': pr.title,
+                        'body': pr.body,
+                        'comments': self._get_pr_comments(pr_data),
+                        'changes': self._get_file_changes(pr_data, file_path)
+                    })
+                except Exception as e:
+                    Log.print_yellow(f"Error processing PR {pr.number}: {str(e)}")
+                    continue
+            return relevant_prs
+        except Exception as e:
+            Log.print_yellow(f"Error searching PRs for {file_path}: {str(e)}")
+            return []
 
     def _get_pr_comments(self, pr):
         """Get all comments from a PR"""
