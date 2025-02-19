@@ -14,9 +14,6 @@ import requests.exceptions
 import concurrent.futures
 from log_manager import LogManager
 
-# Get the log file handle from the main script
-from github_reviewer import log_file
-
 class GPT(AiBot):
 
     def __init__(self, token, model):
