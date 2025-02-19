@@ -69,7 +69,7 @@ class GPT(AiBot):
             retry_if_exception_type(requests.exceptions.RequestException) |
             retry_if_exception_type(ConnectionError)
         ),
-        before_sleep_log(Log.print_yellow, "Retrying request after wait period"),
+        before_sleep=before_sleep_log(Log.print_yellow, "Retrying request after wait period"),
         reraise=True
     )
     def ai_request_diffs(self, code, diffs, file_path, pr_history=None):
