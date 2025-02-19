@@ -9,7 +9,7 @@ class GPT(AiBot):
 
     def __init__(self, token, model):
         Log.print_green(f"Initializing ChatGPT with model: {model}")
-        self.__chat_gpt_model = model
+        self.__gpt_model = model
         self.__client = AzureOpenAI(
             api_key=token,
             api_version=os.getenv("AZURE_API_VERSION", "2024-02-15-preview"),
@@ -18,9 +18,9 @@ class GPT(AiBot):
         Log.print_green("ChatGPT client initialized")
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-    def ai_request_diffs(self, code, diffs):
+    def ai_request_diffs(self, code, diffs, file_path, pr_history=None):
         Log.print_green("Starting AI request for diffs")
-        Log.print_green(f"Using model: {self.__chat_gpt_model}")
+        Log.print_green(f"Using model: {self.__gpt_model}")
         Log.print_green("Preparing request...")
         
         try:
@@ -29,10 +29,15 @@ class GPT(AiBot):
                 messages=[
                     {
                         "role": "user",
-                        "content": AiBot.build_ask_text(code=code, diffs=diffs),
+                        "content": AiBot.build_ask_text(
+                            code=code, 
+                            diffs=diffs, 
+                            file_path=file_path,
+                            pr_history=pr_history
+                        ),
                     }
                 ],
-                model=self.__chat_gpt_model,
+                model=self.__gpt_model,
                 stream=False,
             )
             Log.print_green("Received response from Azure OpenAI")
