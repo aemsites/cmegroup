@@ -170,50 +170,40 @@ Full code from the file:
             return ""
             
         context = ["Previous PR History:"]
-        patterns = {
-            'accepted': set(),
-            'rejected': set(),
-            'feedback': set(),
-            'similar_files': set()  # New category for similar file patterns
-        }
         
         for pr in pr_history:
-            # Note if this PR is from a similar file
-            is_similar = 'context' in pr and 'From similar file:' in pr['context']
-            pattern_category = 'similar_files' if is_similar else 'feedback'
-            
-            # Extract patterns from comments
-            for comment in pr.get('comments', []):
-                if 'approved' in comment['body'].lower():
-                    patterns['accepted'].add(
-                        f"{comment['body']} {pr['context'] if is_similar else ''}"
-                    )
-                elif 'request changes' in comment['body'].lower():
-                    patterns['rejected'].add(
-                        f"{comment['body']} {pr['context'] if is_similar else ''}"
-                    )
-                else:
-                    patterns[pattern_category].add(
-                        f"{comment['body']} {pr['context'] if is_similar else ''}"
-                    )
+            # Process discussion threads
+            for thread in pr.get('discussion_threads', []):
+                original = thread['original_comment']
+                resolution = thread['resolution']
+                
+                if resolution:
+                    resolution_type, resolution_text = resolution
+                    
+                    # Format based on resolution type
+                    if resolution_type == 'resolved':
+                        context.append(f"\n✅ Resolved Discussion:")
+                    elif resolution_type == 'agreed':
+                        context.append(f"\n👍 Agreed Upon:")
+                    elif resolution_type == 'acknowledged':
+                        context.append(f"\n📝 Acknowledged:")
+                    
+                    context.extend([
+                        f"Issue raised: {original['body']}",
+                        f"Resolution: {resolution_text}",
+                        f"File: {original['file']}"
+                    ])
+                    
+                    # Add any significant replies
+                    significant_replies = [
+                        r for r in thread['replies']
+                        if r['reactions'].get('+1', 0) > 0
+                    ]
+                    if significant_replies:
+                        context.append("Key responses:")
+                        for reply in significant_replies:
+                            context.append(f"- {reply['body']}")
         
-        # Format the context
-        if patterns['accepted']:
-            context.append("\nAccepted Patterns:")
-            context.extend([f"- {p}" for p in patterns['accepted']])
-            
-        if patterns['rejected']:
-            context.append("\nRejected Patterns:")
-            context.extend([f"- {p}" for p in patterns['rejected']])
-            
-        if patterns['feedback']:
-            context.append("\nCommon Feedback:")
-            context.extend([f"- {p}" for p in patterns['feedback']])
-            
-        if patterns['similar_files']:
-            context.append("\nPatterns from Similar Files:")
-            context.extend([f"- {p}" for p in patterns['similar_files']])
-            
         return "\n".join(context)
 
     @staticmethod
@@ -249,7 +239,8 @@ Full code from the file:
         if input is None or not input:
             return []
         
-        lines = input.strip().split("\n")
+        # Split by double newlines to separate different issues
+        issues = input.strip().split("\n\n")
         models = []
 
         severity_map = {
@@ -259,14 +250,17 @@ Full code from the file:
             "LOW": Severity.LOW
         }
 
-        for full_text in lines:
-            full_text = full_text.strip()
-            if len(full_text) == 0:
+        for issue in issues:
+            lines = issue.strip().split("\n")
+            if len(lines) < 2:  # Need at least issue and suggestion
                 continue
+
+            issue_line = lines[0].strip()
+            suggestion = lines[1].strip()
 
             # Extract line number
             number_str = ''
-            for char in full_text:
+            for char in issue_line:
                 if char.isdigit():
                     number_str += char
                 else:
@@ -280,9 +274,12 @@ Full code from the file:
             # Extract severity
             severity = Severity.MEDIUM  # Default
             for sev_text, sev_enum in severity_map.items():
-                if f"[{sev_text}]" in full_text:
+                if f"[{sev_text}]" in issue_line:
                     severity = sev_enum
                     break
+
+            # Combine issue and suggestion
+            full_text = f"{issue_line}\n{suggestion}"
 
             models.append(LineComment(
                 line=line,

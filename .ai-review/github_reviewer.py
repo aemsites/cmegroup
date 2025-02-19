@@ -109,11 +109,25 @@ def create_overall_summary(files_reviewed: List[FileReviewData]):
     
     # Group files by type/directory
     files_by_type = {}
+    
+    # Track severity counts
+    severity_counts = {
+        Severity.CRITICAL: 0,
+        Severity.HIGH: 0,
+        Severity.MEDIUM: 0,
+        Severity.LOW: 0
+    }
+    
     for file_data in files_reviewed:
+        # Group by file type
         file_type = os.path.splitext(file_data.file)[1].lstrip('.')
         if file_type not in files_by_type:
             files_by_type[file_type] = []
         files_by_type[file_type].append(file_data)
+        
+        # Count issues by severity
+        for response in file_data.responses:
+            severity_counts[response.severity] += 1
 
     # Build overall summary
     summary = [
@@ -122,13 +136,18 @@ def create_overall_summary(files_reviewed: List[FileReviewData]):
     ]
 
     # Add statistics
-    total_issues = sum(len(file_data.responses) for file_data in files_reviewed)
+    total_issues = sum(severity_counts.values())
     files_with_issues = sum(1 for file_data in files_reviewed if file_data.responses)
     
     summary.extend([
         f"- Total files reviewed: {len(files_reviewed)}",
         f"- Files with issues: {files_with_issues}",
-        f"- Total issues found: {total_issues}\n"
+        f"- Total issues found: {total_issues}",
+        "\n### Issues by Severity",
+        f"- {Severity.CRITICAL.value} Critical: {severity_counts[Severity.CRITICAL]}",
+        f"- {Severity.HIGH.value} High: {severity_counts[Severity.HIGH]}",
+        f"- {Severity.MEDIUM.value} Medium: {severity_counts[Severity.MEDIUM]}",
+        f"- {Severity.LOW.value} Low: {severity_counts[Severity.LOW]}\n"
     ])
 
     # Analyze each file type
@@ -262,16 +281,25 @@ def post_review_comments(github: GitHub, files_reviewed: List[FileReviewData]) -
                     continue
                     
                 # Try to post as line comment first
-                result = post_line_comment(github=github, file=file_data.file, 
-                                        text=response_item.text, line=response_item.line, severity=response_item.severity)
+                result = post_line_comment(
+                    github=github, 
+                    file=file_data.file, 
+                    text=response_item.text, 
+                    line=response_item.line, 
+                    severity=response_item.severity,
+                    files_reviewed=files_reviewed  # Pass the files_reviewed list
+                )
                 
                 if result:
                     # Track that we commented on this line
                     commented_lines[file_data.file].add(response_item.line)
                 else:
                     # If line comment fails, post as general comment
-                    post_general_comment(github=github, file=file_data.file, 
-                                      text=f"Line {response_item.line}: {response_item.text}")
+                    post_general_comment(
+                        github=github, 
+                        file=file_data.file, 
+                        text=f"Line {response_item.line}: {response_item.text}"
+                    )
             else:
                 # Only post general comments that aren't tied to specific lines
                 post_general_comment(github=github, file=file_data.file, text=response_item.text)
@@ -334,13 +362,13 @@ def main():
 
     Log.print_green("AI Review process completed successfully")
 
-def post_line_comment(github: GitHub, file: str, text: str, line: int, severity: Severity) -> bool:
+def post_line_comment(github: GitHub, file: str, text: str, line: int, severity: Severity, files_reviewed: List[FileReviewData]) -> bool:
     # Add severity emoji to the start of the comment
     text_with_severity = f"{severity.value} {text}"
     
     Log.print_green("Posting line", file, line, text_with_severity)
     try:
-        # 1) Retrieve the unified diff from wherever you stored it (e.g., from the FileReviewData)
+        # 1) Retrieve the unified diff from wherever you stored it
         file_review_data = next((f for f in files_reviewed if f.file == file), None)
         if not file_review_data:
             Log.print_red("No review data found for", file)
