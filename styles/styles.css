@@ -537,8 +537,15 @@ main .section.blue3-background {
     color: var(--white);
 }
 
+main .section.blue2-background {
+    background-color: var(--blue2);
+    padding: 1.875rem 0;
+    color: var(--white);
+}
+
 main>.section.gray5-background:last-of-type,
-main>.section.blue3-background:last-of-type {
+main>.section.blue3-background:last-of-type,
+main>.section.blue2-background:last-of-type {
     margin-bottom: 0;
 }
 
@@ -549,6 +556,13 @@ main .section.blue3-background h5 {
     color: var(--white);
 }
 
+main .section.blue2-background h2,
+main .section.blue2-background h3,
+main .section.blue2-background h4,
+main .section.blue2-background h5 {
+    color: var(--white);
+}
+
 @media (width > 768px) {
     main .section.light,
     main .section.highlight,
@@ -556,20 +570,6 @@ main .section.blue3-background h5 {
     main .section.blue3-background {
         padding: 3.75rem 0;
     }
-}
-
-main .section.blue2-background {
-    background-color: var(--blue2);
-}
-
-main .section.reverse,
-main .section.reverse h2 {
-    color: var(--white);
-}
-
-main .section.align-center {
-    padding-bottom: 3.75rem;
-    padding-top: 3.75rem;
 }
 
 /* Section Layouts */
