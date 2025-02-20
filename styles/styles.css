@@ -406,6 +406,15 @@ button.primary[disabled] a {
     text-decoration: none;
 }
 
+a.button.primary:hover,
+button.primary:hover,
+button.primary:hover a {
+    background-color: var(--blue5);
+    border-color: var(--blue5);
+    color: var(--blue2);
+    text-decoration: none;
+}
+
 a.button.primary.inactive:hover,
 a.button.primary.inactive:active,
 button.primary.inactive:hover,
@@ -415,15 +424,6 @@ button.primary.inactive:active a {
     background-color: var(--blue4);
     border-color: var(--blue4);
     color: var(--white);
-    text-decoration: none;
-}
-
-a.button.primary:hover,
-button.primary:hover,
-button.primary:hover a {
-    background-color: var(--blue5);
-    border-color: var(--blue5);
-    color: var(--blue2);
     text-decoration: none;
 }
 
