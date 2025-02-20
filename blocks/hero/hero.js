@@ -2,7 +2,7 @@ import { createElement, getArticleRelatedMetadata } from '../../scripts/utils.js
 
 function decorateArticlePageHero(block) {
   const {
-    readTime, author, tag, date,
+    readTime, author, primaryTopic, date,
   } = getArticleRelatedMetadata();
   const h1 = block.querySelector('h1');
   const readIcon = createElement('img', {
@@ -14,7 +14,7 @@ function decorateArticlePageHero(block) {
   const readIconSpan = readTime ? createElement('span', { class: 'icon icon-list' }, readIcon) : null;
   const readTimeText = readTime ? createElement('span', null, `${readTime} READ`) : null;
   const articleTime = createElement('span', { class: 'article-time' }, readIconSpan, readTimeText);
-  const featuredTag = tag ? createElement('span', { class: 'article-featured-tag' }, tag) : null;
+  const featuredTag = primaryTopic ? createElement('span', { class: 'article-featured-tag' }, primaryTopic) : null;
   const saveIconOutlined = createElement('img', {
     src: '/icons/bookmark-outlined.svg',
     alt: 'Bookmark Icon',

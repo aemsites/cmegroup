@@ -36,14 +36,14 @@ function getArticleRelatedMetadata() {
   const template = getMetadata('template');
   const readTime = getMetadata('read-time');
   const author = getMetadata('author');
-  const tag = getMetadata('tag');
+  const primaryTopic = getMetadata('primary-topic');
   const date = getMetadata('date');
 
   return {
     template,
     readTime,
     author,
-    tag,
+    primaryTopic,
     date,
   };
 }
