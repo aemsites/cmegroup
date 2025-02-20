@@ -567,7 +567,8 @@ main .section.blue2-background h5 {
     main .section.light,
     main .section.highlight,
     main .section.gray5-background,
-    main .section.blue3-background {
+    main .section.blue3-background,
+    main .section.blue2-background {
         padding: 3.75rem 0;
     }
 }
