@@ -79,9 +79,20 @@ function parseTime(time) {
   return `${timeInMins} min`;
 }
 
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) {
+    return 'Invalid Date';
+  }
+  const day = date.getDate();
+  const month = date.toLocaleString('en-US', { month: 'short' });
+  return `${day} ${month}`;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
   addDividerLine,
   parseTime,
+  formatDate,
 };

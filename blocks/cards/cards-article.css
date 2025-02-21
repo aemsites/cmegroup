@@ -1,20 +1,20 @@
-.cards.static li {
+.cards.article li {
     box-shadow: 0 .0625rem .3125rem .0625rem hsla(0deg 0% 70% / 70%);
     display: block;
     width: 100%;
 }
 
-.cards.static li a {
+.cards.article li a {
     width: 100%;
     height: 100%;
     display: block;
 }
 
-.cards.static li a.video-card .cards-image-container {
+.cards.article li a.video-card .cards-image-container {
     position: relative;
 }
 
-.cards.static li a.video-card .cards-image-container::before {
+.cards.article li a.video-card .cards-image-container::before {
     background-color: var(--gray2);
     border-radius: 2.5rem;
     height: 5rem;
@@ -27,7 +27,7 @@
     content: '';
 }
 
-.cards.static li a.video-card .cards-image-container::after {
+.cards.article li a.video-card .cards-image-container::after {
     font-family: var(--cme-group-icons);
     color: var(--white);
     font-style: normal;
@@ -37,17 +37,17 @@
     position: absolute;
 }
 
-.cards.static li a .cards-image-container img{
+.cards.article li a .cards-image-container img{
     height: 14.375rem;
 }
 
-.cards.static li a .cards-body-container {
+.cards.article li a .cards-body-container {
     min-height: 8.125rem;
     padding: 1.25rem 1.25rem 2.5rem;
 }
 
-.cards.static li a .cards-body-container .cards-time,
-.cards.static li a .cards-body-container .cards-date {
+.cards.article li a .cards-body-container .cards-time,
+.cards.article li a .cards-body-container .cards-date {
     color: var(--blue1);
     font-family: var(--averta);
     font-style: italic;
@@ -58,34 +58,34 @@
     display: inline-block;
 }
 
-.cards.static li a:hover .cards-body-container .cards-time,
-.cards.static li a:hover .cards-body-container .cards-date {
+.cards.article li a:hover .cards-body-container .cards-time,
+.cards.article li a:hover .cards-body-container .cards-date {
     text-decoration: none;
 }
 
-.cards.static li a .cards-body-container .cards-time::before {
+.cards.article li a .cards-body-container .cards-time::before {
     font-family: var(--cme-group-icons);
     padding-right: .625rem;
     color: var(--blue5);
     font-style: normal;
 }
 
-.cards.static li a.video-card .cards-body-container .cards-time::before {
+.cards.article li a.video-card .cards-body-container .cards-time::before {
     content: var(--icon-play);
 }
 
-.cards.static li a.article-card .cards-body-container .cards-time::before {
+.cards.article li a.article-card .cards-body-container .cards-time::before {
     content: var(--icon-list);
 }
 
-.cards.static li a .cards-body-container .cards-date::before {
+.cards.article li a .cards-body-container .cards-date::before {
     content: '.';
     padding: .625rem;
     position: relative;
     top: -.1875rem;
 }
 
-.cards.static li a .cards-body-container h3 {
+.cards.article li a .cards-body-container h3 {
     color: var(--blue1);
     font-family: var(--averta);
     font-size: 1.25rem;
@@ -96,6 +96,6 @@
     display: inline-block;
 }
 
-.cards.static li a:hover .cards-body-container h3 {
+.cards.article li a:hover .cards-body-container h3 {
     text-decoration: none;
 }

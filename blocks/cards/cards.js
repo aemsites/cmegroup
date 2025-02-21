@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { createOptimizedPicture, readBlockConfig } from '../../scripts/aem.js';
-import { createElement, parseTime } from '../../scripts/utils.js';
+import { createElement, parseTime, formatDate } from '../../scripts/utils.js';
 
 const QUERY_INDEX_ENDPOINT = '/query-index.json';
 
@@ -149,7 +149,53 @@ export function createDynamicCard({
   return li;
 }
 
-export async function fetchAndFilterData(searchTags = []) {
+export function createDynamicCardArticle({ content }) {
+  const { dynamicProperties } = content;
+  const {
+    path,
+    mediaType,
+    image: imagePath,
+    duration,
+    date,
+    title,
+  } = dynamicProperties;
+
+  const li = document.createElement('li');
+  const linkEl = document.createElement('a');
+  linkEl.href = path;
+  linkEl.classList.add(mediaType === 'video-webinar' ? 'video-card' : 'article-card');
+
+  const imageContainer = document.createElement('div');
+  imageContainer.className = 'cards-image-container';
+  const image = document.createElement('img');
+  image.src = `https://www.cmegroup.com${imagePath}`;
+  imageContainer.append(image);
+
+  const mainContainer = document.createElement('div');
+  mainContainer.className = 'cards-body-container';
+
+  const cardSubtitle = document.createElement('div');
+  cardSubtitle.className = 'cards-subtitle';
+
+  const cardTime = document.createElement('span');
+  cardTime.className = 'cards-time';
+  cardTime.innerText = `${duration} ${mediaType === 'video-webinar' ? 'Watch' : 'read'}`;
+
+  const cardDate = document.createElement('span');
+  cardDate.className = 'cards-date';
+  cardDate.innerText = formatDate(date);
+
+  const cardTitle = document.createElement('h3');
+  cardTitle.innerText = title;
+
+  mainContainer.append(cardTime, cardDate, cardTitle);
+  linkEl.append(imageContainer, mainContainer);
+  li.append(linkEl);
+
+  return li;
+}
+
+export async function fetchAndFilterDataCourse(searchTags = []) {
   try {
     const response = await fetch(QUERY_INDEX_ENDPOINT);
     if (!response.ok) {
@@ -184,15 +230,38 @@ export async function fetchAndFilterData(searchTags = []) {
   }
 }
 
+export async function fetchAndFilterDataArticle(endpoint) {
+  try {
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.results;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error loading data:', error);
+    return [];
+  }
+}
+
 export default async function decorate(block) {
   const config = readBlockConfig(block);
   let cards = null;
   const cardsContainer = document.createElement('div');
   if (block.classList.contains('dynamic')) {
-    const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
-    const filteredData = await fetchAndFilterData(tags);
     const ul = createElement('ul');
-    const cardElements = filteredData.map(createDynamicCard);
+    let filteredData;
+    let cardElements;
+    if (block.classList.contains('course')) {
+      const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
+      filteredData = await fetchAndFilterDataCourse(tags);
+      cardElements = filteredData.map(createDynamicCard);
+    } else {
+      const { endpoint } = config;
+      filteredData = await fetchAndFilterDataArticle(endpoint);
+      cardElements = filteredData.map(createDynamicCardArticle);
+    }
     ul.append(...cardElements);
     cardsContainer.append(ul);
     cards = cardsContainer;
