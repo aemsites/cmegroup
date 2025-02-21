@@ -40,7 +40,7 @@ body.modal-open {
 
 @media (width > 768px) {
   .modal dialog:has(.form.feedback) {
-    max-width: 43.5625rem;
+    max-width: 38rem;
   }
 }
 

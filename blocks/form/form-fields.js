@@ -219,7 +219,15 @@ const createRadio = (fd) => {
 
 const createFeedbackSmiley = (fd) => {
   const { field, fieldWrapper } = createFieldset(fd);
-  fieldWrapper.classList.add('selection-wrapper');
+  fieldWrapper.classList.add('feedback-smiley-wrapper', 'selection-wrapper');
+
+  const input = createElement('input', {
+    type: 'radio',
+    id: fd.Id,
+    name: 'feedback',
+    value: fd.Name,
+    'aria-label': `Feedback ${fd.Name}`
+  });
 
   const label = createLabel(fd);
   const img = createElement('img', {
@@ -230,7 +238,7 @@ const createFeedbackSmiley = (fd) => {
   const span = createElement('span', { class: `icon icon-${fd.Name}` }, img);
   label.textContent = '';
   label.append(span);
-  field.append(label);
+  field.append(input, label);
 
   return { field, fieldWrapper };
 };
