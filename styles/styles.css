@@ -373,7 +373,8 @@ button:focus {
 }
 
 a.button.primary,
-button.primary {
+button.primary,
+button.primary a {
     font-size: 12px;
     letter-spacing: 1.5px;
     line-height: 12px;
@@ -383,10 +384,12 @@ button.primary {
 }
 
 a.button.primary:active,
-button.primary:active {
+button.primary:active,
+button.primary:active a {
     border-color: var(--blue-active-state) !important;
     background-color: var(--blue-active-state) !important;
     color: var(--white) !important;
+    text-decoration: none;
 }
 
 a.button.primary:disabled,
@@ -394,26 +397,34 @@ a.button.primary[disabled],
 a.button.primary.disabled,
 button.primary:disabled,
 button.primary[disabled],
-button.primary.disabled {
+button.primary.disabled,
+button.primary.disabled a,
+button.primary[disabled] a {
     background-color: var(--gray5);
     border-color: var(--gray5);
     color: var(--gray3);
+    text-decoration: none;
+}
+
+a.button.primary:hover,
+button.primary:hover,
+button.primary:hover a {
+    background-color: var(--blue5);
+    border-color: var(--blue5);
+    color: var(--blue2);
+    text-decoration: none;
 }
 
 a.button.primary.inactive:hover,
 a.button.primary.inactive:active,
 button.primary.inactive:hover,
-button.primary.inactive:active {
+button.primary.inactive:active,
+button.primary.inactive:hover a,
+button.primary.inactive:active a {
     background-color: var(--blue4);
     border-color: var(--blue4);
     color: var(--white);
-}
-
-a.button.primary:hover,
-button.primary:hover {
-    background-color: var(--blue5);
-    border-color: var(--blue5);
-    color: var(--blue2);
+    text-decoration: none;
 }
 
 a.button.secondary,
@@ -537,8 +548,15 @@ main .section.blue3-background {
     color: var(--white);
 }
 
+main .section.blue2-background {
+    background-color: var(--blue2);
+    padding: 1.875rem 0;
+    color: var(--white);
+}
+
 main>.section.gray5-background:last-of-type,
-main>.section.blue3-background:last-of-type {
+main>.section.blue3-background:last-of-type,
+main>.section.blue2-background:last-of-type {
     margin-bottom: 0;
 }
 
@@ -549,27 +567,21 @@ main .section.blue3-background h5 {
     color: var(--white);
 }
 
+main .section.blue2-background h2,
+main .section.blue2-background h3,
+main .section.blue2-background h4,
+main .section.blue2-background h5 {
+    color: var(--white);
+}
+
 @media (width > 768px) {
     main .section.light,
     main .section.highlight,
     main .section.gray5-background,
-    main .section.blue3-background {
+    main .section.blue3-background,
+    main .section.blue2-background {
         padding: 3.75rem 0;
     }
-}
-
-main .section.blue2-background {
-    background-color: var(--blue2);
-}
-
-main .section.reverse,
-main .section.reverse h2 {
-    color: var(--white);
-}
-
-main .section.align-center {
-    padding-bottom: 3.75rem;
-    padding-top: 3.75rem;
 }
 
 /* Section Layouts */
@@ -582,9 +594,23 @@ main .section .layout {
 main .section .layout > div {
     flex: 0 0 auto;
     width: 100%;
+    box-sizing: border-box;
+    padding-bottom: 20px;
 }
 
 @media (width > 768px) {
+    main .section .layout > div {
+        padding: 0 15px;
+    }
+
+    main .section .layout > div:first-child {
+        padding-left: 0;
+    }
+
+    main .section .layout > div:last-child {
+        padding-right: 0;
+    }
+
     main .section .layout .w-10 {
         width: 10%;
     }
