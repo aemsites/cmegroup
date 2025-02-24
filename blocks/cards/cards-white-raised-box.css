@@ -1,0 +1,74 @@
+.cards.white-raised-box ul {
+    display: block;
+    justify-content: space-between;
+}
+
+.cards.white-raised-box li {
+    width: 100%;
+    background-color: var(--white);
+    border: none;
+    box-shadow: 0 0.0625rem 0.125rem 0 rgba(60 64 67 / 20%), 0 0.125rem 0.375rem 0.125rem rgba(60 64 67 / 15%);
+}
+
+.cards.white-raised-box li .cards-card-body {
+    padding: 1.25rem;
+    margin: 0;
+    position: relative;
+}
+
+.cards.white-raised-box li .cards-card-body h4{
+    color: var(--blue2);
+    margin: 0 0 1.25rem;
+    font-size: 1.25rem;
+    line-height: 1.625rem;
+}
+
+.cards.white-raised-box li .cards-card-body h4 a {
+    color: var(--blue2);
+}
+
+.cards.white-raised-box li .cards-card-body h4 a:hover {
+    text-decoration: none;
+    color: var(--blue5);
+}
+
+.cards.white-raised-box li .cards-card-body h4 a::after{
+    font-family: var(--cme-group-icons);
+    content: var(--icon-chevron-right);
+    color: var(--blue5);
+    display: inline-block;
+    font-size: 1rem;
+    margin-left: 0.3125rem;
+    font-weight: 400;
+}
+
+.cards.white-raised-box li .cards-card-body h4 a:hover::after{
+    margin-left: 0.5rem;
+}
+
+.cards.white-raised-box li .cards-card-body p {
+    font-family: var(--averta);
+}
+
+.cards.white-raised-box li .cards-card-body ul {
+    display: block;
+    list-style-type: disc;
+    margin-top: 0;
+    padding: inherit;
+}
+
+.cards.white-raised-box li .cards-card-body ul li{
+    box-shadow: none;
+    background-color: transparent;
+    font-family: var(--averta);
+}
+
+@media (width >= 993px) {
+    .cards.white-raised-box ul {
+        display: flex;
+    }
+
+    .cards.white-raised-box li .cards-card-body {
+        min-height: 10rem;
+    }
+}

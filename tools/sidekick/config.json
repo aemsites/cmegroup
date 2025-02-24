@@ -7,14 +7,6 @@
         "environments": ["edit"],
         "url": "/tools/sidekick/library.html",
         "includePaths": ["**.docx**"]
-      },
-      {
-        "id": "tagger",
-        "title": "Tagger",
-        "environments": [
-          "edit"
-        ],
-        "url": "/tools/sidekick/tagger/tagger.html"
       }
     ]
   }

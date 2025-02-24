@@ -1,27 +1,10 @@
-.cards > ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
-  grid-gap: 24px;
-}
-
-.cards > ul > li {
-  border: 1px solid #dadada;
-  background-color: var(--background-color);
-}
-
-.cards .cards-card-body {
-  margin: 16px;
-}
-
-.cards .cards-card-image {
-  line-height: 0;
-}
-
-.cards > ul > li img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-}
+@import url("cards-default.css");
+@import url("cards-blue-box.css");
+@import url("cards-full-width-gray.css");
+@import url("cards-promo.css");
+@import url("cards-white-raised-box.css");
+@import url("cards-links.css");
+@import url("cards-event.css");
+@import url("cards-promo-link.css");
+@import url("cards-course.css");
+@import url("cards-static.css");

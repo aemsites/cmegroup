@@ -1,0 +1,71 @@
+.cards.blue-box ul {
+    display: block;
+    justify-content: space-between;
+}
+
+.cards.blue-box li {
+    width: 100%;
+    background-color: var(--blue3);
+    border: none;
+}
+
+.cards.blue-box li .cards-card-body {
+    padding: 1.875rem;
+    margin: 0;
+    position: relative;
+}
+
+.cards.blue-box li .cards-card-body h5{
+    color: var(--citron);
+    margin: 0 0 0.625rem;
+    font-size: 1rem;
+}
+
+.cards.blue-box li .cards-card-body h3{
+    color: var(--white);
+    margin: 0 0 1.875rem;
+    font-size: 1.625rem;
+}
+
+.cards.blue-box li .cards-card-body .button-container {
+    margin: 0;
+    position: relative;
+}
+
+.cards.blue-box li .cards-card-body .button-container a {
+    padding: 0;
+    text-transform: none;
+    font-size: 1rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.cards.blue-box li .cards-card-body .button-container a::before {
+    font-family: var(--cme-group-icons);
+    content: var(--icon-chevron-down);
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-right: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    display: inline-block;
+}
+
+.cards.blue-box li .cards-card-body .button-container a:hover::before {
+    text-decoration: none;
+}
+
+@media (width >= 993px) {
+    .cards.blue-box ul {
+        display: flex;
+    }
+
+    .cards.blue-box li .cards-card-body {
+        min-height: 10rem;
+    }
+
+    .cards.blue-box li .cards-card-body .button-container {
+        position: absolute;
+        bottom: 1.875rem;
+    }
+}

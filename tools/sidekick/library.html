@@ -34,7 +34,10 @@
       const library = document.createElement('sidekick-library')
       library.config = {
         base: '/config/sidekick/library.json',
-      }
+        icons: '/tools/sidekick/library/plugins/icons/icons.js',
+        tags: '/tools/sidekick/library/plugins/tags/tags.js',
+  }
+
 
       document.body.prepend(library)
     </script>

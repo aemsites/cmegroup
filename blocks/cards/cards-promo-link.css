@@ -1,0 +1,108 @@
+.cards.promo-link.blue1-background {
+    background-color: var(--blue1);
+}
+
+.cards.promo-link.blue4-background {
+    background-color: var(--blue4);
+}
+
+.cards.promo-link.blue7-background {
+    background-color: var(--blue7);
+}
+
+.cards.promo-link.citron-background {
+    background-color: var(--citron);
+}
+
+.cards.promo-link .cards-body-container {
+    background-repeat: repeat;
+    background-position: center bottom;
+    background-size: cover;
+    display: block;
+}
+
+.cards.promo-link .cards-body-container a {
+    height: 100%;
+    padding: 1.875rem;
+    display: block;
+    background-color: transparent;
+    white-space: inherit;
+}
+
+.cards.promo-link .cards-body-container a::after {
+    font-family: var(--cme-group-icons);
+    content: var(--icon-arrow-right-thin);
+    color: var(--blue5);
+    font-weight: 100;
+    top: calc(50% - 0.75rem);
+    position: absolute;
+    right: 0.625rem;
+}
+
+.cards.promo-link.yellow-arrow .cards-body-container a::after {
+    color: var(--citron);
+}
+
+.cards.promo-link .cards-body-container h3 {
+    font-family: var(--averta);
+    color: var(--white);
+    letter-spacing: 0.03rem;
+    font-size: 1rem;
+    line-height: unset;
+    font-weight: 400;
+    margin: 0;
+}
+
+.cards.promo-link .cards-body-container h3 em{
+    display: block;
+    color: var(--blue5);
+    font-style: normal;
+}
+
+.cards.promo-link .cards-body-container p {
+    font-family: var(--averta);
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5rem;
+    margin-bottom: 0;
+    color: var(--white);
+    display: none;
+    text-transform: none;
+    text-wrap-mode: wrap;
+}
+
+.cards.promo-link.citron-background .cards-body-container h3,
+.cards.promo-link.citron-background .cards-body-container p {
+    color: var(--black);
+}
+
+@media (width >= 993px) {
+    .cards.promo-link .cards-body-container a {
+        height: 100%;
+        padding: 2.8125rem 1.875rem;
+        display: block;
+        background-color: transparent;
+        white-space: inherit;
+    }
+
+    .cards.promo-link .cards-body-container a::after {
+        display: block;
+        float: none;
+        font-size: 1.5rem;
+        margin-top: 1.5625rem;
+        top: 0;
+        position: relative;
+        right: 0;
+    }
+
+    .cards.promo-link .cards-body-container h3 {
+        margin: 0 0 1.25rem;
+        letter-spacing: 0.0563rem;
+        font-size: 1.875rem;
+        line-height: 2.1875rem;
+    }
+
+    .cards.promo-link .cards-body-container p {
+        display: block;
+    }
+}

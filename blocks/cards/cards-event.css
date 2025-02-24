@@ -1,0 +1,70 @@
+.cards.event .cards-body-container{
+    background-repeat: repeat;
+    background-position: center bottom;
+    background-size: cover;
+    padding: 3.75rem 1.875rem;
+    margin-bottom: 1.25rem;
+    display: block;
+}
+
+.cards.event .cards-body-container .title-container h3{
+    color: var(--white);
+    margin: 0 0 1.25rem;
+    letter-spacing: 0.0163rem;
+    font-size: 1.625rem;
+    line-height: 2.125rem;
+    font-weight: 600;
+}
+
+.cards.event .cards-body-container .text-container p {
+    font-family: var(--averta);
+    font-size: 1.25rem;
+    font-weight: 400;
+    letter-spacing: 0.0375rem;
+    line-height: 1.75rem;
+    margin-top: 0;
+    margin-bottom: 1.875rem;
+    color: var(--white);
+}
+
+.cards.event .cards-body-container .text-container .button-container {
+    margin: 0;
+}
+
+.cards.event .cards-body-container .text-container .button-container a {
+    color: var(--blue5);
+    font-family: var(--averta);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5rem;
+    padding: 0;
+    text-transform: none;
+}
+
+.cards.event .cards-body-container .text-container .button-container a::before {
+    font-family: var(--cme-group-icons);
+    content: var(--icon-arrow-right);
+    color: var(--blue5);
+    margin-right: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    display: inline-block;
+}
+
+.cards.event .cards-body-container .text-container .button-container a:hover::before {
+    text-decoration: none;
+}
+
+@media (width >= 993px) {
+    .cards.event .cards-body-container{
+        display: flex;
+    }
+
+    .cards.event .cards-body-container .title-container {
+        width: 33%;
+    }
+
+    .cards.event .cards-body-container .text-container {
+        width: 66%;
+    }
+}

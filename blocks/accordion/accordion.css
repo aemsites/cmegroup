@@ -1,0 +1,49 @@
+.accordion details {
+    border-top: 0.0625rem solid var(--gray3);
+    padding: 1.875rem 0;
+}
+
+.accordion details:last-child {
+    border-bottom: 0.0625rem solid var(--gray3);
+}
+
+.accordion details p {
+    margin-bottom: 0.8em;
+}
+
+.accordion details summary {
+    position: relative;
+    padding: 0 1rem;
+    padding-right: 2.875rem;
+    cursor: pointer;
+    list-style: none;
+    overflow: auto;
+    font-family: var(--averta);
+    color: var(--blue1);
+    font-weight: 600;
+    font-size: 1.625rem;
+    letter-spacing: .01em;
+    line-height: 2.125rem;
+}
+
+.accordion details summary::-webkit-details-marker {
+    display: none;
+}
+
+.accordion details summary::after {
+    font-family: var(--cme-group-icons);
+    content: var(--icon-plus);
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 0.75rem;
+    color: var(--blue5);
+}
+
+.accordion details[open] summary::after {
+    content: var(--icon-minus);
+}
+
+.accordion details .accordion-item-body {
+    padding: 1rem 1rem 0;
+}

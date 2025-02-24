@@ -1,0 +1,46 @@
+.cards.full-width.background-gray {
+    background-color: var(--gray5);
+}
+
+.cards.full-width.background-gray ul {
+    display: block;
+}
+
+.cards.full-width.background-gray ul li {
+    background-color: transparent;
+    border: none;
+}
+
+.cards.full-width.background-gray li .cards-card-body {
+    padding: 1.25rem;
+    margin: 0;
+}
+
+.cards.full-width.background-gray li .cards-card-body h4{
+    display: inline-block;
+    font-size: 1.25rem;
+    line-height: 1.625rem;
+    letter-spacing: 0.0125rem;
+    font-weight: 600;
+    font-family: var(--averta);
+    margin: 0;
+}
+
+.cards.full-width.background-gray li .cards-card-body p {
+    margin: 1.25rem 0 1.875rem;
+}
+
+.cards.full-width.background-gray li .cards-card-body p:has(picture){
+    display: inline-block;
+    margin: 0;
+    vertical-align: middle;
+}
+
+.cards.full-width.background-gray li .cards-card-body p picture{
+    display: flex;
+}
+
+.cards.full-width.background-gray li .cards-card-body p picture img{
+    height: 1.875rem;
+    width: 1.625rem;
+}
