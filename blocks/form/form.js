@@ -26,9 +26,9 @@ async function createForm(formHref, submitHref) {
   // Add reCAPTCHA disclaimer
   const disclaimer = document.createElement('p');
   disclaimer.classList.add('recaptcha-disclaimer');
-  disclaimer.innerHTML = 'This site is protected by reCAPTCHA and the Google ' +
-    '<a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and ' +
-    '<a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.';
+  disclaimer.innerHTML = `This site is protected by reCAPTCHA and the Google 
+    <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and 
+    <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.`;
   form.appendChild(disclaimer);
 
   return form;
@@ -57,6 +57,7 @@ async function executeRecaptcha() {
     const token = await window.grecaptcha.execute('YOUR_SITE_KEY', { action: 'submit' });
     return token;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('reCAPTCHA execution failed:', error);
     return null;
   }

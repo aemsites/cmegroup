@@ -1,32 +1,3 @@
-.form.feedback form {
-  display: grid;
-  grid-template-areas: 
-    "message message message"
-    "email email smileys"
-    "submit submit submit"
-    "recaptcha-disclaimer recaptcha-disclaimer recaptcha-disclaimer";
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 24px;
-  align-items: start;
-}
-
-/* Assign grid areas */
-.form.feedback .text-area-wrapper {
-  grid-area: message;
-}
-
-.form.feedback .email-wrapper {
-  grid-area: email;
-}
-
-.form.feedback .fieldset-wrapper {
-  grid-area: smileys;
-}
-
-.form.feedback .submit-wrapper {
-  grid-area: submit;
-}
-
 .form .field-wrapper {
   display: grid;
   grid-auto-flow: row;
@@ -43,7 +14,7 @@
 
 .form:not(.feedback) form > .field-wrapper + .field-wrapper,
 .form:not(.feedback) form fieldset .field-wrapper + .field-wrapper {
-  margin-top: 24px;
+  margin-top: 1.5rem;
 }
 
 .form form > .selection-wrapper + .selection-wrapper,
@@ -65,31 +36,8 @@
   font-size: var(--heading-font-size-m);
   font-weight: 400;
   line-height: 2.5rem;
+  letter-spacing: .09rem;
   color: var(--blue2);
-}
-
-.form.feedback label {
-  color: var(--gray3);
-  font-family: var(--heading-font-family);
-  font-size: .6875rem;
-  font-weight: 400;
-  letter-spacing: .09375rem;
-  line-height: .6875rem;
-  text-transform: uppercase;
-}
-
-.form.feedback button[type="submit"] {
-  background-color: var(--blue4);
-  color: var(--white);
-  padding: .625rem 1.375rem;
-}
-
-.form.feedback textarea,
-.form.feedback input {
-  background-color: #f1f5f7;
-  color: #5a6874;
-  border-radius: 0;
-  border: none;
 }
 
 @media (width >= 600px) {
@@ -131,8 +79,8 @@
   width: 100%;
   margin: 0;
   padding: 0.5em;
-  border-radius: 4px;
-  border: 1px solid var(--dark-color);
+  border-radius: 0.25rem;
+  border: 0.0625rem solid var(--dark-color);
   background-color: var(--background-color);
   color: var(--text-color);
   font-size: var(--body-font-size-s);
@@ -146,25 +94,14 @@
 .form input:hover,
 .form select:hover,
 .form textarea:hover {
-  border: 1px solid var(--text-color);
+  border: 0.0625rem solid var(--text-color);
 }
 
 .form input:focus,
 .form select:focus,
 .form textarea:focus {
-  outline: 2px solid var(--link-color);
-  outline-offset: 2px;
-}
-
-.form.feedback input:hover,
-.form.feedback textarea:hover {
-  border: none;
-}
-
-.form.feedback input:focus,
-.form.feedback textarea:focus {
-  outline: 2px solid var(--link-color);
-  outline-offset: 0;
+  outline: 0.125rem solid var(--link-color);
+  outline-offset: 0.125rem;
 }
 
 .form .selection-wrapper input {
@@ -206,21 +143,21 @@
 .form .toggle-wrapper .switch {
   position: relative;
   display: inline-block;
-  width: 52px;
-  height: 28px;
+  width: 3.25rem;
+  height: 1.75rem;
 }
 
 .form .toggle-wrapper input {
   opacity: 0;
-  width: 52px;
-  height: 28px;
+  width: 3.25rem;
+  height: 1.75rem;
 }
 
 .form .toggle-wrapper .slider {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  border-radius: 28px;
+  border-radius: 1.75rem;
   background-color: var(--dark-color);
   transition: background-color 0.2s;
 }
@@ -228,10 +165,10 @@
 .form .toggle-wrapper .slider::before {
   content: '';
   position: absolute;
-  width: 24px;
-  height: 24px;
-  top: 2px;
-  left: 2px;
+  width: 1.5rem;
+  height: 1.5rem;
+  top: 0.125rem;
+  left: 0.125rem;
   border-radius: 50%;
   background-color: var(--background-color);
   transition: transform 0.2s;
@@ -242,12 +179,76 @@
 }
 
 .form .toggle-wrapper input:focus + .slider {
-  outline: 2px solid var(--link-color);
-  outline-offset: 2px;
+  outline: 0.125rem solid var(--link-color);
+  outline-offset: 0.125rem;
 }
 
 .form .toggle-wrapper input:checked + .slider::before {
-  transform: translateX(24px);
+  transform: translateX(1.5rem);
+}
+
+.form.feedback form {
+  display: grid;
+  grid-template-areas: 
+    "message message message"
+    "email email smileys"
+    "submit submit submit"
+    "recaptcha-disclaimer recaptcha-disclaimer recaptcha-disclaimer";
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Assign grid areas */
+.form.feedback .text-area-wrapper {
+  grid-area: message;
+}
+
+.form.feedback .email-wrapper {
+  grid-area: email;
+}
+
+.form.feedback .fieldset-wrapper {
+  margin-top: 0.6rem;
+  grid-area: smileys;
+}
+
+.form.feedback .submit-wrapper {
+  grid-area: submit;
+}
+
+.form.feedback label {
+  color: var(--gray3);
+  font-family: var(--heading-font-family);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.0938rem;
+  line-height: 0.6875rem;
+  text-transform: uppercase;
+}
+
+.form.feedback button[type="submit"] {
+  background-color: var(--blue4);
+  color: var(--white);
+  padding: 0.625rem 1.375rem;
+}
+
+.form.feedback textarea,
+.form.feedback input {
+  background-color: var(--gray6);
+  color: var(--gray3);
+  border-radius: 0;
+  border: none;
+}
+
+.form.feedback input:hover,
+.form.feedback textarea:hover {
+  border: none;
+}
+
+.form.feedback input:focus,
+.form.feedback textarea:focus {
+  outline: 0.125rem solid var(--link-color);
 }
 
 .form.feedback fieldset[name="feedback"] {
@@ -264,8 +265,8 @@
 }
 
 .form .feedback-smiley-wrapper label {
-  background-color: #f1f5f7;
-  color: #5a6874;
+  background-color: var(--gray6);
+  color: var(--gray3);
   cursor: pointer;
   line-height: normal;
   padding: 0.5em;
@@ -276,6 +277,7 @@
   padding-inline: 0.1rem;
   width: 1.2rem;
   height: 1.2rem;
+  filter: var(--gray3-filter);
 }
 
 .form .feedback-smiley-wrapper input[type="radio"] {
@@ -296,10 +298,6 @@
   filter: var(--white-filter);
 }
 
-.form .feedback-smiley-wrapper label img {
-  filter: var(--gray3-filter);
-}
-
 .form .feedback-smiley-wrapper input[type="radio"]:checked + label {
   background-color: var(--blue4);
 }
@@ -310,14 +308,14 @@
 
 .form.feedback .recaptcha-disclaimer {
   grid-area: recaptcha-disclaimer;
-  color: #c2cace !important;
-  font-size: .75rem;
+  color: var(--gray4);
+  font-size: 0.75rem;
   margin: 0;
-  padding-top: .3125rem;
+  padding-top: 0.3125rem;
 }
 
 .form.feedback .recaptcha-disclaimer a {
-  color: #006eb6;
+  color: var(--blue4);
   text-decoration: none;
 }
 

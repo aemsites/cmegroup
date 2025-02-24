@@ -10,11 +10,11 @@ body.modal-open {
   overscroll-behavior: none;
   overflow-y: hidden;
   position: relative;
-  width: calc(100vw - 48px);
-  max-width: 900px;
+  width: calc(100vw - 3rem);
+  max-width: 56.25rem;
   max-height: calc(100dvh - (2 * var(--header-height)));
   padding: 0;
-  border: 1px solid var(--dark-color);
+  border: 0.0625rem solid var(--dark-color);
 }
 
 .modal dialog:has(.form.feedback) {
@@ -27,10 +27,10 @@ body.modal-open {
   overflow-y: auto;
   overscroll-behavior: none;
   width: 100%;
-  max-height: calc(100dvh - (2 * var(--header-height)) - 48px);
-  padding: 24px;
+  max-height: calc(100dvh - (2 * var(--header-height)) - 3rem);
+  padding: 1.5rem;
   padding-top: 0;
-  margin-top: 44px;
+  margin-top: 2.75rem;
 }
 
 .modal dialog .modal-content:has(.form.feedback) {
@@ -46,12 +46,12 @@ body.modal-open {
 
 @media (width >= 900px) {
   .modal dialog {
-    width: calc(100vw - 64px);
+    width: calc(100vw - 4rem);
   }
   
   .modal dialog .modal-content {
-    max-height: calc(100dvh - (2 * var(--header-height)) - 64px);
-    padding: 32px;
+    max-height: calc(100dvh - (2 * var(--header-height)) - 4rem);
+    padding: 2rem;
     padding-top: 0;
   }
 }
@@ -60,8 +60,8 @@ body.modal-open {
   position: absolute;
   top: 0;
   right: 0;
-  width: 44px;
-  height: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
   margin: 0;
   border: none;
   border-radius: 0;
@@ -73,8 +73,8 @@ body.modal-open {
 
 .modal .close-button .icon.icon-close {
   content: '';
-  width: 24px;
-  height: 24px;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .modal .close-button .icon.icon-close::before,
@@ -86,9 +86,9 @@ body.modal-open {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) rotate(45deg);
-  width: 24px;
-  height: 2px;
-  border-radius: 2px;
+  width: 1.5rem;
+  height: 0.125rem;
+  border-radius: 0.125rem;
   background-color: currentcolor;
 }
 

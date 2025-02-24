@@ -132,8 +132,8 @@ const createSubmit = (fd) => {
 const createTextArea = (fd) => {
   const field = document.createElement('textarea');
   setCommonAttributes(field, fd);
-  if (fd['Rows']) {
-    field.setAttribute('rows', fd['Rows']);
+  if (fd.Rows) {
+    field.setAttribute('rows', fd.Rows);
   }
 
   const fieldWrapper = createFieldWrapper(fd);
@@ -226,7 +226,7 @@ const createFeedbackSmiley = (fd) => {
     id: fd.Id,
     name: 'feedback',
     value: fd.Name,
-    'aria-label': `Feedback ${fd.Name}`
+    'aria-label': `Feedback ${fd.Name}`,
   });
 
   const label = createLabel(fd);
@@ -254,7 +254,7 @@ const FIELD_CREATOR_FUNCTIONS = {
   fieldset: createFieldset,
   checkbox: createCheckbox,
   radio: createRadio,
-  'feedback-smiley': createFeedbackSmiley
+  'feedback-smiley': createFeedbackSmiley,
 };
 
 export default async function createField(fd, form) {
