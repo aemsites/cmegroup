@@ -67,33 +67,20 @@ body.modal-open {
   border-radius: 0;
   padding: 0;
   background-color: transparent;
+  color: var(--black);
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.modal .close-button:hover {
   color: var(--text-color);
-  line-height: 0;
 }
 
-.modal .close-button .icon.icon-close {
-  content: '';
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
-.modal .close-button .icon.icon-close::before,
-.modal .close-button .icon.icon-close::after {
-  content: '';
-  box-sizing: border-box;
-  display: block;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-  width: 1.5rem;
-  height: 0.125rem;
-  border-radius: 0.125rem;
-  background-color: currentcolor;
-}
-
-.modal .close-button .icon.icon-close::after {
-  transform: translate(-50%, -50%) rotate(-45deg)
+.modal .close-button::before {
+  content: "×";
+  font-size: 1.5rem;
+  font-weight: 400;
 }
 
 .modal dialog .section {
