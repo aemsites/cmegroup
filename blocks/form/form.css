@@ -12,11 +12,6 @@
   padding: 0;
 }
 
-.form:not(.feedback) form > .field-wrapper + .field-wrapper,
-.form:not(.feedback) form fieldset .field-wrapper + .field-wrapper {
-  margin-top: 1.5rem;
-}
-
 .form form > .selection-wrapper + .selection-wrapper,
 .form form fieldset .selection-wrapper + .selection-wrapper {
   margin-top: 0.25em;
@@ -227,10 +222,15 @@
   text-transform: uppercase;
 }
 
-.form.feedback button[type="submit"] {
+.form .field-wrapper button[type="submit"] {
   background-color: var(--blue4);
   color: var(--white);
-  padding: 0.625rem 1.375rem;
+  padding: .75rem 2.75rem;
+  border: .125rem solid var(--blue4);
+  font-size: .75rem;
+  letter-spacing: .125em;
+  line-height: .75rem;
+  font-weight: 700;
 }
 
 .form.feedback textarea,
@@ -308,17 +308,83 @@
 
 .form.feedback .recaptcha-disclaimer {
   grid-area: recaptcha-disclaimer;
+}
+
+.form p.recaptcha-disclaimer {
   color: var(--gray4);
   font-size: 0.75rem;
   margin: 0;
   padding-top: 0.3125rem;
 }
 
-.form.feedback .recaptcha-disclaimer a {
+/* stylelint-disable no-descending-specificity */
+.form p.recaptcha-disclaimer a {
   color: var(--blue4);
   text-decoration: none;
 }
 
-.form.feedback .recaptcha-disclaimer a:hover {
-  text-decoration: underline;
+.form.contact-us a,
+.form.contact-us a:any-link {
+  color: var(--blue5);
+  text-decoration: none;
 }
+
+.form.contact-us form {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+.form.contact-us .field-wrapper > * {
+  max-width: 100%;
+  font-size: .6875rem;
+  letter-spacing: .0938rem;
+  line-height: .6875rem;
+  font-family: var(--heading-font-family);
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.form.contact-us .field-wrapper:not(.checkbox-wrapper) > input,
+.form.contact-us .field-wrapper > select,
+.form.contact-us .field-wrapper > textarea {
+  color: var(--white);
+  background-color: var(--blue1);
+  min-height: 3.375rem;
+  margin-top: 0.5rem;
+}
+
+.form.contact-us .field-wrapper.checkbox-wrapper {
+  align-items: start;
+}
+
+.form.contact-us .field-wrapper.checkbox-wrapper label {
+  font-size: .875rem;
+  letter-spacing: 0;
+  line-height: 1.25rem;
+  text-transform: none;
+}
+/* stylelint-enable no-descending-specificity */
+
+.form.contact-us .field-wrapper.submit-wrapper {
+  grid-column: auto;
+  width: 100%;
+  justify-self: start;
+}
+
+@media (width > 768px) {
+  .form.contact-us form {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .form.contact-us .text-wrapper:has(input[name="companyName"]),
+  .form.contact-us .text-area-wrapper,
+  .form.contact-us .checkbox-wrapper {
+    grid-column: 1 / -1;
+  }
+
+  .form.contact-us .field-wrapper.submit-wrapper {
+    width: auto;
+  }
+}
+

@@ -23,14 +23,6 @@ async function createForm(formHref, submitHref) {
     });
   });
 
-  // Add reCAPTCHA disclaimer
-  const disclaimer = document.createElement('p');
-  disclaimer.classList.add('recaptcha-disclaimer');
-  disclaimer.innerHTML = `This site is protected by reCAPTCHA and the Google 
-    <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and 
-    <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.`;
-  form.appendChild(disclaimer);
-
   return form;
 }
 
@@ -106,14 +98,70 @@ async function handleSubmit(form) {
   }
 }
 
+function updateFormPolicies(form, block) {
+  // Early return if not policy variant
+  if (!block.classList.contains('policies')) return;
+
+  // Get all policy links once
+  const links = [...block.querySelectorAll(':scope > div:nth-child(2) a')];
+  if (!links.length) return;
+
+  // Create a map of policy type to link for faster lookups
+  const policyLinks = new Map(
+    links.map((link) => {
+      const text = link.textContent.toLowerCase();
+      const policyType = ['privacy policy', 'terms of service', 'cookie policy'].find(
+        (policy) => text.includes(policy),
+      );
+      return [policyType, link];
+    }).filter(([type]) => type), // Remove undefined entries
+  );
+
+  // Update all checkbox labels that match policies
+  form.querySelectorAll('.checkbox-wrapper label').forEach((label) => {
+    const labelText = label.textContent;
+    const labelLower = labelText.toLowerCase();
+    let lastIndex = 0;
+    let newHTML = '';
+
+    // Sort policies by their position in the label to maintain order
+    [...policyLinks.entries()]
+      .map(([policy, link]) => ({
+        policy,
+        link,
+        index: labelLower.indexOf(policy),
+      }))
+      .filter((item) => item.index !== -1)
+      .sort((a, b) => a.index - b.index)
+      .forEach(({ policy, link, index }) => {
+        newHTML += `${labelText.substring(lastIndex, index)}<a href="${link.href}" target="_blank">${labelText.substring(index, index + policy.length)}</a>`;
+        lastIndex = index + policy.length;
+      });
+
+    // Update label if policies were found
+    if (lastIndex > 0) {
+      label.innerHTML = newHTML + labelText.substring(lastIndex);
+    }
+  });
+}
+
 export default async function decorate(block) {
-  const links = [...block.querySelectorAll('a')].map((a) => a.href);
+  const links = [...block.querySelectorAll(':scope > div:first-child a')].map((a) => a.href);
   const formLink = links.find((link) => link.startsWith(window.location.origin) && link.endsWith('.json'));
   const submitLink = links.find((link) => link !== formLink);
   if (!formLink || !submitLink) return;
 
   const form = await createForm(formLink, submitLink);
+  updateFormPolicies(form, block);
   block.replaceChildren(form);
+
+  // Add reCAPTCHA disclaimer
+  const disclaimer = document.createElement('p');
+  disclaimer.classList.add('recaptcha-disclaimer');
+  disclaimer.innerHTML = `This site is protected by reCAPTCHA and the Google 
+    <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and 
+    <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.`;
+  block.appendChild(disclaimer);
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
