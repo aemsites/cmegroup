@@ -27,6 +27,11 @@ function createLabel(fd) {
   label.setAttribute('for', fd.Id);
   if (fd.Mandatory.toLowerCase() === 'true' || fd.Mandatory.toLowerCase() === 'x') {
     label.dataset.required = true;
+  } else if (fd.Mandatory.toLowerCase() === 'false') {
+    // adding optional text to the label
+    const optional = document.createElement('i');
+    optional.textContent = ' (Optional)';
+    label.append(optional);
   }
   return label;
 }
