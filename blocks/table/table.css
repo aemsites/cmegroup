@@ -29,16 +29,29 @@
   
   .table table tbody tr {
     border-bottom: 1px solid #dadada;
+    color: #5a6874;
   }
-  
+
+  .table table tbody tr:hover {
+    background-color: rgba(var(--bs-emphasis-color-rgb), 0.075);
+  }
+
   .table table th {
     font-weight: 700;
+    background-color: #112b4a;
+    color: #c2cace;
+  }
+  
+  .header-style {
+    background-color: #112b4a;
+    color: #c2cace;
   }
   
   .table table th,
   .table table td {
     padding: 0.5em;
     text-align: left;
+    border: 1px solid #dadada;
   }
   
   .table table th p,
@@ -56,12 +69,6 @@
   }
   
   /* striped variant */
-  .table.striped tbody tr:nth-child(odd) {
-    background-color: var(--light-color);
-  }
-  
-  /* bordered variant */
-  .table.bordered table th,
-  .table.bordered table td {
-    border: 1px solid #dadada;
+  .table.striped tbody tr:nth-child(2n) {
+    background-color: var(--gray6);
   }
