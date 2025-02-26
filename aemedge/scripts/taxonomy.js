@@ -1,4 +1,4 @@
-import ffetch from '../../../../../aemedge/scripts/ffetch.js';
+import ffetch from './ffetch.js';
 
 function titleToName(name) {
   return name.toLowerCase().replace(' ', '-');
