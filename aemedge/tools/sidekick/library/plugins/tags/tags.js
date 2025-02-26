@@ -12,7 +12,7 @@
  */
 
 import { PLUGIN_EVENTS } from '../../events/events.js';
-import { getTaxonomy } from './taxonomy.js';
+import { getTaxonomy } from '../../../../../../tools/sidekick/library/plugins/tags/taxonomy.js';
 
 function buildHierarchicalMenu(taxonomy) {
   const menuItems = [];
