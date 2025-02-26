@@ -1,7 +1,7 @@
 import { createElement, addDividerLine } from '../../scripts/utils.js';
 
 function addBackToTopLink(row) {
-  const topIconImg = createElement('img', { src: '/icons/chevron-up.svg' });
+  const topIconImg = createElement('img', { src: '/aemedge/icons/chevron-up.svg' });
   const topIconSpan = createElement('span', { class: 'icon icon-chevron-up' }, topIconImg);
   const linkText = createElement('span', null, 'Back to Top');
   const link = createElement('a', { href: '#top', class: 'back-to-top' }, topIconSpan, linkText);

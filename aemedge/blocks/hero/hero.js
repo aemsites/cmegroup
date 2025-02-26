@@ -6,7 +6,7 @@ function decorateArticlePageHero(block) {
   } = getArticleRelatedMetadata();
   const h1 = block.querySelector('h1');
   const readIcon = createElement('img', {
-    src: '/icons/list.svg',
+    src: '/aemedge/icons/list.svg',
     alt: 'Read Time',
     loading: 'lazy',
   });
@@ -16,13 +16,13 @@ function decorateArticlePageHero(block) {
   const articleTime = createElement('span', { class: 'article-time' }, readIconSpan, readTimeText);
   const featuredTag = primaryTopic ? createElement('span', { class: 'article-featured-tag' }, primaryTopic) : null;
   const saveIconOutlined = createElement('img', {
-    src: '/icons/bookmark-outlined.svg',
+    src: '/aemedge/icons/bookmark-outlined.svg',
     alt: 'Bookmark Icon',
     loading: 'eager',
   });
   const saveIconOutlinedSpan = createElement('span', { class: 'show icon icon-bookmark-outlined' }, saveIconOutlined);
   const saveIconFilled = createElement('img', {
-    src: '/icons/bookmark-filled.svg',
+    src: '/aemedge/icons/bookmark-filled.svg',
     alt: 'Bookmark Icon',
     loading: 'lazy',
   });
