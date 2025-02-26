@@ -43,8 +43,15 @@ export default class GoogleReCaptcha {
       ? `${this.config.uri}?render=${siteKey}`
       : `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
 
-    this.grecaptcha = await this.#loadScript(url);
-    return this.grecaptcha;
+    await this.#loadScript(url);
+    
+    // Wait for grecaptcha to be ready
+    return new Promise((resolve) => {
+      window.grecaptcha.ready(() => {
+        this.grecaptcha = window.grecaptcha;
+        resolve(this.grecaptcha);
+      });
+    });
   }
 
   async getToken() {
@@ -53,12 +60,10 @@ export default class GoogleReCaptcha {
     }
 
     if (this.config.version === 'enterprise') {
-      await this.grecaptcha.enterprise.ready();
       const submitAction = `submit_${this.formName}_${this.name}`;
       return this.grecaptcha.enterprise.execute(this.config.siteKey, { action: submitAction });
     }
 
-    await this.grecaptcha.ready();
     return this.grecaptcha.execute(this.config.siteKey, { action: 'submit' });
   }
 }

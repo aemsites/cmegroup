@@ -377,7 +377,7 @@
     grid-template-columns: 1fr 1fr;
   }
   
-  .form.contact-us .text-wrapper:has(input[name="companyName"]),
+  .form.contact-us .text-wrapper:has(input[name="Company_Name__c"]),
   .form.contact-us .text-area-wrapper,
   .form.contact-us .checkbox-wrapper {
     grid-column: 1 / -1;
@@ -387,59 +387,4 @@
     width: auto;
   }
 }
-
-/* .form .select-wrapper select {
-  appearance: none;
-  background-color: var(--blue1);
-  color: var(--white);
-  border: 1px solid var(--blue4);
-  border-radius: 0;
-  padding: 1rem;
-  min-height: 3.375rem;
-  width: 100%;
-  cursor: pointer;
-  font-family: var(--body-font-family);
-  font-size: 0.875rem;
-}
-
-.form .select-wrapper {
-  position: relative;
-}
-
-.form .select-wrapper::after {
-  content: '';
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-25%);
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid var(--white);
-  pointer-events: none;
-}
-
-.form .select-wrapper select option {
-  background-color: var(--blue1);
-  color: var(--white);
-  padding: 1rem;
-}
-
-.form .select-wrapper select:focus {
-  outline: none;
-  border-color: var(--blue4);
-}
-
-.form .select-wrapper label {
-  color: var(--white);
-  font-size: .6875rem;
-  letter-spacing: .0938rem;
-  line-height: .6875rem;
-  font-family: var(--heading-font-family);
-  font-weight: 400;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
-  display: block;
-} */
 

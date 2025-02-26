@@ -43,9 +43,9 @@ function generatePayload(form, formId, formName) {
     }
   });
 
-  payload['Form_ID__c'] = formId;
-  payload['Form_Type__c'] = formName;
-  payload['Page_URL__c'] = window.location.href;
+  payload.Form_ID__c = formId;
+  payload.Form_Type__c = formName;
+  payload.Page_URL__c = window.location.href;
   return payload;
 }
 
@@ -64,11 +64,11 @@ async function handleSubmit(form, block) {
 
     const formName = block.getAttribute('form-name');
     const formId = block.getAttribute('form-id');
-    
+
     const recaptcha = new GoogleReCaptcha({
       config: {
         siteKey: sitekey,
-        version: 'v3'
+        version: 'v3',
       },
       id: formId,
       name: formName,
@@ -76,7 +76,7 @@ async function handleSubmit(form, block) {
 
     await recaptcha.loadCaptcha(form);
     const recaptchaToken = await recaptcha.getToken();
-    
+
     const payload = generatePayload(form, formId, formName);
     payload.recaptchaToken = recaptchaToken;
 
