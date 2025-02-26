@@ -21,14 +21,29 @@ function buildHierarchicalMenu(taxonomy) {
     if (category.hide) return;
 
     // Add main category
-    menuItems.push(`
-      <div class="category-group collapsed" data-category="${catId}">
-        <div class="category-header">
-          <span class="expand-icon">+</span>
-          <span class="category-title">${category.title}</span>
+    const hasSubcategories = Object.keys(category).some((k) => !['title', 'name', 'path', 'hide'].includes(k));
+    if (hasSubcategories) {
+      menuItems.push(`
+        <div class="category-group collapsed" data-category="${catId}">
+          <div class="category-header">
+            <span class="expand-icon">+</span>
+            <span class="category-title">${category.title}</span>
+          </div>
+          <div class="category-content">
+      `);
+    } else {
+      menuItems.push(`
+        <div class="path-wrapper">
+          <span class="path" data-full-path="${category.path}">
+            <span class="path-hierarchy" title="${category.path}"/>
+            </span>
+            <span class="tag cat-${catId % 4}" data-title="${category.title}" data-path="${category.path}">
+              ${category.title}
+            </span>
+          </span>
         </div>
-        <div class="category-content">
-    `);
+      `);
+    }
 
     const processLevel = (items, level = 0) => {
       Object.entries(items).forEach(([key, item]) => {
@@ -49,12 +64,6 @@ function buildHierarchicalMenu(taxonomy) {
           processLevel(item, level + 1);
           menuItems.push('</div></div>');
         } else {
-          // Add leaf tag item
-          const pathParts = item.path.split('/');
-          const displayPath = pathParts.length > 3
-            ? `.../${pathParts.slice(-2).join('/')}`
-            : pathParts.slice(0, -1).join('/');
-
           menuItems.push(`
             <div class="path-wrapper">
               <span class="path" data-full-path="${item.path}">
@@ -70,8 +79,10 @@ function buildHierarchicalMenu(taxonomy) {
       });
     };
 
-    processLevel(category);
-    menuItems.push('</div></div>');
+    if (hasSubcategories) {
+      processLevel(category);
+      menuItems.push('</div></div>');
+    }
   });
 
   return menuItems.join('');
@@ -109,8 +120,8 @@ function displaySelected(container) {
   }
 }
 
-export async function decorate(container) {
-  const taxonomy = await getTaxonomy();
+export async function decorateTagsPlugin(container, sheet) {
+  const taxonomy = await getTaxonomy(sheet);
 
   // Create container structure with selected section below filter
   container.innerHTML = `
@@ -223,6 +234,10 @@ export async function decorate(container) {
       category.style.display = hasVisiblePaths ? 'block' : 'none';
     });
   });
+}
+
+export async function decorate(container) {
+  decorateTagsPlugin(container, 'tags');
 }
 
 export default {
