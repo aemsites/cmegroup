@@ -23,7 +23,6 @@
     --title-color: var(--blue1);
     --link-color: var(--blue5);
     --link-hover-color: var(--blue5);
-    --bs-emphasis-color-rgb: 0, 255, 0;
 
     /* fonts */
     --body-font-family: var(--averta-regular), arial, sans-serif;

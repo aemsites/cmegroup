@@ -33,7 +33,7 @@
   }
 
   .table table tbody tr:hover {
-    background-color: rgba(var(--bs-emphasis-color-rgb), 0.075);
+    background-color: #ebf9ff;
   }
 
   .table table th {
@@ -69,6 +69,6 @@
   }
   
   /* striped variant */
-  .table.striped tbody tr:nth-child(2n) {
-    background-color: var(--gray6);
+  .table tbody tr:nth-child(2n) {
+    background-color: #F1F5F7;
   }
