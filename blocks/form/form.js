@@ -1,4 +1,6 @@
 import createField from './form-fields.js';
+import { createElement } from '../../scripts/utils.js';
+import GoogleReCaptcha from './integrations/recaptcha.js';
 
 async function createForm(formHref, submitHref) {
   const { pathname } = new URL(formHref);
@@ -26,7 +28,7 @@ async function createForm(formHref, submitHref) {
   return form;
 }
 
-function generatePayload(form) {
+function generatePayload(form, formId, formName) {
   const payload = {};
 
   [...form.elements].forEach((field) => {
@@ -40,22 +42,14 @@ function generatePayload(form) {
       }
     }
   });
+
+  payload['Form_ID__c'] = formId;
+  payload['Form_Type__c'] = formName;
+  payload['Page_URL__c'] = window.location.href;
   return payload;
 }
 
-async function executeRecaptcha() {
-  try {
-    // Replace YOUR_SITE_KEY with your actual reCAPTCHA site key
-    const token = await window.grecaptcha.execute('YOUR_SITE_KEY', { action: 'submit' });
-    return token;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('reCAPTCHA execution failed:', error);
-    return null;
-  }
-}
-
-async function handleSubmit(form) {
+async function handleSubmit(form, block) {
   if (form.getAttribute('data-submitting') === 'true') return;
 
   const submit = form.querySelector('button[type="submit"]');
@@ -63,15 +57,32 @@ async function handleSubmit(form) {
     form.setAttribute('data-submitting', 'true');
     submit.disabled = true;
 
-    // Get reCAPTCHA token
-    const recaptchaToken = await executeRecaptcha();
+    // Initialize reCAPTCHA with config from disclaimer
+    const sitekey = block.querySelector('.recaptcha-disclaimer')?.dataset.sitekey;
+    if (!sitekey) {
+      throw new Error('No reCAPTCHA site key found');
+    }
+
+    const formName = block.getAttribute('form-name');
+    const formId = block.getAttribute('form-id');
+    const recaptcha = new GoogleReCaptcha({
+      config: {
+        siteKey: sitekey,
+        version: 'v3'
+      },
+      id: formId,
+      name: formName,
+    });
+
+    // Load and get token
+    recaptcha.loadCaptcha(form);
+    const recaptchaToken = await recaptcha.getToken();
+    
     if (!recaptchaToken) {
       throw new Error('Failed to execute reCAPTCHA');
     }
 
-    // create payload
-    const payload = generatePayload(form);
-    // Add reCAPTCHA token to payload
+    const payload = generatePayload(form, formId, formName);
     payload.recaptchaToken = recaptchaToken;
 
     const response = await fetch(form.dataset.action, {
@@ -118,29 +129,58 @@ function decorateLabels(form) {
   });
 }
 
+function decorateRecaptchaDisclaimer(block) {
+  const disclaimer = block.querySelector('.recaptcha-disclaimer');
+  if (disclaimer) {
+    const p = createElement('p', { class: 'recaptcha-disclaimer' });
+    const label = disclaimer.querySelector('label');
+    p.innerHTML = label.innerHTML;
+    p.dataset.sitekey = label.dataset.sitekey;
+    block.appendChild(p);
+    disclaimer.remove();
+  }
+}
+
+function getFormData(block) {
+  const formData = {};
+  const rows = [...block.children];
+  rows.forEach((row) => {
+    const key = row.querySelector('div:first-child')?.textContent?.trim()?.toLowerCase();
+    const value = row.querySelector('div:last-child')?.textContent?.trim();
+    if (key && value) {
+      formData[key] = value;
+    }
+  });
+
+  const formId = formData.id;
+  block.setAttribute('form-id', formId);
+
+  const formName = formData.name;
+  block.setAttribute('form-name', formName);
+
+  const formClass = formName.toLowerCase().replaceAll(' ', '-');
+  block.classList.add(formClass);
+
+  return formData;
+}
+
 export default async function decorate(block) {
-  const links = [...block.querySelectorAll(':scope > div:first-child a')].map((a) => a.href);
-  const formLink = links.find((link) => link.startsWith(window.location.origin) && link.endsWith('.json'));
-  const submitLink = links.find((link) => link !== formLink);
+  const formData = getFormData(block);
+  const formLink = formData.source;
+  const submitLink = formData.submit;
+
   if (!formLink || !submitLink) return;
 
   const form = await createForm(formLink, submitLink);
   decorateLabels(form);
   block.replaceChildren(form);
-
-  // Add reCAPTCHA disclaimer
-  const disclaimer = document.createElement('p');
-  disclaimer.classList.add('recaptcha-disclaimer');
-  disclaimer.innerHTML = `This site is protected by reCAPTCHA and the Google 
-    <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and 
-    <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.`;
-  block.appendChild(disclaimer);
+  decorateRecaptchaDisclaimer(block);
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const valid = form.checkValidity();
     if (valid) {
-      handleSubmit(form);
+      handleSubmit(form, block);
     } else {
       const firstInvalidEl = form.querySelector(':invalid:not(fieldset)');
       if (firstInvalidEl) {

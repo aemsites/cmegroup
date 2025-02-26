@@ -248,6 +248,17 @@ const createFeedbackSmiley = (fd) => {
   return { field, fieldWrapper };
 };
 
+const createGoogleRecaptcha = (fd) => {
+  const fieldWrapper = createFieldWrapper(fd);
+  fieldWrapper.classList.add('recaptcha-disclaimer');
+
+  const label = createLabel(fd);
+  label.dataset.sitekey = fd.Value;
+  fieldWrapper.append(label);
+
+  return { field: label, fieldWrapper };
+};
+
 const FIELD_CREATOR_FUNCTIONS = {
   select: createSelect,
   heading: createHeading,
@@ -260,6 +271,7 @@ const FIELD_CREATOR_FUNCTIONS = {
   checkbox: createCheckbox,
   radio: createRadio,
   'feedback-smiley': createFeedbackSmiley,
+  recaptcha: createGoogleRecaptcha,
 };
 
 export default async function createField(fd, form) {
