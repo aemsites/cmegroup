@@ -57,7 +57,6 @@ async function handleSubmit(form, block) {
     form.setAttribute('data-submitting', 'true');
     submit.disabled = true;
 
-    // Initialize reCAPTCHA with config from disclaimer
     const sitekey = block.querySelector('.recaptcha-disclaimer')?.dataset.sitekey;
     if (!sitekey) {
       throw new Error('No reCAPTCHA site key found');
@@ -65,6 +64,7 @@ async function handleSubmit(form, block) {
 
     const formName = block.getAttribute('form-name');
     const formId = block.getAttribute('form-id');
+    
     const recaptcha = new GoogleReCaptcha({
       config: {
         siteKey: sitekey,
@@ -74,14 +74,9 @@ async function handleSubmit(form, block) {
       name: formName,
     });
 
-    // Load and get token
-    recaptcha.loadCaptcha(form);
+    await recaptcha.loadCaptcha(form);
     const recaptchaToken = await recaptcha.getToken();
     
-    if (!recaptchaToken) {
-      throw new Error('Failed to execute reCAPTCHA');
-    }
-
     const payload = generatePayload(form, formId, formName);
     payload.recaptchaToken = recaptchaToken;
 
