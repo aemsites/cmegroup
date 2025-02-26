@@ -82,11 +82,11 @@ function displaySelected(container) {
     .map((path) => {
       const { fullPath } = path.dataset;
       // Split the path and remove the first segment (tags/ or template/)
-      const pathParts = fullPath.split('/');
-      const processedPath = pathParts.slice(1).join('/');
+      //const pathParts = fullPath.split('/');
+      //const processedPath = pathParts.slice(1).join('/');
 
       return {
-        fullPath: processedPath,
+        fullPath: fullPath,
         label: path.querySelector('.tag').dataset.title,
       };
     });

@@ -105,13 +105,12 @@
 }
 
 .path-wrapper {
-  padding: 0.3rem 0.5rem;
+  padding-left: 1rem;
   margin-left: 1.5rem;
 }
 
 .path {
   cursor: pointer;
-  padding: 0.5rem;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
