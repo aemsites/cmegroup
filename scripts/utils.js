@@ -6,7 +6,7 @@ import ffetch from './ffetch.js';
  * Language
  */
 function getCurrentLang() {
-  return 'en'; //TODO: Add logic
+  return 'en'; // TODO: Add logic
 }
 
 function getDefaultLang() {
@@ -19,7 +19,7 @@ function getDefaultLang() {
 const taxonomyEndpoint = 'https://main--cmegroup--aemsites.aem.live/config/sidekick/taxonomy-nestor.json?sheet=tags';
 let taxonomyPromise = null;
 
-function fetchTaxonomy(sheet) {
+function fetchTaxonomy() {
   if (!taxonomyPromise) {
     taxonomyPromise = new Promise((resolve, reject) => {
       (async () => {
@@ -32,7 +32,7 @@ function fetchTaxonomy(sheet) {
             taxonomy[row.tag] = {
               tag: row.tag,
               title: row[currentLang] && row[defaultLang],
-            }
+            };
           });
           resolve(taxonomy);
         } catch (e) {
@@ -68,16 +68,13 @@ function createElement(tagName, attributes, ...children) {
 
 /**
  * Returns the tag information from a tagname
- * 
  * @param {string} tagName 
  * @returns {Promise} Object containing tag data or empty object if not exists
  * @property {string} title - The tag title
  * @property {string} tag - Tag path
  */
 function getTag(tagFullName) {
-  return fetchTaxonomy().then((taxonomy) => {
-    return taxonomy[tagFullName];
-  });
+  return fetchTaxonomy().then((taxonomy) => taxonomy[tagFullName]);
 }
 
 /**
