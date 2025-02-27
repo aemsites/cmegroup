@@ -1,4 +1,4 @@
-import { loadScript } from '../../scripts/utils.js';
+import { loadScript, readBlockConfig } from '../../scripts/aem.js';
 
 /*
  * For more info about the video's options please read:
@@ -96,21 +96,17 @@ function loadVideoLibrary(block, videoAccount, videoPlayer) {
   block.setAttribute('data-video-status', 'loaded');
 }
 
-function findValue(block, searchText) {
-  const paragraphs = Array.from(block.querySelectorAll('div p'));
-  const selectedP = paragraphs.find((p) => p.textContent.trim() === searchText);
-  const valueForSearchText = selectedP.parentElement.nextElementSibling.querySelector('p')?.innerHTML;
-  return valueForSearchText || '';
-}
-
 export default async function decorate(block) {
-  const accountId = findValue(block, 'accountID');
-  const videoId = findValue(block, 'videoID');
-  const playlistId = findValue(block, 'playlistId');
-  const playlistLocation = findValue(block, 'playlistLocation');
-  const aspectRatio = findValue(block, 'aspectRatio');
-  const cc = findValue(block, 'cc');
-  // const language = findValue(block, 'language');
+  const dataBlock = readBlockConfig(block);
+  const {
+    accountid: accountId,
+    videoid: videoId,
+    playlistid: playlistId,
+    playlistlocation: playlistLocation,
+    aspectratio: aspectRatio,
+    cc,
+    // language,
+  } = dataBlock;
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
   const videoStyles = calculateStyles(aspectRatio, playlistLocation);
