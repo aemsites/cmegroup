@@ -34,7 +34,7 @@ function buildHierarchicalMenu(taxonomy) {
     } else {
       menuItems.push(`
         <div class="path-wrapper">
-          <span class="path" data-full-path="${category.path}">
+          <span class="path" data-full-path="${category.path}" data-title="${category.title}">
             <span class="path-hierarchy" title="${category.path}"/>
             </span>
             <span class="tag tag-data cat-${catId % 4}" data-title="${category.title}" data-path="${category.path}">

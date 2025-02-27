@@ -1,9 +1,9 @@
 import { createElement, getArticleRelatedMetadata } from '../../scripts/utils.js';
 
-function decorateArticlePageHero(block) {
+async function decorateArticlePageHero(block) {
   const {
     readTime, author, primaryTopic, date,
-  } = getArticleRelatedMetadata();
+  } = await getArticleRelatedMetadata();
   const h1 = block.querySelector('h1');
   const readIcon = createElement('img', {
     src: '/icons/list.svg',
