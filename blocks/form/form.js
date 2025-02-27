@@ -102,11 +102,13 @@ async function handleSubmit(form, block) {
     const recaptchaToken = await recaptcha.getToken();
 
     const payload = generatePayload(form, formId, formName);
-    payload.recaptchaToken = recaptchaToken;
 
     const response = await fetch(form.dataset.action, {
       method: 'POST',
-      body: JSON.stringify({ data: payload }),
+      body: JSON.stringify({
+        ...payload,
+        'g-recaptcha-response': recaptchaToken,
+      }),
       headers: {
         'Content-Type': 'application/json',
       },
