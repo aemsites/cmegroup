@@ -24,7 +24,7 @@ function buildHierarchicalMenu(taxonomy) {
     const hasSubcategories = Object.keys(category).some((k) => !['title', 'name', 'path', 'hide'].includes(k));
     if (hasSubcategories) {
       menuItems.push(`
-        <div class="category-group collapsed" data-category="${catId}">
+        <div class="category-group" data-category="${catId}">
           <div class="category-header">
             <span class="expand-icon">+</span>
             <span class="category-title">${category.title}</span>
@@ -37,7 +37,7 @@ function buildHierarchicalMenu(taxonomy) {
           <span class="path" data-full-path="${category.path}">
             <span class="path-hierarchy" title="${category.path}"/>
             </span>
-            <span class="tag cat-${catId % 4}" data-title="${category.title}" data-path="${category.path}">
+            <span class="tag tag-data cat-${catId % 4}" data-title="${category.title}" data-path="${category.path}">
               ${category.title}
             </span>
           </span>
@@ -58,6 +58,9 @@ function buildHierarchicalMenu(taxonomy) {
               <div class="category-header">
                 <span class="expand-icon">+</span>
                 <span class="category-title">${item.title}</span>
+                <span class="category-selector path cat-${catId % 4} tag-data" data-title="${item.title}" data-full-path="${item.path}">
+                  <img src="/icons/check.svg"/>
+                </span>
               </div>
               <div class="category-content">
           `);
@@ -66,10 +69,10 @@ function buildHierarchicalMenu(taxonomy) {
         } else {
           menuItems.push(`
             <div class="path-wrapper">
-              <span class="path" data-full-path="${item.path}">
+              <span class="path" data-full-path="${item.path}" data-title="${item.title}">
                 <span class="path-hierarchy" title="${item.path}"/>
                 </span>
-                <span class="tag cat-${catId % 4}" data-title="${item.title}" data-path="${item.path}">
+                <span class="tag cat-${catId % 4} tag-data" data-title="${item.title}" data-path="${item.path}">
                   ${item.title}
                 </span>
               </span>
@@ -91,10 +94,10 @@ function buildHierarchicalMenu(taxonomy) {
 function displaySelected(container) {
   const selectedPaths = Array.from(container.querySelectorAll('.path.selected'))
     .map((path) => {
-      const { fullPath } = path.dataset;
+      const { fullPath, title } = path.dataset;
       return {
         fullPath,
-        label: path.querySelector('.tag').dataset.title,
+        label: title,
       };
     });
 
@@ -144,6 +147,14 @@ export async function decorateTagsPlugin(container, sheet) {
 
   // Event Handlers
   container.addEventListener('click', (e) => {
+    // Tag selection
+    const pathEl = e.target.closest('.path');
+    if (pathEl) {
+      pathEl.classList.toggle('selected');
+      displaySelected(container);
+      return;
+    }
+
     // Category expand/collapse
     const categoryHeader = e.target.closest('.category-header');
     if (categoryHeader) {
@@ -151,14 +162,6 @@ export async function decorateTagsPlugin(container, sheet) {
       const icon = categoryHeader.querySelector('.expand-icon');
       group.classList.toggle('collapsed');
       icon.textContent = group.classList.contains('collapsed') ? '+' : '−';
-      return;
-    }
-
-    // Tag selection
-    const pathEl = e.target.closest('.path');
-    if (pathEl) {
-      pathEl.classList.toggle('selected');
-      displaySelected(container);
     }
   });
 
