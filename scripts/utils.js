@@ -68,7 +68,7 @@ function createElement(tagName, attributes, ...children) {
 
 /**
  * Returns the tag information from a tagname
- * @param {string} tagName 
+ * @param {string} tagName
  * @returns {Promise} Object containing tag data or empty object if not exists
  * @property {string} title - The tag title
  * @property {string} tag - Tag path
