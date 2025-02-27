@@ -233,6 +233,13 @@
   letter-spacing: .125em;
   line-height: .75rem;
   font-weight: 700;
+  cursor: pointer;
+}
+
+.form .field-wrapper button[type="submit"]:hover {
+  background-color: var(--blue5);
+  color: var(--black);
+  border-color: var(--blue5);
 }
 
 .form.feedback textarea,

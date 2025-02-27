@@ -60,7 +60,8 @@ function generatePayload(form, formId, formName) {
       if (field.type === 'radio') {
         if (field.checked) payload[field.name] = field.value;
       } else if (field.type === 'checkbox') {
-        if (field.checked) payload[field.name] = payload[field.name] ? `${payload[field.name]},${field.value}` : field.value;
+        const fieldValue = field.checked ? (field.value || 'true') : 'false';
+        if (field.checked) payload[field.name] = payload[field.name] ? `${payload[field.name]},${fieldValue}` : fieldValue;
       } else {
         payload[field.name] = field.value;
       }
