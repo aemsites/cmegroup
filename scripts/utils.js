@@ -16,7 +16,7 @@ function getDefaultLang() {
 /**
  * Taxonomy
  */
-const taxonomyEndpoint = 'https://main--cmegroup--aemsites.aem.live/config/sidekick/taxonomy-nestor.json?sheet=tags';
+const taxonomyEndpoint = '/config/sidekick/taxonomy.json?sheet=tags';
 let taxonomyPromise = null;
 
 function fetchTaxonomy() {

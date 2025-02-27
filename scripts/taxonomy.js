@@ -1,6 +1,6 @@
 import ffetch from './ffetch.js';
 
-const taxonomyEndpoint = 'https://main--cmegroup--aemsites.aem.live/config/sidekick/taxonomy-nestor.json';
+const taxonomyEndpoint = '/config/sidekick/taxonomy.json';
 const taxonomyPromises = {};
 
 function fetchTaxonomy(sheet) {
