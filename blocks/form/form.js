@@ -107,11 +107,11 @@ async function handleSubmit(form, block) {
     const response = await fetch(form.dataset.action, {
       method: 'POST',
       body: JSON.stringify({
-        ...payload,
-        'g-recaptcha-response': recaptchaToken,
+        ...payload
       }),
       headers: {
         'Content-Type': 'application/json',
+        'G-Recaptcha-Response': recaptchaToken,
       },
     });
     if (response.ok) {
