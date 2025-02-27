@@ -1,3 +1,5 @@
+@import url('./public/choices-js/choices.min.css');
+
 .form .field-wrapper {
   display: grid;
   grid-auto-flow: row;
@@ -352,6 +354,7 @@
   background-color: var(--blue1);
   min-height: 3.375rem;
   margin-top: 0.5rem;
+  border-radius: 0;
 }
 
 .form.contact-us .field-wrapper.checkbox-wrapper {
@@ -386,5 +389,140 @@
   .form.contact-us .field-wrapper.submit-wrapper {
     width: auto;
   }
+}
+
+.form.contact-us .choices {
+  font-family: inherit;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.form .choices .choices__inner {
+  display: flex;
+  align-items: center;
+  background-color: var(--blue1);
+  border: none;
+  border-radius: 0;
+  max-width: 100%; 
+  position: relative;
+  cursor: pointer;
+}
+
+.form .choices[aria-expanded="true"] .choices__inner {
+  border: 2px solid var(--blue5);
+  max-width: 94%;
+}
+
+.form .choices[data-type*=select-one] .choices__input {
+  background-color: var(--blue1);
+  color: var(--white);
+  height: 3.375rem;
+  margin: 0;
+  border-radius: 0;
+  border: 2px solid var(--blue5);
+  width: 100%;
+}
+
+.form .choices .choices__list--dropdown,
+.form .choices .choices__list[aria-expanded="true"] {
+  background-color: var(--blue1);
+  border: none;
+  border-radius: 0 0 .25rem .25rem;
+}
+
+.form .choices .choices__list--dropdown .choices__item {
+  font-size: .875rem;
+  line-height: .875rem;
+  overflow: hidden;
+  padding: 1.1875rem 1.25rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: 2.5rem;
+  position: relative;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.form .choices .choices__list--dropdown .choices__item--selectable.is-highlighted,
+.form .choices .choices__list--dropdown .choices__item--selectable:hover {
+  background-color: var(--gray2);
+}
+
+.form .choices .choices__list--dropdown .choices__item::before {
+  content: '';
+  position: absolute;
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  background-image: url('../../icons/check.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  display: none;
+  filter: var(--blue5-filter);
+  pointer-events: none;
+}
+
+.form .choices .choices__list--dropdown:not(:has(.is-selected)) .choices__item:first-child::before {
+  display: block;
+}
+
+.form .choices .choices__list--dropdown .choices__item.is-selected::before {
+  display: block;
+}
+
+.form .choices .choices__list--single {
+  display: flex;
+  align-items: center;
+  color: var(--white);
+  pointer-events: none;
+}
+
+.form .choices .choices__list--single .choices__placeholder {
+  opacity: 1;
+}
+
+/* Override default arrow */
+.form .choices[data-type*="select-one"]::after {
+  background-image: url('../../icons/chevron-down.svg');
+  border: none;
+  width: 14px;
+  height: 14px;
+  right: 1.25rem;
+  margin-top: -7px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  filter: var(--white-filter);
+  pointer-events: none;
+}
+
+.form .choices.is-open[data-type*="select-one"]::after {
+  transform: rotate(180deg);
+  transform-origin: center;
+}
+
+.form.contact-us .field-wrapper:not(.checkbox-wrapper) > input:focus,
+.form.contact-us .field-wrapper > select:focus,
+.form.contact-us .field-wrapper > textarea:focus {
+  background-color: var(--blue1);
+  color: var(--white);
+  outline: none;
+  border: 2px solid var(--blue5);
+}
+
+/* Prevent background color change on autofill */
+.form.contact-us .field-wrapper > input:-webkit-autofill,
+.form.contact-us .field-wrapper > input:-webkit-autofill:hover,
+.form.contact-us .field-wrapper > input:-webkit-autofill:focus,
+.form.contact-us .field-wrapper > select:-webkit-autofill,
+.form.contact-us .field-wrapper > select:-webkit-autofill:hover,
+.form.contact-us .field-wrapper > select:-webkit-autofill:focus,
+.form.contact-us .field-wrapper > textarea:-webkit-autofill,
+.form.contact-us .field-wrapper > textarea:-webkit-autofill:hover,
+.form.contact-us .field-wrapper > textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--white);
+  -webkit-box-shadow: 0 0 0 1000px var(--blue1) inset;
+  transition: background-color 5000s ease-in-out 0s;
 }
 

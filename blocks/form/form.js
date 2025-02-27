@@ -2,6 +2,27 @@ import createField from './form-fields.js';
 import { createElement } from '../../scripts/utils.js';
 import GoogleReCaptcha from './integrations/recaptcha.js';
 
+
+async function loadChoices(form) {
+  if (!window.Choices) {
+    await import('./public/choices-js/choices.min.js');
+  }
+  form.querySelectorAll('select').forEach((select) => {
+    new Choices(select, {
+      searchEnabled: true,
+      itemSelectText: '',
+      shouldSort: true,
+      placeholderValue: 'Please Select...',
+      position: 'auto',
+      sorter: (a, b) => {
+        if (a.value === 'None') return -1;
+        if (b.value === 'None') return 1;
+        return a.label.localeCompare(b.label);
+      }
+    });
+  });
+}
+
 async function createForm(formHref, submitHref) {
   const { pathname } = new URL(formHref);
   const resp = await fetch(pathname);
@@ -24,6 +45,9 @@ async function createForm(formHref, submitHref) {
       fieldset.append(field);
     });
   });
+
+  // Initialize Choices after form is created
+  await loadChoices(form);
 
   return form;
 }
