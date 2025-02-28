@@ -1,6 +1,7 @@
 import createField from './form-fields.js';
 import { createElement } from '../../scripts/utils.js';
 import GoogleReCaptcha from './integrations/recaptcha.js';
+import { loadFragment } from '../fragment/fragment.js';
 
 
 async function loadChoices(form) {
@@ -23,17 +24,19 @@ async function loadChoices(form) {
   });
 }
 
-async function createForm(formHref, submitHref) {
+async function createForm(formHref) {
   const { pathname } = new URL(formHref);
   const resp = await fetch(pathname);
   const json = await resp.json();
 
   const form = document.createElement('form');
-  form.dataset.action = submitHref;
 
   const fields = await Promise.all(json.data.map((fd) => createField(fd, form)));
   fields.forEach((field) => {
     if (field) {
+      if (field.dataset.type === 'submit') {
+        form.dataset.action = field.dataset.action;
+      }
       form.append(field);
     }
   });
@@ -74,6 +77,14 @@ function generatePayload(form, formId, formName) {
   return payload;
 }
 
+function updatePostSubmitUi(form, block) {
+  // const submitLoggedIn = block.querySelector('.post-submit.logged-in');
+  // submitLoggedIn.classList.remove('hide');
+  form.style.display = 'none';
+  const submitLoggedOut = block.querySelector('.post-submit.logged-out');
+  submitLoggedOut.classList.remove('hide');
+}
+
 async function handleSubmit(form, block) {
   if (form.getAttribute('data-submitting') === 'true') return;
 
@@ -81,6 +92,9 @@ async function handleSubmit(form, block) {
   try {
     form.setAttribute('data-submitting', 'true');
     submit.disabled = true;
+    form.style.display = 'none';
+    block.querySelector('.recaptcha-disclaimer').style.display = 'none';
+    document.body.classList.add('loading');
 
     const sitekey = block.querySelector('.recaptcha-disclaimer')?.dataset.sitekey;
     if (!sitekey) {
@@ -118,16 +132,17 @@ async function handleSubmit(form, block) {
       if (form.dataset.confirmation) {
         window.location.href = form.dataset.confirmation;
       }
+      updatePostSubmitUi(form, block);
     } else {
       const error = await response.text();
       throw new Error(error);
     }
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error(e);
+    console.error('Form submission error:', e);
   } finally {
     form.setAttribute('data-submitting', 'false');
     submit.disabled = false;
+    document.body.classList.remove('loading');
   }
 }
 
@@ -167,7 +182,9 @@ function getFormData(block) {
   const formData = {};
   const rows = [...block.children];
   rows.forEach((row) => {
-    const key = row.querySelector('div:first-child')?.textContent?.trim()?.toLowerCase();
+    const key = row.querySelector('div:first-child')
+      ?.textContent?.trim()?.toLowerCase()
+      .replaceAll(' ', '_');
     const value = row.querySelector('div:last-child')?.textContent?.trim();
     if (key && value) {
       formData[key] = value;
@@ -186,17 +203,31 @@ function getFormData(block) {
   return formData;
 }
 
+async function decoratePostSubmitUi(formData, block) {
+  const submitLoggedIn = createElement('div', { class: 'post-submit logged-in hide' });
+  const submitLoggedOut = createElement('div', { class: 'post-submit logged-out hide' });
+  const loggedInFragment = await loadFragment(formData.submit_logged_in);
+  const loggedOutFragment = await loadFragment(formData.submit_logged_out);
+  submitLoggedIn.append(loggedInFragment);
+  submitLoggedOut.append(loggedOutFragment);
+  block.append(submitLoggedIn, submitLoggedOut);
+}
+
 export default async function decorate(block) {
   const formData = getFormData(block);
   const formLink = formData.source;
-  const submitLink = formData.submit;
 
-  if (!formLink || !submitLink) return;
+  if (!formLink) {
+    // eslint-disable-next-line no-console
+    console.error('No form link found');
+    return;
+  }
 
-  const form = await createForm(formLink, submitLink);
+  const form = await createForm(formLink);
   decorateLabels(form);
   block.replaceChildren(form);
   decorateRecaptchaDisclaimer(block);
+  await decoratePostSubmitUi(formData, block);
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();

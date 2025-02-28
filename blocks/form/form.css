@@ -242,6 +242,14 @@
   border-color: var(--blue5);
 }
 
+.form .post-submit.hide {
+  display: none;
+}
+
+.form .post-submit a {
+  text-decoration: uppercase;
+}
+
 .form.feedback textarea,
 .form.feedback input {
   background-color: var(--gray6);

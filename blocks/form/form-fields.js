@@ -131,6 +131,8 @@ const createSubmit = (fd) => {
 
   const fieldWrapper = createFieldWrapper(fd);
   fieldWrapper.append(button);
+  fieldWrapper.setAttribute('data-type', 'submit');
+  fieldWrapper.setAttribute('data-action', fd.Value);
   return { field: button, fieldWrapper };
 };
 
