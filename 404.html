@@ -53,13 +53,84 @@
   <header></header>
   <main class="error">
     <div class="section">
-      <svg viewBox="1 0 38 18" class="error-number">
-        <text x="0" y="17">404</text>
-      </svg>
-      <h2 class="error-message">Page Not Found</h2>
-      <p class="button-container">
-        <a href="/" class="button secondary error-button-home">Go home</a>
-      </p>
+      <div class="default-content-wrapper">
+        <h1>Sorry...</h1>
+        <p>The page you are looking for cannot be found.</p>
+        <p>You may have typed in the wrong address, or the page may no longer exist.</p>
+        <h2>What next?</h2>
+        <ul>
+          <li>Go back to the previous page</li>
+          <li>Go to the CME Group <a href="http://www.cmegroup.com">home page</a></li>
+          <li>Consider using the CME Group site navigation above or the search box below to find the page that you want on our site.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top:40px">
+      <form action="/search/index.html">
+        <input type="text" name="q" placeholder="Search CME Group" style="width: 70%; padding: 5px; float:left;font-size: 14px; margin-right: 1%;">
+        <button type="submit">Search</button>
+      </form>
+    </div>
+
+    <div class="section">
+        <h2>Useful Links</h2>
+    </div>
+
+    <div class="section cards-container" >
+      <div class="cards-wrapper">
+        <ul>
+          <li>
+            <div class="cards-card-image">
+              <picture>
+                <source srcset="/images/leading-products_459x293.avif" type="image/jpeg">
+                <img src="/images/leading-products_459x293.avif" alt="Leading Products">
+              </picture>
+            </div>
+            <div class="cards-card-body">
+              <!-- <p>Product Slate</p> -->
+              <h3>
+                <a href="/markets/products.html" rel="internal">
+                  View All Products
+                </a>
+              </h3>
+              <p>View all available products to see quotes, volume, settlements and time & sales.</p>
+            </div>
+          </li>
+          <li>
+            <div class="cards-card-image">
+              <picture>
+                <source srcset="/images/market-research-459x293.avif" type="image/jpeg">
+                <img src="/images/market-research-459x293.avif" alt="Market Research">
+              </picture>
+            </div>
+            <div class="cards-card-body">
+              <h3>
+                <a href="/markets/products.html" rel="internal">
+                  View All Articles
+                </a>
+              </h3>
+              <p>View our extensive library of articles and economic research reports.</p>
+            </div>
+          </li>
+          <li>
+            <div class="cards-card-image">
+              <picture>
+                <source srcset="/images/bnr-technology-459x293.avif" type="image/jpeg">  
+                <img src="/images/bnr-technology-459x293.avif" alt="Technology">
+              </picture>
+            </div>
+            <div class="cards-card-body">
+              <h3>
+                <a href="/trading/market-tech-and-data-services.html" rel="internal">
+                  Market Technology Services
+                </a>
+              </h3>
+              <p>Learn about our comprehensive portfolio of technology offerings.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
   </main>
   <footer></footer>
