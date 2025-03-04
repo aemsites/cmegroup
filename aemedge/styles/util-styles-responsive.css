@@ -19,14 +19,14 @@
     --space-xl-responsive: 90px;
 }
 
-
 @media (width < 768px) {
-    /* Responsive Margin and padding spacing overrides */
-    --space-xs-responsive: 0px;
-    --space-s-responsive: 15px;
-    --space-m-responsive: 20px;
-    --space-l-responsive: 30px;
-    --space-xl-responsive: 60px;
+    :root {
+        --space-xs-responsive: 0px;
+        --space-s-responsive: 15px;
+        --space-m-responsive: 20px;
+        --space-l-responsive: 30px;
+        --space-xl-responsive: 60px;
+    }
 }
 
 /* Global Styles  */
