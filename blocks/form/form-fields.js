@@ -4,6 +4,7 @@ import { createElement } from '../../scripts/utils.js';
 function createFieldWrapper(fd) {
   const fieldWrapper = document.createElement('div');
   if (fd.Style) fieldWrapper.className = fd.Style;
+  if (fd.Hide === 'true') fieldWrapper.classList.add('hide');
   fieldWrapper.classList.add('field-wrapper', `${fd.Type}-wrapper`);
 
   fieldWrapper.dataset.fieldset = fd.Fieldset;
@@ -39,9 +40,26 @@ function createLabel(fd) {
 function setCommonAttributes(field, fd) {
   field.id = fd.Id;
   field.name = fd.Name;
-  field.required = fd.Mandatory && (fd.Mandatory.toLowerCase() === 'true' || fd.Mandatory.toLowerCase() === 'x');
+  field.required = fd.Mandatory?.toLowerCase() === 'true' || fd.Mandatory?.toLowerCase() === 'x';
   field.placeholder = fd.Placeholder;
   field.value = fd.Value;
+
+  // custom validation message for empty and mandatory fields
+  if (fd['Validation Message']) {
+    field.dataset.customError = fd['Validation Message'];
+    const handler = () => {
+      field.setCustomValidity(field.value ? '' : field.dataset.customError);
+      if (field.value) {
+        const wrapper = field.closest('.field-wrapper');
+        const errorMsg = wrapper.querySelector('.error-message');
+        errorMsg?.remove();
+      }
+    };
+
+    field.addEventListener('input', handler);
+    field.addEventListener('change', handler);
+    field.setCustomValidity(field.value ? '' : fd['Validation Message']);
+  }
 }
 
 const createHeading = (fd) => {
@@ -106,7 +124,9 @@ const createSelect = async (fd) => {
         value: opt.trim(),
       }));
     }
-
+    if (fd.OptionsSort === 'true') {
+      options.sort((a, b) => a.text.localeCompare(b.text));
+    }
     options.forEach((opt) => addOption(opt));
   }
 

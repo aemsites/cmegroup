@@ -1,4 +1,9 @@
-@import url('./public/choices-js/choices.min.css');
+@import url('./external/choices-js/choices.min.css');
+
+.form {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
 
 .form .field-wrapper {
   display: grid;
@@ -105,6 +110,10 @@
   width: max-content;
 }
 
+.form .field-wrapper.hide {
+  display: none;
+}
+
 @media (width >= 600px) {
   .form input,
   .form select,
@@ -131,7 +140,7 @@
   gap: 1ch;
 }
 
-.form label[data-required]::after {
+.form:not(.contact-us) label[data-required]::after {
   content: '*';
   color: firebrick;
   margin-inline-start: 1ch;
@@ -347,9 +356,37 @@
 }
 
 .form.contact-us form {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form.contact-us form.collapsed-user-info {
+  gap: 0;
+}
+
+.form.contact-us form.user-info .saved-business-email,
+.form.contact-us form.user-info .edit-account-information {
+  display: none;
+}
+
+.form.contact-us form.collapsed-user-info .saved-business-email,
+.form.contact-us form.collapsed-user-info .edit-account-information {
+  margin-bottom: 1rem;
+}
+
+.form.contact-us form.collapsed-user-info .saved-business-email .email-address {
+  font-weight: 700;
+}
+
+.form.contact-us form.collapsed-user-info .edit-account-information {
+  cursor: pointer;
+  text-align: start;
+}
+
+.form.contact-us .field-wrapper {
+  position: relative;
+  margin-bottom: 1rem;
 }
 
 .form.contact-us .field-wrapper > * {
@@ -368,12 +405,17 @@
   color: var(--white);
   background-color: var(--blue1);
   min-height: 3.375rem;
-  margin-top: 0.5rem;
   border-radius: 0;
+  border: 2px solid transparent;
+}
+
+.form.contact-us .field-wrapper:not(.checkbox-wrapper) > label {
+  margin-bottom: 0.5rem;
 }
 
 .form.contact-us .field-wrapper.checkbox-wrapper {
   align-items: start;
+  margin-top: -1rem;
 }
 
 .form.contact-us .field-wrapper.checkbox-wrapper label {
@@ -390,11 +432,42 @@
   justify-self: start;
 }
 
+.form.contact-us form.user-info .field-wrapper:has([name="question_comment"]){
+  display: none;
+}
+
+/* Collapsed state - hide user info fields except question_comment and submit */
+.form.contact-us form.collapsed-user-info .field-wrapper {
+  display: none;
+}
+
+.form.contact-us form .field-wrapper.submit-wrapper,
+.form.contact-us form.collapsed-user-info .field-wrapper:has([name="question_comment"]){
+  display: grid;
+}
+
 @media (width > 768px) {
   .form.contact-us form {
-    grid-template-columns: 1fr 1fr;
-  }
+    display: grid;
+    grid-template-areas: 
+      "saved-business-email edit-account-information"
+      "first-name last-name"
+      "business-email location"
+      "job-role company-type"
+      "other-job-role other-company-type"
+      "company-name company-name"
+      "message message"
+      "privacy privacy"
+      "submit submit";
   
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .form.contact-us form.collapsed-user-info .edit-account-information {
+    text-align: right;
+  }
+
   .form.contact-us .text-wrapper:has(input[name="Company_Name__c"]),
   .form.contact-us .text-area-wrapper,
   .form.contact-us .checkbox-wrapper {
@@ -410,6 +483,7 @@
   font-family: inherit;
   text-transform: none;
   cursor: pointer;
+  margin-bottom: 0;
 }
 
 .form .choices .choices__inner {
@@ -418,14 +492,17 @@
   background-color: var(--blue1);
   border: none;
   border-radius: 0;
-  max-width: 100%; 
+  max-width: 100%;
   position: relative;
   cursor: pointer;
+  min-height: 3.375rem;
+  box-sizing: border-box;
+  padding: 0.75rem 1.25rem;
 }
 
 .form .choices[aria-expanded="true"] .choices__inner {
   border: 2px solid var(--blue5);
-  max-width: 94%;
+  max-width: 100%;
 }
 
 .form .choices[data-type*=select-one] .choices__input {
@@ -435,7 +512,8 @@
   margin: 0;
   border-radius: 0;
   border: 2px solid var(--blue5);
-  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .form .choices .choices__list--dropdown,
@@ -541,3 +619,32 @@
   transition: background-color 5000s ease-in-out 0s;
 }
 
+/* Custom validation styles */
+.form .field-wrapper:has(.error-message) > input,
+.form .field-wrapper:has(.error-message) > select:invalid,
+.form .field-wrapper:has(.error-message) > textarea:invalid,
+.form .field-wrapper:has(.error-message) .choices__inner {
+  border: 2px solid var(--red2) !important;
+}
+
+.form .field-wrapper .error-message {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  font-family: var(--body-font-family);
+  font-size: .875rem;
+  line-height: 1.25rem;
+  color: var(--red2);
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.form .field-wrapper.checkbox-wrapper .error-message {
+  top: 80%;
+}
+
+.form.attempted-submit .field-wrapper .error-message {
+  display: block;
+}

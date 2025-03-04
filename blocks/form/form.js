@@ -3,33 +3,159 @@ import { createElement } from '../../scripts/utils.js';
 import GoogleReCaptcha from './integrations/recaptcha.js';
 import { loadFragment } from '../fragment/fragment.js';
 
+function createChoicesInstance(select) {
+  // eslint-disable-next-line no-undef
+  const choicesInstance = new Choices(select, {
+    searchEnabled: true,
+    itemSelectText: '',
+    shouldSort: false, // sorting handled in form-fields.js
+    placeholderValue: 'Please Select...',
+    position: 'auto',
+  });
+  select.choicesInstance = choicesInstance;
+}
 
-async function loadChoices(form) {
+function loadChoices(form, callback, ...args) {
   if (!window.Choices) {
-    await import('./public/choices-js/choices.min.js');
+    const script = document.createElement('script');
+    script.src = '/blocks/form/external/choices-js/choices.min.js';
+    script.async = true;
+
+    script.onload = () => {
+      form.querySelectorAll('select').forEach((select) => createChoicesInstance(select));
+      callback(...args);
+    };
+
+    document.head.appendChild(script);
+  } else {
+    form.querySelectorAll('select').forEach((select) => createChoicesInstance(select));
+    callback(...args);
   }
-  form.querySelectorAll('select').forEach((select) => {
-    new Choices(select, {
-      searchEnabled: true,
-      itemSelectText: '',
-      shouldSort: true,
-      placeholderValue: 'Please Select...',
-      position: 'auto',
-      sorter: (a, b) => {
-        if (a.value === 'None') return -1;
-        if (b.value === 'None') return 1;
-        return a.label.localeCompare(b.label);
-      }
+}
+
+function handleOtherFieldVisibility(form, selectField, otherFieldName) {
+  const otherFieldWrapper = form.querySelector(`.field-wrapper:has([name="${otherFieldName}"])`);
+  if (otherFieldWrapper) {
+    const { choicesInstance } = selectField;
+    const selectedValue = choicesInstance ? choicesInstance.getValue(true) : selectField.value;
+    const isOthersSelected = selectedValue?.toLowerCase() === 'other';
+
+    otherFieldWrapper.classList.toggle('hide', !isOthersSelected);
+    const otherField = otherFieldWrapper.querySelector(`[name="${otherFieldName}"]`);
+    otherField.required = isOthersSelected;
+  }
+}
+
+function handleContactUsFormOtherFields(form) {
+  const jobRoleSelect = form.querySelector('[name="Job_Role__c"]');
+  const companyTypeSelect = form.querySelector('[name="Company_Type__c"]');
+
+  if (jobRoleSelect) {
+    // Listen to Choices.js change event
+    jobRoleSelect.choicesInstance.passedElement.element.addEventListener('change', () => {
+      handleOtherFieldVisibility(form, jobRoleSelect, 'Other_Job_Role__c');
     });
+  }
+
+  if (companyTypeSelect) {
+    // Listen to Choices.js change event
+    companyTypeSelect.choicesInstance.passedElement.element.addEventListener('change', () => {
+      handleOtherFieldVisibility(form, companyTypeSelect, 'Other_Company_Type__c');
+    });
+  }
+}
+
+function setFieldValue(field, value) {
+  if (field.type === 'select-one') {
+    field.choicesInstance?.setChoiceByValue(value);
+    field.dispatchEvent(new Event('change', { bubbles: true }));
+    field.dispatchEvent(new Event('invalid', { bubbles: true }));
+  } else if (field.type === 'checkbox') {
+    field.checked = (value === true);
+    field.dispatchEvent(new Event('change', { bubbles: true }));
+  } else {
+    field.value = value;
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+}
+
+function addCollapsedUserInfo(userEmail, form) {
+  const savedBusinessEmail = createElement('div', { class: 'saved-business-email' });
+  savedBusinessEmail.innerHTML = `
+    <span>Business Email: </span>
+    <span class='email-address'>${userEmail}</span>
+    `;
+  const editAccountInformation = createElement('div', { class: 'edit-account-information' });
+  editAccountInformation.innerHTML = '<a>Edit Account Information</a>';
+  form.prepend(editAccountInformation);
+  form.prepend(savedBusinessEmail);
+  return editAccountInformation;
+}
+
+function populateUserInfoInContactUsForm(form, userInfo) {
+  Object.entries(userInfo).forEach(([key, value]) => {
+    const field = form.querySelector(`[name="${key}"]`);
+    if (field) {
+      setFieldValue(field, value);
+    }
   });
 }
 
-async function createForm(formHref) {
+async function decorateContactUsLoggedInForm(form, formData, block) {
+  const isContactUsVariant = block.classList.contains('contact-us');
+  if (!isContactUsVariant || formData.mock !== 'LoggedIn') return;
+
+  const getUserInfo = await import('./mock/user-info.js').then((m) => m.default);
+  form.classList.remove('user-info');
+  form.classList.add('collapsed-user-info');
+  const userInfo = getUserInfo();
+  const editAccountInformation = addCollapsedUserInfo(userInfo.Email__c, form);
+
+  editAccountInformation.addEventListener('click', (e) => {
+    e.preventDefault();
+    form.classList.remove('collapsed-user-info');
+    form.classList.add('user-info');
+  });
+
+  populateUserInfoInContactUsForm(form, userInfo);
+}
+
+async function decorateContactUsForm(form, formData, block) {
+  const isContactUsVariant = block.classList.contains('contact-us');
+  if (!isContactUsVariant) return;
+
+  form.classList.add('user-info');
+  await decorateContactUsLoggedInForm(form, formData, block);
+}
+
+function decorateLabels(form) {
+  const labels = form.querySelectorAll('label');
+
+  labels.forEach((label) => {
+    const text = label.textContent;
+    const linkPattern = /\[(.*?)\]\((.*?)\)/g;
+
+    if (linkPattern.test(text)) {
+      linkPattern.lastIndex = 0;
+      let newText = text;
+      Array.from(text.matchAll(linkPattern)).forEach((match) => {
+        const [fullMatch, linkText, url] = match;
+        const anchor = `<a href="${url}">${linkText}</a>`;
+        newText = newText.replace(fullMatch, anchor);
+      });
+      label.innerHTML = newText;
+    }
+  });
+}
+
+async function createForm(formData, block) {
+  const formHref = formData.source;
   const { pathname } = new URL(formHref);
   const resp = await fetch(pathname);
   const json = await resp.json();
 
   const form = document.createElement('form');
+  form.setAttribute('novalidate', '');
 
   const fields = await Promise.all(json.data.map((fd) => createField(fd, form)));
   fields.forEach((field) => {
@@ -49,9 +175,9 @@ async function createForm(formHref) {
     });
   });
 
-  // Initialize Choices after form is created
-  await loadChoices(form);
-
+  decorateLabels(form);
+  loadChoices(form, handleContactUsFormOtherFields, form);
+  await decorateContactUsForm(form, formData, block);
   return form;
 }
 
@@ -121,7 +247,7 @@ async function handleSubmit(form, block) {
     const response = await fetch(form.dataset.action, {
       method: 'POST',
       body: JSON.stringify({
-        ...payload
+        ...payload,
       }),
       headers: {
         'Content-Type': 'application/json',
@@ -138,32 +264,13 @@ async function handleSubmit(form, block) {
       throw new Error(error);
     }
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.error('Form submission error:', e);
   } finally {
     form.setAttribute('data-submitting', 'false');
     submit.disabled = false;
     document.body.classList.remove('loading');
   }
-}
-
-function decorateLabels(form) {
-  const labels = form.querySelectorAll('label');
-
-  labels.forEach((label) => {
-    const text = label.textContent;
-    const linkPattern = /\[(.*?)\]\((.*?)\)/g;
-
-    if (linkPattern.test(text)) {
-      linkPattern.lastIndex = 0;
-      let newText = text;
-      Array.from(text.matchAll(linkPattern)).forEach((match) => {
-        const [fullMatch, linkText, url] = match;
-        const anchor = `<a href="${url}">${linkText}</a>`;
-        newText = newText.replace(fullMatch, anchor);
-      });
-      label.innerHTML = newText;
-    }
-  });
 }
 
 function decorateRecaptchaDisclaimer(block) {
@@ -223,22 +330,48 @@ export default async function decorate(block) {
     return;
   }
 
-  const form = await createForm(formLink);
-  decorateLabels(form);
+  const form = await createForm(formData, block);
   block.replaceChildren(form);
   decorateRecaptchaDisclaimer(block);
   await decoratePostSubmitUi(formData, block);
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const valid = form.checkValidity();
+    form.classList.add('attempted-submit');
+
+    const visibleFields = [...form.elements].filter((field) => {
+      const wrapper = field.closest('.field-wrapper');
+      if (!wrapper) return false;
+      const computedStyle = window.getComputedStyle(wrapper);
+      return computedStyle.display !== 'none' && !wrapper.classList.contains('hide');
+    });
+    const valid = visibleFields.every((field) => field.checkValidity());
+
     if (valid) {
       handleSubmit(form, block);
     } else {
-      const firstInvalidEl = form.querySelector(':invalid:not(fieldset)');
+      // Show custom error messages only for visible fields
+      const invalidFields = form.querySelectorAll(':invalid');
+      invalidFields.forEach((field) => {
+        const wrapper = field.closest('.field-wrapper:not(.hide)');
+        if (!wrapper.querySelector('.error-message')) {
+          const errorMsg = document.createElement('div');
+          errorMsg.className = 'error-message';
+          errorMsg.textContent = field.validationMessage || 'This field is required';
+          wrapper.appendChild(errorMsg);
+        }
+      });
+
+      // Scroll to first visible invalid field
+      const firstInvalidEl = [...invalidFields].find((field) => {
+        const wrapper = field.closest('.field-wrapper');
+        if (!wrapper) return false;
+        const computedStyle = window.getComputedStyle(wrapper);
+        return computedStyle.display !== 'none' && !wrapper.classList.contains('hide');
+      });
       if (firstInvalidEl) {
         firstInvalidEl.focus();
-        firstInvalidEl.scrollIntoView({ behavior: 'smooth' });
+        firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
   });

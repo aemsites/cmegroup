@@ -1,1 +1,3 @@
 helix-importer-ui
+# Ignore all files in external directories
+**/external/**
