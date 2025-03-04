@@ -1,3 +1,6 @@
+/* External dependencies */
+@import url('./external/choices-js/choices.min.css');
+
 /* Base styles */
 @import url('./form-base.css');
 

@@ -25,22 +25,22 @@ function loadChoicesCSS() {
   }
 }
 
-function loadChoices(form, callback, ...args) {
+async function loadChoices(form, callback, ...args) {
   if (!window.Choices) {
-    loadChoicesCSS();
+    //loadChoicesCSS();
     const script = document.createElement('script');
     script.src = '/blocks/form/external/choices-js/choices.min.js';
     script.async = true;
 
-    script.onload = () => {
+    script.onload = async () => {
       form.querySelectorAll('select').forEach((select) => createChoicesInstance(select));
-      callback(...args);
+      await callback(...args);
     };
 
     document.head.appendChild(script);
   } else {
     form.querySelectorAll('select').forEach((select) => createChoicesInstance(select));
-    callback(...args);
+    await callback(...args);
   }
 }
 
@@ -62,14 +62,12 @@ function handleContactUsFormOtherFields(form) {
   const companyTypeSelect = form.querySelector('[name="Company_Type__c"]');
 
   if (jobRoleSelect) {
-    // Listen to Choices.js change event
     jobRoleSelect.choicesInstance.passedElement.element.addEventListener('change', () => {
       handleOtherFieldVisibility(form, jobRoleSelect, 'Other_Job_Role__c');
     });
   }
 
   if (companyTypeSelect) {
-    // Listen to Choices.js change event
     companyTypeSelect.choicesInstance.passedElement.element.addEventListener('change', () => {
       handleOtherFieldVisibility(form, companyTypeSelect, 'Other_Company_Type__c');
     });
@@ -128,6 +126,7 @@ async function decorateContactUsLoggedInForm(form, formData, block) {
     form.classList.add('user-info');
   });
 
+  handleContactUsFormOtherFields(form);
   populateUserInfoInContactUsForm(form, userInfo);
 }
 
@@ -187,8 +186,7 @@ async function createForm(formData, block) {
   });
 
   decorateLabels(form);
-  loadChoices(form, handleContactUsFormOtherFields, form);
-  await decorateContactUsForm(form, formData, block);
+  loadChoices(form, decorateContactUsForm, form, formData, block);
   return form;
 }
 
