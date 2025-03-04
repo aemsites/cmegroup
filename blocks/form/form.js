@@ -15,8 +15,19 @@ function createChoicesInstance(select) {
   select.choicesInstance = choicesInstance;
 }
 
+function loadChoicesCSS() {
+  if (!document.querySelector('#choices-css')) {
+    const link = document.createElement('link');
+    link.id = 'choices-css';
+    link.rel = 'stylesheet';
+    link.href = '/blocks/form/external/choices-js/choices.min.css';
+    document.head.appendChild(link);
+  }
+}
+
 function loadChoices(form, callback, ...args) {
   if (!window.Choices) {
+    loadChoicesCSS();
     const script = document.createElement('script');
     script.src = '/blocks/form/external/choices-js/choices.min.js';
     script.async = true;

@@ -1,19 +1,16 @@
-/* stylelint-disable */
-
-@import url('./external/choices-js/choices.min.css');
-/* External dependencies */
-/* Base styles */
 /* Common form styles used by all variants */
 .form {
   font-size: 0.875rem;
   line-height: 1.25rem;
 }
+
 .form .field-wrapper {
   display: grid;
   grid-auto-flow: row;
   align-items: center;
   position: relative;
 }
+
 .form fieldset {
   display: grid;
   grid-auto-flow: row;
@@ -21,10 +18,12 @@
   border: none;
   padding: 0;
 }
+
 .form form > .selection-wrapper + .selection-wrapper,
 .form form fieldset .selection-wrapper + .selection-wrapper {
   margin-top: 0.25em;
 }
+
 @media (width >= 600px) {
   .form fieldset {
     grid-template-columns: repeat(2, auto);
@@ -37,21 +36,25 @@
     margin-top: 0;
   }
 }
+
 @media (width >= 900px) {
   .form:not(.feedback) fieldset {
     grid-template-columns: repeat(3, auto);
   }
 }
+
 .form label,
 .form fieldset > legend {
   margin-bottom: 0.25em;
   font-size: var(--body-font-size-s);
   font-weight: 700;
 }
+
 .form .selection-wrapper label {
   margin: 0;
   font-weight: normal;
 }
+
 /* Base input styles */
 .form input,
 .form select,
@@ -68,26 +71,32 @@
   font-size: var(--body-font-size-s);
   transition: border-color 0.2s;
 }
+
 .form textarea {
   resize: vertical;
 }
+
 .form input:hover,
 .form select:hover,
 .form textarea:hover {
   border: 0.0625rem solid var(--text-color);
 }
+
 .form input:focus,
 .form select:focus,
 .form textarea:focus {
   outline: 0.125rem solid var(--link-color);
   outline-offset: 0.125rem;
 }
+
 .form .selection-wrapper input {
   width: max-content;
 }
+
 .form .field-wrapper.hide {
   display: none;
 }
+
 @media (width >= 600px) {
   .form input,
   .form select,
@@ -99,6 +108,7 @@
     max-width: max-content;
   }
 }
+
 @media (width >= 900px) {
   .form input,
   .form select,
@@ -106,27 +116,32 @@
     max-width: 33vw;
   }
 }
+
 .form .field-wrapper.selection-wrapper {
   grid-auto-flow: column;
   justify-content: start;
   gap: 1ch;
 }
+
 .form:not(.contact-us) label[data-required]::after {
   content: '*';
   color: firebrick;
   margin-inline-start: 1ch;
 }
+
 .form .toggle-wrapper .switch {
   position: relative;
   display: inline-block;
   width: 3.25rem;
   height: 1.75rem;
 }
+
 .form .toggle-wrapper input {
   opacity: 0;
   width: 3.25rem;
   height: 1.75rem;
 }
+
 .form .toggle-wrapper .slider {
   position: absolute;
   cursor: pointer;
@@ -135,6 +150,7 @@
   background-color: var(--dark-color);
   transition: background-color 0.2s;
 }
+
 .form .toggle-wrapper .slider::before {
   content: '';
   position: absolute;
@@ -146,16 +162,20 @@
   background-color: var(--background-color);
   transition: transform 0.2s;
 }
+
 .form .toggle-wrapper input:checked + .slider {
   background-color: var(--link-color);
 }
+
 .form .toggle-wrapper input:focus + .slider {
   outline: 0.125rem solid var(--link-color);
   outline-offset: 0.125rem;
 }
+
 .form .toggle-wrapper input:checked + .slider::before {
   transform: translateX(1.5rem);
 }
+
 .form .field-wrapper button[type="submit"] {
   background-color: var(--blue4);
   color: var(--white);
@@ -167,21 +187,26 @@
   font-weight: 700;
   cursor: pointer;
 }
+
 .form .field-wrapper button[type="submit"]:hover {
   background-color: var(--blue5);
   color: var(--black);
   border-color: var(--blue5);
 }
+
 .form .post-submit.hide {
   display: none;
 }
+
 .form .post-submit a {
   text-decoration: uppercase;
 }
+
 .form.feedback .feedback-smiley-wrapper fieldset {
   position: relative;
   gap: 0;
 }
+
 .form .feedback-smiley-wrapper label {
   background-color: var(--gray6);
   color: var(--gray3);
@@ -189,6 +214,7 @@
   line-height: normal;
   padding: 0.5em;
 }
+
 .form .feedback-smiley-wrapper label img {
   padding-top: 0.2rem;
   padding-inline: 0.1rem;
@@ -196,6 +222,7 @@
   height: 1.2rem;
   filter: var(--gray3-filter);
 }
+
 .form .feedback-smiley-wrapper input[type="radio"] {
   position: absolute;
   opacity: 0;
@@ -205,32 +232,39 @@
   cursor: pointer;
   z-index: 1;
 }
+
 .form .feedback-smiley-wrapper:hover label{
   background-color: var(--blue4);
 }
+
 .form .feedback-smiley-wrapper:hover label img {
   filter: var(--white-filter);
 }
+
 .form .feedback-smiley-wrapper input[type="radio"]:checked + label {
   background-color: var(--blue4);
 }
+
 .form .feedback-smiley-wrapper input[type="radio"]:checked + label img {
   filter: var(--white-filter);
 }
+
 .form p.recaptcha-disclaimer {
   color: var(--gray4);
   font-size: 0.75rem;
   margin: 0;
   padding-top: 0.3125rem;
 }
-/* Custom validation styles */
 
+/* Custom validation styles */
+/* stylelint-disable selector-class-pattern */
 .form .field-wrapper:has(.error-message) > input,
 .form .field-wrapper:has(.error-message) > select:invalid,
 .form .field-wrapper:has(.error-message) > textarea:invalid,
 .form .field-wrapper:has(.error-message) .choices__inner {
   border: 2px solid var(--red2) !important;
 }
+
 .form .field-wrapper .error-message {
   position: absolute;
   top: 100%;
@@ -244,17 +278,21 @@
   text-transform: none;
   letter-spacing: normal;
 }
+
 .form .field-wrapper.checkbox-wrapper .error-message {
   top: 80%;
 }
+
 .form.attempted-submit .field-wrapper .error-message {
   display: block;
 }
 
+/* stylelint-disable no-descending-specificity */
 .form p.recaptcha-disclaimer a {
   color: var(--blue4);
   text-decoration: none;
 }
+
 /* Choices.js styles */
 .form .choices .choices__inner {
   display: flex;
@@ -269,10 +307,12 @@
   box-sizing: border-box;
   padding: 0.75rem 1.25rem;
 }
+
 .form .choices[aria-expanded="true"] .choices__inner {
   border: 2px solid var(--blue5);
   max-width: 100%;
 }
+
 .form .choices[data-type*="select-one"] .choices__input {
   background-color: var(--blue1);
   color: var(--white);
@@ -283,12 +323,14 @@
   max-width: 100%;
   box-sizing: border-box;
 }
+
 .form .choices .choices__list--dropdown,
 .form .choices .choices__list[aria-expanded="true"] {
   background-color: var(--blue1);
   border: none;
   border-radius: 0 0 .25rem .25rem;
 }
+
 .form .choices .choices__list--dropdown .choices__item {
   font-size: .875rem;
   line-height: .875rem;
@@ -301,10 +343,12 @@
   cursor: pointer;
   pointer-events: auto;
 }
+
 .form .choices .choices__list--dropdown .choices__item--selectable.is-highlighted,
 .form .choices .choices__list--dropdown .choices__item--selectable:hover {
   background-color: var(--gray2);
 }
+
 .form .choices .choices__list--dropdown .choices__item::before {
   content: '';
   position: absolute;
@@ -320,21 +364,26 @@
   filter: var(--blue5-filter);
   pointer-events: none;
 }
+
 .form .choices .choices__list--dropdown:not(:has(.is-selected)) .choices__item:first-child::before {
   display: block;
 }
+
 .form .choices .choices__list--dropdown .choices__item.is-selected::before {
   display: block;
 }
+
 .form .choices .choices__list--single {
   display: flex;
   align-items: center;
   color: var(--white);
   pointer-events: none;
 }
+
 .form .choices .choices__list--single .choices__placeholder {
   opacity: 1;
 }
+
 /* Override default arrow */
 .form .choices[data-type*="select-one"]::after {
   background-image: url('../../icons/chevron-down.svg');
@@ -348,231 +397,9 @@
   filter: var(--white-filter);
   pointer-events: none;
 }
+
 .form .choices.is-open[data-type*="select-one"]::after {
   transform: rotate(180deg);
   transform-origin: center;
 }
-
-/* Form variants */
-.section:has(.form.feedback) {
-  margin: 0;
-}
-.section:has(.form.feedback) h1,
-.section:has(.form.feedback) h2,
-.section:has(.form.feedback) h3,
-.section:has(.form.feedback) h4,
-.section:has(.form.feedback) h5,
-.section:has(.form.feedback) h6 {
-  font-family: var(--heading-font-family);
-  font-size: var(--heading-font-size-m);
-  font-weight: 400;
-  line-height: 2.5rem;
-  letter-spacing: .09rem;
-  color: var(--blue2);
-}
-.form.feedback form {
-  display: grid;
-  grid-template-areas: 
-    "message message message"
-    "email email smileys"
-    "submit submit submit"
-    "recaptcha-disclaimer recaptcha-disclaimer recaptcha-disclaimer";
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1.5rem;
-  align-items: start;
-}
-/* Assign grid areas */
-.form.feedback .text-area-wrapper {
-  grid-area: message;
-}
-.form.feedback .email-wrapper {
-  grid-area: email;
-}
-.form.feedback .fieldset-wrapper {
-  margin-top: 0.6rem;
-  grid-area: smileys;
-}
-.form.feedback .submit-wrapper {
-  grid-area: submit;
-}
-.form.feedback label {
-  color: var(--gray3);
-  font-family: var(--heading-font-family);
-  font-size: 0.6875rem;
-  font-weight: 400;
-  letter-spacing: 0.0938rem;
-  line-height: 0.6875rem;
-  text-transform: uppercase;
-}
-.form.feedback textarea,
-.form.feedback input {
-  background-color: var(--gray6);
-  color: var(--gray3);
-  border-radius: 0;
-  border: none;
-}
-.form.feedback input:hover,
-.form.feedback textarea:hover {
-  border: none;
-}
-.form.feedback input:focus,
-.form.feedback textarea:focus {
-  outline: 0.125rem solid var(--link-color);
-}
-.form.feedback fieldset[name="feedback"] {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  border: none;
-  padding: 0.2rem;
-}
-.form.feedback .feedback-smiley-wrapper fieldset {
-  position: relative;
-  gap: 0;
-}
-.form.feedback .recaptcha-disclaimer {
-  grid-area: recaptcha-disclaimer;
-}
-/* Contact form specific styles */
-.form.contact-us a,
-.form.contact-us a:any-link {
-  color: var(--blue5);
-  text-decoration: none;
-}
-.form.contact-us form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-.form.contact-us form.collapsed-user-info {
-  gap: 0;
-}
-.form.contact-us form.user-info .saved-business-email,
-.form.contact-us form.user-info .edit-account-information {
-  display: none;
-}
-.form.contact-us form.collapsed-user-info .saved-business-email,
-.form.contact-us form.collapsed-user-info .edit-account-information {
-  margin-bottom: 1rem;
-}
-.form.contact-us form.collapsed-user-info .saved-business-email .email-address {
-  font-weight: 700;
-}
-.form.contact-us form.collapsed-user-info .edit-account-information {
-  cursor: pointer;
-  text-align: start;
-}
-.form.contact-us .field-wrapper {
-  position: relative;
-  margin-bottom: 1rem;
-}
-.form.contact-us .field-wrapper > * {
-  max-width: 100%;
-  font-size: .6875rem;
-  letter-spacing: .0938rem;
-  line-height: .6875rem;
-  font-family: var(--heading-font-family);
-  font-weight: 400;
-  text-transform: uppercase;
-}
-.form.contact-us .field-wrapper:not(.checkbox-wrapper) > input,
-.form.contact-us .field-wrapper > select,
-.form.contact-us .field-wrapper > textarea {
-  color: var(--white);
-  background-color: var(--blue1);
-  min-height: 3.375rem;
-  border-radius: 0;
-  border: 2px solid transparent;
-}
-.form.contact-us .field-wrapper:not(.checkbox-wrapper) > label {
-  margin-bottom: 0.5rem;
-}
-.form.contact-us .field-wrapper.checkbox-wrapper {
-  align-items: start;
-  margin-top: -1rem;
-}
-.form.contact-us .field-wrapper.checkbox-wrapper label {
-  font-size: .875rem;
-  letter-spacing: 0;
-  line-height: 1.25rem;
-  text-transform: none;
-}
-.form.contact-us .field-wrapper.submit-wrapper {
-  grid-column: auto;
-  width: 100%;
-  justify-self: start;
-}
-/* Collapsed state - hide user info fields except question_comment and submit */
-.form.contact-us form.collapsed-user-info .field-wrapper {
-  display: none;
-}
-.form.contact-us form.user-info .field-wrapper:has([name="question_comment"]){
-  display: none;
-}
-.form.contact-us form .field-wrapper.submit-wrapper,
-.form.contact-us form.collapsed-user-info .field-wrapper:has([name="question_comment"]){
-  display: grid;
-}
-@media (width > 768px) {
-  .form.contact-us form {
-    display: grid;
-    grid-template-areas: 
-      "saved-business-email edit-account-information"
-      "first-name last-name"
-      "business-email location"
-      "job-role company-type"
-      "other-job-role other-company-type"
-      "company-name company-name"
-      "message message"
-      "privacy privacy"
-      "submit submit";
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
-
-  .form.contact-us form.collapsed-user-info .edit-account-information {
-    text-align: right;
-  }
-
-  .form.contact-us .text-wrapper:has(input[name="Company_Name__c"]),
-  .form.contact-us .text-area-wrapper,
-  .form.contact-us .checkbox-wrapper {
-    grid-column: 1 / -1;
-  }
-
-  .form.contact-us .field-wrapper.submit-wrapper {
-    width: auto;
-  }
-}
-.form.contact-us .choices {
-  font-family: inherit;
-  text-transform: none;
-  cursor: pointer;
-  margin-bottom: 0;
-}
-
-.form.contact-us .field-wrapper > select:focus,
-.form.contact-us .field-wrapper > textarea:focus,
-.form.contact-us .field-wrapper:not(.checkbox-wrapper) > input:focus {
-  background-color: var(--blue1);
-  color: var(--white);
-  outline: none;
-  border: 2px solid var(--blue5);
-}
-/* Prevent background color change on autofill */
-
-.form.contact-us .field-wrapper > input:-webkit-autofill,
-.form.contact-us .field-wrapper > input:-webkit-autofill:hover,
-.form.contact-us .field-wrapper > input:-webkit-autofill:focus,
-.form.contact-us .field-wrapper > select:-webkit-autofill,
-.form.contact-us .field-wrapper > select:-webkit-autofill:hover,
-.form.contact-us .field-wrapper > select:-webkit-autofill:focus,
-.form.contact-us .field-wrapper > textarea:-webkit-autofill,
-.form.contact-us .field-wrapper > textarea:-webkit-autofill:hover,
-.form.contact-us .field-wrapper > textarea:-webkit-autofill:focus {
-  -webkit-text-fill-color: var(--white);
-  -webkit-box-shadow: 0 0 0 1000px var(--blue1) inset;
-  transition: background-color 5000s ease-in-out 0s;
-}
- 
-/* stylelint-enable */
+/* stylelint-enable selector-class-pattern */
