@@ -81,9 +81,12 @@
   justify-self: start;
 }
 
-/* Collapsed state - hide user info fields except question_comment and submit */
 .form.contact-us form.collapsed-user-info .field-wrapper {
   display: none;
+}
+
+.form.contact-us .field-wrapper > textarea[name="question_comment"] {
+  text-transform: none;
 }
 
 .form.contact-us form.user-info .field-wrapper:has([name="question_comment"]){

@@ -506,6 +506,9 @@
 .form.contact-us form.collapsed-user-info .field-wrapper {
   display: none;
 }
+.form.contact-us .field-wrapper > textarea[name="question_comment"] {
+  text-transform: none;
+}
 .form.contact-us form.user-info .field-wrapper:has([name="question_comment"]){
   display: none;
 }
