@@ -1,6 +1,6 @@
 import ffetch from './ffetch.js';
 
-const taxonomyEndpoint = '/config/sidekick/taxonomy.json';
+const taxonomyEndpoint = '/eds-config/taxonomy.json';
 const taxonomyPromises = {};
 
 function fetchTaxonomy(sheet) {

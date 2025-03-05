@@ -16,7 +16,7 @@ function getDefaultLang() {
 /**
  * Taxonomy
  */
-const taxonomyEndpoint = '/config/sidekick/taxonomy.json?sheet=tags';
+const taxonomyEndpoint = '/eds-config/taxonomy.json?sheet=tags';
 let taxonomyPromise = null;
 
 function fetchTaxonomy() {
