@@ -19,12 +19,13 @@
 .form.feedback form {
   display: grid;
   grid-template-areas: 
-    "message message message"
-    "email email smileys"
-    "submit submit submit"
-    "recaptcha-disclaimer recaptcha-disclaimer recaptcha-disclaimer";
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1.5rem;
+    "message"
+    "email"
+    "smileys"
+    "submit"
+    "recaptcha-disclaimer";
+  grid-template-columns: 1fr;
+  gap: 1rem;
   align-items: start;
 }
 
@@ -38,7 +39,6 @@
 }
 
 .form.feedback .smiley-container {
-  margin-top: 0.6rem;
   grid-area: smileys;
   display: flex;
   justify-content: flex-start;
@@ -67,6 +67,7 @@
   color: var(--gray3);
   border-radius: 0;
   border: none;
+  max-width: 100%;
 }
 
 .form.feedback input:hover,
@@ -86,4 +87,21 @@
 
 .form.feedback .recaptcha-disclaimer {
   grid-area: recaptcha-disclaimer;
+}
+
+@media (width >= 768px) {
+  .form.feedback form {
+    grid-template-areas: 
+      "message message message"
+      "email email smileys"
+      "submit submit submit"
+      "recaptcha-disclaimer recaptcha-disclaimer recaptcha-disclaimer";
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .form.feedback .smiley-container {
+    margin-top: 0.6rem;
+    justify-content: flex-end;
+  }
 }

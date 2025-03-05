@@ -2,6 +2,7 @@ import createField from './form-fields.js';
 import { createElement } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
 import { getUserInfo, postForm } from '../../scripts/api.js';
+
 function createChoicesInstance(select) {
   // eslint-disable-next-line no-undef
   const choicesInstance = new Choices(select, {

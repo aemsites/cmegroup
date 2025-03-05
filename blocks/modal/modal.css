@@ -18,6 +18,7 @@ body.modal-open {
 }
 
 .modal dialog:has(.form.feedback) {
+  max-width: 80%;
   border-radius: 0.5rem;
   padding: 1.5rem;
 }
@@ -36,6 +37,12 @@ body.modal-open {
 .modal dialog .modal-content:has(.form.feedback) {
   margin-top: 0;
   padding-top: 0;
+}
+
+@media (width > 550px) {
+  .modal dialog:has(.form.feedback) {
+    max-width: 30rem;
+  }
 }
 
 @media (width > 768px) {

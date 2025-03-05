@@ -62,7 +62,6 @@ async function fetchWithErrorHandling(url, method, options) {
 
     const contentType = response.headers.get('content-type');
     let data;
-    
     if (contentType?.includes('application/json')) {
       data = await response.json();
     } else {
@@ -79,7 +78,7 @@ async function fetchWithErrorHandling(url, method, options) {
       success: response.ok && response.status >= 200 && response.status < 300,
       status: response.status,
     };
-    
+
     if (transformResponse.success) {
       transformResponse.data = data;
     } else if (data) {
@@ -141,7 +140,7 @@ async function postForm(form, options = {}) {
     const path = new URL(url).pathname;
 
     if (path === '/CmeWS/mvc/Feedback/Submit/V3') {
-      return fetchWithErrorHandling(url, 'POST', options);
+      return postFeedback(form, options);
     }
 
     const headers = {
