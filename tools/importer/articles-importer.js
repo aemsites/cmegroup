@@ -11,237 +11,446 @@
  */
 /* global WebImporter */
 /* eslint-disable no-console, class-methods-use-this */
-function setMetadata(meta, document, url) {
-  const date = document.querySelector('.news-article-date');
-  if (date) {
-    const parsedDate = new Date(date.textContent);
-    const utcDate = new Date(Date.UTC(
-      parsedDate.getFullYear(),
-      parsedDate.getMonth(),
-      parsedDate.getDate(),
-      0,
-      0,
-      0,
-      0,
-    ));
-    meta['publication-date'] = utcDate.toISOString();
-    date.remove();
-  }
-
-  delete meta['og:title'];
-  delete meta['og:description'];
-
-  const breadcrumbTitle = document.querySelector('.sws-content-header h1');
-  if (breadcrumbTitle) {
-    meta['breadcrumb-title'] = breadcrumbTitle.textContent;
-  }
-
-  const fromTheDepartment = document.querySelector('.from-the-department');
-  if (fromTheDepartment) {
-    meta['from-the-department'] = true;
-  }
-
-  const urlObj = new URL(url);
-  const pathname = urlObj?.pathname;
-
-  if (pathname) {
-    if (pathname.startsWith('/news') && !pathname.startsWith('/newsletter')) {
-      const isNewsLanding = document.querySelector('.news-list');
-      if (isNewsLanding) {
-        meta.template = 'news-landing';
-      } else {
-        meta.template = 'news-article';
-      }
-      isNewsLanding?.remove();
-    } else if (pathname.startsWith('/about-our-school')
-      || pathname.startsWith('/supporting-our-student')
-      || pathname.startsWith('/learning-at-our-school')
-      || pathname.startsWith('/for-parents')) {
-      meta.template = 'side-nav';
-    } else if (pathname.startsWith('/contact-us')) {
-      meta.template = 'contact-us';
-    }
-  }
-
-  document.querySelector('.sws-content-header')?.remove();
-
-  const img = document.querySelector('[property="og:image:url"]');
-  if (img && img.content) {
-    const el = document.createElement('img');
-    el.src = img.content.replaceAll('https://fortstreet-p.schools.nsw.gov.au', '');
-    meta.Image = el;
-  }
-}
-
-const addCarouselItems = (main) => {
-  const cells = [['Carousel']];
-  const imgs = main.querySelectorAll('.carousel-with-thumbnail-parent img');
-  if (imgs?.length) {
-    imgs.forEach((img) => {
-      const cell = [img.outerHTML];
-      cells.push(cell);
-    });
-
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-    const carouselSlider = main.querySelector('.carousel');
-
-    if (carouselSlider) {
-      carouselSlider.replaceWith(table);
-    }
-  }
-};
-
-const addVideo = (main) => {
-  const videos = main.querySelectorAll('.video');
-  if (videos?.length) {
-    videos.forEach((video) => {
-      const cells = [['Video']];
-      const iframeSrc = video?.querySelector('iframe')?.src;
-      if (iframeSrc) {
-        const cleanUrl = iframeSrc.replace(/\\/g, '');
-        cells.push([cleanUrl]);
-        const table = WebImporter.DOMUtils.createTable(cells, document);
-        video.replaceWith(table);
-      }
-    });
-  }
-
-  const embeds = main.querySelectorAll('embed');
-  if (embeds?.length) {
-    embeds.forEach((embed) => {
-      const { src } = embed;
-      const cells = [['Video']];
-      if (src?.includes('youtube') || src?.includes('youtu.be')) {
-        cells.push([src]);
-        const table = WebImporter.DOMUtils.createTable(cells, document);
-        embed.replaceWith(table);
-      }
-    });
-  }
-};
-
-const addCaption = (main) => {
-  const captions = main.querySelectorAll('figcaption');
-  if (captions?.length) {
-    captions.forEach((caption) => {
-      const span = caption.querySelector('span');
-      if (span?.classList.contains('show-on-sr')) {
-        span.remove();
-      }
-      const italicText = document.createElement('em');
-      italicText.textContent = caption.textContent.trim();
-
-      caption.replaceWith(italicText);
-    });
-  }
-};
-
-const h4toH3 = (main) => {
-  const h4s = main.querySelectorAll('h4');
-  if (h4s?.length) {
-    h4s.forEach((h4) => {
-      const h3 = document.createElement('h3');
-      h3.textContent = h4.textContent;
-      h4.replaceWith(h3);
-    });
-  }
-};
-
-const addLeadParagraph = (main) => {
-  const leadParagraph = main.querySelector('.sws-lead-paragraph');
-  if (leadParagraph) {
-    const cells = [['Text (Big)']];
-    cells.push([leadParagraph.textContent]);
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-    leadParagraph.replaceWith(table);
-  }
-};
-
-export const fixPdfLinks = (main, results) => {
-  if (!main) {
-    return;
-  }
-
-  main.querySelectorAll('a').forEach((a) => {
-    const href = a.getAttribute('href');
-
-    if (href?.startsWith('/')) {
-      const extension = href.split('.').pop().toLowerCase();
-
-      if (extension === 'pdf') {
-        const newPath = href.toLowerCase().replace(/_/g, '-').replace('/content/dam', '/assets/pdfs');
-        a.href = newPath;
-        results.push({
-          path: newPath,
-          from: href,
-          report: {
-            original: href,
-          },
-        });
-      }
-    }
-  });
-};
 
 const fetchTemplate = (document) => {
-  let bodyTemplate;
   if (document?.body?.classList?.length) {
-    // const classList = [ ...document.body.classList ];
-    // classList.forEach(cls => {
-    //   if (cls.toLowerCase().indexOf('template') !== -1) {
-    //     bodyTemplate = cls;
-    //   }
-    // });
     const template = document.head.querySelector('meta[name="template"]')?.getAttribute('content');
     return template || document.body.classList.toString();
-  } else {
-    return 'unknown';
-  } 
+  }
+  return 'unknown';
 };
 
-const fetchTable = (document) => {
-  const tables = document.querySelectorAll('table');
-  const allTablesClasses = [...tables].map(table => {
-    return table.classList.toString();
-  }).join(',');
+// const fetchTable = (document) => {
+//   const tables = document.querySelectorAll('table');
+//   const allTablesClasses = [...tables].map(table => {
+//     return table.classList.toString();
+//   }).join(',');
 
-  return allTablesClasses;
-}
+//   return allTablesClasses;
+// }
 
 const fetchForms = (document) => {
   const forms = document.querySelectorAll('form');
-  // iterate over classlist of all forms parent and find any class that contains 'form'
-  const formParentClasses = [];
+  const map = {};
 
-  forms.forEach(form => {
-    const parent = form.parentElement;
-    if (parent) {
-      const classes = parent.classList;
-      classes.forEach(cls => {
-        if (cls.toLowerCase().indexOf('form') !== -1) {
-          formParentClasses.push(cls);
+  if (forms.length) {
+    forms.forEach((form) => {
+      const parent = form.parentElement;
+      let flag = false;
+
+      if (parent) {
+        const classes = parent.classList;
+        classes.forEach((cls) => {
+          if (cls.toLowerCase().indexOf('form') !== -1) {
+            map[cls] = true;
+            flag = true;
+          }
+        });
+      }
+
+      if (!flag) {
+        map.unknown = true;
+      }
+    });
+
+    return map;
+  }
+  return null;
+};
+
+const findProductContractSpecs = (document) => {
+  const productContractSpecs = document.querySelectorAll('.product-contract-specs-widget');
+  const map = {};
+
+  if (productContractSpecs.length) {
+    productContractSpecs.forEach((productContractSpec) => {
+      console.log(productContractSpec);
+      const dataSource = productContractSpec.getAttribute('data-data-source');
+      if (dataSource) {
+        map[dataSource] = true;
+      }
+    });
+
+    return map;
+  }
+  return null;
+};
+
+const idFinder = (document, id) => {
+  const element = document.getElementById(id);
+  if (element) {
+    return true;
+  }
+  return null;
+};
+
+const classFinder = (document, className) => {
+  const elements = document.querySelector(`.${className}`);
+  if (elements) {
+    return true;
+  }
+  return null;
+};
+
+const currentAndClassesCheck = (document, mainSelector, secondarySelectors) => {
+  const mainElements = document.querySelectorAll(`${mainSelector}`);
+  const map = {};
+
+  if (mainElements.length) {
+    mainElements.forEach((mainElement) => {
+      let flag = false;
+      secondarySelectors.forEach((selector) => {
+        if (mainElement.matches(selector)) {
+          map[selector] = true;
+          flag = true;
         }
       });
+
+      if (!flag) {
+        map.unknown = true;
+      }
+    });
+  } else {
+    return null;
+  }
+
+  return map;
+};
+
+const designBoxInlineStyleCheck = (document) => {
+  const designBoxes = document.querySelectorAll('.design-box');
+  const map = {};
+  if (designBoxes.length) {
+    designBoxes.forEach((designBox) => {
+      const inlineStyle = designBox.getAttribute('style');
+      if (inlineStyle) {
+        if (inlineStyle.includes('background-image')) {
+          map['custom-bg-image'] = true;
+        } else if (inlineStyle.includes('background-color')) {
+          map['custom-bg-color'] = true;
+        }
+      }
+    });
+
+    return map;
+  }
+  return null;
+};
+
+const currentAndChildCheck = (document, mainSelector, childSelectors) => {
+  const mainElements = document.querySelectorAll(`${mainSelector}`);
+  const map = {};
+
+  if (mainElements.length) {
+    mainElements.forEach((mainElement) => {
+      let flag = false;
+      childSelectors.forEach((selector) => {
+        if (mainElement.querySelector(selector)) {
+          map[selector] = true;
+          flag = true;
+        }
+      });
+
+      if (!flag) {
+        map.unknown = true;
+      }
+    });
+  } else {
+    return null;
+  }
+
+  return map;
+};
+
+const expandCollapseCheck = (document) => {
+  const expandCollapses = document.querySelectorAll('.expand-collapse');
+  const map = {};
+
+  if (expandCollapses.length) {
+    expandCollapses.forEach((expandCollapse) => {
+      const titleType = expandCollapse.getAttribute('data-title-type');
+      if (titleType) {
+        map[`${titleType}`] = true;
+      }
+
+      const listStyle = expandCollapse.getAttribute('data-list-style');
+      const componentTitle = expandCollapse.getAttribute('data-component-title');
+
+      if (listStyle && listStyle === 'default') {
+        if (componentTitle) {
+          map['only-title'] = true;
+        }
+      } else if (listStyle && listStyle === 'customText') {
+        if (componentTitle) {
+          map['title-and-customtext'] = true;
+        } else {
+          map.customtext = true;
+        }
+      }
+    });
+  } else {
+    return null;
+  }
+
+  return map;
+};
+
+const iconsCheck = (document) => {
+  const icons = document.querySelectorAll('.icon');
+  const map = {};
+
+  if (icons.length) {
+    icons.forEach((icon) => {
+      map[icon.classList.toString()] = true;
+    });
+  } else {
+    return null;
+  }
+
+  return map;
+};
+
+const sectionsCheck = (document) => {
+  const mainElements = document.querySelectorAll('.section');
+  const map = {};
+  const secondarySelectors = [
+    '.blue1-background',
+    '.blue2-background',
+    '.blue3-background',
+    '.blue4-background',
+    '.blue5-background',
+    '.blue6-background',
+    '.gray1-background',
+    '.gray2-background',
+    '.gray3-background',
+    '.gray4-background',
+    '.gray5-background',
+    '.gray6-background',
+    '.white-background',
+    '.leadspace-fade',
+    '.parallax',
+    '.gradient-white-blue',
+    '.gradient-blue-white-fifteen',
+    '.gradient-blue-white-thirty',
+    '.gradient-blue-white-fifty',
+    '.gradient-blue-white-eighty',
+    '.crpy-4',
+  ];
+
+  if (mainElements.length) {
+    mainElements.forEach((mainElement) => {
+      secondarySelectors.forEach((selector) => {
+        if (mainElement.matches(selector)) {
+          map[selector] = true;
+        }
+      });
+
+      const inlineStyle = mainElement.getAttribute('style');
+      if (inlineStyle && inlineStyle.includes('background-image')) {
+        map['custom-bg-image'] = true;
+      }
+    });
+  } else {
+    return null;
+  }
+
+  return map;
+};
+
+const dataStyleCheck = (document, type) => {
+  const dataStyleMap = document.querySelectorAll(`.${type}`);
+  const map = {};
+
+  if (dataStyleMap.length) {
+    dataStyleMap.forEach((dataStyle) => {
+      const style = dataStyle.getAttribute('data-style');
+      if (style) {
+        map[`${style}`] = true;
+      }
+    });
+  } else {
+    return null;
+  }
+
+  return map;
+};
+
+const customReportElements = (document) => {
+  const map = {
+    accordion: ['.white-background-icon-raised'],
+    alert: [
+      '.alert-info',
+      // '.alert-info.alert-dismissible',
+      '.alert-warning',
+      // '.alert-warning.alert-dismissible',
+      '.alert-error',
+      '.alert-errorws',
+      '.alert-dismissible',
+    ],
+    'design-box': [
+      '.blue1-background',
+      '.blue2-background',
+      '.blue3-background',
+      '.blue4-background',
+      '.blue5-background',
+      '.blue6-background',
+      '.citron-background',
+      '.gray1-background',
+      '.gray2-background',
+      '.gray3-background',
+      '.gray4-background',
+      '.gray5-background',
+      '.gray6-background',
+      '.asset-class-box',
+      '.white-raised',
+      '.white-raised-blue-gradient-sidebar',
+      '.white-raised-blue-border',
+      '.gradient-white-blue-shadow',
+    ],
+    dropdown: [
+      '.dropdown-link-dropdown',
+      '.language-selector-dropdown',
+    ],
+    promo: [
+      '.primary',
+      '.custom',
+      '.secondary',
+      '.toolbox',
+    ],
+    'title-text': [
+      '.citron',
+      '.gray4',
+      '.gray3',
+      '.green',
+      '.forest',
+    ],
+    'brightcove-player': [
+      '.display-block',
+      '.playlist-right-sidekick',
+    ],
+    btn: [
+      '.primary',
+      '.new-window',
+      '.primary-alternate',
+      '.secondary',
+      '.secondary-2',
+      '.secondary-3',
+      '.secondary-4',
+      '.disabled',
+      '.link',
+      '.link-bold',
+    ],
+  };
+
+  const ids = ['countdownClock'];
+
+  const classes = ['lds-ring', 'market-news'];
+
+  const report = {
+    // 'table-types': fetchTable(document),
+    template: fetchTemplate(document),
+    forms: fetchForms(document),
+    'product-contract-specs-widget': findProductContractSpecs(document),
+    'expand-collapse': expandCollapseCheck(document),
+    'heat-map': dataStyleCheck(document, 'heat-map'),
+    tabs: dataStyleCheck(document, 'tabs'),
+    icons: iconsCheck(document),
+    sections: sectionsCheck(document),
+  };
+
+  Object.keys(map).forEach((key) => {
+    const tempMap = currentAndClassesCheck(document, `.${key}`, map[key]);
+    if (tempMap) {
+      report[key] = tempMap;
     }
   });
 
-  return {
-    'has-form': forms.length > 0,
-    'form-types': formParentClasses.join(','),
+  const currentAndChildCheckMap = {
+    divider: [
+      '.line > .gray3',
+      '.line > .blue5',
+      '.line > .citron',
+      '.line > .green',
+      '.line > .xs',
+      '.line > .s',
+      '.line > .left',
+      '.line > .right',
+      '.line > .center',
+      '.pipe > .gray3',
+      '.pipe > .blue5',
+      '.pipe > .citron',
+      '.pipe > .green',
+      '.pipe > .xs',
+      '.pipe > .s',
+      '.pipe > .left',
+      '.pipe > .right',
+      '.pipe > .center',
+    ],
   };
-}
 
-const customReportElements = (document) => {
-  const forms = fetchForms(document);
-  const report = {
-    'table-types': fetchTable(document),
-    template: fetchTemplate(document),
-    'has-form': forms['has-form'],
-    'form-types': forms['form-types'],
+  Object.keys(currentAndChildCheckMap).forEach((key) => {
+    const tempMap = currentAndChildCheck(document, `.${key}`, currentAndChildCheckMap[key]);
+    if (tempMap) {
+      report[key] = tempMap;
+    }
+  });
+
+  if (report['design-box']) {
+    const designBoxes = designBoxInlineStyleCheck(document);
+    if (designBoxes) {
+      report['design-box'] = {
+        ...report['design-box'],
+        ...designBoxes,
+      };
+    }
+  } else {
+    const designBoxes = designBoxInlineStyleCheck(document);
+    if (designBoxes) {
+      report['design-box'] = designBoxes;
+    }
   }
 
+  ids.forEach((id) => {
+    const temp = idFinder(document, id);
+    if (temp) {
+      report[id] = temp;
+    }
+  });
+
+  classes.forEach((className) => {
+    const temp = classFinder(document, className);
+    if (temp) {
+      report[className] = temp;
+    }
+  });
+
+  const tagMap = {
+    table: [
+      '.content-table',
+      '.data-table',
+      '.compact',
+      '.no-column-header',
+      '.no-zebra',
+      '.content-table.compact',
+      '.content-table.compact.no-column-header',
+      '.data-table.compact.no-column-header',
+      '.content-table.no-zebra',
+      '.default',
+      '.default.no-column-header',
+      '.default.compact.no-zebra',
+      '.content-table.compact.no-zebra.no-column-header',
+    ],
+  };
+
+  Object.keys(tagMap).forEach((key) => {
+    const tempMap = currentAndClassesCheck(document, key, tagMap[key]);
+    if (tempMap) {
+      report[key] = tempMap;
+    }
+  });
+
   return report;
-}
+};
 
 export default {
   /**
@@ -287,7 +496,7 @@ export default {
     ]);
 
     const results = [];
-    const meta = WebImporter.Blocks.getMetadata(document);
+    // const meta = WebImporter.Blocks.getMetadata(document);
     // const template = fetchTemplate(document);
     // const fetchTableClasses = fetchTable(main);
 
