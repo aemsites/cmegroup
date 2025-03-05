@@ -12,6 +12,11 @@
 /* global WebImporter */
 /* eslint-disable no-console, class-methods-use-this */
 
+/**
+ * This function fetches the template from the document.
+ * @param {Document} document - The document to search.
+ * @returns {string} - The template.
+ */
 const fetchTemplate = (document) => {
   if (document?.body?.classList?.length) {
     const template = document.head.querySelector('meta[name="template"]')?.getAttribute('content');
@@ -20,20 +25,17 @@ const fetchTemplate = (document) => {
   return 'unknown';
 };
 
-// const fetchTable = (document) => {
-//   const tables = document.querySelectorAll('table');
-//   const allTablesClasses = [...tables].map(table => {
-//     return table.classList.toString();
-//   }).join(',');
-
-//   return allTablesClasses;
-// }
-
+/**
+ * This function fetches the forms from the document.
+ * @param {Document} document - The document to search.
+ * @returns {object} - The forms.
+ */
 const fetchForms = (document) => {
   const forms = document.querySelectorAll('form');
-  const map = {};
+  let map = null;
 
   if (forms.length) {
+    map = {};
     forms.forEach((form) => {
       const parent = form.parentElement;
       let flag = false;
@@ -52,17 +54,22 @@ const fetchForms = (document) => {
         map.unknown = true;
       }
     });
-
-    return map;
   }
-  return null;
+
+  return map;
 };
 
+/**
+ * This function finds the product contract specs from the document.
+ * @param {Document} document - The document to search.
+ * @returns {object} - The product contract specs.
+ */
 const findProductContractSpecs = (document) => {
   const productContractSpecs = document.querySelectorAll('.product-contract-specs-widget');
-  const map = {};
+  let map = null;
 
   if (productContractSpecs.length) {
+    map = {};
     productContractSpecs.forEach((productContractSpec) => {
       console.log(productContractSpec);
       const dataSource = productContractSpec.getAttribute('data-data-source');
@@ -70,12 +77,16 @@ const findProductContractSpecs = (document) => {
         map[dataSource] = true;
       }
     });
-
-    return map;
   }
-  return null;
+  return map;
 };
 
+/**
+ * This function finds an element by id.
+ * @param {Document} document - The document to search.
+ * @param {string} id - The id to search for.
+ * @returns {boolean} - True if the element is found, false otherwise.
+ */
 const idFinder = (document, id) => {
   const element = document.getElementById(id);
   if (element) {
@@ -84,19 +95,33 @@ const idFinder = (document, id) => {
   return null;
 };
 
+/**
+ * This function finds an element by class name.
+ * @param {Document} document - The document to search.
+ * @param {string} className - The class name to search for.
+ * @returns {boolean} - True if the element is found, false otherwise.
+ */
 const classFinder = (document, className) => {
-  const elements = document.querySelector(`.${className}`);
-  if (elements) {
+  const element = document.querySelector(`.${className}`);
+  if (element) {
     return true;
   }
   return null;
 };
 
-const currentAndClassesCheck = (document, mainSelector, secondarySelectors) => {
+/**
+ * This function checks the current classes of an element.
+ * @param {Document} document - The document to search.
+ * @param {string} mainSelector - The main selector to search for.
+ * @param {string[]} secondarySelectors - The secondary selectors to search for.
+ * @returns {boolean} - True if the element is found, false otherwise.
+ */
+const currentClassesCheck = (document, mainSelector, secondarySelectors, skipUnknown = false) => {
   const mainElements = document.querySelectorAll(`${mainSelector}`);
-  const map = {};
+  let map = null;
 
   if (mainElements.length) {
+    map = {};
     mainElements.forEach((mainElement) => {
       let flag = false;
       secondarySelectors.forEach((selector) => {
@@ -106,42 +131,91 @@ const currentAndClassesCheck = (document, mainSelector, secondarySelectors) => {
         }
       });
 
+      if (!flag && !skipUnknown) {
+        map.unknown = true;
+      }
+    });
+  }
+
+  if (map && Object.keys(map).length === 0) {
+    map = null;
+  }
+  return map;
+};
+
+/**
+ * This function checks the inline style of a design box.
+ * @param {Document} document - The document to search.
+ * @returns {boolean} - True if the element is found, false otherwise.
+ */
+const designBoxInlineStyleCheck = (document) => {
+  const designBoxes = document.querySelectorAll('.design-box');
+  let map = null;
+
+  const secondarySelectors = [
+    '.blue1-background',
+    '.blue2-background',
+    '.blue3-background',
+    '.blue4-background',
+    '.blue5-background',
+    '.blue6-background',
+    '.citron-background',
+    '.gray1-background',
+    '.gray2-background',
+    '.gray3-background',
+    '.gray4-background',
+    '.gray5-background',
+    '.gray6-background',
+    '.asset-class-box',
+    '.white-raised',
+    '.white-raised-blue-gradient-sidebar',
+    '.white-raised-blue-border',
+    '.gradient-white-blue-shadow',
+  ];
+
+  if (designBoxes.length) {
+    map = {};
+
+    designBoxes.forEach((designBox) => {
+      const inlineStyle = designBox.getAttribute('style');
+      let flag = false;
+      if (inlineStyle) {
+        if (inlineStyle.includes('background-image')) {
+          map['custom-bg-image'] = true;
+          flag = true;
+        } else if (inlineStyle.includes('background-color')) {
+          map['custom-bg-color'] = true;
+          flag = true;
+        }
+      }
+      secondarySelectors.forEach((selector) => {
+        if (designBox.matches(selector)) {
+          map[selector] = true;
+          flag = true;
+        }
+      });
+
       if (!flag) {
         map.unknown = true;
       }
     });
-  } else {
-    return null;
   }
-
   return map;
 };
 
-const designBoxInlineStyleCheck = (document) => {
-  const designBoxes = document.querySelectorAll('.design-box');
-  const map = {};
-  if (designBoxes.length) {
-    designBoxes.forEach((designBox) => {
-      const inlineStyle = designBox.getAttribute('style');
-      if (inlineStyle) {
-        if (inlineStyle.includes('background-image')) {
-          map['custom-bg-image'] = true;
-        } else if (inlineStyle.includes('background-color')) {
-          map['custom-bg-color'] = true;
-        }
-      }
-    });
-
-    return map;
-  }
-  return null;
-};
-
+/**
+ * This function checks the current and child elements of a design box.
+ * @param {Document} document - The document to search.
+ * @param {string} mainSelector - The main selector to search for.
+ * @param {string[]} childSelectors - The child selectors to search for.
+ * @returns {object} - The current and child elements.
+ */
 const currentAndChildCheck = (document, mainSelector, childSelectors) => {
   const mainElements = document.querySelectorAll(`${mainSelector}`);
-  const map = {};
+  let map = null;
 
   if (mainElements.length) {
+    map = {};
     mainElements.forEach((mainElement) => {
       let flag = false;
       childSelectors.forEach((selector) => {
@@ -155,18 +229,22 @@ const currentAndChildCheck = (document, mainSelector, childSelectors) => {
         map.unknown = true;
       }
     });
-  } else {
-    return null;
   }
 
   return map;
 };
 
+/**
+ * This function checks the expand collapse from the document.
+ * @param {Document} document - The document to search.
+ * @returns {object} - The expand collapse.
+ */
 const expandCollapseCheck = (document) => {
   const expandCollapses = document.querySelectorAll('.expand-collapse');
-  const map = {};
+  let map = null;
 
   if (expandCollapses.length) {
+    map = {};
     expandCollapses.forEach((expandCollapse) => {
       const titleType = expandCollapse.getAttribute('data-title-type');
       if (titleType) {
@@ -188,13 +266,16 @@ const expandCollapseCheck = (document) => {
         }
       }
     });
-  } else {
-    return null;
   }
 
   return map;
 };
 
+/**
+ * This function checks the icons from the document.
+ * @param {Document} document - The document to search.
+ * @returns {object} - The icons.
+ */
 const iconsCheck = (document) => {
   const icons = document.querySelectorAll('.icon');
   const map = {};
@@ -210,6 +291,11 @@ const iconsCheck = (document) => {
   return map;
 };
 
+/**
+ * This function checks the sections from the document.
+ * @param {Document} document - The document to search.
+ * @returns {object} - The sections.
+ */
 const sectionsCheck = (document) => {
   const mainElements = document.querySelectorAll('.section');
   const map = {};
@@ -257,6 +343,12 @@ const sectionsCheck = (document) => {
   return map;
 };
 
+/**
+ * This function checks the data style from the document.
+ * @param {Document} document - The document to search.
+ * @param {string} type - The type to search for.
+ * @returns {object} - The data style.
+ */
 const dataStyleCheck = (document, type) => {
   const dataStyleMap = document.querySelectorAll(`.${type}`);
   const map = {};
@@ -275,79 +367,39 @@ const dataStyleCheck = (document, type) => {
   return map;
 };
 
+/*
+This function checks the cards component and returns a map of the cards.
+*/
+const cardsComponentCheck = (document) => {
+  const cards = document.querySelectorAll('.cards');
+  let map = null;
+
+  if (cards.length) {
+    map = {};
+
+    cards.forEach((card) => {
+      const dataType = card.getAttribute('data-type');
+      const dataStyle = card.getAttribute('data-style');
+      const featuredCard = card.getAttribute('data-featured-card');
+      const featureCardText = (featuredCard === 'none' || !featuredCard) ? '' : featuredCard;
+
+      if (dataType && dataStyle) {
+        map[`${dataType}-${dataStyle}-${featureCardText}`] = true;
+      } else if (dataType) {
+        map[`${dataType}-${featureCardText}`] = true;
+      } else if (dataStyle) {
+        map[`${dataStyle}-${featureCardText}`] = true;
+      } else {
+        map.unknown = true;
+      }
+    });
+  }
+
+  return map;
+};
+
 const customReportElements = (document) => {
-  const map = {
-    accordion: ['.white-background-icon-raised'],
-    alert: [
-      '.alert-info',
-      // '.alert-info.alert-dismissible',
-      '.alert-warning',
-      // '.alert-warning.alert-dismissible',
-      '.alert-error',
-      '.alert-errorws',
-      '.alert-dismissible',
-    ],
-    'design-box': [
-      '.blue1-background',
-      '.blue2-background',
-      '.blue3-background',
-      '.blue4-background',
-      '.blue5-background',
-      '.blue6-background',
-      '.citron-background',
-      '.gray1-background',
-      '.gray2-background',
-      '.gray3-background',
-      '.gray4-background',
-      '.gray5-background',
-      '.gray6-background',
-      '.asset-class-box',
-      '.white-raised',
-      '.white-raised-blue-gradient-sidebar',
-      '.white-raised-blue-border',
-      '.gradient-white-blue-shadow',
-    ],
-    dropdown: [
-      '.dropdown-link-dropdown',
-      '.language-selector-dropdown',
-    ],
-    promo: [
-      '.primary',
-      '.custom',
-      '.secondary',
-      '.toolbox',
-    ],
-    'title-text': [
-      '.citron',
-      '.gray4',
-      '.gray3',
-      '.green',
-      '.forest',
-    ],
-    'brightcove-player': [
-      '.display-block',
-      '.playlist-right-sidekick',
-    ],
-    btn: [
-      '.primary',
-      '.new-window',
-      '.primary-alternate',
-      '.secondary',
-      '.secondary-2',
-      '.secondary-3',
-      '.secondary-4',
-      '.disabled',
-      '.link',
-      '.link-bold',
-    ],
-  };
-
-  const ids = ['countdownClock'];
-
-  const classes = ['lds-ring', 'market-news'];
-
   const report = {
-    // 'table-types': fetchTable(document),
     template: fetchTemplate(document),
     forms: fetchForms(document),
     'product-contract-specs-widget': findProductContractSpecs(document),
@@ -356,10 +408,78 @@ const customReportElements = (document) => {
     tabs: dataStyleCheck(document, 'tabs'),
     icons: iconsCheck(document),
     sections: sectionsCheck(document),
+    cards: cardsComponentCheck(document),
+    'design-box': designBoxInlineStyleCheck(document),
   };
 
-  Object.keys(map).forEach((key) => {
-    const tempMap = currentAndClassesCheck(document, `.${key}`, map[key]);
+  const currentClassesMap = {
+    accordion: {
+      val: [
+        '.white-background-icon-raised',
+        '.default',
+      ],
+      skipUnknown: true,
+    },
+    alert: {
+      val: [
+        '.alert-info',
+        '.alert-info.alert-dismissible',
+        '.alert-warning',
+        '.alert-warning.alert-dismissible',
+        '.alert-error',
+        '.alert-errorws',
+        '.alert-dismissible',
+      ],
+    },
+    dropdown: {
+      val: [
+        '.dropdown-link-dropdown',
+        '.language-selector-dropdown',
+      ],
+    },
+    promo: {
+      val: [
+        '.primary',
+        '.custom',
+        '.secondary',
+        '.toolbox',
+      ],
+    },
+    'title-text': {
+      val: [
+        '.citron',
+        '.gray4',
+        '.gray3',
+        '.green',
+        '.forest',
+      ],
+      skipUnknown: true,
+    },
+    'brightcove-player': {
+      val: [
+        '.display-block',
+        '.playlist-right-sidekick',
+      ],
+    },
+    btn: {
+      val: [
+        '.primary',
+        '.new-window',
+        '.primary-alternate',
+        '.secondary',
+        '.secondary-2',
+        '.secondary-3',
+        '.secondary-4',
+        '.disabled',
+        '.link',
+        '.link-bold',
+      ],
+      skipUnknown: true,
+    },
+  };
+
+  Object.keys(currentClassesMap).forEach((key) => {
+    const tempMap = currentClassesCheck(document, `.${key}`, currentClassesMap[key].val, currentClassesMap[key].skipUnknown);
     if (tempMap) {
       report[key] = tempMap;
     }
@@ -395,21 +515,7 @@ const customReportElements = (document) => {
     }
   });
 
-  if (report['design-box']) {
-    const designBoxes = designBoxInlineStyleCheck(document);
-    if (designBoxes) {
-      report['design-box'] = {
-        ...report['design-box'],
-        ...designBoxes,
-      };
-    }
-  } else {
-    const designBoxes = designBoxInlineStyleCheck(document);
-    if (designBoxes) {
-      report['design-box'] = designBoxes;
-    }
-  }
-
+  const ids = ['countdownClock'];
   ids.forEach((id) => {
     const temp = idFinder(document, id);
     if (temp) {
@@ -417,6 +523,7 @@ const customReportElements = (document) => {
     }
   });
 
+  const classes = ['lds-ring', 'market-news', 'carousel'];
   classes.forEach((className) => {
     const temp = classFinder(document, className);
     if (temp) {
@@ -443,7 +550,7 @@ const customReportElements = (document) => {
   };
 
   Object.keys(tagMap).forEach((key) => {
-    const tempMap = currentAndClassesCheck(document, key, tagMap[key]);
+    const tempMap = currentClassesCheck(document, key, tagMap[key]);
     if (tempMap) {
       report[key] = tempMap;
     }
@@ -493,6 +600,8 @@ export default {
       '#goog-gt-tt',
       '.sws-content__side-nav',
       '#backtotop',
+      '.footer-style',
+      '.disclaimer-style',
     ]);
 
     const results = [];
