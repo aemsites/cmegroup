@@ -18,12 +18,11 @@ function validatePostFormOptions(form, options) {
   }
 }
 
-async function getRecaptchaToken(form, options) {
-  const { config } = options;
+async function getRecaptchaToken(form, { config }) {
   const { siteKey, formId, formName } = config;
   const recaptcha = new GoogleReCaptcha({
     config: {
-      siteKey: siteKey,
+      siteKey,
       version: 'v3',
     },
     id: formId,
@@ -31,8 +30,7 @@ async function getRecaptchaToken(form, options) {
   });
 
   await recaptcha.loadCaptcha(form);
-  const recaptchaToken = await recaptcha.getToken();
-  return recaptchaToken;
+  return recaptcha.getToken();
 }
 
 async function getUserInfo() {
@@ -68,12 +66,11 @@ async function fetchWithErrorHandling(url, method, options) {
     if (contentType?.includes('application/json')) {
       data = await response.json();
     } else {
-      // For form-urlencoded or other content types
       data = await response.text();
       try {
-        // Try to parse as JSON in case server sends JSON with wrong content-type
         data = JSON.parse(data);
       } catch {
+        // Empty catch is intentional - non-JSON responses are handled below
       }
     }
 
@@ -95,8 +92,8 @@ async function fetchWithErrorHandling(url, method, options) {
       const { title, description } = transformResponse.error;
       let errorMessage = title;
       if (description) errorMessage += ` - ${description}`;
-      transformResponse.error.message = errorMessage ||
-       'An error occurred while submitting the form. Please try again.';
+      transformResponse.error.message = errorMessage
+        || 'An error occurred while submitting the form. Please try again.';
     }
 
     if (!transformResponse.success) {
@@ -123,7 +120,6 @@ async function postFeedback(form, options = {}) {
   options.headers = options.headers || {};
   options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
 
-  // Convert payload to URLSearchParams format
   const urlSearchParams = new URLSearchParams();
   Object.entries(payload).forEach(([key, value]) => {
     urlSearchParams.append(key, value);
@@ -134,11 +130,9 @@ async function postFeedback(form, options = {}) {
     urlSearchParams.append('g-recaptcha-response', recaptchaToken);
   }
 
-  // Set the encoded string as body
   options.body = urlSearchParams.toString();
-  return await fetchWithErrorHandling(url, 'POST', options);
+  return fetchWithErrorHandling(url, 'POST', options);
 }
-
 
 async function postForm(form, options = {}) {
   try {
@@ -147,10 +141,10 @@ async function postForm(form, options = {}) {
     const path = new URL(url).pathname;
 
     if (path === '/CmeWS/mvc/Feedback/Submit/V3') {
-      return await postFeedback(form, options);
+      return fetchWithErrorHandling(url, 'POST', options);
     }
 
-    let headers = {
+    const headers = {
       'Content-Type': 'application/json',
       ...(options.headers || {}),
     };
@@ -161,7 +155,7 @@ async function postForm(form, options = {}) {
     }
 
     options.headers = headers;
-    return await fetchWithErrorHandling(url, 'POST', options);
+    return fetchWithErrorHandling(url, 'POST', options);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Form submission failed:', error);
@@ -169,7 +163,7 @@ async function postForm(form, options = {}) {
       ok: false,
       success: false,
       status: 500,
-      error: error,
+      error,
     };
   }
 }
@@ -177,5 +171,5 @@ async function postForm(form, options = {}) {
 export {
   getUserInfo,
   postForm,
-  fetchWithErrorHandling
+  fetchWithErrorHandling,
 };
