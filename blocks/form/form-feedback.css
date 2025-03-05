@@ -37,9 +37,14 @@
   grid-area: email;
 }
 
-.form.feedback .fieldset-wrapper {
+.form.feedback .smiley-container {
   margin-top: 0.6rem;
   grid-area: smileys;
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+  border: none;
+  padding: 0.2rem;
 }
 
 .form.feedback .submit-wrapper {
@@ -72,14 +77,6 @@
 .form.feedback input:focus,
 .form.feedback textarea:focus {
   outline: 0.125rem solid var(--link-color);
-}
-
-.form.feedback fieldset[name="feedback"] {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  border: none;
-  padding: 0.2rem;
 }
 
 .form.feedback .feedback-smiley-wrapper fieldset {

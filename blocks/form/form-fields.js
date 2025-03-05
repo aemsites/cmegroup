@@ -245,28 +245,25 @@ const createRadio = (fd) => {
 };
 
 const createFeedbackSmiley = (fd) => {
-  const { field, fieldWrapper } = createFieldset(fd);
-  fieldWrapper.classList.add('feedback-smiley-wrapper', 'selection-wrapper');
-
-  const input = createElement('input', {
+  const fieldWrapper = createFieldWrapper(fd);
+  const field = createElement('input', {
     type: 'radio',
     id: fd.Id,
-    name: 'feedback',
-    value: fd.Name,
-    'aria-label': `Feedback ${fd.Name}`,
+    name: 'FeedbackRating',
+    value: fd.Value,
+    'aria-label': `Feedback ${fd.Value}`,
   });
 
   const label = createLabel(fd);
   const img = createElement('img', {
     src: `/icons/${fd.Name}.svg`,
-    alt: `Feedback ${fd.Name}`,
+    alt: `Feedback ${fd.Value}`,
     loading: 'eager',
   });
   const span = createElement('span', { class: `icon icon-${fd.Name}` }, img);
   label.textContent = '';
   label.append(span);
-  field.append(input, label);
-
+  fieldWrapper.append(field, label);
   return { field, fieldWrapper };
 };
 

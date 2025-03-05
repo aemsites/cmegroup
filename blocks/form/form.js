@@ -1,15 +1,13 @@
 import createField from './form-fields.js';
 import { createElement } from '../../scripts/utils.js';
-import GoogleReCaptcha from './integrations/recaptcha.js';
 import { loadFragment } from '../fragment/fragment.js';
-
+import { getUserInfo, postForm } from '../../scripts/api.js';
 function createChoicesInstance(select) {
   // eslint-disable-next-line no-undef
   const choicesInstance = new Choices(select, {
     searchEnabled: true,
     itemSelectText: '',
     shouldSort: false, // sorting handled in form-fields.js
-    placeholderValue: 'Please Select...',
     position: 'auto',
   });
   select.choicesInstance = choicesInstance;
@@ -20,12 +18,10 @@ async function loadChoices(form, callback, ...args) {
     const script = document.createElement('script');
     script.src = '/blocks/form/external/choices-js/choices.min.js';
     script.async = true;
-
     script.onload = async () => {
       form.querySelectorAll('select').forEach((select) => createChoicesInstance(select));
       await callback(...args);
     };
-
     document.head.appendChild(script);
   } else {
     form.querySelectorAll('select').forEach((select) => createChoicesInstance(select));
@@ -103,10 +99,9 @@ async function decorateContactUsLoggedInForm(form, formData, block) {
   const isContactUsVariant = block.classList.contains('contact-us');
   if (!isContactUsVariant || formData.mock !== 'LoggedIn') return;
 
-  const getUserInfo = await import('./mock/user-info.js').then((m) => m.default);
   form.classList.remove('user-info');
   form.classList.add('collapsed-user-info');
-  const userInfo = getUserInfo();
+  const userInfo = await getUserInfo();
   const editAccountInformation = addCollapsedUserInfo(userInfo.Email__c, form);
 
   editAccountInformation.addEventListener('click', (e) => {
@@ -115,7 +110,6 @@ async function decorateContactUsLoggedInForm(form, formData, block) {
     form.classList.add('user-info');
   });
 
-  handleContactUsFormOtherFields(form);
   populateUserInfoInContactUsForm(form, userInfo);
 }
 
@@ -124,6 +118,7 @@ async function decorateContactUsForm(form, formData, block) {
   if (!isContactUsVariant) return;
 
   form.classList.add('user-info');
+  handleContactUsFormOtherFields(form);
   await decorateContactUsLoggedInForm(form, formData, block);
 }
 
@@ -144,6 +139,16 @@ function decorateLabels(form) {
       });
       label.innerHTML = newText;
     }
+  });
+}
+
+function decorateFeedbackSmileys(form) {
+  const smileyContainer = createElement('div', { class: 'smiley-container' });
+  const emailWrapper = form.querySelector('.email-wrapper');
+  emailWrapper.after(smileyContainer);
+  const smileys = form.querySelectorAll('.feedback-smiley-wrapper');
+  smileys.forEach((smiley) => {
+    smileyContainer.append(smiley);
   });
 }
 
@@ -175,6 +180,7 @@ async function createForm(formData, block) {
   });
 
   decorateLabels(form);
+  decorateFeedbackSmileys(form);
   loadChoices(form, decorateContactUsForm, form, formData, block);
   return form;
 }
@@ -189,7 +195,7 @@ function generatePayload(form, formId, formName) {
       } else if (field.type === 'checkbox') {
         const fieldValue = field.checked ? 'true' : 'false';
         if (field.checked) payload[field.name] = payload[field.name] ? `${payload[field.name]},${fieldValue}` : fieldValue;
-      } else {
+      } else if (field.value) {
         payload[field.name] = field.value;
       }
     }
@@ -207,6 +213,10 @@ function updatePostSubmitUi(form, block) {
   form.style.display = 'none';
   const submitLoggedOut = block.querySelector('.post-submit.logged-out');
   submitLoggedOut.classList.remove('hide');
+}
+
+function hasRecaptchaIntegration(block) {
+  return block.querySelector('.recaptcha-disclaimer') !== null;
 }
 
 async function handleSubmit(form, block) {
@@ -227,39 +237,28 @@ async function handleSubmit(form, block) {
 
     const formName = block.getAttribute('form-name');
     const formId = block.getAttribute('form-id');
-
-    const recaptcha = new GoogleReCaptcha({
-      config: {
-        siteKey: sitekey,
-        version: 'v3',
-      },
-      id: formId,
-      name: formName,
-    });
-
-    await recaptcha.loadCaptcha(form);
-    const recaptchaToken = await recaptcha.getToken();
-
     const payload = generatePayload(form, formId, formName);
-
-    const response = await fetch(form.dataset.action, {
-      method: 'POST',
-      body: JSON.stringify({
-        ...payload,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        'G-Recaptcha-Response': recaptchaToken,
-      },
+    let config = {};
+    if (hasRecaptchaIntegration(block)) {
+      config = {
+        recaptcha: true,
+        siteKey: sitekey,
+        formId,
+        formName,
+      };
+    }
+    const response = await postForm(form, {
+      config,
+      payload,
     });
-    if (response.ok) {
+
+    if (response.success) {
       if (form.dataset.confirmation) {
         window.location.href = form.dataset.confirmation;
       }
       updatePostSubmitUi(form, block);
     } else {
-      const error = await response.text();
-      throw new Error(error);
+      throw new Error(response.error?.message);
     }
   } catch (e) {
     // eslint-disable-next-line no-console

@@ -388,9 +388,14 @@
 .form.feedback .email-wrapper {
   grid-area: email;
 }
-.form.feedback .fieldset-wrapper {
+.form.feedback .smiley-container {
   margin-top: 0.6rem;
   grid-area: smileys;
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+  border: none;
+  padding: 0.2rem;
 }
 .form.feedback .submit-wrapper {
   grid-area: submit;
@@ -418,13 +423,6 @@
 .form.feedback input:focus,
 .form.feedback textarea:focus {
   outline: 0.125rem solid var(--link-color);
-}
-.form.feedback fieldset[name="feedback"] {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  border: none;
-  padding: 0.2rem;
 }
 .form.feedback .feedback-smiley-wrapper fieldset {
   position: relative;
@@ -502,7 +500,6 @@
   width: 100%;
   justify-self: start;
 }
-/* Collapsed state - hide user info fields except question_comment and submit */
 .form.contact-us form.collapsed-user-info .field-wrapper {
   display: none;
 }
