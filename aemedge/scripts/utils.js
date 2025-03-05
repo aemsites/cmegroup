@@ -1,5 +1,48 @@
 /* eslint-disable import/prefer-default-export */
 import { getMetadata } from './aem.js';
+import ffetch from './ffetch.js';
+
+/**
+ * Language
+ */
+function getCurrentLang() {
+  return 'en'; // TODO: Add logic
+}
+
+function getDefaultLang() {
+  return 'en';
+}
+
+/**
+ * Taxonomy
+ */
+const taxonomyEndpoint = '/config/sidekick/taxonomy.json?sheet=tags';
+let taxonomyPromise = null;
+
+function fetchTaxonomy() {
+  if (!taxonomyPromise) {
+    taxonomyPromise = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const taxonomyJson = await ffetch(`${taxonomyEndpoint}`).all();
+          const taxonomy = {};
+          const currentLang = getCurrentLang();
+          const defaultLang = getDefaultLang();
+          taxonomyJson.forEach((row) => {
+            taxonomy[row.tag] = {
+              tag: row.tag,
+              title: row[currentLang] && row[defaultLang],
+            };
+          });
+          resolve(taxonomy);
+        } catch (e) {
+          reject(e);
+        }
+      })();
+    });
+  }
+  return taxonomyPromise;
+}
 
 /**
  * Creates a new HTML element
@@ -24,6 +67,17 @@ function createElement(tagName, attributes, ...children) {
 }
 
 /**
+ * Returns the tag information from a tagname
+ * @param {string} tagName
+ * @returns {Promise} Object containing tag data or empty object if not exists
+ * @property {string} title - The tag title
+ * @property {string} tag - Tag path
+ */
+function getTag(tagFullName) {
+  return fetchTaxonomy().then((taxonomy) => taxonomy[tagFullName]);
+}
+
+/**
  * Retrieves article-related metadata from the page
  * @returns {Object} Object containing article metadata
  * @property {string} template - The template type
@@ -32,18 +86,20 @@ function createElement(tagName, attributes, ...children) {
  * @property {string} tag - Article tag
  * @property {string} date - Article publication date
  */
-function getArticleRelatedMetadata() {
+async function getArticleRelatedMetadata() {
   const template = getMetadata('template');
   const readTime = getMetadata('read-time');
   const author = getMetadata('author');
   const primaryTopic = getMetadata('primary-topic');
   const date = getMetadata('date');
 
+  const [authorTag, primaryTopicTag] = await Promise.all([getTag(author), getTag(primaryTopic)]);
+
   return {
     template,
     readTime,
-    author,
-    primaryTopic,
+    author: authorTag.title,
+    primaryTopic: primaryTopicTag.title,
     date,
   };
 }

@@ -53,7 +53,8 @@
   overflow-y: auto;
   padding: 0 1rem;
   background: var(--tag-bg-color);
-  height: calc(100vh - 200px);
+  height: calc(100vh - 100px);
+  display: flex;
 }
 
 .category-group {
@@ -61,6 +62,7 @@
   background: var(--category-bg);
   border-radius: 4px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
+  margin-right: 1.5rem;
 }
 
 .subcategory-group {
@@ -90,6 +92,10 @@
   color: #666;
 }
 
+.category-header:hover .category-selector {
+  visibility: visible;
+}
+
 .category-title {
   font-weight: 500;
 }
@@ -105,13 +111,12 @@
 }
 
 .path-wrapper {
-  padding: 0.3rem 0.5rem;
+  padding-left: 1rem;
   margin-left: 1.5rem;
 }
 
 .path {
   cursor: pointer;
-  padding: 0.5rem;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
@@ -137,6 +142,24 @@
 .cat-1 { --highlight-color: #2E7D32; background-color: #2E7D32; }
 .cat-2 { --highlight-color: #C62828; background-color: #C62828; }
 .cat-3 { --highlight-color: #6A1B9A; background-color: #6A1B9A; }
+
+.category-selector {
+  visibility: hidden;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+  border-radius: 0.1875rem;
+  text-align: center;
+  opacity: 0.4;
+  display: inline;
+}
+  
+.category-selector:hover {
+  opacity: 1;
+}
+  
+.category-selector img {
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(254deg) brightness(100%) contrast(103%);
+}
 
 #selected {
   background: var(--tag-bg-color);
