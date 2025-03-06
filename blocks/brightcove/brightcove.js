@@ -93,7 +93,15 @@ function loadVideoLibrary(block, videoAccount, videoPlayer) {
     return;
   }
   loadScript(`https://players.brightcove.net/${videoAccount}/${videoPlayer}_default/index.min.js`);
+  block.querySelector('.brightcove-img-placeholder').style.display = 'none';
   block.setAttribute('data-video-status', 'loaded');
+}
+
+function clickHandler(block, videoAccount, videoPlayer) {
+  // eslint-disable-next-line func-names
+  return function () {
+    loadVideoLibrary(block, videoAccount, videoPlayer);
+  };
 }
 
 export default async function decorate(block) {
@@ -110,9 +118,14 @@ export default async function decorate(block) {
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
   const videoStyles = calculateStyles(aspectRatio, playlistLocation);
-
+  const placeholderImg = '../../images/placeholder-img-video.jpg';
   block.innerHTML = `
   <div class='brightcove-player'>
+    <div class='brightcove-img-placeholder' 
+      style="background-image: url('${placeholderImg}');"
+    >
+      <a></a>
+    </div>
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
         <div class="${videoStyles} ${playlist ? 'vjs-playlist-player-container' : 'brightcove-video'}">
@@ -122,6 +135,7 @@ export default async function decorate(block) {
             data-embed="default"
             class="cmeBcVideo" 
             controls=""
+            autoplay 
             ${playlistId !== '' ? `data-playlist-id="${playlistId}"` : ''}
             ${playlistId !== '' && videoId ? `data-playlist-video-id="${videoId}"` : ''}
             ${playlistId === '' ? `data-video-id="${videoId}"` : ''}
@@ -135,6 +149,9 @@ export default async function decorate(block) {
   </div>
   `;
 
+  const anchor = block.querySelector('.brightcove-img-placeholder a');
+  anchor.addEventListener('click', clickHandler(block, accountId, dataPlayer));
+
   const options = {
     root: null,
     rootMargin: '20%',
@@ -145,7 +162,7 @@ export default async function decorate(block) {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        loadVideoLibrary(block, accountId, dataPlayer);
+        //loadVideoLibrary(block, accountId, dataPlayer);
         observer.unobserve(block);
       }
     });
