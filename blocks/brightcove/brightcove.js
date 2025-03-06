@@ -151,23 +151,4 @@ export default async function decorate(block) {
 
   const anchor = block.querySelector('.brightcove-img-placeholder a');
   anchor.addEventListener('click', clickHandler(block, accountId, dataPlayer));
-
-  const options = {
-    root: null,
-    rootMargin: '20%',
-    threshold: 1.0,
-  };
-
-  // add event listener for intersection observer when block is in view port
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        //loadVideoLibrary(block, accountId, dataPlayer);
-        observer.unobserve(block);
-      }
-    });
-  }, options);
-
-  // observe the block
-  observer.observe(block);
 }
