@@ -47,7 +47,7 @@ function fetchTaxonomy() {
 /**
  * Translations
  */
-const translationsEndpoint = '/config/translations.json';
+const translationsEndpoint = '/eds-config/translations.json';
 let translationsPromise = null;
 
 function fetchTranslations() {

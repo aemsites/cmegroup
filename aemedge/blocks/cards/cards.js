@@ -279,7 +279,7 @@ export default async function decorate(block) {
     } else {
       const { endpoint } = config;
       filteredData = await fetchAndFilterDataArticle(endpoint);
-      cardElements = filteredData.map(createDynamicCardArticle);
+      cardElements = await Promise.all(filteredData.map(createDynamicCardArticle));
     }
     ul.append(...cardElements);
     cardsContainer.append(ul);
