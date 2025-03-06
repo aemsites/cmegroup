@@ -44,22 +44,28 @@ function setCommonAttributes(field, fd) {
   field.placeholder = fd.Placeholder;
   field.value = fd.Value;
 
-  // custom validation message for empty and mandatory fields
-  if (fd['Validation Message']) {
-    field.dataset.customError = fd['Validation Message'];
-    const handler = () => {
-      field.setCustomValidity(field.value ? '' : field.dataset.customError);
-      if (field.value) {
-        const wrapper = field.closest('.field-wrapper');
-        const errorMsg = wrapper.querySelector('.error-message');
-        errorMsg?.remove();
-      }
-    };
-
-    field.addEventListener('input', handler);
-    field.addEventListener('change', handler);
-    field.setCustomValidity(field.value ? '' : fd['Validation Message']);
+  // Set validation message (empty if not provided)
+  const validationMessage = fd['Validation Message'] || '';
+  field.dataset.customError = validationMessage;
+  
+  // Set initial validation state
+  if (field.required && !field.value) {
+    field.setCustomValidity(validationMessage);
   }
+
+  const handler = () => {
+    if (field.required) {
+      field.setCustomValidity(field.value ? '' : field.dataset.customError);
+    }
+    if (field.value) {
+      const wrapper = field.closest('.field-wrapper');
+      const errorMsg = wrapper.querySelector('.error-message');
+      errorMsg?.remove();
+    }
+  };
+
+  field.addEventListener('input', handler);
+  field.addEventListener('change', handler);
 }
 
 const createHeading = (fd) => {
@@ -152,7 +158,7 @@ const createSubmit = (fd) => {
   const fieldWrapper = createFieldWrapper(fd);
   fieldWrapper.append(button);
   fieldWrapper.setAttribute('data-type', 'submit');
-  fieldWrapper.setAttribute('data-action', fd.Value);
+  fieldWrapper.setAttribute('data-action', fd.Action);
   return { field: button, fieldWrapper };
 };
 

@@ -129,6 +129,17 @@ async function postFeedback(form, options = {}) {
     urlSearchParams.append('g-recaptcha-response', recaptchaToken);
   }
 
+  const otherParams = {
+    cmeFeedbackURL: window.location.href,
+    screenWidth: window.innerWidth,
+    screenHeight: window.innerHeight,
+    flashVersion: 'No Flash',
+  };
+
+  Object.entries(otherParams).forEach(([key, value]) => {
+    urlSearchParams.append(key, value);
+  });
+
   options.body = urlSearchParams.toString();
   return fetchWithErrorHandling(url, 'POST', options);
 }

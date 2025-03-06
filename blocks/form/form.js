@@ -143,7 +143,10 @@ function decorateLabels(form) {
   });
 }
 
-function decorateFeedbackSmileys(form) {
+function decorateFeedbackSmileys(form, block) {
+  const isFeedbackVariant = block.classList.contains('feedback');
+  if (!isFeedbackVariant) return;
+
   const smileyContainer = createElement('div', { class: 'smiley-container' });
   const emailWrapper = form.querySelector('.email-wrapper');
   emailWrapper.after(smileyContainer);
@@ -181,7 +184,7 @@ async function createForm(formData, block) {
   });
 
   decorateLabels(form);
-  decorateFeedbackSmileys(form);
+  decorateFeedbackSmileys(form, block);
   loadChoices(form, decorateContactUsForm, form, formData, block);
   return form;
 }

@@ -86,7 +86,7 @@
 .form select:focus,
 .form textarea:focus {
   outline: 0.125rem solid var(--link-color);
-  outline-offset: 0.125rem;
+  outline-offset: 0;
 }
 
 .form .selection-wrapper input {
@@ -123,11 +123,11 @@
   gap: 1ch;
 }
 
-.form:not(.contact-us) label[data-required]::after {
+/* .form:not(.contact-us) label[data-required]::after {
   content: '*';
   color: firebrick;
   margin-inline-start: 1ch;
-}
+} */
 
 .form .toggle-wrapper .switch {
   position: relative;
@@ -306,6 +306,7 @@
   min-height: 3.375rem;
   box-sizing: border-box;
   padding: 0.75rem 1.25rem;
+  letter-spacing: normal;
 }
 
 .form .choices[aria-expanded="true"] .choices__inner {

@@ -41,12 +41,9 @@
 
 .form.contact-us .field-wrapper > * {
   max-width: 100%;
-  font-size: .6875rem;
-  letter-spacing: .0938rem;
   line-height: .6875rem;
   font-family: var(--heading-font-family);
   font-weight: 400;
-  text-transform: uppercase;
 }
 
 .form.contact-us .field-wrapper:not(.checkbox-wrapper) > input,
@@ -55,11 +52,16 @@
   color: var(--white);
   background-color: var(--blue1);
   min-height: 3.375rem;
+  padding: 0.75rem 1.25rem;
   border-radius: 0;
   border: 2px solid transparent;
+  font-size: 14px;
 }
 
 .form.contact-us .field-wrapper:not(.checkbox-wrapper) > label {
+  text-transform: uppercase;
+  font-size: .6875rem;
+  letter-spacing: .0938rem;
   margin-bottom: 0.5rem;
 }
 
