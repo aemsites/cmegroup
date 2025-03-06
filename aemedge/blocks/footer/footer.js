@@ -21,12 +21,12 @@ function decorateCollapsibles(footerLinks) {
     button.addEventListener('click', toggleCollapsible);
     const arrowDown = createElement('img', {
       class: 'arrow-down',
-      src: '/icons/chevron-down.svg',
+      src: '/aemedge/icons/chevron-down.svg',
     });
     button.append(arrowDown);
     const arrowUp = createElement('img', {
       class: 'arrow-up',
-      src: '/icons/chevron-up.svg',
+      src: '/aemedge/icons/chevron-up.svg',
     });
     button.append(arrowUp);
   });
@@ -82,7 +82,7 @@ function decorateLanguageSelector(footerLanguages) {
   const currentLang = getCurrentLanguageOption(languages);
   if (currentLang) {
     button.textContent = currentLang.innerText;
-    const check = createElement('img', { src: '/icons/check.svg' });
+    const check = createElement('img', { src: '/aemedge/icons/check.svg' });
     currentLang.prepend(check);
   }
   const dropdown = createElement('div', {
