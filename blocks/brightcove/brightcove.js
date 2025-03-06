@@ -114,11 +114,12 @@ export default async function decorate(block) {
     aspectratio: aspectRatio,
     cc,
     // language,
+    placeholderimg: placeholder,
   } = dataBlock;
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
   const videoStyles = calculateStyles(aspectRatio, playlistLocation);
-  const placeholderImg = '../../images/placeholder-img-video.jpg';
+  const placeholderImg = placeholder || '../../images/placeholder-img-video.jpg';
   block.innerHTML = `
   <div class='brightcove-player'>
     <div class='brightcove-img-placeholder' 
