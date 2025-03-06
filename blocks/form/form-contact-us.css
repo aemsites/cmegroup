@@ -165,3 +165,8 @@
   transition: background-color 5000s ease-in-out 0s;
 }
 /* stylelint-enable property-no-vendor-prefix */
+
+.form.contact-us .post-submit .section,
+.form.contact-us .post-submit .section p {
+  margin: 0;
+}
