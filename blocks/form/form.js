@@ -316,8 +316,8 @@ async function decoratePostSubmitUi(formData, block) {
   const submitLoggedOut = createElement('div', { class: 'post-submit logged-out hide' });
   const loggedInFragment = await loadFragment(formData.submit_logged_in);
   const loggedOutFragment = await loadFragment(formData.submit_logged_out);
-  submitLoggedIn.append(loggedInFragment);
-  submitLoggedOut.append(loggedOutFragment);
+  submitLoggedIn.append(loggedInFragment.querySelector('main'));
+  submitLoggedOut.append(loggedOutFragment.querySelector('main'));
   block.append(submitLoggedIn, submitLoggedOut);
 }
 
