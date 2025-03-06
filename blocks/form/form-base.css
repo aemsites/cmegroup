@@ -381,6 +381,13 @@
   pointer-events: none;
 }
 
+.form .choices .choices__list--single .choices__item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 85%;
+}
+
 .form .choices .choices__list--single .choices__placeholder {
   opacity: 1;
 }

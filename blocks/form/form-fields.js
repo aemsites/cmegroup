@@ -47,7 +47,7 @@ function setCommonAttributes(field, fd) {
   // Set validation message (empty if not provided)
   const validationMessage = fd['Validation Message'] || '';
   field.dataset.customError = validationMessage;
-  
+
   // Set initial validation state
   if (field.required && !field.value) {
     field.setCustomValidity(validationMessage);
