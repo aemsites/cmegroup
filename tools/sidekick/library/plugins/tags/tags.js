@@ -213,8 +213,7 @@ export async function decorateTagsPlugin(container, sheet) {
     }
 
     container.querySelectorAll('.path').forEach((path) => {
-      const tag = path.querySelector('.tag');
-      const title = tag.dataset.title.toLowerCase();
+      const title = path.dataset.title.toLowerCase();
       const fullPath = path.dataset.fullPath.toLowerCase();
 
       if (title.includes(searchTerm) || fullPath.includes(searchTerm)) {

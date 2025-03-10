@@ -161,6 +161,10 @@
   filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(254deg) brightness(100%) contrast(103%);
 }
 
+.filtered {
+    display: none;
+}
+
 #selected {
   background: var(--tag-bg-color);
   padding: 1rem;
