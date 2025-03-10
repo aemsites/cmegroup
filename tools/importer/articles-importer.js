@@ -25,6 +25,77 @@ const fetchTemplate = (document) => {
   return 'unknown';
 };
 
+async function setMetadata(meta, document, url) {
+  const readTime = document.querySelector('.article-time');
+  const templates = {
+    'cme-group-case-study-article-template': {
+      template: 'article',
+      subTemplate: 'case-study',
+    },
+    'cme-group-faqs-article-template': {
+      template: 'article',
+      subTemplate: 'faqs',
+    },
+    'cme-group-showcase-article-template': {
+      template: 'article',
+      subTemplate: 'showcase',
+    },
+    'cme-group-lesson-template': {
+      template: 'lesson',
+    },
+    'cme-group-course-template': {
+      template: 'course',
+    },
+    'cme-group-standalone-lesson-template': {
+      template: 'standalone-lesson',
+    },
+  };
+
+  const template = fetchTemplate(document);
+  if (template && templates[template]) {
+    meta.Template = templates[template].template;
+    meta['Sub Template'] = templates[template].subTemplate;
+  }
+  if (readTime) {
+    const time = readTime.textContent.split(' ')[0].trim().toLowerCase();
+    const type = readTime.textContent.split(' ')[1]?.trim().toLowerCase();
+    meta['Read Time'] = `${time} ${type}`;
+    readTime.remove();
+  }
+
+  const articleDate = document.querySelector('.article-date');
+  if (articleDate?.textContent) {
+    meta.Date = articleDate?.textContent?.trim();
+    articleDate.remove();
+  }
+
+  const jsonUrl = new URL(url).pathname.replace('.html', '/jcr:content.json');
+  const jsonResponse = await fetch(jsonUrl);
+  const jsonData = await jsonResponse.json();
+
+  Object.keys(jsonData).forEach((key) => {
+    const arr = [];
+    if (key === 'primaryAuthors') {
+      jsonData[key].forEach((author) => {
+        arr.push(author.replace(/^.*:/, ''));
+      });
+      meta.authors = arr.join(',');
+    } else if (key === 'cq:tags') {
+      jsonData[key].forEach((tag) => {
+        arr.push(tag.replace(/^.*:/, ''));
+      });
+      meta.tags = arr.join(',');
+    } else if (key === 'primaryTopics') {
+      meta['Primary Topic'] = [];
+      jsonData[key].forEach((topic) => {
+        arr.push(topic.replace(/^.*:/, ''));
+      });
+
+      meta['Primary Topic'] = arr.join(',');
+    }
+  });
+}
+
 /**
  * This function fetches the forms from the document.
  * @param {Document} document - The document to search.
@@ -71,7 +142,6 @@ const findProductContractSpecs = (document) => {
   if (productContractSpecs.length) {
     map = {};
     productContractSpecs.forEach((productContractSpec) => {
-      console.log(productContractSpec);
       const dataSource = productContractSpec.getAttribute('data-data-source');
       if (dataSource) {
         map[dataSource] = true;
@@ -569,7 +639,7 @@ export default {
      * @param {object} params Object containing some parameters given by the import process.
      * @returns {HTMLElement} The root element to be transformed
      */
-  transform: ({
+  transform: async ({
     // eslint-disable-next-line no-unused-vars
     document, url, html, params,
   }) => {
@@ -605,6 +675,12 @@ export default {
     ]);
 
     const results = [];
+
+    const meta = WebImporter.Blocks.getMetadata(document);
+    await setMetadata(meta, document, url);
+
+    const mdb = WebImporter.Blocks.getMetadataBlock(document, meta);
+    main.append(mdb);
     // const meta = WebImporter.Blocks.getMetadata(document);
     // const template = fetchTemplate(document);
     // const fetchTableClasses = fetchTable(main);
@@ -631,7 +707,7 @@ export default {
       .replace(/(^-|-$)/g, '');
 
     results.push({
-      // element: main,
+      element: main,
       path: newPagePath,
       report: customReportElements(document),
     });
