@@ -6,7 +6,7 @@ import ffetch from './ffetch.js';
  * Language
  */
 function getCurrentLang() {
-  return 'en'; // TODO: Add logic
+  return getMetadata('locale');
 }
 
 function getDefaultLang() {
@@ -31,7 +31,7 @@ function fetchTaxonomy() {
           taxonomyJson.forEach((row) => {
             taxonomy[row.tag] = {
               tag: row.tag,
-              title: row[currentLang] && row[defaultLang],
+              title: row[currentLang] || row[defaultLang],
             };
           });
           resolve(taxonomy);
@@ -42,6 +42,34 @@ function fetchTaxonomy() {
     });
   }
   return taxonomyPromise;
+}
+
+/**
+ * Translations
+ */
+const translationsEndpoint = '/eds-config/translations.json';
+let translationsPromise = null;
+
+function fetchTranslations() {
+  if (!translationsPromise) {
+    translationsPromise = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const currentLang = getCurrentLang();
+          const defaultLang = getDefaultLang();
+          const translationsJson = await ffetch(`${translationsEndpoint}?sheet=${currentLang || defaultLang}`).all();
+          const translations = {};
+          translationsJson.forEach((row) => {
+            translations[row.k] = row.v;
+          });
+          resolve(translations);
+        } catch (e) {
+          reject(e);
+        }
+      })();
+    });
+  }
+  return translationsPromise;
 }
 
 /**
@@ -75,6 +103,15 @@ function createElement(tagName, attributes, ...children) {
  */
 function getTag(tagFullName) {
   return fetchTaxonomy().then((taxonomy) => taxonomy[tagFullName]);
+}
+
+/**
+ * Returns the tag information from a tagname
+ * @param {string} label to translate
+ * @returns {Promise} Object containing the value of the translation or the key if not present
+ */
+function i18n(key) {
+  return fetchTranslations().then((translations) => translations[key] || key);
 }
 
 /**
@@ -151,4 +188,6 @@ export {
   addDividerLine,
   parseTime,
   formatDate,
+  getTag,
+  i18n,
 };

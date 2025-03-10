@@ -1,10 +1,15 @@
 /* eslint-disable max-len */
 import { createOptimizedPicture, readBlockConfig } from '../../scripts/aem.js';
-import { createElement, parseTime, formatDate } from '../../scripts/utils.js';
+import {
+  createElement,
+  parseTime,
+  formatDate,
+  i18n,
+} from '../../scripts/utils.js';
 
 const QUERY_INDEX_ENDPOINT = '/query-index.json';
 
-function createStaticCards(block) {
+async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
   if (block.classList.contains('links')) {
     const cardTitle = document.createElement('h6');
@@ -58,6 +63,13 @@ function createStaticCards(block) {
     }
     cardsContainer.append(mainContainer);
   } else if (block.classList.contains('static')) {
+    const [
+      readLabel,
+      watchLabel,
+    ] = await Promise.all([
+      i18n('read'),
+      i18n('watch'),
+    ]);
     const ul = document.createElement('ul');
     [...block.children].forEach((row) => {
       const li = document.createElement('li');
@@ -83,7 +95,7 @@ function createStaticCards(block) {
       cardSubtitle.className = 'cards-subtitle';
       const cardTime = document.createElement('span');
       cardTime.className = 'cards-time';
-      cardTime.innerText = `${time} ${format === 'video' ? 'Watch' : 'read'}`;
+      cardTime.innerText = `${time} ${format === 'video' ? watchLabel : readLabel}`;
       const cardDate = document.createElement('span');
       cardDate.className = 'cards-date';
       cardDate.innerText = date;
@@ -149,7 +161,7 @@ export function createDynamicCard({
   return li;
 }
 
-export function createDynamicCardArticle({ content }) {
+export async function createDynamicCardArticle({ content }) {
   const { dynamicProperties } = content;
   const {
     path,
@@ -159,6 +171,13 @@ export function createDynamicCardArticle({ content }) {
     date,
     title,
   } = dynamicProperties;
+  const [
+    readLabel,
+    watchLabel,
+  ] = await Promise.all([
+    i18n('read'),
+    i18n('watch'),
+  ]);
 
   const li = document.createElement('li');
   const linkEl = document.createElement('a');
@@ -179,7 +198,7 @@ export function createDynamicCardArticle({ content }) {
 
   const cardTime = document.createElement('span');
   cardTime.className = 'cards-time';
-  cardTime.innerText = `${duration} ${mediaType === 'video-webinar' ? 'Watch' : 'read'}`;
+  cardTime.innerText = `${duration} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
 
   const cardDate = document.createElement('span');
   cardDate.className = 'cards-date';
@@ -260,14 +279,14 @@ export default async function decorate(block) {
     } else {
       const { endpoint } = config;
       filteredData = await fetchAndFilterDataArticle(endpoint);
-      cardElements = filteredData.map(createDynamicCardArticle);
+      cardElements = await Promise.all(filteredData.map(createDynamicCardArticle));
     }
     ul.append(...cardElements);
     cardsContainer.append(ul);
     cards = cardsContainer;
   } else {
     // Default to static mode
-    cards = createStaticCards(block);
+    cards = await createStaticCards(block);
   }
 
   if (cards) {
