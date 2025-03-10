@@ -142,6 +142,24 @@ async function getArticleRelatedMetadata() {
 }
 
 /**
+ * Retrieves tags from the page
+ * @returns {Object} Object containing article metadata
+ */
+async function getPageTags() {
+  const metadataTags = getMetadata('article:tag');
+  const mapTag = async (tagName) => {
+    const finalName = tagName.trim();
+    const tag = await getTag(finalName);
+    return {
+      name: finalName,
+      title: tag ? tag.title : '',
+    };
+  };
+  const tags = await Promise.all(metadataTags.split(',').map(mapTag));
+  return tags;
+}
+
+/**
  * Adds a horizontal divider line at the end of an element
  * @param {HTMLElement} element - The element to add the divider line to
  */
@@ -190,4 +208,5 @@ export {
   formatDate,
   getTag,
   i18n,
+  getPageTags,
 };
