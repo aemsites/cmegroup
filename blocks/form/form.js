@@ -274,8 +274,15 @@ function generatePayload(form, formId, formName) {
 function updatePostSubmitUi(form, block) {
   const submitValue = form.querySelector('.field-wrapper:has(button[type="submit"])')?.dataset.submitMessage;
   if (submitValue) {
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach((input) => {
+      input.value = '';
+    });
     const submitDiv = block.querySelector('.post-submit');
     submitDiv.classList.remove('hide');
+    setTimeout(() => {
+      submitDiv.classList.add('hide');
+    }, 5000);
   } else {
     form.style.display = 'none';
     if (form.classList.contains('logged-in')) {
