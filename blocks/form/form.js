@@ -129,15 +129,28 @@ function decorateLabels(form) {
   labels.forEach((label) => {
     const text = label.textContent;
     const linkPattern = /\[(.*?)\]\((.*?)\)/g;
+    const boldPattern = /\*\*(.*?)\*\*/g;
+    let newText = text;
 
     if (linkPattern.test(text)) {
       linkPattern.lastIndex = 0;
-      let newText = text;
       Array.from(text.matchAll(linkPattern)).forEach((match) => {
         const [fullMatch, linkText, url] = match;
         const anchor = `<a href="${url}">${linkText}</a>`;
         newText = newText.replace(fullMatch, anchor);
       });
+    }
+
+    if (boldPattern.test(text)) {
+      boldPattern.lastIndex = 0;
+      Array.from(text.matchAll(boldPattern)).forEach((match) => {
+        const [fullMatch, boldText] = match;
+        const bold = `<strong>${boldText}</strong>`;
+        newText = newText.replace(fullMatch, bold);
+      });
+    }
+
+    if (newText !== text) {
       label.innerHTML = newText;
     }
   });
@@ -153,6 +166,23 @@ function decorateFeedbackSmileys(form, block) {
   const smileys = form.querySelectorAll('.feedback-smiley-wrapper');
   smileys.forEach((smiley) => {
     smileyContainer.append(smiley);
+  });
+}
+
+function addListnersForDefaultHideFields(form) {
+  const fields = form.querySelectorAll('.field-wrapper');
+  fields.forEach((field) => {
+    if (field.dataset.visibleExpression) {
+      const { visibleExpression } = field.dataset;
+      const [key, value] = visibleExpression.split('=');
+      const conditionalField = form.querySelector(`[name="${key}"]`);
+      if (conditionalField) {
+        conditionalField.addEventListener('change', () => {
+          const fieldValue = conditionalField.value;
+          field.classList.toggle('hide', fieldValue !== value);
+        });
+      }
+    }
   });
 }
 
@@ -186,6 +216,7 @@ async function createForm(formData, block) {
   decorateLabels(form);
   decorateFeedbackSmileys(form, block);
   loadChoices(form, decorateContactUsForm, form, formData, block);
+  addListnersForDefaultHideFields(form);
   return form;
 }
 

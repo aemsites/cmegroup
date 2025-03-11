@@ -3,6 +3,7 @@
 
 /* Base styles */
 @import url('./form-base.css');
+@import url('./form-grid.css');
 
 /* Form variants */
 @import url('./form-feedback.css');

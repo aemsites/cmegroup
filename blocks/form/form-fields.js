@@ -4,11 +4,23 @@ import { createElement } from '../../scripts/utils.js';
 function createFieldWrapper(fd) {
   const fieldWrapper = document.createElement('div');
   if (fd.Style) fieldWrapper.className = fd.Style;
-  if (fd.Hide === 'true') fieldWrapper.classList.add('hide');
+  if (fd.DefaultHide === 'true') {
+    fieldWrapper.classList.add('hide');
+    if (fd.VisibleExpression) {
+      fieldWrapper.dataset.visibleExpression = fd.VisibleExpression;
+    }
+  }
+  if (fd.ColumnsSpan) {
+    const sizes = fd.ColumnsSpan.split(',');
+    sizes.forEach((size) => {
+      fieldWrapper.classList.add(`col-${size.trim()}`);
+    });
+  }
+  if (fd.CustomStyle) {
+    fieldWrapper.classList.add(fd.CustomStyle);
+  }
   fieldWrapper.classList.add('field-wrapper', `${fd.Type}-wrapper`);
-
   fieldWrapper.dataset.fieldset = fd.Fieldset;
-
   return fieldWrapper;
 }
 
@@ -45,7 +57,7 @@ function setCommonAttributes(field, fd) {
   field.value = fd.Value;
 
   // Set validation message (empty if not provided)
-  const validationMessage = fd['Validation Message'] || '';
+  const validationMessage = fd.ValidationMessage || '';
   field.dataset.customError = validationMessage;
 
   // Set initial validation state
