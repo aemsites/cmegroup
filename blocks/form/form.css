@@ -523,7 +523,8 @@
 .form.feedback .post-submit {
   margin-top: 1rem;
   font-size: 1rem;
-  max-width: calc(100% - 265px);
+  font-weight: 700;
+  max-width: calc(100% - 16.5625rem);
 }
 .form.feedback .post-submit.custom-submit-msg-green {
   color: var(--green3);
@@ -561,7 +562,7 @@
   gap: 0;
 }
 .form.contact-us form.collapsed-user-info p {
-  font-size: 14px;
+  font-size: 0.875rem;
   margin-top: 0;
   margin-bottom: 1rem;
 }
@@ -590,7 +591,7 @@
   padding: 0.75rem 1.25rem;
   border-radius: 0;
   border: 2px solid transparent;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .form.contact-us .field-wrapper:not(.checkbox-wrapper) > label {
   text-transform: uppercase;

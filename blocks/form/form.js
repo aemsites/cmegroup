@@ -276,7 +276,11 @@ function updatePostSubmitUi(form, block) {
   if (submitValue) {
     const inputs = form.querySelectorAll('input, select, textarea');
     inputs.forEach((input) => {
-      input.value = '';
+      if (input.type === 'radio') {
+        input.checked = false;
+      } else {
+        input.value = '';
+      }
     });
     const submitDiv = block.querySelector('.post-submit');
     submitDiv.classList.remove('hide');

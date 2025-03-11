@@ -97,7 +97,8 @@
 .form.feedback .post-submit {
   margin-top: 1rem;
   font-size: 1rem;
-  max-width: calc(100% - 265px);
+  font-weight: 700;
+  max-width: calc(100% - 16.5625rem);
 }
 
 .form.feedback .post-submit.custom-submit-msg-green {
