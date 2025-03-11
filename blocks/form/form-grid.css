@@ -23,7 +23,11 @@
   box-sizing: border-box;
 }
 
-.form.grid .field-wrapper.align-right {
+.form.grid .field-wrapper.custom-align-left {
+  justify-self: start;
+}
+
+.form.grid .field-wrapper.custom-align-right {
   justify-self: end;
 }
 

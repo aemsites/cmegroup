@@ -64,10 +64,12 @@ function replaceTemplateVariables(form, selectors = ['label', 'p']) {
     const html = element.innerHTML || '';
     const templatePattern = /\{\{([^}]+)\}\}/g;
     if (templatePattern.test(html)) {
-      let newHtml = html;
-      let match = templatePattern.exec(html);
       templatePattern.lastIndex = 0;
-      while (match !== null) {
+      let newHtml = html;
+      const replacementPattern = /\{\{([^}]+)\}\}/g;
+      let match;
+      // eslint-disable-next-line no-cond-assign
+      while (match = replacementPattern.exec(html)) {
         const fullMatch = match[0];
         const fieldName = match[1];
         const field = form.querySelector(`[name="${fieldName}"]`);
@@ -80,7 +82,6 @@ function replaceTemplateVariables(form, selectors = ['label', 'p']) {
             .replace(/'/g, '&#039;');
           newHtml = newHtml.replace(fullMatch, fieldValue);
         }
-        match = templatePattern.exec(html);
       }
       if (newHtml !== html) {
         element.innerHTML = newHtml;

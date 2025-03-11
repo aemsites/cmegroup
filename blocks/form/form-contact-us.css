@@ -24,14 +24,6 @@
   margin-bottom: 1rem;
 }
 
-.form.contact-us .field-wrapper.align-left {
-  justify-self: start;
-}
-
-.form.contact-us .field-wrapper.align-right {
-  justify-self: end;
-}
-
 .form.contact-us .field-wrapper > * {
   max-width: 100%;
   line-height: .6875rem;

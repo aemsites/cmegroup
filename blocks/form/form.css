@@ -382,7 +382,10 @@
   max-width: 100%;
   box-sizing: border-box;
 }
-.form.grid .field-wrapper.align-right {
+.form.grid .field-wrapper.custom-align-left {
+  justify-self: start;
+}
+.form.grid .field-wrapper.custom-align-right {
   justify-self: end;
 }
 /* Small screen columns */
@@ -565,12 +568,6 @@
 .form.contact-us .field-wrapper {
   position: relative;
   margin-bottom: 1rem;
-}
-.form.contact-us .field-wrapper.align-left {
-  justify-self: start;
-}
-.form.contact-us .field-wrapper.align-right {
-  justify-self: end;
 }
 .form.contact-us .field-wrapper > * {
   max-width: 100%;
