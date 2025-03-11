@@ -17,10 +17,12 @@ function createFieldWrapper(fd) {
     });
   }
   if (fd.CustomStyle) {
-    fieldWrapper.classList.add(fd.CustomStyle);
+    fieldWrapper.classList.add(...fd.CustomStyle.split(',').map((style) => `custom-${style.trim()}`));
   }
   fieldWrapper.classList.add('field-wrapper', `${fd.Type}-wrapper`);
-  fieldWrapper.dataset.fieldset = fd.Fieldset;
+  if (fd.Fieldset) {
+    fieldWrapper.dataset.fieldset = fd.Fieldset;
+  }
   return fieldWrapper;
 }
 
@@ -55,6 +57,7 @@ function setCommonAttributes(field, fd) {
   field.required = fd.Mandatory?.toLowerCase() === 'true' || fd.Mandatory?.toLowerCase() === 'x';
   field.placeholder = fd.Placeholder;
   field.value = fd.Value;
+  field.submitName = fd.SubmitName;
 
   // Set validation message (empty if not provided)
   const validationMessage = fd.ValidationMessage || '';
@@ -171,6 +174,7 @@ const createSubmit = (fd) => {
   fieldWrapper.append(button);
   fieldWrapper.setAttribute('data-type', 'submit');
   fieldWrapper.setAttribute('data-action', fd.Action);
+  fieldWrapper.setAttribute('data-submit-message', fd.Value);
   return { field: button, fieldWrapper };
 };
 
@@ -267,7 +271,7 @@ const createFeedbackSmiley = (fd) => {
   const field = createElement('input', {
     type: 'radio',
     id: fd.Id,
-    name: 'FeedbackRating',
+    name: fd.SubmitName || 'FeedbackRating',
     value: fd.Value,
     'aria-label': `Feedback ${fd.Value}`,
   });

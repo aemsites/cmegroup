@@ -13,23 +13,10 @@
   gap: 0;
 }
 
-.form.contact-us form.user-info .saved-business-email,
-.form.contact-us form.user-info .edit-account-information {
-  display: none;
-}
-
-.form.contact-us form.collapsed-user-info .saved-business-email,
-.form.contact-us form.collapsed-user-info .edit-account-information {
+.form.contact-us form.collapsed-user-info p {
+  font-size: 14px;
+  margin-top: 0;
   margin-bottom: 1rem;
-}
-
-.form.contact-us form.collapsed-user-info .saved-business-email .email-address {
-  font-weight: 700;
-}
-
-.form.contact-us form.collapsed-user-info .edit-account-information {
-  cursor: pointer;
-  text-align: start;
 }
 
 .form.contact-us .field-wrapper {
@@ -37,11 +24,27 @@
   margin-bottom: 1rem;
 }
 
+.form.contact-us .field-wrapper.align-left {
+  justify-self: start;
+}
+
+.form.contact-us .field-wrapper.align-right {
+  justify-self: end;
+}
+
 .form.contact-us .field-wrapper > * {
   max-width: 100%;
   line-height: .6875rem;
   font-family: var(--heading-font-family);
   font-weight: 400;
+}
+
+.form.contact-us form.user-info .field-wrapper.logged-in {
+  display: none;
+}
+
+.form.contact-us form.collapsed-user-info .field-wrapper:not(.logged-in) {
+  display: none;
 }
 
 .form.contact-us .field-wrapper:not(.checkbox-wrapper) > input,
@@ -81,16 +84,8 @@
   justify-self: start;
 }
 
-.form.contact-us form.collapsed-user-info .field-wrapper {
-  display: none;
-}
-
 .form.contact-us .field-wrapper > textarea[name="question_comment"] {
   text-transform: none;
-}
-
-.form.contact-us form.user-info .field-wrapper:has([name="question_comment"]){
-  display: none;
 }
 
 .form.contact-us form .field-wrapper.submit-wrapper,
@@ -98,13 +93,13 @@
   display: grid;
 }
 
+.form.contact-us form.collapsed-user-info .field-wrapper.submit-wrapper {
+  display: unset;
+}
+
 @media (width > 768px) {
   .form.contact-us form {
     gap: 1.5rem;
-  }
-
-  .form.contact-us form.collapsed-user-info .edit-account-information {
-    text-align: right;
   }
 
   .form.contact-us .text-wrapper:has(input[name="Company_Name__c"]),

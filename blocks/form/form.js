@@ -30,36 +30,6 @@ async function loadChoices(form, callback, ...args) {
   }
 }
 
-function handleOtherFieldVisibility(form, selectField, otherFieldName) {
-  const otherFieldWrapper = form.querySelector(`.field-wrapper:has([name="${otherFieldName}"])`);
-  if (otherFieldWrapper) {
-    const { choicesInstance } = selectField;
-    const selectedValue = choicesInstance ? choicesInstance.getValue(true) : selectField.value;
-    const isOthersSelected = selectedValue?.toLowerCase() === 'other';
-
-    otherFieldWrapper.classList.toggle('hide', !isOthersSelected);
-    const otherField = otherFieldWrapper.querySelector(`[name="${otherFieldName}"]`);
-    otherField.required = isOthersSelected;
-  }
-}
-
-function handleContactUsFormOtherFields(form) {
-  const jobRoleSelect = form.querySelector('[name="Job_Role__c"]');
-  const companyTypeSelect = form.querySelector('[name="Company_Type__c"]');
-
-  if (jobRoleSelect) {
-    jobRoleSelect.choicesInstance.passedElement.element.addEventListener('change', () => {
-      handleOtherFieldVisibility(form, jobRoleSelect, 'Other_Job_Role__c');
-    });
-  }
-
-  if (companyTypeSelect) {
-    companyTypeSelect.choicesInstance.passedElement.element.addEventListener('change', () => {
-      handleOtherFieldVisibility(form, companyTypeSelect, 'Other_Company_Type__c');
-    });
-  }
-}
-
 function setFieldValue(field, value) {
   if (field.type === 'select-one') {
     field.choicesInstance?.setChoiceByValue(value);
@@ -74,60 +44,62 @@ function setFieldValue(field, value) {
   }
 }
 
-function addCollapsedUserInfo(userEmail, form) {
-  const savedBusinessEmail = createElement('div', { class: 'saved-business-email' });
-  savedBusinessEmail.innerHTML = `
-    <span>Business Email: </span>
-    <span class='email-address'>${userEmail}</span>
-    `;
-  const editAccountInformation = createElement('div', { class: 'edit-account-information' });
-  editAccountInformation.innerHTML = '<a>Edit Account Information</a>';
-  form.prepend(editAccountInformation);
-  form.prepend(savedBusinessEmail);
-  return editAccountInformation;
+async function fetchForm(formHref) {
+  const { pathname, searchParams } = new URL(formHref);
+  const queryParams = searchParams.toString() ? `?${searchParams.toString()}` : '';
+  const resp = await fetch(pathname + queryParams);
+  return resp.json();
 }
 
-function populateUserInfoInContactUsForm(form, userInfo) {
-  Object.entries(userInfo).forEach(([key, value]) => {
-    const field = form.querySelector(`[name="${key}"]`);
-    if (field) {
-      setFieldValue(field, value);
+/**
+ * Replaces template variables like {{fieldName}} with actual field values while preserving HTML
+ * @param {HTMLElement} form - The form element
+ * @param {string|string[]} selectors - CSS selector(s) for elements to process
+ */
+function replaceTemplateVariables(form, selectors = ['label', 'p']) {
+  const selectorString = Array.isArray(selectors) ? selectors.join(', ') : selectors;
+  const elements = form.querySelectorAll(selectorString);
+
+  elements.forEach((element) => {
+    const html = element.innerHTML || '';
+    const templatePattern = /\{\{([^}]+)\}\}/g;
+    if (templatePattern.test(html)) {
+      let newHtml = html;
+      let match = templatePattern.exec(html);
+      templatePattern.lastIndex = 0;
+      while (match !== null) {
+        const fullMatch = match[0];
+        const fieldName = match[1];
+        const field = form.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+          const fieldValue = (field.value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+          newHtml = newHtml.replace(fullMatch, fieldValue);
+        }
+        match = templatePattern.exec(html);
+      }
+      if (newHtml !== html) {
+        element.innerHTML = newHtml;
+      }
     }
   });
 }
 
-async function decorateContactUsLoggedInForm(form, formData, block) {
-  const isContactUsVariant = block.classList.contains('contact-us');
-  if (!isContactUsVariant || formData.mock !== 'LoggedIn') return;
+/**
+ * Decorates text elements with links and bold formatting
+ */
+function applyRichTextFormat(container, selectors = ['label', 'p']) {
+  const selectorString = Array.isArray(selectors) ? selectors.join(', ') : selectors;
+  const elements = container.querySelectorAll(selectorString);
 
-  form.classList.remove('user-info');
-  form.classList.add('collapsed-user-info');
-  const userInfo = await getUserInfo();
-  const editAccountInformation = addCollapsedUserInfo(userInfo.Email__c, form);
-
-  editAccountInformation.addEventListener('click', (e) => {
-    e.preventDefault();
-    form.classList.remove('collapsed-user-info');
-    form.classList.add('user-info');
-  });
-
-  populateUserInfoInContactUsForm(form, userInfo);
-}
-
-async function decorateContactUsForm(form, formData, block) {
-  const isContactUsVariant = block.classList.contains('contact-us');
-  if (!isContactUsVariant) return;
-
-  form.classList.add('user-info');
-  handleContactUsFormOtherFields(form);
-  await decorateContactUsLoggedInForm(form, formData, block);
-}
-
-function decorateLabels(form) {
-  const labels = form.querySelectorAll('label');
-
-  labels.forEach((label) => {
-    const text = label.textContent;
+  elements.forEach((element) => {
+    if (element.classList.contains('rich-text')) return;
+    element.classList.add('rich-text');
+    const text = element.textContent;
     const linkPattern = /\[(.*?)\]\((.*?)\)/g;
     const boldPattern = /\*\*(.*?)\*\*/g;
     let newText = text;
@@ -151,9 +123,55 @@ function decorateLabels(form) {
     }
 
     if (newText !== text) {
-      label.innerHTML = newText;
+      element.innerHTML = newText;
     }
   });
+}
+
+function populateUserInfoInContactUsForm(form, userInfo) {
+  Object.entries(userInfo).forEach(([key, value]) => {
+    const field = form.querySelector(`[name="${key}"]`);
+    if (field) {
+      setFieldValue(field, value);
+    }
+  });
+  replaceTemplateVariables(form);
+}
+
+async function decorateContactUsForm(form, formData, block) {
+  const isContactUsVariant = block.classList.contains('contact-us');
+  if (!isContactUsVariant) return;
+
+  form.classList.add('user-info');
+  const isLoggedIn = formData.mock === 'LoggedIn';
+  if (isLoggedIn) {
+    const userInfo = await getUserInfo();
+    form.classList.remove('user-info');
+    form.classList.add('collapsed-user-info');
+
+    const sheetData = await fetchForm(`${formData.source}?sheet=logged-in`);
+    const fields = await Promise.all(sheetData.data.map(async (field) => {
+      const fieldElement = await createField(field, form);
+      fieldElement.classList.add('logged-in');
+      return fieldElement;
+    }));
+
+    if (fields.length > 0) {
+      form.prepend(...fields);
+      applyRichTextFormat(form, ['label', 'p']);
+      const editAccountInformation = form.querySelector('a');
+
+      if (editAccountInformation) {
+        editAccountInformation.addEventListener('click', (e) => {
+          e.preventDefault();
+          form.classList.remove('collapsed-user-info');
+          form.classList.add('user-info');
+        });
+      }
+    }
+
+    populateUserInfoInContactUsForm(form, userInfo);
+  }
 }
 
 function decorateFeedbackSmileys(form, block) {
@@ -169,17 +187,26 @@ function decorateFeedbackSmileys(form, block) {
   });
 }
 
+function decodeHtmlEntities(text) {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
 function addListnersForDefaultHideFields(form) {
   const fields = form.querySelectorAll('.field-wrapper');
   fields.forEach((field) => {
     if (field.dataset.visibleExpression) {
-      const { visibleExpression } = field.dataset;
-      const [key, value] = visibleExpression.split('=');
-      const conditionalField = form.querySelector(`[name="${key}"]`);
+      const decodedExpression = decodeHtmlEntities(field.dataset.visibleExpression);
+      const match = decodedExpression.match(/([^=]+)=(?:"([^"]*)"|([\w.]+))/);
+      if (!match) return;
+      const fieldName = match[1].trim();
+      const expectedValue = match[2] || match[3];
+      const conditionalField = form.querySelector(`[name="${fieldName}"]`);
       if (conditionalField) {
         conditionalField.addEventListener('change', () => {
           const fieldValue = conditionalField.value;
-          field.classList.toggle('hide', fieldValue !== value);
+          field.classList.toggle('hide', fieldValue.toLowerCase() !== expectedValue.toLowerCase());
         });
       }
     }
@@ -187,10 +214,7 @@ function addListnersForDefaultHideFields(form) {
 }
 
 async function createForm(formData, block) {
-  const formHref = formData.source;
-  const { pathname } = new URL(formHref);
-  const resp = await fetch(pathname);
-  const json = await resp.json();
+  const json = await fetchForm(formData.source);
 
   const form = document.createElement('form');
   form.setAttribute('novalidate', '');
@@ -213,9 +237,9 @@ async function createForm(formData, block) {
     });
   });
 
-  decorateLabels(form);
   decorateFeedbackSmileys(form, block);
   loadChoices(form, decorateContactUsForm, form, formData, block);
+  applyRichTextFormat(form, ['label', 'p']);
   addListnersForDefaultHideFields(form);
   return form;
 }
@@ -233,6 +257,10 @@ function generatePayload(form, formId, formName) {
       } else if (field.value) {
         payload[field.name] = field.value;
       }
+      if (field.submitName && payload[field.name]) {
+        payload[field.submitName] = payload[field.name];
+        payload[field.name] = '';
+      }
     }
   });
 
@@ -243,11 +271,20 @@ function generatePayload(form, formId, formName) {
 }
 
 function updatePostSubmitUi(form, block) {
-  // const submitLoggedIn = block.querySelector('.post-submit.logged-in');
-  // submitLoggedIn.classList.remove('hide');
-  form.style.display = 'none';
-  const submitLoggedOut = block.querySelector('.post-submit.logged-out');
-  submitLoggedOut.classList.remove('hide');
+  const submitValue = form.querySelector('.field-wrapper:has(button[type="submit"])')?.dataset.submitMessage;
+  if (submitValue) {
+    const submitDiv = block.querySelector('.post-submit');
+    submitDiv.classList.remove('hide');
+  } else {
+    form.style.display = 'none';
+    if (form.classList.contains('logged-in')) {
+      const submitLoggedIn = block.querySelector('.post-submit.logged-in');
+      submitLoggedIn.classList.remove('hide');
+    } else {
+      const submitLoggedOut = block.querySelector('.post-submit.logged-out');
+      submitLoggedOut.classList.remove('hide');
+    }
+  }
 }
 
 function hasRecaptchaIntegration(block) {
@@ -261,9 +298,11 @@ async function handleSubmit(form, block) {
   try {
     form.setAttribute('data-submitting', 'true');
     submit.disabled = true;
-    form.style.display = 'none';
-    block.querySelector('.recaptcha-disclaimer').style.display = 'none';
-    document.body.classList.add('loading');
+    if (form.classList.contains('contact-us')) {
+      form.style.display = 'none';
+      block.querySelector('.recaptcha-disclaimer').style.display = 'none';
+      document.body.classList.add('loading');
+    }
 
     const sitekey = block.querySelector('.recaptcha-disclaimer')?.dataset.sitekey;
     if (!sitekey) {
@@ -343,13 +382,22 @@ function getFormData(block) {
 }
 
 async function decoratePostSubmitUi(formData, block) {
-  const submitLoggedIn = createElement('div', { class: 'post-submit logged-in hide' });
-  const submitLoggedOut = createElement('div', { class: 'post-submit logged-out hide' });
-  const loggedInFragment = await loadFragment(formData.submit_logged_in);
-  const loggedOutFragment = await loadFragment(formData.submit_logged_out);
-  submitLoggedIn.innerHTML = loggedInFragment.innerHTML;
-  submitLoggedOut.innerHTML = loggedOutFragment.innerHTML;
-  block.append(submitLoggedIn, submitLoggedOut);
+  const submitWrapper = block.querySelector('.field-wrapper:has(button[type="submit"])');
+  const submitMessage = submitWrapper?.dataset.submitMessage;
+  if (submitMessage) {
+    const customStyles = Array.from(submitWrapper.classList).filter((style) => style.startsWith('custom-'));
+    const submitMsgDiv = createElement('div', { class: ['post-submit', 'hide', ...customStyles].join(' ') });
+    submitMsgDiv.innerHTML = submitMessage;
+    block.append(submitMsgDiv);
+  } else {
+    const submitLoggedIn = createElement('div', { class: 'post-submit logged-in hide' });
+    const submitLoggedOut = createElement('div', { class: 'post-submit logged-out hide' });
+    const loggedInFragment = await loadFragment(formData.submit_logged_in);
+    const loggedOutFragment = await loadFragment(formData.submit_logged_out);
+    submitLoggedIn.innerHTML = loggedInFragment.innerHTML;
+    submitLoggedOut.innerHTML = loggedOutFragment.innerHTML;
+    block.append(submitLoggedIn, submitLoggedOut);
+  }
 }
 
 export default async function decorate(block) {
@@ -394,7 +442,6 @@ export default async function decorate(block) {
         }
       });
 
-      // Scroll to first visible invalid field
       const firstInvalidEl = [...invalidFields].find((field) => {
         const wrapper = field.closest('.field-wrapper');
         if (!wrapper) return false;

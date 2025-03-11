@@ -93,7 +93,7 @@
   width: max-content;
 }
 
-.form .field-wrapper.hide {
+.form .hide {
   display: none;
 }
 

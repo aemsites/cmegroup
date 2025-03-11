@@ -94,6 +94,16 @@
   grid-area: recaptcha-disclaimer;
 }
 
+.form.feedback .post-submit {
+  margin-top: 1rem;
+  font-size: 1rem;
+  max-width: calc(100% - 265px);
+}
+
+.form.feedback .post-submit.custom-submit-msg-green {
+  color: var(--green3);
+}
+
 @media (width >= 768px) {
   .form.feedback form {
     grid-template-areas: 
