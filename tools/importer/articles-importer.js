@@ -675,6 +675,7 @@ export default {
     ]);
 
     const results = [];
+    const report = customReportElements(document);
 
     const meta = WebImporter.Blocks.getMetadata(document);
     await setMetadata(meta, document, url);
@@ -709,7 +710,7 @@ export default {
     results.push({
       element: main,
       path: newPagePath,
-      report: customReportElements(document),
+      report,
     });
 
     return results;
