@@ -12,6 +12,17 @@
   width: 100%;
 }
 
+.columns.author-bio img {
+    border-radius: 50%;
+    display: block;
+    height: 5.3125rem;
+    margin-right: .625rem;
+    min-width: 5.3125rem;
+    width: 5.3125rem;
+    margin-top: 0.625rem;
+    margin-bottom: 0.9375rem;
+}
+
 .columns > div > div {
   order: 1;
 }
@@ -58,17 +69,6 @@
     padding-left: 1.875rem;
     padding-right: 1.875rem;
   }
-}
-
-.columns.author-bio img {
-    border-radius: 50%;
-    display: block;
-    height: 5.3125rem;
-    margin-right: .625rem;
-    min-width: 5.3125rem;
-    width: 5.3125rem;
-    margin-top: 0.625rem;
-    margin-bottom: 0.9375rem;
 }
 
 .columns.author-bio p {
