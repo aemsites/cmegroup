@@ -123,8 +123,7 @@ const createSelect = async (fd) => {
   };
 
   if (fd.Placeholder) {
-    const ph = addOption({ text: fd.Placeholder, value: '' });
-    ph.setAttribute('disabled', '');
+    addOption({ text: fd.Placeholder, value: '' });
   }
 
   if (fd.Options) {
