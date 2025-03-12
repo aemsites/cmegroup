@@ -1,4 +1,4 @@
-import { createDynamicCard, fetchAndFilterData } from '../cards/cards.js';
+import { createDynamicCard, fetchAndFilterDataCourse } from '../cards/cards.js';
 import { createElement } from '../../scripts/utils.js';
 
 function createCardsBlock(cards) {
@@ -57,7 +57,7 @@ async function decorateCardsAccordion(block) {
     // Fetch all data concurrently
     const accordions = await Promise.all(
       accordionData.map(async ({ title, tags }) => {
-        const filteredData = await fetchAndFilterData(tags);
+        const filteredData = await fetchAndFilterDataCourse(tags);
         const cards = filteredData.map(createDynamicCard);
         const cardsBlock = createCardsBlock(cards);
         return createAccordionItem(title, cardsBlock);
