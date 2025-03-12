@@ -202,9 +202,8 @@
   text-decoration: uppercase;
 }
 
-.form.feedback .feedback-smiley-wrapper fieldset {
-  position: relative;
-  gap: 0;
+.form .feedback-smiley-wrapper {
+  max-width: 1rem;
 }
 
 .form .feedback-smiley-wrapper label {

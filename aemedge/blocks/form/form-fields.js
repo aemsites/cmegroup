@@ -270,7 +270,7 @@ const createFeedbackSmiley = (fd) => {
   const field = createElement('input', {
     type: 'radio',
     id: fd.Id,
-    name: fd.SubmitName || 'FeedbackRating',
+    name: fd.SubmitName || fd.Fieldset || 'FeedbackRating',
     value: fd.Value,
     'aria-label': `Feedback ${fd.Value}`,
   });

@@ -6,8 +6,8 @@ const path = require('path');
 
 async function buildBlockCSS(specificBlocks = []) {
   const blockFolders = specificBlocks.length > 0
-    ? specificBlocks.map(block => `blocks/${block}`)
-    : await glob('blocks/*');
+    ? specificBlocks.map(block => `aemedge/blocks/${block}`)
+    : await glob('aemedge/blocks/*');
   
   for (const blockFolder of blockFolders) {
     const mainCssFile = path.join(blockFolder, `${path.basename(blockFolder)}.css`);

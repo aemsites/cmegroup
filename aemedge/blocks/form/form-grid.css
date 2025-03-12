@@ -12,6 +12,10 @@
   min-width: 0; /* Prevent overflow */
 }
 
+.form.grid fieldset {
+  display: flex;
+}
+
 /* Fix for inputs to stay within grid boundaries */
 .form.grid .field-wrapper input,
 .form.grid .field-wrapper select,

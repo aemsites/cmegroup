@@ -17,42 +17,19 @@
 }
 
 .form.feedback form {
-  display: grid;
-  grid-template-areas: 
-    "message"
-    "email"
-    "smileys"
-    "submit"
-    "recaptcha-disclaimer";
-  grid-template-columns: 1fr;
   gap: 1rem;
-  align-items: start;
+}
+
+.form.feedback form fieldset {
+  gap: 2rem;
 }
 
 .form.feedback form:has(.error-message) {
   gap: 1.5rem;
 }
 
-/* Assign grid areas */
-.form.feedback .text-area-wrapper {
-  grid-area: message;
-}
-
-.form.feedback .email-wrapper {
-  grid-area: email;
-}
-
-.form.feedback .smiley-container {
-  grid-area: smileys;
-  display: flex;
-  justify-content: flex-start;
-  gap: 1rem;
-  border: none;
-  padding: 0.2rem;
-}
-
-.form.feedback .submit-wrapper {
-  grid-area: submit;
+.form.feedback .field-wrapper:has(fieldset .feedback-smiley-wrapper) {
+  align-items: end;
 }
 
 .form.feedback label {
@@ -64,6 +41,10 @@
   line-height: 0.6875rem;
   text-transform: uppercase;
   margin-bottom: 0.5rem;
+}
+
+.form.feedback .feedback-smiley-wrapper label {
+  margin: 0;
 }
 
 .form.feedback textarea,
@@ -90,10 +71,6 @@
   gap: 0;
 }
 
-.form.feedback .recaptcha-disclaimer {
-  grid-area: recaptcha-disclaimer;
-}
-
 .form.feedback .post-submit {
   margin-top: 1rem;
   font-size: 1rem;
@@ -107,21 +84,14 @@
 
 @media (width >= 768px) {
   .form.feedback form {
-    grid-template-areas: 
-      "message message message"
-      "email email smileys"
-      "submit submit submit"
-      "recaptcha-disclaimer recaptcha-disclaimer recaptcha-disclaimer";
-    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .form.feedback form fieldset {
     gap: 1.5rem;
   }
 
   .form.feedback form:has(.error-message) {
     gap: 2rem;
-  }
-
-  .form.feedback .smiley-container {
-    margin-top: 1rem;
-    justify-content: flex-end;
   }
 }

@@ -17,7 +17,7 @@ function createChoicesInstance(select) {
 async function loadChoices(form, callback, ...args) {
   if (!window.Choices) {
     const script = document.createElement('script');
-    script.src = '/blocks/form/external/choices-js/choices.min.js';
+    script.src = '/aemedge/blocks/form/external/choices-js/choices.min.js';
     script.async = true;
     script.onload = async () => {
       form.querySelectorAll('select').forEach((select) => createChoicesInstance(select));
@@ -238,7 +238,7 @@ async function createForm(formData, block) {
     });
   });
 
-  decorateFeedbackSmileys(form, block);
+  // decorateFeedbackSmileys(form, block);
   loadChoices(form, decorateContactUsForm, form, formData, block);
   applyRichTextFormat(form, ['label', 'p']);
   addListnersForDefaultHideFields(form);
