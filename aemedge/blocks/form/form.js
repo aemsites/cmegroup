@@ -175,19 +175,6 @@ async function decorateContactUsForm(form, formData, block) {
   }
 }
 
-function decorateFeedbackSmileys(form, block) {
-  const isFeedbackVariant = block.classList.contains('feedback');
-  if (!isFeedbackVariant) return;
-
-  const smileyContainer = createElement('div', { class: 'smiley-container' });
-  const emailWrapper = form.querySelector('.email-wrapper');
-  emailWrapper.after(smileyContainer);
-  const smileys = form.querySelectorAll('.feedback-smiley-wrapper');
-  smileys.forEach((smiley) => {
-    smileyContainer.append(smiley);
-  });
-}
-
 function decodeHtmlEntities(text) {
   const textarea = document.createElement('textarea');
   textarea.innerHTML = text;
@@ -238,7 +225,6 @@ async function createForm(formData, block) {
     });
   });
 
-  // decorateFeedbackSmileys(form, block);
   loadChoices(form, decorateContactUsForm, form, formData, block);
   applyRichTextFormat(form, ['label', 'p']);
   addListnersForDefaultHideFields(form);
