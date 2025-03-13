@@ -3,6 +3,16 @@ import { createElement } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
 import { getUserInfo, postForm } from '../../scripts/api.js';
 
+function getUrlPath(url) {
+  try {
+    const { pathname, searchParams } = new URL(url);
+    const queryParams = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return pathname + queryParams;
+  } catch (error) {
+    return url || '/';
+  }
+}
+
 function createChoicesInstance(select) {
   // eslint-disable-next-line no-undef
   const choicesInstance = new Choices(select, {
@@ -390,8 +400,8 @@ async function decoratePostSubmitUi(formData, block) {
   } else {
     const submitLoggedIn = createElement('div', { class: 'post-submit logged-in hide' });
     const submitLoggedOut = createElement('div', { class: 'post-submit logged-out hide' });
-    const loggedInFragment = await loadFragment(formData.submit_logged_in);
-    const loggedOutFragment = await loadFragment(formData.submit_logged_out);
+    const loggedInFragment = await loadFragment(getUrlPath(formData.submit_logged_in));
+    const loggedOutFragment = await loadFragment(getUrlPath(formData.submit_logged_out));
     submitLoggedIn.innerHTML = loggedInFragment.innerHTML;
     submitLoggedOut.innerHTML = loggedOutFragment.innerHTML;
     block.append(submitLoggedIn, submitLoggedOut);

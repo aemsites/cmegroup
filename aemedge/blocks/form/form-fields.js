@@ -277,7 +277,7 @@ const createFeedbackSmiley = (fd) => {
 
   const label = createLabel(fd);
   const img = createElement('img', {
-    src: `/icons/${fd.Name}.svg`,
+    src: `/aemedge/icons/${fd.Name}.svg`,
     alt: `Feedback ${fd.Value}`,
     loading: 'eager',
   });
