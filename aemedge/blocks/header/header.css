@@ -74,7 +74,8 @@ header .nav {
 }
 
 button.nav-toggle,
-button.nav-close {
+button.nav-close,
+button.search-icon {
     height: 50px;
     width: 50px;
     padding: 0;
@@ -85,6 +86,7 @@ button.nav-close {
     color: var(--gray3);
     line-height: 30px;
     font-size: 16px;
+    box-shadow: none;
 }
 
 button.nav-toggle:focus,
@@ -100,6 +102,24 @@ button.nav-toggle::after {
     content: var(--icon-menu);
     width: 30px;
     height: 30px;
+}
+
+button.search-icon {
+    border: 1px solid rgba(0, 0, 0, 10%);
+    border-top: none;
+    border-bottom: none;
+}
+
+button.search-icon:hover {
+    cursor: pointer;
+    color: var(--black);
+}
+
+button.search-icon::before {
+    font-family: var(--cme-group-icons);
+    font-weight: normal;
+    font-size: 1rem;
+    content: var(--icon-search);
 }
 
 .nav.is-open button.nav-close {
@@ -307,7 +327,6 @@ button.nav-toggle::after {
     content: var(--icon-minus);
 }
 
-
 .nav-menu-container .nav-subnav .nav-subnav-item .nav-nav-item-submenu a::after {
     content: '';
 }
@@ -371,6 +390,58 @@ button.nav-toggle::after {
     transition: visibility .2s linear, opacity .2s linear;
     width: 100%;
     z-index: 3;
+}
+
+/* right-side */
+
+.right-side {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding-right: 5.5rem;
+}
+
+.right-side button {
+    box-shadow: none;
+    min-width: 2.5rem;
+    background: none;
+    color: var(--gray3);
+    font-size: .875rem;
+}
+
+.right-side button:hover {
+    cursor: pointer;
+    color: var(--black);
+}
+
+.right-side button.search-icon,
+.right-side button.login-user-icon {
+    padding: 0;
+    border: none;
+}
+
+.right-side button.search-icon::before,
+.right-side button.login-user-icon::before {
+    font-family: var(--cme-group-icons);
+    font-weight: normal;
+    font-size: 1rem;
+}
+
+.right-side button.search-icon::before {
+    content: var(--icon-search);
+}
+
+.right-side button.login-user-icon::before {
+    content: var(--icon-user);
+}
+
+.right-side button.login-user-icon {
+    margin-right: .625rem;
+}
+
+.right-side button.nav-login {
+    padding: .75rem 2rem;
 }
 
 @media (width >= 993px) {

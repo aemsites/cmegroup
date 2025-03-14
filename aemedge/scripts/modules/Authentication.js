@@ -1,41 +1,13 @@
 // import store from 'store';
-import { URIUtil, openHiddenIframe } from './utils/index.js';
+import { URIUtil, openHiddenIframe } from '../utils/index.js';
 // import { authLogin, authLogout } from '../actions/authentication';
 import {
   getIsLoggedIn,
   getLoginData,
   getUserInfo,
-} from './services/AuthenticationService.js';
+} from '../services/AuthenticationService.js';
 
 export class Authentication {
-  authenticationData;
-
-  isProtectedPage;
-
-  resolveLoginPromise;
-
-  rejectLoginPromise;
-
-  loginProcessUrl;
-
-  loginUrl;
-
-  registerUrl;
-
-  logoutUrl;
-
-  logoutProfileUrl;
-
-  isMobileLogin;
-
-  schemaForMobile;
-
-  handlers;
-
-  authorMode;
-
-  uriUtil;
-
   static URLParams = {
     targetLocation: 'targetLocation',
     targetDescription: 'targetDescription',
@@ -75,34 +47,35 @@ export class Authentication {
   }
 
   initialize() {
-    if (
-      typeof window.authenticationOptions !== 'undefined'
-      && typeof window.globalConfig !== 'undefined'
-    ) {
-      // this.loginProcessUrl = window.authenticationOptions.loginProcessUrl || '';
-      // this.loginUrl = window.authenticationOptions.loginUrl || '';
-      // this.registerUrl = window.authenticationOptions.registerUrl || '';
-      // this.logoutUrl = window.authenticationOptions.logoutUrl || '';
-      // this.logoutProfileUrl = window.authenticationOptions.logoutProfileUrl || '';
-      // this.isMobileLogin = window.authenticationOptions.mobileLogin || false;
-      // this.schemaForMobile = window.authenticationOptions.schemaForMobile || '';
-      // this.isProtectedPage = window.globalConfig.isProtectedPage || false;
-      // this.authorMode = window.globalConfig.authorMode || false;
-      // this.loginProcessUrl = '/content/cmegroup/en/login-confirmed.html';
-      this.loginProcessUrl = '/login-confirmed.html';
-      this.loginUrl = 'http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://current.www-qa.cmegroup.com';
-      this.registerUrl = 'https://login.cmegroup.com/sso/register/';
-      this.logoutUrl = '/libs/cmegroup/security/logout';
-      this.logoutProfileUrl = 'https://myprofile.cmegroup.com/admin/ssoflo';
-      this.isMobileLogin = false;
-      this.schemaForMobile = '';
-      this.isProtectedPage = false;
-      this.authorMode = false;
-      return true;
-    }
-    // eslint-disable-next-line no-console
-    console.warn('Warning: Authentication config not found!');
-    return false;
+    // if (
+    //   typeof window.authenticationOptions !== 'undefined'
+    //   && typeof window.globalConfig !== 'undefined'
+    // ) {
+    //   this.loginProcessUrl = window.authenticationOptions.loginProcessUrl || '';
+    //   this.loginUrl = window.authenticationOptions.loginUrl || '';
+    //   this.registerUrl = window.authenticationOptions.registerUrl || '';
+    //   this.logoutUrl = window.authenticationOptions.logoutUrl || '';
+    //   this.logoutProfileUrl = window.authenticationOptions.logoutProfileUrl || '';
+    //   this.isMobileLogin = window.authenticationOptions.mobileLogin || false;
+    //   this.schemaForMobile = window.authenticationOptions.schemaForMobile || '';
+    //   this.isProtectedPage = window.globalConfig.isProtectedPage || false;
+    //   this.authorMode = window.globalConfig.authorMode || false;
+    //   this.loginProcessUrl = '/content/cmegroup/en/login-confirmed.html';
+    //   return true;
+    // }
+    // // eslint-disable-next-line no-console
+    // console.warn('Warning: Authentication config not found!');
+    // return false;
+
+    this.loginProcessUrl = '/login-confirmed.html';
+    this.loginUrl = 'http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://current.www-qa.cmegroup.com';
+    this.registerUrl = 'https://login.cmegroup.com/sso/register/';
+    this.logoutUrl = '/libs/cmegroup/security/logout';
+    this.logoutProfileUrl = 'https://myprofile.cmegroup.com/admin/ssoflo';
+    this.isMobileLogin = false;
+    this.schemaForMobile = '';
+    this.isProtectedPage = false;
+    this.authorMode = false;
   }
 
   handleLoad() {

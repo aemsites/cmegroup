@@ -1,5 +1,6 @@
 import { createElement } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
+import { authentication } from '../../scripts/modules/Authentication.js';
 
 const BRAND_IMG = '<img loading="lazy" alt="Adobe" src="/blocks/nav/adobe-logo.svg">';
 const IS_OPEN = 'is-open';
@@ -26,6 +27,12 @@ class Nav {
     this.state = {};
     this.curtain = createElement('div', { class: 'nav-curtain' });
     const nav = createElement('nav', { class: 'nav' });
+    const rightSide = createElement('div', { class: 'right-side' });
+    const mobileRightSide = createElement('div', { class: 'mobile-right-side' });
+    const searchBtn = createElement('button', { class: 'search-icon' });
+    const searchBtnMobile = createElement('button', { class: 'search-icon' });
+    const loginUserBtn = createElement('button', { class: 'login-user-icon' });
+    const navLoginBtn = createElement('button', { class: 'nav-login secondary' });
     const fauxNavbar = createElement('div', { class: 'nav-faux-navbar' });
 
     const brand = this.decorateBrand();
@@ -38,7 +45,9 @@ class Nav {
     const mobileToggle = this.decorateToggle(nav);
     const mobileCloseNav = this.decorateCloseNav(nav);
     this.curtain = this.decorateCurtain(nav);
-    fauxNavbar.append(mobileToggle);
+    mobileRightSide.append(searchBtnMobile);
+    mobileRightSide.append(mobileToggle);
+    fauxNavbar.append(mobileRightSide);
     nav.append(mobileCloseNav);
 
     const mainNav = await this.decorateMainNav();
@@ -47,6 +56,16 @@ class Nav {
     }
 
     const wrapper = createElement('div', { class: 'nav-wrapper' }, nav);
+
+    rightSide.append(searchBtn);
+    rightSide.append(loginUserBtn);
+    navLoginBtn.innerHTML = 'LOG IN';
+    navLoginBtn.addEventListener('click', async () => {
+      authentication.login();
+    });
+    rightSide.append(navLoginBtn);
+    wrapper.append(rightSide);
+
     this.el.append(this.curtain, fauxNavbar);
     this.el.append(this.curtain, wrapper);
 

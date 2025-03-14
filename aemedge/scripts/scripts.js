@@ -14,6 +14,8 @@ import {
   toClassName,
   getMetadata,
 } from './aem.js';
+import { authentication, dataLayer } from './modules/index.js';
+import { BlockableUtils } from './blockable-utils/blockable-utils.js';
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
@@ -241,6 +243,10 @@ function loadDelayed() {
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
+  import('./dataLayerImport.js');
+  BlockableUtils.init();
+  authentication.handleLoad();
+  dataLayer.handleLoad();
   loadDelayed();
 }
 
