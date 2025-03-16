@@ -11,6 +11,73 @@
  */
 /* global WebImporter */
 /* eslint-disable no-console, class-methods-use-this */
+const templateData = {};
+const unique = true;
+
+const SECTION_SELECTORS = [
+  '.blue1-background',
+  '.blue2-background',
+  '.blue3-background',
+  '.blue4-background',
+  '.blue5-background',
+  '.blue6-background',
+  '.gray1-background',
+  '.gray2-background',
+  '.gray3-background',
+  '.gray4-background',
+  '.gray5-background',
+  '.gray6-background',
+  '.white-background',
+  '.leadspace-fade',
+  '.parallax',
+  '.gradient-white-blue',
+  '.gradient-blue-white-fifteen',
+  '.gradient-blue-white-thirty',
+  '.gradient-blue-white-fifty',
+  '.gradient-blue-white-eighty',
+  '.crpy-4',
+];
+
+const modifyMap = (map, outerKey, idOrClass = false) => {
+  if (!unique) {
+    if (map && Object.keys(map).length === 0) {
+      return null;
+    }
+
+    return map;
+  }
+
+  if (map) {
+    if (idOrClass) {
+      if (templateData[outerKey]) {
+        delete map[outerKey];
+        return false;
+      }
+      templateData[outerKey] = true;
+      return true;
+    }
+
+    Object.keys(map).forEach((key) => {
+      if (templateData[outerKey]) {
+        if (!templateData[outerKey][key]) {
+          templateData[outerKey][key] = true;
+        } else {
+          delete map[key];
+        }
+      } else {
+        templateData[outerKey] = {
+          [key]: true,
+        };
+      }
+    });
+  }
+
+  if (map && Object.keys(map).length === 0) {
+    return null;
+  }
+
+  return map;
+};
 
 /**
  * This function fetches the template from the document.
@@ -24,6 +91,11 @@ const fetchTemplate = (document) => {
   }
   return 'unknown';
 };
+
+export const buildSectionMetadata = (cells) => WebImporter.Blocks.createBlock(document, {
+  name: 'Section Metadata',
+  cells: [...cells],
+});
 
 async function setMetadata(meta, document, url) {
   const readTime = document.querySelector('.article-time');
@@ -127,7 +199,7 @@ const fetchForms = (document) => {
     });
   }
 
-  return map;
+  return modifyMap(map, 'form');
 };
 
 /**
@@ -148,7 +220,8 @@ const findProductContractSpecs = (document) => {
       }
     });
   }
-  return map;
+
+  return modifyMap(map, 'product-specs');
 };
 
 /**
@@ -159,8 +232,11 @@ const findProductContractSpecs = (document) => {
  */
 const idFinder = (document, id) => {
   const element = document.getElementById(id);
+
   if (element) {
-    return true;
+    return modifyMap({
+      [id]: true,
+    }, id, true);
   }
   return null;
 };
@@ -174,7 +250,9 @@ const idFinder = (document, id) => {
 const classFinder = (document, className) => {
   const element = document.querySelector(`.${className}`);
   if (element) {
-    return true;
+    return modifyMap({
+      [className]: true,
+    }, className, true);
   }
   return null;
 };
@@ -207,10 +285,26 @@ const currentClassesCheck = (document, mainSelector, secondarySelectors, skipUnk
     });
   }
 
-  if (map && Object.keys(map).length === 0) {
-    map = null;
+  return modifyMap(map, mainSelector.replace('.', ''));
+};
+
+/**
+ * This function fetches the tables from the document.
+ * @param {Document} document - The document to search.
+ * @returns {object} - The tables.
+ */
+const fetchTable = (document) => {
+  const mainElements = document.querySelectorAll('table');
+  let map = null;
+
+  if (mainElements.length) {
+    map = {};
+    mainElements.forEach((mainElement) => {
+      map[mainElement.classList.toString()] = true;
+    });
   }
-  return map;
+
+  return modifyMap(map, 'table');
 };
 
 /**
@@ -270,7 +364,8 @@ const designBoxInlineStyleCheck = (document) => {
       }
     });
   }
-  return map;
+
+  return modifyMap(map, 'design-box');
 };
 
 /**
@@ -301,7 +396,7 @@ const currentAndChildCheck = (document, mainSelector, childSelectors) => {
     });
   }
 
-  return map;
+  return modifyMap(map, mainSelector.replace('.', ''));
 };
 
 /**
@@ -338,7 +433,7 @@ const expandCollapseCheck = (document) => {
     });
   }
 
-  return map;
+  return modifyMap(map, 'expand-collapse');
 };
 
 /**
@@ -358,7 +453,70 @@ const iconsCheck = (document) => {
     return null;
   }
 
-  return map;
+  return modifyMap(map, 'icon');
+};
+
+/**
+ * This function creates a block separator.
+ * @returns {HTMLElement} - The block separator.
+ */
+export const blockSeparator = () => {
+  const p = document.createElement('p');
+  p.innerText = '---';
+  return p;
+};
+
+/**
+ * This function converts the sections to metadata.
+ * @param {Document} document - The document to search.
+ */
+const convertSectionsToMetadata = (document) => {
+  const sections = document.querySelectorAll('.section');
+  sections.forEach((section) => {
+    const style = [];
+
+    SECTION_SELECTORS.forEach((selector) => {
+      if (section.matches(selector)) {
+        style.push(selector.replace('.', '').replace('-', ' '));
+      }
+    });
+
+    if (style.length) {
+      const sectionMetadata = buildSectionMetadata([['Style', style.join(', ')]]);
+      section.after(sectionMetadata, blockSeparator().cloneNode(true));
+      section.prepend(blockSeparator().cloneNode(true));
+    }
+  });
+};
+
+/**
+ * This function creates a hero block for the article.
+ * @param {Document} document - The document to search.
+ */
+const articleHeroBlock = (document) => {
+  const hero = document.querySelector('.article-header .article-background');
+  if (hero) {
+    const bgImage = hero.style.backgroundImage;
+    const imgUrl = bgImage.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
+    const cells = [['Hero (Article)']];
+
+    const tempData = [];
+    const img = document.createElement('img');
+    img.src = `https://www.cmegroup.com${imgUrl}`;
+
+    const h1 = document.createElement('h1');
+    h1.innerText = hero.querySelector('h1').innerText;
+
+    const div = document.createElement('div');
+    div.appendChild(img);
+    div.appendChild(h1);
+
+    tempData.push(div);
+    cells.push(tempData);
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    hero.after(buildSectionMetadata([['Style', 'Full Width']]), blockSeparator().cloneNode(true));
+    hero.replaceWith(table);
+  }
 };
 
 /**
@@ -369,33 +527,10 @@ const iconsCheck = (document) => {
 const sectionsCheck = (document) => {
   const mainElements = document.querySelectorAll('.section');
   const map = {};
-  const secondarySelectors = [
-    '.blue1-background',
-    '.blue2-background',
-    '.blue3-background',
-    '.blue4-background',
-    '.blue5-background',
-    '.blue6-background',
-    '.gray1-background',
-    '.gray2-background',
-    '.gray3-background',
-    '.gray4-background',
-    '.gray5-background',
-    '.gray6-background',
-    '.white-background',
-    '.leadspace-fade',
-    '.parallax',
-    '.gradient-white-blue',
-    '.gradient-blue-white-fifteen',
-    '.gradient-blue-white-thirty',
-    '.gradient-blue-white-fifty',
-    '.gradient-blue-white-eighty',
-    '.crpy-4',
-  ];
 
   if (mainElements.length) {
     mainElements.forEach((mainElement) => {
-      secondarySelectors.forEach((selector) => {
+      SECTION_SELECTORS.forEach((selector) => {
         if (mainElement.matches(selector)) {
           map[selector] = true;
         }
@@ -406,11 +541,9 @@ const sectionsCheck = (document) => {
         map['custom-bg-image'] = true;
       }
     });
-  } else {
-    return null;
   }
 
-  return map;
+  return modifyMap(map, 'section');
 };
 
 /**
@@ -430,11 +563,9 @@ const dataStyleCheck = (document, type) => {
         map[`${style}`] = true;
       }
     });
-  } else {
-    return null;
   }
 
-  return map;
+  return modifyMap(map, type);
 };
 
 /*
@@ -442,11 +573,9 @@ This function checks the cards component and returns a map of the cards.
 */
 const cardsComponentCheck = (document) => {
   const cards = document.querySelectorAll('.cards');
-  let map = null;
+  const map = {};
 
   if (cards.length) {
-    map = {};
-
     cards.forEach((card) => {
       const dataType = card.getAttribute('data-type');
       const dataStyle = card.getAttribute('data-style');
@@ -465,6 +594,148 @@ const cardsComponentCheck = (document) => {
     });
   }
 
+  return modifyMap(map, 'cards');
+};
+
+// const promoComponentCheck = (document) => {
+//   const promos = document.querySelectorAll('.promo');
+//   let map = null;
+
+//   const selectors = [
+//     '.primary',
+//     '.custom',
+//     '.secondary',
+//     '.toolbox',
+//   ];
+
+//   if (promos.length) {
+//     map = {};
+//     promos.forEach((promo) => {
+//       selectors.forEach((selector) => {
+//         if (promo.matches(selector)) {
+//           const bgImage = promo.style.backgroundImage;
+//           const bgColor = promo.style.backgroundColor;
+
+//           if (bgImage && bgImage.includes('url(')) {
+//             map[`${selector}-bg-image`] = true;
+//           } else if (bgColor) {
+//             map[`${selector}-bg-color`] = true;
+//           }
+//         } else {
+//           const bgImage = promo.style.backgroundImage;
+//           if (bgImage && bgImage.includes('url(')) {
+//             map['bg-image'] = true;
+//           }
+//         }
+//       });
+//     });
+//   }
+
+//   return modifyMap(map, 'promo');
+// };
+
+const detectColumns = (document) => {
+  const rows = document.querySelectorAll('.row');
+  const map = {};
+
+  if (!rows.length) {
+    return null;
+  }
+
+  rows.forEach((row) => {
+    const cols = row.children;
+    const colCount = cols.length;
+    let layout = '';
+
+    // Handle different column counts
+    if (colCount === 1) {
+      const col = cols[0];
+      if (col.classList.contains('text-center')) {
+        layout = `${colCount} Column Center Aligned`;
+      } else if (col.classList.contains('d-none')
+        && (col.classList.contains('d-md-block') || col.classList.contains('d-lg-block') || col.classList.contains('d-xl-block'))) {
+        layout = `${colCount} Column Show in Desktop Only (MD/LG/XL)`;
+      } else if (col.classList.contains('d-md-none') || col.classList.contains('d-lg-none') || col.classList.contains('d-xl-none')) {
+        layout = `${colCount} Column Show in Mobile Only (XS/SM)`;
+      } else {
+        layout = `${colCount} Column`;
+      }
+    } else if (colCount === 2) {
+      const [col1, col2] = cols;
+      if (col1.classList.contains('col-md-6') && col2.classList.contains('col-md-6')) {
+        layout = `${colCount} Column 50% each`;
+      } else if (col1.classList.contains('col-md-8') && col2.classList.contains('col-md-4')) {
+        layout = `${colCount} Column 66% and 33%`;
+      } else if (col1.classList.contains('col-md-4') && col2.classList.contains('col-md-8')) {
+        layout = `${colCount} Column 33% and 66%`;
+      } else if (col1.classList.contains('col-md-9') && col2.classList.contains('col-md-3')) {
+        layout = `${colCount} Column 75% and 25%`;
+      } else if (col1.classList.contains('col-md-3') && col2.classList.contains('col-md-9')) {
+        layout = `${colCount} Column 25% and 75%`;
+      } else if (col1.classList.contains('col-md-7') && col2.classList.contains('col-md-5')) {
+        layout = `${colCount} Column 58% and 42%`;
+      } else if (col1.classList.contains('col-md-5') && col2.classList.contains('col-md-7')) {
+        layout = `${colCount} Column 42% and 58%`;
+      } else {
+        layout = `${colCount} Column Custom`;
+      }
+    } else if (colCount === 3) {
+      const allCol4 = Array.from(cols).every((col) => col.classList.contains('col-md-4'));
+      layout = allCol4 ? `${colCount} Column 33% each` : `${colCount} Column Custom`;
+    } else if (colCount === 4) {
+      if (Array.from(cols).every((col) => col.classList.contains('col-md-3'))) {
+        layout = `${colCount} Column 25% each`;
+      } else if (Array.from(cols).every((col) => col.classList.contains('col-3'))) {
+        layout = `${colCount} Column No Collapse`;
+      } else {
+        layout = `${colCount} Column Custom`;
+      }
+    }
+
+    // Check for mixed responsive classes
+    const hasMixedClasses = Array.from(cols).some((col) => {
+      const classes = col.classList;
+      const hasDirectCol = Array.from(classes).some((cls) => /^col-(?!(?:md|sm|lg|xl)-)\d+$/.test(cls));
+      return (classes.toString().includes('col-md-') && classes.toString().includes('col-sm-'))
+        || (classes.toString().includes('col-md-') && hasDirectCol)
+        || (classes.toString().includes('col-sm-') && hasDirectCol);
+    });
+
+    if (hasMixedClasses) {
+      layout = `${colCount} Columns Combination of Collapsible and Non Collapsible`;
+    }
+
+    // Additional modifiers
+    if (row.classList.contains('vcr')) {
+      layout += ' With Vertical Divider';
+    }
+    if (row.classList.contains('justify-content-end')) {
+      layout += ' Right Aligned';
+    }
+    if (row.classList.contains('justify-content-between')) {
+      layout += ' Space Between';
+    }
+    if (row.classList.contains('justify-content-around')) {
+      layout += ' Space Around';
+    }
+    if (row.classList.contains('big-gutters')) {
+      layout += ' Big Gutter';
+    }
+    if (row.classList.contains('medium-gutters')) {
+      layout += ' Medium Gutter';
+    }
+    if (row.classList.contains('small-gutters')) {
+      layout += ' Small Gutter';
+    }
+    // Check for offset columns
+    const hasOffset = Array.from(cols).some((col) => Array.from(col.classList).some((cls) => cls.startsWith('offset-md-')));
+    if (hasOffset) {
+      layout += ' Offset Columns';
+    }
+
+    map[layout] = true;
+  });
+
   return map;
 };
 
@@ -480,6 +751,7 @@ const customReportElements = (document) => {
     sections: sectionsCheck(document),
     cards: cardsComponentCheck(document),
     'design-box': designBoxInlineStyleCheck(document),
+    columns: detectColumns(document),
   };
 
   const currentClassesMap = {
@@ -513,6 +785,8 @@ const customReportElements = (document) => {
         '.custom',
         '.secondary',
         '.toolbox',
+        '.no-cta-text',
+        '.with-cta-text',
       ],
     },
     'title-text': {
@@ -593,7 +867,7 @@ const customReportElements = (document) => {
     }
   });
 
-  const classes = ['lds-ring', 'market-news', 'carousel'];
+  const classes = ['lds-ring', 'market-news', 'carousel', 'author-bio'];
   classes.forEach((className) => {
     const temp = classFinder(document, className);
     if (temp) {
@@ -625,6 +899,11 @@ const customReportElements = (document) => {
       report[key] = tempMap;
     }
   });
+
+  const tableOccurences = fetchTable(document);
+  if (tableOccurences) {
+    report['table-classes'] = tableOccurences;
+  }
 
   return report;
 };
@@ -682,6 +961,9 @@ export default {
 
     const mdb = WebImporter.Blocks.getMetadataBlock(document, meta);
     main.append(mdb);
+
+    convertSectionsToMetadata(document, main);
+    articleHeroBlock(document);
     // const meta = WebImporter.Blocks.getMetadata(document);
     // const template = fetchTemplate(document);
     // const fetchTableClasses = fetchTable(main);
@@ -708,7 +990,7 @@ export default {
       .replace(/(^-|-$)/g, '');
 
     results.push({
-      element: main,
+      // element: main,
       path: newPagePath,
       report,
     });
