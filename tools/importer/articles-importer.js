@@ -375,29 +375,29 @@ const designBoxInlineStyleCheck = (document) => {
  * @param {string[]} childSelectors - The child selectors to search for.
  * @returns {object} - The current and child elements.
  */
-const currentAndChildCheck = (document, mainSelector, childSelectors) => {
-  const mainElements = document.querySelectorAll(`${mainSelector}`);
-  let map = null;
+// const currentAndChildCheck = (document, mainSelector, childSelectors) => {
+//   const mainElements = document.querySelectorAll(`${mainSelector}`);
+//   let map = null;
 
-  if (mainElements.length) {
-    map = {};
-    mainElements.forEach((mainElement) => {
-      let flag = false;
-      childSelectors.forEach((selector) => {
-        if (mainElement.querySelector(selector)) {
-          map[selector] = true;
-          flag = true;
-        }
-      });
+//   if (mainElements.length) {
+//     map = {};
+//     mainElements.forEach((mainElement) => {
+//       let flag = false;
+//       childSelectors.forEach((selector) => {
+//         if (mainElement.querySelector(selector)) {
+//           map[selector] = true;
+//           flag = true;
+//         }
+//       });
 
-      if (!flag) {
-        map.unknown = true;
-      }
-    });
-  }
+//       if (!flag) {
+//         map.unknown = true;
+//       }
+//     });
+//   }
 
-  return modifyMap(map, mainSelector.replace('.', ''));
-};
+//   return modifyMap(map, mainSelector.replace('.', ''));
+// };
 
 /**
  * This function checks the expand collapse from the document.
@@ -505,7 +505,7 @@ const articleHeroBlock = (document) => {
     img.src = `https://www.cmegroup.com${imgUrl}`;
 
     const h1 = document.createElement('h1');
-    h1.innerText = hero.querySelector('h1').innerText;
+    h1.innerText = hero.querySelector('h1')?.innerText;
 
     const div = document.createElement('div');
     div.appendChild(img);
@@ -736,7 +736,7 @@ const detectColumns = (document) => {
     map[layout] = true;
   });
 
-  return map;
+  return modifyMap(map, 'columns');
 };
 
 const customReportElements = (document) => {
@@ -820,6 +820,12 @@ const customReportElements = (document) => {
       ],
       skipUnknown: true,
     },
+    divider: {
+      val: [
+        '.line',
+        '.pipe',
+      ],
+    },
   };
 
   Object.keys(currentClassesMap).forEach((key) => {
@@ -829,35 +835,35 @@ const customReportElements = (document) => {
     }
   });
 
-  const currentAndChildCheckMap = {
-    divider: [
-      '.line > .gray3',
-      '.line > .blue5',
-      '.line > .citron',
-      '.line > .green',
-      '.line > .xs',
-      '.line > .s',
-      '.line > .left',
-      '.line > .right',
-      '.line > .center',
-      '.pipe > .gray3',
-      '.pipe > .blue5',
-      '.pipe > .citron',
-      '.pipe > .green',
-      '.pipe > .xs',
-      '.pipe > .s',
-      '.pipe > .left',
-      '.pipe > .right',
-      '.pipe > .center',
-    ],
-  };
+  // const currentAndChildCheckMap = {
+  //   divider: [
+  //     '.line > .gray3',
+  //     '.line > .blue5',
+  //     '.line > .citron',
+  //     '.line > .green',
+  //     '.line > .xs',
+  //     '.line > .s',
+  //     '.line > .left',
+  //     '.line > .right',
+  //     '.line > .center',
+  //     '.pipe > .gray3',
+  //     '.pipe > .blue5',
+  //     '.pipe > .citron',
+  //     '.pipe > .green',
+  //     '.pipe > .xs',
+  //     '.pipe > .s',
+  //     '.pipe > .left',
+  //     '.pipe > .right',
+  //     '.pipe > .center',
+  //   ],
+  // };
 
-  Object.keys(currentAndChildCheckMap).forEach((key) => {
-    const tempMap = currentAndChildCheck(document, `.${key}`, currentAndChildCheckMap[key]);
-    if (tempMap) {
-      report[key] = tempMap;
-    }
-  });
+  // Object.keys(currentAndChildCheckMap).forEach((key) => {
+  //   const tempMap = currentAndChildCheck(document, `.${key}`, currentAndChildCheckMap[key]);
+  //   if (tempMap) {
+  //     report[key] = tempMap;
+  //   }
+  // });
 
   const ids = ['countdownClock'];
   ids.forEach((id) => {
@@ -867,7 +873,7 @@ const customReportElements = (document) => {
     }
   });
 
-  const classes = ['lds-ring', 'market-news', 'carousel', 'author-bio'];
+  const classes = ['lds-ring', 'market-news', 'carousel', 'author-bio', 'tag-cloud', 'quiz', 'course-nav', 'lateral-navigation'];
   classes.forEach((className) => {
     const temp = classFinder(document, className);
     if (temp) {
