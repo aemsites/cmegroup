@@ -16,7 +16,14 @@ function populateStyleMatrix(data, blockClassList = [], header = false) {
     }, 0);
   }
 
-  const styleMatrix = Array.from({ length: numberOfRows }, () => Array(numberOfColumns).fill('Body'));
+  const styleMatrix = Array.from({ length: numberOfRows }, () => Array(numberOfColumns).fill('body'));
+
+  if (blockClassList.includes('collapsible')) {
+    for (let i = 0; i < numberOfRows; i += 1) {
+      styleMatrix[i][0] = 'primary-header';
+    }
+    return styleMatrix;
+  }
 
   // Parse block class list for styles
   let hasRegexStyle = false;
@@ -60,10 +67,10 @@ function populateStyleMatrix(data, blockClassList = [], header = false) {
       cells.forEach((col, j) => {
         const rowspan = col.getAttribute('rowspan') || 1;
         if (header && i === 0) {
-          styleMatrix[i][j] = 'header-style';
+          styleMatrix[i][j] = 'primary-header';
         } else if (header && firstHeaderEmpty && j === 0) {
           if (count === 0) {
-            styleMatrix[i][j] = 'header-style';
+            styleMatrix[i][j] = 'primary-header';
             if (rowspan > 1) {
               count = rowspan - 1;
             }
@@ -84,14 +91,11 @@ export default async function decorate(block) {
   const thead = document.createElement('thead');
   const tbody = document.createElement('tbody');
 
-  // console.log(block.classList); // Commented out to avoid lint warning
-
   const header = !block.classList.contains('no-header');
   if (header) table.append(thead);
   table.append(tbody);
 
   const styleMatrix = populateStyleMatrix(data, [...block.classList], header);
-  // console.log(styleMatrix); // Commented out to avoid lint warning
 
   [...data.children].forEach((child, i) => {
     const row = document.createElement('tr');
@@ -108,7 +112,7 @@ export default async function decorate(block) {
 
       const cell = buildCell(colspan, rowspan, i === 0 && header);
       cell.innerHTML = col.innerHTML;
-      if (styleMatrix[i][j] !== 'Body') {
+      if (styleMatrix[i][j] !== 'body') {
         cell.classList.add(styleMatrix[i][j]);
       }
       row.append(cell);
@@ -117,4 +121,17 @@ export default async function decorate(block) {
 
   block.innerHTML = '';
   block.append(table);
+
+  // Add accordion functionality if the block has collapsible class
+  if (block.classList.contains('collapsible')) {
+    const rows = block.querySelectorAll('tbody tr');
+    rows.forEach((row) => {
+      const firstCell = row.querySelector('td:first-child');
+      if (firstCell) {
+        firstCell.addEventListener('click', () => {
+          row.classList.toggle('expanded');
+        });
+      }
+    });
+  }
 }

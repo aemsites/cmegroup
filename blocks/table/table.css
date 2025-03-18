@@ -1,74 +1,184 @@
 .table {
-    width: 100%;
-    overflow-x: auto;
-  }
+  width: 100%;
+  overflow-x: auto;
+}
   
+.table table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  font-size: var(--body-font-size-xs);
+}
+
+@media (width >= 600px) {
   .table table {
+    font-size: var(--body-font-size-s);
+  }
+}
+
+@media (width >= 900px) {
+  .table table {
+    font-size: var(--body-font-size-m);
+  }
+}
+
+.table table thead tr {
+  border-top: 2px solid #dadada;
+  border-bottom: 2px solid #dadada;
+}
+
+.table table tbody tr {
+  font-size: 16px;
+  line-height: 24px;
+  padding: 18px 20px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #dadada;
+  color: #5a6874;
+}
+
+.table.compact table tbody tr {
+  padding: 10px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.table table tbody tr td p {
+  font-size: 14px;
+  line-height: 22px;
+  margin-bottom: 15px;
+}
+
+.table table tbody tr td p:last-child {
+  margin-bottom: 0;
+}
+
+.table table tbody tr td ul {
+  margin-bottom: 15px;
+  padding-inline-start: 20px;
+}
+
+.table table tbody tr td ul li:last-child {
+  margin-bottom: 0;
+}
+
+.table table tbody tr td a:hover {
+  text-decoration: underline;
+}
+
+.table table tbody tr:hover {
+  background-color: #ebf9ff;
+}
+
+.table table tr [class$="-header"] {
+  font-size: var(--heading-font-size-xs);
+  line-height: 14px;
+  letter-spacing: 1.1px;
+  padding: 15px 20px;
+  color: #c2cace;
+  text-transform: uppercase;
+  text-align: center;
+  /* text-align: left (for header columns) */
+  vertical-align: middle;
+}
+
+.table.compact table tr [class$="-header"] {
+  padding: 10px;
+}
+
+.table table .primary-header {
+  background-color: #112b4a;
+}
+
+.table table .secondary-header {
+  background-color: #081d37;
+}
+
+.table table .tertiary-header {
+  background-color: #25323c;
+}
+
+.table table th,
+.table table td {
+  padding: 0.5em;
+  text-align: left;
+  border: 1px solid #dadada;
+}
+
+.table table th p,
+.table table td p {
+  margin: 0;
+}
+
+.table table td p + p {
+  margin-top: 0.25em;
+}
+
+.table.no-header table tbody tr {
+  border-top: 1px solid #dadada;
+}
+
+.table tbody tr:nth-child(2n) {
+  background-color: #F1F5F7;
+}
+
+.table.collapsible {
+  width: 100%;
+}
+
+@media (width < 600px) {
+  .table.collapsible table,
+  .table.collapsible tbody,
+  .table.collapsible tr,
+  .table.collapsible td {
+    display: block;
     width: 100%;
-    max-width: 100%;
-    border-collapse: collapse;
-    font-size: var(--body-font-size-xs);
+    box-sizing: border-box;
   }
-  
-  @media (width >= 600px) {
-    .table table {
-      font-size: var(--body-font-size-s);
-    }
+
+  .table.collapsible thead {
+    display: none;
   }
-  
-  @media (width >= 900px) {
-    .table table {
-      font-size: var(--body-font-size-m);
-    }
-  }
-  
-  .table table thead tr {
-    border-top: 2px solid #dadada;
-    border-bottom: 2px solid #dadada;
-  }
-  
-  .table table tbody tr {
+
+  .table.collapsible tr {
+    margin-bottom: 0;
     border-bottom: 1px solid #dadada;
-    color: #5a6874;
+    width: 100%;
   }
 
-  .table table tbody tr:hover {
-    background-color: #ebf9ff;
+  .table.collapsible tr:last-child {
+    border-bottom: none;
   }
 
-  .table table th {
+  .table.collapsible td:first-child {
+    position: relative;
+    padding-right: 2.5em;
+    cursor: pointer;
     font-weight: 700;
-    background-color: #112b4a;
-    color: #c2cace;
+    width: 100%;
   }
-  
-  .header-style {
-    background-color: #112b4a;
-    color: #c2cace;
+
+  .table.collapsible td:first-child::after {
+    content: '+';
+    position: absolute;
+    right: 1em;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2em;
   }
-  
-  .table table th,
-  .table table td {
-    padding: 0.5em;
-    text-align: left;
-    border: 1px solid #dadada;
+
+  .table.collapsible tr.expanded td:first-child::after {
+    content: '-';
   }
-  
-  .table table th p,
-  .table table td p {
-    margin: 0;
+
+  .table.collapsible td:not(:first-child) {
+    display: none;
+    width: 100%;
   }
-  
-  .table table td p + p {
-    margin-top: 0.25em;
-  }
-  
-  /* no header variant */
-  .table.no-header table tbody tr {
+
+  .table.collapsible tr.expanded td:not(:first-child) {
+    display: block;
     border-top: 1px solid #dadada;
+    width: 100%;
   }
-  
-  /* striped variant */
-  .table tbody tr:nth-child(2n) {
-    background-color: #F1F5F7;
-  }
+}
