@@ -98,6 +98,21 @@
   background-color: #25323c;
 }
 
+.table table .primary-group {
+  background-color: #112b4a;
+  color: #fff;
+}
+
+.table table .secondary-group {
+  background-color: #081d37;
+  color: #fff;
+}
+
+.table table .tertiary-group {
+  background-color: #25323c;
+  color: #fff;
+}
+
 .table table th,
 .table table td {
   padding: 0.5em;
@@ -142,6 +157,7 @@
 
   .table.collapsible tr {
     margin-bottom: 0;
+    padding: 0;
     border-bottom: 1px solid #dadada;
     width: 100%;
   }
