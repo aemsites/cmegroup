@@ -716,8 +716,11 @@ const detectColumns = (document) => {
  */
 const imageFetch = (ele) => {
   const bgImage = ele.style.backgroundImage;
-  const imgUrl = bgImage.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
-  return `${DOMAIN}${imgUrl}`;
+  if (bgImage) {
+    const imgUrl = bgImage.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
+    return `${DOMAIN}${imgUrl}`;
+  }
+  return null;
 };
 
 /**
@@ -871,6 +874,83 @@ const quizBlock = (document) => {
   }
 };
 
+const getAssetCounts = (document) => {
+  const assetMap = {};
+
+  // Images (jpg, jpeg, png, gif, webp, svg)
+  const images = document.querySelectorAll('img');
+  images.forEach((img) => {
+    const { src } = img;
+    if (src) {
+      const ext = src.split('.').pop().toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+        assetMap[ext] = (assetMap[ext] || 0) + 1;
+      }
+    }
+  });
+
+  // Background images in styles
+  const elementsWithBg = document.querySelectorAll('[style*="background-image"]');
+  console.log(elementsWithBg);
+  elementsWithBg.forEach((el) => {
+    const bgImage = el.style.backgroundImage;
+    if (bgImage && bgImage.includes('url(')) {
+      const url = bgImage.split('url(')[1].split(')')[0].replace(/['"]/g, '');
+      const ext = url.split('.').pop().toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+        assetMap[ext] = (assetMap[ext] || 0) + 1;
+      }
+    }
+  });
+
+  // PDFs
+  const pdfLinks = document.querySelectorAll('a[href$=".pdf"]');
+  if (pdfLinks.length) {
+    assetMap.pdf = pdfLinks.length;
+  }
+
+  // Videos
+  const videos = document.querySelectorAll('video');
+  videos.forEach((video) => {
+    const sources = video.querySelectorAll('source');
+    sources.forEach((source) => {
+      const type = source.type?.toLowerCase() || '';
+      if (type.includes('video/')) {
+        const format = type.split('/')[1];
+        assetMap[format] = (assetMap[format] || 0) + 1;
+      }
+    });
+  });
+
+  // Video iframes (YouTube, Vimeo, etc.)
+  const videoIframes = document.querySelectorAll('iframe[src*="youtube"], iframe[src*="vimeo"], iframe[src*="brightcove"]');
+  if (videoIframes.length) {
+    assetMap.embedded_videos = videoIframes.length;
+  }
+
+  // Audio
+  const audioElements = document.querySelectorAll('audio');
+  audioElements.forEach((audio) => {
+    const sources = audio.querySelectorAll('source');
+    sources.forEach((source) => {
+      const type = source.type?.toLowerCase() || '';
+      if (type.includes('audio/')) {
+        const format = type.split('/')[1];
+        assetMap[format] = (assetMap[format] || 0) + 1;
+      }
+    });
+  });
+
+  // Podcast links
+  const podcastLinks = document.querySelectorAll('a[href$=".mp3"], a[href$=".wav"], a[href$=".ogg"]');
+  podcastLinks.forEach((link) => {
+    const ext = link.href.split('.').pop().toLowerCase();
+    assetMap[ext] = (assetMap[ext] || 0) + 1;
+  });
+
+  return Object.keys(assetMap).length ? assetMap : null;
+};
+
 const customReportElements = (document) => {
   const report = {
     template: fetchTemplate(document),
@@ -884,6 +964,7 @@ const customReportElements = (document) => {
     cards: cardsComponentCheck(document),
     'design-box': designBoxInlineStyleCheck(document),
     columns: detectColumns(document),
+    assets: getAssetCounts(document),
   };
 
   const currentClassesMap = {
