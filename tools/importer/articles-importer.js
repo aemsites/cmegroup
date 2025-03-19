@@ -38,6 +38,9 @@ const SECTION_SELECTORS = [
   '.crpy-4',
 ];
 
+const DOMAIN = 'https://www.cmegroup.com';
+const EDS_DOMAIN = 'https://main--cmegroup--aemsites.aem.page';
+
 const modifyMap = (map, outerKey, idOrClass = false) => {
   if (!unique) {
     if (map && Object.keys(map).length === 0) {
@@ -126,7 +129,9 @@ async function setMetadata(meta, document, url) {
   const template = fetchTemplate(document);
   if (template && templates[template]) {
     meta.Template = templates[template].template;
-    meta['Sub Template'] = templates[template].subTemplate;
+    if (templates[template].subTemplate) {
+      meta['Sub Template'] = templates[template].subTemplate;
+    }
   }
   if (readTime) {
     const time = readTime.textContent.split(' ')[0].trim().toLowerCase();
@@ -505,11 +510,13 @@ const articleHeroBlock = (document) => {
     img.src = `https://www.cmegroup.com${imgUrl}`;
 
     const h1 = document.createElement('h1');
-    h1.innerText = hero.querySelector('h1')?.innerText;
+    h1.innerText = hero.querySelector('h1')?.innerText || '';
 
     const div = document.createElement('div');
     div.appendChild(img);
-    div.appendChild(h1);
+    if (h1.innerText) {
+      div.appendChild(h1);
+    }
 
     tempData.push(div);
     cells.push(tempData);
@@ -596,43 +603,6 @@ const cardsComponentCheck = (document) => {
 
   return modifyMap(map, 'cards');
 };
-
-// const promoComponentCheck = (document) => {
-//   const promos = document.querySelectorAll('.promo');
-//   let map = null;
-
-//   const selectors = [
-//     '.primary',
-//     '.custom',
-//     '.secondary',
-//     '.toolbox',
-//   ];
-
-//   if (promos.length) {
-//     map = {};
-//     promos.forEach((promo) => {
-//       selectors.forEach((selector) => {
-//         if (promo.matches(selector)) {
-//           const bgImage = promo.style.backgroundImage;
-//           const bgColor = promo.style.backgroundColor;
-
-//           if (bgImage && bgImage.includes('url(')) {
-//             map[`${selector}-bg-image`] = true;
-//           } else if (bgColor) {
-//             map[`${selector}-bg-color`] = true;
-//           }
-//         } else {
-//           const bgImage = promo.style.backgroundImage;
-//           if (bgImage && bgImage.includes('url(')) {
-//             map['bg-image'] = true;
-//           }
-//         }
-//       });
-//     });
-//   }
-
-//   return modifyMap(map, 'promo');
-// };
 
 const detectColumns = (document) => {
   const rows = document.querySelectorAll('.row');
@@ -737,6 +707,168 @@ const detectColumns = (document) => {
   });
 
   return modifyMap(map, 'columns');
+};
+
+/**
+ * This function fetches the image from the element.
+ * @param {HTMLElement} ele - The element to search.
+ * @returns {string} - The image.
+ */
+const imageFetch = (ele) => {
+  const bgImage = ele.style.backgroundImage;
+  const imgUrl = bgImage.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
+  return `${DOMAIN}${imgUrl}`;
+};
+
+/**
+ * This function creates a promo block for the document.
+ * @param {Document} document - The document to search.
+ */
+const promoBlock = (document) => {
+  const promos = document.querySelectorAll('.promo');
+
+  const selectors = [
+    '.primary',
+    '.custom',
+    '.secondary',
+    '.toolbox',
+  ];
+
+  if (promos.length) {
+    promos.forEach((promo) => {
+      const theme = selectors.find((selector) => promo.matches(selector)).replace('.', '');
+
+      const link = promo.querySelector('a')?.href || '';
+      const url = new URL(link);
+      const path = url.pathname + url.search;
+
+      const imgSrc = imageFetch(promo);
+      const promoChild = promo.querySelector('.promo-title')?.children || [];
+
+      const initialSubtitle = promo.querySelector('.promo-subtitle')?.innerText || '';
+      const title = promoChild.length ? promoChild[0].innerText : '';
+      const description = initialSubtitle || (promoChild.length > 1 ? promoChild[1].innerText : '');
+      const footerText = promo.querySelector('.promo-foot .cta-text')?.innerText || '';
+      const iconSpan = promo.querySelector('.promo-foot span');
+      const { backgroundColor } = promo.style.backgroundColor;
+
+      let icon = '';
+      if (iconSpan) {
+        const iconClass = Array.from(iconSpan.classList).find((cls) => cls.startsWith('icon-'));
+        if (iconClass) {
+          icon = iconClass.replace('icon-', '');
+        }
+      }
+
+      const cells = [[`CTA (Promo, ${theme})`]];
+      if (link) {
+        cells.push(['URL', `${DOMAIN}${path}`]);
+      }
+      if (imgSrc) {
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        cells.push(['Background Image', img]);
+      }
+      if (backgroundColor) {
+        cells.push(['Background Color', backgroundColor]);
+      }
+      if (title) {
+        cells.push(['Title', title]);
+      }
+      if (description) {
+        cells.push(['Description', description]);
+      }
+      if (footerText) {
+        cells.push(['Footer Text', `${footerText} ${icon ? `:${icon}:` : ''}`]);
+      }
+
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      promo.replaceWith(table);
+    });
+  }
+};
+
+/**
+ * This function creates a divider block for the document.
+ * @param {Document} document - The document to search.
+ */
+const dividerBlock = (document) => {
+  const dividers = document.querySelectorAll('.divider-line');
+
+  if (dividers.length) {
+    dividers.forEach((divider) => {
+      const cells = [['Divider']];
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      divider.replaceWith(table);
+    });
+  }
+};
+
+/**
+ * This function creates a fragment block for the author bio.
+ * @param {Document} document - The document to search.
+ */
+const authorBioBlock = (document) => {
+  const authorBio = document.querySelector('.author-bio');
+  if (authorBio) {
+    const authorEyeBrow = authorBio
+      .querySelector('.author-eyebrow')?.innerText?.trim().split(' ').join('-').toLowerCase() || '';
+    const link = `${EDS_DOMAIN}/fragments/authors/${authorEyeBrow}`;
+
+    const cells = [['Fragment']];
+    cells.push([link]);
+
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    authorBio.replaceWith(table);
+  }
+};
+
+/**
+ * This function creates a figcaption block for the document.
+ * @param {Document} document - The document to search.
+ */
+const figCaptionEmphasize = (document) => {
+  const figCaptions = document.querySelectorAll('figcaption');
+  if (figCaptions.length) {
+    figCaptions.forEach((figCaption) => {
+      const em = document.createElement('em');
+      em.textContent = figCaption.textContent;
+      figCaption.replaceWith(em);
+    });
+  }
+};
+
+const quizBlock = (document) => {
+  const quizzes = document.querySelectorAll('.quiz');
+  if (quizzes) {
+    quizzes.forEach((quiz) => {
+      const cells = [['Quiz']];
+      const questionText = quiz.querySelector('.question-text');
+      if (questionText) {
+        cells.push(['Question', questionText.innerText]);
+      }
+      cells.push(['Options']);
+
+      const options = quiz.querySelectorAll('.option-item');
+      options.forEach((option) => {
+        const optionText = option.querySelector('.option-text');
+        if (optionText) {
+          cells.push([optionText.innerText]);
+        }
+      });
+
+      const answersItems = quiz.querySelector('.quiz-item')?.getAttribute('data-answers-items');
+      const answersItemsJson = JSON.parse(answersItems);
+      answersItemsJson.forEach((answer, index) => {
+        if (answer.correctAnswer) {
+          cells.push(['Correct Answer', index + 1]);
+        }
+      });
+
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      quiz.replaceWith(table);
+    });
+  }
 };
 
 const customReportElements = (document) => {
@@ -914,6 +1046,16 @@ const customReportElements = (document) => {
   return report;
 };
 
+const customBlocks = (document, main) => {
+  convertSectionsToMetadata(document, main);
+  articleHeroBlock(document);
+  dividerBlock(document);
+  promoBlock(document);
+  authorBioBlock(document);
+  figCaptionEmphasize(document);
+  quizBlock(document);
+};
+
 export default {
   /**
      * Apply DOM operations to the provided document and return
@@ -957,6 +1099,8 @@ export default {
       '#backtotop',
       '.footer-style',
       '.disclaimer-style',
+      '#onetrust-consent-sdk',
+      '.grecaptcha-badge',
     ]);
 
     const results = [];
@@ -968,8 +1112,10 @@ export default {
     const mdb = WebImporter.Blocks.getMetadataBlock(document, meta);
     main.append(mdb);
 
-    convertSectionsToMetadata(document, main);
-    articleHeroBlock(document);
+    customBlocks(document, main);
+
+    // convertSectionsToMetadata(document, main);
+    // articleHeroBlock(document);
     // const meta = WebImporter.Blocks.getMetadata(document);
     // const template = fetchTemplate(document);
     // const fetchTableClasses = fetchTable(main);
@@ -996,7 +1142,7 @@ export default {
       .replace(/(^-|-$)/g, '');
 
     results.push({
-      // element: main,
+      element: main,
       path: newPagePath,
       report,
     });
