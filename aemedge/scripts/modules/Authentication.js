@@ -67,7 +67,7 @@ export class Authentication {
     // console.warn('Warning: Authentication config not found!');
     // return false;
 
-    this.loginProcessUrl = '/login-confirmed.html';
+    this.loginProcessUrl = '/login-confirmed';
     this.loginUrl = 'http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://current.www-qa.cmegroup.com';
     this.registerUrl = 'https://login.cmegroup.com/sso/register/';
     this.logoutUrl = '/libs/cmegroup/security/logout';
@@ -76,6 +76,8 @@ export class Authentication {
     this.schemaForMobile = '';
     this.isProtectedPage = false;
     this.authorMode = false;
+
+    return true;
   }
 
   handleLoad() {

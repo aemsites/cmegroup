@@ -207,6 +207,88 @@ button.search-icon::before {
     transition: background-color .1s ease;
 }
 
+.nav-nav-item.login-nav a::after {
+    content: var(--icon-arrow-right);
+}
+
+.nav-nav-item.login-nav.is-logged a {
+    color: var(--citron);
+    font-family: var(--averta);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    line-height: 1.5rem;
+    text-transform: uppercase;
+}
+
+.nav-nav-item.login-nav.is-logged a::after {
+    font-size: 0.9375rem;
+    content: var(--icon-plus);
+}
+
+.nav-nav-item.login-nav.is-logged.is-open a::after {
+    color: var(--white);
+    content: var(--icon-minus);
+}
+
+.nav-nav-item.login-nav .nav-nav-item-menu {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.nav-nav-item.login-nav .nav-nav-item-menu .login div div {
+    border-bottom: 1px solid rgba(255, 255, 255, .3);
+    padding: 20px 15px;
+}
+
+.nav-nav-item.login-nav .nav-nav-item-menu .login div div:last-child {
+    border-bottom: none;
+}
+
+.nav-nav-item.login-nav .nav-nav-item-menu .login div div.links-container {
+    border-bottom: 1px solid rgba(255, 255, 255, .3);
+}
+
+.nav-nav-item.login-nav .nav-nav-item-menu .login div div.account-container li a {
+    justify-content: left;
+}
+
+.nav-nav-item.login-nav .nav-nav-item-menu .login div div.account-container li a::after{
+    font-family: var(--cme-group-icons);
+    content: var(--icon-chevron-right);
+    color: var(--blue5);
+    margin-left: 5px;
+    float: none;
+}
+
+.nav-nav-item.login-nav .nav-nav-item-menu .login div div li {
+    margin: 0;
+}
+
+.nav-nav-item.login-nav .nav-nav-item-menu .login div div li:last-child a {
+    padding-bottom: 0;
+}
+
+.nav-nav-item.login-nav .nav-nav-item-menu .login div div li a {
+    color: var(--white);
+    padding: 0 0 12px 15px;
+    background: none;
+    text-transform: capitalize;
+    font-size: .8125rem;
+    font-weight: normal;
+    line-height: normal;
+    letter-spacing: normal;
+}
+
+.nav-nav-item.login-nav .nav-nav-item-menu .login div div li a::after {
+    content: none;
+}
+
+.nav-nav-item.login-nav .nav-nav-item-menu .nav-logout{
+    color: var(--white);
+    width: 10rem;
+    margin-left: 30px;
+}
+
 .main-home-link a{
     padding: 15px 0 0;
     margin-bottom: 0;
@@ -630,6 +712,112 @@ button.search-icon::before {
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container .promo-box-subnav {
         width: 40%;
     }
+    
+
+    .nav-nav-item.login-nav {
+        display: none;
+    }
+
+    .nav-nav-item.user-btn-desktop-container.is-open>button::after {
+        border-bottom: 9px solid #112b4a;
+        border-left: 9px solid transparent;
+        border-right: 9px solid transparent;
+        content: "";
+        height: 0;
+        left: auto;
+        margin: 0 auto;
+        opacity: 1;
+        position: absolute;
+        right: calc(50% - 5px);
+        top: 3rem;
+        transition-delay: 0s;
+        visibility: visible;
+        width: 0;
+    }
+
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu {
+        left: 70% !important;
+        max-width: 15.625rem !important;
+        padding: 2.5rem 2.8125rem;
+        transform: translateZ(0) !important;
+        width: 17.25rem !important;
+        display: block !important;
+        padding: 40px 45px !important;
+        min-height: auto !important;
+        background-color: var(--gray1) !important;
+    }
+
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu p {
+        padding: 0 0 20px 0px;
+        font-family: var(--averta);
+        margin: 0;
+        color: var(--white);
+        background: none;
+        font-size: .6875rem;
+        font-weight: 700;
+        line-height: 2rem;
+        letter-spacing: normal;
+        border-bottom: 1px solid rgba(255, 255, 255, .3);
+        text-transform: uppercase;
+    }
+
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu .login div div {
+        border-bottom: 1px solid rgba(255, 255, 255, .3);
+        padding: 20px 0px;
+    }
+    
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu .login div div:last-child {
+        border-bottom: none;
+    }
+    
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu .login div div li {
+        margin: 0;
+    }
+    
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu .login div div li:last-child a {
+        padding-bottom: 0;
+    }
+    
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu .login div div li a {
+        color: var(--white);
+        padding: 0 0 12px 0px;
+        background: none;
+        text-transform: capitalize;
+        font-size: .8125rem;
+        font-weight: 600;
+        line-height: normal;
+        letter-spacing: normal;
+    }
+
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu .login div div li a:hover {
+        text-decoration: none;
+        color: var(--blue5);
+    }
+    
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu .login div div li a::after {
+        content: none;
+    }
+
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu .login div div.links-container {
+        border-bottom: 1px solid rgba(255, 255, 255, .3);
+    }
+    
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu .login div div.account-container li a {
+        justify-content: left;
+    }
+    
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu .login div div.account-container li a::after{
+        font-family: var(--cme-group-icons);
+        content: var(--icon-chevron-right);
+        color: var(--blue5);
+        margin-left: 5px;
+        float: none;
+    }
+
+    .nav-nav-item.login-desktop-nav .nav-nav-item-menu .nav-logout{
+        color: var(--white);
+        width: 100%;
+    }
 
     button.nav-close {
         display: none;
@@ -637,5 +825,5 @@ button.search-icon::before {
 
     .nav-curtain.is-open {
         top: 100px;
-    }
+    }  
 }

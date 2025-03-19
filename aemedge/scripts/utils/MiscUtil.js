@@ -33,7 +33,7 @@ export function isEmpty(value) {
 
 export async function axiosGet(url, config = {}) {
   const { params = {}, headers = {} } = config;
-  const urlObj = new URL(url);
+  const urlObj = new URL(window.location.origin + url);
   Object.keys(params).forEach((key) => urlObj.searchParams.append(key, params[key]));
 
   const fetchOptions = {
@@ -77,7 +77,7 @@ export async function axiosGet(url, config = {}) {
 
 export async function axiosPost(url, data, config = {}) {
   const { headers = {}, params = {} } = config;
-  const urlObj = new URL(url);
+  const urlObj = new URL(window.location.origin + url);
   Object.keys(params).forEach((key) => urlObj.searchParams.append(key, params[key]));
 
   const fetchOptions = {

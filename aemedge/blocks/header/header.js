@@ -1,6 +1,6 @@
 import { createElement } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
-import { authentication } from '../../scripts/modules/Authentication.js';
+import { authentication } from '../../scripts/modules/index.js';
 
 const BRAND_IMG = '<img loading="lazy" alt="Adobe" src="/blocks/nav/adobe-logo.svg">';
 const IS_OPEN = 'is-open';
@@ -21,6 +21,7 @@ class Nav {
     this.body = body;
     this.env = {};
     this.desktop = window.matchMedia('(min-width: 1200px)');
+    this.login = this.body.querySelectorAll('.login');
   }
 
   init = async () => {
@@ -31,9 +32,10 @@ class Nav {
     const mobileRightSide = createElement('div', { class: 'mobile-right-side' });
     const searchBtn = createElement('button', { class: 'search-icon' });
     const searchBtnMobile = createElement('button', { class: 'search-icon' });
-    const loginUserBtn = createElement('button', { class: 'login-user-icon' });
     const navLoginBtn = createElement('button', { class: 'nav-login secondary' });
     const fauxNavbar = createElement('div', { class: 'nav-faux-navbar' });
+    const wrapper = createElement('div', { class: 'nav-wrapper' }, nav);
+    const loggedIn = false;
 
     const brand = this.decorateBrand();
     if (brand) {
@@ -45,6 +47,7 @@ class Nav {
     const mobileToggle = this.decorateToggle(nav);
     const mobileCloseNav = this.decorateCloseNav(nav);
     this.curtain = this.decorateCurtain(nav);
+
     mobileRightSide.append(searchBtnMobile);
     mobileRightSide.append(mobileToggle);
     fauxNavbar.append(mobileRightSide);
@@ -55,15 +58,20 @@ class Nav {
       nav.append(mainNav);
     }
 
-    const wrapper = createElement('div', { class: 'nav-wrapper' }, nav);
-
     rightSide.append(searchBtn);
-    rightSide.append(loginUserBtn);
+
+    const userBtn = await this.buildLoginDesktopNav();
+    if (userBtn) {
+      rightSide.append(userBtn);
+    }
+
     navLoginBtn.innerHTML = 'LOG IN';
     navLoginBtn.addEventListener('click', async () => {
       authentication.login();
     });
-    rightSide.append(navLoginBtn);
+    if (!loggedIn) {
+      rightSide.append(navLoginBtn);
+    }
     wrapper.append(rightSide);
 
     this.el.append(this.curtain, fauxNavbar);
@@ -175,11 +183,189 @@ class Nav {
     const secondaryLinks = this.body.querySelectorAll('.secondary h2 > a');
 
     await Promise.all([
+      this.buildLoginMobileNav(mainNav, 'login-nav'),
       this.buildMainNav(mainNav, primaryLinks, 'primary'),
       this.buildMainNav(mainNav, secondaryLinks, 'secondary'),
     ]);
 
     return mainNav;
+  };
+
+  // eslint-disable-next-line class-methods-use-this
+  createNoLoggedInItems = (cloneNode, mobileVersion) => {
+    const elementToRemove = cloneNode.querySelector('ul')?.parentElement;
+    if (elementToRemove) {
+      elementToRemove.remove();
+    }
+    const logContainer = createElement('div', { class: 'menu login' });
+    const logContainerInner = createElement('div');
+    const accountContainer = createElement('div', { class: 'account-container' });
+    const ul = createElement('ul');
+    const logLi = createElement('li');
+    const regLi = createElement('li');
+
+    const logLink = createElement('a');
+    logLink.innerHTML = 'Login to your account';
+    logLink.href = '#';
+    logLink.setAttribute('role', 'button');
+    logLink.addEventListener('click', async () => {
+      authentication.login();
+    });
+    const regLink = createElement('a');
+    regLink.innerHTML = 'Create an Account';
+    regLink.href = '#';
+    regLink.setAttribute('role', 'button');
+    regLink.addEventListener('click', async () => {
+      authentication.registration();
+    });
+    if (mobileVersion) {
+      logLi.appendChild(logLink);
+    }
+    regLi.appendChild(regLink);
+    ul.appendChild(logLi);
+    ul.appendChild(regLi);
+    accountContainer.appendChild(ul);
+
+    logContainerInner.appendChild(accountContainer);
+    logContainerInner.appendChild(this.orderLoginList(cloneNode));
+    logContainer.appendChild(logContainerInner);
+
+    return logContainer;
+  };
+
+  buildLoginDesktopNav = () => {
+    const userBtnDesktopContainer = createElement('div', { class: 'nav-nav-item has-menu user-btn-desktop-container' });
+    const loginUserBtn = createElement('button', { class: 'login-user-icon' });
+    const welcomeMessage = createElement('p');
+    const loggedIn = false;
+    const userName = 'Willy';
+    let innerContent;
+
+    if (loggedIn) {
+      userBtnDesktopContainer.classList.add('is-logged');
+      welcomeMessage.innerHTML = `Welcome, ${userName}`;
+    }
+
+    loginUserBtn.setAttribute('aria-expanded', false);
+    loginUserBtn.setAttribute('aria-controls', 'login-nav-menu-0');
+    loginUserBtn.addEventListener('focus', () => {
+      window.addEventListener('keydown', this.toggleOnSpace);
+    });
+    loginUserBtn.addEventListener('blur', () => {
+      window.removeEventListener('keydown', this.toggleOnSpace);
+    });
+    loginUserBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.toggleMenu(userBtnDesktopContainer);
+    });
+
+    userBtnDesktopContainer.classList.add('login-desktop-nav');
+
+    const container = createElement('div', { class: 'nav-nav-item-menu' });
+    const navLogoutBtn = createElement('button', { class: 'nav-logout secondary' });
+    navLogoutBtn.innerHTML = 'LOG OUT';
+    navLogoutBtn.addEventListener('click', async () => {
+      authentication.logout();
+    });
+    if (loggedIn) {
+      container.appendChild(welcomeMessage);
+      innerContent = this.login[0].cloneNode(true);
+    } else {
+      innerContent = this.createNoLoggedInItems(this.login[0].cloneNode(true));
+    }
+
+    container.appendChild(innerContent);
+    if (loggedIn) {
+      container.appendChild(navLogoutBtn);
+    }
+    userBtnDesktopContainer.append(loginUserBtn);
+    userBtnDesktopContainer.appendChild(container);
+
+    return userBtnDesktopContainer;
+  };
+
+  // eslint-disable-next-line class-methods-use-this
+  orderLoginList = (cloneNode) => {
+    const linksContainer = createElement('div', { class: 'links-container' });
+    const linksUl = createElement('ul');
+    const listItems = Array.from(cloneNode.querySelectorAll('li'));
+
+    const desiredOrder = [
+      'Watchlists',
+      'CME Customer Center',
+      'CME Direct',
+      'Subscription Center',
+    ];
+
+    function getIndex(text) {
+      return desiredOrder.findIndex((item) => text.includes(item));
+    }
+
+    listItems.sort((a, b) => {
+      const textA = a.textContent.trim();
+      const textB = b.textContent.trim();
+      return getIndex(textA) - getIndex(textB);
+    });
+
+    listItems.forEach((item) => linksUl.appendChild(item));
+    linksContainer.appendChild(linksUl);
+
+    return linksContainer;
+  };
+
+  buildLoginMobileNav = async (
+    mainNavMobile,
+    menuType,
+  ) => {
+    const loggedIn = false;
+    const userName = 'Willy';
+    const navItem = createElement('li', { class: 'nav-nav-item has-menu' });
+    let innerContent;
+
+    if (loggedIn) {
+      navItem.classList.add('is-logged');
+    }
+
+    const navItemAnchor = createElement('a');
+    navItemAnchor.innerHTML = loggedIn ? `Welcome, ${userName}` : 'LOG IN';
+    navItemAnchor.href = '#';
+    navItemAnchor.setAttribute('role', 'button');
+    navItemAnchor.setAttribute('aria-expanded', false);
+    navItemAnchor.setAttribute('aria-controls', 'login-nav-menu-0');
+    navItemAnchor.addEventListener('focus', () => {
+      window.addEventListener('keydown', this.toggleOnSpace);
+    });
+    navItemAnchor.addEventListener('blur', () => {
+      window.removeEventListener('keydown', this.toggleOnSpace);
+    });
+    navItemAnchor.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.toggleMenu(navItem);
+    });
+
+    navItem.appendChild(navItemAnchor);
+    navItem.classList.add(menuType);
+    const container = createElement('div', { class: 'nav-nav-item-menu' });
+    const navLogoutBtn = createElement('button', { class: 'nav-logout secondary' });
+    navLogoutBtn.innerHTML = 'LOG OUT';
+    navLogoutBtn.addEventListener('click', async () => {
+      authentication.logout();
+    });
+    if (loggedIn) {
+      innerContent = this.login[0].cloneNode(true);
+    } else {
+      innerContent = this.createNoLoggedInItems(this.login[0].cloneNode(true), true);
+    }
+
+    container.appendChild(innerContent);
+
+    if (loggedIn) {
+      container.appendChild(navLogoutBtn);
+    }
+    navItem.appendChild(container);
+    mainNavMobile.appendChild(navItem);
   };
 
   buildMainNav = async (mainNav, navLinks, menuType) => {
@@ -376,10 +562,12 @@ class Nav {
     menuToggle.setAttribute('aria-expanded', false);
   };
 
-  openMenu = (el) => {
+  openMenu = (el, userIcon) => {
     el.classList.add(IS_OPEN);
-    this.curtain.classList.add(IS_OPEN);
-    document.body.classList.add('curtain-visible');
+    if (!userIcon) {
+      this.curtain.classList.add(IS_OPEN);
+      document.body.classList.add('curtain-visible');
+    }
     const menuToggle = el.querySelector('[aria-expanded]');
     menuToggle.setAttribute('aria-expanded', true);
     document.addEventListener('click', this.closeOnDocClick);
@@ -408,7 +596,8 @@ async function fetchNav(url) {
 }
 
 export default async function init(blockEl) {
-  const url = blockEl.getAttribute('data-nav-source') || '/nav';
+  // const url = blockEl.getAttribute('data-nav-source') || '/nav';
+  const url = blockEl.getAttribute('data-nav-source') || '/drafts/ramiro/nav';
   if (url) {
     const html = await fetchNav(url);
     if (html) {
