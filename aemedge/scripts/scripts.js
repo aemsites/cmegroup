@@ -15,7 +15,7 @@ import {
   getMetadata,
 } from './aem.js';
 
-import { createDynamicBlocks } from '../blocks/dynamic/index.js';
+import dynamicBlocks from '../blocks/dynamic/index.js';
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
@@ -239,7 +239,7 @@ async function loadLazy(doc) {
 
   loadHeader(doc.querySelector('header'));
   loadFooter(doc.querySelector('footer'));
-  createDynamicBlocks(main);
+  dynamicBlocks(main);
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();

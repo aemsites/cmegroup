@@ -11,24 +11,24 @@ const TABS_SELECT_PLACEHOLDER = 'Please select..';
  */
 function createTabsDropdown(tabData) {
   const selectWrapper = createElement('div', { class: 'tabs-select-wrapper' });
-  const placeholderOption = createElement('option', { 
-    value: '', 
-    selected: true 
+  const placeholderOption = createElement('option', {
+    value: '',
+    selected: true,
   });
   placeholderOption.textContent = TABS_SELECT_PLACEHOLDER;
   const selectElement = createElement('select', { class: 'tabs-select' }, placeholderOption);
-  
+
   let isFirst = true;
   tabData.forEach(({ id, title }) => {
-    const option = createElement('option', { 
-      value: id, 
-      selected: isFirst 
+    const option = createElement('option', {
+      value: id,
+      selected: isFirst,
     });
     option.textContent = title;
     selectElement.appendChild(option);
     isFirst = false;
   });
-  
+
   selectWrapper.appendChild(selectElement);
   return { selectWrapper, selectElement };
 }
@@ -41,55 +41,55 @@ function createTabsDropdown(tabData) {
 function createTabButtons(tabData) {
   const tabsList = createElement('div', { class: 'tabs-list', role: 'tablist' });
   const buttons = {};
-  
+
   let isFirst = true;
   tabData.forEach(({ id, title }) => {
-    const button = createElement('button', { 
-      class: 'tabs-tab', 
-      id: id, 
-      role: 'tab', 
-      'aria-controls': id, 
-      'aria-selected': isFirst, 
-      type: 'button' 
+    const button = createElement('button', {
+      class: 'tabs-tab',
+      id,
+      role: 'tab',
+      'aria-controls': id,
+      'aria-selected': isFirst,
+      type: 'button',
     });
     button.textContent = title;
     tabsList.appendChild(button);
     buttons[id] = button;
     isFirst = false;
   });
-  
+
   return { tabsList, buttons };
 }
 
 /**
- * Creates tab panels to contain tab content
+ * Creates tab panels to contain tab conten
  * @param {Object[]} tabData - Array of objects with tab information and sections
  * @return {Object} - Object containing content container and panel references
  */
 function createTabPanels(tabData) {
   const tabsContent = createElement('div', { class: 'tabs-content' });
   const panels = {};
-  
+
   let isFirst = true;
   tabData.forEach(({ id, sections }) => {
-    const tabPanel = createElement('div', { 
-      class: 'tab', 
-      id: id, 
-      role: 'tabpanel', 
-      'aria-labelledby': id, 
-      'aria-hidden': !isFirst 
+    const tabPanel = createElement('div', {
+      class: 'tab',
+      id,
+      role: 'tabpanel',
+      'aria-labelledby': id,
+      'aria-hidden': !isFirst,
     });
-    
-    sections.forEach(section => {
+
+    sections.forEach((section) => {
       section.style.removeProperty('display');
       tabPanel.appendChild(section);
     });
-    
+
     tabsContent.appendChild(tabPanel);
     panels[id] = tabPanel;
     isFirst = false;
   });
-  
+
   return { tabsContent, panels };
 }
 
@@ -102,7 +102,9 @@ function createTabPanels(tabData) {
  * @param {Element} elements.tabsContent - The tabs content container
  * @param {Element} elements.selectElement - The select dropdown element
  */
-function setupTabEvents({ buttons, panels, tabsList, tabsContent, selectElement }) {
+function setupTabEvents({
+  buttons, panels, tabsList, tabsContent, selectElement,
+}) {
   // Setup button click events
   Object.entries(buttons).forEach(([tabId, button]) => {
     button.addEventListener('click', () => {
@@ -110,22 +112,22 @@ function setupTabEvents({ buttons, panels, tabsList, tabsContent, selectElement 
       tabsList.querySelectorAll('button').forEach((btn) => {
         btn.setAttribute('aria-selected', btn === button);
       });
-      
+
       // Update panels visibility
       tabsContent.querySelectorAll('.tab[role="tabpanel"]').forEach((panel) => {
         panel.setAttribute('aria-hidden', panel !== panels[tabId]);
       });
-      
+
       // Update select dropdown value
       selectElement.value = tabId;
-      
+
       // Update URL hash
       const url = new URL(window.location);
       url.hash = tabId;
       window.history.pushState({}, '', url);
     });
   });
-  
+
   // Setup select change event
   selectElement.addEventListener('change', () => {
     const selectedTabId = selectElement.value;
@@ -146,7 +148,12 @@ function handleInitialTabSelection(buttons) {
   }
 }
 
-export async function createTabs(main) {
+/**
+ * Creates tabs from sections with the tab class
+ * @param {Element} main - The main element containing sections
+ * @return {Promise} - Resolves when tabs are created
+ */
+export default async function createTabs(main) {
   const allSections = [...main.querySelectorAll('.section')];
   if (!allSections.length) return Promise.resolve();
 
@@ -157,11 +164,9 @@ export async function createTabs(main) {
   allSections.forEach((section, index) => {
     if (section.classList.contains(TABS_STYLE)) {
       currentGroup.push(section);
-    } else {
-      if (currentGroup.length > 0) {
-        tabGroups.push(currentGroup);
-        currentGroup = [];
-      }
+    } else if (currentGroup.length > 0) {
+      tabGroups.push(currentGroup);
+      currentGroup = [];
     }
 
     if (index === allSections.length - 1 && currentGroup.length > 0) {
@@ -175,13 +180,13 @@ export async function createTabs(main) {
   await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/tabs/tabs.css`);
 
   // Process each group of consecutive tabs
-  tabGroups.forEach(tabSections => {
+  tabGroups.forEach((tabSections) => {
     if (tabSections.length === 0) return;
 
     // Create container elements
     const tabsContainer = createElement('div', { class: 'section tabs' });
     const tabsWrapper = createElement('div', { class: 'tabs-wrapper' });
-    
+
     // Insert container into DOM
     const firstSection = tabSections[0];
     firstSection.parentNode.insertBefore(tabsContainer, firstSection);
@@ -198,7 +203,7 @@ export async function createTabs(main) {
 
     if (uniqueTabIds.size === 0) {
       uniqueTabIds.add('default-tab');
-      tabSections.forEach(section => {
+      tabSections.forEach((section) => {
         section.dataset.normalizedTabId = 'default-tab';
       });
     }
@@ -207,11 +212,11 @@ export async function createTabs(main) {
     const sectionGroups = new Map();
     tabSections.forEach((section) => {
       const normalizedId = section.dataset.normalizedTabId || 'default-tab';
-      
+
       if (!sectionGroups.has(normalizedId)) {
         sectionGroups.set(normalizedId, {
           title: section.dataset.tabTitle || normalizedId,
-          sections: []
+          sections: [],
         });
       }
       sectionGroups.get(normalizedId).sections.push(section);
@@ -221,23 +226,23 @@ export async function createTabs(main) {
     const tabData = Array.from(sectionGroups).map(([id, data]) => ({
       id,
       title: data.title,
-      sections: data.sections
+      sections: data.sections,
     }));
 
     // Create tab interface components
     const { selectWrapper, selectElement } = createTabsDropdown(tabData);
     const { tabsList, buttons } = createTabButtons(tabData);
     const { tabsContent, panels } = createTabPanels(tabData);
-    
+
     // Set up event handlers
-    setupTabEvents({ 
-      buttons, 
-      panels, 
-      tabsList, 
-      tabsContent, 
-      selectElement 
+    setupTabEvents({
+      buttons,
+      panels,
+      tabsList,
+      tabsContent,
+      selectElement,
     });
-    
+
     // Handle initial tab selection from URL
     handleInitialTabSelection(buttons);
 
