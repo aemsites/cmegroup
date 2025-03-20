@@ -12,7 +12,7 @@ class TabsManager {
   }
 
   async initialize() {
-    const allSections = [...this.main.querySelectorAll('.section')];
+    const allSections = [...this.main.querySelectorAll(':scope >.section')];
     if (!allSections.length) return Promise.resolve();
 
     const tabGroups = TabsManager.findTabGroups(allSections);

@@ -118,20 +118,24 @@
 }
 
 .tabs .desktop-tabs button {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: min-content;
   border: none;
   margin: 0;
   padding: .6875rem 1rem 1.25rem;
   background: transparent;
   color: var(--gray3);
   font-weight: 600;
-  line-height: 1rem;
+  line-height: 1.25;
   text-align: center;
   transition: all 0.2s ease;
   position: relative;
   cursor: pointer;
   box-shadow: none;
   white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
   letter-spacing: .09375rem;
   font-family: Averta, "Helvetica Neue", arial, sans-serif;
   font-size: .875rem;
