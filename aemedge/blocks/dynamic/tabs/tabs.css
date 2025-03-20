@@ -17,10 +17,6 @@
   padding: 0;
 }
 
-.section.tabs.full-width .desktop-tabs {
-  max-width: 100%;
-}
-
 .section.tabs.full-width .desktop-content {
   max-width: 100%;
   width: 100%;
@@ -60,6 +56,12 @@
   padding: 0.75rem 1rem;
   background-color: var(--gray6);
   position: relative;
+  color: var(--gray3);
+  font-weight: 600;
+  line-height: 1rem;
+  letter-spacing: .09375rem;
+  font-family: var(--heading-font-family);
+  font-size: .875rem;
 }
 
 .tabs .mobile-accordion button::after {
@@ -76,6 +78,10 @@
   content: '−';
 }
 
+.tabs .mobile-accordion button[aria-selected='true'] {
+  color: var(--blue2);
+}
+
 .tabs .mobile-accordion .tab[role="tabpanel"] {
   margin-bottom: 0.75rem;
   padding-inline: 1rem;
@@ -89,7 +95,7 @@
   flex-wrap: nowrap;
   gap: 0;
   max-width: 100%;
-  border-bottom: 0.25rem solid var(--gray5);
+  border-bottom: 0.2rem solid var(--gray5);
   margin-bottom: 0;
   background: transparent;
   width: 100%;
@@ -112,31 +118,39 @@
 }
 
 .tabs .desktop-tabs button {
-  flex: 1 1 0;
+  flex: 0 0 auto;
   border: none;
   margin: 0;
-  padding: 0.75rem 0.9375rem;
+  padding: .6875rem 1rem 1.25rem;
   background: transparent;
-  color: var(--blue-8);
-  font-weight: normal;
-  line-height: 1.2;
+  color: var(--gray3);
+  font-weight: 600;
+  line-height: 1rem;
   text-align: center;
   transition: all 0.2s ease;
   position: relative;
   cursor: pointer;
   box-shadow: none;
   white-space: normal;
-  letter-spacing: 1px;
-  font-family: var(--averta-semibold), "Helvetica Neue", arial, sans-serif;
-  font-size: var(--body-font-size-s);
-  line-height: 1.375rem;
+  letter-spacing: .09375rem;
+  font-family: Averta, "Helvetica Neue", arial, sans-serif;
+  font-size: .875rem;
 }
 
 .tabs .desktop-tabs button[aria-selected='true'] {
   background-color: var(--white);
-  border-bottom: 0.25rem solid var(--blue-9);
-  margin-bottom: -0.25rem;
-  z-index: 1;
+  position: relative;
+  color: var(--blue2);
+}
+
+.tabs .desktop-tabs button[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  bottom: -0.2rem;
+  left: 0;
+  width: 100%;
+  height: 0.2rem;
+  background-color: var(--blue-9);
 }
 
 .tabs .desktop-content {
@@ -144,63 +158,6 @@
   background: var(--white);
   padding: 1.25rem 0;
   margin-top: 0;
-}
-
-.tabs-legacy .tabs-select-wrapper {
-  display: block;
-  position: relative;
-  margin-bottom: 1.25rem;
-  width: 15rem;
-  max-width: 100%;
-}
-
-.tabs-legacy .desktop-tabs {
-  display: none;
-}
-
-.tabs-legacy .desktop-content {
-  display: none;
-}
-
-.tabs-legacy .tabs-select-wrapper::after {
-  content: '';
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-left: 0.3125rem solid transparent;
-  border-right: 0.3125rem solid transparent;
-  border-top: 0.3125rem solid var(--gray3);
-  pointer-events: none;
-}
-
-.tabs-legacy .tabs-select {
-  width: 100%;
-  padding: 0.5rem 1.875rem 0.5rem 0.75rem;
-  background-color: var(--gray6);
-  border: 0.0625rem solid var(--gray4);
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  cursor: pointer;
-  text-align: left;
-  box-shadow: none;
-  font-family: inherit;
-}
-
-.tabs-legacy .tabs-select:focus {
-  outline: none;
-  border-color: var(--gray4);
-}
-
-.tabs-legacy .tabs-select option {
-  font-weight: normal;
-  font-size: 0.875rem;
-  text-align: center;
 }
 
 .tabs.collapse-all .mobile-accordion .tab[role="tabpanel"] {
@@ -235,18 +192,6 @@
   }
 
   .tabs.collapsible-md .desktop-content {
-    display: block;
-  }
-
-  .tabs-legacy .tabs-select-wrapper {
-    display: none;
-  }
-
-  .tabs-legacy .desktop-tabs {
-    display: flex;
-  }
-
-  .tabs-legacy .desktop-content {
     display: block;
   }
 }
