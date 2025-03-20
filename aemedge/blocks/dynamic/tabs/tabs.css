@@ -1,4 +1,3 @@
-/* Base styles - mobile first */
 .section.tabs {
   margin: 1rem 0;
   background: transparent;
@@ -8,7 +7,6 @@
   width: 100%;
 }
 
-/* Full-width tabs styles */
 .tabs.full-width {
   width: 100vw;
   position: relative;
@@ -19,19 +17,16 @@
   padding: 0;
 }
 
-/* For desktop tabs list in full-width layout */
 .section.tabs.full-width .desktop-tabs {
   max-width: 100%;
 }
 
-/* Ensure desktop content doesn't extend full-width */
 .section.tabs.full-width .desktop-content {
   max-width: 100%;
   width: 100%;
   background-color: white;
 }
 
-/* Tab content styles (common to both structures) */
 .tabs .tab[role="tabpanel"] {
   display: none;
   opacity: 0;
@@ -45,31 +40,125 @@
 }
 
 .tabs .tab .section {
-  margin: 0;
+  margin-block: 0;
+  margin-inline: auto;
 }
 
-/* Mobile styles first (default for smaller screens) */
-/* Default state for tabs with collapsible classes */
-.tabs.collapsible-sm .desktop-tabs,
-.tabs.collapsible-md .desktop-tabs {
+.tabs .mobile-accordion {
+  display: block;
+  width: 100%;
+  border-bottom: none;
+}
+
+.tabs .mobile-accordion button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0.0625rem solid var(--gray4);
+  border-radius: 0;
+  margin-bottom: 0;
+  padding: 0.75rem 1rem;
+  background-color: var(--gray6);
+  position: relative;
+}
+
+.tabs .mobile-accordion button::after {
+  content: '+';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+}
+
+.tabs .mobile-accordion button[aria-selected='true']::after {
+  content: '−';
+}
+
+.tabs .mobile-accordion .tab[role="tabpanel"] {
+  margin-bottom: 0.75rem;
+  padding-inline: 1rem;
+  background-color: var(--white);
+  width: 100%;
+}
+
+.tabs .desktop-tabs {
+  display: none;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 0;
+  max-width: 100%;
+  border-bottom: 0.25rem solid var(--gray5);
+  margin-bottom: 0;
+  background: transparent;
+  width: 100%;
+}
+
+.tabs .desktop-content {
   display: none;
 }
 
-.tabs.collapsible-sm .mobile-accordion,
-.tabs.collapsible-md .mobile-accordion {
-  display: block;
+.tabs:not(.collapsible-sm):not(.collapsible-md) .desktop-tabs {
+  display: flex !important;
 }
 
-/* For legacy tabs, show dropdown in mobile view */
+.tabs:not(.collapsible-sm):not(.collapsible-md) .desktop-content {
+  display: block !important;
+}
+
+.tabs:not(.collapsible-sm):not(.collapsible-md) .mobile-accordion {
+  display: none !important;
+}
+
+.tabs .desktop-tabs button {
+  flex: 1 1 0;
+  border: none;
+  margin: 0;
+  padding: 0.75rem 0.9375rem;
+  background: transparent;
+  color: var(--blue-8);
+  font-weight: normal;
+  line-height: 1.2;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+  cursor: pointer;
+  box-shadow: none;
+  white-space: normal;
+  letter-spacing: 1px;
+  font-family: var(--averta-semibold), "Helvetica Neue", arial, sans-serif;
+  font-size: var(--body-font-size-s);
+  line-height: 1.375rem;
+}
+
+.tabs .desktop-tabs button[aria-selected='true'] {
+  background-color: var(--white);
+  border-bottom: 0.25rem solid var(--blue-9);
+  margin-bottom: -0.25rem;
+  z-index: 1;
+}
+
+.tabs .desktop-content {
+  position: relative;
+  background: var(--white);
+  padding: 1.25rem 0;
+  margin-top: 0;
+}
+
 .tabs-legacy .tabs-select-wrapper {
+  display: block;
   position: relative;
   margin-bottom: 1.25rem;
   width: 15rem;
   max-width: 100%;
-  display: block;
 }
 
 .tabs-legacy .desktop-tabs {
+  display: none;
+}
+
+.tabs-legacy .desktop-content {
   display: none;
 }
 
@@ -114,104 +203,6 @@
   text-align: center;
 }
 
-/* Mobile accordion styles */
-.tabs .mobile-accordion {
-  display: block;
-  width: 100%;
-  border-bottom: none;
-}
-
-.tabs .mobile-accordion button {
-  display: block;
-  width: 100%;
-  text-align: left;
-  border: 0.0625rem solid var(--gray4);
-  border-radius: 0;
-  margin-bottom: 0;
-  padding: 0.75rem 1rem;
-  background-color: var(--gray6);
-  position: relative;
-}
-
-.tabs .mobile-accordion button::after {
-  content: '+';
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.25rem;
-  transition: transform 0.3s ease;
-}
-
-.tabs .mobile-accordion button[aria-selected='true']::after {
-  content: '−';
-}
-
-/* Accordion panels styling */
-.tabs .mobile-accordion .tab[role="tabpanel"] {
-  margin-bottom: 0.75rem;
-  padding-inline: 1rem;
-  background-color: var(--white);
-  width: 100%;
-}
-
-/* Desktop horizontal tabs - shown as default for non-collapsible tabs */
-.tabs:not(.collapsible-sm):not(.collapsible-md) .desktop-tabs {
-  display: flex !important;
-}
-
-.tabs:not(.collapsible-sm):not(.collapsible-md) .mobile-accordion {
-  display: none !important;
-}
-
-.tabs .desktop-tabs {
-  display: none;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 0;
-  max-width: 100%;
-  border-bottom: 0.25rem solid var(--gray5);
-  margin-bottom: 0;
-  background: transparent;
-  width: 100%;
-}
-
-.tabs .desktop-tabs button {
-  flex: 1 1 0;
-  border: none;
-  margin: 0;
-  padding: 0.75rem 0.9375rem;
-  background: transparent;
-  color: var(--blue-8);
-  font-weight: normal;
-  line-height: 1.2;
-  text-align: center;
-  transition: all 0.2s ease;
-  position: relative;
-  cursor: pointer;
-  box-shadow: none;
-  white-space: normal;
-  letter-spacing: 1px;
-  font-family: var(--averta-semibold), "Helvetica Neue", arial, sans-serif;
-  font-size: var(--body-font-size-s);
-  line-height: 1.375rem;
-}
-
-.tabs .desktop-tabs button[aria-selected='true'] {
-  background-color: var(--white);
-  border-bottom: 0.25rem solid var(--blue-9);
-  margin-bottom: -0.25rem;
-  z-index: 1;
-}
-
-.tabs .desktop-content {
-  position: relative;
-  background: var(--white);
-  padding: 1.25rem 0;
-  margin-top: 0;
-}
-
-/* Special styles for collapse-all class */
 .tabs.collapse-all .mobile-accordion .tab[role="tabpanel"] {
   display: none;
 }
@@ -220,36 +211,43 @@
   display: block;
 }
 
-/* Tablets (768px and up) */
 @media (width >= 768px) {
-  /* Switch collapsible-sm tabs to desktop view */
   .tabs.collapsible-sm .mobile-accordion {
     display: none;
   }
-  
+
   .tabs.collapsible-sm .desktop-tabs {
     display: flex;
   }
+
+  .tabs.collapsible-sm .desktop-content {
+    display: block;
+  }
 }
 
-/* Desktop (992px and up) */
 @media (width >= 992px) {
-  /* Switch collapsible-md tabs to desktop view */
   .tabs.collapsible-md .mobile-accordion {
     display: none;
   }
-  
+
   .tabs.collapsible-md .desktop-tabs {
     display: flex;
   }
-  
-  /* Switch legacy tabs to desktop view */
+
+  .tabs.collapsible-md .desktop-content {
+    display: block;
+  }
+
   .tabs-legacy .tabs-select-wrapper {
     display: none;
   }
-  
+
   .tabs-legacy .desktop-tabs {
     display: flex;
+  }
+
+  .tabs-legacy .desktop-content {
+    display: block;
   }
 }
 
