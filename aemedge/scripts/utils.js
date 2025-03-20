@@ -73,6 +73,40 @@ function fetchTranslations() {
 }
 
 /**
+ * Econoday Event
+ */
+const eventDataEndpoint = '/aemedge/templates/event/event.json'; // TODO: refer the endpoint
+let eventDataPromise = null;
+
+function getFeedId() {
+  const url = window.location.pathname;
+  const segments = url.split('/').filter(Boolean);
+  const lastSegment = segments[segments.length - 1];
+  return lastSegment === 'econoday' ? '' : lastSegment || null;
+}
+
+function fetchEventData() {
+  if (!eventDataPromise) {
+    eventDataPromise = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const response = await fetch(`${eventDataEndpoint}?feedId=${getFeedId()}`);
+          if (!response.ok) {
+            window.location.replace('/404');
+            reject();
+          }
+          const eventDataJson = await response.json();
+          resolve(eventDataJson);
+        } catch (e) {
+          reject(e);
+        }
+      })();
+    });
+  }
+  return eventDataPromise;
+}
+
+/**
  * Creates a new HTML element
  */
 function createElement(tagName, attributes, ...children) {
@@ -112,6 +146,14 @@ function getTag(tagFullName) {
  */
 function i18n(key) {
   return fetchTranslations().then((translations) => translations[key] || key);
+}
+
+/**
+ * Returns the econoday event data based on the ID of the url
+ * @returns {Promise} Object containing the event data
+ */
+function getEventData() {
+  return fetchEventData();
 }
 
 /**
@@ -200,6 +242,29 @@ function formatDate(dateString) {
   return `${day} ${month}`;
 }
 
+function formatToCentralTime(utcDateString) {
+  const utcDate = new Date(utcDateString);
+  const options = {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: 'long',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  };
+  const formatter = new Intl.DateTimeFormat('en-US', options);
+  const parts = formatter.formatToParts(utcDate);
+  const day = parts.find((p) => p.type === 'day').value;
+  const month = parts.find((p) => p.type === 'month').value;
+  const year = parts.find((p) => p.type === 'year').value;
+  const hour = parts.find((p) => p.type === 'hour').value.padStart(2, '0');
+  const minute = parts.find((p) => p.type === 'minute').value.padStart(2, '0');
+  const period = parts.find((p) => p.type === 'dayPeriod').value.toUpperCase();
+  return `${month} ${day}, ${year} ${hour}:${minute} ${period} CT`;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -209,4 +274,6 @@ export {
   getTag,
   i18n,
   getPageTags,
+  getEventData,
+  formatToCentralTime,
 };

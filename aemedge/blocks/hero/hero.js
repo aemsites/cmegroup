@@ -1,5 +1,16 @@
-import { createElement, getArticleRelatedMetadata, i18n } from '../../scripts/utils.js';
+import { getMetadata } from '../../scripts/aem.js';
+import {
+  createElement,
+  getArticleRelatedMetadata,
+  i18n,
+  getTag,
+  getEventData,
+  formatToCentralTime,
+} from '../../scripts/utils.js';
 
+/**
+ * Article hero section
+ */
 async function decorateArticlePageHero(block) {
   const [
     {
@@ -63,15 +74,67 @@ async function decorateArticlePageHero(block) {
   });
 }
 
+/**
+ * Event hero section
+ */
+async function decorateEventPageHero(block) {
+  // Static section
+  const contentArea = createElement('span', { class: 'content-area' });
+  const shadow = createElement('span', { class: 'shadow' });
+  const fade = createElement('span', { class: 'fade' });
+  const shadowWrapper = createElement('span', { class: 'shadow-wrapper' }, contentArea, shadow, fade);
+  const picture = block.querySelector('picture');
+  picture.closest('div').classList.add('background-image');
+  picture.closest('p').append(shadowWrapper);
+
+  const featuredTag = createElement('div', { class: 'economic-release-featured-tag' });
+  const topInfo = createElement('div', { class: 'economic-release-info' }, block.querySelector('a'), featuredTag);
+  const h1 = createElement('h1');
+  const dateWrapper = createElement('div', { class: 'economic-release-data-date-wrapper' });
+  const lastInfo = createElement('div', { class: 'economic-release-data' }, dateWrapper);
+  const contentWrapper = createElement('div', { class: 'default-content-wrapper' }, topInfo, h1, lastInfo);
+  block.append(contentWrapper);
+
+  // Dynamic section
+  const primaryTopic = getMetadata('primary-topic');
+  const [
+    {
+      title: pageTitle,
+      date,
+    },
+    {
+      title: primaryTopicTitle,
+    },
+    dateLabel,
+  ] = await Promise.all([
+    getEventData(),
+    getTag(primaryTopic),
+    i18n('Date'),
+  ]);
+  featuredTag.textContent = primaryTopicTitle;
+  h1.textContent = pageTitle;
+  const dateTag = createElement('div', { class: 'economic-release-data-date-value' }, formatToCentralTime(date));
+  dateWrapper.textContent = `${dateLabel}: `;
+  dateWrapper.append(dateTag);
+}
+
+/**
+ * Generic hero section
+ */
 function decorateGenericHero(block) {
   const contentDiv = block.children.item(0);
   contentDiv.classList.add('container');
 }
 
+/**
+ * Main decorate function
+ */
 export default async function decorate(block) {
-  const isArticleVariant = block.classList.contains('article');
-  if (isArticleVariant) {
+  const { classList } = block;
+  if (classList.contains('article')) {
     await decorateArticlePageHero(block);
+  } else if (classList.contains('event')) {
+    decorateEventPageHero(block);
   } else {
     decorateGenericHero(block);
   }
