@@ -841,6 +841,29 @@ const figCaptionEmphasize = (document) => {
   }
 };
 
+/**
+ * get all iframes
+ * @param {*} document
+ */
+const iframeReport = (document) => {
+  const iframes = document.querySelectorAll('iframe');
+  let map = null;
+
+  if (iframes.length) {
+    map = {};
+
+    iframes.forEach((iframe) => {
+      const iframSrc = iframe.src;
+      const iframeName = iframe.name;
+      if (iframSrc && iframeName !== 'goog_topics_frame') {
+        map[iframSrc] = true;
+      }
+    });
+  }
+
+  return modifyMap(map, 'iframes');
+};
+
 const quizBlock = (document) => {
   const quizzes = document.querySelectorAll('.quiz');
   if (quizzes) {
@@ -861,12 +884,17 @@ const quizBlock = (document) => {
       });
 
       const answersItems = quiz.querySelector('.quiz-item')?.getAttribute('data-answers-items');
-      const answersItemsJson = JSON.parse(answersItems);
-      answersItemsJson.forEach((answer, index) => {
-        if (answer.correctAnswer) {
-          cells.push(['Correct Answer', index + 1]);
-        }
-      });
+      if (answersItems) {
+        const answersItemsJson = JSON.parse(answersItems);
+        answersItemsJson.forEach((answer, index) => {
+          if (answer.correctAnswer) {
+            cells.push(['Correct Answer', index + 1]);
+            if (answer.answerSnip) {
+              cells.push(['Answer Text', answer.answerSnip]);
+            }
+          }
+        });
+      }
 
       const table = WebImporter.DOMUtils.createTable(cells, document);
       quiz.replaceWith(table);
@@ -891,7 +919,6 @@ const getAssetCounts = (document) => {
 
   // Background images in styles
   const elementsWithBg = document.querySelectorAll('[style*="background-image"]');
-  console.log(elementsWithBg);
   elementsWithBg.forEach((el) => {
     const bgImage = el.style.backgroundImage;
     if (bgImage && bgImage.includes('url(')) {
@@ -965,6 +992,7 @@ const customReportElements = (document) => {
     'design-box': designBoxInlineStyleCheck(document),
     columns: detectColumns(document),
     assets: getAssetCounts(document),
+    iframes: iframeReport(document),
   };
 
   const currentClassesMap = {
