@@ -152,7 +152,11 @@ class TabsManager {
     const { collapseAll, isFullWidth } = config;
     const hashMatchesTab = tabData.some((tab) => tab.id === this.currentHash);
 
-    const desktopTabsList = createElement('div', { class: 'tabs-list desktop-tabs', role: 'tablist' });
+    const desktopTabsList = createElement('div', {
+      class: 'tabs-list desktop-tabs',
+      role: 'tablist',
+      'aria-orientation': 'horizontal',
+    });
     const desktopContent = createElement('div', { class: 'tabs-content desktop-content' });
     const desktopButtons = {};
     const desktopPanels = {};
@@ -161,7 +165,9 @@ class TabsManager {
     let mobileButtons;
     let mobilePanels;
     if (config.useAccordion) {
-      mobileAccordion = createElement('div', { class: 'tabs-list mobile-accordion', role: 'tablist' });
+      mobileAccordion = createElement('div', {
+        class: 'tabs-list mobile-accordion',
+      });
       mobileButtons = {};
       mobilePanels = {};
     }
@@ -182,16 +188,32 @@ class TabsManager {
       desktopPanels[tab.id] = desktop.panel;
 
       if (config.useAccordion) {
-        const mobile = TabsManager.createTabElement(tab, {
-          prefix: 'mobile',
-          isSelected,
-          isFullWidth,
+        const mobileButton = createElement('button', {
+          class: 'tabs-tab',
+          id: `mobile-tab-${tab.id}`,
+          'aria-expanded': isSelected ? 'true' : 'false',
+          'aria-controls': `mobile-panel-${tab.id}`,
+          type: 'button',
+        });
+        mobileButton.textContent = tab.title;
+
+        const mobilePanel = createElement('div', {
+          class: 'tab',
+          id: `mobile-panel-${tab.id}`,
+          hidden: !isSelected,
         });
 
-        mobileAccordion.appendChild(mobile.button);
-        mobileButtons[tab.id] = mobile.button;
-        mobileAccordion.appendChild(mobile.panel);
-        mobilePanels[tab.id] = mobile.panel;
+        tab.sections.forEach((section) => {
+          const sectionEl = section.cloneNode(true);
+          sectionEl.style.removeProperty('display');
+          if (isFullWidth) sectionEl.classList.add('container');
+          mobilePanel.appendChild(sectionEl);
+        });
+
+        mobileAccordion.appendChild(mobileButton);
+        mobileAccordion.appendChild(mobilePanel);
+        mobileButtons[tab.id] = mobileButton;
+        mobilePanels[tab.id] = mobilePanel;
       }
     });
 
@@ -230,11 +252,15 @@ class TabsManager {
         window.history.pushState({}, '', `${new URL(window.location).pathname}#${id}`);
 
         if (mobileButtons && mobileButtons[id]) {
-          Object.values(mobileButtons).forEach((btn) => btn.setAttribute('aria-selected', false));
-          Object.values(mobilePanels).forEach((panel) => panel.setAttribute('aria-hidden', true));
+          Object.values(mobileButtons).forEach((btn) => {
+            btn.setAttribute('aria-expanded', 'false');
+          });
+          Object.values(mobilePanels).forEach((panel) => {
+            panel.hidden = true;
+          });
 
-          mobileButtons[id].setAttribute('aria-selected', true);
-          mobilePanels[id].setAttribute('aria-hidden', false);
+          mobileButtons[id].setAttribute('aria-expanded', 'true');
+          mobilePanels[id].hidden = false;
         }
       });
     });
@@ -242,14 +268,18 @@ class TabsManager {
     if (mobileButtons) {
       Object.entries(mobileButtons).forEach(([id, button]) => {
         button.addEventListener('click', () => {
-          const isSelected = button.getAttribute('aria-selected') === 'true';
+          const isExpanded = button.getAttribute('aria-expanded') === 'true';
 
-          Object.values(mobileButtons).forEach((btn) => btn.setAttribute('aria-selected', false));
-          Object.values(mobilePanels).forEach((panel) => panel.setAttribute('aria-hidden', true));
+          Object.values(mobileButtons).forEach((btn) => {
+            btn.setAttribute('aria-expanded', 'false');
+          });
+          Object.values(mobilePanels).forEach((panel) => {
+            panel.hidden = true;
+          });
 
-          if (!isSelected) {
-            button.setAttribute('aria-selected', true);
-            mobilePanels[id].setAttribute('aria-hidden', false);
+          if (!isExpanded) {
+            button.setAttribute('aria-expanded', 'true');
+            mobilePanels[id].hidden = false;
 
             desktopTabsList.querySelectorAll('button').forEach((btn) => {
               btn.setAttribute('aria-selected', btn === desktopButtons[id]);
