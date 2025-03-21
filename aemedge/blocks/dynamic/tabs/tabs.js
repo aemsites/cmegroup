@@ -18,7 +18,9 @@ class TabsManager {
     const tabGroups = TabsManager.findTabGroups(allSections);
     if (tabGroups.length === 0) return Promise.resolve();
 
-    await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/tabs/tabs.css`);
+    // removed await intentionally to avoid blocking the main thread
+    // we can revisit adding this await if we have dependencies on some computed styles
+    loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/tabs/tabs.css`);
     tabGroups.forEach((sections) => this.processTabGroup(sections));
 
     return Promise.resolve();
