@@ -23,12 +23,12 @@ function parseRegexStyles(styleMatrix, blockClassList, numberOfColumns, numberOf
   let hasRegexStyle = false;
   blockClassList.forEach((className) => {
     // Match patterns: r2c3-style, r2-style, c2-style, r1-header-primary, etc.
-    const match = className.match(/(?:r(\d+))?(?:c(\d+))?-(.+)/);
+    const match = className.match(/^(r(\d+)?c(\d+)?|r(\d+)|c(\d+))-(.+)/);
     if (match) {
       hasRegexStyle = true;
-      const row = match[1] ? parseInt(match[1], 10) - 1 : null;
-      const col = match[2] ? parseInt(match[2], 10) - 1 : null;
-      const style = match[3]; // Capture everything after the dash as the style
+      const row = match[2] ? parseInt(match[2], 10) - 1 : (match[4] ? parseInt(match[4], 10) - 1 : null);
+      const col = match[3] ? parseInt(match[3], 10) - 1 : (match[5] ? parseInt(match[5], 10) - 1 : null);
+      const style = match[6]; // Capture everything after the dash as the style
 
       if (row !== null && col !== null) {
         // Specific cell: r2c3-style
@@ -92,7 +92,6 @@ function populateStyleMatrix(data, blockClassList, header = false) {
     numberOfRows,
   );
 
-  console.log('hasRegexStyle', hasRegexStyle);
   if (!hasRegexStyle) {
     setDefaultStyles(styleMatrix, data, header);
   }
