@@ -26,8 +26,21 @@ function parseRegexStyles(styleMatrix, blockClassList, numberOfColumns, numberOf
     const match = className.match(/^(r(\d+)?c(\d+)?|r(\d+)|c(\d+))-(.+)/);
     if (match) {
       hasRegexStyle = true;
-      const row = match[2] ? parseInt(match[2], 10) - 1 : (match[4] ? parseInt(match[4], 10) - 1 : null);
-      const col = match[3] ? parseInt(match[3], 10) - 1 : (match[5] ? parseInt(match[5], 10) - 1 : null);
+      let row = null;
+      let col = null;
+
+      if (match[2]) {
+        row = parseInt(match[2], 10) - 1;
+      } else if (match[4]) {
+        row = parseInt(match[4], 10) - 1;
+      }
+
+      if (match[3]) {
+        col = parseInt(match[3], 10) - 1;
+      } else if (match[5]) {
+        col = parseInt(match[5], 10) - 1;
+      }
+
       const style = match[6]; // Capture everything after the dash as the style
 
       if (row !== null && col !== null) {
