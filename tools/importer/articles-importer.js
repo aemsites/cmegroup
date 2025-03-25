@@ -11,6 +11,10 @@
  */
 /* global WebImporter */
 /* eslint-disable no-console, class-methods-use-this */
+
+// Import the table detector module
+import { analyzeTablesForImporter } from './table-detector.js';
+
 const templateData = {};
 const unique = true;
 
@@ -148,29 +152,30 @@ async function setMetadata(meta, document, url) {
 
   const jsonUrl = new URL(url).pathname.replace('.html', '/jcr:content.json');
   const jsonResponse = await fetch(jsonUrl);
-  const jsonData = await jsonResponse.json();
+  if (jsonResponse?.ok) {
+    const jsonData = await jsonResponse.json();
+    Object.keys(jsonData).forEach((key) => {
+      const arr = [];
+      if (key === 'primaryAuthors') {
+        jsonData[key].forEach((author) => {
+          arr.push(author.replace(/^.*:/, ''));
+        });
+        meta.authors = arr.join(',');
+      } else if (key === 'cq:tags') {
+        jsonData[key].forEach((tag) => {
+          arr.push(tag.replace(/^.*:/, ''));
+        });
+        meta.tags = arr.join(',');
+      } else if (key === 'primaryTopics') {
+        meta['Primary Topic'] = [];
+        jsonData[key].forEach((topic) => {
+          arr.push(topic.replace(/^.*:/, ''));
+        });
 
-  Object.keys(jsonData).forEach((key) => {
-    const arr = [];
-    if (key === 'primaryAuthors') {
-      jsonData[key].forEach((author) => {
-        arr.push(author.replace(/^.*:/, ''));
-      });
-      meta.authors = arr.join(',');
-    } else if (key === 'cq:tags') {
-      jsonData[key].forEach((tag) => {
-        arr.push(tag.replace(/^.*:/, ''));
-      });
-      meta.tags = arr.join(',');
-    } else if (key === 'primaryTopics') {
-      meta['Primary Topic'] = [];
-      jsonData[key].forEach((topic) => {
-        arr.push(topic.replace(/^.*:/, ''));
-      });
-
-      meta['Primary Topic'] = arr.join(',');
-    }
-  });
+        meta['Primary Topic'] = arr.join(',');
+      }
+    });
+  }
 }
 
 /**
@@ -310,6 +315,20 @@ const fetchTable = (document) => {
   }
 
   return modifyMap(map, 'table');
+};
+
+/**
+ * This function analyzes tables in detail using the table-detector module.
+ * @param {Document} document - The document to search.
+ * @returns {object} - Detailed table analysis.
+ */
+const analyzeTablesDetailed = (document) => {
+  try {
+    return analyzeTablesForImporter(document);
+  } catch (error) {
+    console.error('Error analyzing tables:', error);
+    return null;
+  }
 };
 
 /**
@@ -814,15 +833,18 @@ const dividerBlock = (document) => {
 const authorBioBlock = (document) => {
   const authorBio = document.querySelector('.author-bio');
   if (authorBio) {
-    const authorEyeBrow = authorBio
-      .querySelector('.author-eyebrow')?.innerText?.trim().split(' ').join('-').toLowerCase() || '';
-    const link = `${EDS_DOMAIN}/fragments/authors/${authorEyeBrow}`;
+    const authorTags = authorBio.getAttribute('data-author-tags');
+    const authorTag = authorTags ? JSON.parse(authorTags)[0] : '';
 
-    const cells = [['Fragment']];
-    cells.push([link]);
+    if (authorTag) {
+      const link = `${EDS_DOMAIN}/fragments/authors/${authorTag}`;
 
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-    authorBio.replaceWith(table);
+      const cells = [['Fragment']];
+      cells.push([link]);
+
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      authorBio.replaceWith(table);
+    }
   }
 };
 
@@ -900,6 +922,38 @@ const quizBlock = (document) => {
       quiz.replaceWith(table);
     });
   }
+};
+
+/**
+ * This function creates a xf-content-height block for the document.
+ * @param {Document} document - The document to search.
+ * @returns {object} - The xf-content-height analysis.
+ */
+const xfContentHeight = (document) => {
+  const contentHeights = document.querySelectorAll('.xf-content-height');
+  let map = null;
+
+  if (contentHeights.length) {
+    map = {};
+    contentHeights.forEach((item) => {
+      // get first heading
+      const firstHeading = item.querySelector('h1, h2, h3, h4, h5, h6');
+      if (firstHeading) {
+        // firstHeading.innerText trim it and replace starting and ending \n if any
+        const heading = firstHeading.innerText.trim().replace(/^\n+|\n+$/g, '');
+
+        map[`${heading}`] = true;
+      } else {
+        map['custom-fragment'] = true;
+      }
+    });
+  }
+
+  if (map && Object.keys(map).length === 0) {
+    return null;
+  }
+
+  return map;
 };
 
 const getAssetCounts = (document) => {
@@ -993,6 +1047,8 @@ const customReportElements = (document) => {
     columns: detectColumns(document),
     assets: getAssetCounts(document),
     iframes: iframeReport(document),
+    'tables-detailed': analyzeTablesDetailed(document),
+    fragments: xfContentHeight(document),
   };
 
   const currentClassesMap = {
@@ -1210,6 +1266,7 @@ export default {
       '.disclaimer-style',
       '#onetrust-consent-sdk',
       '.grecaptcha-badge',
+      '.content-reference',
     ]);
 
     const results = [];
@@ -1222,21 +1279,6 @@ export default {
     main.append(mdb);
 
     customBlocks(document, main);
-
-    // convertSectionsToMetadata(document, main);
-    // articleHeroBlock(document);
-    // const meta = WebImporter.Blocks.getMetadata(document);
-    // const template = fetchTemplate(document);
-    // const fetchTableClasses = fetchTable(main);
-
-    // WebImporter.DOMUtils.remove(main, 'body');
-
-    // const mdb = WebImporter.Blocks.getMetadataBlock(document, meta);
-    // main.append(mdb);
-
-    // WebImporter.rules.transformBackgroundImages(main, document);
-    // WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
-    // WebImporter.rules.convertIcons(main, document);
 
     let p = new URL(url).pathname;
     if (p.endsWith('/')) {
