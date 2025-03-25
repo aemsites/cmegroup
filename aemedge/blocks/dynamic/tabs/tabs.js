@@ -29,7 +29,7 @@ class TabsManager {
     const tabGroups = [];
 
     sections.forEach((section, index) => {
-      if (section.classList.contains(TABS_STYLE)) {
+      if (section.classList.contains(TABS_STYLE) || section.dataset.tabId) {
         currentGroup.push(section);
       } else if (currentGroup.length > 0) {
         tabGroups.push(currentGroup);
@@ -173,12 +173,14 @@ class TabsManager {
     }
 
     tabData.forEach((tab, index) => {
-      const isSelected = (hashMatchesTab && tab.id === this.currentHash)
-        || (!hashMatchesTab && index === 0 && !collapseAll);
+      // For desktop view, always select first tab unless there's a matching hash
+      const isDesktopSelected = hashMatchesTab ? (tab.id === this.currentHash) : (index === 0);
+      // For mobile view, respect collapseAll setting
+      const isMobileSelected = (hashMatchesTab && tab.id === this.currentHash) || (!hashMatchesTab && index === 0 && !collapseAll);
 
       const desktop = TabsManager.createTabElement(tab, {
         prefix: 'desktop',
-        isSelected,
+        isSelected: isDesktopSelected,
         isFullWidth,
       });
 
@@ -191,7 +193,7 @@ class TabsManager {
         const mobileButton = createElement('button', {
           class: 'tabs-tab',
           id: `mobile-tab-${tab.id}`,
-          'aria-expanded': isSelected ? 'true' : 'false',
+          'aria-expanded': (isMobileSelected && !collapseAll) ? 'true' : 'false',
           'aria-controls': `mobile-panel-${tab.id}`,
           type: 'button',
         });
@@ -200,7 +202,7 @@ class TabsManager {
         const mobilePanel = createElement('div', {
           class: 'tab',
           id: `mobile-panel-${tab.id}`,
-          hidden: !isSelected,
+          hidden: !isMobileSelected || collapseAll,
         });
 
         tab.sections.forEach((section) => {
@@ -229,7 +231,7 @@ class TabsManager {
     };
   }
 
-  setupEventListeners(elements) {
+  setupEventListeners(elements, config) {
     const {
       desktopTabsList,
       desktopContent,
@@ -239,29 +241,19 @@ class TabsManager {
       mobilePanels,
     } = elements;
 
+    const { collapseAll } = config;
+
     Object.entries(desktopButtons).forEach(([id, button]) => {
       button.addEventListener('click', () => {
-        desktopTabsList.querySelectorAll('button').forEach((btn) => {
-          btn.setAttribute('aria-selected', btn === button);
+        this.updateTabState(id, {
+          desktopTabsList,
+          desktopContent,
+          desktopButtons,
+          desktopPanels,
+          mobileButtons,
+          mobilePanels,
+          updateUrl: true
         });
-
-        desktopContent.querySelectorAll('.tab[role="tabpanel"]').forEach((panel) => {
-          panel.setAttribute('aria-hidden', panel !== desktopPanels[id]);
-        });
-
-        window.history.pushState({}, '', `${new URL(window.location).pathname}#${id}`);
-
-        if (mobileButtons && mobileButtons[id]) {
-          Object.values(mobileButtons).forEach((btn) => {
-            btn.setAttribute('aria-expanded', 'false');
-          });
-          Object.values(mobilePanels).forEach((panel) => {
-            panel.hidden = true;
-          });
-
-          mobileButtons[id].setAttribute('aria-expanded', 'true');
-          mobilePanels[id].hidden = false;
-        }
       });
     });
 
@@ -278,28 +270,75 @@ class TabsManager {
           });
 
           if (!isExpanded) {
-            button.setAttribute('aria-expanded', 'true');
-            mobilePanels[id].hidden = false;
-
-            desktopTabsList.querySelectorAll('button').forEach((btn) => {
-              btn.setAttribute('aria-selected', btn === desktopButtons[id]);
+            this.updateTabState(id, {
+              desktopTabsList,
+              desktopContent,
+              desktopButtons,
+              desktopPanels,
+              mobileButtons,
+              mobilePanels,
+              updateUrl: true
             });
-
-            desktopContent.querySelectorAll('.tab[role="tabpanel"]').forEach((panel) => {
-              panel.setAttribute('aria-hidden', panel !== desktopPanels[id]);
-            });
-
-            window.history.pushState({}, '', `${new URL(window.location).pathname}#${id}`);
           }
         });
       });
     }
 
     if (this.currentHash && desktopButtons[this.currentHash]) {
-      desktopButtons[this.currentHash].click();
-    } else if (Object.keys(desktopButtons).length > 0) {
+      this.updateTabState(this.currentHash, {
+        desktopTabsList,
+        desktopContent,
+        desktopButtons,
+        desktopPanels,
+        mobileButtons,
+        mobilePanels,
+        updateUrl: true
+      });
+    } else if (Object.keys(desktopButtons).length > 0 && !collapseAll) {
       const firstId = Object.keys(desktopButtons)[0];
-      desktopButtons[firstId].click();
+      this.updateTabState(firstId, {
+        desktopTabsList,
+        desktopContent,
+        desktopButtons,
+        desktopPanels,
+        mobileButtons,
+        mobilePanels,
+        updateUrl: false
+      });
+    }
+  }
+
+  updateTabState(id, {
+    desktopTabsList,
+    desktopContent,
+    desktopButtons,
+    desktopPanels,
+    mobileButtons,
+    mobilePanels,
+    updateUrl
+  }) {
+    desktopTabsList.querySelectorAll('button').forEach((btn) => {
+      btn.setAttribute('aria-selected', btn === desktopButtons[id]);
+    });
+
+    desktopContent.querySelectorAll('.tab[role="tabpanel"]').forEach((panel) => {
+      panel.setAttribute('aria-hidden', panel !== desktopPanels[id]);
+    });
+
+    if (mobileButtons && mobileButtons[id]) {
+      Object.values(mobileButtons).forEach((btn) => {
+        btn.setAttribute('aria-expanded', 'false');
+      });
+      Object.values(mobilePanels).forEach((panel) => {
+        panel.hidden = true;
+      });
+
+      mobileButtons[id].setAttribute('aria-expanded', 'true');
+      mobilePanels[id].hidden = false;
+    }
+
+    if (updateUrl) {
+      window.history.pushState({}, '', `${new URL(window.location).pathname}#${id}`);
     }
   }
 
@@ -329,10 +368,12 @@ class TabsManager {
 
     tabsContainer.appendChild(tabsWrapper);
 
-    this.setupEventListeners(elements);
+    this.setupEventListeners(elements, config);
 
     tabSections.forEach((section) => {
-      if (section.parentNode) section.parentNode.removeChild(section);
+      if (section.parentNode) {
+        section.parentNode.removeChild(section);
+      }
     });
   }
 }
