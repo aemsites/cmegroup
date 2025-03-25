@@ -1,13 +1,11 @@
 .header{
     box-shadow: 0 2px 4px 0 rgba(0 0 0 / 20%);
-    top: 0;
     padding: 0;
-    transition: top .7s;
+    transition: all 0.3s ease;
 }
 
-body.scrolling-down .header{
-    top: -150px;
-    transition: top .7s ease .5s;
+.header.hidden {
+    transform: translateY(-100px);
 }
 
 .nav-wrapper,

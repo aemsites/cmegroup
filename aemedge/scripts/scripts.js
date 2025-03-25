@@ -14,6 +14,7 @@ import {
   toClassName,
   getMetadata,
 } from './aem.js';
+import initFloatingElements from './utilities/alerts.js';
 
 import dynamicBlocks from '../blocks/dynamic/index.js';
 
@@ -237,7 +238,7 @@ async function loadLazy(doc) {
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
   if (hash && element) element.scrollIntoView();
 
-  loadHeader(doc.querySelector('header'));
+  loadHeader(doc.querySelector('header')).then(() => initFloatingElements(doc));
   loadFooter(doc.querySelector('footer'));
   dynamicBlocks(main);
 
