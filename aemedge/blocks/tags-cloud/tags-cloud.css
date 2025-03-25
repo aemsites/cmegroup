@@ -1,0 +1,28 @@
+.tags-cloud .btn-tag-filter {
+    background-color: var(--gray5);
+    border-radius: 0;
+    border-width: 0;
+    box-shadow: none;
+    color: var(--blue4);
+    font-family: var(--averta);
+    font-size: .875rem;
+    font-weight: 400;
+    height: auto;
+    letter-spacing: normal;
+    line-height: .9375rem;
+    padding: .1875rem .25rem;
+    text-transform: none;
+    margin-bottom: .625rem;
+    margin-right: .3125rem;
+    cursor: pointer;
+}
+
+.tags-cloud .btn-tag-filter:hover {
+    background-color: var(--blue6);
+    text-decoration: underline;
+}
+
+.tags-cloud .tag-label {
+    padding: .1875rem .3125rem .1875rem 0;
+    font-size: .875rem;
+}

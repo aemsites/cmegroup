@@ -1,0 +1,145 @@
+/* Contact form specific styles */
+.form.contact-us a,
+.form.contact-us a:any-link {
+  color: var(--blue5);
+  text-decoration: none;
+}
+
+.form.contact-us form {
+  gap: 1rem;
+}
+
+.form.contact-us form.collapsed-user-info {
+  gap: 0;
+}
+
+.form.contact-us form.collapsed-user-info p {
+  font-size: 0.875rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.form.contact-us .field-wrapper {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.form.contact-us .field-wrapper > * {
+  max-width: 100%;
+  line-height: .6875rem;
+  font-family: var(--heading-font-family);
+  font-weight: 400;
+}
+
+.form.contact-us form.user-info .field-wrapper.logged-in {
+  display: none;
+}
+
+.form.contact-us form.collapsed-user-info .field-wrapper:not(.logged-in) {
+  display: none;
+}
+
+.form.contact-us .field-wrapper:not(.checkbox-wrapper) > input,
+.form.contact-us .field-wrapper > select,
+.form.contact-us .field-wrapper > textarea {
+  color: var(--white);
+  background-color: var(--blue1);
+  min-height: 3.375rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0;
+  border: 2px solid transparent;
+  font-size: 0.875rem;
+}
+
+.form.contact-us .field-wrapper:not(.checkbox-wrapper) > label {
+  text-transform: uppercase;
+  font-size: .6875rem;
+  letter-spacing: .0938rem;
+  margin-bottom: 0.5rem;
+}
+
+.form.contact-us .field-wrapper.checkbox-wrapper {
+  align-items: start;
+  margin-top: -1rem;
+}
+
+.form.contact-us .field-wrapper.checkbox-wrapper label {
+  font-size: .875rem;
+  letter-spacing: 0;
+  line-height: 1.25rem;
+  text-transform: none;
+}
+
+.form.contact-us .field-wrapper.submit-wrapper {
+  grid-column: auto;
+  width: 100%;
+  justify-self: start;
+}
+
+.form.contact-us .field-wrapper > textarea[name="question_comment"] {
+  text-transform: none;
+}
+
+.form.contact-us form .field-wrapper.submit-wrapper,
+.form.contact-us form.collapsed-user-info .field-wrapper:has([name="question_comment"]){
+  display: grid;
+}
+
+.form.contact-us form.collapsed-user-info .field-wrapper.submit-wrapper {
+  display: unset;
+}
+
+@media (width > 768px) {
+  .form.contact-us form {
+    gap: 1.5rem;
+  }
+
+  .form.contact-us .text-wrapper:has(input[name="Company_Name__c"]),
+  .form.contact-us .text-area-wrapper,
+  .form.contact-us .checkbox-wrapper {
+    grid-column: 1 / -1;
+  }
+
+  .form.contact-us .field-wrapper.submit-wrapper {
+    width: auto;
+  }
+}
+
+.form.contact-us .choices {
+  font-family: inherit;
+  text-transform: none;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+/* stylelint-disable no-descending-specificity */
+.form.contact-us .field-wrapper > select:focus,
+.form.contact-us .field-wrapper > textarea:focus,
+.form.contact-us .field-wrapper:not(.checkbox-wrapper) > input:focus {
+  background-color: var(--blue1);
+  color: var(--white);
+  outline: none;
+  border: 2px solid var(--blue5);
+}
+
+/* Prevent background color change on autofill */
+/* stylelint-disable property-no-vendor-prefix */
+.form.contact-us .field-wrapper > input:-webkit-autofill,
+.form.contact-us .field-wrapper > input:-webkit-autofill:hover,
+.form.contact-us .field-wrapper > input:-webkit-autofill:focus,
+.form.contact-us .field-wrapper > select:-webkit-autofill,
+.form.contact-us .field-wrapper > select:-webkit-autofill:hover,
+.form.contact-us .field-wrapper > select:-webkit-autofill:focus,
+.form.contact-us .field-wrapper > textarea:-webkit-autofill,
+.form.contact-us .field-wrapper > textarea:-webkit-autofill:hover,
+.form.contact-us .field-wrapper > textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--white);
+  -webkit-box-shadow: 0 0 0 1000px var(--blue1) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+/* stylelint-enable property-no-vendor-prefix */
+
+.form.contact-us .post-submit .section,
+.form.contact-us .post-submit .section p {
+  margin: 0;
+}
