@@ -1,8 +1,9 @@
-import { createElement } from '../../scripts/utils.js';
+import { getMetadata } from '../../scripts/aem.js';
+import { createElement, i18n } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
-import { authentication } from '../../scripts/modules/index.js';
+import { store } from '../../scripts/store/store.js';
+import { authentication as authStatus } from '../../scripts/modules/index.js';
 
-const BRAND_IMG = '<img loading="lazy" alt="Adobe" src="/blocks/nav/adobe-logo.svg">';
 const IS_OPEN = 'is-open';
 
 async function loadTabContent(fragmentPath) {
@@ -21,61 +22,88 @@ class Nav {
     this.body = body;
     this.env = {};
     this.desktop = window.matchMedia('(min-width: 1200px)');
-    this.login = this.body.querySelectorAll('.login');
+    this.login = this.body.querySelector('.login');
+    this.curtain = createElement('div', { class: 'nav-curtain' });
+    this.nav = createElement('nav', { class: 'nav' });
+    this.rightSide = createElement('div', { class: 'right-side' });
+    this.mobileRightSide = createElement('div', { class: 'mobile-right-side' });
+    this.searchBtn = createElement('button', { class: 'search-icon' });
+    this.searchBtnMobile = createElement('button', { class: 'search-icon' });
+    this.navLoginBtn = createElement('button', { class: 'nav-login secondary' });
+    this.fauxNavbar = createElement('div', { class: 'nav-faux-navbar' });
+    this.wrapper = createElement('div', { class: 'nav-wrapper' }, this.nav);
+    this.userBtnDesktopContainer = createElement('div', { class: 'nav-nav-item has-menu user-btn-desktop-container' });
+    this.welcomeMessageDesktop = createElement('p');
+    this.innerContentDesktop = '';
+    this.innerContentMobile = '';
+    this.innerContainerDesktop = createElement('div', { class: 'nav-nav-item-menu' });
+    this.navLogoutBtn = createElement('button', { class: 'nav-logout secondary' });
+    this.navItemMobile = createElement('li', { class: 'nav-nav-item has-menu' });
+    this.navItemMobileAnchor = createElement('a');
+    this.innerContainerMobile = createElement('div', { class: 'nav-nav-item-menu' });
+    this.navLogoutBtnMobile = createElement('button', { class: 'nav-logout secondary' });
+    this.loggedIn = false;
+    this.loginInfo = {};
+
+    store.subscribe(({ authentication }) => authentication, ({ isLoggedIn, loginInfo }) => {
+      if (isLoggedIn !== this.loggedIn) {
+        this.loggedIn = isLoggedIn;
+        this.loginInfo = loginInfo;
+        this.updateNavState();
+      }
+    });
+  }
+
+  async updateNavState() {
+    this.logBtnToRightSide();
+    this.logDesktopGreeting();
+    this.logInnerContentDesktop();
+    this.logOutBtnToContDesktop();
+    this.logMobileGreeting();
+    this.logInnerContentMobile();
+    this.logOutBtnToContMobile();
   }
 
   init = async () => {
-    this.state = {};
-    this.curtain = createElement('div', { class: 'nav-curtain' });
-    const nav = createElement('nav', { class: 'nav' });
-    const rightSide = createElement('div', { class: 'right-side' });
-    const mobileRightSide = createElement('div', { class: 'mobile-right-side' });
-    const searchBtn = createElement('button', { class: 'search-icon' });
-    const searchBtnMobile = createElement('button', { class: 'search-icon' });
-    const navLoginBtn = createElement('button', { class: 'nav-login secondary' });
-    const fauxNavbar = createElement('div', { class: 'nav-faux-navbar' });
-    const wrapper = createElement('div', { class: 'nav-wrapper' }, nav);
-    const loggedIn = false;
+    await this.initializeLabels();
 
     const brand = this.decorateBrand();
     if (brand) {
       const fauxBrand = brand.cloneNode(true);
-      fauxNavbar.append(fauxBrand);
-      nav.append(brand);
+      this.fauxNavbar.append(fauxBrand);
+      this.nav.append(brand);
     }
 
-    const mobileToggle = this.decorateToggle(nav);
-    const mobileCloseNav = this.decorateCloseNav(nav);
-    this.curtain = this.decorateCurtain(nav);
+    const mobileToggle = this.decorateToggle(this.nav);
+    const mobileCloseNav = this.decorateCloseNav(this.nav);
+    this.curtain = this.decorateCurtain(this.nav);
 
-    mobileRightSide.append(searchBtnMobile);
-    mobileRightSide.append(mobileToggle);
-    fauxNavbar.append(mobileRightSide);
-    nav.append(mobileCloseNav);
+    this.mobileRightSide.append(this.searchBtnMobile);
+    this.mobileRightSide.append(mobileToggle);
+    this.fauxNavbar.append(this.mobileRightSide);
+    this.nav.append(mobileCloseNav);
 
     const mainNav = await this.decorateMainNav();
     if (mainNav) {
-      nav.append(mainNav);
+      this.nav.append(mainNav);
     }
 
-    rightSide.append(searchBtn);
+    this.rightSide.append(this.searchBtn);
 
     const userBtn = await this.buildLoginDesktopNav();
     if (userBtn) {
-      rightSide.append(userBtn);
+      this.rightSide.append(userBtn);
     }
 
-    navLoginBtn.innerHTML = 'LOG IN';
-    navLoginBtn.addEventListener('click', async () => {
-      authentication.login();
+    this.navLoginBtn.innerHTML = this.loginLabel;
+    this.navLoginBtn.addEventListener('click', async () => {
+      authStatus.login();
     });
-    if (!loggedIn) {
-      rightSide.append(navLoginBtn);
-    }
-    wrapper.append(rightSide);
+    this.logBtnToRightSide();
+    this.wrapper.append(this.rightSide);
 
-    this.el.append(this.curtain, fauxNavbar);
-    this.el.append(this.curtain, wrapper);
+    this.el.append(this.curtain, this.fauxNavbar);
+    this.el.append(this.curtain, this.wrapper);
 
     let prevWindowWidth = window.innerWidth;
     let resizeTimeout;
@@ -115,6 +143,98 @@ class Nav {
         previousScrollPosition = currentScrollPosition;
       }, 100);
     });
+  };
+
+  async initializeLabels() {
+    const [welcomeLabel, loginLabel, logoutLabel, loginAccount, createAccount] = await Promise.all([
+      i18n('Welcome'),
+      i18n('LOG IN'),
+      i18n('LOG OUT'),
+      i18n('Login to your account'),
+      i18n('Create an Account'),
+    ]);
+
+    this.welcomeLabel = welcomeLabel;
+    this.loginLabel = loginLabel;
+    this.logoutLabel = logoutLabel;
+    this.loginAccount = loginAccount;
+    this.createAccount = createAccount;
+  }
+
+  logBtnToRightSide = () => {
+    if (!this.loggedIn) {
+      this.rightSide.append(this.navLoginBtn);
+    } else if (this.rightSide.contains(this.navLoginBtn)) {
+      this.navLoginBtn.remove();
+    }
+  };
+
+  logDesktopGreeting = () => {
+    if (this.loggedIn) {
+      this.userBtnDesktopContainer.classList.add('is-logged');
+      if (this.loginInfo.userName) {
+        const indexName = this.loginInfo.userName.indexOf(' ');
+        const userFirstName = this.loginInfo.userName.substring(0, indexName);
+        this.welcomeMessageDesktop.innerHTML = `${this.welcomeLabel}, ${userFirstName}`;
+      }
+    } else {
+      this.userBtnDesktopContainer.classList.remove('is-logged');
+    }
+  };
+
+  logInnerContentDesktop = () => {
+    this.innerContainerDesktop.replaceChildren();
+
+    if (!this.loggedIn) {
+      this.innerContentDesktop = this.createNoLoggedInItems(this.login?.cloneNode(true));
+    } else {
+      this.innerContainerDesktop.appendChild(this.welcomeMessageDesktop);
+      this.innerContentDesktop = this.login?.cloneNode(true);
+    }
+
+    this.innerContainerDesktop.appendChild(this.innerContentDesktop);
+  };
+
+  logOutBtnToContDesktop = () => {
+    if (this.loggedIn) {
+      this.innerContainerDesktop.appendChild(this.navLogoutBtn);
+    } else if (this.innerContainerDesktop.contains(this.navLogoutBtn)) {
+      this.navLogoutBtn.remove();
+    }
+  };
+
+  logMobileGreeting = () => {
+    if (this.loggedIn) {
+      if (this.loginInfo.userName) {
+        this.navItemMobile.classList.add('is-logged');
+        const indexName = this.loginInfo.userName.indexOf(' ');
+        const userFirstName = this.loginInfo.userName.substring(0, indexName);
+        this.navItemMobileAnchor.innerHTML = `${this.welcomeLabel}, ${userFirstName}`;
+      }
+    } else {
+      this.navItemMobile.classList.remove('is-logged');
+      this.navItemMobileAnchor.innerHTML = this.loginLabel;
+    }
+  };
+
+  logInnerContentMobile = () => {
+    this.innerContainerMobile.replaceChildren();
+
+    if (!this.loggedIn) {
+      this.innerContentMobile = this.createNoLoggedInItems(this.login?.cloneNode(true), true);
+    } else {
+      this.innerContentMobile = this.login?.cloneNode(true);
+    }
+
+    this.innerContainerMobile.appendChild(this.innerContentMobile);
+  };
+
+  logOutBtnToContMobile = () => {
+    if (this.loggedIn) {
+      this.innerContainerMobile.appendChild(this.navLogoutBtnMobile);
+    } else if (this.innerContainerMobile.contains(this.navLogoutBtnMobile)) {
+      this.navLogoutBtnMobile.remove();
+    }
   };
 
   decorateToggle = (nav) => {
@@ -163,17 +283,11 @@ class Nav {
   };
 
   decorateBrand = () => {
-    const brandBlock = this.body.querySelector('[class^="nav-brand"]');
+    const brandBlock = this.body.querySelector('.logo');
     if (!brandBlock) return null;
     const brand = brandBlock.querySelector('a');
-
-    const { className } = brandBlock;
-    const classNameClipped = className.slice(0, -1);
-    const classNames = classNameClipped.split('--');
-    brand.className = classNames.join(' ');
-    if (brand.classList.contains('with-logo')) {
-      brand.insertAdjacentHTML('afterbegin', BRAND_IMG);
-    }
+    if (!brand) return null;
+    brand.classList.add('logo');
     return brand;
   };
 
@@ -205,18 +319,18 @@ class Nav {
     const regLi = createElement('li');
 
     const logLink = createElement('a');
-    logLink.innerHTML = 'Login to your account';
+    logLink.innerHTML = this.loginAccount;
     logLink.href = '#';
     logLink.setAttribute('role', 'button');
     logLink.addEventListener('click', async () => {
-      authentication.login();
+      authStatus.login();
     });
     const regLink = createElement('a');
-    regLink.innerHTML = 'Create an Account';
+    regLink.innerHTML = this.createAccount;
     regLink.href = '#';
     regLink.setAttribute('role', 'button');
     regLink.addEventListener('click', async () => {
-      authentication.registration();
+      authStatus.registration();
     });
     if (mobileVersion) {
       logLi.appendChild(logLink);
@@ -233,19 +347,9 @@ class Nav {
     return logContainer;
   };
 
-  buildLoginDesktopNav = () => {
-    const userBtnDesktopContainer = createElement('div', { class: 'nav-nav-item has-menu user-btn-desktop-container' });
+  buildLoginDesktopNav = async () => {
     const loginUserBtn = createElement('button', { class: 'login-user-icon' });
-    const welcomeMessage = createElement('p');
-    const loggedIn = false;
-    const userName = 'Willy';
-    let innerContent;
-
-    if (loggedIn) {
-      userBtnDesktopContainer.classList.add('is-logged');
-      welcomeMessage.innerHTML = `Welcome, ${userName}`;
-    }
-
+    this.logDesktopGreeting();
     loginUserBtn.setAttribute('aria-expanded', false);
     loginUserBtn.setAttribute('aria-controls', 'login-nav-menu-0');
     loginUserBtn.addEventListener('focus', () => {
@@ -257,32 +361,19 @@ class Nav {
     loginUserBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.toggleMenu(userBtnDesktopContainer);
+      this.toggleMenu(this.userBtnDesktopContainer);
     });
-
-    userBtnDesktopContainer.classList.add('login-desktop-nav');
-
-    const container = createElement('div', { class: 'nav-nav-item-menu' });
-    const navLogoutBtn = createElement('button', { class: 'nav-logout secondary' });
-    navLogoutBtn.innerHTML = 'LOG OUT';
-    navLogoutBtn.addEventListener('click', async () => {
-      authentication.logout();
+    this.userBtnDesktopContainer.classList.add('login-desktop-nav');
+    this.navLogoutBtn.innerHTML = this.logoutLabel;
+    this.navLogoutBtn.addEventListener('click', async () => {
+      authStatus.logout();
     });
-    if (loggedIn) {
-      container.appendChild(welcomeMessage);
-      innerContent = this.login[0].cloneNode(true);
-    } else {
-      innerContent = this.createNoLoggedInItems(this.login[0].cloneNode(true));
-    }
+    this.logInnerContentDesktop();
+    this.logOutBtnToContDesktop();
+    this.userBtnDesktopContainer.append(loginUserBtn);
+    this.userBtnDesktopContainer.appendChild(this.innerContainerDesktop);
 
-    container.appendChild(innerContent);
-    if (loggedIn) {
-      container.appendChild(navLogoutBtn);
-    }
-    userBtnDesktopContainer.append(loginUserBtn);
-    userBtnDesktopContainer.appendChild(container);
-
-    return userBtnDesktopContainer;
+    return this.userBtnDesktopContainer;
   };
 
   // eslint-disable-next-line class-methods-use-this
@@ -318,54 +409,32 @@ class Nav {
     mainNavMobile,
     menuType,
   ) => {
-    const loggedIn = false;
-    const userName = 'Willy';
-    const navItem = createElement('li', { class: 'nav-nav-item has-menu' });
-    let innerContent;
-
-    if (loggedIn) {
-      navItem.classList.add('is-logged');
-    }
-
-    const navItemAnchor = createElement('a');
-    navItemAnchor.innerHTML = loggedIn ? `Welcome, ${userName}` : 'LOG IN';
-    navItemAnchor.href = '#';
-    navItemAnchor.setAttribute('role', 'button');
-    navItemAnchor.setAttribute('aria-expanded', false);
-    navItemAnchor.setAttribute('aria-controls', 'login-nav-menu-0');
-    navItemAnchor.addEventListener('focus', () => {
+    this.logMobileGreeting();
+    this.navItemMobileAnchor.href = '#';
+    this.navItemMobileAnchor.setAttribute('role', 'button');
+    this.navItemMobileAnchor.setAttribute('aria-expanded', false);
+    this.navItemMobileAnchor.setAttribute('aria-controls', 'login-nav-menu-0');
+    this.navItemMobileAnchor.addEventListener('focus', () => {
       window.addEventListener('keydown', this.toggleOnSpace);
     });
-    navItemAnchor.addEventListener('blur', () => {
+    this.navItemMobileAnchor.addEventListener('blur', () => {
       window.removeEventListener('keydown', this.toggleOnSpace);
     });
-    navItemAnchor.addEventListener('click', (e) => {
+    this.navItemMobileAnchor.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.toggleMenu(navItem);
+      this.toggleMenu(this.navItemMobile);
     });
-
-    navItem.appendChild(navItemAnchor);
-    navItem.classList.add(menuType);
-    const container = createElement('div', { class: 'nav-nav-item-menu' });
-    const navLogoutBtn = createElement('button', { class: 'nav-logout secondary' });
-    navLogoutBtn.innerHTML = 'LOG OUT';
-    navLogoutBtn.addEventListener('click', async () => {
-      authentication.logout();
+    this.navItemMobile.appendChild(this.navItemMobileAnchor);
+    this.navItemMobile.classList.add(menuType);
+    this.navLogoutBtnMobile.innerHTML = this.logoutLabel;
+    this.navLogoutBtnMobile.addEventListener('click', async () => {
+      authStatus.logout();
     });
-    if (loggedIn) {
-      innerContent = this.login[0].cloneNode(true);
-    } else {
-      innerContent = this.createNoLoggedInItems(this.login[0].cloneNode(true), true);
-    }
-
-    container.appendChild(innerContent);
-
-    if (loggedIn) {
-      container.appendChild(navLogoutBtn);
-    }
-    navItem.appendChild(container);
-    mainNavMobile.appendChild(navItem);
+    this.logInnerContentMobile();
+    this.logOutBtnToContMobile();
+    this.navItemMobile.appendChild(this.innerContainerMobile);
+    mainNavMobile.appendChild(this.navItemMobile);
   };
 
   buildMainNav = async (mainNav, navLinks, menuType) => {
@@ -439,6 +508,21 @@ class Nav {
     });
   };
 
+  getPromoBox = async (menuPromo, desktopMenuContainer) => {
+    const spinnerInNavbar = createElement('div', { class: 'lds-ring spinner-in-navbar' });
+    spinnerInNavbar.innerHTML = `
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    `;
+
+    desktopMenuContainer.append(spinnerInNavbar);
+    const promoBox = await this.decoratePromoBox(menuPromo);
+    spinnerInNavbar.remove();
+    desktopMenuContainer.append(promoBox);
+  };
+
   // eslint-disable-next-line class-methods-use-this
   decoratePromoBox = async (menuPromo) => {
     const promoBox = createElement('div', { class: 'promo-box-subnav' });
@@ -482,9 +566,6 @@ class Nav {
     desktopMenuColumn.append(menuHomeLink);
     desktopMenuColumn.append(container);
 
-    const promoBox = await this.decoratePromoBox(menuPromo);
-    desktopMenuContainer.append(promoBox);
-
     navLink.addEventListener('focus', () => {
       window.addEventListener('keydown', this.toggleOnSpace);
     });
@@ -495,6 +576,9 @@ class Nav {
       e.preventDefault();
       e.stopPropagation();
       this.toggleMenu(navItem);
+      if (!desktopMenuContainer.querySelectorAll('.promo-box-subnav').length > 0) {
+        this.getPromoBox(menuPromo, desktopMenuContainer);
+      }
     });
     return menu;
   };
@@ -596,8 +680,8 @@ async function fetchNav(url) {
 }
 
 export default async function init(blockEl) {
-  // const url = blockEl.getAttribute('data-nav-source') || '/nav';
-  const url = blockEl.getAttribute('data-nav-source') || '/drafts/ramiro/nav';
+  const navMeta = getMetadata('nav');
+  const url = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
   if (url) {
     const html = await fetchNav(url);
     if (html) {

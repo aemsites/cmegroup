@@ -1,6 +1,7 @@
 // import store from 'store';
 import { URIUtil, openHiddenIframe } from '../utils/index.js';
-// import { authLogin, authLogout } from '../actions/authentication';
+import { store } from '../store/store.js';
+import { authLogin, authLogout } from '../actions/auth.js';
 import {
   getIsLoggedIn,
   getLoginData,
@@ -24,8 +25,8 @@ export class Authentication {
       loginPromise: new Promise((resolve, reject) => {
         const dispatchLoginComplete = (fn) => (value) => {
           this.authenticationData.isLoginComplete = true;
-          // dispatch redux
-          // store.dispatch(authLogin(fn !== reject ? value : undefined));
+          // dispatch
+          store.dispatch(authLogin(fn !== reject ? value : undefined));
           return fn(value);
         };
         this.resolveLoginPromise = dispatchLoginComplete(resolve);
@@ -265,8 +266,8 @@ export class Authentication {
         this.setRedirectionCookie('logout');
       }
       Authentication.expireLoginUrlSfCookie();
-      // dispatch redux
-      // store.dispatch(authLogout());
+      // dispatch
+      store.dispatch(authLogout());
       // call handlers
       this.callHandlers('logout');
       // logout from UNO and redirect
