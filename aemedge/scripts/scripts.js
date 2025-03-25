@@ -147,24 +147,6 @@ function buildAutoBlocks(main) {
 function isExternalImage(element) {
   // if the element is not an anchor, it's not an external image
   if (element.tagName !== 'A') return false;
-
-  // EXPLICIT via static text marker
-  // if the element is an anchor with the external image marker as text content,
-  // it's an external image
-  /*
-  if (element.textContent.trim() === externalImageMarker) {
-    return true;
-  }
-  */
-  // IMPLICIT via text matching href
-  // if the element is an anchor with the href as text content and the href has
-  // an image extension, it's an external image
-  /*
-  if (element.textContent.trim() === element.getAttribute('href')) {
-    const ext = getUrlExtension(element.getAttribute('href'));
-    return ext && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext.toLowerCase());
-  }
-  */
   // IMPLICIT via OOTB DMOpenAPI Delivery URLs
   return /delivery-p\d+-e\d+\.adobeaemcloud\.com/.test(element.getAttribute('href'));
 }
@@ -282,9 +264,7 @@ function decorateExternalImages(ele, deliveryMarker) {
  */
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
-  // decorate external images with explicit external image marker
-  // DISABLE EXPLICIT : decorateExternalImages(main, '//External Image//');
-  // decorate external images with implicit external image marker
+  // decorate external images
   decorateExternalImages(main);
   // hopefully forward compatible button decoration
   decorateButtons(main);
