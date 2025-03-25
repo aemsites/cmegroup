@@ -10,7 +10,7 @@
       },
       {
         "id": "asset-library",
-        "title": "My Assets",
+        "title": "Assets",
         "environments": [
             "edit"
         ],
