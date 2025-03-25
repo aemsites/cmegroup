@@ -138,25 +138,6 @@ function buildAutoBlocks(main) {
 }
 
 /**
- * Gets the extension of a URL.
- * @param {string} url The URL
- * @returns {string} The extension
- * @private
- * @example
- * get_url_extension('https://example.com/foo.jpg');
- * // returns 'jpg'
- * get_url_extension('https://example.com/foo.jpg?bar=baz');
- * // returns 'jpg'
- * get_url_extension('https://example.com/foo');
- * // returns ''
- * get_url_extension('https://example.com/foo.jpg#qux');
- * // returns 'jpg'
- */
-function getUrlExtension(url) {
-  return url.split(/[#?]/)[0].split('.').pop().trim();
-}
-
-/**
  * Checks if an element is an external image.
  * @param {Element} element The element
  * @param {string} externalImageMarker The marker for external images
@@ -185,9 +166,7 @@ function isExternalImage(element) {
   }
   */
   // IMPLICIT via OOTB DMOpenAPI Delivery URLs
-  if (/delivery-p\d+-e\d+\.adobeaemcloud\.com/.test(element.getAttribute('href'))) {
-    return true;
-  }
+  return /delivery-p\d+-e\d+\.adobeaemcloud\.com/.test(element.getAttribute('href'));
 }
 
 /*
