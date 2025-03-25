@@ -13,7 +13,7 @@
 /* eslint-disable no-console, class-methods-use-this */
 
 // Import the table detector module
-import { analyzeTablesForImporter } from './table-detector.js';
+// import { analyzeTablesForImporter } from './table-detector.js';
 
 const templateData = {};
 const unique = true;
@@ -151,30 +151,37 @@ async function setMetadata(meta, document, url) {
   }
 
   const jsonUrl = new URL(url).pathname.replace('.html', '/jcr:content.json');
+  // const pathname = new URL(url).pathname;
+  // const jsonUrl = `${DOMAIN}${new URL(url).pathname}/jcr:content.json`;
+
   const jsonResponse = await fetch(jsonUrl);
   if (jsonResponse?.ok) {
-    const jsonData = await jsonResponse.json();
-    Object.keys(jsonData).forEach((key) => {
-      const arr = [];
-      if (key === 'primaryAuthors') {
-        jsonData[key].forEach((author) => {
-          arr.push(author.replace(/^.*:/, ''));
-        });
-        meta.authors = arr.join(',');
-      } else if (key === 'cq:tags') {
-        jsonData[key].forEach((tag) => {
-          arr.push(tag.replace(/^.*:/, ''));
-        });
-        meta.tags = arr.join(',');
-      } else if (key === 'primaryTopics') {
-        meta['Primary Topic'] = [];
-        jsonData[key].forEach((topic) => {
-          arr.push(topic.replace(/^.*:/, ''));
-        });
+    try {
+      const jsonData = await jsonResponse.json();
+      Object.keys(jsonData).forEach((key) => {
+        const arr = [];
+        if (key === 'primaryAuthors') {
+          jsonData[key].forEach((author) => {
+            arr.push(author.replace(/^.*:/, ''));
+          });
+          meta.authors = arr.join(',');
+        } else if (key === 'cq:tags') {
+          jsonData[key].forEach((tag) => {
+            arr.push(tag.replace(/^.*:/, ''));
+          });
+          meta.tags = arr.join(',');
+        } else if (key === 'primaryTopics') {
+          meta['Primary Topic'] = [];
+          jsonData[key].forEach((topic) => {
+            arr.push(topic.replace(/^.*:/, ''));
+          });
 
-        meta['Primary Topic'] = arr.join(',');
-      }
-    });
+          meta['Primary Topic'] = arr.join(',');
+        }
+      });
+    } catch (error) {
+      console.warn(`Failed to parse JSON: ${error.message}`);
+    }
   }
 }
 
@@ -322,14 +329,14 @@ const fetchTable = (document) => {
  * @param {Document} document - The document to search.
  * @returns {object} - Detailed table analysis.
  */
-const analyzeTablesDetailed = (document) => {
-  try {
-    return analyzeTablesForImporter(document);
-  } catch (error) {
-    console.error('Error analyzing tables:', error);
-    return null;
-  }
-};
+// const analyzeTablesDetailed = (document) => {
+//   // try {
+//   //   return analyzeTablesForImporter(document);
+//   // } catch (error) {
+//   //   console.error('Error analyzing tables:', error);
+//   //   return null;
+//   // }
+// };
 
 /**
  * This function checks the inline style of a design box.
@@ -1047,7 +1054,7 @@ const customReportElements = (document) => {
     columns: detectColumns(document),
     assets: getAssetCounts(document),
     iframes: iframeReport(document),
-    'tables-detailed': analyzeTablesDetailed(document),
+    // 'tables-detailed': analyzeTablesDetailed(document),
     fragments: xfContentHeight(document),
   };
 
