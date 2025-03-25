@@ -173,10 +173,9 @@ class TabsManager {
     }
 
     tabData.forEach((tab, index) => {
-      // For desktop view, always select first tab unless there's a matching hash
       const isDesktopSelected = hashMatchesTab ? (tab.id === this.currentHash) : (index === 0);
-      // For mobile view, respect collapseAll setting
-      const isMobileSelected = (hashMatchesTab && tab.id === this.currentHash) || (!hashMatchesTab && index === 0 && !collapseAll);
+      const isMobileSelected = (hashMatchesTab && tab.id === this.currentHash)
+        || (!hashMatchesTab && index === 0 && !collapseAll);
 
       const desktop = TabsManager.createTabElement(tab, {
         prefix: 'desktop',
@@ -245,14 +244,14 @@ class TabsManager {
 
     Object.entries(desktopButtons).forEach(([id, button]) => {
       button.addEventListener('click', () => {
-        this.updateTabState(id, {
+        TabsManager.updateTabState(id, {
           desktopTabsList,
           desktopContent,
           desktopButtons,
           desktopPanels,
           mobileButtons,
           mobilePanels,
-          updateUrl: true
+          updateUrl: true,
         });
       });
     });
@@ -270,14 +269,14 @@ class TabsManager {
           });
 
           if (!isExpanded) {
-            this.updateTabState(id, {
+            TabsManager.updateTabState(id, {
               desktopTabsList,
               desktopContent,
               desktopButtons,
               desktopPanels,
               mobileButtons,
               mobilePanels,
-              updateUrl: true
+              updateUrl: true,
             });
           }
         });
@@ -285,38 +284,51 @@ class TabsManager {
     }
 
     if (this.currentHash && desktopButtons[this.currentHash]) {
-      this.updateTabState(this.currentHash, {
+      TabsManager.updateTabState(this.currentHash, {
         desktopTabsList,
         desktopContent,
         desktopButtons,
         desktopPanels,
         mobileButtons,
         mobilePanels,
-        updateUrl: true
+        updateUrl: true,
       });
     } else if (Object.keys(desktopButtons).length > 0 && !collapseAll) {
       const firstId = Object.keys(desktopButtons)[0];
-      this.updateTabState(firstId, {
+      TabsManager.updateTabState(firstId, {
         desktopTabsList,
         desktopContent,
         desktopButtons,
         desktopPanels,
         mobileButtons,
         mobilePanels,
-        updateUrl: false
+        updateUrl: false,
       });
     }
   }
 
-  updateTabState(id, {
+  /**
+   * Updates the state of tabs and panels when a tab is selected
+   * @param {string} id - ID of the selected tab
+   * @param {Object} params - Object containing UI elements and update configuration
+   * @param {HTMLElement} params.desktopTabsList - Container for desktop tabs
+   * @param {HTMLElement} params.desktopContent - Container for desktop content
+   * @param {Object} params.desktopButtons - Map of tab IDs to desktop button elements
+   * @param {Object} params.desktopPanels - Map of tab IDs to desktop panel elements
+   * @param {Object} params.mobileButtons - Map of tab IDs to mobile button elements
+   * @param {Object} params.mobilePanels - Map of tab IDs to mobile panel elements
+   * @param {boolean} params.updateUrl - Whether to update the URL hash
+   */
+  static updateTabState(id, {
     desktopTabsList,
     desktopContent,
     desktopButtons,
     desktopPanels,
     mobileButtons,
     mobilePanels,
-    updateUrl
+    updateUrl,
   }) {
+    // Update desktop state
     desktopTabsList.querySelectorAll('button').forEach((btn) => {
       btn.setAttribute('aria-selected', btn === desktopButtons[id]);
     });
@@ -325,6 +337,7 @@ class TabsManager {
       panel.setAttribute('aria-hidden', panel !== desktopPanels[id]);
     });
 
+    // Update mobile state if it exists
     if (mobileButtons && mobileButtons[id]) {
       Object.values(mobileButtons).forEach((btn) => {
         btn.setAttribute('aria-expanded', 'false');
@@ -337,6 +350,7 @@ class TabsManager {
       mobilePanels[id].hidden = false;
     }
 
+    // Update URL only if specified
     if (updateUrl) {
       window.history.pushState({}, '', `${new URL(window.location).pathname}#${id}`);
     }
