@@ -91,6 +91,8 @@ function populateStyleMatrix(data, blockClassList, header = false) {
     numberOfColumns,
     numberOfRows,
   );
+
+  console.log('hasRegexStyle', hasRegexStyle);
   if (!hasRegexStyle) {
     setDefaultStyles(styleMatrix, data, header);
   }
