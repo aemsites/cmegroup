@@ -37,10 +37,23 @@
   color: #5a6874;
 }
 
+.table tbody tr:nth-child(2n) {
+  background-color: #F1F5F7;
+}
+
 .table.compact table tbody tr {
   padding: 10px;
   font-size: 12px;
   line-height: 18px;
+}
+
+.table table th p,
+.table table td p {
+  margin: 0;
+}
+
+.table table td p + p {
+  margin-top: 0.25em;
 }
 
 .table table tbody tr td p {
@@ -78,6 +91,7 @@
   color: #c2cace;
   text-transform: uppercase;
   text-align: center;
+  
   /* text-align: left (for header columns) */
   vertical-align: middle;
 }
@@ -120,21 +134,8 @@
   border: 1px solid #dadada;
 }
 
-.table table th p,
-.table table td p {
-  margin: 0;
-}
-
-.table table td p + p {
-  margin-top: 0.25em;
-}
-
 .table.no-header table tbody tr {
   border-top: 1px solid #dadada;
-}
-
-.table tbody tr:nth-child(2n) {
-  background-color: #F1F5F7;
 }
 
 .table.collapsible {

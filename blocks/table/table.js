@@ -85,7 +85,12 @@ function populateStyleMatrix(data, blockClassList, header = false) {
   const numberOfColumns = styleMatrix[0].length;
 
   // Parse block class list for styles
-  const hasRegexStyle = parseRegexStyles(styleMatrix, blockClassList, numberOfColumns, numberOfRows);
+  const hasRegexStyle = parseRegexStyles(
+    styleMatrix,
+    blockClassList,
+    numberOfColumns,
+    numberOfRows,
+  );
   if (!hasRegexStyle) {
     setDefaultStyles(styleMatrix, data, header);
   }
