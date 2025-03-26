@@ -73,40 +73,6 @@ function fetchTranslations() {
 }
 
 /**
- * Econoday Event
- */
-const eventDataEndpoint = '/aemedge/templates/event/event.json'; // TODO: refer the endpoint
-let eventDataPromise = null;
-
-function getFeedId() {
-  const url = window.location.pathname;
-  const segments = url.split('/').filter(Boolean);
-  const lastSegment = segments[segments.length - 1];
-  return lastSegment === 'econoday' ? '' : lastSegment || null;
-}
-
-function fetchEventData() {
-  if (!eventDataPromise) {
-    eventDataPromise = new Promise((resolve, reject) => {
-      (async () => {
-        try {
-          const response = await fetch(`${eventDataEndpoint}?feedId=${getFeedId()}`);
-          if (!response.ok) {
-            window.location.replace('/404');
-            reject();
-          }
-          const eventDataJson = await response.json();
-          resolve(eventDataJson);
-        } catch (e) {
-          reject(e);
-        }
-      })();
-    });
-  }
-  return eventDataPromise;
-}
-
-/**
  * Creates a new HTML element
  */
 function createElement(tagName, attributes, ...children) {
@@ -146,14 +112,6 @@ function getTag(tagFullName) {
  */
 function i18n(key) {
   return fetchTranslations().then((translations) => translations[key] || key);
-}
-
-/**
- * Returns the econoday event data based on the ID of the url
- * @returns {Promise} Object containing the event data
- */
-function getEventData() {
-  return fetchEventData();
 }
 
 /**
@@ -274,6 +232,5 @@ export {
   getTag,
   i18n,
   getPageTags,
-  getEventData,
   formatToCentralTime,
 };

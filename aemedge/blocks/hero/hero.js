@@ -4,7 +4,6 @@ import {
   getArticleRelatedMetadata,
   i18n,
   getTag,
-  getEventData,
   formatToCentralTime,
 } from '../../scripts/utils.js';
 
@@ -96,11 +95,12 @@ async function decorateEventPageHero(block) {
   block.append(contentWrapper);
 
   // Dynamic section
+  const { default: getEventData } = await import('../../scripts/utilities/events.js');
   const primaryTopic = getMetadata('primary-topic');
   const [
     {
       title: pageTitle,
-      date,
+      effectiveDate,
     },
     {
       title: primaryTopicTitle,
@@ -113,7 +113,7 @@ async function decorateEventPageHero(block) {
   ]);
   featuredTag.textContent = primaryTopicTitle;
   h1.textContent = pageTitle;
-  const dateTag = createElement('div', { class: 'economic-release-data-date-value' }, formatToCentralTime(date));
+  const dateTag = createElement('div', { class: 'economic-release-data-date-value' }, formatToCentralTime(effectiveDate));
   dateWrapper.textContent = `${dateLabel}: `;
   dateWrapper.append(dateTag);
 }
