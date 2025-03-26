@@ -94,6 +94,7 @@
   flex-basis: 100%;
   order: 1;
   margin-top: 1rem;
+  text-transform: uppercase;
 }
 
 .hero.article .row > *:first-child {

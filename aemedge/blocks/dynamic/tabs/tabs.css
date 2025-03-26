@@ -1,0 +1,211 @@
+.section.tabs {
+  margin: 1rem 0;
+  background: transparent;
+}
+
+.tabs .tabs-wrapper {
+  width: 100%;
+}
+
+.tabs.full-width {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  padding: 0;
+}
+
+.section.tabs.full-width .desktop-content {
+  max-width: 100%;
+  width: 100%;
+  background-color: white;
+}
+
+.tabs .tab[role="tabpanel"] {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  width: 100%;
+}
+
+.tabs .tab[role="tabpanel"][aria-hidden="false"] {
+  display: block;
+  opacity: 1;
+}
+
+.tabs .tab .section {
+  margin-block: 0;
+  margin-inline: auto;
+}
+
+.tabs .mobile-accordion {
+  display: block;
+  width: 100%;
+  border-bottom: none;
+}
+
+.tabs .mobile-accordion button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0.0625rem solid var(--gray4);
+  border-radius: 0;
+  margin-bottom: 0;
+  padding: 0.75rem 1rem;
+  background-color: var(--gray6);
+  position: relative;
+  color: var(--gray3);
+  font-weight: 600;
+  line-height: 1rem;
+  letter-spacing: .09375rem;
+  font-family: var(--heading-font-family);
+  font-size: .875rem;
+}
+
+.tabs .mobile-accordion button::after {
+  content: '+';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+}
+
+.tabs .mobile-accordion button[aria-expanded='true']::after {
+  content: '−';
+}
+
+.tabs .mobile-accordion button[aria-expanded='true'] {
+  color: var(--blue2);
+}
+
+.tabs .mobile-accordion .tab {
+  margin-bottom: 0.75rem;
+  padding-inline: 1rem;
+  background-color: var(--white);
+  width: 100%;
+  transition: opacity 0.3s ease;
+}
+
+.tabs .mobile-accordion .tab[hidden] {
+  display: none;
+}
+
+.tabs.collapse-all .mobile-accordion .tab {
+  display: none;
+}
+
+.tabs.collapse-all .mobile-accordion button[aria-expanded="true"] + .tab {
+  display: block;
+}
+
+.tabs .desktop-tabs {
+  display: none;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 0;
+  max-width: 100%;
+  border-bottom: 0.2rem solid var(--gray5);
+  margin-bottom: 0;
+  background: transparent;
+  width: 100%;
+}
+
+.tabs .desktop-content {
+  display: none;
+}
+
+.tabs:not(.collapsible-sm):not(.collapsible-md) .desktop-tabs {
+  display: flex !important;
+}
+
+.tabs:not(.collapsible-sm):not(.collapsible-md) .desktop-content {
+  display: block !important;
+}
+
+.tabs:not(.collapsible-sm):not(.collapsible-md) .mobile-accordion {
+  display: none !important;
+}
+
+.tabs .desktop-tabs button {
+  flex: 0 1 auto;
+  min-width: min-content;
+  border: none;
+  margin: 0;
+  padding: .6875rem 1rem 1.25rem;
+  background: transparent;
+  color: var(--gray3);
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+  cursor: pointer;
+  box-shadow: none;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  letter-spacing: .09375rem;
+  font-family: Averta, "Helvetica Neue", arial, sans-serif;
+  font-size: .875rem;
+}
+
+.tabs .desktop-tabs button[aria-selected='true'] {
+  background-color: var(--white);
+  position: relative;
+  color: var(--blue2);
+}
+
+.tabs .desktop-tabs button[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  bottom: -0.2rem;
+  left: 0;
+  width: 100%;
+  height: 0.2rem;
+  background-color: var(--blue-9);
+}
+
+.tabs .desktop-content {
+  position: relative;
+  background: var(--white);
+  padding: 1.25rem 0;
+  margin-top: 0;
+}
+
+@media (width >= 768px) {
+  .tabs.collapsible-sm .mobile-accordion {
+    display: none;
+  }
+
+  .tabs.collapsible-sm .desktop-tabs {
+    display: flex;
+  }
+
+  .tabs.collapsible-sm .desktop-content {
+    display: block;
+  }
+}
+
+@media (width >= 992px) {
+  .tabs.collapsible-md .mobile-accordion {
+    display: none;
+  }
+
+  .tabs.collapsible-md .desktop-tabs {
+    display: flex;
+  }
+
+  .tabs.collapsible-md .desktop-content {
+    display: block;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

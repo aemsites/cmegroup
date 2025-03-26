@@ -6,7 +6,7 @@ import ffetch from './ffetch.js';
  * Language
  */
 function getCurrentLang() {
-  return 'en'; // TODO: Add logic
+  return getMetadata('locale');
 }
 
 function getDefaultLang() {
@@ -16,7 +16,7 @@ function getDefaultLang() {
 /**
  * Taxonomy
  */
-const taxonomyEndpoint = '/config/sidekick/taxonomy.json?sheet=tags';
+const taxonomyEndpoint = '/eds-config/taxonomy.json?sheet=tags';
 let taxonomyPromise = null;
 
 function fetchTaxonomy() {
@@ -31,7 +31,7 @@ function fetchTaxonomy() {
           taxonomyJson.forEach((row) => {
             taxonomy[row.tag] = {
               tag: row.tag,
-              title: row[currentLang] && row[defaultLang],
+              title: row[currentLang] || row[defaultLang],
             };
           });
           resolve(taxonomy);
@@ -42,6 +42,34 @@ function fetchTaxonomy() {
     });
   }
   return taxonomyPromise;
+}
+
+/**
+ * Translations
+ */
+const translationsEndpoint = '/eds-config/translations.json';
+let translationsPromise = null;
+
+function fetchTranslations() {
+  if (!translationsPromise) {
+    translationsPromise = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const currentLang = getCurrentLang();
+          const defaultLang = getDefaultLang();
+          const translationsJson = await ffetch(`${translationsEndpoint}?sheet=${currentLang || defaultLang}`).all();
+          const translations = {};
+          translationsJson.forEach((row) => {
+            translations[row.k] = row.v;
+          });
+          resolve(translations);
+        } catch (e) {
+          reject(e);
+        }
+      })();
+    });
+  }
+  return translationsPromise;
 }
 
 /**
@@ -78,6 +106,15 @@ function getTag(tagFullName) {
 }
 
 /**
+ * Returns the tag information from a tagname
+ * @param {string} label to translate
+ * @returns {Promise} Object containing the value of the translation or the key if not present
+ */
+function i18n(key) {
+  return fetchTranslations().then((translations) => translations[key] || key);
+}
+
+/**
  * Retrieves article-related metadata from the page
  * @returns {Object} Object containing article metadata
  * @property {string} template - The template type
@@ -102,6 +139,24 @@ async function getArticleRelatedMetadata() {
     primaryTopic: primaryTopicTag.title,
     date,
   };
+}
+
+/**
+ * Retrieves tags from the page
+ * @returns {Object} Object containing article metadata
+ */
+async function getPageTags() {
+  const metadataTags = getMetadata('article:tag');
+  const mapTag = async (tagName) => {
+    const finalName = tagName.trim();
+    const tag = await getTag(finalName);
+    return {
+      name: finalName,
+      title: tag ? tag.title : '',
+    };
+  };
+  const tags = await Promise.all(metadataTags.split(',').map(mapTag));
+  return tags;
 }
 
 /**
@@ -151,4 +206,7 @@ export {
   addDividerLine,
   parseTime,
   formatDate,
+  getTag,
+  i18n,
+  getPageTags,
 };
