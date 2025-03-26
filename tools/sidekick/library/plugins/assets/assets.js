@@ -31,8 +31,6 @@ export async function decorateAssetsPlugin(container) {
         copyBuffer.select();
         document.execCommand('copy');
 
-        alert(`Copied Asset:\n\n${assets.join('\n')}`);
-
         console.log('Copied production assets to clipboard:', assets);
       }
     } catch (error) {
