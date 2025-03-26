@@ -6,6 +6,16 @@
   <script type="text/javascript">
     window.isErrorPage = true;
     window.errorCode = '404';
+    window.addEventListener('DOMContentLoaded', () => {
+      // Select all anchor tags
+      const links = document.querySelectorAll('a');
+      // Iterate over each link and remove the title attribute
+      links.forEach(link => {
+        if (link.hasAttribute('title')) {
+          link.removeAttribute('title');
+        }
+      });
+    });
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta property="og:title" content="Page not found">
@@ -32,19 +42,217 @@
   </script>
   <link rel="stylesheet" href="/aemedge/styles/styles.css">
   <style>
+    header {
+      display: none;
+    }
+    
     main.error {
       min-height: calc(100vh - var(--nav-height));
       display: flex;
+      flex-direction: column;
       align-items: center;
     }
 
-    main.error .error-number {
+    main.error .section {
       width: 100%;
+      margin-top: 0;
     }
 
-    main.error .error-number text {
-      font-family: monospace;
+    main.error ul {
+      margin-bottom: 0;
     }
+
+    main.error .introText {
+      font-size: 18px;
+    }
+
+    main.error p, 
+    main.error li {
+      font-size: 14px;
+      margin-bottom: 0 !important;
+    }
+
+    main.error button {
+      background-color: #006EB6;
+      color: #fff;
+    }
+
+    main.error form {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    main.error form input[type="text"] {
+      width: 100%;
+      padding: 5px;
+      font-size: 14px;
+      margin-right: 1%;
+    }
+
+    main.error form button {
+      flex-shrink: 0;
+      padding: 13px;
+    }
+
+    main.error .cards div > ul {
+      display: flex;
+      flex-direction: column;
+      width: 100%;  
+    }
+
+    main.error .cards div > ul > li {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    main.error .cards-card-image {
+      flex: 1;
+      margin-right: 10px;
+    }
+
+    main.error .cards-card-body {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    main.error .cards img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: unset;
+      object-fit: cover;
+    }
+
+    main.error .cards div > ul > li {
+      border: none;
+    }
+
+    main.error .cards-card-image {
+      position: relative;
+    }
+
+    main.error .cards img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 3/2;
+      vertical-align: middle;
+      object-fit: contain;
+    }
+
+    main.error .cards .cards-card-body {
+      margin: 0;
+    }
+
+    main.error .cards h3, 
+    main.error .cards p {
+      margin: 0;
+    }
+
+    main.error .cards h3 a {
+      text-decoration: none;
+      color: #006EB6;
+      font-size: 16px;
+    }
+
+    main.error .cards-card-image-overlay {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      width: 70%;
+      align-items: left;
+    }
+
+    main.error .cards-card-image-overlay span {
+      display: block;
+      width: 100%;
+      word-wrap: break-word;
+      color: #fff;
+      padding: 16px 8px;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    main.error .triangle-arrow {
+      position: absolute;
+      width: 25px;
+      height: 25px;
+      bottom: 3px;
+      right: 0;
+    }
+
+    main.error .triangle-arrow img {
+      width: 25px;
+      height: 25px;
+      z-index: 1;
+    }
+
+    @media(width >= 600px) {
+      main.error .introText {
+        font-size: 20px;
+      }
+
+      main.error .cards div > ul {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-gap: 20px;
+      }
+
+      main.error .cards div > ul > li {
+        flex-direction: column;
+      }
+
+      main.error .cards-card-image {
+        display: block;
+        margin-right: 0;
+      }
+
+      main.error .cards-card-body {
+        flex: unset;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
+      main.error .cards-card-image-overlay {
+        bottom: 20px;
+      }
+
+      main.error .cards-card-image-overlay span {
+        font-size: 15px;
+      }
+
+      main.error .triangle-arrow {
+        width: 45px;
+        height: 45px;
+        bottom: 3px;
+      }
+
+      main.error .triangle-arrow img {
+        width: 45px;
+        height: 45px;
+      }
+    }
+
+    @media (width >= 992px) {
+      main.error .section {
+        max-width: 992px;
+        margin: 0 auto;
+      }
+    }
+
+    @media (width >= 1200px) {
+      main.error .section {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+    }
+
   </style>
   <link rel="stylesheet" href="/aemedge/styles/lazy-styles.css">
 </head>
@@ -53,84 +261,104 @@
   <header></header>
   <main class="error">
     <div class="section">
-      <div class="default-content-wrapper">
-        <h1>Sorry...</h1>
-        <p>The page you are looking for cannot be found.</p>
+        <h2>Sorry...</h2>
+        <p><span class="introText">The page you are looking for cannot be found.</span></p>
         <p>You may have typed in the wrong address, or the page may no longer exist.</p>
-        <h2>What next?</h2>
+        <h3>What next?</h3>
         <ul>
           <li>Go back to the previous page</li>
-          <li>Go to the CME Group <a href="http://www.cmegroup.com">home page</a></li>
+          <li>Go to the CME Group <a href="https://www.cmegroup.com">home page</a></li>
           <li>Consider using the CME Group site navigation above or the search box below to find the page that you want on our site.</li>
         </ul>
-      </div>
     </div>
 
-    <div class="section" style="margin-top:40px">
+    <div class="section search-container">
       <form action="/search/index.html">
-        <input type="text" name="q" placeholder="Search CME Group" style="width: 70%; padding: 5px; float:left;font-size: 14px; margin-right: 1%;">
+        <input type="text" name="q" placeholder="Search CME Group" style="width: 100%; padding: 5px; font-size: 14px; margin-right: 1%;">
         <button type="submit">Search</button>
       </form>
     </div>
 
-    <div class="section">
-        <h2>Useful Links</h2>
-    </div>
-
-    <div class="section cards-container" >
-      <div class="cards-wrapper">
+    <div class="section cards-container">
+      <h3>Useful Links</h3>
+      <div class="cards">
+        <div>
         <ul>
           <li>
-            <div class="cards-card-image">
-              <picture>
-                <source srcset="/images/leading-products_459x293.avif" type="image/jpeg">
-                <img src="/images/leading-products_459x293.avif" alt="Leading Products">
-              </picture>
-            </div>
-            <div class="cards-card-body">
-              <!-- <p>Product Slate</p> -->
-              <h3>
-                <a href="/markets/products.html" rel="internal">
-                  View All Products
+              <div class="cards-card-image">
+                <a href="https://www.cmegroup.com/markets/products.html" rel="external">  
+                  <picture>
+                    <source srcset="/images/leading-products_459x293.avif" type="image/jpeg">
+                    <img src="/images/leading-products_459x293.avif" alt="Leading Products">
+                  </picture>
                 </a>
-              </h3>
-              <p>View all available products to see quotes, volume, settlements and time & sales.</p>
-            </div>
+                <div class="cards-card-image-overlay">
+                  <span>Product Slate</span>
+                </div>
+                <div class="triangle-arrow">
+                  <img src="/images/fpl-corner-arrow.webp" alt="Read More">
+                </div>
+              </div>
+              <div class="cards-card-body">
+                <h3>
+                  <a href="https://www.cmegroup.com/markets/products.html" rel="external">
+                    View All Products
+                  </a>
+                </h3>
+                <p>View all available products to see quotes, volume, settlements and time & sales.</p>
+              </div>
           </li>
           <li>
-            <div class="cards-card-image">
-              <picture>
-                <source srcset="/images/market-research-459x293.avif" type="image/jpeg">
-                <img src="/images/market-research-459x293.avif" alt="Market Research">
-              </picture>
-            </div>
-            <div class="cards-card-body">
-              <h3>
-                <a href="/markets/products.html" rel="internal">
-                  View All Articles
+              <div class="cards-card-image">
+                <a href="https://www.cmegroup.com/markets/products.html" rel="external">
+                  <picture>
+                    <source srcset="/images/market-research-459x293.avif" type="image/jpeg">
+                    <img src="/images/market-research-459x293.avif" alt="Market Research">
+                  </picture>
                 </a>
-              </h3>
-              <p>View our extensive library of articles and economic research reports.</p>
-            </div>
+                <div class="cards-card-image-overlay">
+                  <span>Reports & Information</span>
+                </div>
+                <div class="triangle-arrow">
+                  <img src="/images/fpl-corner-arrow.webp" alt="Read More">
+                </div>
+              </div>
+              <div class="cards-card-body">
+                <h3>
+                  <a href="https://www.cmegroup.com/markets/products.html" rel="external">
+                    View All Articles
+                  </a>
+                </h3>
+                <p>View our extensive library of articles and economic research reports.</p>
+              </div>
           </li>
           <li>
-            <div class="cards-card-image">
-              <picture>
-                <source srcset="/images/bnr-technology-459x293.avif" type="image/jpeg">  
-                <img src="/images/bnr-technology-459x293.avif" alt="Technology">
-              </picture>
-            </div>
-            <div class="cards-card-body">
-              <h3>
-                <a href="/trading/market-tech-and-data-services.html" rel="internal">
-                  Market Technology Services
+              <div class="cards-card-image">
+                <a href="https://www.cmegroup.com/trading/market-tech-and-data-services.html" rel="external">
+                  <picture>
+                    <source srcset="/images/bnr-technology-459x293.avif" type="image/jpeg">  
+                    <img src="/images/bnr-technology-459x293.avif" alt="Technology">
+                  </picture>
                 </a>
-              </h3>
-              <p>Learn about our comprehensive portfolio of technology offerings.</p>
-            </div>
+                <div class="cards-card-image-overlay">
+                  <span>Technology</span>
+                </div>
+                <div class="triangle-arrow">
+                  <img src="/images/fpl-corner-arrow.webp" alt="Read More">
+                </div>
+              </div>
+              <div class="cards-card-body">
+                <h3>
+                  <a href="https://www.cmegroup.com/trading/market-tech-and-data-services.html" rel="external">
+                    Market Technology Services
+                  </a>
+                </h3>
+                <p>Learn about our comprehensive portfolio of technology offerings.</p>
+              </div>
           </li>
         </ul>
       </div>
+    </div>
     </div>
   </main>
   <footer></footer>
