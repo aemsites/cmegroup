@@ -1,0 +1,95 @@
+body.modal-open {
+  overflow: hidden;
+}
+
+.modal dialog::backdrop {
+  background-color: rgb(19 19 19 / 75%);
+}
+
+.modal dialog {
+  overscroll-behavior: none;
+  overflow-y: hidden;
+  position: relative;
+  width: calc(100vw - 3rem);
+  max-width: 56.25rem;
+  max-height: calc(100dvh - (2 * var(--header-height)));
+  padding: 0;
+  border: 0.0625rem solid var(--dark-color);
+}
+
+.modal dialog:has(.form.feedback) {
+  max-width: 80%;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.modal dialog .modal-content {
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  width: 100%;
+  max-height: calc(100dvh - (2 * var(--header-height)) - 3rem);
+  padding: 1.5rem;
+  padding-top: 0;
+  margin-top: 2.75rem;
+}
+
+.modal dialog .modal-content:has(.form.feedback) {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+@media (width > 550px) {
+  .modal dialog:has(.form.feedback) {
+    max-width: 30rem;
+  }
+}
+
+@media (width > 768px) {
+  .modal dialog:has(.form.feedback) {
+    max-width: 38rem;
+  }
+}
+
+@media (width >= 900px) {
+  .modal dialog {
+    width: calc(100vw - 4rem);
+  }
+  
+  .modal dialog .modal-content {
+    max-height: calc(100dvh - (2 * var(--header-height)) - 4rem);
+    padding: 2rem;
+    padding-top: 0;
+  }
+}
+
+.modal .close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background-color: transparent;
+  color: var(--black);
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.modal .close-button:hover {
+  color: var(--text-color);
+}
+
+.modal .close-button::before {
+  content: "×";
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+.modal dialog .section {
+  padding: 0;
+}
