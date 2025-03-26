@@ -200,6 +200,17 @@ function formatDate(dateString) {
   return `${day} ${month}`;
 }
 
+function getEnvType() {
+  const prodEnvs = [
+    'cmegroup.com',
+    'www.cmegroup.com',
+    'main--cmegroup--aemsites.aem.page',
+    'main--cmegroup--aemsites.hlx.live',
+  ];
+  const type = prodEnvs.includes(window.location.hostname) ? 'prod' : 'stage';
+  return type;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -209,4 +220,5 @@ export {
   getTag,
   i18n,
   getPageTags,
+  getEnvType,
 };
