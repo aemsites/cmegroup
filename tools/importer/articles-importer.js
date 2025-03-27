@@ -144,6 +144,8 @@ async function setMetadata(meta, document, url) {
     readTime.remove();
   }
 
+  document.querySelector('.authors')?.remove();
+
   const articleDate = document.querySelector('.article-date');
   if (articleDate?.textContent) {
     meta.Date = articleDate?.textContent?.trim();
@@ -164,7 +166,7 @@ async function setMetadata(meta, document, url) {
           jsonData[key].forEach((author) => {
             arr.push(author.replace(/^.*:/, ''));
           });
-          meta.authors = arr.join(',');
+          meta.Author = arr.join(',');
         } else if (key === 'cq:tags') {
           jsonData[key].forEach((tag) => {
             arr.push(tag.replace(/^.*:/, ''));
@@ -893,44 +895,6 @@ const iframeReport = (document) => {
   return modifyMap(map, 'iframes');
 };
 
-const quizBlock = (document) => {
-  const quizzes = document.querySelectorAll('.quiz');
-  if (quizzes) {
-    quizzes.forEach((quiz) => {
-      const cells = [['Quiz']];
-      const questionText = quiz.querySelector('.question-text');
-      if (questionText) {
-        cells.push(['Question', questionText.innerText]);
-      }
-      cells.push(['Options']);
-
-      const options = quiz.querySelectorAll('.option-item');
-      options.forEach((option) => {
-        const optionText = option.querySelector('.option-text');
-        if (optionText) {
-          cells.push([optionText.innerText]);
-        }
-      });
-
-      const answersItems = quiz.querySelector('.quiz-item')?.getAttribute('data-answers-items');
-      if (answersItems) {
-        const answersItemsJson = JSON.parse(answersItems);
-        answersItemsJson.forEach((answer, index) => {
-          if (answer.correctAnswer) {
-            cells.push(['Correct Answer', index + 1]);
-            if (answer.answerSnip) {
-              cells.push(['Answer Text', answer.answerSnip]);
-            }
-          }
-        });
-      }
-
-      const table = WebImporter.DOMUtils.createTable(cells, document);
-      quiz.replaceWith(table);
-    });
-  }
-};
-
 /**
  * This function creates a xf-content-height block for the document.
  * @param {Document} document - The document to search.
@@ -1218,7 +1182,82 @@ const customReportElements = (document) => {
   return report;
 };
 
-const customBlocks = (document, main) => {
+const quizBlock = (document) => {
+  const quizzes = document.querySelectorAll('.quiz');
+  if (quizzes) {
+    quizzes.forEach((quiz) => {
+      const cells = [['Quiz']];
+      const questionText = quiz.querySelector('.question-text');
+      if (questionText) {
+        cells.push(['Question', questionText.innerText]);
+      }
+      cells.push(['Options']);
+
+      const options = quiz.querySelectorAll('.option-item');
+      options.forEach((option) => {
+        const optionText = option.querySelector('.option-text');
+        if (optionText) {
+          cells.push([optionText.innerText]);
+        }
+      });
+
+      const answersItems = quiz.querySelector('.quiz-item')?.getAttribute('data-answers-items');
+      if (answersItems) {
+        const answersItemsJson = JSON.parse(answersItems);
+        answersItemsJson.forEach((answer, index) => {
+          if (answer.correctAnswer) {
+            cells.push(['Correct Answer', index + 1]);
+            if (answer.answerSnip) {
+              cells.push(['Answer Text', answer.answerSnip]);
+            }
+          }
+        });
+      }
+
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      quiz.replaceWith(table);
+    });
+  }
+};
+
+const faqBlock = (document, meta) => {
+  if (meta['Sub Template'] === 'faqs') {
+    const components = document.querySelectorAll('.component');
+    const cells = [['FAQ (Ordered)']];
+    let componentIndex = 0;
+
+    const olList = document.querySelectorAll('ol li');
+    document.querySelector('ol')?.remove();
+
+    for (let i = 0; i < components.length; i += 1) {
+      const component = components[i];
+      const h2s = component.querySelectorAll('h2');
+
+      if (h2s?.length) {
+        for (let j = 0; j < h2s.length; j += 1) {
+          const h2 = h2s[j];
+          const h2ParentSibling = h2?.parentElement?.nextElementSibling?.querySelector('.text').innerHTML;
+          if (h2ParentSibling) {
+            const newH2 = document.createElement('h2');
+            newH2.textContent = olList[j].textContent;
+            cells.push([newH2, h2ParentSibling]);
+          }
+        }
+
+        componentIndex = i;
+        break;
+      }
+    }
+
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    // Only replace the first component after we've found our h2s
+    if (componentIndex) {
+      components[componentIndex].replaceWith(table);
+    }
+  }
+};
+
+const customBlocks = (document, main, meta) => {
   convertSectionsToMetadata(document, main);
   articleHeroBlock(document);
   dividerBlock(document);
@@ -1226,6 +1265,7 @@ const customBlocks = (document, main) => {
   authorBioBlock(document);
   figCaptionEmphasize(document);
   quizBlock(document);
+  faqBlock(document, meta);
 };
 
 export default {
@@ -1274,6 +1314,8 @@ export default {
       '#onetrust-consent-sdk',
       '.grecaptcha-badge',
       '.content-reference',
+      '.save-text',
+      '.article-featured-tag',
     ]);
 
     const results = [];
@@ -1285,7 +1327,7 @@ export default {
     const mdb = WebImporter.Blocks.getMetadataBlock(document, meta);
     main.append(mdb);
 
-    customBlocks(document, main);
+    customBlocks(document, main, meta);
 
     let p = new URL(url).pathname;
     if (p.endsWith('/')) {
