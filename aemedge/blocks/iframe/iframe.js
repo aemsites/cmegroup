@@ -20,7 +20,11 @@ export default async function decorate(block) {
   }
   // Exit early if URL is not in allowlist
   if (!link || !isAllowedUrl(link)) {
-    console.warn(`WARNING: Iframe source ${link} is not in allowed hosts list`);
+    block.classList.add('iframe-warning');
+    const warningText = document.createElement('div');
+    warningText.classList.add('iframe-warning-message');
+    warningText.textContent = 'Warning: Iframe source is not in allowed hosts list';
+    block.appendChild(warningText);
     return;
   }
 
