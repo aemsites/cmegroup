@@ -1,2 +1,4 @@
 helix-importer-ui
-/aemedge/blocks/podcast/external/*
+# Ignore all files in external directories
+**/external/**
+**/build/**

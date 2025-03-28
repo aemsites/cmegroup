@@ -650,3 +650,51 @@ main .section .layout > div {
     }
 
 }
+
+/* Loading overlay animation */
+@keyframes loading {
+  0% {
+    transform: rotate(0deg);
+  }
+  
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Full screen overlay for animation */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 30%);
+  display: none;
+  z-index: 1000;
+}
+
+/* Loading spinner */
+body::before {
+  content: '';
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border: 3px solid var(--blue4);
+  border-top-color: transparent;
+  border-radius: 50%;
+  display: none;
+  z-index: 1001;
+}
+
+/* Show overlay and spinner when loading */
+body.loading::after,
+body.loading::before {
+  display: block;
+}
+
+/* Add animation only to the spinner */
+body.loading::before {
+  animation: loading 0.75s linear infinite;
+}

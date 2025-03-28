@@ -1,0 +1,88 @@
+/* Base form grid layout */
+.form.grid form {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Default field takes full width */
+.form.grid .field-wrapper {
+  grid-column: span 12;
+  min-width: 0; /* Prevent overflow */
+}
+
+.form.grid fieldset {
+  display: flex;
+}
+
+/* Fix for inputs to stay within grid boundaries */
+.form.grid .field-wrapper input,
+.form.grid .field-wrapper select,
+.form.grid .field-wrapper textarea,
+/* stylelint-disable-next-line selector-class-pattern */
+.form.grid .field-wrapper .choices__inner {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.form.grid .field-wrapper.custom-align-left {
+  justify-self: start;
+}
+
+.form.grid .field-wrapper.custom-align-right {
+  justify-self: end;
+}
+
+/* Small screen columns */
+@media (width >= 481px) {
+  .form.grid .field-wrapper.col-sm-1 { grid-column: span 1; }
+  .form.grid .field-wrapper.col-sm-2 { grid-column: span 2; }
+  .form.grid .field-wrapper.col-sm-3 { grid-column: span 3; }
+  .form.grid .field-wrapper.col-sm-4 { grid-column: span 4; }
+  .form.grid .field-wrapper.col-sm-5 { grid-column: span 5; }
+  .form.grid .field-wrapper.col-sm-6 { grid-column: span 6; }
+  .form.grid .field-wrapper.col-sm-7 { grid-column: span 7; }
+  .form.grid .field-wrapper.col-sm-8 { grid-column: span 8; }
+  .form.grid .field-wrapper.col-sm-9 { grid-column: span 9; }
+  .form.grid .field-wrapper.col-sm-10 { grid-column: span 10; }
+  .form.grid .field-wrapper.col-sm-11 { grid-column: span 11; }
+  .form.grid .field-wrapper.col-sm-12 { grid-column: span 12; }
+}
+
+/* Medium screen columns */
+@media (width >= 769px) {
+  .form.grid form {
+    column-gap: 1.875rem; /* Increased gap for larger screens */
+  }
+  
+  .form.grid .field-wrapper.col-md-1 { grid-column: span 1; }
+  .form.grid .field-wrapper.col-md-2 { grid-column: span 2; }
+  .form.grid .field-wrapper.col-md-3 { grid-column: span 3; }
+  .form.grid .field-wrapper.col-md-4 { grid-column: span 4; }
+  .form.grid .field-wrapper.col-md-5 { grid-column: span 5; }
+  .form.grid .field-wrapper.col-md-6 { grid-column: span 6; }
+  .form.grid .field-wrapper.col-md-7 { grid-column: span 7; }
+  .form.grid .field-wrapper.col-md-8 { grid-column: span 8; }
+  .form.grid .field-wrapper.col-md-9 { grid-column: span 9; }
+  .form.grid .field-wrapper.col-md-10 { grid-column: span 10; }
+  .form.grid .field-wrapper.col-md-11 { grid-column: span 11; }
+  .form.grid .field-wrapper.col-md-12 { grid-column: span 12; }
+}
+
+/* Large screen columns */
+@media (width >= 993px) {
+  .form.grid .field-wrapper.col-lg-1 { grid-column: span 1; }
+  .form.grid .field-wrapper.col-lg-2 { grid-column: span 2; }
+  .form.grid .field-wrapper.col-lg-3 { grid-column: span 3; }
+  .form.grid .field-wrapper.col-lg-4 { grid-column: span 4; }
+  .form.grid .field-wrapper.col-lg-5 { grid-column: span 5; }
+  .form.grid .field-wrapper.col-lg-6 { grid-column: span 6; }
+  .form.grid .field-wrapper.col-lg-7 { grid-column: span 7; }
+  .form.grid .field-wrapper.col-lg-8 { grid-column: span 8; }
+  .form.grid .field-wrapper.col-lg-9 { grid-column: span 9; }
+  .form.grid .field-wrapper.col-lg-10 { grid-column: span 10; }
+  .form.grid .field-wrapper.col-lg-11 { grid-column: span 11; }
+  .form.grid .field-wrapper.col-lg-12 { grid-column: span 12; }
+}

@@ -27,7 +27,12 @@ export async function loadFragment(path) {
       // reset base path for media to fragment base
       const resetAttributeBase = (tag, attr) => {
         main.querySelectorAll(`${tag}[${attr}^="./media_"]`).forEach((elem) => {
-          elem[attr] = new URL(elem.getAttribute(attr), new URL(path, window.location)).href;
+          try {
+            elem[attr] = new URL(elem.getAttribute(attr), new URL(path, window.location)).href;
+          } catch (error) {
+            // Fallback if URL construction fails (eg. in sidekick shadow root)
+            elem[attr] = `${path}/${elem.getAttribute(attr).replace('./', '')}`;
+          }
         });
       };
       resetAttributeBase('img', 'src');
