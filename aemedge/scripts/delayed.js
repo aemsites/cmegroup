@@ -1,9 +1,11 @@
 import { sampleRUM, loadScript } from './aem.js';
 import { getEnvType } from './utils.js';
 
-// add delayed functionality here
-async function loadShareThis() {
-  return loadScript('https://platform-api.sharethis.com/js/sharethis.js#property=644646a57ac381001a304496&product=sticky-share-buttons&source=platform');
+// Core Web Vitals RUM collection
+sampleRUM('cwv');
+
+function loadShareThis() {
+  loadScript('https://platform-api.sharethis.com/js/sharethis.js#property=644646a57ac381001a304496&product=sticky-share-buttons&source=platform');
 }
 
 async function loadOneTrust() {
@@ -44,15 +46,8 @@ async function loadOneTrust() {
 }
 
 function loadPage() {
-  sampleRUM('delayed:start');
-  Promise.all([
-    loadShareThis(),
-    loadOneTrust(),
-  ]).then(() => {
-    sampleRUM('delayed:end');
-  }).catch((error) => {
-    sampleRUM('delayed:error', error);
-  });
+  loadShareThis();
+  loadOneTrust();
 }
 
 loadPage();
