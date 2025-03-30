@@ -505,7 +505,7 @@ export const blockSeparator = () => {
  */
 const convertSectionsToMetadata = (document) => {
   const sections = document.querySelectorAll('.section');
-  sections.forEach((section) => {
+  sections.forEach((section, index) => {
     const style = [];
 
     SECTION_SELECTORS.forEach((selector) => {
@@ -516,8 +516,13 @@ const convertSectionsToMetadata = (document) => {
 
     if (style.length) {
       const sectionMetadata = buildSectionMetadata([['Style', style.join(', ')]]);
-      section.after(sectionMetadata, blockSeparator().cloneNode(true));
-      section.prepend(blockSeparator().cloneNode(true));
+      section.after(sectionMetadata);
+      if (index !== sections.length - 1) {
+        section.after(blockSeparator().cloneNode(true));
+      }
+      if (index !== 0) {
+        section.before(blockSeparator().cloneNode(true));
+      }
     }
   });
 };
@@ -1257,7 +1262,61 @@ const faqBlock = (document, meta) => {
   }
 };
 
-const customBlocks = (document, main, meta) => {
+const accordionBlock = async (document) => {
+  const accordions = document.querySelectorAll('.expand-collapse');
+  if (accordions?.length) {
+    const cells = [['Accordion (cards)']];
+
+    // Process each accordion one by one to maintain order
+    const accordionsArray = Array.from(accordions);
+    for (let i = 0; i < accordionsArray.length; i += 1) {
+      const accordion = accordionsArray[i];
+
+      const title = accordion.getAttribute('data-component-title');
+      if (title) {
+        cells.push([title]);
+      }
+
+      const cardDataPath = accordion.querySelector('.cards')?.getAttribute('data-path');
+      if (cardDataPath) {
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          const cardData = await fetch(`${DOMAIN}${cardDataPath}.json`);
+          // eslint-disable-next-line no-await-in-loop
+          const cardDataJson = await cardData.json();
+          let tags = cardDataJson.requiredTags;
+          if (tags?.length) {
+            tags = tags.map((tag) => tag.replace(/^.*:/, ''));
+            cells.push(['tags', tags.join(',')]);
+          }
+        } catch (error) {
+          console.error(`Error fetching card data: ${error}`);
+        }
+      }
+    }
+
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    accordions[0].replaceWith(table);
+    document.querySelectorAll('.expand-collapse').forEach((accordion) => {
+      accordion.remove();
+    });
+  }
+};
+
+const removeExtraSectionBreak = (document) => {
+  const paragraphs = document.querySelectorAll('p');
+  for (let i = 0; i < paragraphs.length - 1; i += 1) {
+    const currentP = paragraphs[i];
+    const nextP = paragraphs[i + 1];
+    if (currentP.nextElementSibling === nextP) {
+      if (currentP.textContent.trim() === '---' && nextP.textContent.trim() === '---') {
+        nextP.remove();
+      }
+    }
+  }
+};
+
+const customBlocks = async (document, main, meta) => {
   convertSectionsToMetadata(document, main);
   articleHeroBlock(document);
   dividerBlock(document);
@@ -1266,6 +1325,7 @@ const customBlocks = (document, main, meta) => {
   figCaptionEmphasize(document);
   quizBlock(document);
   faqBlock(document, meta);
+  await accordionBlock(document);
 };
 
 export default {
@@ -1327,7 +1387,7 @@ export default {
     const mdb = WebImporter.Blocks.getMetadataBlock(document, meta);
     main.append(mdb);
 
-    customBlocks(document, main, meta);
+    await customBlocks(document, main, meta);
 
     let p = new URL(url).pathname;
     if (p.endsWith('/')) {
@@ -1340,6 +1400,8 @@ export default {
       .replace(/[^a-z0-9/]/gm, '-')
       .replace(/-+/g, '-')
       .replace(/(^-|-$)/g, '');
+
+    removeExtraSectionBreak(document);
 
     results.push({
       element: main,
