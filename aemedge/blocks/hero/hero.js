@@ -95,7 +95,7 @@ async function decorateEventPageHero(block) {
   block.append(contentWrapper);
 
   // Dynamic section
-  const { default: getEventData } = await import('../../scripts/utilities/events.js');
+  const { default: getEventData } = await import('../../scripts/utils/events.js');
   const primaryTopic = getMetadata('primary-topic');
   const [
     {
