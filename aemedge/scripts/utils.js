@@ -211,6 +211,29 @@ function getEnvType() {
   return type;
 }
 
+function formatToCentralTime(utcDateString) {
+  const utcDate = new Date(utcDateString);
+  const options = {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: 'long',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  };
+  const formatter = new Intl.DateTimeFormat('en-US', options);
+  const parts = formatter.formatToParts(utcDate);
+  const day = parts.find((p) => p.type === 'day').value;
+  const month = parts.find((p) => p.type === 'month').value;
+  const year = parts.find((p) => p.type === 'year').value;
+  const hour = parts.find((p) => p.type === 'hour').value.padStart(2, '0');
+  const minute = parts.find((p) => p.type === 'minute').value.padStart(2, '0');
+  const period = parts.find((p) => p.type === 'dayPeriod').value.toUpperCase();
+  return `${month} ${day}, ${year} ${hour}:${minute} ${period} CT`;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -221,4 +244,5 @@ export {
   i18n,
   getPageTags,
   getEnvType,
+  formatToCentralTime,
 };
