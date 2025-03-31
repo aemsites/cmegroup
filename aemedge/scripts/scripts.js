@@ -14,7 +14,7 @@ import {
   toClassName,
   getMetadata,
 } from './aem.js';
-import initFloatingElements from './utilities/alerts.js';
+import initFloatingElements from './alerts/alerts.js';
 
 import dynamicBlocks from '../blocks/dynamic/index.js';
 

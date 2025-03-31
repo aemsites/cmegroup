@@ -1,0 +1,197 @@
+/**
+ * Alerts
+ */
+
+import { getMetadata } from '../aem.js';
+import getBrowserName from '../browser/browser.js';
+
+const alertsEndpoint = 'https://www.cmegroup.com/content/cmegroup/en/misc/api/content-feeds-for-google-docs/full-alerts-list/jcr:content/main-content-section/section/section-elements/search_sort_filter_d.ssfajax.0.json';
+let alertsPromise = null;
+
+function decodeHTML(html) {
+  const txt = document.createElement('textarea');
+  txt.innerHTML = html;
+  return txt.value;
+}
+
+function insertAlertsIntoDOM(items) {
+  const container = document.querySelector('main');
+
+  if (!container) return;
+
+  const alertsContainer = document.createElement('div');
+  alertsContainer.id = 'alerts-container';
+  alertsContainer.className = 'alerts';
+
+  const classMap = {
+    cmeStandardAlertPrimaryMessage: 'standard-primary',
+    cmeStandardAlertSecondaryMessage: 'standard-secondary',
+    cmeNonSeriousAlertMessage: 'non-serious',
+    cmeSeriousAlertMessage: 'serious',
+    cmeGCCSeriousAlertMessage: 'gcc-serious',
+  };
+
+  items.forEach((item) => {
+    const alertDiv = document.createElement('div');
+    const newClass = classMap[item.content.style] || 'default-alert';
+    alertDiv.className = `alert-item ${newClass}`;
+
+    const textContainer = document.createElement('div');
+    textContainer.className = 'container';
+
+    if (newClass === 'gcc-serious') {
+      const alertContent = document.createElement('div');
+
+      const alertIcon = document.createElement('div');
+      alertIcon.className = 'alert-icon';
+
+      const alertGccContainer = document.createElement('div');
+      alertGccContainer.className = 'alert-gcc-container';
+
+      const alertTitle = document.createElement('div');
+      alertTitle.className = 'alert-title';
+      alertTitle.textContent = item.content.redAlertTitle;
+
+      const alertText = document.createElement('div');
+      alertText.className = 'alert-text cmp-text';
+      alertText.innerHTML = decodeHTML(item.content.text);
+
+      const alertTime = document.createElement('div');
+      alertTime.className = 'alert-time';
+      alertTime.textContent = item.content.redAlertDate;
+
+      alertGccContainer.appendChild(alertTitle);
+      alertGccContainer.appendChild(alertText);
+      alertGccContainer.appendChild(alertTime);
+
+      alertContent.appendChild(alertIcon);
+      alertContent.appendChild(alertGccContainer);
+
+      textContainer.appendChild(alertContent);
+    } else {
+      const alertText = document.createElement('div');
+      alertText.className = 'alert-text cmp-text';
+      alertText.innerHTML = decodeHTML(item.content.text);
+
+      textContainer.appendChild(alertText);
+    }
+
+    alertDiv.appendChild(textContainer);
+    alertsContainer.appendChild(alertDiv);
+  });
+
+  container.prepend(alertsContainer);
+}
+
+function loadAlerts() {
+  if (!alertsPromise) {
+    alertsPromise = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const response = await fetch(alertsEndpoint);
+          if (!response.ok) {
+            throw new Error(`fail to load alerts: ${response.statusText}`);
+          }
+          const { results: data } = await response.json();
+          const currentPath = window.location.pathname;
+
+          const alerts = data.filter((alert) => {
+            const alertContent = alert.content;
+            if (!alertContent.enabled) return false;
+
+            const cleanedScope = alertContent.scope.split(',').map((scope) => {
+              if (scope === '/content/cmegroup/en') {
+                return '/';
+              }
+              if (scope.startsWith('/content/cmegroup/en')) {
+                return scope.replace('/content/cmegroup/en', '');
+              }
+              return scope;
+            });
+
+            if (!cleanedScope.some((scope) => scope.startsWith(currentPath))) return false;
+
+            const cleanedExcludedPages = alertContent.excludedPages.split(',').map((excluded) => (
+              excluded.startsWith('/content/cmegroup/en')
+                ? excluded.replace('/content/cmegroup/en', '')
+                : excluded
+            ));
+
+            if (cleanedExcludedPages.some((excluded) => excluded.startsWith(currentPath))) {
+              return false;
+            }
+            if (alertContent.browsers && alertContent.browsers.length > 0
+              && !alertContent.browsers.split(',').includes(getBrowserName())) {
+              return false;
+            }
+            if (alertContent.templates && alertContent.templates.length > 0
+              && !alertContent.templates.split(',').includes(getMetadata('template'))) {
+              return false;
+            }
+            return true;
+          });
+
+          resolve(alerts);
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('fail to load alerts:', error);
+          reject(error);
+        }
+      })();
+    });
+  }
+  return alertsPromise;
+}
+
+export default function initFloatingElements(doc) {
+  return new Promise((resolve) => {
+    loadAlerts()
+      .then((alertsFetched) => {
+        insertAlertsIntoDOM(alertsFetched);
+      })
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('fail to load alerts:', error);
+      })
+      .finally(() => {
+        let lastScrollTop = 0;
+        const header = doc.querySelector('.header');
+        const alertsContainer = doc.querySelector('.alerts');
+        const main = doc.querySelector('main');
+        const alerts = doc.querySelectorAll('.alert-item');
+
+        function updatePositions() {
+          const visibleAlertsHeight = Array.from(alerts).reduce(
+            (total, alert) => total + (alert.classList.contains('hidden') ? 0 : alert.offsetHeight),
+            0,
+          );
+
+          header.style.top = `${visibleAlertsHeight}px`;
+          main.style.paddingTop = `${visibleAlertsHeight + header.offsetHeight}px`;
+        }
+
+        const observer = new MutationObserver(updatePositions);
+        observer.observe(alertsContainer, {
+          attributes: true,
+          childList: true,
+          subtree: true,
+        });
+
+        updatePositions();
+
+        window.addEventListener('scroll', () => {
+          const scrollTop = window.pageYOffset || doc.documentElement.scrollTop;
+          if (scrollTop > lastScrollTop) {
+            header.classList.add('hidden');
+          } else {
+            header.classList.remove('hidden');
+          }
+          lastScrollTop = scrollTop;
+        });
+
+        window.addEventListener('resize', updatePositions);
+
+        resolve();
+      });
+  });
+}

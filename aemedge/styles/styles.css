@@ -468,12 +468,12 @@ button.secondary.disabled {
 
 /* sections */
 main>.section {
-    margin: 1.875rem 0;
+    margin-bottom: 1.875rem 0;
 }
 
 @media (width > 768px) {
     main .section {
-        margin: 3.75rem 0;
+        margin-bottom: 3.75rem 0;
     }
 }
 
@@ -708,16 +708,16 @@ body.loading::before {
 }
 
 .alerts .alert-item {
-    padding-top: 4px;
-    padding-bottom: 4px;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
     background-color: var(--blue6);
     color: var(--gray3);
 }
 
 @media (width <= 992px) {
     .alerts .alert-item {
-        padding-top: 12px;
-        padding-bottom: 12px;
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
     }
 }
 
@@ -765,7 +765,7 @@ body.loading::before {
 .alerts .alert-item.gcc-serious .alert-icon {
     display: inline-block;
     vertical-align: top;
-    padding-top: 4px;
+    padding-top: 0.25rem;
     color: var(--active-red);
 }
 
@@ -778,23 +778,27 @@ body.loading::before {
     color: var(--blue2);
     display: inline-block;
     font-weight: bold;
-    padding-left: 8px;
+    padding-left: 0.5rem;
 }
 
 .alerts .alert-item .alert-gcc-container .alert-text {
     display: inline-block;
-    padding-left: 8px;
+    padding-left: 0.5rem;
 }
 
 .alerts .alert-item .alert-gcc-container .alert-time {
     display: inline-block;
-    padding-left: 8px;
-    font-size: 12px;
+    padding-left: 0.5rem;
+    font-size: 0.75rem;
 }
 
-@media (width <= 992px) {
+.alerts .alert-item .container {
+    padding: 0 0.625rem;
+}
+
+@media (width > 992px) {
     .alerts .alert-item .container {
-        padding: 0 10px;
+        padding: 0;
     }
 }
   
