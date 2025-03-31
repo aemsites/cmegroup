@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Login Confirmed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:title" content="Login Confirmed">
+    <script type="module">
+      import { authentication } from './aemedge/scripts/modules/Authentication.js';
+      authentication.handleLoad();
+    </script>
+    <script type="module">
+      function init() {
+        if (document.cookie.indexOf('redirectionCookie') < 0) { window.location.href = '/'; }
+      }
+      init();
+    </script>
+    <link rel="stylesheet" href="/aemedge/styles/styles.css">
+    <style>
+      body {
+        background-color: #1f3374;
+        padding: 1.875rem 0;
+        color: #fff;
+        text-align: center;
+      }
+
+      .redirect-spinner {
+        text-align: center;
+        padding: 2.5rem;
+      }
+
+      .lds-ring {
+        display: inline-block;
+        position: relative;
+        width: 4rem;
+        height: 4rem;
+        margin-bottom: 2rem;
+      }
+
+      .lds-ring div {
+        box-sizing: border-box;
+        display: block;
+        position: absolute;
+        width: 3.1875rem;
+        height: 3.1875rem;
+        margin: 0.375rem;
+        border: 0.25rem solid #fff;
+        border-radius: 50%;
+        animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        border-color: #fff transparent transparent transparent;
+      }
+
+      .lds-ring div:nth-child(1) {
+        animation-delay: -0.45s;
+      }
+
+      .lds-ring div:nth-child(2) {
+        animation-delay: -0.3s;
+      }
+
+      .lds-ring div:nth-child(3) {
+        animation-delay: -0.15s;
+      }
+
+      @keyframes lds-ring {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="section">
+        <div class="lds-ring">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <p>One moment please, we're logging you in...</p>
+      </div>
+    </main>
+  </body>
+</html>
