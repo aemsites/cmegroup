@@ -3,7 +3,7 @@
  */
 
 import { getMetadata } from '../aem.js';
-import getBrowserName from '../browser/browser.js';
+import getBrowserName from '../utils/browser.js';
 
 const alertsEndpoint = 'https://www.cmegroup.com/content/cmegroup/en/misc/api/content-feeds-for-google-docs/full-alerts-list/jcr:content/main-content-section/section/section-elements/search_sort_filter_d.ssfajax.0.json';
 let alertsPromise = null;
@@ -143,55 +143,53 @@ function loadAlerts() {
   return alertsPromise;
 }
 
-export default function initFloatingElements(doc) {
-  return new Promise((resolve) => {
-    loadAlerts()
-      .then((alertsFetched) => {
-        insertAlertsIntoDOM(alertsFetched);
-      })
-      .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error('fail to load alerts:', error);
-      })
-      .finally(() => {
-        let lastScrollTop = 0;
-        const header = doc.querySelector('.header');
-        const alertsContainer = doc.querySelector('.alerts');
-        const main = doc.querySelector('main');
-        const alerts = doc.querySelectorAll('.alert-item');
+export default async function initFloatingElements(doc) {
+  try {
+    const alertsFetched = await loadAlerts();
+    insertAlertsIntoDOM(alertsFetched);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('fail to load alerts:', error);
+  }
 
-        function updatePositions() {
-          const visibleAlertsHeight = Array.from(alerts).reduce(
-            (total, alert) => total + (alert.classList.contains('hidden') ? 0 : alert.offsetHeight),
-            0,
-          );
+  let lastScrollTop = 0;
+  const header = doc.querySelector('.header');
+  const alertsContainer = doc.querySelector('.alerts');
+  const main = doc.querySelector('main');
+  const alerts = doc.querySelectorAll('.alert-item');
 
-          header.style.top = `${visibleAlertsHeight}px`;
-          main.style.paddingTop = `${visibleAlertsHeight + header.offsetHeight}px`;
-        }
+  function updatePositions() {
+    const visibleAlertsHeight = Array.from(alerts).reduce(
+      (total, alert) => total + (alert.classList.contains('hidden') ? 0 : alert.offsetHeight),
+      0,
+    );
 
-        const observer = new MutationObserver(updatePositions);
-        observer.observe(alertsContainer, {
-          attributes: true,
-          childList: true,
-          subtree: true,
-        });
+    header.style.top = `${visibleAlertsHeight}px`;
+    main.style.paddingTop = `${visibleAlertsHeight + header.offsetHeight}px`;
+  }
 
-        updatePositions();
-
-        window.addEventListener('scroll', () => {
-          const scrollTop = window.pageYOffset || doc.documentElement.scrollTop;
-          if (scrollTop > lastScrollTop) {
-            header.classList.add('hidden');
-          } else {
-            header.classList.remove('hidden');
-          }
-          lastScrollTop = scrollTop;
-        });
-
-        window.addEventListener('resize', updatePositions);
-
-        resolve();
-      });
+  const observer = new MutationObserver(updatePositions);
+  observer.observe(alertsContainer, {
+    attributes: true,
+    childList: true,
+    subtree: true,
   });
+
+  updatePositions();
+
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.pageYOffset || doc.documentElement.scrollTop;
+    if (scrollTop > lastScrollTop) {
+      header.classList.add('hidden');
+    } else {
+      header.classList.remove('hidden');
+    }
+    lastScrollTop = scrollTop;
+  });
+
+  window.addEventListener('resize', () => {
+    updatePositions();
+  });
+
+  return null;
 }
