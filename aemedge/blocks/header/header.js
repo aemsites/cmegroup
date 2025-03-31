@@ -1,7 +1,9 @@
-import { createElement } from '../../scripts/utils.js';
+import { getMetadata } from '../../scripts/aem.js';
+import { createElement, i18n } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
+import { store } from '../../scripts/store/store.js';
+import { authentication as authStatus } from '../../scripts/modules/index.js';
 
-const BRAND_IMG = '<img loading="lazy" alt="Adobe" src="/blocks/nav/adobe-logo.svg">';
 const IS_OPEN = 'is-open';
 
 async function loadTabContent(fragmentPath) {
@@ -20,35 +22,88 @@ class Nav {
     this.body = body;
     this.env = {};
     this.desktop = window.matchMedia('(min-width: 1200px)');
+    this.login = this.body.querySelector('.login');
+    this.curtain = createElement('div', { class: 'nav-curtain' });
+    this.nav = createElement('nav', { class: 'nav' });
+    this.rightSide = createElement('div', { class: 'right-side' });
+    this.mobileRightSide = createElement('div', { class: 'mobile-right-side' });
+    this.searchBtn = createElement('button', { class: 'search-icon' });
+    this.searchBtnMobile = createElement('button', { class: 'search-icon' });
+    this.navLoginBtn = createElement('button', { class: 'nav-login secondary' });
+    this.fauxNavbar = createElement('div', { class: 'nav-faux-navbar' });
+    this.wrapper = createElement('div', { class: 'nav-wrapper' }, this.nav);
+    this.userBtnDesktopContainer = createElement('div', { class: 'nav-nav-item has-menu user-btn-desktop-container' });
+    this.welcomeMessageDesktop = createElement('p');
+    this.innerContentDesktop = '';
+    this.innerContentMobile = '';
+    this.innerContainerDesktop = createElement('div', { class: 'nav-nav-item-menu' });
+    this.navLogoutBtn = createElement('button', { class: 'nav-logout secondary' });
+    this.navItemMobile = createElement('li', { class: 'nav-nav-item has-menu' });
+    this.navItemMobileAnchor = createElement('a');
+    this.innerContainerMobile = createElement('div', { class: 'nav-nav-item-menu' });
+    this.navLogoutBtnMobile = createElement('button', { class: 'nav-logout secondary' });
+    this.loggedIn = false;
+    this.loginInfo = {};
+
+    store.subscribe(({ authentication }) => authentication, ({ isLoggedIn, loginInfo }) => {
+      if (isLoggedIn !== this.loggedIn) {
+        this.loggedIn = isLoggedIn;
+        this.loginInfo = loginInfo;
+        this.updateNavState();
+      }
+    });
+  }
+
+  async updateNavState() {
+    this.logBtnToRightSide();
+    this.logDesktopGreeting();
+    this.logInnerContentDesktop();
+    this.logOutBtnToContDesktop();
+    this.logMobileGreeting();
+    this.logInnerContentMobile();
+    this.logOutBtnToContMobile();
   }
 
   init = async () => {
-    this.state = {};
-    this.curtain = createElement('div', { class: 'nav-curtain' });
-    const nav = createElement('nav', { class: 'nav' });
-    const fauxNavbar = createElement('div', { class: 'nav-faux-navbar' });
+    await this.initializeLabels();
 
     const brand = this.decorateBrand();
     if (brand) {
       const fauxBrand = brand.cloneNode(true);
-      fauxNavbar.append(fauxBrand);
-      nav.append(brand);
+      this.fauxNavbar.append(fauxBrand);
+      this.nav.append(brand);
     }
 
-    const mobileToggle = this.decorateToggle(nav);
-    const mobileCloseNav = this.decorateCloseNav(nav);
-    this.curtain = this.decorateCurtain(nav);
-    fauxNavbar.append(mobileToggle);
-    nav.append(mobileCloseNav);
+    const mobileToggle = this.decorateToggle(this.nav);
+    const mobileCloseNav = this.decorateCloseNav(this.nav);
+    this.curtain = this.decorateCurtain(this.nav);
+
+    this.mobileRightSide.append(this.searchBtnMobile);
+    this.mobileRightSide.append(mobileToggle);
+    this.fauxNavbar.append(this.mobileRightSide);
+    this.nav.append(mobileCloseNav);
 
     const mainNav = await this.decorateMainNav();
     if (mainNav) {
-      nav.append(mainNav);
+      this.nav.append(mainNav);
     }
 
-    const wrapper = createElement('div', { class: 'nav-wrapper' }, nav);
-    this.el.append(this.curtain, fauxNavbar);
-    this.el.append(this.curtain, wrapper);
+    this.rightSide.append(this.searchBtn);
+
+    const userBtn = await this.buildLoginDesktopNav();
+    if (userBtn) {
+      this.rightSide.append(userBtn);
+    }
+
+    this.navLoginBtn.innerHTML = this.loginLabel;
+    this.navLoginBtn.addEventListener('click', async () => {
+      authStatus.login();
+    });
+    this.logBtnToRightSide();
+    this.wrapper.append(this.rightSide);
+
+    this.el.append(this.curtain, this.fauxNavbar);
+    this.el.append(this.curtain, this.wrapper);
 
     let prevWindowWidth = window.innerWidth;
     let resizeTimeout;
@@ -88,6 +143,98 @@ class Nav {
         previousScrollPosition = currentScrollPosition;
       }, 100);
     });
+  };
+
+  async initializeLabels() {
+    const [welcomeLabel, loginLabel, logoutLabel, loginAccount, createAccount] = await Promise.all([
+      i18n('Welcome'),
+      i18n('LOG IN'),
+      i18n('LOG OUT'),
+      i18n('Login to your account'),
+      i18n('Create an Account'),
+    ]);
+
+    this.welcomeLabel = welcomeLabel;
+    this.loginLabel = loginLabel;
+    this.logoutLabel = logoutLabel;
+    this.loginAccount = loginAccount;
+    this.createAccount = createAccount;
+  }
+
+  logBtnToRightSide = () => {
+    if (!this.loggedIn) {
+      this.rightSide.append(this.navLoginBtn);
+    } else if (this.rightSide.contains(this.navLoginBtn)) {
+      this.navLoginBtn.remove();
+    }
+  };
+
+  logDesktopGreeting = () => {
+    if (this.loggedIn) {
+      this.userBtnDesktopContainer.classList.add('is-logged');
+      if (this.loginInfo.userName) {
+        const indexName = this.loginInfo.userName.indexOf(' ');
+        const userFirstName = this.loginInfo.userName.substring(0, indexName);
+        this.welcomeMessageDesktop.innerHTML = `${this.welcomeLabel}, ${userFirstName}`;
+      }
+    } else {
+      this.userBtnDesktopContainer.classList.remove('is-logged');
+    }
+  };
+
+  logInnerContentDesktop = () => {
+    this.innerContainerDesktop.replaceChildren();
+
+    if (!this.loggedIn) {
+      this.innerContentDesktop = this.createNoLoggedInItems(this.login?.cloneNode(true));
+    } else {
+      this.innerContainerDesktop.appendChild(this.welcomeMessageDesktop);
+      this.innerContentDesktop = this.login?.cloneNode(true);
+    }
+
+    this.innerContainerDesktop.appendChild(this.innerContentDesktop);
+  };
+
+  logOutBtnToContDesktop = () => {
+    if (this.loggedIn) {
+      this.innerContainerDesktop.appendChild(this.navLogoutBtn);
+    } else if (this.innerContainerDesktop.contains(this.navLogoutBtn)) {
+      this.navLogoutBtn.remove();
+    }
+  };
+
+  logMobileGreeting = () => {
+    if (this.loggedIn) {
+      if (this.loginInfo.userName) {
+        this.navItemMobile.classList.add('is-logged');
+        const indexName = this.loginInfo.userName.indexOf(' ');
+        const userFirstName = this.loginInfo.userName.substring(0, indexName);
+        this.navItemMobileAnchor.innerHTML = `${this.welcomeLabel}, ${userFirstName}`;
+      }
+    } else {
+      this.navItemMobile.classList.remove('is-logged');
+      this.navItemMobileAnchor.innerHTML = this.loginLabel;
+    }
+  };
+
+  logInnerContentMobile = () => {
+    this.innerContainerMobile.replaceChildren();
+
+    if (!this.loggedIn) {
+      this.innerContentMobile = this.createNoLoggedInItems(this.login?.cloneNode(true), true);
+    } else {
+      this.innerContentMobile = this.login?.cloneNode(true);
+    }
+
+    this.innerContainerMobile.appendChild(this.innerContentMobile);
+  };
+
+  logOutBtnToContMobile = () => {
+    if (this.loggedIn) {
+      this.innerContainerMobile.appendChild(this.navLogoutBtnMobile);
+    } else if (this.innerContainerMobile.contains(this.navLogoutBtnMobile)) {
+      this.navLogoutBtnMobile.remove();
+    }
   };
 
   decorateToggle = (nav) => {
@@ -136,17 +283,11 @@ class Nav {
   };
 
   decorateBrand = () => {
-    const brandBlock = this.body.querySelector('[class^="nav-brand"]');
+    const brandBlock = this.body.querySelector('.logo');
     if (!brandBlock) return null;
     const brand = brandBlock.querySelector('a');
-
-    const { className } = brandBlock;
-    const classNameClipped = className.slice(0, -1);
-    const classNames = classNameClipped.split('--');
-    brand.className = classNames.join(' ');
-    if (brand.classList.contains('with-logo')) {
-      brand.insertAdjacentHTML('afterbegin', BRAND_IMG);
-    }
+    if (!brand) return null;
+    brand.classList.add('logo');
     return brand;
   };
 
@@ -156,11 +297,144 @@ class Nav {
     const secondaryLinks = this.body.querySelectorAll('.secondary h2 > a');
 
     await Promise.all([
+      this.buildLoginMobileNav(mainNav, 'login-nav'),
       this.buildMainNav(mainNav, primaryLinks, 'primary'),
       this.buildMainNav(mainNav, secondaryLinks, 'secondary'),
     ]);
 
     return mainNav;
+  };
+
+  // eslint-disable-next-line class-methods-use-this
+  createNoLoggedInItems = (cloneNode, mobileVersion) => {
+    const elementToRemove = cloneNode.querySelector('ul')?.parentElement;
+    if (elementToRemove) {
+      elementToRemove.remove();
+    }
+    const logContainer = createElement('div', { class: 'menu login' });
+    const logContainerInner = createElement('div');
+    const accountContainer = createElement('div', { class: 'account-container' });
+    const ul = createElement('ul');
+    const logLi = createElement('li');
+    const regLi = createElement('li');
+
+    const logLink = createElement('a');
+    logLink.innerHTML = this.loginAccount;
+    logLink.href = '#';
+    logLink.setAttribute('role', 'button');
+    logLink.addEventListener('click', async () => {
+      authStatus.login();
+    });
+    const regLink = createElement('a');
+    regLink.innerHTML = this.createAccount;
+    regLink.href = '#';
+    regLink.setAttribute('role', 'button');
+    regLink.addEventListener('click', async () => {
+      authStatus.registration();
+    });
+    if (mobileVersion) {
+      logLi.appendChild(logLink);
+    }
+    regLi.appendChild(regLink);
+    ul.appendChild(logLi);
+    ul.appendChild(regLi);
+    accountContainer.appendChild(ul);
+
+    logContainerInner.appendChild(accountContainer);
+    logContainerInner.appendChild(this.orderLoginList(cloneNode));
+    logContainer.appendChild(logContainerInner);
+
+    return logContainer;
+  };
+
+  buildLoginDesktopNav = async () => {
+    const loginUserBtn = createElement('button', { class: 'login-user-icon' });
+    this.logDesktopGreeting();
+    loginUserBtn.setAttribute('aria-expanded', false);
+    loginUserBtn.setAttribute('aria-controls', 'login-nav-menu-0');
+    loginUserBtn.addEventListener('focus', () => {
+      window.addEventListener('keydown', this.toggleOnSpace);
+    });
+    loginUserBtn.addEventListener('blur', () => {
+      window.removeEventListener('keydown', this.toggleOnSpace);
+    });
+    loginUserBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.toggleMenu(this.userBtnDesktopContainer);
+    });
+    this.userBtnDesktopContainer.classList.add('login-desktop-nav');
+    this.navLogoutBtn.innerHTML = this.logoutLabel;
+    this.navLogoutBtn.addEventListener('click', async () => {
+      authStatus.logout();
+    });
+    this.logInnerContentDesktop();
+    this.logOutBtnToContDesktop();
+    this.userBtnDesktopContainer.append(loginUserBtn);
+    this.userBtnDesktopContainer.appendChild(this.innerContainerDesktop);
+
+    return this.userBtnDesktopContainer;
+  };
+
+  // eslint-disable-next-line class-methods-use-this
+  orderLoginList = (cloneNode) => {
+    const linksContainer = createElement('div', { class: 'links-container' });
+    const linksUl = createElement('ul');
+    const listItems = Array.from(cloneNode.querySelectorAll('li'));
+
+    const desiredOrder = [
+      'Watchlists',
+      'CME Customer Center',
+      'CME Direct',
+      'Subscription Center',
+    ];
+
+    function getIndex(text) {
+      return desiredOrder.findIndex((item) => text.includes(item));
+    }
+
+    listItems.sort((a, b) => {
+      const textA = a.textContent.trim();
+      const textB = b.textContent.trim();
+      return getIndex(textA) - getIndex(textB);
+    });
+
+    listItems.forEach((item) => linksUl.appendChild(item));
+    linksContainer.appendChild(linksUl);
+
+    return linksContainer;
+  };
+
+  buildLoginMobileNav = async (
+    mainNavMobile,
+    menuType,
+  ) => {
+    this.logMobileGreeting();
+    this.navItemMobileAnchor.href = '#';
+    this.navItemMobileAnchor.setAttribute('role', 'button');
+    this.navItemMobileAnchor.setAttribute('aria-expanded', false);
+    this.navItemMobileAnchor.setAttribute('aria-controls', 'login-nav-menu-0');
+    this.navItemMobileAnchor.addEventListener('focus', () => {
+      window.addEventListener('keydown', this.toggleOnSpace);
+    });
+    this.navItemMobileAnchor.addEventListener('blur', () => {
+      window.removeEventListener('keydown', this.toggleOnSpace);
+    });
+    this.navItemMobileAnchor.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.toggleMenu(this.navItemMobile);
+    });
+    this.navItemMobile.appendChild(this.navItemMobileAnchor);
+    this.navItemMobile.classList.add(menuType);
+    this.navLogoutBtnMobile.innerHTML = this.logoutLabel;
+    this.navLogoutBtnMobile.addEventListener('click', async () => {
+      authStatus.logout();
+    });
+    this.logInnerContentMobile();
+    this.logOutBtnToContMobile();
+    this.navItemMobile.appendChild(this.innerContainerMobile);
+    mainNavMobile.appendChild(this.navItemMobile);
   };
 
   buildMainNav = async (mainNav, navLinks, menuType) => {
@@ -234,6 +508,21 @@ class Nav {
     });
   };
 
+  getPromoBox = async (menuPromo, desktopMenuContainer) => {
+    const spinnerInNavbar = createElement('div', { class: 'lds-ring spinner-in-navbar' });
+    spinnerInNavbar.innerHTML = `
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    `;
+
+    desktopMenuContainer.append(spinnerInNavbar);
+    const promoBox = await this.decoratePromoBox(menuPromo);
+    spinnerInNavbar.remove();
+    desktopMenuContainer.append(promoBox);
+  };
+
   // eslint-disable-next-line class-methods-use-this
   decoratePromoBox = async (menuPromo) => {
     const promoBox = createElement('div', { class: 'promo-box-subnav' });
@@ -277,9 +566,6 @@ class Nav {
     desktopMenuColumn.append(menuHomeLink);
     desktopMenuColumn.append(container);
 
-    const promoBox = await this.decoratePromoBox(menuPromo);
-    desktopMenuContainer.append(promoBox);
-
     navLink.addEventListener('focus', () => {
       window.addEventListener('keydown', this.toggleOnSpace);
     });
@@ -290,6 +576,9 @@ class Nav {
       e.preventDefault();
       e.stopPropagation();
       this.toggleMenu(navItem);
+      if (!desktopMenuContainer.querySelectorAll('.promo-box-subnav').length > 0) {
+        this.getPromoBox(menuPromo, desktopMenuContainer);
+      }
     });
     return menu;
   };
@@ -357,10 +646,12 @@ class Nav {
     menuToggle.setAttribute('aria-expanded', false);
   };
 
-  openMenu = (el) => {
+  openMenu = (el, userIcon) => {
     el.classList.add(IS_OPEN);
-    this.curtain.classList.add(IS_OPEN);
-    document.body.classList.add('curtain-visible');
+    if (!userIcon) {
+      this.curtain.classList.add(IS_OPEN);
+      document.body.classList.add('curtain-visible');
+    }
     const menuToggle = el.querySelector('[aria-expanded]');
     menuToggle.setAttribute('aria-expanded', true);
     document.addEventListener('click', this.closeOnDocClick);
@@ -389,7 +680,8 @@ async function fetchNav(url) {
 }
 
 export default async function init(blockEl) {
-  const url = blockEl.getAttribute('data-nav-source') || '/nav';
+  const navMeta = getMetadata('nav');
+  const url = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
   if (url) {
     const html = await fetchNav(url);
     if (html) {
