@@ -144,8 +144,9 @@ function loadAlerts() {
 }
 
 export default async function initFloatingElements(doc) {
+  let alertsFetched = [];
   try {
-    const alertsFetched = await loadAlerts();
+    alertsFetched = await loadAlerts();
     insertAlertsIntoDOM(alertsFetched);
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -158,24 +159,30 @@ export default async function initFloatingElements(doc) {
   const main = doc.querySelector('main');
   const alerts = doc.querySelectorAll('.alert-item');
 
-  function updatePositions() {
-    const visibleAlertsHeight = Array.from(alerts).reduce(
-      (total, alert) => total + (alert.classList.contains('hidden') ? 0 : alert.offsetHeight),
-      0,
-    );
+  if (alertsFetched.length) {
+    const updatePositions = () => {
+      const visibleAlertsHeight = Array.from(alerts).reduce(
+        (total, alert) => total + (alert.classList.contains('hidden') ? 0 : alert.offsetHeight),
+        0,
+      );
 
-    header.style.top = `${visibleAlertsHeight}px`;
-    main.style.paddingTop = `${visibleAlertsHeight + header.offsetHeight}px`;
+      header.style.top = `${visibleAlertsHeight}px`;
+      main.style.paddingTop = `${visibleAlertsHeight + header.offsetHeight}px`;
+    };
+
+    const observer = new MutationObserver(updatePositions);
+    observer.observe(alertsContainer, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+    });
+
+    window.addEventListener('resize', () => {
+      updatePositions();
+    });
+
+    updatePositions();
   }
-
-  const observer = new MutationObserver(updatePositions);
-  observer.observe(alertsContainer, {
-    attributes: true,
-    childList: true,
-    subtree: true,
-  });
-
-  updatePositions();
 
   window.addEventListener('scroll', () => {
     const scrollTop = window.pageYOffset || doc.documentElement.scrollTop;
@@ -185,10 +192,6 @@ export default async function initFloatingElements(doc) {
       header.classList.remove('hidden');
     }
     lastScrollTop = scrollTop;
-  });
-
-  window.addEventListener('resize', () => {
-    updatePositions();
   });
 
   return null;

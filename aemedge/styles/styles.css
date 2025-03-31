@@ -97,6 +97,12 @@ body.curtain-visible {
     }
 }
 
+@media (width >=993px) {
+    main {
+        padding-top: 100px;
+    }
+}
+
 .header {
     left: 0;
     position: fixed;
