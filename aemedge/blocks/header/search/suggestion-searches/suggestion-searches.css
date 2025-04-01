@@ -1,0 +1,46 @@
+.suggestion-searches {
+  padding-top: rem(53px);
+
+  .title {
+    color: $citron;
+    font-size: rem(10px);
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: rem(1px);
+  }
+
+  .searches {
+    display: flex;
+    flex-direction: column;
+
+    .search {
+      color: $white;
+      font-size: rem(14px);
+      padding-top: rem(14px);
+
+      button {
+        background: transparent;
+        border: 0;
+
+        &:hover {
+          > * {
+            color: $blue5;
+          }
+        }
+
+        span {
+          color: $white;
+
+          &:first-child {
+            font-size: rem(10px);
+            font-weight: bold;
+          }
+
+          &:last-child {
+            padding-left: rem(8px);
+          }
+        }
+      }
+    }
+  }
+}

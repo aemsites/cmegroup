@@ -3,6 +3,7 @@ import { createElement, i18n } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
 import { store } from '../../scripts/store/store.js';
 import { authentication as authStatus } from '../../scripts/modules/index.js';
+import { renderSearch } from './search/search.js';
 
 const IS_OPEN = 'is-open';
 
@@ -24,11 +25,15 @@ class Nav {
     this.desktop = window.matchMedia('(min-width: 1200px)');
     this.login = this.body.querySelector('.login');
     this.curtain = createElement('div', { class: 'nav-curtain' });
+    this.searchCurtain = createElement('div', { class: 'search-curtain' });
+    this.searchDrawer = createElement('div', { class: 'search-drawer' });
+    this.searchDrawerCloseBtn = createElement('button', { class: 'search-drawer-close' });
     this.nav = createElement('nav', { class: 'nav' });
     this.rightSide = createElement('div', { class: 'right-side' });
     this.mobileRightSide = createElement('div', { class: 'mobile-right-side' });
-    this.searchBtn = createElement('button', { class: 'search-icon' });
-    this.searchBtnMobile = createElement('button', { class: 'search-icon' });
+    this.searchBtn = this.decorateSearchNav();
+    this.searchBtnMobile = this.decorateSearchNav();
+    this.searchBtnMobileInNav = this.decorateSearchNav();
     this.navLoginBtn = createElement('button', { class: 'nav-login secondary' });
     this.fauxNavbar = createElement('div', { class: 'nav-faux-navbar' });
     this.wrapper = createElement('div', { class: 'nav-wrapper' }, this.nav);
@@ -81,7 +86,10 @@ class Nav {
     this.mobileRightSide.append(this.searchBtnMobile);
     this.mobileRightSide.append(mobileToggle);
     this.fauxNavbar.append(this.mobileRightSide);
-    this.nav.append(mobileCloseNav);
+    const mobileRightSideInNav = createElement('div', { class: 'mobile-right-side-in-nav' });
+    mobileRightSideInNav.append(this.searchBtnMobileInNav);
+    mobileRightSideInNav.append(mobileCloseNav);
+    this.nav.append(mobileRightSideInNav);
 
     const mainNav = await this.decorateMainNav();
     if (mainNav) {
@@ -104,6 +112,21 @@ class Nav {
 
     this.el.append(this.curtain, this.fauxNavbar);
     this.el.append(this.curtain, this.wrapper);
+
+    this.searchCurtain.addEventListener('click', async () => {
+      this.closeSearchDrawer();
+    });
+
+    this.searchDrawerCloseBtn.addEventListener('click', async () => {
+      this.closeSearchDrawer();
+    });
+    this.searchDrawer.append(this.searchDrawerCloseBtn);
+
+    const searchComponent = renderSearch();
+    this.searchDrawer.append(searchComponent);
+
+    this.el.append(this.searchCurtain);
+    this.el.append(this.searchDrawer);
 
     let prevWindowWidth = window.innerWidth;
     let resizeTimeout;
@@ -266,6 +289,15 @@ class Nav {
       this.closeNav(nav);
     });
     return closeNav;
+  };
+
+  // eslint-disable-next-line class-methods-use-this
+  decorateSearchNav = () => {
+    const searchBtn = createElement('button', { class: 'search-icon' });
+    searchBtn.addEventListener('click', async () => {
+      this.openSearchDrawer();
+    });
+    return searchBtn;
   };
 
   decorateCurtain = (nav) => {
@@ -670,6 +702,18 @@ class Nav {
     if (e.code === 'Escape') {
       this.toggleMenu(document.querySelector('.has-menu.is-open'));
     }
+  };
+
+  openSearchDrawer = () => {
+    document.body.classList.add('curtain-visible');
+    this.searchCurtain.classList.add(IS_OPEN);
+    this.searchDrawer.classList.add(IS_OPEN);
+  };
+
+  closeSearchDrawer = () => {
+    document.body.classList.remove('curtain-visible');
+    this.searchCurtain.classList.remove(IS_OPEN);
+    this.searchDrawer.classList.remove(IS_OPEN);
   };
 }
 
