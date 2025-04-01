@@ -1,0 +1,58 @@
+{
+  "uid": "550127",
+  "name": "feed550127",
+  "title": "JP: Unemployment Rate",
+  "effectiveDate": "2023-01-30T23:30:00Z",
+  "cq:tags": [
+    "content-type/economic-release",
+    "econoday-events/impact/high",
+    "econoday-events/report-type/report",
+    "econoday-events/country/jp",
+    "econoday-events/event-type/Unemployment_Rate"
+  ],
+  "values": [
+    {
+      "valueUid": "1638929",
+      "displayValueId": "1218",
+      "valueName": "Rate",
+      "suffix": "%",
+      "prefix": "",
+      "consensus": "2.5",
+      "consensusRangeFrom": "2.5",
+      "consensusRangeTo": "2.6",
+      "actual": "2.5",
+      "previous": "2.5",
+      "revised": ""
+    },
+    {
+      "valueUid": "3322473",
+      "displayValueId": "19768",
+      "valueName": "Change",
+      "suffix": "bp",
+      "prefix": "",
+      "consensus": "",
+      "consensusRangeFrom": "",
+      "consensusRangeTo": "",
+      "actual": "0",
+      "previous": "0",
+      "revised": ""
+    }
+  ],
+  "description": "The unemployment rate and employment change are carefully monitored. The employment data show the number employment along with the change in employment for the previous year. Monthly changes in employment also help clarify whether businesses are hiring. The unemployment rate is the percentage of the labor force that is unemployed. A lower jobless rate translates into more income earning workers and greater consumption. Increased spending is a positive for consumer oriented economic growth, something that has lagged in Japan. <br/><br/>By tracking the jobs data, investors can sense the degree of tightness in the job market. If wage inflation threatens, it's a good bet that interest rates will rise; bond and stock prices will fall. No doubt that the only investors in a good mood will be the ones who watched the employment report and adjusted their portfolios to anticipate these events.",
+  "reports": [
+    {
+      "report": "report1"
+    },
+    {
+      "report": "report2"
+    }
+  ],
+  "highlights": "<B>SOY COMPLEX</B><br>The Export Sales Report showed that for the week ending March 13, net soybean sales came in at 352,580 tonnes for the current marketing year and 100 for the next marketing year for a total of 352,680. Cumulative soybean sales have reached 91.4% of the USDA forecast for the 2024/2025 marketing year versus a 5 year average of 88.8%. Sales need to average 174,000 tonnes per week to reach the USDA forecast.<br><br>Net meal sales came in at 182,243 tonnes for the current marketing year and none for the next marketing year. Cumulative meal sales have reached 70.8% of the USDA forecast for the 2024/2025 marketing year versus a 5 year average of 68.6%. Sales need to average 161,000 tonnes per week to reach the USDA forecast.<br><br>Net oil sales came in at 34,179 tonnes for the current marketing year and none for the next marketing year. Cumulative oil sales have reached 118.7% of the USDA forecast for the 2024/2025 marketing year versus a 5 year average of 56.9%.<br><br><B>CORN</B><br>The Export Sales Report showed that for the week ending March 13, net corn sales came in at 1,496,660 tonnes for the current marketing year and 61,375 for the next marketing year for a total of 1,558,035. Cumulative sales have reached 83.6% of the USDA forecast for the 2024/2025 marketing year versus a 5 year average of 76.2%. Sales need to average 417,000 tonnes per week to reach the USDA forecast. <br><br><B>WHEAT</B><br>The Export Sales Report showed that for the week ending March 13, net wheat sales came in at -248,849 tonnes (cancelations)  for the current marketing year and 491,092 for the next marketing year for a total of 242,243. Cumulative sales have reached 90.1% of the USDA forecast for the 2024/2025 marketing year versus a 5 year average of 89.9%. Sales need to average 94,000 tonnes per week to reach the USDA forecast. <br><br><B>COTTON</B><br>The Export Sales Report showed that for the week ending March 13, net cotton sales came in at 101,058 bales for the current marketing year and 57,870 for the next marketing year for a total of 158,928. Cumulative sales have reached 99.4% of the USDA forecast for the 2024/2025 marketing year versus a 5 year average of 96.3%. Sales need to average 3,000 bales per week to reach the USDA forecast.",
+  "consensusNotes": "Japanese payrolls are expected to have posted their fifth straight year-over-year growth in December as the tourism industry has been hiring workers to meet reopening demand and factory operators and contractors are catching up, while the unemployment rate is seen unchanged at 2.5 percent after edging down in November from 2.6 percent. Eased Covid rules and the government's subsidy program for domestic travel have been supporting hotels and retail stores. The eighth wave of the pandemic might have pushed up the jobless rate slightly to 2.6 percent.",
+  "definition": "The Unemployment Rate measures the number of unemployed as a percentage of the labor force. The unemployment rate is part of the Labour Force Survey which also includes employment data.",
+  "charts": [
+    {
+      "chart": "chart1"
+    }
+  ]
+}
