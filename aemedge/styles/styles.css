@@ -708,16 +708,16 @@ body.loading::before {
 }
 
 .alerts .alert-item {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
     background-color: var(--blue6);
     color: var(--gray3);
 }
 
-@media (width <= 992px) {
+@media (width >= 993px) {
     .alerts .alert-item {
-        padding-top: 0.25rem;
-        padding-bottom: 0.25rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
     }
 }
 
