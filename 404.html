@@ -6,6 +6,14 @@
   <script type="text/javascript">
     window.isErrorPage = true;
     window.errorCode = '404';
+    window.addEventListener('DOMContentLoaded', () => {
+      const links = document.querySelectorAll('a');
+      links.forEach(link => {
+        if (link.hasAttribute('title')) {
+          link.removeAttribute('title');
+        }
+      });
+    });
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta property="og:title" content="Page not found">
@@ -35,15 +43,85 @@
     main.error {
       min-height: calc(100vh - var(--nav-height));
       display: flex;
+      flex-direction: column;
       align-items: center;
     }
 
-    main.error .error-number {
+    main.error .section {
       width: 100%;
+      margin-top: 0;
     }
 
-    main.error .error-number text {
-      font-family: monospace;
+    main.error ul {
+      margin-bottom: 0;
+    }
+
+    main.error .introText {
+      font-size: 18px;
+    }
+
+    main.error p, 
+    main.error li {
+      font-size: 14px;
+      margin-bottom: 0 !important;
+    }
+
+    main.error button {
+      background-color: #006EB6;
+      color: #fff;
+    }
+
+    main.error form {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    main.error form input[type="text"] {
+      width: 100%;
+      padding: 5px;
+      font-size: 14px;
+      margin-right: 1%;
+    }
+
+    main.error form button {
+      flex-shrink: 0;
+      padding: 13px;
+    }
+
+    @media(width >= 600px) {
+      main.error .introText {
+        font-size: 20px;
+      }
+    }
+
+    @media(width >= 768px) {
+      main.error .section {
+          margin-bottom: 30px;
+      }
+
+      main.error .introText {
+          font-size: 24px;
+      }
+    }
+
+    @media (width >= 992px) {
+      main.error .section {
+        max-width: 992px;
+        margin: 30px auto 0;
+      }
+
+      main.error .section:last-child {
+        margin-bottom: 30px;
+      }
+    }
+
+    @media (width >= 1200px) {
+      main.error .section {
+        max-width: 1200px;
+        margin: 30px auto 0;
+      }
     }
   </style>
   <link rel="stylesheet" href="/aemedge/styles/lazy-styles.css">
@@ -53,13 +131,100 @@
   <header></header>
   <main class="error">
     <div class="section">
-      <svg viewBox="1 0 38 18" class="error-number">
-        <text x="0" y="17">404</text>
-      </svg>
-      <h2 class="error-message">Page Not Found</h2>
-      <p class="button-container">
-        <a href="/" class="button secondary error-button-home">Go home</a>
-      </p>
+        <h2>Sorry...</h2>
+        <p><span class="introText">The page you are looking for cannot be found.</span></p>
+        <p>You may have typed in the wrong address, or the page may no longer exist.</p>
+        <h3>What next?</h3>
+        <ul>
+          <li>Go back to the previous page</li>
+          <li>Go to the CME Group <a href="https://www.cmegroup.com">home page</a></li>
+          <li>Consider using the CME Group site navigation above or the search box below to find the page that you want on our site.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+      <form action="/search/index.html">
+        <input type="text" name="q" placeholder="Search CME Group" style="width: 100%; padding: 5px; font-size: 14px; margin-right: 1%;">
+        <button type="submit">Search</button>
+      </form>
+    </div>
+
+    <div class="section">
+      <h3>Useful Links</h3>
+      <div class="cards tiles">
+        <div>
+              <div class="cards-card-image">
+                <a href="https://www.cmegroup.com/markets/products.html" rel="external">  
+                  <picture>
+                    <source srcset="/aemedge/images/leading-products_459x293.avif" type="image/jpeg">
+                    <img src="/aemedge/images/leading-products_459x293.avif" alt="Leading Products">
+                  </picture>
+                </a>
+                <div class="cards-card-image-overlay">
+                  <span>Product Slate</span>
+                </div>
+                <div class="triangle-arrow">
+                  <img src="/aemedge/images/fpl-corner-arrow.webp" alt="Read More">
+                </div>
+              </div>
+              <div class="cards-card-body">
+                <h3>
+                  <a href="https://www.cmegroup.com/markets/products.html" rel="external">
+                    View All Products
+                  </a>
+                </h3>
+                <p>View all available products to see quotes, volume, settlements and time & sales.</p>
+              </div>
+        </div>
+        <div>
+          <div class="cards-card-image">
+            <a href="https://www.cmegroup.com/markets/products.html" rel="external">
+              <picture>
+                <source srcset="/aemedge/images/market-research-459x293.avif" type="image/jpeg">
+                <img src="/aemedge/images/market-research-459x293.avif" alt="Market Research">
+              </picture>
+            </a>
+            <div class="cards-card-image-overlay">
+              <span>Reports & Information</span>
+            </div>
+            <div class="triangle-arrow">
+              <img src="/aemedge/images/fpl-corner-arrow.webp" alt="Read More">
+            </div>
+          </div>
+          <div class="cards-card-body">
+            <h3>
+              <a href="https://www.cmegroup.com/markets/products.html" rel="external">
+                View All Articles
+              </a>
+            </h3>
+            <p>View our extensive library of articles and economic research reports.</p>
+          </div>
+        </div>
+        <div>
+          <div class="cards-card-image">
+            <a href="https://www.cmegroup.com/trading/market-tech-and-data-services.html" rel="external">
+              <picture>
+                <source srcset="/aemedge/images/bnr-technology-459x293.avif" type="image/jpeg">  
+                <img src="/aemedge/images/bnr-technology-459x293.avif" alt="Technology">
+              </picture>
+            </a>
+            <div class="cards-card-image-overlay">
+              <span>Technology</span>
+            </div>
+            <div class="triangle-arrow">
+              <img src="/aemedge/images/fpl-corner-arrow.webp" alt="Read More">
+            </div>
+          </div>
+          <div class="cards-card-body">
+            <h3>
+              <a href="https://www.cmegroup.com/trading/market-tech-and-data-services.html" rel="external">
+                Market Technology Services
+              </a>
+            </h3>
+            <p>Learn about our comprehensive portfolio of technology offerings.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
   <footer></footer>
