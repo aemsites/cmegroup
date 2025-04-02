@@ -15,6 +15,8 @@
 // Import the table detector module
 // import { analyzeTablesForImporter } from './table-detector.js';
 
+import { threeColumnsArticleXS } from './case-study-article.js';
+
 const templateData = {};
 const unique = true;
 
@@ -152,11 +154,10 @@ async function setMetadata(meta, document, url) {
     articleDate.remove();
   }
 
-  const jsonUrl = new URL(url).pathname.replace('.html', '/jcr:content.json');
-  // const pathname = new URL(url).pathname;
-  // const jsonUrl = `${DOMAIN}${new URL(url).pathname}/jcr:content.json`;
-
+  const changedUrl = new URL(url).pathname.replace('.html', '/jcr:content.json');
+  const jsonUrl = `${DOMAIN}${changedUrl}`;
   const jsonResponse = await fetch(jsonUrl);
+
   if (jsonResponse?.ok) {
     try {
       const jsonData = await jsonResponse.json();
@@ -518,7 +519,7 @@ const convertSectionsToMetadata = (document) => {
       const sectionMetadata = buildSectionMetadata([['Style', style.join(', ')]]);
       section.after(sectionMetadata);
       if (index !== sections.length - 1) {
-        section.after(blockSeparator().cloneNode(true));
+        sectionMetadata.after(blockSeparator().cloneNode(true));
       }
       if (index !== 0) {
         section.before(blockSeparator().cloneNode(true));
@@ -531,12 +532,18 @@ const convertSectionsToMetadata = (document) => {
  * This function creates a hero block for the article.
  * @param {Document} document - The document to search.
  */
-const articleHeroBlock = (document) => {
+const articleHeroBlock = (document, meta) => {
   const hero = document.querySelector('.article-header .article-background');
   if (hero) {
     const bgImage = hero.style.backgroundImage;
     const imgUrl = bgImage.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
-    const cells = [['Hero (Article)']];
+    let heroName = 'Hero (Article)';
+    if (meta['Sub Template'] === 'faqs') {
+      heroName = 'Hero (Article, FAQ)';
+    } else if (meta['Sub Template'] === 'showcase') {
+      heroName = 'Hero (Article, Labels)';
+    }
+    const cells = [[heroName]];
 
     const tempData = [];
     const img = document.createElement('img');
@@ -1316,9 +1323,41 @@ const removeExtraSectionBreak = (document) => {
   }
 };
 
+const lightBoxGallery = (document) => {
+  const components = document.querySelectorAll('.component');
+  if (components?.length) {
+    components.forEach((lightBox) => {
+      const attribute = lightBox.getAttribute('data-img-style');
+      if (attribute === 'lightbox-gallery') {
+        const cells = [['Lightbox']];
+        let imageSrc = lightBox.querySelector('img')?.src;
+
+        // remove host from src
+        const imgUrl = new URL(imageSrc);
+        imageSrc = imgUrl.pathname;
+        const img = document.createElement('img');
+        img.src = `https://www.cmegroup.com${imageSrc}`;
+        cells.push([img]);
+
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        lightBox.replaceWith(table);
+      }
+    });
+  }
+};
+
+// const addColumnsBlock = (document) => {
+//   const columns = document.querySelectorAll('.three-columns');
+//   if (columns?.length) {
+//     columns.forEach((column) => {
+//       column.classList.add('columns');
+//     });
+//   }
+// };
+
 const customBlocks = async (document, main, meta) => {
   convertSectionsToMetadata(document, main);
-  articleHeroBlock(document);
+  articleHeroBlock(document, meta);
   dividerBlock(document);
   promoBlock(document);
   authorBioBlock(document);
@@ -1326,6 +1365,12 @@ const customBlocks = async (document, main, meta) => {
   quizBlock(document);
   faqBlock(document, meta);
   await accordionBlock(document);
+  lightBoxGallery(document);
+  if (meta['Sub Template'] === 'case-study') {
+    threeColumnsArticleXS(document);
+  }
+
+  document.querySelector('.tag-cloud')?.remove();
 };
 
 export default {
@@ -1376,6 +1421,7 @@ export default {
       '.content-reference',
       '.save-text',
       '.article-featured-tag',
+      '.education-language-selector',
     ]);
 
     const results = [];
