@@ -494,7 +494,7 @@ button.search-icon::before {
     bottom: 0;
     overflow-y: auto;
     display: block;
-    padding: 6.125rem 0.9375rem 0;
+    padding: 6.125rem 0.9375rem 3.125rem;
 }
 
 @media (min-width: 481px) {
@@ -610,7 +610,177 @@ button.search-icon::before {
     content: var(--icon-search);
 }
 
-/* - - - */
+/* popular searches */
+
+.custom-search .popular-searches {
+    padding-top: 43px;
+}
+
+.custom-search .popular-searches .title {
+    color: var(--citron);
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.custom-search .popular-searches .searches {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding-top: 6px;
+}
+
+.custom-search .popular-searches .searches .search-box {
+    display: flex;
+    justify-content: space-between;
+    width: 42%;
+    background: var(--gray3);
+    color: var(--white);
+    margin: 5px 0;
+    border-radius: 3px;
+    height: 60px;
+    align-items: center;
+    padding: 0 20px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.custom-search .popular-searches .searches .search-box:hover {
+    color: var(--blue5);
+}
+
+.custom-search .popular-searches .searches .search-box:active {
+    background: var(--gray1);
+    color: var(--white);
+}
+
+@media (max-width: 768px) {
+    .custom-search .popular-searches .searches .search-box {
+        width: 100%;
+    }
+}
+
+.custom-search .popular-searches .searches .search-box .box-title {
+    padding-right: 5px;
+    height: 48px;
+    align-items: center;
+    display: flex;
+}
+
+.custom-search .popular-searches .searches .search-box .icon-arrow-right::before {
+    font-family: var(--cme-group-icons);
+    font-weight: normal;
+    font-size: 1rem;
+    content: var(--icon-arrow-right);
+}
+
+/* suggestion searches */
+.custom-search .suggestion-searches {
+    padding-top: 53px;
+}
+
+.custom-search .suggestion-searches .title {
+    color: var(--citron);
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.custom-search .suggestion-searches .searches {
+    display: flex;
+    flex-direction: column;
+}
+
+.custom-search .suggestion-searches .searches .search {
+    color: var(--white);
+    font-size: 14px;
+    padding-top: 14px;
+}
+
+.custom-search .suggestion-searches .searches .search button {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    text-transform: capitalize;
+    font-weight: normal;
+    font-size: 14px;
+    padding: 10px 0;
+    cursor: pointer;
+}
+
+.custom-search .suggestion-searches .searches .search button:hover>* {
+    color: var(--blue5);
+}
+
+.custom-search .suggestion-searches .searches .search button span {
+    color: var(--white);
+}
+
+.custom-search .suggestion-searches .searches .search button span:first-child {
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.custom-search .suggestion-searches .searches .search button span:first-child::before {
+    font-family: var(--cme-group-icons);
+    font-weight: normal;
+    content: var(--icon-arrow-right);
+}
+
+.custom-search .suggestion-searches .searches .search button span:last-child {
+    padding-left: 8px;
+}
+
+/* recent searches */
+
+.custom-search .recent-searches {
+    padding-top: 53px;
+    display: inline-block;
+}
+
+.custom-search .recent-searches .title {
+    color: var(--citron);
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.custom-search .recent-searches .search {
+    color: var(--white);
+    display: table;
+    font-size: 14px;
+    padding-top: 9px;
+    cursor: pointer;
+}
+
+.custom-search .recent-searches .search button {
+    color: var(--white);
+    background-color: transparent;
+    border: 0;
+    text-decoration: none;
+    padding-left: 10px;
+    outline: none;
+    box-shadow: none;
+    text-transform: capitalize;
+    font-weight: normal;
+    font-size: 14px;
+    padding: 0 10px;
+    cursor: pointer;
+}
+
+.custom-search .recent-searches .search button:hover {
+    color: var(--blue5);
+}
+
+.custom-search .recent-searches .search .icon-history::before {
+    font-family: var(--cme-group-icons);
+    font-weight: normal;
+    font-size: 1rem;
+    content: var(--icon-history);
+}
 
 /* right-side */
 

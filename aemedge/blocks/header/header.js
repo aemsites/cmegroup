@@ -122,9 +122,6 @@ class Nav {
     });
     this.searchDrawer.append(this.searchDrawerCloseBtn);
 
-    const searchComponent = renderSearch();
-    this.searchDrawer.append(searchComponent);
-
     this.el.append(this.searchCurtain);
     this.el.append(this.searchDrawer);
 
@@ -708,6 +705,8 @@ class Nav {
     document.body.classList.add('curtain-visible');
     this.searchCurtain.classList.add(IS_OPEN);
     this.searchDrawer.classList.add(IS_OPEN);
+    const searchComponent = renderSearch();
+    this.searchDrawer.append(searchComponent);
   };
 
   closeSearchDrawer = () => {

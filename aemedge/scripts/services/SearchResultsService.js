@@ -164,11 +164,10 @@ export async function getRecentSearch(loginInfo) {
 }
 
 export async function updateRecentSearch(
-  AEMAuth,
+  loginInfo,
+  isLoggedIn,
   term,
 ) {
-  const { isLoggedIn, loginInfo } = AEMAuth;
-
   if (isLoggedIn) {
     try {
       return apiPost(
