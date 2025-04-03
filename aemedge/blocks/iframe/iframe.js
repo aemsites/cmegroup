@@ -13,7 +13,9 @@ export default async function decorate(block) {
   function isAllowedUrl(url) {
     try {
       const urlObj = new URL(url);
-      return ALLOWED_HOSTS.some((host) => urlObj.hostname.includes(host));
+      // Only allow HTTP and HTTPS URLs
+      return (urlObj.protocol === 'http:' || urlObj.protocol === 'https:')
+        && ALLOWED_HOSTS.some((host) => urlObj.hostname.includes(host));
     } catch (e) {
       return false; // Invalid URL
     }
@@ -48,7 +50,12 @@ export default async function decorate(block) {
     iframe.height = fixedHeightClass;
   }
   iframe.src = link;
+  iframe.setAttribute('title', 'Iframe for external content');
   iframe.setAttribute('frameborder', 0);
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+  iframe.setAttribute('referrerpolicy', 'no-referrer');
+  iframe.setAttribute('loading', 'lazy'); // Performance improvement
+  iframe.allow = ''; // Restrict permissions (camera, microphone, etc.)
 
   const options = {
     root: null,
