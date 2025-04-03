@@ -18,13 +18,25 @@ export default async function decorate(block) {
       return false; // Invalid URL
     }
   }
-  // Exit early if URL is not in allowlist
-  if (!link || !isAllowedUrl(link)) {
+
+  // Helper function to add warning message
+  function addWarningMessage(msg) {
     block.classList.add('iframe-warning');
     const warningText = document.createElement('div');
     warningText.classList.add('iframe-warning-message');
-    warningText.textContent = 'Warning: Iframe source is not in allowed hosts list';
+    warningText.textContent = msg;
     block.appendChild(warningText);
+  }
+
+  // Exit early if link is missing
+  if (!link) {
+    addWarningMessage('Warning: No URL provided for iframe source');
+    return;
+  }
+
+  // Exit early if URL is not in allowlist
+  if (!isAllowedUrl(link)) {
+    addWarningMessage('Warning: Iframe source is not in allowed hosts list');
     return;
   }
 
