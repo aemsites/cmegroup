@@ -3,9 +3,12 @@
  */
 
 import { getMetadata } from '../aem.js';
-  import { getBrowserName } from '../utils.js';
+import { getBrowserName } from '../utils.js';
 
-const alertsEndpoint = 'https://www.cmegroup.com/content/cmegroup/en/misc/api/content-feeds-for-google-docs/full-alerts-list/jcr:content/main-content-section/section/section-elements/search_sort_filter_d.ssfajax.0.json';
+const CACHE_KEY = 'alerts_cache';
+const CACHE_TIMESTAMP_KEY = 'alerts_cache_timestamp';
+const CACHE_DURATION = 15 * 60 * 1000;
+const alertsEndpoint = 'https://beta.cmegroup.com/content/cmegroup/en/misc/api/content-feeds-for-google-docs/full-alerts-list/jcr:content/main-content-section/section/section-elements/search_sort_filter_d.ssfajax.0.json';
 let alertsPromise = null;
 
 function decodeHTML(html) {
@@ -83,63 +86,94 @@ function insertAlertsIntoDOM(items) {
   container.prepend(alertsContainer);
 }
 
+async function fetchAlerts() {
+  try {
+    const response = await fetch(alertsEndpoint);
+    if (!response.ok) {
+      throw new Error(`fail to load alerts: ${response.statusText}`);
+    }
+    const { results: data } = await response.json();
+    return data;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('fail to load alerts:', error);
+    throw error;
+  }
+}
+
+function filterAlerts(alerts) {
+  // const currentPath = window.location.pathname;
+  const currentPath = '/markets/energy';
+
+  return alerts.filter((alert) => {
+    const alertContent = alert.content;
+    if (!alertContent.enabled) return false;
+
+    const cleanedScope = alertContent.scope.split(',').map((scope) => {
+      if (scope === '/content/cmegroup/en') {
+        return '/';
+      }
+      if (scope.startsWith('/content/cmegroup/en')) {
+        return scope.replace('/content/cmegroup/en', '');
+      }
+      return scope;
+    });
+
+    if (!cleanedScope.some((scope) => scope.startsWith(currentPath))) return false;
+
+    const cleanedExcludedPages = alertContent.excludedPages.split(',').map((excluded) => {
+      if (excluded.startsWith('/content/cmegroup/en')) {
+        return excluded.replace('/content/cmegroup/en', '');
+      }
+      return excluded;
+    });
+
+    if (cleanedExcludedPages.some((excluded) => excluded.startsWith(currentPath))) {
+      return false;
+    }
+
+    if (alertContent.browsers && alertContent.browsers.length > 0
+      && !alertContent.browsers.split(',').includes(getBrowserName())) {
+      return false;
+    }
+
+    if (alertContent.templates && alertContent.templates.length > 0
+      && !alertContent.templates.split(',').includes(getMetadata('template'))) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
 function loadAlerts() {
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+
+  if (cachedData && cachedTimestamp && Date.now() - cachedTimestamp < CACHE_DURATION) {
+    const cachedAlerts = JSON.parse(cachedData);
+    return Promise.resolve(filterAlerts(cachedAlerts));
+  }
+
   if (!alertsPromise) {
     alertsPromise = new Promise((resolve, reject) => {
-      (async () => {
-        try {
-          const response = await fetch(alertsEndpoint);
-          if (!response.ok) {
-            throw new Error(`fail to load alerts: ${response.statusText}`);
-          }
-          const { results: data } = await response.json();
-          const currentPath = window.location.pathname;
+      fetchAlerts()
+        .then((data) => {
+          const cacheableAlerts = data.filter((alert) => alert.content.enabled);
+          localStorage.setItem(CACHE_KEY, JSON.stringify(cacheableAlerts));
+          localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now());
 
-          const alerts = data.filter((alert) => {
-            const alertContent = alert.content;
-            if (!alertContent.enabled) return false;
-
-            const cleanedScope = alertContent.scope.split(',').map((scope) => {
-              if (scope === '/content/cmegroup/en') {
-                return '/';
-              }
-              if (scope.startsWith('/content/cmegroup/en')) {
-                return scope.replace('/content/cmegroup/en', '');
-              }
-              return scope;
-            });
-
-            if (!cleanedScope.some((scope) => scope.startsWith(currentPath))) return false;
-
-            const cleanedExcludedPages = alertContent.excludedPages.split(',').map((excluded) => (
-              excluded.startsWith('/content/cmegroup/en')
-                ? excluded.replace('/content/cmegroup/en', '')
-                : excluded
-            ));
-
-            if (cleanedExcludedPages.some((excluded) => excluded.startsWith(currentPath))) {
-              return false;
-            }
-            if (alertContent.browsers && alertContent.browsers.length > 0
-              && !alertContent.browsers.split(',').includes(getBrowserName())) {
-              return false;
-            }
-            if (alertContent.templates && alertContent.templates.length > 0
-              && !alertContent.templates.split(',').includes(getMetadata('template'))) {
-              return false;
-            }
-            return true;
-          });
-
-          resolve(alerts);
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error('fail to load alerts:', error);
+          resolve(filterAlerts(cacheableAlerts));
+        })
+        .catch((error) => {
           reject(error);
-        }
-      })();
+        })
+        .finally(() => {
+          alertsPromise = null;
+        });
     });
   }
+
   return alertsPromise;
 }
 
