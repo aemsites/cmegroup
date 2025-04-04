@@ -198,8 +198,17 @@ export default async function initFloatingElements(doc, header) {
         0,
       );
 
+      const offsetTop = visibleAlertsHeight + header.offsetHeight;
+
       header.style.top = `${visibleAlertsHeight}px`;
-      main.style.paddingTop = `${visibleAlertsHeight + header.offsetHeight}px`;
+      main.style.paddingTop = `${offsetTop}px`;
+
+      const navMenus = doc.querySelectorAll('.nav-nav-item-menu');
+      navMenus.forEach((menu) => {
+        menu.style.top = `${offsetTop}px`;
+      });
+      const menuOpen = doc.querySelector('.nav-curtain.is-open');
+      menuOpen.style.top = `${offsetTop}px`;
     };
 
     const observer = new MutationObserver(updatePositions);
