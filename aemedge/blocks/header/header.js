@@ -24,6 +24,8 @@ class Nav {
     this.env = {};
     this.desktop = window.matchMedia('(min-width: 1200px)');
     this.login = this.body.querySelector('.login');
+    this.login.classList.remove('header');
+    this.login.classList.add('menu');
     this.curtain = createElement('div', { class: 'nav-curtain' });
     this.searchCurtain = createElement('div', { class: 'search-curtain' });
     this.searchDrawer = createElement('div', { class: 'search-drawer' });
