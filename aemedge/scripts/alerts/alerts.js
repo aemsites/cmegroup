@@ -177,7 +177,7 @@ function loadAlerts() {
   return alertsPromise;
 }
 
-export default async function initFloatingElements(doc) {
+export default async function initFloatingElements(doc, header) {
   let alertsFetched = [];
   try {
     alertsFetched = await loadAlerts();
@@ -188,8 +188,6 @@ export default async function initFloatingElements(doc) {
   }
 
   let lastScrollTop = 0;
-  const header = doc.querySelector('.header');
-  const alertsContainer = doc.querySelector('.alerts');
   const main = doc.querySelector('main');
   const alerts = doc.querySelectorAll('.alert-item');
 
@@ -205,7 +203,7 @@ export default async function initFloatingElements(doc) {
     };
 
     const observer = new MutationObserver(updatePositions);
-    observer.observe(alertsContainer, {
+    observer.observe(header, {
       attributes: true,
       childList: true,
       subtree: true,
