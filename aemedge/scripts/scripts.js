@@ -15,6 +15,8 @@ import {
   getMetadata,
 } from './aem.js';
 import initFloatingElements from './alerts/alerts.js';
+import { authentication, dataLayer } from './modules/index.js';
+import { BlockableUtils } from './blockable-utils/blockable-utils.js';
 
 import dynamicBlocks from '../blocks/dynamic/index.js';
 
@@ -259,6 +261,10 @@ function loadDelayed() {
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
+  import('./dataLayerImport.js');
+  BlockableUtils.init();
+  authentication.handleLoad();
+  dataLayer.handleLoad();
   loadDelayed();
 }
 
