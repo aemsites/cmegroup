@@ -33,6 +33,19 @@ function fetchEventData() {
 }
 
 /**
+ * Returns an econoday event report
+ * @returns Report data
+ */
+export async function getEventReport(report) {
+  const response = await fetch(`/aemedge/templates/event/mock/${report}.html`); // TODO: refer the endpoint
+  if (response.ok) {
+    const text = await response.text();
+    return text;
+  }
+  return '';
+}
+
+/**
  * Returns the econoday event data based on the ID of the url
  * @returns {Promise} Object containing the event data
  */
