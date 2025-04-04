@@ -13,8 +13,8 @@ export default async function decorate(block) {
   function isAllowedUrl(url) {
     try {
       const urlObj = new URL(url);
-      // Only allow HTTP and HTTPS URLs
-      return (urlObj.protocol === 'http:' || urlObj.protocol === 'https:')
+      // Only allow HTTPS URLs
+      return (urlObj.protocol === 'https:')
         && ALLOWED_HOSTS.some((host) => urlObj.hostname.includes(host));
     } catch (e) {
       return false; // Invalid URL
@@ -38,7 +38,7 @@ export default async function decorate(block) {
 
   // Exit early if URL is not in allowlist
   if (!isAllowedUrl(link)) {
-    addWarningMessage('Warning: Iframe source is not in allowed hosts list');
+    addWarningMessage('Warning: Iframe source is not in allowed hosts list or is not HTTPS');
     return;
   }
 
