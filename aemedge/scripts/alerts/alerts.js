@@ -102,8 +102,7 @@ async function fetchAlerts() {
 }
 
 function filterAlerts(alerts) {
-  // const currentPath = window.location.pathname;
-  const currentPath = '/markets/energy';
+  const currentPath = window.location.pathname;
 
   return alerts.filter((alert) => {
     const alertContent = alert.content;

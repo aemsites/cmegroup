@@ -99,7 +99,7 @@ body.curtain-visible {
 
 @media (width >=993px) {
     main {
-        padding-top: 100px;
+        padding-top: 6.25rem;
     }
 }
 
