@@ -130,6 +130,10 @@ async function setMetadata(meta, document, url) {
     'cme-group-standalone-lesson-template': {
       template: 'standalone-lesson',
     },
+    'cme-group-video-article-template': {
+      template: 'article',
+      subTemplate: 'video',
+    },
   };
 
   const template = fetchTemplate(document);
@@ -180,6 +184,12 @@ async function setMetadata(meta, document, url) {
           });
 
           meta['Primary Topic'] = arr.join(',');
+        } else if (key === 'articleTime') {
+          const time = jsonData[key].split(':');
+          const minutes = Number(time[0]);
+          const seconds = Number(time[1]);
+          const nearestMinute = Math.round(minutes + seconds / 60);
+          meta['Read Time'] = `${nearestMinute} min`;
         }
       });
     } catch (error) {
@@ -538,10 +548,8 @@ const articleHeroBlock = (document, meta) => {
     const bgImage = hero.style.backgroundImage;
     const imgUrl = bgImage.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
     let heroName = 'Hero (Article)';
-    if (meta['Sub Template'] === 'faqs') {
-      heroName = 'Hero (Article, FAQ)';
-    } else if (meta['Sub Template'] === 'showcase') {
-      heroName = 'Hero (Article, Labels)';
+    if (meta['Sub Template'] === 'faqs' || meta['Sub Template'] === 'standard' || meta['Sub Template'] === 'video') {
+      heroName = 'Hero (Article, Overlapping)'; // TODO inform team about this block variant
     }
     const cells = [[heroName]];
 
@@ -1323,6 +1331,7 @@ const removeExtraSectionBreak = (document) => {
   }
 };
 
+// TODO inform team about this block
 const lightBoxGallery = (document) => {
   const components = document.querySelectorAll('.component');
   if (components?.length) {
@@ -1342,6 +1351,40 @@ const lightBoxGallery = (document) => {
         const table = WebImporter.DOMUtils.createTable(cells, document);
         lightBox.replaceWith(table);
       }
+    });
+  }
+};
+
+const brightCoveVideo = (document) => {
+  const videos = document.querySelectorAll('.brightcove-video');
+  if (videos?.length) {
+    videos.forEach((video) => {
+      const accountId = video.getAttribute('data-account-id');
+      const playlistLocation = video.getAttribute('data-playlist-location');
+      const videoId = video.getAttribute('data-video-id');
+      const aspectRatio = video.getAttribute('data-aspect-ratio');
+
+      const cells = [['Brightcove']];
+      cells.push(['accountID', accountId]);
+      cells.push(['videoID', videoId]);
+      cells.push(['playlistID', '']);
+      cells.push(['playlistLocation', playlistLocation]);
+      cells.push(['aspectRatio', aspectRatio]);
+
+      cells.push(['cc', '']);
+      cells.push(['language', '']);
+      console.log(video);
+
+      const img = video.querySelector('.vjs-poster')?.style.backgroundImage;
+      const imgUrl = img?.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
+      if (imgUrl) {
+        const imgElement = document.createElement('img');
+        imgElement.src = imgUrl;
+        cells.push(['placeholderImg', imgElement]);
+      }
+
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      video.replaceWith(table);
     });
   }
 };
@@ -1369,6 +1412,7 @@ const customBlocks = async (document, main, meta) => {
   if (meta['Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);
   }
+  brightCoveVideo(document);
 
   document.querySelector('.tag-cloud')?.remove();
 };
@@ -1422,6 +1466,8 @@ export default {
       '.save-text',
       '.article-featured-tag',
       '.education-language-selector',
+      '.st-sticky-share-buttons',
+      '.sitewide-marketing-popup',
     ]);
 
     const results = [];
