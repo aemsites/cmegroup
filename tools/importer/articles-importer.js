@@ -15,7 +15,7 @@
 // Import the table detector module
 // import { analyzeTablesForImporter } from './table-detector.js';
 
-import { threeColumnsArticleXS } from './case-study-article.js';
+import { threeColumnsArticleXS, standardArticleInitialColumns } from './case-study-article.js';
 
 const templateData = {};
 const unique = true;
@@ -133,6 +133,10 @@ async function setMetadata(meta, document, url) {
     'cme-group-video-article-template': {
       template: 'article',
       subTemplate: 'video',
+    },
+    'cme-group-standard-article-template': {
+      template: 'article',
+      subTemplate: 'standard',
     },
   };
 
@@ -511,6 +515,20 @@ export const blockSeparator = () => {
 };
 
 /**
+ * This function fetches the image from the element.
+ * @param {HTMLElement} ele - The element to search.
+ * @returns {string} - The image.
+ */
+const imageFetch = (ele) => {
+  const bgImage = ele.style.backgroundImage;
+  if (bgImage) {
+    const imgUrl = bgImage.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
+    return `${DOMAIN}${imgUrl}`;
+  }
+  return null;
+};
+
+/**
  * This function converts the sections to metadata.
  * @param {Document} document - The document to search.
  */
@@ -526,7 +544,19 @@ const convertSectionsToMetadata = (document) => {
     });
 
     if (style.length) {
-      const sectionMetadata = buildSectionMetadata([['Style', style.join(', ')]]);
+      const styles = ['Style', style.join(', ')];
+      const tempArr = [styles];
+
+      // read background-image from the style
+
+      const backgroundImg = imageFetch(section);
+      if (backgroundImg) {
+        const img = document.createElement('img');
+        img.src = backgroundImg;
+        tempArr.push(['Background Image', img]);
+      }
+
+      const sectionMetadata = buildSectionMetadata(tempArr);
       section.after(sectionMetadata);
       if (index !== sections.length - 1) {
         sectionMetadata.after(blockSeparator().cloneNode(true));
@@ -758,20 +788,6 @@ const detectColumns = (document) => {
 };
 
 /**
- * This function fetches the image from the element.
- * @param {HTMLElement} ele - The element to search.
- * @returns {string} - The image.
- */
-const imageFetch = (ele) => {
-  const bgImage = ele.style.backgroundImage;
-  if (bgImage) {
-    const imgUrl = bgImage.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
-    return `${DOMAIN}${imgUrl}`;
-  }
-  return null;
-};
-
-/**
  * This function creates a promo block for the document.
  * @param {Document} document - The document to search.
  */
@@ -811,7 +827,7 @@ const promoBlock = (document) => {
         }
       }
 
-      const cells = [[`CTA (Promo, ${theme})`]];
+      const cells = [[`CTA (Promo, ${theme}, Divider Line)`]];
       if (link) {
         cells.push(['URL', `${DOMAIN}${path}`]);
       }
@@ -1337,19 +1353,27 @@ const lightBoxGallery = (document) => {
   if (components?.length) {
     components.forEach((lightBox) => {
       const attribute = lightBox.getAttribute('data-img-style');
-      if (attribute === 'lightbox-gallery') {
+      if (attribute === 'lightbox-gallery' || attribute === 'lightbox') {
         const cells = [['Lightbox']];
         let imageSrc = lightBox.querySelector('img')?.src;
+        const figCaption = lightBox.querySelector('figcaption');
 
-        // remove host from src
-        const imgUrl = new URL(imageSrc);
-        imageSrc = imgUrl.pathname;
-        const img = document.createElement('img');
-        img.src = `https://www.cmegroup.com${imageSrc}`;
-        cells.push([img]);
+        if (imageSrc) {
+          // remove host from src
+          const imgUrl = new URL(imageSrc);
+          imageSrc = imgUrl.pathname;
+          const img = document.createElement('img');
+          img.src = `https://www.cmegroup.com${imageSrc}`;
 
-        const table = WebImporter.DOMUtils.createTable(cells, document);
-        lightBox.replaceWith(table);
+          if (figCaption) {
+            cells.push([img], [figCaption.textContent]);
+          } else {
+            cells.push([img]);
+          }
+
+          const table = WebImporter.DOMUtils.createTable(cells, document);
+          lightBox.replaceWith(table);
+        }
       }
     });
   }
@@ -1389,6 +1413,31 @@ const brightCoveVideo = (document) => {
   }
 };
 
+const createForm = (document) => {
+  const forms = document.querySelectorAll('form');
+  // console.log(forms, 3333);
+  if (forms?.length) {
+    forms.forEach((form) => {
+      // console.log(form, 3333);
+      console.log(form.parentElement, 444);
+      if (form?.parentElement?.classList.contains('mc-user-form')) {
+        const dataFormId = form?.parentElement?.getAttribute('data-form-id');
+
+        const cells = [['Form (Grid)']];
+        cells.push(['Name', 'Contact Us']);
+        cells.push(['Id', dataFormId]);
+        cells.push(['Source', `${EDS_DOMAIN}/forms/contact-us.json`]);
+        cells.push(['Submit Logged Out', '/fragments/contact-us-form-logged-out-submit']);
+        cells.push(['Submit Logged In', '/fragments/contact-us-form-logged-in-submit']);
+
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        form?.parentElement?.replaceWith(table);
+      } else {
+        form?.parentElement?.remove();
+      }
+    });
+  }
+};
 // const addColumnsBlock = (document) => {
 //   const columns = document.querySelectorAll('.three-columns');
 //   if (columns?.length) {
@@ -1404,17 +1453,24 @@ const customBlocks = async (document, main, meta) => {
   dividerBlock(document);
   promoBlock(document);
   authorBioBlock(document);
-  figCaptionEmphasize(document);
   quizBlock(document);
   faqBlock(document, meta);
   await accordionBlock(document);
   lightBoxGallery(document);
   if (meta['Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);
+  } else if (meta['Sub Template'] === 'standard') {
+    standardArticleInitialColumns(document);
   }
   brightCoveVideo(document);
 
+  figCaptionEmphasize(document);
   document.querySelector('.tag-cloud')?.remove();
+  createForm(document);
+  // TODO remove this as removing all forms as of now
+  // document.querySelectorAll('form')?.forEach((form) => {
+  //   form.remove();
+  // });
 };
 
 export default {

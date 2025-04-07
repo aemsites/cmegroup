@@ -2,7 +2,7 @@
 /* eslint-disable no-console, class-methods-use-this */
 
 // Columns(Article, spacing-xs)
-export const threeColumnsArticleXS = (document) => {
+const threeColumnsArticleXS = (document) => {
   const threeColumns = document.querySelector('.vcr.medium-gutters');
 
   if (threeColumns) {
@@ -20,4 +20,31 @@ export const threeColumnsArticleXS = (document) => {
   }
 };
 
-export default threeColumnsArticleXS;
+// Specifically for the success section
+const standardArticleInitialColumns = (document) => {
+  const columns = document.querySelector('.no-gutters.justify-content-start');
+  if (columns) {
+    const cells = [['Columns']];
+    const arr = [];
+
+    const imgSrc = columns.querySelector('img')?.src;
+    if (imgSrc.indexOf('ribbon') !== -1) {
+      [...columns.children].forEach((child, index) => {
+        if (index === 0) {
+          arr.push(':ribbon:');
+        } else {
+          arr.push(child.innerHTML);
+        }
+      });
+
+      cells.push(arr);
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      columns.replaceWith(table);
+    }
+  }
+};
+
+export {
+  threeColumnsArticleXS,
+  standardArticleInitialColumns,
+};
