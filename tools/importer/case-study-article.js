@@ -20,6 +20,23 @@ const threeColumnsArticleXS = (document) => {
   }
 };
 
+const generalColumns = (document) => {
+  const columns = document.querySelector('.vcr-white.justify-content-start');
+  if (columns) {
+    const cells = [['Columns']];
+    const arr = [];
+
+    [...columns.children].forEach((child) => {
+      arr.push(child.innerHTML);
+    });
+
+    cells.push(arr);
+
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    columns.replaceWith(table);
+  }
+};
+
 // Specifically for the success section
 const standardArticleInitialColumns = (document) => {
   const columns = document.querySelector('.no-gutters.justify-content-start');
@@ -47,4 +64,5 @@ const standardArticleInitialColumns = (document) => {
 export {
   threeColumnsArticleXS,
   standardArticleInitialColumns,
+  generalColumns,
 };

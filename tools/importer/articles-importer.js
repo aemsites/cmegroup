@@ -15,7 +15,7 @@
 // Import the table detector module
 // import { analyzeTablesForImporter } from './table-detector.js';
 
-import { threeColumnsArticleXS, standardArticleInitialColumns } from './case-study-article.js';
+import { threeColumnsArticleXS, standardArticleInitialColumns, generalColumns } from './case-study-article.js';
 
 const templateData = {};
 const unique = true;
@@ -1459,6 +1459,7 @@ const customBlocks = async (document, main, meta) => {
   lightBoxGallery(document);
   if (meta['Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);
+    generalColumns(document);
   } else if (meta['Sub Template'] === 'standard') {
     standardArticleInitialColumns(document);
   }
