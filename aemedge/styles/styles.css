@@ -796,7 +796,7 @@ body.loading::before {
     padding: 0 0.625rem;
 }
 
-@media (width > 992px) {
+@media (width >= 993px) {
     .alerts .alert-item .container {
         padding: 0;
     }
