@@ -6,7 +6,6 @@ import { getMetadata } from '../aem.js';
 import { getBrowserName, getEnvType } from '../utils.js';
 
 const CACHE_KEY = 'alerts_cache';
-const CACHE_TIMESTAMP_KEY = 'alerts_cache_timestamp';
 const CACHE_DURATION = 15 * 60 * 1000;
 const alertsEndpoint = `${getEnvType() !== 'prod' ? 'https://beta.cmegroup.com' : 'https://www.cmegroup.com'}/content/cmegroup/en/misc/api/content-feeds-for-google-docs/full-alerts-list/jcr:content/main-content-section/section/section-elements/search_sort_filter_d.ssfajax.0.json`;
 let alertsPromise = null;
@@ -146,12 +145,12 @@ function filterAlerts(alerts) {
 }
 
 function loadAlerts() {
-  const cachedData = localStorage.getItem(CACHE_KEY);
-  const cachedTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-
-  if (cachedData && cachedTimestamp && Date.now() - cachedTimestamp < CACHE_DURATION) {
-    const cachedAlerts = JSON.parse(cachedData);
-    return Promise.resolve(filterAlerts(cachedAlerts));
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    const parsed = JSON.parse(cached);
+    if (parsed.timestamp && parsed.alerts && Date.now() - parsed.timestamp < CACHE_DURATION) {
+      return Promise.resolve(filterAlerts(parsed.alerts));
+    }
   }
 
   if (!alertsPromise) {
@@ -159,9 +158,10 @@ function loadAlerts() {
       fetchAlerts()
         .then((data) => {
           const cacheableAlerts = data.filter((alert) => alert.content.enabled);
-          localStorage.setItem(CACHE_KEY, JSON.stringify(cacheableAlerts));
-          localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now());
-
+          localStorage.setItem(CACHE_KEY, JSON.stringify({
+            timestamp: Date.now(),
+            alerts: cacheableAlerts,
+          }));
           resolve(filterAlerts(cacheableAlerts));
         })
         .catch((error) => {
