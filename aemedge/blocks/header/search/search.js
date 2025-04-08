@@ -191,18 +191,18 @@ const handleChange = (e) => {
   }
 };
 
-const handleEnter = (e) => {
-  if (e.key === 'Enter') {
-    this.handleSearch();
-  }
-};
-
 const handleSearch = async () => {
   if (!searchValueVar.trim()) {
     return;
   }
   await setSearch(searchValueVar);
   window.location = `${getAbsoluteUrl(searchUrl)}?q=${encodeURIComponent(searchValueVar)}`;
+};
+
+const handleEnter = (e) => {
+  if (e.key === 'Enter') {
+    handleSearch();
+  }
 };
 
 const init = async () => {

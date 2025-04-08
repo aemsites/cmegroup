@@ -203,7 +203,8 @@ export async function updateRecentSearch(
     }
 
     if (index < 0) {
-      searches = [newSearch, ...searches].slice(5);
+      const combinedSearches = [newSearch, ...searches];
+      searches = combinedSearches.slice(0, 5);
     }
   }
 
