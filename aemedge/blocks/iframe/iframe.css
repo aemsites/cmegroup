@@ -2,12 +2,12 @@
     width: 100%;
 }
 
-.iframe-warning {
+.iframe-wrapper .iframe-warning {
     border: 2px solid var(--red);
     padding: 10px;
 }
 
-.iframe-warning-message {
+.iframe .iframe-warning-message {
     color: var(--red);
     margin-top: 5px;
 }

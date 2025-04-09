@@ -7,8 +7,9 @@ export default async function decorate(block) {
     'html5-player.libsyn.com',
   ];
 
+  const PLACEHOLDER = 'IFRAME_TITLE_HERE';
   const link = block.querySelector('a')?.getAttribute('href');
-
+  const title = block.querySelector('h1')?.textContent;
   // Helper function to check if URL is allowed
   function isAllowedUrl(url) {
     try {
@@ -56,6 +57,10 @@ export default async function decorate(block) {
   iframe.setAttribute('referrerpolicy', 'no-referrer');
   iframe.setAttribute('loading', 'lazy'); // Performance improvement
   iframe.allow = ''; // Restrict permissions (camera, microphone, etc.)
+  const meaningfulTitle = (!title || title === PLACEHOLDER)
+    ? 'Content from ' + new URL(link).hostname
+    : title;
+  iframe.setAttribute('title', meaningfulTitle);
 
   const options = {
     root: null,
