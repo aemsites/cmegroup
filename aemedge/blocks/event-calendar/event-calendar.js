@@ -4,8 +4,8 @@ import { createElement, i18n } from '../../scripts/utils.js';
 // import { authentication as authStatus } from '../../scripts/modules/index.js';
 // import { renderFilterSection } from './filters/filters.js';
 
-const { body } = window.document;
-const isDesktop = window.matchMedia('(min-width: 1200px)');
+// const { body } = window.document;
+// const isDesktop = window.matchMedia('(min-width: 1200px)');
 const inputsCurtain = createElement('div', { class: 'inputs-curtain' });
 const eventCalendarContainer = createElement('div', { class: 'event-calendar' });
 const filterSectionContainer = createElement('div', { class: 'filter-section-container' });
@@ -24,10 +24,39 @@ async function initializeLabels() {
   filtersLabel = filtersLabelVar;
 }
 
+function closeFiltersInputsContainer() {
+  console.log('close');
+}
+
+function openFiltersInputsContainer() {
+  console.log('open');
+}
+
+function resetFilters() {
+  // reset and close modal
+  console.log('reset');
+  closeFiltersInputsContainer();
+}
+
+function applyFilters() {
+  // apply and close modal
+  console.log('apply');
+  closeFiltersInputsContainer();
+}
+
 function renderInputs() {
   const filtersMobileBtn = createElement('button', { class: 'primary toggle-button btn' });
+  filtersMobileBtn.addEventListener('click', async () => {
+    openFiltersInputsContainer();
+  });
   const filtersResetBtn = createElement('button', { class: 'secondary btn' });
+  filtersResetBtn.addEventListener('click', async () => {
+    resetFilters();
+  });
   const filtersApplyBtn = createElement('button', { class: 'primary btn' });
+  filtersApplyBtn.addEventListener('click', async () => {
+    applyFilters();
+  });
   const filterSearchInput = createElement('input', { class: 'secondary input-search' });
   const filterCountryInput = createElement('input', { class: 'input-country' });
   const filterImpactInput = createElement('input', { class: 'input-impact' });
@@ -47,15 +76,11 @@ function renderFilterSection() {
   return filtersSectionEventCalendar;
 }
 
-function CloseFiltersInputsContainer() {
-  console.log('close');
-}
-
 async function init(block, version) {
   await initializeLabels();
   eventCalendarContainer.append(inputsCurtain);
   inputsCurtain.addEventListener('click', async () => {
-    CloseFiltersInputsContainer();
+    closeFiltersInputsContainer();
   });
 
   filtersTitle.innerHTML = filtersLabel;
