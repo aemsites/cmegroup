@@ -69,7 +69,7 @@ export class Authentication {
     // return false;
 
     this.loginProcessUrl = '/login-confirmed';
-    this.loginUrl = 'http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://current.www-qa.cmegroup.com';
+    this.loginUrl = 'http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://beta.cmegroup.com';
     this.registerUrl = 'https://login.cmegroup.com/sso/register/';
     this.logoutUrl = '/libs/cmegroup/security/logout';
     this.logoutProfileUrl = 'https://myprofile.cmegroup.com/admin/ssoflo';
