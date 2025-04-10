@@ -1,6 +1,7 @@
 import {
   apiGet,
-  apiPost,
+  apiGetAbsolute,
+  apiPostAbsolute,
   getResponseData,
   DataCacheUtil,
 } from '../utils/index.js';
@@ -98,9 +99,9 @@ export async function getSearchResults(
 
 export async function getPopularSearch() {
   const url = window.globalConfig?.popularSearchUrl
-    || '/services/popular-search';
+    || 'https://www.cmegroup.com/services/popular-search';
   try {
-    const response = await apiGet(url);
+    const response = await apiGetAbsolute(url);
     const data = getResponseData(response, 'data');
     return data.map((item) => {
       const { title } = item;
@@ -125,7 +126,7 @@ export async function getRecentSearch(loginInfo) {
 
   try {
     const loggedSearches = getResponseData(
-      await apiPost('/CmeWS/mvc/secured/MostRecentSearchedTerm/getByUser', {
+      await apiPostAbsolute('https://www.cmegroup.com/CmeWS/mvc/secured/MostRecentSearchedTerm/getByUser', {
         ...getUserInfo(loginInfo),
       }),
       'data',
@@ -146,8 +147,8 @@ export async function getRecentSearch(loginInfo) {
       )
       .slice(0, 5);
 
-    apiPost(
-      '/CmeWS/mvc/secured/MostRecentSearchedTerm/fullUpdateByUser',
+      apiPostAbsolute(
+      'https://www.cmegroup.com/CmeWS/mvc/secured/MostRecentSearchedTerm/fullUpdateByUser',
       {
         ...getUserInfo(loginInfo),
         terms: mergedSearches.map((term) => term.term),
@@ -170,8 +171,8 @@ export async function updateRecentSearch(
 ) {
   if (isLoggedIn) {
     try {
-      return apiPost(
-        '/CmeWS/mvc/secured/MostRecentSearchedTerm/updateByUser',
+      return apiPostAbsolute(
+        'https://www.cmegroup.com/CmeWS/mvc/secured/MostRecentSearchedTerm/updateByUser',
         {
           ...getUserInfo(loginInfo),
           terms: [term],
@@ -218,7 +219,7 @@ export async function getSearchSuggestions(
   limit,
 ) {
   try {
-    const response = await apiGet(`/bin/service/search.${term}.json`);
+    const response = await apiGetAbsolute(`https://www.cmegroup.com/bin/service/search.${term}.json`);
     const data = getResponseData(response, 'data');
     if (data) {
       return data.slice(0, limit);
