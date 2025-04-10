@@ -1,5 +1,5 @@
 export function getIsLoggedInUrl() {
-  return `https://www.cmegroup.com/services/login/validate`;
+  return 'https://www.cmegroup.com/services/login/validate';
 }
 
 export function getLoginDataUrl(fromUrl, fromUrlTitle) {
