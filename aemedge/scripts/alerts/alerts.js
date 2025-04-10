@@ -4,7 +4,7 @@
 
 import { getMetadata } from '../aem.js';
 import { getBrowserName } from '../utils.js';
-import getLegacyAlerts from '../legacy-api.js';
+import { getLegacyAlerts } from '../legacy-api.js';
 
 const CACHE_KEY = 'alerts_cache';
 const CACHE_DURATION = 15 * 60 * 1000;
