@@ -1,4 +1,3 @@
-// @flow
 import { apiGet, apiPost, getResponseData } from '../utils/index.js';
 
 export async function getIsLoggedIn() {
