@@ -37,6 +37,25 @@ const generalColumns = (document) => {
   }
 };
 
+const generateEndColumns = (document) => {
+  const rows = document.querySelectorAll('.row.justify-content-start');
+
+  rows.forEach((row) => {
+    if (row.querySelector(':scope > .col-md-6')) {
+      const cells = [['Columns']];
+      const arr = [];
+
+      [...row.children].forEach((child) => {
+        arr.push(child.innerHTML);
+      });
+
+      cells.push(arr);
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      row.replaceWith(table);
+    }
+  });
+};
+
 // Specifically for the success section
 const standardArticleInitialColumns = (document) => {
   const columns = document.querySelector('.no-gutters.justify-content-start');
@@ -65,4 +84,5 @@ export {
   threeColumnsArticleXS,
   standardArticleInitialColumns,
   generalColumns,
+  generateEndColumns,
 };

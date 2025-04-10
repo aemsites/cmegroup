@@ -15,7 +15,9 @@
 // Import the table detector module
 // import { analyzeTablesForImporter } from './table-detector.js';
 
-import { threeColumnsArticleXS, standardArticleInitialColumns, generalColumns } from './case-study-article.js';
+import {
+  threeColumnsArticleXS, standardArticleInitialColumns, generalColumns, generateEndColumns,
+} from './case-study-article.js';
 
 const templateData = {};
 const unique = true;
@@ -827,7 +829,7 @@ const promoBlock = (document) => {
         }
       }
 
-      const cells = [[`CTA (Promo, ${theme}, Divider Line)`]];
+      const cells = [[`CTA (Promo, ${theme})`]]; // TODO removed divider line, ideally it should be a separate block
       if (link) {
         cells.push(['URL', `${DOMAIN}${path}`]);
       }
@@ -860,9 +862,9 @@ const promoBlock = (document) => {
  * @param {Document} document - The document to search.
  */
 const dividerBlock = (document) => {
-  const dividers = document.querySelectorAll('.divider-line');
+  const dividers = document.querySelectorAll('.divider.line');
 
-  if (dividers.length) {
+  if (dividers?.length) {
     dividers.forEach((divider) => {
       const cells = [['Divider']];
       const table = WebImporter.DOMUtils.createTable(cells, document);
@@ -1397,7 +1399,6 @@ const brightCoveVideo = (document) => {
 
       cells.push(['cc', '']);
       cells.push(['language', '']);
-      console.log(video);
 
       const img = video.querySelector('.vjs-poster')?.style.backgroundImage;
       const imgUrl = img?.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
@@ -1415,11 +1416,8 @@ const brightCoveVideo = (document) => {
 
 const createForm = (document) => {
   const forms = document.querySelectorAll('form');
-  // console.log(forms, 3333);
   if (forms?.length) {
     forms.forEach((form) => {
-      // console.log(form, 3333);
-      console.log(form.parentElement, 444);
       if (form?.parentElement?.classList.contains('mc-user-form')) {
         const dataFormId = form?.parentElement?.getAttribute('data-form-id');
 
@@ -1447,7 +1445,31 @@ const createForm = (document) => {
 //   }
 // };
 
+const tableBlock = (document) => {
+  const tables = document.querySelectorAll('.table-wrapper');
+  if (tables?.length) {
+    tables.forEach((table) => {
+      let tableText = 'Table';
+      const arr = [];
+      // const tableClasses = table.querySelector('table')?.classList;
+      // // if (tableClasses.contains('no-column-header')) {
+      // //   arr.push('No Column Header');
+      // // }
+
+      if (arr.length) {
+        tableText += ` (${arr.join(', ')})`;
+      }
+
+      const cells = [[tableText]];
+      cells.push([table.innerHTML]);
+      const tempTable = WebImporter.DOMUtils.createTable(cells, document);
+      table.replaceWith(tempTable);
+    });
+  }
+};
+
 const customBlocks = async (document, main, meta) => {
+  tableBlock(document);
   convertSectionsToMetadata(document, main);
   articleHeroBlock(document, meta);
   dividerBlock(document);
@@ -1460,11 +1482,11 @@ const customBlocks = async (document, main, meta) => {
   if (meta['Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);
     generalColumns(document);
+    generateEndColumns(document);
   } else if (meta['Sub Template'] === 'standard') {
     standardArticleInitialColumns(document);
   }
   brightCoveVideo(document);
-
   figCaptionEmphasize(document);
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
