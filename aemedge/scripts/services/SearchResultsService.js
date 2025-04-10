@@ -4,6 +4,11 @@ import {
   apiPostAbsolute,
   getResponseData,
   DataCacheUtil,
+  getPopularSearchUrl,
+  getRecentSearchByUserUrl,
+  getRecentSearchFullUpdateByUserUrl,
+  updateRecentSearchUrl,
+  getSearchSuggestionsUrl,
 } from '../utils/index.js';
 import { formatToCentralTime, isDateBefore } from '../utils.js';
 
@@ -99,7 +104,7 @@ export async function getSearchResults(
 
 export async function getPopularSearch() {
   const url = window.globalConfig?.popularSearchUrl
-    || 'https://www.cmegroup.com/services/popular-search';
+    || getPopularSearchUrl();
   try {
     const response = await apiGetAbsolute(url);
     const data = getResponseData(response, 'data');
@@ -126,7 +131,7 @@ export async function getRecentSearch(loginInfo) {
 
   try {
     const loggedSearches = getResponseData(
-      await apiPostAbsolute('https://www.cmegroup.com/CmeWS/mvc/secured/MostRecentSearchedTerm/getByUser', {
+      await apiPostAbsolute(getRecentSearchByUserUrl(), {
         ...getUserInfo(loginInfo),
       }),
       'data',
@@ -147,8 +152,8 @@ export async function getRecentSearch(loginInfo) {
       )
       .slice(0, 5);
 
-      apiPostAbsolute(
-      'https://www.cmegroup.com/CmeWS/mvc/secured/MostRecentSearchedTerm/fullUpdateByUser',
+    apiPostAbsolute(
+      getRecentSearchFullUpdateByUserUrl(),
       {
         ...getUserInfo(loginInfo),
         terms: mergedSearches.map((term) => term.term),
@@ -172,7 +177,7 @@ export async function updateRecentSearch(
   if (isLoggedIn) {
     try {
       return apiPostAbsolute(
-        'https://www.cmegroup.com/CmeWS/mvc/secured/MostRecentSearchedTerm/updateByUser',
+        updateRecentSearchUrl(),
         {
           ...getUserInfo(loginInfo),
           terms: [term],
@@ -219,7 +224,7 @@ export async function getSearchSuggestions(
   limit,
 ) {
   try {
-    const response = await apiGetAbsolute(`https://www.cmegroup.com/bin/service/search.${term}.json`);
+    const response = await apiGetAbsolute(getSearchSuggestionsUrl(term));
     const data = getResponseData(response, 'data');
     if (data) {
       return data.slice(0, limit);

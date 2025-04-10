@@ -1,10 +1,17 @@
 // @flow
-import { apiGet, apiPost, getResponseData } from '../utils/index.js';
+import {
+  apiGetAbsolute,
+  apiPostAbsolute,
+  getResponseData,
+  getIsLoggedInUrl,
+  getLoginDataUrl,
+  getUserInfoUrl,
+} from '../utils/index.js';
 
 export async function getIsLoggedIn() {
-  const isLoggedInService = '/services/login/validate';
+  const isLoggedInService = getIsLoggedInUrl();
   try {
-    const response = await apiGet(isLoggedInService);
+    const response = await apiGetAbsolute(isLoggedInService);
     return getResponseData(response);
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -14,9 +21,9 @@ export async function getIsLoggedIn() {
 }
 
 export async function getLoginData(fromUrl, fromUrlTitle) {
-  const url = `/libs/cmegroup/security/login?fromUrl=${fromUrl}&fromUrlTitle=${fromUrlTitle}`;
+  const url = getLoginDataUrl(fromUrl, fromUrlTitle);
   try {
-    const response = await apiGet(url);
+    const response = await apiGetAbsolute(url);
     return getResponseData(response);
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -26,10 +33,10 @@ export async function getLoginData(fromUrl, fromUrlTitle) {
 }
 
 export async function getUserInfo(userInfo) {
-  const url = '/CmeWS/mvc/secured/UserAccount/salesforce-userinfo';
+  const url = getUserInfoUrl();
   const { userId, token } = userInfo;
   try {
-    const response = await apiPost(url, {
+    const response = await apiPostAbsolute(url, {
       userId,
       token,
     });
