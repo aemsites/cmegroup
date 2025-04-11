@@ -14,7 +14,7 @@ import {
   toClassName,
   getMetadata,
 } from './aem.js';
-import { authentication } from './modules/index.js';
+import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 
 /**
@@ -228,6 +228,8 @@ async function loadEager(doc) {
  * @param {Element} doc The container element
  */
 async function loadLazy(doc) {
+  import('./dataLayerImport.js');
+  dataLayer.handleLoad();
   autolinkModals(doc);
 
   const main = doc.querySelector('main');
@@ -243,6 +245,7 @@ async function loadLazy(doc) {
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
+  authentication.handleLoad();
 }
 
 /**
@@ -258,7 +261,6 @@ function loadDelayed() {
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
-  authentication.handleLoad();
   loadDelayed();
 }
 

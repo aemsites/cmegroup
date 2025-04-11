@@ -1,4 +1,4 @@
-import { isEmpty, axiosGet, axiosPost } from './Misc.js';
+import { isEmpty, axiosGet, axiosPost } from './misc.js';
 
 function makeProtectedUrl(url, withCache = false) {
   if (window.forceUseCache || withCache) {

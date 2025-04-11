@@ -1,6 +1,5 @@
 import { sampleRUM, loadScript } from './aem.js';
 import { getEnvType } from './utils.js';
-import { dataLayer } from './modules/index.js';
 import { BlockableUtils } from './blockable-utils/blockable-utils.js';
 
 // Core Web Vitals RUM collection
@@ -49,8 +48,6 @@ async function loadOneTrust() {
 
 function loadPage() {
   BlockableUtils.init();
-  import('./dataLayerImport.js');
-  dataLayer.handleLoad();
   loadShareThis();
   loadOneTrust();
 }

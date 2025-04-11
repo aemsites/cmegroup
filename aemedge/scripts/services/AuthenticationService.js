@@ -2,13 +2,12 @@ import {
   apiGetAbsolute,
   apiPostAbsolute,
   getResponseData,
-  getIsLoggedInUrl,
-  getLoginDataUrl,
-  getUserInfoUrl,
 } from '../utils/index.js';
+import { getLoginDataUrl } from '../legacy-api.js';
+import { urlByEnvType } from '../utils.js';
 
 export async function getIsLoggedIn() {
-  const isLoggedInService = getIsLoggedInUrl();
+  const isLoggedInService = `${urlByEnvType()}/services/login/validate`;
   try {
     const response = await apiGetAbsolute(isLoggedInService);
     return getResponseData(response);
@@ -32,7 +31,7 @@ export async function getLoginData(fromUrl, fromUrlTitle) {
 }
 
 export async function getUserInfo(userInfo) {
-  const url = getUserInfoUrl();
+  const url = `${urlByEnvType()}/CmeWS/mvc/secured/UserAccount/salesforce-userinfo`;
   const { userId, token } = userInfo;
   try {
     const response = await apiPostAbsolute(url, {

@@ -211,6 +211,10 @@ function getEnvType() {
   return type;
 }
 
+function urlByEnvType() {
+  return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
+}
+
 function formatToCentralTime(utcDateString, lastUpdatedFormat) {
   const utcDate = new Date(utcDateString);
   const options = {
@@ -268,4 +272,5 @@ export {
   getEnvType,
   formatToCentralTime,
   isDateBefore,
+  urlByEnvType,
 };

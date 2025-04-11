@@ -4,43 +4,14 @@ import {
   apiPostAbsolute,
   getResponseData,
   DataCacheUtil,
-  getPopularSearchUrl,
-  getRecentSearchByUserUrl,
-  getRecentSearchFullUpdateByUserUrl,
-  updateRecentSearchUrl,
-  getSearchSuggestionsUrl,
 } from '../utils/index.js';
-import { formatToCentralTime, isDateBefore } from '../utils.js';
+import { getSearchSuggestionsUrl } from '../legacy-api.js';
+import { formatToCentralTime, isDateBefore, urlByEnvType } from '../utils.js';
 
 const getUserInfo = ({ userId, token }) => ({ userId, token });
 
 // this data is shared between search box and search results...
 const searchCache = new DataCacheUtil(1000);
-
-export async function getSearchAdvisories(
-  mranSearch = false,
-  limit = 5,
-) {
-  const latestsUrl = '/content/cmegroup/en/search/advisories/jcr:content/full-par/cmetable.ajax.';
-  const filterSearch = mranSearch
-    ? 'Advisory%20Notices%2CMarket%20Regulation%20Advisories%2CMRANs.-.-.1.-.-'
-    : '';
-  const url = `${latestsUrl}${filterSearch}.json`;
-  try {
-    const response = await apiGet(url);
-    const data = getResponseData(response, 'results');
-    return data.slice(0, limit).map(({ dynamicProperties: el }) => ({
-      ...el,
-      path:
-        (el.path && el.path.includes('.html') ? el.path : `${el.path}.html`)
-          || '',
-    }));
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error('SearchResultsService => getSearchLatests error:', e);
-    return [];
-  }
-}
 
 export async function getSearchProducts(term) {
   const productsUrl = '/CmeWS/mvc/ProductSlate/V2/List?pageNumber=1&sortAsc=false&sortField=rank';
@@ -104,7 +75,7 @@ export async function getSearchResults(
 
 export async function getPopularSearch() {
   const url = window.globalConfig?.popularSearchUrl
-    || getPopularSearchUrl();
+    || `${urlByEnvType()}/services/popular-search`;
   try {
     const response = await apiGetAbsolute(url);
     const data = getResponseData(response, 'data');
@@ -131,7 +102,7 @@ export async function getRecentSearch(loginInfo) {
 
   try {
     const loggedSearches = getResponseData(
-      await apiPostAbsolute(getRecentSearchByUserUrl(), {
+      await apiPostAbsolute(`${urlByEnvType()}/CmeWS/mvc/secured/MostRecentSearchedTerm/getByUser`, {
         ...getUserInfo(loginInfo),
       }),
       'data',
@@ -153,7 +124,7 @@ export async function getRecentSearch(loginInfo) {
       .slice(0, 5);
 
     apiPostAbsolute(
-      getRecentSearchFullUpdateByUserUrl(),
+      `${urlByEnvType()}/CmeWS/mvc/secured/MostRecentSearchedTerm/fullUpdateByUser`,
       {
         ...getUserInfo(loginInfo),
         terms: mergedSearches.map((term) => term.term),
@@ -177,7 +148,7 @@ export async function updateRecentSearch(
   if (isLoggedIn) {
     try {
       return apiPostAbsolute(
-        updateRecentSearchUrl(),
+        `${urlByEnvType()}/CmeWS/mvc/secured/MostRecentSearchedTerm/updateByUser`,
         {
           ...getUserInfo(loginInfo),
           terms: [term],
