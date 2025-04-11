@@ -200,12 +200,31 @@ function formatDate(dateString) {
   return `${day} ${month}`;
 }
 
+function getBrowserName() {
+  const { userAgent } = navigator;
+
+  if (userAgent.includes('Chrome') && !userAgent.includes('Edg') && !userAgent.includes('OPR')) {
+    return 'Chrome';
+  } if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+    return 'Safari';
+  } if (userAgent.includes('Firefox')) {
+    return 'Firefox';
+  } if (userAgent.includes('Edg')) {
+    return 'Edge';
+  } if (userAgent.includes('OPR') || userAgent.includes('Opera')) {
+    return 'Opera';
+  } if (userAgent.includes('MSIE') || userAgent.includes('Trident')) {
+    return 'Internet Explorer';
+  }
+  return '';
+}
+
 function getEnvType() {
   const prodEnvs = [
     'cmegroup.com',
     'www.cmegroup.com',
     'main--cmegroup--aemsites.aem.page',
-    'main--cmegroup--aemsites.hlx.live',
+    'main--cmegroup--aemsites.aem.live',
   ];
   const type = prodEnvs.includes(window.location.hostname) ? 'prod' : 'stage';
   return type;
@@ -269,6 +288,7 @@ export {
   getTag,
   i18n,
   getPageTags,
+  getBrowserName,
   getEnvType,
   formatToCentralTime,
   isDateBefore,
