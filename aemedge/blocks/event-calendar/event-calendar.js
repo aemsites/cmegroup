@@ -4,7 +4,7 @@ import { createElement, i18n } from '../../scripts/utils.js';
 // import { authentication as authStatus } from '../../scripts/modules/index.js';
 // import { renderFilterSection } from './filters/filters.js';
 
-// const { body } = window.document;
+const { body } = window.document;
 // const isDesktop = window.matchMedia('(min-width: 1200px)');
 const inputsCurtain = createElement('div', { class: 'inputs-curtain' });
 const eventCalendarContainer = createElement('div', { class: 'event-calendar' });
@@ -14,6 +14,10 @@ const filtersInputsMainContainer = createElement('div', { class: 'filters-block'
 const filtersCurrentContainer = createElement('div', { class: 'current-filters' });
 const filtersDateContainer = createElement('div', { class: 'date-filter-container' });
 const filtersTitle = createElement('h3', { class: 'filters-title' });
+const filterSearchInput = createElement('input', { class: 'secondary input-search' });
+const filterCountryInput = createElement('input', { class: 'input-country' });
+const filterImpactInput = createElement('input', { class: 'input-impact' });
+const filtersInputsContainer = createElement('div', { class: 'filters-inputs-container' });
 let filtersLabel;
 
 async function initializeLabels() {
@@ -25,11 +29,15 @@ async function initializeLabels() {
 }
 
 function closeFiltersInputsContainer() {
-  console.log('close');
+  inputsCurtain.classList.remove('is-open');
+  filtersInputsContainer.classList.remove('is-open');
+  body.classList.remove('curtain-visible');
 }
 
 function openFiltersInputsContainer() {
-  console.log('open');
+  inputsCurtain.classList.add('is-open');
+  filtersInputsContainer.classList.add('is-open');
+  body.classList.add('curtain-visible');
 }
 
 function resetFilters() {
@@ -45,10 +53,6 @@ function applyFilters() {
 }
 
 function renderInputs() {
-  const filtersMobileBtn = createElement('button', { class: 'primary toggle-button btn' });
-  filtersMobileBtn.addEventListener('click', async () => {
-    openFiltersInputsContainer();
-  });
   const filtersResetBtn = createElement('button', { class: 'secondary btn' });
   filtersResetBtn.addEventListener('click', async () => {
     resetFilters();
@@ -57,15 +61,26 @@ function renderInputs() {
   filtersApplyBtn.addEventListener('click', async () => {
     applyFilters();
   });
-  const filterSearchInput = createElement('input', { class: 'secondary input-search' });
-  const filterCountryInput = createElement('input', { class: 'input-country' });
-  const filterImpactInput = createElement('input', { class: 'input-impact' });
-  const filtersInputsContainer = createElement('div', { class: 'filters-inputs-container' });
+  filtersTitle.innerHTML = filtersLabel;
+  filtersInputsContainer.append(filtersTitle);
+  filtersInputsContainer.append(filterSearchInput);
+  filtersInputsContainer.append(filterCountryInput);
+  filtersInputsContainer.append(filterImpactInput);
+  filtersInputsContainer.append(filtersResetBtn);
+  filtersInputsContainer.append(filtersApplyBtn);
+
+  return filtersInputsContainer;
 }
 
 function renderFilterSection() {
   // filters input and mobile modal
   const inputs = renderInputs();
+  const filtersMobileBtn = createElement('button', { class: 'primary toggle-button btn' });
+  filtersMobileBtn.innerHTML = filtersLabel;
+  filtersMobileBtn.addEventListener('click', async () => {
+    openFiltersInputsContainer();
+  });
+  filtersInputsMainContainer.append(filtersMobileBtn);
   filtersInputsMainContainer.append(inputs);
   filtersSectionEventCalendar.append(filtersInputsMainContainer);
   // current filters
@@ -83,8 +98,6 @@ async function init(block, version) {
     closeFiltersInputsContainer();
   });
 
-  filtersTitle.innerHTML = filtersLabel;
-  eventCalendarContainer.append(filtersTitle);
   const filterSection = renderFilterSection();
   filterSectionContainer.append(filterSection);
   eventCalendarContainer.append(filterSectionContainer);
