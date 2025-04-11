@@ -157,6 +157,7 @@ export function decorateMain(main) {
  */
 export async function loadTemplate(doc, templateName) {
   try {
+    templateName = templateName.toLowerCase();
     const cssLoaded = new Promise((resolve) => {
       loadCSS(
         `${window.hlx.codeBasePath}/templates/${templateName}/${templateName}.css`,
