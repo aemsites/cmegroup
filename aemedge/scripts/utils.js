@@ -224,7 +224,7 @@ function getEnvType() {
     'cmegroup.com',
     'www.cmegroup.com',
     'main--cmegroup--aemsites.aem.page',
-    'main--cmegroup--aemsites.hlx.live',
+    'main--cmegroup--aemsites.aem.live',
   ];
   const type = prodEnvs.includes(window.location.hostname) ? 'prod' : 'stage';
   return type;
