@@ -1,4 +1,4 @@
-import { AUTH_ACTIONS } from '../constants/auth.js';
+import { AUTH_ACTIONS } from '../constants/index.js';
 
 export const authInitState = {
   isLoggedIn: false,
