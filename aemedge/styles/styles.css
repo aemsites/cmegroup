@@ -99,7 +99,7 @@ body.curtain-visible {
 
 @media (width >=993px) {
     main {
-        padding-top: 100px;
+        padding-top: 6.25rem;
     }
 }
 
@@ -468,12 +468,12 @@ button.secondary.disabled {
 
 /* sections */
 main>.section {
-    margin: 1.875rem 0;
+    margin-bottom: 1.875rem 0;
 }
 
 @media (width > 768px) {
     main .section {
-        margin: 3.75rem 0;
+        margin-bottom: 3.75rem 0;
     }
 }
 
@@ -698,3 +698,107 @@ body.loading::before {
 body.loading::before {
   animation: loading 0.75s linear infinite;
 }
+
+.alerts {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1030;
+}
+
+.alerts .alert-item {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    background-color: var(--blue6);
+    color: var(--gray3);
+}
+
+@media (width >= 993px) {
+    .alerts .alert-item {
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+}
+
+.alerts .alert-item .alert-text a:hover {
+    color: var(--blue3);
+}
+
+.alerts .alert-item .alert-text a.btn.primary {
+    color: var(--white);
+}
+
+.alerts .alert-item .alert-text a.btn {
+    color: var(--blue4);
+}
+
+.alerts .alert-item .alert-text a.btn.primary:hover {
+    color: var(--blue3);
+}
+
+.alerts .alert-item.standard-primary {
+    background-color: var(--blue6);
+    color: var(--gray3);
+}
+
+.alerts .alert-item.standard-secondary {
+    background-color: var(--gray6);
+    color: var(--gray3);
+}
+
+.alerts .alert-item.non-serious {
+    background-color: var(--yellow);
+    color: var(--gray3);
+}
+
+.alerts .alert-item.serious {
+    background-color: var(--pink);
+    color: var(--gray3);
+}
+
+.alerts .alert-item.gcc-serious {
+    background-color: var(--pink);
+    color: var(--gray3);
+}
+
+.alerts .alert-item.gcc-serious .alert-icon {
+    display: inline-block;
+    vertical-align: top;
+    padding-top: 0.25rem;
+    color: var(--active-red);
+}
+
+.alerts .alert-item .alert-gcc-container {
+    display: inline-block;
+    width: 94%;
+}
+
+.alerts .alert-item .alert-gcc-container .alert-title {
+    color: var(--blue2);
+    display: inline-block;
+    font-weight: bold;
+    padding-left: 0.5rem;
+}
+
+.alerts .alert-item .alert-gcc-container .alert-text {
+    display: inline-block;
+    padding-left: 0.5rem;
+}
+
+.alerts .alert-item .alert-gcc-container .alert-time {
+    display: inline-block;
+    padding-left: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.alerts .alert-item .container {
+    padding: 0 0.625rem;
+}
+
+@media (width >= 993px) {
+    .alerts .alert-item .container {
+        padding: 0;
+    }
+}
+  

@@ -2,12 +2,11 @@
     box-shadow: 0 0.125rem 0.25rem 0 rgba(0 0 0 / 20%);
     top: 0;
     padding: 0;
-    transition: top .7s;
+    transition: all 0.3s ease;
 }
 
-body.scrolling-down .header{
-    top: -9.375rem;
-    transition: top .7s ease .5s;
+.header.hidden {
+    transform: translateY(-6.25rem);
 }
 
 .nav-wrapper,
