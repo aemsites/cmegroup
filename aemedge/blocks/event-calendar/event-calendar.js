@@ -14,7 +14,8 @@ const filtersInputsMainContainer = createElement('div', { class: 'filters-block'
 const filtersCurrentContainer = createElement('div', { class: 'current-filters' });
 const filtersDateContainer = createElement('div', { class: 'date-filter-container' });
 const filtersTitle = createElement('h3', { class: 'filters-title' });
-const filterSearchInput = createElement('input', { class: 'secondary input-search' });
+const filterSearchInputContainer = createElement('div', { class: 'input-search-container' });
+const filterSearchInput = createElement('input', { class: 'input-search' });
 const filterCountryInput = createElement('input', { class: 'input-country' });
 const filterImpactInput = createElement('input', { class: 'input-impact' });
 const filtersInputsContainer = createElement('div', { class: 'filters-inputs-container' });
@@ -53,21 +54,35 @@ function applyFilters() {
 }
 
 function renderInputs() {
+  const filtersInputsContainerCloseBtn = createElement('button', {
+    class: 'icon-close filter-close',
+    'aria-label': 'filter close',
+    'aria-expanded': false,
+  });
+  filtersInputsContainerCloseBtn.addEventListener('click', async () => {
+    closeFiltersInputsContainer();
+  });
+  const filtersBtnContainer = createElement('div', { class: 'btn-container' });
   const filtersResetBtn = createElement('button', { class: 'secondary btn' });
+  filtersResetBtn.innerHTML = 'RESET';
   filtersResetBtn.addEventListener('click', async () => {
     resetFilters();
   });
   const filtersApplyBtn = createElement('button', { class: 'primary btn' });
+  filtersApplyBtn.innerHTML = 'APPLY';
   filtersApplyBtn.addEventListener('click', async () => {
     applyFilters();
   });
+  filtersInputsContainer.append(filtersInputsContainerCloseBtn);
   filtersTitle.innerHTML = filtersLabel;
   filtersInputsContainer.append(filtersTitle);
-  filtersInputsContainer.append(filterSearchInput);
+  filterSearchInputContainer.append(filterSearchInput);
+  filtersInputsContainer.append(filterSearchInputContainer);
   filtersInputsContainer.append(filterCountryInput);
   filtersInputsContainer.append(filterImpactInput);
-  filtersInputsContainer.append(filtersResetBtn);
-  filtersInputsContainer.append(filtersApplyBtn);
+  filtersBtnContainer.append(filtersResetBtn);
+  filtersBtnContainer.append(filtersApplyBtn);
+  filtersInputsContainer.append(filtersBtnContainer);
 
   return filtersInputsContainer;
 }
@@ -96,6 +111,23 @@ async function init(block, version) {
   eventCalendarContainer.append(inputsCurtain);
   inputsCurtain.addEventListener('click', async () => {
     closeFiltersInputsContainer();
+  });
+
+  let prevWindowWidth = window.innerWidth;
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      const windowWidth = window.innerWidth;
+      const crossedBreakpointUp = (prevWindowWidth <= 1199 && windowWidth >= 1200);
+      if (crossedBreakpointUp) {
+        const openInputsCurtain = document.querySelector('.inputs-curtain.is-open');
+        if (openInputsCurtain) {
+          closeFiltersInputsContainer();
+        }
+      }
+      prevWindowWidth = windowWidth;
+    }, 50);
   });
 
   const filterSection = renderFilterSection();
