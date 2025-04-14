@@ -14,9 +14,8 @@ import {
   toClassName,
   getMetadata,
 } from './aem.js';
+import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
-import { BlockableUtils } from './blockable-utils/blockable-utils.js';
-
 import dynamicBlocks from '../blocks/dynamic/index.js';
 
 /**
@@ -230,6 +229,8 @@ async function loadEager(doc) {
  * @param {Element} doc The container element
  */
 async function loadLazy(doc) {
+  import('./dataLayerImport.js');
+  dataLayer.handleLoad();
   autolinkModals(doc);
 
   const main = doc.querySelector('main');
@@ -239,12 +240,13 @@ async function loadLazy(doc) {
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
   if (hash && element) element.scrollIntoView();
 
-  loadHeader(doc.querySelector('header'));
+  loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
   loadFooter(doc.querySelector('footer'));
   dynamicBlocks(main);
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
+  authentication.handleLoad();
 }
 
 /**
@@ -260,11 +262,14 @@ function loadDelayed() {
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
-  import('./dataLayerImport.js');
-  BlockableUtils.init();
-  authentication.handleLoad();
-  dataLayer.handleLoad();
   loadDelayed();
 }
 
 loadPage();
+
+// enable live preview in da.live
+(async function loadDa() {
+  if (!new URL(window.location.href).searchParams.get('dapreview')) return;
+  // eslint-disable-next-line import/no-unresolved
+  import('https://da.live/scripts/dapreview.js').then(({ default: daPreview }) => daPreview(loadPage));
+}());

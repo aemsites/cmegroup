@@ -1,5 +1,6 @@
 import { sampleRUM, loadScript } from './aem.js';
 import { getEnvType } from './utils.js';
+import { BlockableUtils } from './blockable-utils/blockable-utils.js';
 
 // Core Web Vitals RUM collection
 sampleRUM('cwv');
@@ -46,6 +47,7 @@ async function loadOneTrust() {
 }
 
 function loadPage() {
+  BlockableUtils.init();
   loadShareThis();
   loadOneTrust();
 }

@@ -1,4 +1,4 @@
-import { isEmpty, axiosGet, axiosPost } from './MiscUtil.js';
+import { isEmpty, axiosGet, axiosPost } from './misc.js';
 
 function makeProtectedUrl(url, withCache = false) {
   if (window.forceUseCache || withCache) {
@@ -20,6 +20,17 @@ export function apiGet(
   return axiosGet(baseUrl + makeProtectedUrl(url, withCache), data);
 }
 
+export function apiGetAbsolute(
+  url,
+  params = {},
+  headers = {},
+  withCache = false,
+) {
+  const baseUrl = window.baseUrl || '';
+  const data = { params, headers };
+  return axiosGet(baseUrl + makeProtectedUrl(url, withCache), true, data);
+}
+
 export function apiPost(
   url,
   params = {},
@@ -28,6 +39,18 @@ export function apiPost(
 ) {
   const baseUrl = window.baseUrl || '';
   return axiosPost(baseUrl + makeProtectedUrl(url, withCache), params, {
+    headers,
+  });
+}
+
+export function apiPostAbsolute(
+  url,
+  params = {},
+  headers = {},
+  withCache = false,
+) {
+  const baseUrl = window.baseUrl || '';
+  return axiosPost(baseUrl + makeProtectedUrl(url, withCache), params, true, {
     headers,
   });
 }
