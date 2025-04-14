@@ -1,3 +1,4 @@
+/* eslint-disable */
 export default {
   total: 19,
   offset: 0,
@@ -187,5 +188,4 @@ export default {
 // /education/courses/understanding-micro-futures-contracts-at-cme-group/micro-e-mini-futures
 // /education/courses/understanding-micro-futures-contracts-at-cme-group/micro-e-mini-futures/hedging-with-the-micro-e-mini-futures
 // /education/courses/understanding-micro-futures-contracts-at-cme-group/micro-e-mini-futures/micro-e-mini-equity-index-futures-products-overview
-// /education/courses/understanding-micro-futures-contracts-at-cme-group/micro-e-mini-options
-// /education/courses/understanding-micro-futures-contracts-at-cme-group/micro-e-mini-options/get-to-know-options-on-micro-e-mini-futures
+// /education/courses/understanding-micro-futures-contracts-at-cme-group/micro-e-mini-options// /education/courses/understanding-micro-futures-contracts-at-cme-group/micro-e-mini-options/get-to-know-options-on-micro-e-mini-futures
