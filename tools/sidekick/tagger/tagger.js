@@ -11,8 +11,7 @@
  * governing permissions and limitations under the License.
  */
 
-import { PLUGIN_EVENTS } from '../../events/events.js';
-import { getTaxonomy } from '../../../../../aemedge/scripts/taxonomy.js';
+import { getTaxonomy } from '../../../aemedge/scripts/taxonomy.js';
 
 function buildHierarchicalMenu(taxonomy) {
   const menuItems = [];
@@ -52,7 +51,6 @@ function buildHierarchicalMenu(taxonomy) {
         const hasChildren = Object.keys(item).some((k) => !['title', 'name', 'path', 'hide'].includes(k));
 
         if (hasChildren) {
-          // Add subcategory
           menuItems.push(`
             <div class="subcategory-group collapsed">
               <div class="category-header">
@@ -91,8 +89,8 @@ function buildHierarchicalMenu(taxonomy) {
   return menuItems.join('');
 }
 
-function displaySelected(container) {
-  const selectedPaths = Array.from(container.querySelectorAll('.path.selected'))
+function displaySelected() {
+  const selectedPaths = Array.from(document.querySelectorAll('.path.selected'))
     .map((path) => {
       const { fullPath, title } = path.dataset;
       return {
@@ -101,7 +99,7 @@ function displaySelected(container) {
       };
     });
 
-  const selectedEl = container.querySelector('#selected');
+  const selectedEl = document.getElementById('selected');
   const selectedTagsEl = selectedEl.querySelector('.selected-tags');
   selectedTagsEl.innerHTML = '';
 
@@ -114,7 +112,7 @@ function displaySelected(container) {
       selectedTagsEl.appendChild(div);
     });
 
-    container.querySelector('#copybuffer').value = selectedPaths
+    document.getElementById('copybuffer').value = selectedPaths
       .map((tag) => tag.fullPath)
       .join(', ');
     selectedEl.classList.remove('hidden');
@@ -123,125 +121,95 @@ function displaySelected(container) {
   }
 }
 
-export async function decorateTagsPlugin(container, sheet) {
-  const taxonomy = await getTaxonomy(sheet);
+function filter(e) {
+  const searchTerm = e.target.value.toLowerCase().trim();
 
-  // Create container structure with selected section below filter
-  container.innerHTML = `
-    <div class="filter">
-      <input type="text" id="search" placeholder="Type to filter tags..." autocomplete="off" />
-    </div>
-    <div id="selected" class="hidden">
-      <div class="selected-header">Currently Selected Tags</div>
-      <div class="selected-tags"></div>
-      <div class="button-group">
-        <button class="copy">Copy</button>
-        <button class="clear">Clear</button>
-      </div>
-      <textarea id="copybuffer" class="hidden"></textarea>
-    </div>
-    <div id="results">
-      ${buildHierarchicalMenu(taxonomy)}
-    </div>
-  `;
+  if (!searchTerm) {
+    document.querySelectorAll('.path').forEach((path) => {
+      path.classList.remove('filtered');
+    });
+    document.querySelectorAll('.category-group, .subcategory-group').forEach((group) => {
+      group.classList.add('collapsed');
+      const icon = group.querySelector('.expand-icon');
+      if (icon) icon.textContent = '+';
+      group.style.display = 'block';
+    });
+    return;
+  }
 
-  // Event Handlers
-  container.addEventListener('click', (e) => {
-    // Tag selection
-    const pathEl = e.target.closest('.path');
-    if (pathEl) {
-      pathEl.classList.toggle('selected');
-      displaySelected(container);
-      return;
+  document.querySelectorAll('.path').forEach((path) => {
+    const title = path.dataset.title.toLowerCase();
+    const fullPath = path.dataset.fullPath.toLowerCase();
+
+    if (title.includes(searchTerm) || fullPath.includes(searchTerm)) {
+      path.classList.remove('filtered');
+      let parent = path.closest('.category-group, .subcategory-group');
+      while (parent) {
+        parent.classList.remove('collapsed');
+        const icon = parent.querySelector('.expand-icon');
+        if (icon) icon.textContent = '−';
+        parent.style.display = 'block';
+        parent = parent.parentElement.closest('.category-group, .subcategory-group');
+      }
+    } else {
+      path.classList.add('filtered');
     }
+  });
 
-    // Category expand/collapse
+  document.querySelectorAll('.category-group, .subcategory-group').forEach((category) => {
+    const hasVisiblePaths = category.querySelectorAll('.path:not(.filtered)').length > 0;
+    category.style.display = hasVisiblePaths ? 'block' : 'none';
+  });
+}
+
+async function init() {
+  const taxonomy = await getTaxonomy('tags');
+  const results = document.getElementById('results');
+  results.innerHTML = buildHierarchicalMenu(taxonomy);
+
+  // Add click handlers for expand/collapse and tag selection
+  document.addEventListener('click', (e) => {
     const categoryHeader = e.target.closest('.category-header');
     if (categoryHeader) {
       const group = categoryHeader.closest('.category-group, .subcategory-group');
       const icon = categoryHeader.querySelector('.expand-icon');
       group.classList.toggle('collapsed');
       icon.textContent = group.classList.contains('collapsed') ? '+' : '−';
+      return;
+    }
+
+    const pathEl = e.target.closest('.path');
+    if (pathEl) {
+      pathEl.classList.toggle('selected');
+      displaySelected();
     }
   });
 
   // Copy button handler
-  container.querySelector('button.copy').addEventListener('click', async () => {
-    const copyButton = container.querySelector('button.copy');
+  const copyButton = document.querySelector('button.copy');
+  copyButton.addEventListener('click', async () => {
     const originalText = copyButton.textContent;
-
     try {
-      await navigator.clipboard.writeText(container.querySelector('#copybuffer').value);
+      await navigator.clipboard.writeText(document.getElementById('copybuffer').value);
       copyButton.textContent = 'Copied!';
-      container.dispatchEvent(
-        new CustomEvent(PLUGIN_EVENTS.TOAST, {
-          detail: { message: 'Tags Copied' },
-        }),
-      );
     } catch (err) {
       copyButton.textContent = 'Failed to copy';
     }
-
     setTimeout(() => {
       copyButton.textContent = originalText;
     }, 2000);
   });
 
   // Clear button handler
-  container.querySelector('button.clear').addEventListener('click', () => {
-    container.querySelectorAll('.path.selected').forEach((path) => {
+  document.querySelector('button.clear').addEventListener('click', () => {
+    document.querySelectorAll('.path.selected').forEach((path) => {
       path.classList.remove('selected');
     });
-    displaySelected(container);
+    displaySelected();
   });
 
   // Search functionality
-  container.querySelector('#search').addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase().trim();
-
-    if (!searchTerm) {
-      container.querySelectorAll('.path').forEach((path) => {
-        path.classList.remove('filtered');
-      });
-      container.querySelectorAll('.category-group, .subcategory-group').forEach((group) => {
-        group.classList.add('collapsed');
-        const icon = group.querySelector('.expand-icon');
-        if (icon) icon.textContent = '+';
-        group.style.display = 'block';
-      });
-      return;
-    }
-
-    container.querySelectorAll('.path').forEach((path) => {
-      const title = path.dataset.title.toLowerCase();
-      const fullPath = path.dataset.fullPath.toLowerCase();
-
-      if (title.includes(searchTerm) || fullPath.includes(searchTerm)) {
-        path.classList.remove('filtered');
-        let parent = path.closest('.category-group, .subcategory-group');
-        while (parent) {
-          parent.classList.remove('collapsed');
-          const icon = parent.querySelector('.expand-icon');
-          if (icon) icon.textContent = '−';
-          parent.style.display = 'block';
-          parent = parent.parentElement.closest('.category-group, .subcategory-group');
-        }
-      } else {
-        path.classList.add('filtered');
-      }
-    });
-
-    container.querySelectorAll('.category-group, .subcategory-group').forEach((category) => {
-      const hasVisiblePaths = category.querySelectorAll('.path:not(.filtered)').length > 0;
-      category.style.display = hasVisiblePaths ? 'block' : 'none';
-    });
-  });
+  document.getElementById('search').addEventListener('input', filter);
 }
 
-export async function decorate(container) {
-  decorateTagsPlugin(container, 'tags');
-}
-
-export default {
-  title: 'Tags',
-};
+document.addEventListener('DOMContentLoaded', init);
