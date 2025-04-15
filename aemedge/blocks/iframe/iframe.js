@@ -60,7 +60,7 @@ export default async function decorate(block) {
   // Helper function to get a meaningful title
   function getMeaningfulTitle() {
     return (!iframeTitle || iframeTitle === PLACEHOLDER)
-      ? 'Content from ' + new URL(iframeURL).hostname
+      ? `Content from ${new URL(iframeURL).hostname}`
       : iframeTitle;
   }
 
