@@ -1,0 +1,32 @@
+{
+  "uid": "632751",
+  "name": "feed632751",
+  "title": "US: 10-Yr Note Settlement",
+  "effectiveDate": "2025-04-15T00:00:00Z",
+  "startDate": "2025-04-15T02:00:00Z",
+  "endDate": "2025-04-15T03:00:00Z",
+  "cq:tags": [
+    "shared:content-type/economic-release",
+    "econoday-events:impact/low",
+    "econoday-events:event-type/10_Yr_Note_Settlement",
+    "econoday-events:country/us",
+    "shared:asset-class/interest-rates"
+  ],
+  "hasHighlights": false,
+  "hasConsensusNotes": false,
+  "hasDefinition": true,
+  "hasDescription": true,
+  "hasValues": false,
+  "hasConsensus": false,
+  "hasConsensusRange": false,
+  "hasActual": false,
+  "hasPrevious": false,
+  "hasRevised": false,
+  "values": [],
+  "description": "Investors need to carefully track when payment is due for the securities they buy. Lack of funds could result in failed transactions.",
+  "reports": [],
+  "highlights": "",
+  "consensusNotes": "",
+  "definition": "Settlement is also called issuance.  In general for securities, the settlement date is the date by which an executed securities transaction must be settled, with the buyer paying for the purchase and the seller delivering the asset that was sold.    For Treasury securities, on settlement day, the Treasury delivers securities to bidders who were successfully awarded securities in a particular auction. In exchange, Treasury charges the accounts of those bidders for payment of the securities. Please check auctions of individual securities for more details.",
+  "charts": []
+}

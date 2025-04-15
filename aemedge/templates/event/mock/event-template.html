@@ -20,7 +20,7 @@
             </p>
             <p><a href="https://www.cmegroup.com/education/events/economic-releases-calendar.html"><span
                   class="icon icon-arrow-left-bold"></span>Economic Calendar</a></p>
-            <h1 id="jp-unemployment-rate">{{title}}</h1>
+            <h1>{{title}}</h1>
           </div>
         </div>
       </div>
@@ -37,25 +37,38 @@
           <div></div>
         </div>
       </div>
+    </div>
+    {{#hasValues}}
+    <div>
       <div class="table">
         <div>
           <div>
             <table>
-              <tbody>
+              <thead>
                 <tr>
-                  <td></td>
-                  <td>Consensus</td>
-                  <td>Consensus Range</td>
-                  <td>Actual</td>
-                  <td>Previous</td>
+                  <th></th>
+                  {{#hasConsensus}}<th>Consensus</th>{{/hasConsensus}}
+                  {{#hasConsensusRange}}<th>Consensus Range</th>{{/hasConsensusRange}}
+                  {{#hasActual}}<th>Actual</th>{{/hasActual}}
+                  {{#hasPrevious}}<th>Previous</th>{{/hasPrevious}}
+                  {{#hasRevised}}<th>Revised</th>{{/hasRevised}}
                 </tr>
+              </thead>
+              <tbody>
                 {{#values}}
                 <tr>
                   <td>{{valueName}}</td>
-                  <td>{{consensus}}{{suffix}}</td>
-                  <td>{{consensusRangeFrom}}{{suffix}} to {{consensusRangeTo}}{{suffix}}</td>
-                  <td>{{actual}}{{suffix}}</td>
-                  <td>{{previous}}{{suffix}}</td>
+                  {{#hasConsensus}}<td>{{prefix}}{{consensus}}{{suffix}}</td>{{/hasConsensus}}
+                  {{#hasConsensusRange}}
+                    <td>
+                      {{#consensusRangeFrom}}{{prefix}}{{consensusRangeFrom}}{{suffix}}{{/consensusRangeFrom}}
+                      {{#consensusRangeFrom}}{{#consensusRangeTo}} to {{/consensusRangeTo}}{{/consensusRangeFrom}}
+                      {{#consensusRangeTo}}{{prefix}}{{consensusRangeTo}}{{suffix}}{{/consensusRangeTo}}
+                    </td>
+                  {{/hasConsensusRange}}
+                  {{#hasActual}}<td>{{prefix}}{{actual}}{{suffix}}</td>{{/hasActual}}
+                  {{#hasPrevious}}<td>{{prefix}}{{previous}}{{suffix}}</td>{{/hasPrevious}}
+                  {{#hasRevised}}<td>{{prefix}}{{revised}}{{suffix}}</td>{{/hasRevised}}
                 </tr>
                 {{/values}}
               </tbody>
@@ -63,7 +76,10 @@
           </div>
         </div>
       </div>
-      {{#reports}}
+    </div>
+    {{/hasValues}}
+    {{#reports}}
+    <div>
       <div class="table">
         <div>
           <div>
@@ -71,22 +87,43 @@
           </div>
         </div>
       </div>
-      {{/reports}}
-      <h3 id="highlights">Highlights</h3>
-      {{{highlights}}}
-      <h3 id="market-consensus-before-announcement">Market Consensus Before Announcement</h3>
-      <p>{{consensusNotes}}</p>
-      <h3 id="definition">Definition</h3>
-      <p>{{definition}}</p>
-      <h3 id="description">Description</h3>
-      <p>{{description}}</p>
-      {{#charts}}
+    </div>
+    {{/reports}}
+    {{#hasHighlights}}
+      <div>
+        <h3 id="highlights">Highlights</h3>
+        {{{highlights}}}
+      </div>
+    {{/hasHighlights}}
+    {{#hasConsensusNotes}}
+      <div>
+        <h3 id="market-consensus-before-announcement">Market Consensus Before Announcement</h3>
+        {{{consensusNotes}}}
+      </div>
+    {{/hasConsensusNotes}}
+    {{#hasDefinition}}
+      <div>
+        <h3 id="definition">Definition</h3>
+        {{{definition}}}
+      </div>
+    {{/hasDefinition}}
+    {{#hasDescription}}
+      <div>
+        <h3 id="description">Description</h3>
+        {{{description}}}
+      </div>
+    {{/hasDescription}}
+    {{#charts}}
+    <div>
       <p>
         <picture>
           <img loading="lazy" alt="" src="{{chart}}">
         </picture>
       </p>
-      {{/charts}}
+    </div>
+    {{/charts}}
+    </div>
+    <div>
       <h5 id="recommended-for-you">Recommended for you</h5>
       <div class="cards dynamic article">
         <div>

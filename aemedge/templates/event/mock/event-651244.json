@@ -1,0 +1,52 @@
+{
+  "uid": "651244",
+  "name": "feed651244",
+  "title": "IN: Merchandise Trade",
+  "effectiveDate": "2025-04-15T00:00:00Z",
+  "startDate": "2025-04-15T02:00:00Z",
+  "endDate": "2025-04-15T03:00:00Z",
+  "cq:tags": [
+    "shared:content-type/economic-release",
+    "econoday-events:impact/low",
+    "econoday-events:country/in",
+    "econoday-events:report-type/report",
+    "shared:asset-class/fx",
+    "econoday-events:event-type/Merchandise_Trade"
+  ],
+  "hasHighlights": true,
+  "hasConsensusNotes": false,
+  "hasDefinition": true,
+  "hasDescription": true,
+  "hasValues": true,
+  "hasConsensus": false,
+  "hasConsensusRange": false,
+  "hasActual": true,
+  "hasPrevious": true,
+  "hasRevised": false,
+  "values": [
+    {
+      "valueUid": "3376680",
+      "displayValueId": "1930",
+      "valueName": "Balance",
+      "suffix": "B",
+      "prefix": "$",
+      "consensus": "",
+      "consensusRangeFrom": "",
+      "consensusRangeTo": "",
+      "actual": "-21.54",
+      "previous": "-14.05",
+      "revised": "",
+      "hasConsensus": false,
+      "hasConsensusRange": false,
+      "hasActual": true,
+      "hasPrevious": true,
+      "hasRevised": false
+    }
+  ],
+  "description": "Changes in the level of imports and exports, along with the difference between the two (the trade balance) are a valuable gauge of economic trends here and abroad. While these trade figures can directly impact all financial markets, they primarily affect currency values in foreign exchange markets.<br/><br/>Imports indicate demand for foreign goods and services in India. Exports show the demand for Indian goods in countries overseas. The rupee can be particularly sensitive to changes in the trade deficit run by India, since the trade imbalance creates greater demand for foreign currencies. The bond market is also sensitive to the risk of importing inflation. Data are reported in US dollars and Indian rupees.",
+  "reports": [],
+  "highlights": "India's merchandise trade deficit widened from$14.05 billion in February to $21.54 billion in March.",
+  "consensusNotes": "",
+  "definition": "The merchandise trade balance measures the difference between imports and exports of goods. The level of the international trade balance, as well as changes in exports and imports, indicate trends in foreign trade and can offer a guide to an economy's competitiveness.  Alongside the merchandise data, exports and imports of services are also provided.  The statistics, which are not seasonally adjusted, are reported in both local currency and U.S. dollars, the latter being the main market focus.",
+  "charts": []
+}
