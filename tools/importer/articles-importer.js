@@ -47,7 +47,7 @@ const SECTION_SELECTORS = [
 ];
 
 const DOMAIN = 'https://www.cmegroup.com';
-const EDS_DOMAIN = 'https://main--cmegroup--aemsites.aem.page';
+const EDS_DOMAIN = 'https://main--www--cmegroup.aem.page';
 
 const modifyMap = (map, outerKey, idOrClass = false) => {
   if (!unique) {
@@ -167,6 +167,13 @@ async function setMetadata(meta, document, url) {
   const changedUrl = new URL(url).pathname.replace('.html', '/jcr:content.json');
   const jsonUrl = `${DOMAIN}${changedUrl}`;
   const jsonResponse = await fetch(jsonUrl);
+
+  if (meta.Image) {
+    const tempAnchor = document.createElement('a');
+    tempAnchor.href = meta.Image.src;
+    tempAnchor.textContent = tempAnchor.href;
+    meta.Image = tempAnchor;
+  }
 
   if (jsonResponse?.ok) {
     try {
@@ -553,9 +560,10 @@ const convertSectionsToMetadata = (document) => {
 
       const backgroundImg = imageFetch(section);
       if (backgroundImg) {
-        const img = document.createElement('img');
-        img.src = backgroundImg;
-        tempArr.push(['Background Image', img]);
+        const anchor = document.createElement('a');
+        anchor.href = backgroundImg;
+        anchor.textContent = anchor.href;
+        tempArr.push(['Background Image', anchor]);
       }
 
       const sectionMetadata = buildSectionMetadata(tempArr);
@@ -586,14 +594,15 @@ const articleHeroBlock = (document, meta) => {
     const cells = [[heroName]];
 
     const tempData = [];
-    const img = document.createElement('img');
-    img.src = `https://www.cmegroup.com${imgUrl}`;
+    const anchor = document.createElement('a');
+    anchor.href = `https://www.cmegroup.com${imgUrl}`;
+    anchor.textContent = anchor.href;
 
     const h1 = document.createElement('h1');
     h1.innerText = hero.querySelector('h1')?.innerText || '';
 
     const div = document.createElement('div');
-    div.appendChild(img);
+    div.appendChild(anchor);
     if (h1.innerText) {
       div.appendChild(h1);
     }
@@ -834,9 +843,10 @@ const promoBlock = (document) => {
         cells.push(['URL', `${DOMAIN}${path}`]);
       }
       if (imgSrc) {
-        const img = document.createElement('img');
-        img.src = imgSrc;
-        cells.push(['Background Image', img]);
+        const anchor = document.createElement('a');
+        anchor.href = imgSrc;
+        anchor.textContent = anchor.href;
+        cells.push(['Background Image', anchor]);
       }
       if (backgroundColor) {
         cells.push(['Background Color', backgroundColor]);
@@ -1364,13 +1374,14 @@ const lightBoxGallery = (document) => {
           // remove host from src
           const imgUrl = new URL(imageSrc);
           imageSrc = imgUrl.pathname;
-          const img = document.createElement('img');
-          img.src = `https://www.cmegroup.com${imageSrc}`;
+          const anchor = document.createElement('a');
+          anchor.href = `https://www.cmegroup.com${imageSrc}`;
+          anchor.textContent = anchor.href;
 
           if (figCaption) {
-            cells.push([img], [figCaption.textContent]);
+            cells.push([anchor], [figCaption.textContent]);
           } else {
-            cells.push([img]);
+            cells.push([anchor]);
           }
 
           const table = WebImporter.DOMUtils.createTable(cells, document);
@@ -1403,9 +1414,10 @@ const brightCoveVideo = (document) => {
       const img = video.querySelector('.vjs-poster')?.style.backgroundImage;
       const imgUrl = img?.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
       if (imgUrl) {
-        const imgElement = document.createElement('img');
-        imgElement.src = imgUrl;
-        cells.push(['placeholderImg', imgElement]);
+        const anchor = document.createElement('a');
+        anchor.href = imgUrl;
+        anchor.textContent = anchor.href;
+        cells.push(['placeholderImg', anchor]);
       }
 
       const table = WebImporter.DOMUtils.createTable(cells, document);
