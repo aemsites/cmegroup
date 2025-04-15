@@ -1,0 +1,230 @@
+/**
+ * File Organiser Plugin CSS
+ */
+
+/* Main container */
+.organiser-container {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.organiser-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+  background-color: #ffffff;
+}
+
+.organiser-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Path display */
+.organiser-path {
+  background-color: #f9f9f9;
+  padding: 8px 16px;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Search box */
+.organiser-search {
+  padding: 12px 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+}
+
+.organiser-search input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.organiser-search input:focus {
+  outline: none;
+  border-color: #1473e6;
+  box-shadow: 0 0 0 2px rgba(20, 115, 230, 0.2);
+}
+
+/* Controls bar */
+.organiser-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Buttons */
+.organiser-button {
+  background-color: #1473e6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.organiser-button:hover {
+  background-color: #0d66d0;
+}
+
+.organiser-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(20, 115, 230, 0.3);
+}
+
+.organiser-button.secondary {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.organiser-button.secondary:hover {
+  background-color: #eaeaea;
+}
+
+/* File list */
+.organiser-file-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 16px;
+}
+
+/* File/folder item */
+.organiser-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: move;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.organiser-item:hover {
+  background-color: #f0f0f0;
+}
+
+.organiser-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+}
+
+.organiser-item.folder {
+  background-color: #e6f2ff;
+}
+
+.organiser-item.folder:hover {
+  background-color: #d9edff;
+}
+
+.organiser-item.selected {
+  background-color: #e3f2fd;
+  border-color: #1473e6;
+}
+
+.organiser-item.parent {
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+.organiser-item.parent:hover {
+  background-color: #e0e0e0;
+}
+
+/* Item checkbox */
+.organiser-item-checkbox {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+/* Item icon */
+.organiser-item-icon {
+  margin-right: 12px;
+  font-size: 1.2rem;
+}
+
+/* Item name */
+.organiser-item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Loading and empty states */
+.organiser-loading,
+.organiser-empty,
+.organiser-error {
+  padding: 16px;
+  text-align: center;
+  color: #666;
+}
+
+.organiser-error {
+  color: #d93025;
+}
+
+/* Progress indicator */
+#progress-count {
+  font-weight: bold;
+  margin: 0 4px;
+}
+
+/* Copy notification */
+.organiser-copy-success {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #388e3c;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.organiser-copy-success.show {
+  opacity: 1;
+}
+
+/* Format selector */
+.organiser-format-selector {
+  display: flex;
+  align-items: center;
+}
+
+.organiser-format-selector label {
+  margin-right: 8px;
+  font-size: 0.9rem;
+}
+
+.organiser-format-selector select {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+} 
