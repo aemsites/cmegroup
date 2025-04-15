@@ -76,6 +76,11 @@ export default async function decorate(block) {
     return;
   }
 
+  if (iframefixedHeight && !iframefixedHeight.match(/^(\d+)(px)?$/)) {
+    addWarningMessage('Invalid height value. Please use a number followed by "px".');
+    return;
+  }
+
   // Create iframe element
   const iframe = document.createElement('iframe');
   if (iframefixedHeight) {
