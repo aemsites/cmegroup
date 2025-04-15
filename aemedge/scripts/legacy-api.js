@@ -1,6 +1,13 @@
-import { getEnvType } from './utils.js';
+import { urlByEnvType } from './utils.js';
 
-// eslint-disable-next-line import/prefer-default-export
 export function getLegacyAlerts() {
-  return `${getEnvType() !== 'prod' ? 'https://beta.cmegroup.com' : 'https://www.cmegroup.com'}/content/cmegroup/en/misc/api/content-feeds-for-google-docs/full-alerts-list/jcr:content/main-content-section/section/section-elements/search_sort_filter_d.ssfajax.0.json`;
+  return `${urlByEnvType()}/content/cmegroup/en/misc/api/content-feeds-for-google-docs/full-alerts-list/jcr:content/main-content-section/section/section-elements/search_sort_filter_d.ssfajax.0.json`;
+}
+
+export function getLoginDataUrl(fromUrl, fromUrlTitle) {
+  return `${urlByEnvType()}/libs/cmegroup/security/login?fromUrl=${fromUrl}&fromUrlTitle=${fromUrlTitle}`;
+}
+
+export function getSearchSuggestionsUrl(term) {
+  return `${urlByEnvType()}/bin/service/search.${term}.json`;
 }

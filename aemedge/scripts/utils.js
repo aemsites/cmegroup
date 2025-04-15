@@ -224,13 +224,17 @@ function getEnvType() {
     'cmegroup.com',
     'www.cmegroup.com',
     'main--cmegroup--aemsites.aem.page',
-    'main--cmegroup--aemsites.hlx.live',
+    'main--cmegroup--aemsites.aem.live',
   ];
   const type = prodEnvs.includes(window.location.hostname) ? 'prod' : 'stage';
   return type;
 }
 
-function formatToCentralTime(utcDateString) {
+function urlByEnvType() {
+  return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
+}
+
+function formatToCentralTime(utcDateString, lastUpdatedFormat) {
   const utcDate = new Date(utcDateString);
   const options = {
     timeZone: 'America/Chicago',
@@ -249,8 +253,30 @@ function formatToCentralTime(utcDateString) {
   const year = parts.find((p) => p.type === 'year').value;
   const hour = parts.find((p) => p.type === 'hour').value.padStart(2, '0');
   const minute = parts.find((p) => p.type === 'minute').value.padStart(2, '0');
+  const second = parts.find((p) => p.type === 'second').value.padStart(2, '0');
   const period = parts.find((p) => p.type === 'dayPeriod').value.toUpperCase();
+  if (lastUpdatedFormat) {
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+  }
   return `${month} ${day}, ${year} ${hour}:${minute} ${period} CT`;
+}
+
+function isDateBefore(date1, date2) {
+  let d1;
+  let d2;
+
+  try {
+    d1 = date1 instanceof Date ? date1 : new Date(date1);
+    d2 = date2 instanceof Date ? date2 : new Date(date2);
+  } catch (error) {
+    return false;
+  }
+
+  if (Number.isNaN(d1.getTime()) || Number.isNaN(d2.getTime())) {
+    return false;
+  }
+
+  return d1 < d2;
 }
 
 export {
@@ -265,4 +291,6 @@ export {
   getBrowserName,
   getEnvType,
   formatToCentralTime,
+  isDateBefore,
+  urlByEnvType,
 };
