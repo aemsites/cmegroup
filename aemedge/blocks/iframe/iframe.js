@@ -6,10 +6,36 @@ export default async function decorate(block) {
     'cmeg.co1.qualtrics.com',
     'html5-player.libsyn.com',
   ];
+  // Block properties
+  const PROP_TITLE = 'Title:';
+  const PROP_URL = 'Url:';
+  const PROP_HEIGHT = 'Height:';
 
+  // Get the block properties
+  function getBlockProperties() {
+    const result = {};
+    if (block) {
+      const rows = block.querySelectorAll(':scope > div');
+
+      rows.forEach((row) => {
+        const columns = row.querySelectorAll(':scope > div');
+        if (columns.length === 2) {
+          const key = columns[0].innerText.trim();
+          // Check if the value column contains a link
+          const link = columns[1].querySelector('a');
+          const value = link ? link.getAttribute('href') : columns[1].innerText.trim();
+          result[key] = value;
+        }
+      });
+    }
+    return result;
+  }
+  const blockProperties = getBlockProperties();
   const PLACEHOLDER = 'IFRAME_TITLE_HERE';
-  const link = block.querySelector('a')?.getAttribute('href');
-  const title = block.querySelector('h1')?.textContent;
+  const iframeURL = blockProperties[PROP_URL];
+  const iframeTitle = blockProperties[PROP_TITLE];
+  const iframefixedHeight = blockProperties[PROP_HEIGHT];
+
   // Helper function to check if URL is allowed
   function isAllowedUrl(url) {
     try {
@@ -31,36 +57,38 @@ export default async function decorate(block) {
     block.appendChild(warningText);
   }
 
+  // Helper function to get a meaningful title
+  function getMeaningfulTitle() {
+    return (!iframeTitle || iframeTitle === PLACEHOLDER)
+      ? 'Content from ' + new URL(iframeURL).hostname
+      : iframeTitle;
+  }
+
   // Exit early if link is missing
-  if (!link) {
+  if (!iframeURL) {
     addWarningMessage('Warning: No URL provided for iframe source');
     return;
   }
 
   // Exit early if URL is not in allowlist
-  if (!isAllowedUrl(link)) {
+  if (!isAllowedUrl(iframeURL)) {
     addWarningMessage('Warning: Iframe source is not in allowed hosts list or is not HTTPS');
     return;
   }
 
   // Create iframe element
   const iframe = document.createElement('iframe');
-  const fixedHeightClass = [...block.classList].find((el) => /[0-9]+px/.test(el));
-
-  if (fixedHeightClass) {
-    iframe.height = fixedHeightClass;
+  if (iframefixedHeight) {
+    iframe.height = iframefixedHeight;
   }
-  iframe.src = link;
+  iframe.src = iframeURL;
   iframe.setAttribute('title', 'Iframe for external content');
   iframe.setAttribute('frameborder', 0);
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
   iframe.setAttribute('referrerpolicy', 'no-referrer');
   iframe.setAttribute('loading', 'lazy'); // Performance improvement
   iframe.allow = ''; // Restrict permissions (camera, microphone, etc.)
-  const meaningfulTitle = (!title || title === PLACEHOLDER)
-    ? 'Content from ' + new URL(link).hostname
-    : title;
-  iframe.setAttribute('title', meaningfulTitle);
+  iframe.setAttribute('title', getMeaningfulTitle());
 
   const options = {
     root: null,
