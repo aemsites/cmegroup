@@ -1,0 +1,112 @@
+<html>
+<head>
+  <title>{{title}}</title>
+  <meta name="description" content="{{description}}">
+  <meta name="effectiveDate" content="{{effectiveDate}}">
+  <meta name="template" content="event">
+</head>
+<body>
+  <header></header>
+  <main>
+    <div>
+      <div class="hero event">
+        <div>
+          <div>
+            <p>
+              <picture>
+                <img loading="lazy" alt=""
+                  src="https://main--www--cmegroup.aem.live/media_168daa8839e1f115b98954b9049336a9accc54038.png">
+              </picture>
+            </p>
+            <p><a href="https://www.cmegroup.com/education/events/economic-releases-calendar.html"><span
+                  class="icon icon-arrow-left-bold"></span>Economic Calendar</a></p>
+            <h1 id="jp-unemployment-rate">{{title}}</h1>
+          </div>
+        </div>
+      </div>
+      <div class="section-metadata">
+        <div>
+          <div>style</div>
+          <div>full-width</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="add-to-calendar">
+        <div>
+          <div></div>
+        </div>
+      </div>
+      <div class="table">
+        <div>
+          <div>
+            <table>
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td>Consensus</td>
+                  <td>Consensus Range</td>
+                  <td>Actual</td>
+                  <td>Previous</td>
+                </tr>
+                {{#values}}
+                <tr>
+                  <td>{{valueName}}</td>
+                  <td>{{consensus}}{{suffix}}</td>
+                  <td>{{consensusRangeFrom}}{{suffix}} to {{consensusRangeTo}}{{suffix}}</td>
+                  <td>{{actual}}{{suffix}}</td>
+                  <td>{{previous}}{{suffix}}</td>
+                </tr>
+                {{/values}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {{#reports}}
+      <div class="table">
+        <div>
+          <div>
+            {{{report}}}
+          </div>
+        </div>
+      </div>
+      {{/reports}}
+      <h3 id="highlights">Highlights</h3>
+      {{{highlights}}}
+      <h3 id="market-consensus-before-announcement">Market Consensus Before Announcement</h3>
+      <p>{{consensusNotes}}</p>
+      <h3 id="definition">Definition</h3>
+      <p>{{definition}}</p>
+      <h3 id="description">Description</h3>
+      <p>{{description}}</p>
+      {{#charts}}
+      <p>
+        <picture>
+          <img loading="lazy" alt="" src="{{chart}}">
+        </picture>
+      </p>
+      {{/charts}}
+      <h5 id="recommended-for-you">Recommended for you</h5>
+      <div class="cards dynamic article">
+        <div>
+          <div>endpoint</div>
+          <div>
+            https://www.cmegroup.com/content/cmegroup/en/misc/api/content-feeds-for-google-docs/education-home-page-follow-the-markets/jcr:content/main-content-section/section/section-elements/search_sort_filter_d.ssfajax.0.0.json
+          </div>
+        </div>
+      </div>
+      <h5 id="upcoming-events">Upcoming Events</h5>
+      <div class="cards dynamic article">
+        <div>
+          <div>endpoint</div>
+          <div>
+            https://www.cmegroup.com/content/cmegroup/en/misc/api/content-feeds-for-google-docs/education-home-page-follow-the-markets/jcr:content/main-content-section/section/section-elements/search_sort_filter_d.ssfajax.0.0.json
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer></footer>
+</body>
+</html>
