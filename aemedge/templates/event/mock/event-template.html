@@ -2,8 +2,14 @@
 <head>
   <title>{{title}}</title>
   <meta name="description" content="{{description}}">
-  <meta name="effectiveDate" content="{{effectiveDate}}">
   <meta name="template" content="event">
+  {{#tags}}
+  <meta property="article:tag" content="{{.}}">
+  {{/tags}}
+  <meta name="primary-topic" content="content-type/economic-release">
+  <meta name="date" content="{{startDate}}">
+  <meta name="start-date" content="{{startDate}}">
+  <meta name="end-date" content="{{endDate}}">
 </head>
 <body>
   <header></header>

@@ -2,10 +2,10 @@
   "uid": "651244",
   "name": "feed651244",
   "title": "IN: Merchandise Trade",
-  "effectiveDate": "2025-04-15T00:00:00Z",
+  "date": "2025-04-15T00:00:00Z",
   "startDate": "2025-04-15T02:00:00Z",
   "endDate": "2025-04-15T03:00:00Z",
-  "cq:tags": [
+  "tags": [
     "shared:content-type/economic-release",
     "econoday-events:impact/low",
     "econoday-events:country/in",

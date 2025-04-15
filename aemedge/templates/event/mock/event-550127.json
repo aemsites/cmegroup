@@ -2,10 +2,10 @@
   "uid": "550127",
   "name": "feed550127",
   "title": "JP: Unemployment Rate",
-  "effectiveDate": "2023-01-30T23:30:00Z",
+  "date": "2023-01-30T23:30:00Z",
   "startDate": "2023-01-30T23:30:00Z",
   "endDate": "2023-01-31T23:30:00Z",
-  "cq:tags": [
+  "tags": [
     "content-type/economic-release",
     "econoday-events/impact/high",
     "econoday-events/report-type/report",
