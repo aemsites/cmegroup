@@ -1,14 +1,14 @@
 /**
- * File Organiser Plugin for AEM Sidekick
- * This file contains utility functions for the organiser plugin
+ * Order Files Plugin for AEM Sidekick
+ * This file contains utility functions for the order files plugin
  */
 
 // Import the DA SDK
 import DA_SDK from 'https://da.live/nx/utils/sdk.js';
+import { crawl } from 'https://da.live/nx/public/utils/tree.js';
 
 class FileOrganiser {
-  constructor(sidekick, context, token) {
-    this.sk = sidekick;
+  constructor(context, token) {
     this.context = context;
     this.token = token;
     this.currentPath = '';
@@ -17,15 +17,24 @@ class FileOrganiser {
   }
 
   /**
-   * Gets the current path from the sidekick
+   * Gets the current path from the URL hash
    * @returns {string} The current path
    */
   getCurrentPath() {
-    if (this.sk && this.sk.location) {
-      this.currentPath = this.sk.location.pathname;
-      return this.currentPath;
+    // Extract path from URL hash or pathname
+    const pathname = window.location.pathname;
+    const hash = window.location.hash;
+    
+    if (hash && hash.length > 1) {
+      this.currentPath = hash.substring(1);
+    } else if (pathname.includes('/edit')) {
+      this.currentPath = '/';
+    } else {
+      this.currentPath = pathname;
     }
-    return '';
+    
+    console.log('Current path:', this.currentPath);
+    return this.currentPath;
   }
 
   /**
@@ -35,7 +44,10 @@ class FileOrganiser {
    */
   navigateToPath(path) {
     this.currentPath = path;
-    document.getElementById('current-path').textContent = path;
+    const pathDisplay = document.getElementById('current-path');
+    if (pathDisplay) {
+      pathDisplay.textContent = path || 'Root';
+    }
     return this.fetchFilesAndFolders(path);
   }
 
@@ -46,16 +58,6 @@ class FileOrganiser {
    */
   async fetchFilesAndFolders(path) {
     try {
-      // Try to import the crawl function from DA SDK
-      let crawlFunction;
-      try {
-        const { crawl } = await import('https://da.live/nx/public/utils/tree.js');
-        crawlFunction = crawl;
-      } catch (e) {
-        console.warn('Could not import crawl function, using mock data', e);
-        return this.fetchMockData();
-      }
-      
       // Show loading indicator
       const fileList = document.getElementById('file-list');
       fileList.innerHTML = '<div class="organiser-loading">Loading files and folders...<span id="progress-count">0</span> items found</div>';
@@ -66,14 +68,17 @@ class FileOrganiser {
         cancelButton.style.display = 'inline-block';
       }
       
+      // Prepare the path
+      const currentPath = path || this.currentPath;
+      const basePath = `/${this.context.org}/${this.context.repo}`;
+      const fullPath = currentPath.startsWith('/') ? currentPath : `${basePath}${currentPath}`;
+      
+      console.log('Fetching files from:', fullPath);
+      
       return new Promise((resolve) => {
         const files = [];
         let count = 0;
         const progressEl = document.getElementById('progress-count');
-        
-        const path = path || this.currentPath;
-        const basePath = `/${this.context.org}/${this.context.repo}`;
-        const fullPath = path.startsWith('/') ? path : `${basePath}${path}`;
         
         const opts = {
           method: 'GET',
@@ -82,45 +87,65 @@ class FileOrganiser {
           },
         };
         
-        const { results, cancelCrawl, getDuration } = crawlFunction({
-          path: fullPath,
-          callback: (file) => {
-            // Transform the file data to match our expected format
-            files.push({
-              name: file.name || file.path.split('/').pop(),
-              type: file.type === 'directory' ? 'folder' : 'file',
-              path: file.path
-            });
-            count++;
-            if (progressEl) {
-              progressEl.textContent = count;
-            }
-          },
-          throttle: 10,
-          ...opts
-        });
-        
-        // Store the cancel function
-        this.currentCrawl = { cancelCrawl };
-        
-        // Set up cancel button
-        if (cancelButton) {
-          cancelButton.addEventListener('click', () => {
-            if (this.currentCrawl && this.currentCrawl.cancelCrawl) {
-              this.currentCrawl.cancelCrawl();
-            }
-            cancelButton.style.display = 'none';
-          }, { once: true });
-        }
-        
-        // When all results are ready
-        results.then(() => {
+        try {
+          const { results, cancelCrawl, getDuration } = crawl({
+            path: fullPath,
+            callback: (file) => {
+              // Only process direct children of the current directory
+              const filePath = file.path;
+              const relativePath = filePath.replace(fullPath, '');
+              
+              // Skip files in subdirectories (more than one level deep)
+              if (relativePath.includes('/') && relativePath.substring(1).includes('/')) {
+                return;
+              }
+              
+              // Skip the current directory itself
+              if (!relativePath || relativePath === '/') {
+                return;
+              }
+              
+              // Transform the file data to match our expected format
+              files.push({
+                name: file.name || file.path.split('/').pop(),
+                type: file.type === 'directory' ? 'folder' : 'file',
+                path: file.path
+              });
+              
+              count++;
+              if (progressEl) {
+                progressEl.textContent = count;
+              }
+            },
+            throttle: 10,
+            ...opts
+          });
+          
+          // Store the cancel function
+          this.currentCrawl = { cancelCrawl };
+          
+          // Set up cancel button
           if (cancelButton) {
-            cancelButton.style.display = 'none';
+            cancelButton.addEventListener('click', () => {
+              if (this.currentCrawl && this.currentCrawl.cancelCrawl) {
+                this.currentCrawl.cancelCrawl();
+              }
+              cancelButton.style.display = 'none';
+            }, { once: true });
           }
-          console.log(`Crawl completed in ${getDuration()}`);
-          resolve(files);
-        });
+          
+          // When all results are ready
+          results.then(() => {
+            if (cancelButton) {
+              cancelButton.style.display = 'none';
+            }
+            console.log(`Crawl completed in ${getDuration()} with ${files.length} files found`);
+            resolve(files);
+          });
+        } catch (err) {
+          console.error('Error during crawl:', err);
+          resolve(this.fetchMockData());
+        }
       });
     } catch (error) {
       console.error('Error fetching files and folders:', error);
@@ -253,12 +278,16 @@ class FileOrganiser {
 }
 
 /**
- * Initializes the organiser interface and sets up event handlers
+ * Initializes the order files interface and sets up event handlers
  */
 (async function init() {
   try {
     // Import DA SDK components
     const { context, token, actions } = await DA_SDK;
+    
+    // Set page title
+    document.querySelector('.organiser-title').textContent = 'Order Files';
+    document.title = 'Order Files';
     
     // Get UI elements
     const container = document.querySelector('.organiser-container');
@@ -271,7 +300,7 @@ class FileOrganiser {
     const pathDisplay = document.getElementById('current-path');
     
     // Create organiser instance with SDK context
-    const organiser = new FileOrganiser(null, context, token);
+    const organiser = new FileOrganiser(context, token);
     
     // Show initial loading state
     if (fileList) {
@@ -331,16 +360,12 @@ class FileOrganiser {
       }
       
       try {
-        // Get current path from URL or use default
-        const pathname = window.location.pathname;
-        const currentPath = pathname.startsWith('/edit') ? 
-          window.location.hash.substring(1) : pathname;
+        // Get current path from URL
+        const currentPath = organiser.getCurrentPath();
         
         if (pathDisplay) {
-          pathDisplay.textContent = currentPath;
+          pathDisplay.textContent = currentPath || 'Root';
         }
-        
-        organiser.currentPath = currentPath;
         
         // Fetch and display files
         const files = await organiser.fetchFilesAndFolders(currentPath);
@@ -419,6 +444,8 @@ class FileOrganiser {
         
         fileList.appendChild(itemEl);
       });
+      
+      console.log('Rendered', organiser.fileItems.length, 'items');
     }
     
     // Function to set up drag and drop
@@ -470,7 +497,7 @@ class FileOrganiser {
         });
         
         const target = e.target.closest('.organiser-item');
-        if (!target || target === draggedItem) return;
+        if (!target || target === draggedItem || target.classList.contains('parent')) return;
         
         // Get indices
         const draggedIndex = parseInt(draggedItem.dataset.index);
@@ -511,6 +538,8 @@ class FileOrganiser {
             checkbox.closest('.organiser-item').classList.add('selected');
           }
         }
+        
+        console.log('Reordered items');
       });
       
       fileList.addEventListener('dragend', () => {
@@ -541,6 +570,7 @@ class FileOrganiser {
             copySuccess.classList.remove('show');
           }, 2000);
         }
+        console.log('Copied to clipboard:', orderedList);
       }).catch(err => {
         console.error('Could not copy text: ', err);
         alert('Failed to copy to clipboard: ' + err);
@@ -551,12 +581,12 @@ class FileOrganiser {
     await loadFiles();
     
   } catch (error) {
-    console.error('Error initializing organiser:', error);
+    console.error('Error initializing order files:', error);
     const container = document.querySelector('.organiser-container');
     if (container) {
       container.innerHTML = `
         <div class="organiser-error">
-          <h2>Error initializing organiser</h2>
+          <h2>Error initializing Order Files</h2>
           <p>${error.message}</p>
           <p>Please try refreshing the page.</p>
         </div>
