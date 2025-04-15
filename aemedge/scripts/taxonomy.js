@@ -3,9 +3,9 @@ import ffetch from './ffetch.js';
 const taxonomyEndpoint = '/eds-config/taxonomy.json';
 const taxonomyPromises = {};
 
-function fetchTaxonomy(sheet) {
-  if (!taxonomyPromises[sheet]) {
-    taxonomyPromises[sheet] = new Promise((resolve, reject) => {
+function fetchTaxonomy() {
+  if (!taxonomyPromises.tags) {
+    taxonomyPromises.tags = new Promise((resolve, reject) => {
       (async () => {
         try {
           const taxonomyJson = await ffetch(taxonomyEndpoint).all();
@@ -41,7 +41,7 @@ function fetchTaxonomy(sheet) {
       })();
     });
   }
-  return taxonomyPromises[sheet];
+  return taxonomyPromises.tags;
 }
 
 const getDeepNestedObject = (obj, filter) => Object.entries(obj)
@@ -58,11 +58,11 @@ const getDeepNestedObject = (obj, filter) => Object.entries(obj)
   }, []);
 
 /**
- * Get the taxonomy a a hierarchical json object
+ * Get the taxonomy as a hierarchical json object
  * @returns {Promise} the taxonomy
  */
-export function getTaxonomy(sheet) {
-  return fetchTaxonomy(sheet);
+export function getTaxonomy() {
+  return fetchTaxonomy();
 }
 
 /**
