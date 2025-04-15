@@ -16,10 +16,17 @@ const filtersDateContainer = createElement('div', { class: 'date-filter-containe
 const filtersTitle = createElement('h3', { class: 'filters-title' });
 const filterSearchInputContainer = createElement('div', { class: 'input-search-container' });
 const filterSearchInput = createElement('input', { class: 'input-search' });
-const filterCountryInput = createElement('input', { class: 'input-country' });
+// const filterCountryInput = createElement('input', { class: 'input-country' });
 const filterImpactInput = createElement('input', { class: 'input-impact' });
 const filtersInputsContainer = createElement('div', { class: 'filters-inputs-container' });
+const cleanInput = createElement('button', {
+  class: 'icon-close clean-search-input',
+  'aria-label': 'clean search input',
+  'aria-expanded': false,
+});
 let filtersLabel;
+let searchValueVar = '';
+let timeoutId;
 
 async function initializeLabels() {
   const [filtersLabelVar] = await Promise.all([
@@ -50,7 +57,79 @@ function resetFilters() {
 function applyFilters() {
   // apply and close modal
   console.log('apply');
+  console.log(`searchValueVar= ${searchValueVar}`);
   closeFiltersInputsContainer();
+}
+
+function cleanInputSearch() {
+  searchValueVar = '';
+  filterSearchInput.value = '';
+  if (filterSearchInputContainer.contains(cleanInput)) {
+    cleanInput.remove();
+  }
+  // hacer la busqueda con todas las variables
+  console.log(`searchValueVar= ${searchValueVar}`);
+}
+
+function decorateCleanInputSearch() {
+  cleanInput.addEventListener('click', async () => {
+    cleanInputSearch();
+  });
+  return cleanInput;
+}
+
+function handleInputSearch(e) {
+  searchValueVar = e.target.value;
+  filterSearchInputContainer.append(decorateCleanInputSearch());
+  if (searchValueVar !== '' && window.innerWidth >= 1200) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      // eslint-disable-next-line no-console
+      console.log(`searchValueVar= ${searchValueVar}`);
+      // hacer la busqueda con todas las variables
+    }, 400);
+  }
+}
+
+function decorateFilterCountryInput() {
+  const filterCountryInput = createElement('details', { id: 'multiselect' });
+  filterCountryInput.innerHTML = `
+    <summary>Country</summary>
+    <form>
+      <fieldset>
+        <ul>
+          <li>
+            <label for="australia">
+              <input type="checkbox" id="australia" name="country[]" value="australia" />
+              australia
+            </label>
+          </li>
+          <li>
+            <label for="china">
+              <input type="checkbox" id="china" name="country[]" value="china" />
+              china
+            </label>
+          </li>
+          <li>
+            <label for="france">
+              <input type="checkbox" id="france" name="country[]" value="france" />
+              france
+            </label>
+          </li>
+          <li>
+            <label for="italy">
+              <input type="checkbox" id="italy" name="country[]" value="italy" />
+              italy
+            </label>
+          </li>
+        </ul>
+      </fieldset>
+    </form>
+  `;
+  cleanInput.addEventListener('click', async () => {
+    cleanInputSearch();
+  });
+  return filterCountryInput;
 }
 
 function renderInputs() {
@@ -62,24 +141,37 @@ function renderInputs() {
   filtersInputsContainerCloseBtn.addEventListener('click', async () => {
     closeFiltersInputsContainer();
   });
+
   const filtersBtnContainer = createElement('div', { class: 'btn-container' });
+
   const filtersResetBtn = createElement('button', { class: 'secondary btn' });
   filtersResetBtn.innerHTML = 'RESET';
   filtersResetBtn.addEventListener('click', async () => {
     resetFilters();
   });
+
   const filtersApplyBtn = createElement('button', { class: 'primary btn' });
   filtersApplyBtn.innerHTML = 'APPLY';
   filtersApplyBtn.addEventListener('click', async () => {
     applyFilters();
   });
+
+  filterSearchInput.addEventListener('input', async (e) => {
+    handleInputSearch(e);
+  });
+
   filtersInputsContainer.append(filtersInputsContainerCloseBtn);
   filtersTitle.innerHTML = filtersLabel;
   filtersInputsContainer.append(filtersTitle);
+  const inputsFlexContainer = createElement('div', { class: 'inputs-flex-container' });
   filterSearchInputContainer.append(filterSearchInput);
-  filtersInputsContainer.append(filterSearchInputContainer);
-  filtersInputsContainer.append(filterCountryInput);
-  filtersInputsContainer.append(filterImpactInput);
+  inputsFlexContainer.append(filterSearchInputContainer);
+
+  inputsFlexContainer.append(decorateFilterCountryInput());
+  inputsFlexContainer.append(filterImpactInput);
+
+  filtersInputsContainer.append(inputsFlexContainer);
+
   filtersBtnContainer.append(filtersResetBtn);
   filtersBtnContainer.append(filtersApplyBtn);
   filtersInputsContainer.append(filtersBtnContainer);
@@ -124,6 +216,7 @@ async function init(block, version) {
         const openInputsCurtain = document.querySelector('.inputs-curtain.is-open');
         if (openInputsCurtain) {
           closeFiltersInputsContainer();
+          // hacer la busqueda de todas las variables
         }
       }
       prevWindowWidth = windowWidth;
