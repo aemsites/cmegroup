@@ -1,0 +1,13 @@
+.iframe iframe {
+    width: 100%;
+}
+
+.iframe-wrapper .iframe-warning {
+    border: 2px solid var(--red);
+    padding: 10px;
+}
+
+.iframe .iframe-warning-message {
+    color: var(--red);
+    margin-top: 5px;
+}
