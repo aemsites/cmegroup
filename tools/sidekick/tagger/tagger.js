@@ -169,6 +169,15 @@ async function init() {
 
   // Add click handlers for expand/collapse and tag selection
   document.addEventListener('click', (e) => {
+    // Category selector handling
+    const categorySelector = e.target.closest('.category-selector');
+    if (categorySelector) {
+      categorySelector.classList.toggle('selected');
+      displaySelected();
+      return;
+    }
+
+    // Category expand/collapse
     const categoryHeader = e.target.closest('.category-header');
     if (categoryHeader) {
       const group = categoryHeader.closest('.category-group, .subcategory-group');
@@ -178,8 +187,9 @@ async function init() {
       return;
     }
 
+    // Individual tag selection
     const pathEl = e.target.closest('.path');
-    if (pathEl) {
+    if (pathEl && !pathEl.classList.contains('category-selector')) {
       pathEl.classList.toggle('selected');
       displaySelected();
     }

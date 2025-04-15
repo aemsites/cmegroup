@@ -8,8 +8,7 @@ function fetchTaxonomy(sheet) {
     taxonomyPromises[sheet] = new Promise((resolve, reject) => {
       (async () => {
         try {
-          const sheetParameter = sheet ? `?sheet=${sheet}` : '';
-          const taxonomyJson = await ffetch(`${taxonomyEndpoint}${sheetParameter}`).all();
+          const taxonomyJson = await ffetch(taxonomyEndpoint).all();
           const taxonomy = {};
 
           taxonomyJson.forEach((row) => {
