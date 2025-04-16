@@ -47,6 +47,7 @@
 
 .table.dark table tbody tr {
   background-color: #112b4a;
+  color: #fff;
 }
 
 .table.compact table tbody tr {
@@ -87,8 +88,12 @@
   text-decoration: underline;
 }
 
-.table table tbody tr:hover {
+.table table tr:hover {
   background-color: #ebf9ff;
+}
+
+.table table tr:hover {
+  background-color: #00c;
 }
 
 .table table tr [class$="-header"] {
