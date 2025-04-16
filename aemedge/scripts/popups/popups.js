@@ -82,21 +82,25 @@ function insertPopupIntoDOM(popup) {
   return popupDiv;
 }
 
+function setOffsetTrustBanner(element) {
+  const onetrustBanner = document.querySelector('#onetrust-banner-sdk');
+  if (!onetrustBanner) {
+    return;
+  }
+  element.style.bottom = `${onetrustBanner.offsetHeight}px`;
+  const handleConsentChange = () => {
+    setTimeout(() => {
+      if (onetrustBanner && onetrustBanner.style.display === 'none') {
+        element.style.bottom = `${onetrustBanner.offsetHeight}px`;
+      }
+    }, 500);
+  };
+  window.Optanon?.OnConsentChanged(handleConsentChange);
+}
 function setOffsetHeight(popupElement) {
+  setOffsetTrustBanner(popupElement);
   window.OptanonWrapper = () => {
-    const onetrustBanner = document.querySelector('#onetrust-banner-sdk');
-    if (!onetrustBanner) {
-      return;
-    }
-    popupElement.style.bottom = `${onetrustBanner.offsetHeight}px`;
-    const handleConsentChange = () => {
-      setTimeout(() => {
-        if (onetrustBanner && onetrustBanner.style.display === 'none') {
-          popupElement.style.bottom = `${onetrustBanner.offsetHeight}px`;
-        }
-      }, 500);
-    };
-    window.Optanon?.OnConsentChanged(handleConsentChange);
+    setOffsetTrustBanner(popupElement);
   };
 }
 
@@ -105,11 +109,10 @@ function showPopup(popup) {
   setOffsetHeight(popupElement.firstElementChild);
 }
 
-function triggerPopup(item) {
-  if (!item) {
+function triggerPopup(popup) {
+  if (!popup) {
     return;
   }
-  const popup = item.content;
   switch (popup.trigger) {
     case 'delay': {
       let delayTimeout;
@@ -173,10 +176,9 @@ function filterPopups(popups, personalizedPopup) {
   const currentPath = window.location.pathname;
 
   let filtered = popups.filter((popup) => {
-    const popupContent = popup.content;
-    if (!popupContent.enabled) return false;
+    if (!popup.enabled) return false;
 
-    const cleanedScope = popupContent.scope.split(',').map((scope) => {
+    const cleanedScope = popup.scope.split(',').map((scope) => {
       if (scope === '/content/cmegroup/en') {
         return '/';
       }
@@ -187,7 +189,7 @@ function filterPopups(popups, personalizedPopup) {
     });
     if (!cleanedScope.some((scope) => scope.startsWith(currentPath))) return false;
 
-    const cleanedExcludedPages = popupContent.excludedPages.split(',').map((excluded) => {
+    const cleanedExcludedPages = popup.excludedPages.split(',').map((excluded) => {
       if (excluded.startsWith('/content/cmegroup/en')) {
         return excluded.replace('/content/cmegroup/en', '');
       }
@@ -197,21 +199,21 @@ function filterPopups(popups, personalizedPopup) {
       return false;
     }
 
-    if (popupContent.templates && popupContent.templates.length > 0
-      && !popupContent.templates.split(',').includes(getMetadata('template'))) {
+    if (popup.templates && popup.templates.length > 0
+      && !popup.templates.split(',').includes(getMetadata('template'))) {
       return false;
     }
     return true;
   });
 
   if (personalizedPopup) {
-    filtered = [filtered.find((popup) => popup.content.id === personalizedPopup)];
+    filtered = [filtered.find((popup) => popup.id === personalizedPopup)];
   } else {
-    filtered = filtered.filter((popup) => !popup.content.personalized);
+    filtered = filtered.filter((popup) => !popup.personalized);
   }
   const cookies = window.CookieUtil?.get('popupsCme', true);
   if (cookies) {
-    filtered = filtered.filter((popup) => checkCookieYearPassed(cookies, popup.content.id));
+    filtered = filtered.filter((popup) => checkCookieYearPassed(cookies, popup.id));
   }
   return filtered;
 }
@@ -228,7 +230,7 @@ function loadPopups(personalizedPopup) {
     popupsPromise = new Promise((resolve, reject) => {
       fetchPopups()
         .then((data) => {
-          const popups = data.filter((popup) => popup.content.enabled);
+          const popups = data.map((p) => p.content).filter((popup) => popup.enabled);
           localStorage.setItem(CACHE_KEY, JSON.stringify({
             timestamp: Date.now(),
             popups,
@@ -246,7 +248,7 @@ function loadPopups(personalizedPopup) {
   return popupsPromise;
 }
 
-export default async function initSitewidePopups() {
+export default async function loadSitewidePopups() {
   try {
     const popups = await loadPopups();
     if (popups.length) {

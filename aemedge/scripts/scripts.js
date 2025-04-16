@@ -17,7 +17,6 @@ import {
 import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
-import initSitewidePopups from './popups/popups.js';
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
@@ -242,7 +241,7 @@ async function loadLazy(doc) {
   if (hash && element) element.scrollIntoView();
 
   loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
-  loadFooter(doc.querySelector('footer')).then(() => initSitewidePopups());
+  loadFooter(doc.querySelector('footer'));
   dynamicBlocks(main);
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
