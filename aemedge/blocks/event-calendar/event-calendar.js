@@ -92,16 +92,20 @@ function handleInputSearch(e) {
 }
 
 function decorateFilterCountryInput() {
-  const filterCountryInput = createElement('details', { id: 'multiselect' });
+  const filterCountryInput = createElement('details', { class: 'checkbox-dropdown input-country' });
   filterCountryInput.innerHTML = `
     <summary>Country</summary>
     <form>
       <fieldset>
         <ul>
           <li>
-            <label for="australia">
-              <input type="checkbox" id="australia" name="country[]" value="australia" />
-              australia
+            <label for="country_AU" tabindex="0" role="menuitem">
+              <div class="checkbox-wrapper">
+                <input id="country_AU" type="checkbox">
+                <span></span>
+              </div>
+              <div class="flag-icon AU"></div>
+              Australia
             </label>
           </li>
           <li>

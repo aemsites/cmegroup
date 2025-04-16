@@ -6,7 +6,7 @@
     background: linear-gradient(0deg, var(--blue2) 0%, var(--blue1) 70%);
 }
 
-@media (width >= 75rem) {
+@media (width >=75rem) {
     .event-calendar-container {
         padding-bottom: 1.875rem;
     }
@@ -33,7 +33,7 @@
     justify-content: center;
 }
 
-@media (width >= 75rem) {
+@media (width >=75rem) {
     .event-calendar-container .filter-section-container .filters-block {
         display: block;
     }
@@ -43,7 +43,7 @@
     width: 100%;
 }
 
-@media (width >= 75rem) {
+@media (width >=75rem) {
     .event-calendar-container .filter-section-container .filters-block button.toggle-button {
         display: none;
     }
@@ -55,7 +55,7 @@
     display: none;
 }
 
-@media (width >= 75rem) {
+@media (width >=75rem) {
     .event-calendar-container .filters-inputs-container {
         display: block;
     }
@@ -79,7 +79,7 @@
     cursor: pointer;
 }
 
-@media (width >= 75rem) {
+@media (width >=75rem) {
     .event-calendar-container .filters-inputs-container .filter-close {
         display: none;
     }
@@ -101,18 +101,18 @@
     display: contents;
 }
 
-@media (width >= 75rem) {
+@media (width >=75rem) {
     .event-calendar-container .inputs-flex-container {
         display: flex;
     }
 }
 
 
-.event-calendar-container .filters-inputs-container h3{
+.event-calendar-container .filters-inputs-container h3 {
     color: var(--white);
 }
 
-.event-calendar-container .filters-inputs-container input{
+.event-calendar-container .filters-inputs-container input {
     background-color: #5a6874;
     border: 1px solid #5a6874;
     color: #fff;
@@ -122,15 +122,20 @@
     margin-bottom: 1.25rem;
 }
 
-@media (width >= 75rem) {
-    .event-calendar-container .filters-inputs-container input.input-country,
-    .event-calendar-container .filters-inputs-container input.input-impact {
-        margin: 0 15px;
-        width: 20%;
-    }
+.event-calendar-container .filters-inputs-container .input-country,
+.event-calendar-container .filters-inputs-container .input-impact {
+    background-color: #5a6874;
+    border: 1px solid #5a6874;
+    color: #fff;
+    height: 2.25rem;
+    margin: 0 15px;
+    width: 20%;
+    padding-left: 0;
+    padding-right: 0;
 }
 
-.event-calendar-container .filters-inputs-container input:active{
+
+.event-calendar-container .filters-inputs-container input:active {
     border-color: #3cc8ff !important;
     outline: none;
 }
@@ -169,7 +174,8 @@
     padding: 0;
 }
 
-@media (width >= 75rem) {
+@media (width >=75rem) {
+
     .event-calendar-container .filters-inputs-container .input-search-container::after,
     .event-calendar-container .filters-inputs-container .input-search-container .clean-search-input {
         color: var(--blue5);
@@ -184,7 +190,7 @@
     width: 100%;
 }
 
-@media (width >= 75rem) {
+@media (width >=75rem) {
     .event-calendar-container .filters-inputs-container .input-search-container {
         width: 60%;
         margin-right: 15px;
@@ -192,85 +198,146 @@
 }
 
 /**/
-details {
-    border: 1px solid #767676;
-    border-radius: 3px;
+details.checkbox-dropdown {
     display: inline-flex;
     flex-direction: column;
-    padding: 3px 6px;
-  }
-  
-  details summary::marker {
-    display: none;
-    font-size: 0;
-  }
-  
-  details summary::-webkit-details-marker {
-    display: none;
-    font-size: 0;
-  }
-  
-  details summary::after {
-    content: "\25BC";
-    display: inline-block;
-    font-size: 0.6rem;
-    height: 1rem;
-    line-height: 1rem;
-    margin-left: 0.5rem;
+    padding: 1px;
+    justify-content: end;
     position: relative;
+}
+
+
+details.checkbox-dropdown summary {
+    padding-left: .5rem;
+    padding-right: .5rem;
+}
+
+details.checkbox-dropdown summary::marker {
+    display: none;
+    font-size: 0;
+}
+
+details.checkbox-dropdown  summary::-webkit-details-marker {
+    display: none;
+    font-size: 0;
+}
+
+details.checkbox-dropdown  summary::after {
     transition: transform 0.25s;
-  }
-  
-  details[open] summary {
-    margin-bottom: 1rem;
-  }
-  
-  details[open] summary::after {
-    top: -0.15rem;
+    position: absolute;
+    right: 5px;
+    top: 16px;
+    border-bottom: 0;
+    border-left: 0.3em solid transparent;
+    border-right: 0.3em solid transparent;
+    border-top: 0.3em solid;
+    content: "";
+    display: inline-block;
+}
+
+details.checkbox-dropdown[open] {
+    justify-content: normal;
+    border: 1px solid var(--blue5) !important;
+}
+
+details.checkbox-dropdown[open] summary {
+    margin-bottom: 2px;
+    margin-top: 7px;
+}
+
+details.checkbox-dropdown[open] summary::after {
+    top: 16px;
+    ;
     transform: rotate(180deg);
-  }
-  
-  form {
-    display: flex;
-  }
-  
-  fieldset {
+}
+
+.checkbox-dropdown form {
+    background-color: #5a6874;
+    color: #fff;
+    width: 100%;
+    overflow-y: auto;
+    max-height: 200px;
+}
+
+.checkbox-dropdown fieldset {
     border: 0;
     padding: 0;
-  }
-  
-  fieldset legend {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
-  }
-  
-  ul {
+    margin: 0;
+}
+
+.checkbox-dropdown ul {
     list-style: none;
     margin: 0;
     padding: 0;
-  }
-  
-  ul li {
-    border-radius: 3px;
-    margin: 0;
-    padding: 4px 2px;
-  }
-  
-  ul li:hover {
-    background: #eee;
-  }
-  
-  ul li label {
+    width: 100%;
+}
+
+.checkbox-dropdown ul li {
+    font-family: Averta;
+    font-size: .875rem;
+    font-weight: 400;
+    height: 2.25rem;
+    line-height: 1.25rem;
+    margin-bottom: 0;
+}
+
+.checkbox-dropdown ul li:hover {
+    background: #354a66;
+}
+
+.checkbox-dropdown ul li label {
     display: inline-block;
-    width: 8rem;
-  }
+    padding: .375rem .375rem .375rem .625rem;
+    width: fill-available;
+    width: -webkit-fill-available;
+}
+
+.checkbox-dropdown ul li label:hover {
+    cursor: pointer;
+}
+
+.checkbox-dropdown ul li label .checkbox-wrapper {
+    display: inline-block;
+    margin-right: .375rem;
+}
+
+.checkbox-dropdown ul li label input[type=checkbox] {
+    left: 0;
+    margin: 0;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+}
+
+.checkbox-dropdown ul li label input[type=checkbox]~span {
+    background-color: transparent;
+    line-height: 1.375rem;
+    vertical-align: text-bottom;
+    background: transparent;
+    border: .0625rem solid;
+    display: inline-block;
+    height: .875rem;
+    position: relative;
+    width: .875rem;
+}
+
+.checkbox-dropdown ul li label input[type=checkbox]:checked~span {
+    background-color: #fff;
+}
+
+.checkbox-dropdown ul li label input[type=checkbox]:checked~span::after {
+    border-bottom: .1875rem solid #006eb6;
+    border-right: .1875rem solid #006eb6;
+    height: .6875rem;
+    left: .25rem;
+    top: -.0625rem;
+    transform: rotate(45deg);
+    width: 3px;
+    content: "";
+    display: inline-block;
+    position: absolute;
+}
+
 /**/
 
 .event-calendar-container .filters-inputs-container.is-open {
@@ -292,7 +359,7 @@ details {
     justify-content: space-between;
 }
 
-@media (width >= 75rem) {
+@media (width >=75rem) {
     .event-calendar-container .filters-inputs-container .btn-container {
         display: none;
     }
@@ -302,7 +369,7 @@ details {
     width: 45%;
 }
 
-.event-calendar-container .filters-inputs-container.is-open .btn-container button.secondary{
+.event-calendar-container .filters-inputs-container.is-open .btn-container button.secondary {
     color: var(--white);
 }
 
@@ -312,7 +379,7 @@ details {
     padding: 1.25rem 0 2.5rem 0;
 }
 
-.event-calendar-container .event-calendar.release .result-list-section{
+.event-calendar-container .event-calendar.release .result-list-section {
     padding: 0 1.0625rem;
     position: sticky;
     top: -1.25rem;
@@ -335,7 +402,7 @@ details {
     padding: 0 1.125rem;
 }
 
-@media (width >= 75rem) {
+@media (width >=75rem) {
     .event-calendar-container .event-calendar .result-list-table-section .result-list-section {
         padding-right: 0;
     }
@@ -345,7 +412,7 @@ details {
     padding: 0;
 }
 
-@media (width >= 75rem) {
+@media (width >=75rem) {
     .event-calendar-container .event-calendar .result-list-table-section .result-table-section {
         border: 0.0625rem solid var(--gray3);
         border-left: 0.3125rem solid var(--blue5);

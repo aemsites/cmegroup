@@ -11,3 +11,7 @@ export function getLoginDataUrl(fromUrl, fromUrlTitle) {
 export function getSearchSuggestionsUrl(term) {
   return `${urlByEnvType()}/bin/service/search.${term}.json`;
 }
+
+export function getEconomicReleaseFiltersUrl() {
+  return `${urlByEnvType()}/bin/service/economic-release-filter`;
+}
