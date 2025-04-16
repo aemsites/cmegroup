@@ -41,6 +41,14 @@
   background-color: #F1F5F7;
 }
 
+.table.dark tbody tr:nth-child(2n) {
+  background-color: #1f3655;
+}
+
+.table.dark table tbody tr {
+  background-color: #112b4a;
+}
+
 .table.compact table tbody tr {
   padding: 10px;
   font-size: 12px;
