@@ -157,51 +157,29 @@ function checkCookieYearPassed(allCookies, popupId) {
   return result;
 }
 
-async function fetchPopups() {
-  try {
-    const response = await fetch(popupsEndpoint);
-    if (!response.ok) {
-      throw new Error(`fail to load popups: ${response.statusText}`);
-    }
-    const { results: data } = await response.json();
-    return data;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('fail to load popups:', error);
-    throw error;
-  }
-}
-
 function filterPopups(popups, personalizedPopup) {
   const currentPath = window.location.pathname;
 
   let filtered = popups.filter((popup) => {
     if (!popup.enabled) return false;
-
-    const cleanedScope = popup.scope.split(',').map((scope) => {
-      if (scope === '/content/cmegroup/en') {
-        return '/';
-      }
-      if (scope.startsWith('/content/cmegroup/en')) {
-        return scope.replace('/content/cmegroup/en', '');
-      }
-      return scope;
-    });
-    if (!cleanedScope.some((scope) => scope.startsWith(currentPath))) return false;
-
-    const cleanedExcludedPages = popup.excludedPages.split(',').map((excluded) => {
-      if (excluded.startsWith('/content/cmegroup/en')) {
-        return excluded.replace('/content/cmegroup/en', '');
-      }
-      return excluded;
-    });
-    if (cleanedExcludedPages.some((excluded) => excluded.startsWith(currentPath))) {
-      return false;
+    if (popup.scope) {
+      const cleanedScope = popup.scope.split(',').map((scope) => {
+        let cleaned = scope.replace('/content/cmegroup/en', '');
+        [cleaned] = cleaned.split('\\?');
+        return cleaned || '/';
+      });
+      if (!cleanedScope.some((scope) => currentPath.startsWith(scope))) return false;
     }
-
-    if (popup.templates && popup.templates.length > 0
-      && !popup.templates.split(',').includes(getMetadata('template'))) {
-      return false;
+    if (popup.excludedPages) {
+      const cleanedExcludedPages = popup.excludedPages.split(',').map((excluded) => excluded.replace('/content/cmegroup/en', ''));
+      if (cleanedExcludedPages.some((excluded) => currentPath.startsWith(excluded))) {
+        return false;
+      }
+    }
+    if (popup.templates) {
+      if (!popup.templates.split(',').includes(getMetadata('template'))) {
+        return false;
+      }
     }
     return true;
   });
@@ -216,6 +194,21 @@ function filterPopups(popups, personalizedPopup) {
     filtered = filtered.filter((popup) => checkCookieYearPassed(cookies, popup.id));
   }
   return filtered;
+}
+
+async function fetchPopups() {
+  try {
+    const response = await fetch(popupsEndpoint);
+    if (!response.ok) {
+      throw new Error(`fail to load popups: ${response.statusText}`);
+    }
+    const { results: data } = await response.json();
+    return data;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('fail to load popups:', error);
+    throw error;
+  }
 }
 
 function loadPopups(personalizedPopup) {
