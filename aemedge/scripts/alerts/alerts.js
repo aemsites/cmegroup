@@ -116,9 +116,9 @@ function filterAlerts(alerts) {
         return scope.replace('/content/cmegroup/en', '');
       }
       return scope;
-    });
+    }).filter((scope) => !!scope);
 
-    if (cleanedScope[0].length
+    if (cleanedScope.length
       && !cleanedScope.some((scope) => currentPath.startsWith(scope))) return false;
 
     const cleanedExcludedPages = alertContent.excludedPages.split(',').map((excluded) => {
@@ -126,9 +126,9 @@ function filterAlerts(alerts) {
         return excluded.replace('/content/cmegroup/en', '');
       }
       return excluded;
-    });
+    }).filter((excluded) => !!excluded);
 
-    if (cleanedExcludedPages[0].length
+    if (cleanedExcludedPages.length
         && cleanedExcludedPages.some((excluded) => currentPath.startsWith(excluded))) {
       return false;
     }
