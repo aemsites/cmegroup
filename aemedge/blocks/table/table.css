@@ -88,12 +88,12 @@
   text-decoration: underline;
 }
 
-.table table tr:hover {
+.table table tbody tr:hover {
   background-color: #ebf9ff;
 }
 
-.table.dark table tr:hover {
-  background-color: #00c;
+.table.dark table tbody tr:hover {
+  background-color: #354a66;
 }
 
 .table table tr [class$="-header"] {
@@ -107,6 +107,14 @@
   
   /* text-align: left (for header columns) */
   vertical-align: middle;
+}
+
+.table.dark table tr [class$="-header"] {
+  color: #fff;
+}
+
+.table.dark table tbody tr [class$="-header"] {
+  background-color: unset;
 }
 
 .table.compact table tr [class$="-header"] {
