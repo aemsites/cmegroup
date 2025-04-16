@@ -811,7 +811,7 @@ body.loading::before {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.35);
+    background-color: rgba(0 0 0 / 35%);
 }
 
 .sitewide-popup .popup {
@@ -821,10 +821,10 @@ body.loading::before {
     height: fit-content;
     position: fixed;
     bottom: 0;
-    box-shadow: 0 0 2.8125rem rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0 2.8125rem rgba(0 0 0 / 35%);
 }
 
-@media (max-width: 768px) {
+@media (max-width > 768px) {
     .sitewide-popup .popup {
         width: 100%;
     }
@@ -845,7 +845,7 @@ body.loading::before {
     margin-left: -15.625rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width > 768px) {
     .sitewide-popup .popup.centered {
         top: 25%;
         left: 1.375rem;
@@ -883,7 +883,7 @@ body.loading::before {
 
 .sitewide-popup .popup .popup-content {
     text-align: center;
-    padding: 1.875rem 1.875rem 0 1.875rem;
+    padding: 1.875rem 1.875rem 0;
 }
 
 .sitewide-popup .popup .popup-content .title {
@@ -897,7 +897,7 @@ body.loading::before {
     font-size: 2.625rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width > 768px) {
     .sitewide-popup .popup .popup-content .title.title-h1 {
         font-size: 1.5rem;
     }
@@ -907,7 +907,7 @@ body.loading::before {
     font-size: 2rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width > 768px) {
     .sitewide-popup .popup .popup-content .title.title-h2 {
         font-size: 1.375rem;
     }
@@ -917,7 +917,7 @@ body.loading::before {
     font-size: 1.625rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width > 768px) {
     .sitewide-popup .popup .popup-content .title.title-h3 {
         font-size: 1.25rem;
     }
@@ -927,7 +927,7 @@ body.loading::before {
     font-size: 1.25rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width > 768px) {
     .sitewide-popup .popup .popup-content .title.title-h4 {
         font-size: 1.125rem;
     }
