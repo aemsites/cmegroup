@@ -92,7 +92,7 @@
   background-color: #ebf9ff;
 }
 
-.table table tr:hover {
+.table.dark table tr:hover {
   background-color: #00c;
 }
 
