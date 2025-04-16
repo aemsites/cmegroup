@@ -42,11 +42,11 @@
 }
 
 .table.dark tbody tr:nth-child(2n) {
-  background-color: #1f3655;
+  background-color: var(--navy1);
 }
 
 .table.dark table tbody tr {
-  background-color: #112b4a;
+  background-color: var(--blue2);
   color: #fff;
 }
 
@@ -93,7 +93,7 @@
 }
 
 .table.dark table tbody tr:hover {
-  background-color: #354a66;
+  background-color: var(--navy2);
 }
 
 .table table tr [class$="-header"] {
@@ -110,7 +110,7 @@
 }
 
 .table.dark table tr [class$="-header"] {
-  color: #fff;
+  color: var(--white);
 }
 
 .table.dark table tbody tr [class$="-header"] {
