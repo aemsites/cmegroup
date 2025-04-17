@@ -70,7 +70,7 @@ header .nav {
     top: 0;
     max-height: 100%;
     width: 25rem;
-    background-color: rgba(58, 70, 79, .8);
+    background-color: rgb(58 70 79 / 80%);
     align-items: center;
     display: flex;
     flex-wrap: wrap;
@@ -443,7 +443,7 @@ button.search-icon::before {
     width: 100%;
 }
 
-.nav-menu-container .nav-subnav .nav-subnav-item a.nav-subnav-item-link:after {
+.nav-menu-container .nav-subnav .nav-subnav-item a.nav-subnav-item-link::after {
     font-size: 10px;
 }
 
@@ -854,9 +854,7 @@ button.search-icon::before {
     padding: .75rem 2rem;
 }
 
-
 @media (width > 481px) {
-
     .main-home-link a,
     .nav-menu-container .nav-subnav .nav-subnav-item .nav-nav-item-submenu li a {
         font-size: 16px;
@@ -994,7 +992,7 @@ button.search-icon::before {
     }
 
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container .item-menu-column {
-        width: 58.33333333%;
+        width: 58.3333%;
         padding: 0;
     }
 
@@ -1076,7 +1074,7 @@ button.search-icon::before {
     }
 
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container .promo-box-subnav {
-        width: 41.66666667%
+        width: 41.6667%
     }
 
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container .promo-box-subnav .section .layout {
