@@ -411,6 +411,7 @@ button.search-icon::before {
 
 .nav-menu-container .nav-subnav .nav-subnav-item a.nav-subnav-item-link::after {
     color: var(--white);
+    font-size: 10px;
 }
 
 .nav-menu-container .nav-subnav .nav-subnav-item.has-menu a.nav-subnav-item-link::after {
@@ -441,10 +442,6 @@ button.search-icon::before {
     background: transparent;
     cursor: pointer;
     width: 100%;
-}
-
-.nav-menu-container .nav-subnav .nav-subnav-item a.nav-subnav-item-link::after {
-    font-size: 10px;
 }
 
 .nav-menu-container .nav-subnav .nav-subnav-item .nav-nav-item-submenu li {
