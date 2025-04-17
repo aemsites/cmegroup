@@ -29,7 +29,8 @@ store.subscribe(({ authentication }) => authentication, ({ isLoggedIn, loginInfo
   if (isLoggedIn !== loggedIn) {
     loggedIn = isLoggedIn;
     thisLoginInfo = loginInfo;
-    this.updateRecentSearches(thisLoginInfo);
+    // eslint-disable-next-line no-use-before-define
+    updateRecentSearches(thisLoginInfo);
   }
 });
 
@@ -161,20 +162,22 @@ const updateRecentSearches = async (loginInfo) => {
 };
 
 const getSuggestions = async (searchValue) => {
-  if (customSearch.contains(recentSearchesContainer)) {
-    recentSearchesContainer.remove();
-  }
-
-  if (customSearch.contains(popularSearchesContainer)) {
-    popularSearchesContainer.remove();
-  }
-
-  suggestionsVar = await getSearchSuggestions(searchValue, 5);
-  if (suggestionsVar.length > 0) {
-    if (customSearch.contains(suggestionSearchesContainer)) {
-      suggestionSearchesContainer.remove();
+  if (searchValue !== '') {
+    if (customSearch.contains(recentSearchesContainer)) {
+      recentSearchesContainer.remove();
     }
-    customSearch.append(buildSuggestionSearches(suggestionsVar));
+
+    if (customSearch.contains(popularSearchesContainer)) {
+      popularSearchesContainer.remove();
+    }
+
+    suggestionsVar = await getSearchSuggestions(searchValue, 5);
+    if (suggestionsVar.length > 0) {
+      if (customSearch.contains(suggestionSearchesContainer)) {
+        suggestionSearchesContainer.remove();
+      }
+      customSearch.append(buildSuggestionSearches(suggestionsVar));
+    }
   }
 };
 

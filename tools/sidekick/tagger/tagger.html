@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+  <!--
+    Modified version of the adobe blog tagger,
+    found at https://github.com/adobe/blog/blob/main/tools/tagger/index.html
+-->
+
+  <head>
+    <title>CME Group - Tag Picker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="/tools/sidekick/tagger/tagger.js" type="module"></script>
+    <link rel="stylesheet" href="/tools/sidekick/tagger/tagger.css" />
+  </head>
+
+  <body>
+    <main>
+      <div class="intro">
+        <p>
+          Once you click on a tag, it will populate at the bottom of this window.
+          When you have picked all the tags, click "Insert" to add them to your document.
+        </p>
+      </div>
+      <div class="filter">
+        <input 
+          type="text" 
+          id="search" 
+          placeholder="Type to filter tags..." 
+          autocomplete="off"
+          class="tags-search"
+          role="searchbox"
+          aria-label="Search tags"
+        />
+      </div>
+      <div id="selected" class="hidden">
+        <div class="selected-header">Currently Selected Tags</div>
+        <div class="selected-tags"></div>
+        <div class="button-group">
+          <button class="copy">Copy</button>
+          <button class="clear">Clear</button>
+        </div>
+      </div>
+      <div id="results">
+        <!-- Taxonomy menu will be inserted here -->
+      </div>
+
+    </main>
+    <textarea id="copybuffer" class="offscreen"></textarea>
+  </body>
+</html>

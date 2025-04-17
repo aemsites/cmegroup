@@ -762,11 +762,12 @@ body.loading::before {
     color: var(--gray3);
 }
 
-.alerts .alert-item.gcc-serious .alert-icon {
-    display: inline-block;
-    vertical-align: top;
-    padding-top: 0.25rem;
+.alerts .alert-item.gcc-serious .alert-icon::before {
+    content: var(--icon-attention-triangle);
     color: var(--active-red);
+    font-family: var(--cme-group-icons);
+    font-style: normal;
+    position: absolute;
 }
 
 .alerts .alert-item .alert-gcc-container {
@@ -778,7 +779,7 @@ body.loading::before {
     color: var(--blue2);
     display: inline-block;
     font-weight: bold;
-    padding-left: 0.5rem;
+    padding-left: 1.5rem;
 }
 
 .alerts .alert-item .alert-gcc-container .alert-text {
@@ -792,14 +793,52 @@ body.loading::before {
     font-size: 0.75rem;
 }
 
-.alerts .alert-item .container {
-    padding: 0 0.625rem;
+@media (width < 993px) {
+    .alerts .alert-item .container {
+        padding: 0 0.625rem;
+    }
 }
 
-@media (width >= 993px) {
-    .alerts .alert-item .container {
-        padding: 0;
-    }
+/* Custom styles defined in transform alerts rte */
+
+.green {
+    color: var(--green);
+}
+
+.citron {
+    color: var(--citron);
+}
+
+.blue2 {
+    color: var(--blue2);
+}
+
+.blue4 {
+    color: var(--blue4);
+}
+
+.white {
+    color: var(--white);
+}
+
+.gray4 {
+    color: var(--gray4);
+}
+
+.gray5 {
+    color: var(--gray5);
+}
+
+.gray6 {
+    color: var(--gray6);
+}
+
+.bg-citron {
+    background-color: var(--citron);
+}
+
+.bg-green {
+    background-color: var(--green);
 }
   
 /* Sitewide Popups */
