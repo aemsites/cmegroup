@@ -40,7 +40,7 @@ body.scrolling-down .header {
 .nav-wrapper.is-open {
     display: flex;
     z-index: 4;
-    width: 25rem;
+    max-width: 25rem;
     transform: translateX(0);
     transition: transform .5s ease-out;
 }
@@ -68,9 +68,10 @@ header .nav {
     position: fixed;
     left: 0;
     top: 0;
+    right: 0;
     max-height: 100%;
-    width: 25rem;
-    background-color: rgb(58 70 79 / 80%);
+    max-width: 25rem;
+    background-color: #FFF;
     align-items: center;
     display: flex;
     flex-wrap: wrap;
@@ -137,10 +138,6 @@ button.search-icon::before {
 
 .nav.is-open button.nav-close:hover {
     color: var(--gray3);
-}
-
-.nav.is-open .mobile-right-side-in-nav button.search-icon {
-    color: #FFF;
 }
 
 .nav .logo,
