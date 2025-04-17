@@ -27,6 +27,9 @@ function insertPopupIntoDOM(popup) {
 
   if (popup.location === 'centered') {
     const darknessSection = createElement('section', { class: 'darkness' });
+    darknessSection.addEventListener('click', () => {
+      closePopup(popup.id);
+    });
     popupDiv.appendChild(darknessSection);
   }
 
@@ -105,8 +108,8 @@ function setOffsetHeight(popupElement) {
 }
 
 function showPopup(popup) {
-  const popupElement = insertPopupIntoDOM(popup);
-  setOffsetHeight(popupElement.firstElementChild);
+  const container = insertPopupIntoDOM(popup);
+  setOffsetHeight(container.querySelector('.popup'));
 }
 
 function triggerPopup(popup) {
