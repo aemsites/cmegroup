@@ -17,6 +17,7 @@ import {
 import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
+import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
@@ -246,6 +247,9 @@ async function loadLazy(doc) {
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
+  window.CookieUtil = CookieUtil;
+  window.LocalStorageUtil = LocalStorageUtil;
+  window.SessionStorageUtil = SessionStorageUtil;
   authentication.handleLoad();
 }
 
