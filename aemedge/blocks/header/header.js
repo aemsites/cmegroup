@@ -585,7 +585,6 @@ class Nav {
     const subMenuLi = menu.querySelectorAll('p em');
     const columnsNotPromo = menu.querySelectorAll('div:not(:has(> a))').length;
     const menuDivs = Array.from(menu.querySelectorAll('div'));
-    const divsForMenu = menuDivs.filter((div) => div.querySelector('p'));
     if (subMenuLi.length > 0) {
       this.buildSubNav(menu, subNav, subMenuLi, 'sub-nav', columnsNotPromo);
     }
