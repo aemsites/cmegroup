@@ -230,15 +230,14 @@ export function createOptimizedPicture(src, alt = '', eager = false, breakpoints
 /*
   * Decorates external images with a picture element
   * @param {Element} ele The element
-  * @param {string} deliveryMarker The marker for external images
   * @private
   * @example
   * decorateExternalImages(main, '//External Image//');
   */
-function decorateExternalImages(ele, deliveryMarker) {
+function decorateExternalImages(ele) {
   const extImages = ele.querySelectorAll('a');
   extImages.forEach((extImage) => {
-    if (isExternalImage(extImage, deliveryMarker)) {
+    if (isExternalImage(extImage)) {
       const extImageSrc = extImage.getAttribute('href');
       const extPicture = createOptimizedPicture(extImageSrc);
 
