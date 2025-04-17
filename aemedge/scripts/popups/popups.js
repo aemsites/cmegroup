@@ -117,7 +117,7 @@ function triggerPopup(popup) {
     case 'delay': {
       let delayTimeout;
       clearTimeout(delayTimeout);
-      setTimeout(() => {
+      delayTimeout = setTimeout(() => {
         showPopup(popup);
       }, popup.delay * 1000);
       break;
@@ -161,7 +161,7 @@ function filterPopups(popups, personalizedPopup) {
   const currentPath = window.location.pathname;
 
   let filtered = popups.filter((popup) => {
-    if (!popup.enabled) return false;
+    if (popup.enabled !== 'true') return false;
     if (popup.scope) {
       const cleanedScope = popup.scope.split(',').map((scope) => {
         let cleaned = scope.replace('/content/cmegroup/en', '');
@@ -223,7 +223,7 @@ function loadPopups(personalizedPopup) {
     popupsPromise = new Promise((resolve, reject) => {
       fetchPopups()
         .then((data) => {
-          const popups = data.map((p) => p.content).filter((popup) => popup.enabled);
+          const popups = data.map((popup) => popup.content);
           localStorage.setItem(CACHE_KEY, JSON.stringify({
             timestamp: Date.now(),
             popups,
