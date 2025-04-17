@@ -204,17 +204,17 @@ function getBrowserName() {
   const { userAgent } = navigator;
 
   if (userAgent.includes('Chrome') && !userAgent.includes('Edg') && !userAgent.includes('OPR')) {
-    return 'Chrome';
+    return 'chrome';
   } if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
-    return 'Safari';
+    return 'safari';
   } if (userAgent.includes('Firefox')) {
-    return 'Firefox';
+    return 'firefox';
   } if (userAgent.includes('Edg')) {
-    return 'Edge';
+    return 'edge';
   } if (userAgent.includes('OPR') || userAgent.includes('Opera')) {
-    return 'Opera';
+    return 'opera';
   } if (userAgent.includes('MSIE') || userAgent.includes('Trident')) {
-    return 'Internet Explorer';
+    return 'internet explorer';
   }
   return '';
 }
@@ -234,7 +234,7 @@ function urlByEnvType() {
   return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
 }
 
-function formatToCentralTime(utcDateString, lastUpdatedFormat) {
+function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true) {
   const utcDate = new Date(utcDateString);
   const options = {
     timeZone: 'America/Chicago',
@@ -258,7 +258,7 @@ function formatToCentralTime(utcDateString, lastUpdatedFormat) {
   if (lastUpdatedFormat) {
     return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
   }
-  return `${month} ${day}, ${year} ${hour}:${minute} ${period} CT`;
+  return `${month} ${day}, ${year} ${hour}:${minute} ${period} ${showCT ? 'CT' : ''}`;
 }
 
 function isDateBefore(date1, date2) {
