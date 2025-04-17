@@ -128,10 +128,22 @@
     border: 1px solid #5a6874;
     color: #fff;
     height: 2.25rem;
-    margin: 0 15px;
-    width: 20%;
+    margin-bottom: 1.25rem;
+    width: 100%;
     padding-left: 0;
     padding-right: 0;
+}
+
+@media (width >=75rem) {
+    .event-calendar-container .filters-inputs-container .input-country,
+    .event-calendar-container .filters-inputs-container .input-impact {
+        width: 20%;
+        margin: 0 15px;
+    }
+}
+
+.event-calendar-container .filters-inputs-container .input-country {
+    z-index: 1;
 }
 
 
@@ -257,6 +269,8 @@ details.checkbox-dropdown[open] summary::after {
     width: 100%;
     overflow-y: auto;
     max-height: 200px;
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f1f1f1;
 }
 
 .checkbox-dropdown fieldset {

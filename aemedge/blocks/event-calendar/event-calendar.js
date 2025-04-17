@@ -1,5 +1,6 @@
 import { readBlockConfig } from '../../scripts/aem.js';
 import { createElement, i18n } from '../../scripts/utils.js';
+import { getEconomicReleaseFilters } from '../../scripts/services/ProductCalendarService.js';
 // import { store } from '../../scripts/store/store.js';
 // import { authentication as authStatus } from '../../scripts/modules/index.js';
 // import { renderFilterSection } from './filters/filters.js';
@@ -16,16 +17,17 @@ const filtersDateContainer = createElement('div', { class: 'date-filter-containe
 const filtersTitle = createElement('h3', { class: 'filters-title' });
 const filterSearchInputContainer = createElement('div', { class: 'input-search-container' });
 const filterSearchInput = createElement('input', { class: 'input-search' });
-// const filterCountryInput = createElement('input', { class: 'input-country' });
-const filterImpactInput = createElement('input', { class: 'input-impact' });
 const filtersInputsContainer = createElement('div', { class: 'filters-inputs-container' });
 const cleanInput = createElement('button', {
   class: 'icon-close clean-search-input',
   'aria-label': 'clean search input',
   'aria-expanded': false,
 });
+let economicFilters;
 let filtersLabel;
 let searchValueVar = '';
+const countriesToSearch = [];
+const impactToSearch = [];
 let timeoutId;
 
 async function initializeLabels() {
@@ -91,49 +93,112 @@ function handleInputSearch(e) {
   }
 }
 
+function setupCountryCheckboxListeners(input) {
+  const checkboxes = input.querySelectorAll('.country-checkbox');
+  checkboxes.forEach((checkbox) => {
+    // eslint-disable-next-line func-names
+    checkbox.addEventListener('change', function () {
+      const countryId = this.id;
+      if (this.checked) {
+        if (!countriesToSearch.includes(countryId)) {
+          countriesToSearch.push(countryId);
+        }
+      } else {
+        const index = countriesToSearch.indexOf(countryId);
+        if (index > -1) {
+          countriesToSearch.splice(index, 1);
+        }
+      }
+      console.log('Selected countries IDs:', countriesToSearch);
+    });
+  });
+}
+
 function decorateFilterCountryInput() {
   const filterCountryInput = createElement('details', { class: 'checkbox-dropdown input-country' });
-  filterCountryInput.innerHTML = `
-    <summary>Country</summary>
-    <form>
-      <fieldset>
-        <ul>
-          <li>
-            <label for="country_AU" tabindex="0" role="menuitem">
-              <div class="checkbox-wrapper">
-                <input id="country_AU" type="checkbox">
-                <span></span>
-              </div>
-              <div class="flag-icon AU"></div>
-              Australia
-            </label>
-          </li>
-          <li>
-            <label for="china">
-              <input type="checkbox" id="china" name="country[]" value="china" />
-              china
-            </label>
-          </li>
-          <li>
-            <label for="france">
-              <input type="checkbox" id="france" name="country[]" value="france" />
-              france
-            </label>
-          </li>
-          <li>
-            <label for="italy">
-              <input type="checkbox" id="italy" name="country[]" value="italy" />
-              italy
-            </label>
-          </li>
-        </ul>
-      </fieldset>
-    </form>
-  `;
-  cleanInput.addEventListener('click', async () => {
-    cleanInputSearch();
-  });
+  if (economicFilters && economicFilters.countries) {
+    const countriesArray = economicFilters.countries;
+    filterCountryInput.innerHTML = `
+      <summary>Country</summary>
+      <form>
+        <fieldset>
+          <ul>
+          ${countriesArray.map(({ name: countryName, id }) => {
+            const li = `
+                <li>
+                  <label for="country_${id}" tabindex="0" role="menuitem">
+                    <div class="checkbox-wrapper">
+                      <input id="country_${id}" type="checkbox" class='country-checkbox'>
+                      <span></span>
+                    </div>
+                    <div class="flag-icon ${id}"></div>
+                    ${countryName}
+                  </label>
+                </li>
+              `;
+              return li;
+            }).join('')}
+          </ul>
+        </fieldset>
+      </form>
+    `;
+    setupCountryCheckboxListeners(filterCountryInput);
+  }
   return filterCountryInput;
+}
+
+function setupImpactCheckboxListeners(input) {
+  const checkboxes = input.querySelectorAll('.impact-checkbox');
+  checkboxes.forEach((checkbox) => {
+    // eslint-disable-next-line func-names
+    checkbox.addEventListener('change', function () {
+      const impactId = this.id;
+      if (this.checked) {
+        if (!impactToSearch.includes(impactId)) {
+          impactToSearch.push(impactId);
+        }
+      } else {
+        const index = impactToSearch.indexOf(impactId);
+        if (index > -1) {
+          impactToSearch.splice(index, 1);
+        }
+      }
+      console.log('Selected impact IDs:', impactToSearch);
+    });
+  });
+}
+
+function decorateFilterImpactInput() {
+  // details.removeAttribute('open');
+  const filterImpactInput = createElement('details', { class: 'checkbox-dropdown input-impact' });
+  if (economicFilters && economicFilters.countries) {
+    const impactArray = economicFilters.impact;
+    filterImpactInput.innerHTML = `
+      <summary>Impact</summary>
+      <form>
+        <fieldset>
+          <ul>
+          ${impactArray.map(({ name: impactName, id }) => {
+            const li = `
+                <li>
+                  <label for="impact_${id}" tabindex="0" role="menuitem">
+                    <div class="checkbox-wrapper">
+                      <input id="impact_${id}" type="checkbox" class='impact-checkbox'>
+                      <span></span>
+                    </div>
+                    ${impactName}
+                  </label>
+                </li>
+              `;
+              return li;
+            }).join('')}
+          </ul>
+        </fieldset>
+      </form>
+    `;
+    setupImpactCheckboxListeners(filterImpactInput);
+  }
+  return filterImpactInput;
 }
 
 function renderInputs() {
@@ -172,7 +237,7 @@ function renderInputs() {
   inputsFlexContainer.append(filterSearchInputContainer);
 
   inputsFlexContainer.append(decorateFilterCountryInput());
-  inputsFlexContainer.append(filterImpactInput);
+  inputsFlexContainer.append(decorateFilterImpactInput());
 
   filtersInputsContainer.append(inputsFlexContainer);
 
@@ -204,6 +269,10 @@ function renderFilterSection() {
 
 async function init(block, version) {
   await initializeLabels();
+  // economicFilters = await getEconomicReleaseFilters();
+
+  economicFilters = { countries: [{ name: 'Australia', id: 'AU' }, { name: 'Canada', id: 'CA' }, { name: 'China', id: 'CN' }, { name: 'EMU', id: 'EMU' }, { name: 'France', id: 'FR' }, { name: 'Germany', id: 'DE' }, { name: 'Global', id: 'ALL' }, { name: 'Hong Kong', id: 'HK' }, { name: 'India', id: 'IN' }, { name: 'Italy', id: 'IT' }, { name: 'Japan', id: 'JP' }, { name: 'New Zealand', id: 'NZ' }, { name: 'Singapore', id: 'SG' }, { name: 'South Korea', id: 'KR' }, { name: 'Switzerland', id: 'CH' }, { name: 'Taiwan', id: 'TW' }, { name: 'United Kingdom', id: 'GB' }, { name: 'United States', id: 'US' }], impact: [{ name: 'Market Mover', id: 'HIGH' }, { name: 'Merits Extra Attention', id: 'MEDIUM' }, { name: 'Other Key Indicator', id: 'LOW' }], groups: { group: [{ name: 'Agricultural', id: 'AGRICULTURE' }, { name: 'Cryptocurrencies', id: 'CRYPTOCURRENCIES' }, { name: 'Energy', id: 'ENERGY' }, { name: 'Equity Index', id: 'EQUITIES' }, { name: 'FX', id: 'FX' }, { name: 'Interest Rates', id: 'INTEREST-RATE' }, { name: 'Metals', id: 'METALS' }] } };
+
   eventCalendarContainer.append(inputsCurtain);
   inputsCurtain.addEventListener('click', async () => {
     closeFiltersInputsContainer();
