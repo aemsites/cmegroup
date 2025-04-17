@@ -52,11 +52,11 @@ function insertPopupIntoDOM(popup) {
   const popupTitle = createElement('span', {
     class: `title ${popup.titleSize} ${popup.reverse ? 'reverse' : ''}`,
   });
-  popupTitle.innerHTML = popup.title;
+  popupTitle.textContent = popup.title;
   const popupText = createElement('span', {
     class: `popup-description ${popup.reverse ? 'reverse' : ''}`,
   });
-  popupText.innerHTML = popup.description;
+  popupText.textContent = popup.description;
   const button = createElement('a', {
     class: `popup-button button ${popup.buttonStyle}`,
     href: `${popup.linkUrl}`,
