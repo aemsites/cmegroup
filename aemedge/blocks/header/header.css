@@ -458,6 +458,15 @@ button.search-icon::before {
     display: inline;
 }
 
+.nav-menu-container .nav-subnav .nav-subnav-item .nav-nav-item-submenu li a[target='_blank']::after {
+    font-family: var(--cme-group-icons);
+    content: var(--icon-positive);
+    color: var(--blue4);
+    font-size: .625rem;
+    position: absolute;
+    margin: 0 0 0 10px;
+}
+
 .nav-menu-container .nav-subnav .nav-subnav-item .nav-nav-item-submenu li strong {
     background-color: transparent;
     display: inline-block;
