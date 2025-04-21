@@ -1,7 +1,7 @@
 import ffetch from '../ffetch.js';
 import { getEnvType } from '../utils.js';
 
-const COURSES_PATH = '/education/courses/';
+const COURSES_BASE_PATH = '/education/courses/';
 const COURSES_INDEX_PATH = '/courses-index.json';
 const TEMPLATES = ['course', 'chapter', 'lesson'];
 const CACHE_KEY = 'cmegroup_course_data';
@@ -24,7 +24,7 @@ const getCachedCourseData = (coursePath) => {
 export default async function getCourseData() {
   try {
     const currentPath = window.location.pathname;
-    const relevantPath = currentPath.split(COURSES_PATH)[1];
+    const relevantPath = currentPath.split(COURSES_BASE_PATH)[1];
     if (!relevantPath) {
       throw new Error('Not a course page');
     }
@@ -34,7 +34,7 @@ export default async function getCourseData() {
     }
 
     // build the full course path
-    const coursePath = `${COURSES_PATH}/${course}`;
+    const coursePath = `${COURSES_BASE_PATH}${course}`;
 
     // Check if we have cached data for this course
     const cachedData = getCachedCourseData(coursePath);
