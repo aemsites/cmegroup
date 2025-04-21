@@ -26,7 +26,7 @@ async function buildButton(block) {
     timezone,
   });
   block.append(button);
-  loadScript('/aemedge/scripts/third-party/add-to-calendar-button@2.js');
+  loadScript('/aemedge/scripts/third-party/add-to-calendar-button.js');
 }
 
 export default async function decorate(block) {
