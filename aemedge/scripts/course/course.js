@@ -1,7 +1,7 @@
 import ffetch from '../ffetch.js';
 import { getEnvType } from '../utils.js';
 
-const COURSES_PATH = '/education/courses';
+const COURSES_PATH = '/education/courses/';
 const COURSES_INDEX_PATH = '/courses-index.json';
 const TEMPLATES = ['course', 'chapter', 'lesson'];
 const CACHE_KEY = 'cmegroup_course_data';
