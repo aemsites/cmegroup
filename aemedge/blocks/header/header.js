@@ -3,6 +3,7 @@ import { createElement, i18n } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
 import { store } from '../../scripts/store/store.js';
 import { authentication as authStatus } from '../../scripts/modules/index.js';
+import { renderSearch } from './search/search.js';
 
 const IS_OPEN = 'is-open';
 
@@ -23,12 +24,18 @@ class Nav {
     this.env = {};
     this.desktop = window.matchMedia('(min-width: 1200px)');
     this.login = this.body.querySelector('.login');
+    this.login.classList.remove('header');
+    this.login.classList.add('menu');
     this.curtain = createElement('div', { class: 'nav-curtain' });
+    this.searchCurtain = createElement('div', { class: 'search-curtain' });
+    this.searchDrawer = createElement('div', { class: 'search-drawer' });
+    this.searchDrawerCloseBtn = createElement('button', { class: 'search-drawer-close' });
     this.nav = createElement('nav', { class: 'nav' });
     this.rightSide = createElement('div', { class: 'right-side' });
     this.mobileRightSide = createElement('div', { class: 'mobile-right-side' });
-    this.searchBtn = createElement('button', { class: 'search-icon' });
-    this.searchBtnMobile = createElement('button', { class: 'search-icon' });
+    this.searchBtn = this.decorateSearchNav();
+    this.searchBtnMobile = this.decorateSearchNav();
+    this.searchBtnMobileInNav = this.decorateSearchNav();
     this.navLoginBtn = createElement('button', { class: 'nav-login secondary' });
     this.fauxNavbar = createElement('div', { class: 'nav-faux-navbar' });
     this.wrapper = createElement('div', { class: 'nav-wrapper' }, this.nav);
@@ -81,7 +88,10 @@ class Nav {
     this.mobileRightSide.append(this.searchBtnMobile);
     this.mobileRightSide.append(mobileToggle);
     this.fauxNavbar.append(this.mobileRightSide);
-    this.nav.append(mobileCloseNav);
+    const mobileRightSideInNav = createElement('div', { class: 'mobile-right-side-in-nav' });
+    mobileRightSideInNav.append(this.searchBtnMobileInNav);
+    mobileRightSideInNav.append(mobileCloseNav);
+    this.nav.append(mobileRightSideInNav);
 
     const mainNav = await this.decorateMainNav();
     if (mainNav) {
@@ -104,6 +114,18 @@ class Nav {
 
     this.el.append(this.curtain, this.fauxNavbar);
     this.el.append(this.curtain, this.wrapper);
+
+    this.searchCurtain.addEventListener('click', async () => {
+      this.closeSearchDrawer();
+    });
+
+    this.searchDrawerCloseBtn.addEventListener('click', async () => {
+      this.closeSearchDrawer();
+    });
+    this.searchDrawer.append(this.searchDrawerCloseBtn);
+
+    this.el.append(this.searchCurtain);
+    this.el.append(this.searchDrawer);
 
     let prevWindowWidth = window.innerWidth;
     let resizeTimeout;
@@ -266,6 +288,15 @@ class Nav {
       this.closeNav(nav);
     });
     return closeNav;
+  };
+
+  // eslint-disable-next-line class-methods-use-this
+  decorateSearchNav = () => {
+    const searchBtn = createElement('button', { class: 'search-icon' });
+    searchBtn.addEventListener('click', async () => {
+      this.openSearchDrawer();
+    });
+    return searchBtn;
   };
 
   decorateCurtain = (nav) => {
@@ -473,7 +504,7 @@ class Nav {
     });
   };
 
-  buildSubNav = (menu, subNav, subNavLinks, subMenuType) => {
+  buildSubNav = (menu, subNav, subNavLinks, subMenuType, totalCol) => {
     const groupMap = new Map();
     subNavLinks.forEach((subNavLink, idx) => {
       const subNavItem = createElement('li', { class: 'nav-subnav-item' });
@@ -500,8 +531,10 @@ class Nav {
             groupMap.set(groupName, createElement('div', { class: `nav-subnav-item-group-${groupName}` }));
             subNav.appendChild(groupMap.get(groupName));
           }
+          groupMap.get(groupName).classList.add(`col-${totalCol}`);
           groupMap.get(groupName).appendChild(subNavItem);
         } else {
+          subNavItem.classList.add(`col-${totalCol}`);
           subNav.appendChild(subNavItem);
         }
       }
@@ -550,17 +583,14 @@ class Nav {
     const container = createElement('div', { class: 'nav-menu-container' });
     const subNav = createElement('ul', { class: 'nav-subnav' });
     const subMenuLi = menu.querySelectorAll('p em');
-    const menuDivs = Array.from(menu.querySelectorAll('div'));
-    const divsForMenu = menuDivs.filter((div) => div.querySelector('p'));
-    const classColNumber = `sub-menu-col-${divsForMenu.length}`;
+    const columnsNotPromo = menu.querySelectorAll('div:not(:has(> a))').length;
     if (subMenuLi.length > 0) {
-      this.buildSubNav(menu, subNav, subMenuLi, 'sub-nav');
+      this.buildSubNav(menu, subNav, subMenuLi, 'sub-nav', columnsNotPromo);
     }
     container.append(subNav);
     menu.innerHTML = '';
     const desktopMenuContainer = createElement('div', { class: 'item-menu-container' });
     const desktopMenuColumn = createElement('div', { class: 'item-menu-column' });
-    desktopMenuContainer.classList.add(classColNumber);
     menu.append(desktopMenuContainer);
     desktopMenuContainer.append(desktopMenuColumn);
     desktopMenuColumn.append(menuHomeLink);
@@ -670,6 +700,20 @@ class Nav {
     if (e.code === 'Escape') {
       this.toggleMenu(document.querySelector('.has-menu.is-open'));
     }
+  };
+
+  openSearchDrawer = () => {
+    document.body.classList.add('curtain-visible');
+    this.searchCurtain.classList.add(IS_OPEN);
+    this.searchDrawer.classList.add(IS_OPEN);
+    const searchComponent = renderSearch();
+    this.searchDrawer.append(searchComponent);
+  };
+
+  closeSearchDrawer = () => {
+    document.body.classList.remove('curtain-visible');
+    this.searchCurtain.classList.remove(IS_OPEN);
+    this.searchDrawer.classList.remove(IS_OPEN);
   };
 }
 

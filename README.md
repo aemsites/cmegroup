@@ -2,8 +2,8 @@
 All project code for cmegroup.com on AEM Edge Delivery Services
 
 ## Environments
-- Preview: https://main--cmegroup--aemsites.aem.page/
-- Live: https://main--cmegroup--aemsites.aem.live/
+- Preview: https://main--www--cmegroup.aem.page/
+- Live: https://main--www--cmegroup.aem.live/
 
 ## Documentation
 
