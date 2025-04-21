@@ -1,7 +1,6 @@
 import ffetch from '../ffetch.js';
-import { getEnvType } from '../utils.js';
+import { createElement, getEnvType } from '../utils.js';
 import { getMetadata } from '../aem.js';
-import { createElement } from '../utils.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
 const COURSES_INDEX_PATH = '/courses-index.json';
@@ -9,18 +8,18 @@ const TEMPLATES = ['course', 'chapter', 'lesson'];
 const CACHE_KEY = 'course_data';
 const CACHE_EXPIRATION = 60 * 60 * 1000; // 1 hour in milliseconds
 const LANGUAGE_MAP = {
-  'en': 'English',
-  'es': 'Español',
-  'fr': 'Français',
-  'de': 'Deutsch',
-  'it': 'Italian',
-  'he': 'עברית',
-  'ko': '한국어',
-  'nl': 'Dutch',
-  'zh-hans': '中文(简体)',
-  'zh-hant': '中文(繁體)',
-  'pt': 'Português',
-  'ar': 'العربية'
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  de: 'Deutsch',
+  it: 'Italian',
+  he: 'עברית',
+  ko: '한국어',
+  nl: 'Dutch',
+  'cn-s': '中文(简体)',
+  'cn-t': '中文(繁體)',
+  pt: 'Português',
+  ar: 'العربية',
 };
 
 const getCachedCourseData = (coursePath) => {
@@ -161,7 +160,7 @@ const getCurrentLanguage = () => {
   const path = window.location.pathname;
   const language = path.split('/')[1];
   return LANGUAGE_MAP[language] || 'English';
-}
+};
 
 export function createCourseBaseTemplate() {
   const main = document.querySelector('main');
