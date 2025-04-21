@@ -41,6 +41,15 @@
   background-color: #F1F5F7;
 }
 
+.table.dark tbody tr:nth-child(2n) {
+  background-color: var(--navy1);
+}
+
+.table.dark table tbody tr {
+  background-color: var(--blue2);
+  color: #fff;
+}
+
 .table.compact table tbody tr {
   padding: 10px;
   font-size: 12px;
@@ -83,6 +92,10 @@
   background-color: #ebf9ff;
 }
 
+.table.dark table tbody tr:hover {
+  background-color: var(--navy2);
+}
+
 .table table tr [class$="-header"] {
   font-size: var(--heading-font-size-xs);
   line-height: 14px;
@@ -94,6 +107,14 @@
   
   /* text-align: left (for header columns) */
   vertical-align: middle;
+}
+
+.table.dark table tr [class$="-header"] {
+  color: var(--white);
+}
+
+.table.dark table tbody tr [class$="-header"] {
+  background-color: unset;
 }
 
 .table.compact table tr [class$="-header"] {
