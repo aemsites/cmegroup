@@ -3,9 +3,7 @@
   <title>{{title}}</title>
   <meta name="description" content="{{description}}">
   <meta name="template" content="event">
-  {{#tags}}
-  <meta property="test01" content="{{.}}">
-  {{/tags}}
+  <meta property="tags" content="{{#tags}}{{.}},{{/tags}}">
   <meta name="primary-topic" content="content-type/economic-release">
   <meta name="date" content="{{startDate}}">
   <meta name="start-date" content="{{startDate}}">
