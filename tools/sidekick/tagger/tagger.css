@@ -238,6 +238,11 @@ button.clear {
   overflow: hidden;
 }
 
+.offscreen {
+    position: absolute;
+    top: -1000px;
+}
+
 /* Responsive adjustments */
 @media screen and (width <= 768px) {
   .filter, #selected {
@@ -273,4 +278,3 @@ button.clear {
   background: #2d2d2d;
   box-shadow: 0 2px 4px rgb(255 255 255 / 0.1);
 }
-

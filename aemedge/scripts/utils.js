@@ -204,17 +204,17 @@ function getBrowserName() {
   const { userAgent } = navigator;
 
   if (userAgent.includes('Chrome') && !userAgent.includes('Edg') && !userAgent.includes('OPR')) {
-    return 'Chrome';
+    return 'chrome';
   } if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
-    return 'Safari';
+    return 'safari';
   } if (userAgent.includes('Firefox')) {
-    return 'Firefox';
+    return 'firefox';
   } if (userAgent.includes('Edg')) {
-    return 'Edge';
+    return 'edge';
   } if (userAgent.includes('OPR') || userAgent.includes('Opera')) {
-    return 'Opera';
+    return 'opera';
   } if (userAgent.includes('MSIE') || userAgent.includes('Trident')) {
-    return 'Internet Explorer';
+    return 'internet explorer';
   }
   return '';
 }
@@ -224,13 +224,17 @@ function getEnvType() {
     'cmegroup.com',
     'www.cmegroup.com',
     'main--cmegroup--aemsites.aem.page',
-    'main--cmegroup--aemsites.hlx.live',
+    'main--cmegroup--aemsites.aem.live',
   ];
   const type = prodEnvs.includes(window.location.hostname) ? 'prod' : 'stage';
   return type;
 }
 
-function formatToCentralTime(utcDateString) {
+function urlByEnvType() {
+  return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
+}
+
+function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true) {
   const utcDate = new Date(utcDateString);
   const options = {
     timeZone: 'America/Chicago',
@@ -249,8 +253,30 @@ function formatToCentralTime(utcDateString) {
   const year = parts.find((p) => p.type === 'year').value;
   const hour = parts.find((p) => p.type === 'hour').value.padStart(2, '0');
   const minute = parts.find((p) => p.type === 'minute').value.padStart(2, '0');
+  const second = parts.find((p) => p.type === 'second').value.padStart(2, '0');
   const period = parts.find((p) => p.type === 'dayPeriod').value.toUpperCase();
-  return `${month} ${day}, ${year} ${hour}:${minute} ${period} CT`;
+  if (lastUpdatedFormat) {
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+  }
+  return `${month} ${day}, ${year} ${hour}:${minute} ${period} ${showCT ? 'CT' : ''}`;
+}
+
+function isDateBefore(date1, date2) {
+  let d1;
+  let d2;
+
+  try {
+    d1 = date1 instanceof Date ? date1 : new Date(date1);
+    d2 = date2 instanceof Date ? date2 : new Date(date2);
+  } catch (error) {
+    return false;
+  }
+
+  if (Number.isNaN(d1.getTime()) || Number.isNaN(d2.getTime())) {
+    return false;
+  }
+
+  return d1 < d2;
 }
 
 export {
@@ -265,4 +291,6 @@ export {
   getBrowserName,
   getEnvType,
   formatToCentralTime,
+  isDateBefore,
+  urlByEnvType,
 };

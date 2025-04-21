@@ -31,9 +31,14 @@ export function isEmpty(value) {
   return true; // Default to true for other types (e.g., functions)
 }
 
-export async function axiosGet(url, config = {}) {
+export async function axiosGet(url, absoluteUrl, config = {}) {
   const { params = {}, headers = {} } = config;
-  const urlObj = new URL(window.location.origin + url);
+  let urlObj;
+  if (absoluteUrl) {
+    urlObj = new URL(url);
+  } else {
+    urlObj = new URL(window.location.origin + url);
+  }
   Object.keys(params).forEach((key) => urlObj.searchParams.append(key, params[key]));
 
   const fetchOptions = {
@@ -75,9 +80,14 @@ export async function axiosGet(url, config = {}) {
   }
 }
 
-export async function axiosPost(url, data, config = {}) {
+export async function axiosPost(url, data, absoluteUrl, config = {}) {
   const { headers = {}, params = {} } = config;
-  const urlObj = new URL(window.location.origin + url);
+  let urlObj;
+  if (absoluteUrl) {
+    urlObj = new URL(url);
+  } else {
+    urlObj = new URL(window.location.origin + url);
+  }
   Object.keys(params).forEach((key) => urlObj.searchParams.append(key, params[key]));
 
   const fetchOptions = {
