@@ -32,3 +32,24 @@ main > .section {
     margin: auto;
   }
 }
+
+/* Course header styling */
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.course-metadata {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+  font-size: 0.875rem;
+  letter-spacing: 0.05rem;
+}
+
+.course-read-time {
+  font-weight: 500;
+}

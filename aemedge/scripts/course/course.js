@@ -115,9 +115,11 @@ export default async function getCourseData() {
       });
     } else {
       const { subModulesOrder } = courseData;
-      const subModulesOrderArray = subModulesOrder.split(',').map((item) => item.trim());
-      courseData.lessons.sort((a, b) => subModulesOrderArray.indexOf(a.pathSuffix)
-        - subModulesOrderArray.indexOf(b.pathSuffix));
+      if (subModulesOrder) {
+        const subModulesOrderArray = subModulesOrder.split(',').map((item) => item.trim());
+        courseData.lessons.sort((a, b) => subModulesOrderArray.indexOf(a.pathSuffix)
+          - subModulesOrderArray.indexOf(b.pathSuffix));
+      }
     }
 
     // Cache the course data with path and timestamp
