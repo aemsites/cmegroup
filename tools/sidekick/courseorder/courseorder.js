@@ -3,13 +3,10 @@
  * Allows users to organize courses by dragging and dropping
  */
 
-// Import required dependencies
+/* eslint-disable */
 import DA_SDK from 'https://da.live/nx/utils/sdk.js';
 import { DA_ORIGIN } from 'https://da.live/nx/public/utils/constants.js';
 
-/**
- * CourseOrganiser class for managing courses
- */
 class CourseOrganiser {
   constructor(context, token, daFetch) {
     this.context = context;

@@ -1,7 +1,6 @@
 import { getMetadata, loadCSS } from '../../../scripts/aem.js';
 import getCourseData from '../../../scripts/course/course.js';
 import { createElement } from '../../../scripts/utils.js';
-import mockQueryIndex from './mock-query-index.js';
 
 function getTotalLessonsCount(courseData) {
   return courseData.hasChapters
@@ -90,7 +89,7 @@ export default async function decorate(main) {
   const template = getMetadata('template');
   if (template.toLowerCase() !== 'course' && template.toLowerCase() !== 'lesson') return;
 
-  const courseData = await getCourseData(mockQueryIndex.data);
+  const courseData = await getCourseData();
   await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/course-nav/course-nav.css`);
   const currentPath = window.location.pathname;
   const totalLessons = getTotalLessonsCount(courseData);
