@@ -25,8 +25,25 @@ export default async function getCourseData(mockdata) {
       .filter((entry) => TEMPLATES.includes(entry.template.toLowerCase())
         && entry.path.startsWith(coursePath))
       .all();
+    
     // Determine if it course has chapters
     courseData.hasChapters = entries.some((entry) => entry.template.toLowerCase() === 'chapter');
+    
+    // Sort entries so that course comes first, then chapters, then lessons
+    // This ensures chapters are processed before their lessons
+    entries.sort((a, b) => {
+      const aType = a.template.toLowerCase();
+      const bType = b.template.toLowerCase();
+      
+      if (aType === 'course') return -1;
+      if (bType === 'course') return 1;
+      
+      if (aType === 'chapter' && bType === 'lesson') return -1;
+      if (aType === 'lesson' && bType === 'chapter') return 1;
+      
+      return 0;
+    });
+    
     entries.forEach((entry) => {
       if (entry.template.toLowerCase() === 'course') {
         courseData.title = entry.moduleTitle;
