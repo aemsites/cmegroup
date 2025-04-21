@@ -3,7 +3,7 @@
  */
 
 import { getMetadata } from '../aem.js';
-import { getBrowserName } from '../utils.js';
+import { getBrowserName, formatToCentralTime } from '../utils.js';
 import { getLegacyAlerts } from '../legacy-api.js';
 
 const CACHE_KEY = 'alerts_cache';
@@ -61,7 +61,7 @@ function insertAlertsIntoDOM(items) {
 
       const alertTime = document.createElement('div');
       alertTime.className = 'alert-time';
-      alertTime.textContent = item.content.redAlertDate;
+      alertTime.textContent = formatToCentralTime(item.content.redAlertDate, false, false);
 
       alertGccContainer.appendChild(alertTitle);
       alertGccContainer.appendChild(alertText);
@@ -106,7 +106,7 @@ function filterAlerts(alerts) {
 
   return alerts.filter((alert) => {
     const alertContent = alert.content;
-    if (!alertContent.enabled) return false;
+    if (alertContent.enabled !== 'true') return false;
 
     const cleanedScope = alertContent.scope.split(',').map((scope) => {
       if (scope === '/content/cmegroup/en') {
@@ -116,28 +116,28 @@ function filterAlerts(alerts) {
         return scope.replace('/content/cmegroup/en', '');
       }
       return scope;
-    });
+    }).filter((scope) => !!scope);
 
-    if (!cleanedScope.some((scope) => scope.startsWith(currentPath))) return false;
+    if (cleanedScope.length
+      && !cleanedScope.some((scope) => currentPath.startsWith(scope))) return false;
 
     const cleanedExcludedPages = alertContent.excludedPages.split(',').map((excluded) => {
       if (excluded.startsWith('/content/cmegroup/en')) {
         return excluded.replace('/content/cmegroup/en', '');
       }
       return excluded;
-    });
+    }).filter((excluded) => !!excluded);
 
-    if (cleanedExcludedPages.some((excluded) => excluded.startsWith(currentPath))) {
+    if (cleanedExcludedPages.length
+        && cleanedExcludedPages.some((excluded) => currentPath.startsWith(excluded))) {
       return false;
     }
 
-    if (alertContent.browsers && alertContent.browsers.length > 0
-      && !alertContent.browsers.split(',').includes(getBrowserName())) {
+    if (alertContent.browsers && !alertContent.browsers.split(',').includes(getBrowserName())) {
       return false;
     }
 
-    if (alertContent.templates && alertContent.templates.length > 0
-      && !alertContent.templates.split(',').includes(getMetadata('template'))) {
+    if (alertContent.templates && !alertContent.templates.split(',').includes(getMetadata('template'))) {
       return false;
     }
 
@@ -200,7 +200,7 @@ export default async function initFloatingElements(doc, header) {
 
       const offsetTop = visibleAlertsHeight + header.offsetHeight;
 
-      header.style.top = `${visibleAlertsHeight}px`;
+      header.style.top = `${visibleAlertsHeight - 1}px`;
       main.style.paddingTop = `${offsetTop}px`;
 
       const navMenus = doc.querySelectorAll('.nav-nav-item-menu');

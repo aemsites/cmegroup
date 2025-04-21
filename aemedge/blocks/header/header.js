@@ -504,7 +504,7 @@ class Nav {
     });
   };
 
-  buildSubNav = (menu, subNav, subNavLinks, subMenuType) => {
+  buildSubNav = (menu, subNav, subNavLinks, subMenuType, totalCol) => {
     const groupMap = new Map();
     subNavLinks.forEach((subNavLink, idx) => {
       const subNavItem = createElement('li', { class: 'nav-subnav-item' });
@@ -531,8 +531,10 @@ class Nav {
             groupMap.set(groupName, createElement('div', { class: `nav-subnav-item-group-${groupName}` }));
             subNav.appendChild(groupMap.get(groupName));
           }
+          groupMap.get(groupName).classList.add(`col-${totalCol}`);
           groupMap.get(groupName).appendChild(subNavItem);
         } else {
+          subNavItem.classList.add(`col-${totalCol}`);
           subNav.appendChild(subNavItem);
         }
       }
@@ -581,17 +583,14 @@ class Nav {
     const container = createElement('div', { class: 'nav-menu-container' });
     const subNav = createElement('ul', { class: 'nav-subnav' });
     const subMenuLi = menu.querySelectorAll('p em');
-    const menuDivs = Array.from(menu.querySelectorAll('div'));
-    const divsForMenu = menuDivs.filter((div) => div.querySelector('p'));
-    const classColNumber = `sub-menu-col-${divsForMenu.length}`;
+    const columnsNotPromo = menu.querySelectorAll('div:not(:has(> a))').length;
     if (subMenuLi.length > 0) {
-      this.buildSubNav(menu, subNav, subMenuLi, 'sub-nav');
+      this.buildSubNav(menu, subNav, subMenuLi, 'sub-nav', columnsNotPromo);
     }
     container.append(subNav);
     menu.innerHTML = '';
     const desktopMenuContainer = createElement('div', { class: 'item-menu-container' });
     const desktopMenuColumn = createElement('div', { class: 'item-menu-column' });
-    desktopMenuContainer.classList.add(classColNumber);
     menu.append(desktopMenuContainer);
     desktopMenuContainer.append(desktopMenuColumn);
     desktopMenuColumn.append(menuHomeLink);
