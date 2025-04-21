@@ -110,7 +110,7 @@ class CourseOrganiser {
    * Creates a comma-separated list of course names
    * @returns {string} - Comma-separated list of names
    */
-  createFormattedList() {
+  createFormattedList(format = "commaSeparated") {
     // Filter to only selected items if there are any
     const selectedItems = this.getSelectedItems();
     const itemsToFormat = selectedItems.length > 0 ? selectedItems : this.courseItems;
@@ -119,8 +119,12 @@ class CourseOrganiser {
       return '';
     }
     
-    // Return comma-separated list with spaces after commas
-    return itemsToFormat.map(item => item.name).join(', ');
+    if (format === "commaSeparated") {
+      // Return comma-separated list with spaces after commas
+      return itemsToFormat.map(item => item.name).join(', ');
+    } else if (format === "orderedListFormat") {
+      return itemsToFormat.map((item) => `<li>${item.name}</li>`).join('');
+    }
   }
 
   /**
@@ -536,7 +540,8 @@ function setupDragAndDrop(courseList, courseOrganiser) {
  * @param {Object} actions - SDK actions
  */
 function applyOrderToDocument(courseOrganiser, actions) {
-  const orderedList = courseOrganiser.createFormattedList();
+  const orderedList = courseOrganiser.createFormattedList("orderedListFormat");
+  console.log('Ordered list:', orderedList);
   
   if (!orderedList) {
     console.error('No courses to apply');
@@ -544,9 +549,8 @@ function applyOrderToDocument(courseOrganiser, actions) {
   }
   
   try {
-    if (actions && actions.sendText) {
-      // Send the ordered list to the document at cursor position
-      actions.sendText(orderedList);
+    if (actions && actions.sendHTML) {
+      actions.sendHTML(orderedList);
       actions.closeLibrary();
       
       // Show success message
@@ -562,7 +566,7 @@ function applyOrderToDocument(courseOrganiser, actions) {
       
       console.log('Applied course order to document:', orderedList);
     } else {
-      console.error('Cannot apply order: actions.sendText not available');
+      console.error('Cannot apply order: actions.sendHtml not available');
       alert('Cannot apply order: Document editor not available');
     }
   } catch (err) {
