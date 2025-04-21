@@ -1,11 +1,27 @@
 import ffetch from '../ffetch.js';
 import { getEnvType } from '../utils.js';
+import { getMetadata } from '../aem.js';
+import { createElement } from '../utils.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
 const COURSES_INDEX_PATH = '/courses-index.json';
 const TEMPLATES = ['course', 'chapter', 'lesson'];
-const CACHE_KEY = 'cmegroup_course_data';
+const CACHE_KEY = 'course_data';
 const CACHE_EXPIRATION = 60 * 60 * 1000; // 1 hour in milliseconds
+const LANGUAGE_MAP = {
+  'en': 'English',
+  'es': 'Español',
+  'fr': 'Français',
+  'de': 'Deutsch',
+  'it': 'Italian',
+  'he': 'עברית',
+  'ko': '한국어',
+  'nl': 'Dutch',
+  'zh-hans': '中文(简体)',
+  'zh-hant': '中文(繁體)',
+  'pt': 'Português',
+  'ar': 'العربية'
+};
 
 const getCachedCourseData = (coursePath) => {
   const cachedData = localStorage.getItem(CACHE_KEY);
@@ -21,7 +37,7 @@ const getCachedCourseData = (coursePath) => {
   return null;
 };
 
-export default async function getCourseData() {
+export async function getCourseData() {
   try {
     const currentPath = window.location.pathname;
     const relevantPath = currentPath.split(COURSES_BASE_PATH)[1];
@@ -50,7 +66,6 @@ export default async function getCourseData() {
 
     // Get entries from query-index for course content
     const entries = await ffetch(window.location.origin + COURSES_INDEX_PATH)
-    // const entries = mockdata
       .filter((entry) => TEMPLATES.includes(entry.template.toLowerCase())
         && entry.path.startsWith(coursePath))
       .all();
@@ -140,4 +155,45 @@ export default async function getCourseData() {
     console.error('Error loading course data: ', error);
     return null;
   }
+}
+
+const getCurrentLanguage = () => {
+  const path = window.location.pathname;
+  const language = path.split('/')[1];
+  return LANGUAGE_MAP[language] || 'English';
+}
+
+export function createCourseBaseTemplate() {
+  const main = document.querySelector('main');
+  const courseHeading = main.querySelector('h1');
+  const header = document.createElement('div');
+  header.classList.add('course-header');
+
+  // Get metadata values
+  const readTime = getMetadata('read-time');
+  const template = getMetadata('template');
+
+  const readTimeIcon = createElement('img', { src: '/aemedge/icons/timer.svg' });
+  const readTimeIconSpan = createElement('span', { class: 'icon icon-timer' }, readTimeIcon);
+  const readTimeElement = createElement('div', { class: 'metadata read-time' }, `${readTime}`);
+  if (readTime) {
+    readTimeElement.prepend(readTimeIconSpan);
+  }
+  header.appendChild(readTimeElement);
+
+  if (template.toLowerCase() === 'course') {
+    const type = createElement('div', { class: 'metadata type' });
+    type.textContent = 'Course';
+    header.appendChild(type);
+  } else if (template.toLowerCase() === 'lesson') {
+    const type = createElement('div', { class: 'metadata type' });
+    type.textContent = 'Lesson';
+    header.appendChild(type);
+  }
+
+  const currentLanguage = getCurrentLanguage();
+  const language = createElement('div', { class: 'metadata language' }, currentLanguage);
+  header.appendChild(language);
+
+  courseHeading.before(header);
 }

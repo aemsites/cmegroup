@@ -1,5 +1,5 @@
 import { getMetadata, loadCSS } from '../../../scripts/aem.js';
-import getCourseData from '../../../scripts/course/course.js';
+import { getCourseData } from '../../../scripts/course/course.js';
 import { createElement } from '../../../scripts/utils.js';
 
 function getTotalLessonsCount(courseData) {
