@@ -626,6 +626,14 @@ class Nav {
       e.stopPropagation();
       this.toggleMenu(subNavItem);
     });
+
+    const linksInNav = subMenu.querySelectorAll('li a');
+    linksInNav.forEach((link) => {
+      link.addEventListener('click', () => {
+        this.closeNav(this.nav);
+      });
+    });
+
     return subMenu;
   };
 
