@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Order</title>
+  <link rel="stylesheet" href="/tools/sidekick/courseorder/courseorder.css">
+  <!-- jQuery UI styles -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <!-- jQuery and jQuery UI scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+</head>
+<body>
+  <div class="course-container">
+    <header class="course-header">
+      <h1 class="course-title">Course Order</h1>
+    </header>
+    
+    <div class="course-path" id="current-path">Loading path...</div>
+
+    <div class="course-search">
+      <input type="text" id="search-input" placeholder="Search courses...">
+    </div>
+
+    <div class="course-controls">
+      <button class="course-button" id="refresh-button">Refresh</button>
+      <button class="course-button secondary" id="cancel-button" style="display: none;">Cancel</button>
+      <button class="course-button primary" id="apply-button">Apply Order</button>
+    </div>
+
+    <div class="course-list" id="course-list">
+      <div class="course-loading">Loading courses...</div>
+    </div>
+  </div>
+
+  <div id="success-message" class="success-toast">Order applied successfully!</div>
+
+  <script type="module" src="/tools/sidekick/courseorder/courseorder.js"></script>
+</body>
+</html> 
