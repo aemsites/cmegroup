@@ -1,14 +1,14 @@
-// Remove unused import
-// import ffetch from '../ffetch.js';
+import ffetch from '../ffetch.js';
+
 export default async function getCourseData(mockdata) {
   try {
-    // const currentPath = window.location.pathname;
-    // const relevantPath = currentPath.split('/education/courses/')[1];
+    const currentPath = window.location.pathname;
+    const relevantPath = currentPath.split('/education/courses/')[1];
     // Temporary mock path to test
     // Path split for making line length shorter
     // const relevantPath = '/education/courses/direct-lesson-course/lesson-1'
-    const relevantPath = '/education/courses/understanding-micro-futures-contracts-at-cme-group/micro-e-mini-futures/hedging-with-the-micro-e-mini-futures'
-      .split('/education/courses/')[1];
+    // const relevantPath = '/education/courses/understanding-micro-futures-contracts-at-cme-group/micro-e-mini-futures/hedging-with-the-micro-e-mini-futures'
+    //   .split('/education/courses/')[1];
     const course = relevantPath.split('/')[0];
 
     // build the hierarchy
@@ -20,11 +20,11 @@ export default async function getCourseData(mockdata) {
     };
     const TEMPLATES = ['course', 'chapter', 'lesson'];
     // Get entries from query-index for course content
-    // const entries = await ffetch('/query-index.json')
-    const entries = mockdata
+    const entries = await ffetch(window.location.origin + '/courses-index.json')
+    // const entries = mockdata
       .filter((entry) => TEMPLATES.includes(entry.template.toLowerCase())
-        && entry.path.startsWith(coursePath));
-      // .all();
+        && entry.path.startsWith(coursePath))
+      .all();
     // Determine if it course has chapters
     courseData.hasChapters = entries.some((entry) => entry.template.toLowerCase() === 'chapter');
     entries.forEach((entry) => {
