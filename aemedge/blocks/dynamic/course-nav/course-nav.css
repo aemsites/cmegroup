@@ -85,12 +85,13 @@
 }
 
 .course-nav .course-nav-lessons-count {
-  color: #5a6874;
+  color: var(--gray3);
   display: block;
   font-size: .6875rem;
   font-weight: 700;
   letter-spacing: .09375rem;
   line-height: .875rem;
+  text-transform: uppercase;
 }
 
 .course-nav:not(.expanded) .course-nav-lessons-count {

@@ -1,6 +1,6 @@
 import { getMetadata, loadCSS } from '../../../scripts/aem.js';
 import { getCourseData } from '../../../scripts/course/course.js';
-import { createElement } from '../../../scripts/utils.js';
+import { createElement, i18n } from '../../../scripts/utils.js';
 
 function getTotalLessonsCount(courseData) {
   return courseData.hasChapters
@@ -104,9 +104,13 @@ export default async function decorate(main) {
   const title = createElement('h2', { class: 'course-nav-title' });
   title.textContent = courseData.title;
   const viewLessons = createElement('span', { class: 'course-nav-view-lessons' });
-  viewLessons.textContent = 'VIEW LESSONS';
+  const [viewLessonsLabel, lessonsCountLabel] = await Promise.all([
+    i18n('View lessons'),
+    i18n('Lessons'),
+  ]);
+  viewLessons.textContent = viewLessonsLabel;
   const lessonsCount = createElement('span', { class: 'course-nav-lessons-count' });
-  lessonsCount.textContent = `${totalLessons} LESSONS`;
+  lessonsCount.textContent = `${totalLessons} ${lessonsCountLabel}`;
   titleContent.append(title, viewLessons, lessonsCount);
   titleWrapper.appendChild(titleContent);
   // Controls section

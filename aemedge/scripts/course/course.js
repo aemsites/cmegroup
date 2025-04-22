@@ -1,5 +1,10 @@
 import ffetch from '../ffetch.js';
-import { createElement, getEnvType, getCurrentLangInWords, i18n } from '../utils.js';
+import {
+  createElement,
+  getEnvType,
+  getCurrentLangInWords,
+  i18n,
+} from '../utils.js';
 import { getMetadata } from '../aem.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
