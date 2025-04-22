@@ -178,12 +178,12 @@ export function createCourseBaseTemplate() {
         if (data.hasChapters) {
           const chapter = data.chapters.find((ch) => window.location.pathname.startsWith(ch.path));
           if (chapter) {
-            for (let i = 0; i < chapter.lessons.length; i++) {
+            for (let i = 0; i < chapter.lessons.length; i += 1) {
               const lesson = chapter.lessons[i];
-                if (window.location.pathname.startsWith(lesson.path)) {
-                  type.textContent += ` ${i + 1} of ${chapter.lessons.length}`;
-                  break;
-                }
+              if (window.location.pathname.startsWith(lesson.path)) {
+                type.textContent += ` ${i + 1} of ${chapter.lessons.length}`;
+                break;
+              }
             }
           }
         }
