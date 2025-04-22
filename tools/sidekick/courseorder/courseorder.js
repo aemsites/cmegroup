@@ -38,7 +38,7 @@ class CourseOrganiser {
     try {
       // Prepare the path
       const basePath = `/${this.context.org}/${this.context.repo}`;
-      const fullPath = `${basePath}${this.folderPath}`;
+      const fullPath = `${basePath}${this.currentPath}`;
       
       console.log('Fetching courses from:', fullPath);
 
@@ -125,23 +125,20 @@ class CourseOrganiser {
   }
 
   /**
-   * Fetches the page to extract order metadata
-   * @returns {Promise<string[]>} Array of course names in the desired order
+   * Fetches the page to extract metadata
+   * @returns {Promise<Object>} Object containing order array and template type
    */
-  async fetchPageMetadataOrder() {
+  async fetchPageMetadata() {
     try {
       // Construct the page URL
-      const pagePath = this.folderPath.replace(/^\/(cmegroup|www)\//, '/');
-      const pageUrl = `https://main--www--cmegroup.aem.page${pagePath}/`;
-      
-      console.log('Fetching order metadata from:', pageUrl);
+      const pageUrl = `https://main--www--cmegroup.aem.page${this.currentPath}/`;
       
       // Fetch the page
       const response = await fetch(pageUrl);
       
       if (!response.ok) {
         console.log('Page not found, using default order');
-        return null;
+        return {};
       }
       
       // Get the HTML content
@@ -151,22 +148,24 @@ class CourseOrganiser {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       
+      // Get the template type metadata
+      const templateType = this.getMetadata('template', doc);
+      
       // Use the getMetadata function to extract SubModulesOrder
       const orderMetadata = this.getMetadata('submodulesorder', doc);
       
       if (!orderMetadata) {
         console.log('No SubModulesOrder metadata found, using default order');
-        return null;
+        return { templateType };
       }
       
       // Parse the comma-separated list
       const orderArray = orderMetadata.split(',').map(item => item.trim());
-      console.log('Metadata order found:', orderArray);
       
-      return orderArray;
+      return { orderArray, templateType };
     } catch (error) {
       console.error('Error fetching page metadata:', error);
-      return null;
+      return {};
     }
   }
   
@@ -340,21 +339,47 @@ async function loadCourses(elements, courseOrganiser) {
   try {
     // Update path display with folder path
     if (pathDisplay) {
-      const displayPath = courseOrganiser.folderPath || 'Root';
+      const displayPath = courseOrganiser.currentPath || 'Root';
       pathDisplay.textContent = displayPath;
     }
     
     // First fetch metadata order if available
-    const metadataOrder = await courseOrganiser.fetchPageMetadataOrder();
-    courseOrganiser.metadataOrder = metadataOrder; // Store for future reference
+    const metadataResult = await courseOrganiser.fetchPageMetadata();
+    const { orderArray, templateType } = metadataResult;
+    
+    courseOrganiser.metadataOrder = orderArray; // Store for future reference
+    
+    // Check if the template is course or chapter
+    const validTemplates = ['course', 'chapter'];
+    const isValidTemplate = validTemplates.some(valid => 
+      templateType?.toLowerCase().includes(valid)
+    );
+
+    console.log('Template type:', templateType);
+    console.log('Is valid template?', isValidTemplate);
+    
+    if (!isValidTemplate) {
+      if (courseList) {
+        courseList.innerHTML = '<div class="course-error">Plugin available for course and chapter templates only</div>';
+      }
+      return; // Exit early
+    }
     
     // Fetch and display courses
     const children = await courseOrganiser.fetchCourses();
     
+    // Check if we have any children
+    if (children.length === 0) {
+      if (courseList) {
+        courseList.innerHTML = '<div class="course-empty">No courses found</div>';
+      }
+      return; // Exit early
+    }
+    
     // Apply metadata order if available
-    if (metadataOrder && metadataOrder.length > 0) {
-      console.log('Applying metadata order to courses: ', metadataOrder);
-      courseOrganiser.courseItems = courseOrganiser.applyMetadataOrder(children, metadataOrder);
+    if (orderArray && orderArray.length > 0) {
+      console.log('Applying metadata order to courses: ', orderArray);
+      courseOrganiser.courseItems = courseOrganiser.applyMetadataOrder(children, orderArray);
     } else {
       courseOrganiser.courseItems = children;
     }
@@ -388,17 +413,10 @@ function renderCourseList(courseList, courseOrganiser) {
     courseList.appendChild(parentEl);
   }
   
-  if (courseOrganiser.courseItems.length === 0) {
-    courseList.innerHTML += '<div class="course-empty">No courses found</div>';
-    return;
-  }
-  
   courseOrganiser.courseItems.forEach((item, index) => {
     const itemEl = createCourseElement(item, index, courseOrganiser);
     courseList.appendChild(itemEl);
   });
-  
-  console.log('Rendered', courseOrganiser.courseItems.length, 'course items');
 }
 
 /**
