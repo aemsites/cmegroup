@@ -1,5 +1,5 @@
 import ffetch from '../ffetch.js';
-import { createElement, getEnvType, getCurrentLangInWords } from '../utils.js';
+import { createElement, getEnvType, getCurrentLangInWords, i18n } from '../utils.js';
 import { getMetadata } from '../aem.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
@@ -149,7 +149,7 @@ export async function getCourseData() {
  * It is common for different course templates: course & lesson
  * Add header using metadata values
  */
-export function createCourseBaseTemplate() {
+export async function createCourseBaseTemplate() {
   const main = document.querySelector('main');
   const courseHeading = main.querySelector('h1');
   const header = createElement('div', { class: 'course-header' });
@@ -166,22 +166,28 @@ export function createCourseBaseTemplate() {
   }
   header.appendChild(readTimeElement);
 
+  const [courseLabel, lessonLabel, ofLabel] = await Promise.all([
+    i18n('Course'),
+    i18n('Lesson'),
+    i18n('of'),
+  ]);
+
   if (template.toLowerCase() === 'course') {
     const type = createElement('div', { class: 'metadata type' });
-    type.textContent = 'Course';
+    type.textContent = courseLabel;
     header.appendChild(type);
   } else if (template.toLowerCase() === 'lesson') {
     const type = createElement('div', { class: 'metadata type' });
-    type.textContent = 'Lesson';
+    type.textContent = lessonLabel;
     getCourseData()
       .then((data) => {
         if (data.hasChapters) {
           const chapter = data.chapters.find((ch) => window.location.pathname.startsWith(ch.path));
-          if (chapter) {
+          if (chapter && chapter.lessons.length > 1) {
             for (let i = 0; i < chapter.lessons.length; i += 1) {
               const lesson = chapter.lessons[i];
               if (window.location.pathname.startsWith(lesson.path)) {
-                type.textContent += ` ${i + 1} of ${chapter.lessons.length}`;
+                type.textContent += ` ${i + 1} ${ofLabel} ${chapter.lessons.length}`;
                 break;
               }
             }
