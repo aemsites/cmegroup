@@ -22,7 +22,7 @@
     --light-color: var(--gray5);
     --dark-color: var(--gray8);
     --text-color: var(--gray3);
-    --title-color: var(--blue1);
+    --title-color: var(--blue2);
     --link-color: var(--blue5);
     --link-hover-color: var(--blue5);
 
@@ -134,6 +134,7 @@ h5,
 h6 {
     font-family: var(--heading-font-family);
     color: var(--title-color);
+    margin-top: 0;
 }
 
 h1 {
@@ -708,16 +709,16 @@ body.loading::before {
 }
 
 .alerts .alert-item {
-    padding-top: 0.25rem;
-    padding-bottom: 0.25rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
     background-color: var(--blue6);
     color: var(--gray3);
 }
 
 @media (width >= 993px) {
     .alerts .alert-item {
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
     }
 }
 
