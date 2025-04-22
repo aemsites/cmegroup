@@ -48,17 +48,15 @@
         <div>
           <div>
             <table>
-              <thead>
-                <tr>
-                  <th></th>
-                  {{#hasConsensus}}<th>Consensus</th>{{/hasConsensus}}
-                  {{#hasConsensusRange}}<th>Consensus Range</th>{{/hasConsensusRange}}
-                  {{#hasActual}}<th>Actual</th>{{/hasActual}}
-                  {{#hasPrevious}}<th>Previous</th>{{/hasPrevious}}
-                  {{#hasRevised}}<th>Revised</th>{{/hasRevised}}
-                </tr>
-              </thead>
               <tbody>
+                <tr>
+                  <td></td>
+                  {{#hasConsensus}}<td>Consensus</td>{{/hasConsensus}}
+                  {{#hasConsensusRange}}<td>Consensus Range</td>{{/hasConsensusRange}}
+                  {{#hasActual}}<td>Actual</td>{{/hasActual}}
+                  {{#hasPrevious}}<td>Previous</td>{{/hasPrevious}}
+                  {{#hasRevised}}<td>Revised</td>{{/hasRevised}}
+                </tr>
                 {{#values}}
                 <tr>
                   <td>{{valueName}}</td>
