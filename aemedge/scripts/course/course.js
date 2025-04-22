@@ -1,41 +1,36 @@
 import ffetch from '../ffetch.js';
-import { createElement, getEnvType } from '../utils.js';
+import { createElement, getEnvType, getCurrentLangInWords } from '../utils.js';
 import { getMetadata } from '../aem.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
 const COURSES_INDEX_PATH = '/courses-index.json';
 const TEMPLATES = ['course', 'chapter', 'lesson'];
 const CACHE_KEY = 'course_data';
-const CACHE_EXPIRATION = 60 * 60 * 1000; // 1 hour in milliseconds
-const LANGUAGE_MAP = {
-  en: 'English',
-  es: 'Español',
-  fr: 'Français',
-  de: 'Deutsch',
-  it: 'Italian',
-  he: 'עברית',
-  ko: '한국어',
-  nl: 'Dutch',
-  'cn-s': '中文(简体)',
-  'cn-t': '中文(繁體)',
-  pt: 'Português',
-  ar: 'العربية',
-};
+const CACHE_EXPIRATION_PROD = 15 * 60 * 1000; // 15 minutes in milliseconds
+const CACHE_EXPIRATION_STAGE = 30 * 1000; // 30 seconds in milliseconds
 
 const getCachedCourseData = (coursePath) => {
   const cachedData = localStorage.getItem(CACHE_KEY);
   const envType = getEnvType();
-  if (cachedData && envType === 'prod') {
+  if (cachedData) {
     const { path, data, timestamp } = JSON.parse(cachedData);
-    // Use cached data if it's for the current course and not older than 1 hour
+    // Use cached data if it's for the current course
     const cacheAge = Date.now() - timestamp;
-    if (path === coursePath && cacheAge < CACHE_EXPIRATION) {
+    if (path === coursePath
+      && cacheAge < (envType === 'prod' ? CACHE_EXPIRATION_PROD : CACHE_EXPIRATION_STAGE)) {
       return data;
     }
   }
   return null;
 };
 
+/**
+ * Get the course data for the current course
+ * It is used for the course page and the lesson page
+ * Returns the cached data if it exists
+ * Otherwise, it fetches the data from the server and caches it
+ * @returns {Object} The course data
+ */
 export async function getCourseData() {
   try {
     const currentPath = window.location.pathname;
@@ -89,15 +84,10 @@ export async function getCourseData() {
 
     entries.forEach((entry) => {
       if (entry.template.toLowerCase() === 'course') {
-        courseData.title = entry.moduleTitle;
-        courseData.path = entry.path;
-        courseData.subModulesOrder = entry.subModulesOrder;
+        Object.assign(courseData, entry);
       } else if (entry.template.toLowerCase() === 'chapter') {
         courseData.chapters.push({
-          title: entry.moduleTitle,
-          path: entry.path,
-          pathSuffix: entry.path.split(coursePath)[1].substring(1),
-          subModulesOrder: entry.subModulesOrder,
+          ...entry,
           lessons: [],
         });
       } else if (entry.template.toLowerCase() === 'lesson') {
@@ -105,15 +95,13 @@ export async function getCourseData() {
           // Split into multiple lines to reduce line length
           const chapterObj = courseData.chapters.find((ch) => entry.path.startsWith(ch.path));
           chapterObj?.lessons.push({
-            title: entry.moduleTitle,
-            path: entry.path,
+            ...entry,
             // Split into multiple lines to reduce line length
             pathSuffix: entry.path.split(chapterObj.path)[1].substring(1),
           });
         } else {
           courseData.lessons.push({
-            title: entry.moduleTitle,
-            path: entry.path,
+            ...entry,
             pathSuffix: entry.path.split(coursePath)[1].substring(1),
           });
         }
@@ -156,17 +144,15 @@ export async function getCourseData() {
   }
 }
 
-const getCurrentLanguage = () => {
-  const path = window.location.pathname;
-  const language = path.split('/')[1];
-  return LANGUAGE_MAP[language] || 'English';
-};
-
+/**
+ * Create the base template for a course page
+ * It is common for different course templates: course & lesson
+ * Add header using metadata values
+ */
 export function createCourseBaseTemplate() {
   const main = document.querySelector('main');
   const courseHeading = main.querySelector('h1');
-  const header = document.createElement('div');
-  header.classList.add('course-header');
+  const header = createElement('div', { class: 'course-header' });
 
   // Get metadata values
   const readTime = getMetadata('read-time');
@@ -187,10 +173,25 @@ export function createCourseBaseTemplate() {
   } else if (template.toLowerCase() === 'lesson') {
     const type = createElement('div', { class: 'metadata type' });
     type.textContent = 'Lesson';
+    getCourseData()
+      .then((data) => {
+        if (data.hasChapters) {
+          const chapter = data.chapters.find((ch) => window.location.pathname.startsWith(ch.path));
+          if (chapter) {
+            for (let i = 0; i < chapter.lessons.length; i++) {
+              const lesson = chapter.lessons[i];
+                if (window.location.pathname.startsWith(lesson.path)) {
+                  type.textContent += ` ${i + 1} of ${chapter.lessons.length}`;
+                  break;
+                }
+            }
+          }
+        }
+      });
     header.appendChild(type);
   }
 
-  const currentLanguage = getCurrentLanguage();
+  const currentLanguage = getCurrentLangInWords();
   const language = createElement('div', { class: 'metadata language' }, currentLanguage);
   header.appendChild(language);
 

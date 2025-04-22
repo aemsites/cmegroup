@@ -1,1 +1,6 @@
 @import './course-base.css';
+
+.begin-course-button {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}

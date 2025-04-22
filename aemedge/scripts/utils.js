@@ -13,6 +13,25 @@ function getDefaultLang() {
   return 'en';
 }
 
+function getCurrentLangInWords() {
+  const LANGUAGE_MAP = {
+    en: 'English',
+    es: 'Español',
+    fr: 'Français',
+    de: 'Deutsch',
+    it: 'Italian',
+    he: 'עברית',
+    ko: '한국어',
+    nl: 'Dutch',
+    'cn-s': '中文(简体)',
+    'cn-t': '中文(繁體)',
+    pt: 'Português',
+    ar: 'العربية',
+  };
+  const locale = getCurrentLang();
+  return LANGUAGE_MAP[locale] || 'English';
+}
+
 /**
  * Taxonomy
  */
@@ -293,4 +312,5 @@ export {
   formatToCentralTime,
   isDateBefore,
   urlByEnvType,
+  getCurrentLangInWords,
 };

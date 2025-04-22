@@ -28,7 +28,7 @@ function createLessonElement(lesson, currentPath) {
   const li = createElement('li', { class: 'course-nav-lesson' });
   const lessonLink = createElement('a', { href: lesson.path, rel: 'noopener noreferrer' });
   const titleSpan = createElement('span', { class: 'title' });
-  titleSpan.textContent = lesson.title;
+  titleSpan.textContent = lesson.moduleTitle;
   const iconSpan = createElement('span', { class: 'icon-uncheck' });
   lessonLink.append(titleSpan, iconSpan);
   li.appendChild(lessonLink);
@@ -60,7 +60,7 @@ function createChapterElement(chapter, currentPath) {
   const chapterEl = createElement('div', { class: 'course-nav-chapter' });
   const chapterTitle = createElement('button', { class: 'collapsible-button chapter btn btn-secondary', type: 'button' });
   const titleDiv = createElement('div', { class: 'title' });
-  titleDiv.textContent = chapter.title;
+  titleDiv.textContent = chapter.moduleTitle;
   const [plusIcon, minusIcon] = ['plus', 'minus'].map((icon, i) => createIconSpan(icon, i === 1));
   chapterTitle.append(titleDiv, plusIcon, minusIcon);
 
