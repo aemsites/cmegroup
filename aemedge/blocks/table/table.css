@@ -41,6 +41,10 @@
   background-color: #F1F5F7;
 }
 
+.table.disable-row-banding tbody tr:nth-child(2n) {
+  background-color: inherit;
+}
+
 .table.dark tbody tr:nth-child(2n) {
   background-color: var(--navy1);
 }
@@ -48,6 +52,10 @@
 .table.dark table tbody tr {
   background-color: var(--blue2);
   color: #fff;
+}
+
+.table.dark.disable-row-banding tbody tr:nth-child(2n) {
+  background-color: var(--blue2);
 }
 
 .table.compact table tbody tr {
