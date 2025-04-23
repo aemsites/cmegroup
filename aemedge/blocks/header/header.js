@@ -165,6 +165,19 @@ class Nav {
         previousScrollPosition = currentScrollPosition;
       }, 100);
     });
+
+    this.el.querySelectorAll('a').forEach((a) => {
+      const href = a.getAttribute('href');
+      if (href) {
+        const isExternal = !href.startsWith('/') && !href.startsWith('#');
+        const isCMEPage = href.includes('www.cmegroup.com');
+        const isLogin = href.includes('https://login.cmegroup.com');
+        const isCMEDirect = href.includes('https://cmedirect.cmegroup.com');
+        if (isExternal && !isCMEPage && !isLogin && !isCMEDirect) {
+          a.setAttribute('target', '_blank');
+        }
+      }
+    });
   };
 
   async initializeLabels() {
