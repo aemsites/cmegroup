@@ -199,7 +199,6 @@
 }
 
 .hero.event .economic-release-data {
-    margin-bottom: 3.875rem;
     display: flex;
     flex-wrap: wrap;
     color: var(--gray3);
@@ -207,6 +206,13 @@
     font-size: .875rem;
     font-weight: 400;
     line-height: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+@media (width > 768px) {
+    .hero.event .economic-release-data {
+        margin-bottom: 1.875rem;
+    }
 }
 
 .hero.event .economic-release-data .economic-release-data-date-wrapper {

@@ -2,3 +2,4 @@ helix-importer-ui
 # Ignore all files in external directories
 **/external/**
 **/build/**
+aemedge/scripts/third-party
