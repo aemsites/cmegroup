@@ -88,32 +88,26 @@ async function decorateEventPageHero(block) {
 
   const featuredTag = createElement('div', { class: 'economic-release-featured-tag' });
   const topInfo = createElement('div', { class: 'economic-release-info' }, block.querySelector('a'), featuredTag);
-  const h1 = createElement('h1');
+  const h1 = block.querySelector('h1');
   const dateWrapper = createElement('div', { class: 'economic-release-data-date-wrapper' });
   const lastInfo = createElement('div', { class: 'economic-release-data' }, dateWrapper);
   const contentWrapper = createElement('div', { class: 'default-content-wrapper' }, topInfo, h1, lastInfo);
   block.append(contentWrapper);
 
   // Dynamic section
-  const { default: getEventData } = await import('../../scripts/utils/events.js');
   const primaryTopic = getMetadata('primary-topic');
+  const date = getMetadata('date');
   const [
-    {
-      title: pageTitle,
-      effectiveDate,
-    },
     {
       title: primaryTopicTitle,
     },
     dateLabel,
   ] = await Promise.all([
-    getEventData(),
     getTag(primaryTopic),
     i18n('Date'),
   ]);
   featuredTag.textContent = primaryTopicTitle;
-  h1.textContent = pageTitle;
-  const dateTag = createElement('div', { class: 'economic-release-data-date-value' }, formatToCentralTime(effectiveDate));
+  const dateTag = createElement('div', { class: 'economic-release-data-date-value' }, formatToCentralTime(date));
   dateWrapper.textContent = `${dateLabel}: `;
   dateWrapper.append(dateTag);
 }

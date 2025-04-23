@@ -2,16 +2,26 @@
   "uid": "550127",
   "name": "feed550127",
   "title": "JP: Unemployment Rate",
-  "effectiveDate": "2023-01-30T23:30:00Z",
+  "date": "2023-01-30T23:30:00Z",
   "startDate": "2023-01-30T23:30:00Z",
   "endDate": "2023-01-31T23:30:00Z",
-  "cq:tags": [
+  "tags": [
     "content-type/economic-release",
     "econoday-events/impact/high",
     "econoday-events/report-type/report",
     "econoday-events/country/jp",
     "econoday-events/event-type/Unemployment_Rate"
   ],
+  "hasHighlights": true,
+  "hasConsensusNotes": true,
+  "hasDefinition": true,
+  "hasDescription": true,
+  "hasValues": true,
+  "hasConsensus": true,
+  "hasConsensusRange": true,
+  "hasActual": true,
+  "hasPrevious": true,
+  "hasRevised": true,
   "values": [
     {
       "valueUid": "1638929",
@@ -24,7 +34,12 @@
       "consensusRangeTo": "2.6",
       "actual": "2.5",
       "previous": "2.5",
-      "revised": ""
+      "revised": "",
+      "hasConsensus": true,
+      "hasConsensusRange": true,
+      "hasActual": true,
+      "hasPrevious": true,
+      "hasRevised": true
     },
     {
       "valueUid": "3322473",
@@ -37,7 +52,12 @@
       "consensusRangeTo": "",
       "actual": "0",
       "previous": "0",
-      "revised": ""
+      "revised": "",
+      "hasConsensus": true,
+      "hasConsensusRange": true,
+      "hasActual": true,
+      "hasPrevious": true,
+      "hasRevised": true
     }
   ],
   "description": "The unemployment rate and employment change are carefully monitored. The employment data show the number employment along with the change in employment for the previous year. Monthly changes in employment also help clarify whether businesses are hiring. The unemployment rate is the percentage of the labor force that is unemployed. A lower jobless rate translates into more income earning workers and greater consumption. Increased spending is a positive for consumer oriented economic growth, something that has lagged in Japan. <br/><br/>By tracking the jobs data, investors can sense the degree of tightness in the job market. If wage inflation threatens, it's a good bet that interest rates will rise; bond and stock prices will fall. No doubt that the only investors in a good mood will be the ones who watched the employment report and adjusted their portfolios to anticipate these events.",
