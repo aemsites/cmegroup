@@ -209,8 +209,9 @@
     }
 }
 
-/**/
-details.checkbox-dropdown {
+/* checkbox in dropdown */
+
+.event-calendar-container details.checkbox-dropdown {
     display: inline-flex;
     flex-direction: column;
     padding: 1px;
@@ -218,23 +219,22 @@ details.checkbox-dropdown {
     position: relative;
 }
 
-
-details.checkbox-dropdown summary {
+.event-calendar-container details.checkbox-dropdown summary {
     padding-left: .5rem;
     padding-right: .5rem;
 }
 
-details.checkbox-dropdown summary::marker {
+.event-calendar-container details.checkbox-dropdown summary::marker {
     display: none;
     font-size: 0;
 }
 
-details.checkbox-dropdown  summary::-webkit-details-marker {
+.event-calendar-container details.checkbox-dropdown  summary::-webkit-details-marker {
     display: none;
     font-size: 0;
 }
 
-details.checkbox-dropdown  summary::after {
+.event-calendar-container details.checkbox-dropdown  summary::after {
     transition: transform 0.25s;
     position: absolute;
     right: 5px;
@@ -247,23 +247,22 @@ details.checkbox-dropdown  summary::after {
     display: inline-block;
 }
 
-details.checkbox-dropdown[open] {
+.event-calendar-container details.checkbox-dropdown[open] {
     justify-content: normal;
     border: 1px solid var(--blue5) !important;
 }
 
-details.checkbox-dropdown[open] summary {
+.event-calendar-container details.checkbox-dropdown[open] summary {
     margin-bottom: 2px;
     margin-top: 7px;
 }
 
-details.checkbox-dropdown[open] summary::after {
+.event-calendar-container details.checkbox-dropdown[open] summary::after {
     top: 16px;
-    ;
     transform: rotate(180deg);
 }
 
-.checkbox-dropdown form {
+.event-calendar-container .checkbox-dropdown form {
     background-color: #5a6874;
     color: #fff;
     width: 100%;
@@ -273,20 +272,20 @@ details.checkbox-dropdown[open] summary::after {
     scrollbar-color: #888 #f1f1f1;
 }
 
-.checkbox-dropdown fieldset {
+.event-calendar-container .checkbox-dropdown fieldset {
     border: 0;
     padding: 0;
     margin: 0;
 }
 
-.checkbox-dropdown ul {
+.event-calendar-container .checkbox-dropdown ul {
     list-style: none;
     margin: 0;
     padding: 0;
     width: 100%;
 }
 
-.checkbox-dropdown ul li {
+.event-calendar-container .checkbox-dropdown ul li {
     font-family: Averta;
     font-size: .875rem;
     font-weight: 400;
@@ -295,27 +294,27 @@ details.checkbox-dropdown[open] summary::after {
     margin-bottom: 0;
 }
 
-.checkbox-dropdown ul li:hover {
+.event-calendar-container .checkbox-dropdown ul li:hover {
     background: #354a66;
 }
 
-.checkbox-dropdown ul li label {
+.event-calendar-container .checkbox-dropdown ul li label {
     display: inline-block;
     padding: .375rem .375rem .375rem .625rem;
     width: fill-available;
     width: -webkit-fill-available;
 }
 
-.checkbox-dropdown ul li label:hover {
+.event-calendar-container .checkbox-dropdown ul li label:hover {
     cursor: pointer;
 }
 
-.checkbox-dropdown ul li label .checkbox-wrapper {
+.event-calendar-container .checkbox-dropdown ul li label .checkbox-wrapper {
     display: inline-block;
     margin-right: .375rem;
 }
 
-.checkbox-dropdown ul li label input[type=checkbox] {
+.event-calendar-container .checkbox-dropdown ul li label input[type=checkbox] {
     left: 0;
     margin: 0;
     opacity: 0;
@@ -323,7 +322,7 @@ details.checkbox-dropdown[open] summary::after {
     top: 0;
 }
 
-.checkbox-dropdown ul li label input[type=checkbox]~span {
+.event-calendar-container .checkbox-dropdown ul li label input[type=checkbox]~span {
     background-color: transparent;
     line-height: 1.375rem;
     vertical-align: text-bottom;
@@ -335,11 +334,11 @@ details.checkbox-dropdown[open] summary::after {
     width: .875rem;
 }
 
-.checkbox-dropdown ul li label input[type=checkbox]:checked~span {
+.event-calendar-container .checkbox-dropdown ul li label input[type=checkbox]:checked~span {
     background-color: #fff;
 }
 
-.checkbox-dropdown ul li label input[type=checkbox]:checked~span::after {
+.event-calendar-container .checkbox-dropdown ul li label input[type=checkbox]:checked~span::after {
     border-bottom: .1875rem solid #006eb6;
     border-right: .1875rem solid #006eb6;
     height: .6875rem;
@@ -352,7 +351,7 @@ details.checkbox-dropdown[open] summary::after {
     position: absolute;
 }
 
-/**/
+/* checkbox in dropdown */
 
 .event-calendar-container .filters-inputs-container.is-open {
     background-color: #081d37;
@@ -386,6 +385,85 @@ details.checkbox-dropdown[open] summary::after {
 .event-calendar-container .filters-inputs-container.is-open .btn-container button.secondary {
     color: var(--white);
 }
+
+/* pills */
+.event-calendar-container .current-filters .current-pills-header {
+    font-family: var(--averta);
+    font-size: 1.125rem;
+    letter-spacing: .0625rem;
+    line-height: 2.125rem;
+    font-weight: 600;
+    margin-bottom: .9375rem;
+}
+
+.event-calendar-container .current-filters .current-pills-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -.375rem;
+    margin-right: -.375rem;
+    max-height: 10rem;
+    overflow: hidden;
+}
+
+@media (width >= 48.0625rem) {
+    .event-calendar-container .current-filters .current-pills-wrapper {
+        margin: 0 -.375rem;
+        max-height: unset;
+    }
+}
+
+.event-calendar-container .current-filters .current-pills-wrapper .current-pills-inner-container {
+    flex-wrap: wrap !important;
+    display: flex !important;
+}
+
+.event-calendar-container .current-filters .current-pills-wrapper .current-pills-inner-container .btn-pill {
+    border: .0625rem solid #f1f5f7;
+    border-radius: .9375rem;
+    color: #f1f5f7;
+    font-family: var(--averta);
+    font-weight: 400;
+    flex-shrink: 0;
+    font-size: .875rem;
+    letter-spacing: 0;
+    line-height: .875rem;
+    margin: .375rem .125rem .375rem .375rem;
+    padding: .4375rem 1.75rem .4375rem .625rem;
+    position: relative;
+    background: transparent;
+    cursor: pointer;
+    text-transform: capitalize;
+}
+
+.event-calendar-container .current-filters .current-pills-wrapper .current-pills-inner-container .btn-pill:hover {
+    color: var(--blue5);
+    border-color: var(--blue5);
+}
+
+.event-calendar-container .current-filters .current-pills-wrapper .current-pills-inner-container .btn-pill::after {
+    font-family: var(--cme-group-icons);
+    content: var(--icon-menu-close);
+    font-size: 0.5rem;
+    right: 0.625rem;
+    top: 0.5rem;
+    width: auto;
+    height: auto;
+    position: absolute;
+}
+
+.event-calendar-container .current-filters .current-pills-wrapper .current-pills-inner-container .btn-pill.clear-all {
+    background-color: var(--blue5);
+    border: .0625rem solid var(--blue5);
+    color: var(--blue2);
+}
+
+.event-calendar-container .current-filters .current-pills-wrapper .current-pills-inner-container .btn-pill.clear-all:hover {
+    background-color: transparent;
+    border: .0625rem solid var(--blue5);
+    color: var(--blue5);
+}
+
+/* pills */
 
 /* release */
 

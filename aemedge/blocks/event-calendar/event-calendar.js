@@ -1,6 +1,7 @@
 import { readBlockConfig } from '../../scripts/aem.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import { getEconomicReleaseFilters } from '../../scripts/services/ProductCalendarService.js';
+import { isEmpty } from '../../scripts/utils/index.js';
 // import { store } from '../../scripts/store/store.js';
 // import { authentication as authStatus } from '../../scripts/modules/index.js';
 // import { renderFilterSection } from './filters/filters.js';
@@ -23,12 +24,15 @@ const cleanInput = createElement('button', {
   'aria-label': 'clean search input',
   'aria-expanded': false,
 });
+const pillsHeader = createElement('div', { class: 'current-pills-header' });
+const pillsWrapper = createElement('div', { class: 'current-pills-wrapper' });
+const pillsInnerContainer = createElement('div', { class: 'current-pills-inner-container' });
 let economicFilters;
 let filtersLabel;
+const currentPillsLabel = 'Currently filtering by:';
 let searchValueVar = '';
-const countriesToSearch = [];
-const impactToSearch = [];
 let timeoutId;
+const filterPillsArray = {};
 
 async function initializeLabels() {
   const [filtersLabelVar] = await Promise.all([
@@ -36,6 +40,14 @@ async function initializeLabels() {
   ]);
 
   filtersLabel = filtersLabelVar;
+}
+
+function addOutsideClickListener(detailsElement) {
+  document.addEventListener('click', (event) => {
+    if (detailsElement.open && !detailsElement.contains(event.target)) {
+      detailsElement.removeAttribute('open');
+    }
+  });
 }
 
 function closeFiltersInputsContainer() {
@@ -93,29 +105,136 @@ function handleInputSearch(e) {
   }
 }
 
+function removePillHandler(pill) {
+  if (pill !== 'clear-all') {
+    // remove pill
+    const pillToRemove = pillsInnerContainer.querySelector(`button.btn-pill[data-filter="${pill}"]`);
+    pillToRemove.remove();
+    // remove pill from arrays
+    // eslint-disable-next-line no-restricted-syntax
+    for (const listId in filterPillsArray) {
+      // eslint-disable-next-line max-len
+      if (Object.prototype.hasOwnProperty.call(filterPillsArray, listId) && Array.isArray(filterPillsArray[listId])) {
+        filterPillsArray[listId] = filterPillsArray[listId].filter((item) => item.id !== pill);
+      }
+    }
+    // if filterPillsArray is empty clear all
+    if (Object.values(filterPillsArray).every((value) => !Array.isArray(value)
+      || value.length === 0)) {
+      filtersCurrentContainer.innerHTML = '';
+    }
+    // uncheck dropdown
+    filtersInputsContainer.querySelector(`#${pill}`).checked = false;
+  } else {
+    // remove all pills and container
+    filtersCurrentContainer.innerHTML = '';
+    // uncheck dropdown
+    const checkboxInDropdown = filtersInputsContainer.querySelectorAll('.checkbox-dropdown input[type=checkbox]');
+    checkboxInDropdown.forEach((checkbox) => {
+      if (checkbox && checkbox.checked) {
+        checkbox.checked = false;
+      }
+    });
+
+    // clean array
+    // eslint-disable-next-line no-restricted-syntax
+    for (const listId in filterPillsArray) {
+      if (Object.prototype.hasOwnProperty.call(filterPillsArray, listId)
+        && Array.isArray(filterPillsArray[listId])) {
+        filterPillsArray[listId] = [];
+      }
+    }
+  }
+}
+
+function decoratePills(container) {
+  const pills = container.querySelectorAll('.btn-pill');
+  pills.forEach((pill) => {
+    pill.addEventListener('click', async () => {
+      removePillHandler(pill.dataset.filter);
+    });
+  });
+}
+
+function renderCurrentPills(pillsArray) {
+  filtersCurrentContainer.innerHTML = '';
+  pillsHeader.innerHTML = currentPillsLabel;
+  filtersCurrentContainer.append(pillsHeader);
+  const clearAllPill = createElement('button', { class: 'btn-pill clear-all' });
+  clearAllPill.setAttribute('type', 'button');
+  clearAllPill.dataset.filter = 'clear-all';
+  clearAllPill.innerHTML = 'Clear All';
+  let htmlPills = '';
+  let hasPills = false;
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const key in pillsArray) {
+    if (Object.prototype.hasOwnProperty.call(pillsArray, key)) {
+      const array = pillsArray[key];
+      if (Array.isArray(array) && array.length > 0) {
+        hasPills = true;
+        // eslint-disable-next-line no-loop-func
+        array.forEach((elem) => {
+          htmlPills += `
+            <button type="button" class="btn-pill" data-filter="${elem.id}">
+              ${elem.name}
+            </button>
+          `;
+        });
+      }
+    }
+  }
+
+  filtersCurrentContainer.append(pillsHeader);
+
+  if (hasPills) {
+    pillsInnerContainer.innerHTML = htmlPills;
+    pillsInnerContainer.append(clearAllPill);
+    pillsWrapper.append(pillsInnerContainer);
+    filtersCurrentContainer.append(pillsWrapper);
+  } else {
+    filtersCurrentContainer.innerHTML = '';
+  }
+
+  decoratePills(pillsInnerContainer);
+
+  return filtersCurrentContainer;
+}
+
+function filterPillsArrayHandler(listId, checkbox) {
+  if (!filterPillsArray[listId]) {
+    filterPillsArray[listId] = [];
+  }
+
+  const checkboxData = {
+    id: checkbox.id,
+    name: checkbox.name,
+  };
+
+  if (checkbox.checked) {
+    const existingIndex = filterPillsArray[listId].findIndex((item) => item.id === checkbox.id);
+    if (existingIndex === -1) {
+      filterPillsArray[listId].push(checkboxData);
+    }
+  } else {
+    filterPillsArray[listId] = filterPillsArray[listId].filter((item) => item.id !== checkbox.id);
+  }
+
+  renderCurrentPills(filterPillsArray);
+}
+
 function setupCountryCheckboxListeners(input) {
   const checkboxes = input.querySelectorAll('.country-checkbox');
   checkboxes.forEach((checkbox) => {
     // eslint-disable-next-line func-names
-    checkbox.addEventListener('change', function () {
-      const countryId = this.id;
-      if (this.checked) {
-        if (!countriesToSearch.includes(countryId)) {
-          countriesToSearch.push(countryId);
-        }
-      } else {
-        const index = countriesToSearch.indexOf(countryId);
-        if (index > -1) {
-          countriesToSearch.splice(index, 1);
-        }
-      }
-      console.log('Selected countries IDs:', countriesToSearch);
+    checkbox.addEventListener('change', () => {
+      filterPillsArrayHandler('input-country', checkbox);
     });
   });
 }
 
 function decorateFilterCountryInput() {
-  const filterCountryInput = createElement('details', { class: 'checkbox-dropdown input-country' });
+  const filterCountryInput = createElement('details', { class: 'checkbox-dropdown input-country', id: 'input-country' });
   if (economicFilters && economicFilters.countries) {
     const countriesArray = economicFilters.countries;
     filterCountryInput.innerHTML = `
@@ -126,9 +245,9 @@ function decorateFilterCountryInput() {
           ${countriesArray.map(({ name: countryName, id }) => {
             const li = `
                 <li>
-                  <label for="country_${id}" tabindex="0" role="menuitem">
+                  <label for="${id}" tabindex="0" role="menuitem">
                     <div class="checkbox-wrapper">
-                      <input id="country_${id}" type="checkbox" class='country-checkbox'>
+                      <input id="${id}" type="checkbox" class='country-checkbox' name="${countryName}">
                       <span></span>
                     </div>
                     <div class="flag-icon ${id}"></div>
@@ -143,6 +262,7 @@ function decorateFilterCountryInput() {
       </form>
     `;
     setupCountryCheckboxListeners(filterCountryInput);
+    addOutsideClickListener(filterCountryInput);
   }
   return filterCountryInput;
 }
@@ -151,26 +271,15 @@ function setupImpactCheckboxListeners(input) {
   const checkboxes = input.querySelectorAll('.impact-checkbox');
   checkboxes.forEach((checkbox) => {
     // eslint-disable-next-line func-names
-    checkbox.addEventListener('change', function () {
-      const impactId = this.id;
-      if (this.checked) {
-        if (!impactToSearch.includes(impactId)) {
-          impactToSearch.push(impactId);
-        }
-      } else {
-        const index = impactToSearch.indexOf(impactId);
-        if (index > -1) {
-          impactToSearch.splice(index, 1);
-        }
-      }
-      console.log('Selected impact IDs:', impactToSearch);
+    checkbox.addEventListener('change', () => {
+      filterPillsArrayHandler('input-impact', checkbox);
     });
   });
 }
 
 function decorateFilterImpactInput() {
   // details.removeAttribute('open');
-  const filterImpactInput = createElement('details', { class: 'checkbox-dropdown input-impact' });
+  const filterImpactInput = createElement('details', { class: 'checkbox-dropdown input-impact', id: 'input-impact' });
   if (economicFilters && economicFilters.countries) {
     const impactArray = economicFilters.impact;
     filterImpactInput.innerHTML = `
@@ -181,9 +290,9 @@ function decorateFilterImpactInput() {
           ${impactArray.map(({ name: impactName, id }) => {
             const li = `
                 <li>
-                  <label for="impact_${id}" tabindex="0" role="menuitem">
+                  <label for="${id}" tabindex="0" role="menuitem">
                     <div class="checkbox-wrapper">
-                      <input id="impact_${id}" type="checkbox" class='impact-checkbox'>
+                      <input id="${id}" type="checkbox" class='impact-checkbox' name="${impactName}">
                       <span></span>
                     </div>
                     ${impactName}
@@ -197,6 +306,7 @@ function decorateFilterImpactInput() {
       </form>
     `;
     setupImpactCheckboxListeners(filterImpactInput);
+    addOutsideClickListener(filterImpactInput);
   }
   return filterImpactInput;
 }
@@ -259,7 +369,7 @@ function renderFilterSection() {
   filtersInputsMainContainer.append(filtersMobileBtn);
   filtersInputsMainContainer.append(inputs);
   filtersSectionEventCalendar.append(filtersInputsMainContainer);
-  // current filters
+  // current filters - pills
   filtersSectionEventCalendar.append(filtersCurrentContainer);
   // date filters
   filtersSectionEventCalendar.append(filtersDateContainer);
