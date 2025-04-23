@@ -139,9 +139,9 @@ export default async function decorate(block) {
         const lastParagraph = paragraphs[paragraphs.length - 1];
         const inlineStyleMatch = lastParagraph.textContent.match(/\[(.*?)\]/);
         if (inlineStyleMatch) {
-          const styles = inlineStyleMatch[1].split(',').map(s => s.trim());
-          styles.forEach(style => {
-            const [property, value] = style.split(':').map(s => s.trim());
+          const styles = inlineStyleMatch[1].split(',').map((s) => s.trim());
+          styles.forEach((style) => {
+            const [property, value] = style.split(':').map((s) => s.trim());
             cell.style[property] = value;
           });
           // Remove the style definition from the paragraph content
