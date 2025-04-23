@@ -37,15 +37,15 @@
   color: #5a6874;
 }
 
-.table tbody tr:nth-child(2n) {
+.table table tbody tr:nth-child(2n) {
   background-color: #F1F5F7;
 }
 
-.table.disable-row-banding tbody tr:nth-child(2n) {
+.table.disable-row-banding table tbody tr:nth-child(2n) {
   background-color: inherit;
 }
 
-.table.dark tbody tr:nth-child(2n) {
+.table.dark table tbody tr:nth-child(2n) {
   background-color: var(--navy1);
 }
 
@@ -54,7 +54,7 @@
   color: #fff;
 }
 
-.table.dark.disable-row-banding tbody tr:nth-child(2n) {
+.table.dark.disable-row-banding table tbody tr:nth-child(2n) {
   background-color: var(--blue2);
 }
 
@@ -119,10 +119,6 @@
 
 .table.dark table tr [class$="-header"] {
   color: var(--white);
-}
-
-.table.dark table tbody tr [class$="-header"] {
-  background-color: unset;
 }
 
 .table.compact table tr [class$="-header"] {
