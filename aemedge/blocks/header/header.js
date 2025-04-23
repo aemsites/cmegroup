@@ -329,8 +329,8 @@ class Nav {
   decorateBrand = () => {
     const brandBlock = this.body.querySelector('.logo');
     if (!brandBlock) return null;
-    const brand = brandBlock.querySelector('a');
-    if (!brand) return null;
+    let brand = brandBlock.querySelector('a');
+    if (!brand) brand = brandBlock.querySelector('picture');
     brand.classList.add('logo');
     return brand;
   };

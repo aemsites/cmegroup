@@ -812,7 +812,7 @@ button.search-icon::before {
     align-items: center;
     flex-wrap: wrap;
     justify-content: space-between;
-    padding-right: 5.5rem;
+    padding-right: 1.5rem;
     display: none;
 }
 
@@ -877,7 +877,7 @@ button.search-icon::before {
     }
 
     .nav {
-        padding: 0 5.5rem;
+        padding: 0 0 0 2.5rem;
     }
 
     .nav-faux-navbar {
@@ -885,7 +885,7 @@ button.search-icon::before {
     }
 
     .nav .logo {
-        margin-right: 3.75rem;
+        margin-right: .75rem;
     }
 
     .nav.is-open {
@@ -906,7 +906,7 @@ button.search-icon::before {
         display: flex;
         align-items: stretch;
         position: relative;
-        margin-right: 1.875rem;
+        margin-right: 0.875rem;
         background-color: transparent;
     }
 
@@ -1252,7 +1252,19 @@ button.search-icon::before {
 
 
 @media (width > 1200px) {
+    .nav .logo {
+        margin-right: 3.75rem;
+    }
+
+    .nav-nav-item {
+        margin-right: 1.875rem;
+    }
+
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container {
         padding-left: 88px;
+    }
+
+    .right-side {
+        padding-right: 5.5rem;
     }
 }
