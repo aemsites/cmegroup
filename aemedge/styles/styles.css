@@ -22,7 +22,7 @@
     --light-color: var(--gray5);
     --dark-color: var(--gray8);
     --text-color: var(--gray3);
-    --title-color: var(--blue1);
+    --title-color: var(--blue2);
     --link-color: var(--blue5);
     --link-hover-color: var(--blue5);
 
@@ -134,6 +134,7 @@ h5,
 h6 {
     font-family: var(--heading-font-family);
     color: var(--title-color);
+    margin-top: 0;
 }
 
 h1 {
@@ -708,16 +709,16 @@ body.loading::before {
 }
 
 .alerts .alert-item {
-    padding-top: 0.25rem;
-    padding-bottom: 0.25rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
     background-color: var(--blue6);
     color: var(--gray3);
 }
 
 @media (width >= 993px) {
     .alerts .alert-item {
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
     }
 }
 
@@ -762,11 +763,12 @@ body.loading::before {
     color: var(--gray3);
 }
 
-.alerts .alert-item.gcc-serious .alert-icon {
-    display: inline-block;
-    vertical-align: top;
-    padding-top: 0.25rem;
+.alerts .alert-item.gcc-serious .alert-icon::before {
+    content: var(--icon-attention-triangle);
     color: var(--active-red);
+    font-family: var(--cme-group-icons);
+    font-style: normal;
+    position: absolute;
 }
 
 .alerts .alert-item .alert-gcc-container {
@@ -778,7 +780,7 @@ body.loading::before {
     color: var(--blue2);
     display: inline-block;
     font-weight: bold;
-    padding-left: 0.5rem;
+    padding-left: 1.5rem;
 }
 
 .alerts .alert-item .alert-gcc-container .alert-text {
@@ -792,13 +794,52 @@ body.loading::before {
     font-size: 0.75rem;
 }
 
-.alerts .alert-item .container {
-    padding: 0 0.625rem;
-}
-
-@media (width >= 993px) {
+@media (width < 993px) {
     .alerts .alert-item .container {
-        padding: 0;
+        padding: 0 0.625rem;
     }
 }
+
+/* Custom styles defined in transform alerts rte */
+
+.green {
+    color: var(--green);
+}
+
+.citron {
+    color: var(--citron);
+}
+
+.blue2 {
+    color: var(--blue2);
+}
+
+.blue4 {
+    color: var(--blue4);
+}
+
+.white {
+    color: var(--white);
+}
+
+.gray4 {
+    color: var(--gray4);
+}
+
+.gray5 {
+    color: var(--gray5);
+}
+
+.gray6 {
+    color: var(--gray6);
+}
+
+.bg-citron {
+    background-color: var(--citron);
+}
+
+.bg-green {
+    background-color: var(--green);
+}
   
+/* Custom styles defined in transform alerts rte */
