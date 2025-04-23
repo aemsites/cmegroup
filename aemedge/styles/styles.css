@@ -841,5 +841,3 @@ body.loading::before {
 .bg-green {
     background-color: var(--green);
 }
-  
-/* Custom styles defined in transform alerts rte */
