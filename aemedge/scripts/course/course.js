@@ -8,11 +8,14 @@ import {
 import { getMetadata } from '../aem.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
+const LESSONS_BASE_PATH = '/education/lessons/';
 const COURSES_INDEX_PATH = '/courses-index.json';
-const TEMPLATES = ['course', 'chapter', 'lesson'];
+const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone'];
 const CACHE_KEY = 'course_data';
 const CACHE_EXPIRATION_PROD = 15 * 60 * 1000; // 15 minutes in milliseconds
 const CACHE_EXPIRATION_STAGE = 30 * 1000; // 30 seconds in milliseconds
+
+const isLessonStandalone = (template) => template.toLowerCase() === 'lesson-standalone';
 
 const getCachedCourseData = (coursePath) => {
   const cachedData = localStorage.getItem(CACHE_KEY);
@@ -39,25 +42,33 @@ const getCachedCourseData = (coursePath) => {
 export async function getCourseData() {
   try {
     const currentPath = window.location.pathname;
-    const relevantPath = currentPath.split(COURSES_BASE_PATH)[1];
-    if (!relevantPath) {
+    const template = getMetadata('template');
+    if (!TEMPLATES.includes(template)) {
       throw new Error('Not a course page');
     }
-    const course = relevantPath.split('/')[0];
-    if (!course) {
+    let basePath = COURSES_BASE_PATH;
+    if (isLessonStandalone(template) && currentPath.includes('lessons')) {
+      basePath = LESSONS_BASE_PATH;
+    }
+
+    const relevantPath = currentPath.split(basePath)[1];
+
+    const course = (template !== 'lesson-standalone') ? relevantPath.split('/')[0] : '';
+    if (template !== 'lesson-standalone' && !course) {
       throw new Error('No course found in the path');
     }
 
-    // build the full course path
-    const coursePath = `${COURSES_BASE_PATH}${course}`;
+    // build the full course path or lesson path in case of standalone lesson
+    const fullPath = (template !== 'lesson-standalone') ? `${COURSES_BASE_PATH}${course}` : `${LESSONS_BASE_PATH}${course}`;
 
     // Check if we have cached data for this course
-    const cachedData = getCachedCourseData(coursePath);
+    const cachedData = getCachedCourseData(fullPath);
     if (cachedData) {
       return cachedData;
     }
 
     const courseData = {
+      isLessonStandalone: isLessonStandalone(template),
       hasChapters: false, // Will be determined by data
       chapters: [],
       lessons: [],
@@ -66,7 +77,7 @@ export async function getCourseData() {
     // Get entries from query-index for course content
     const entries = await ffetch(window.location.origin + COURSES_INDEX_PATH)
       .filter((entry) => TEMPLATES.includes(entry.template.toLowerCase())
-        && entry.path.startsWith(coursePath))
+        && entry.path.startsWith(fullPath))
       .all();
 
     // Determine if it course has chapters
@@ -88,7 +99,7 @@ export async function getCourseData() {
     });
 
     entries.forEach((entry) => {
-      if (entry.template.toLowerCase() === 'course') {
+      if (entry.template.toLowerCase() === 'course' || entry.template.toLowerCase() === 'lesson-standalone') {
         Object.assign(courseData, entry);
       } else if (entry.template.toLowerCase() === 'chapter') {
         courseData.chapters.push({
@@ -120,12 +131,14 @@ export async function getCourseData() {
         chapter.lessons.sort((a, b) => subModulesOrderArray.indexOf(a.pathSuffix)
           - subModulesOrderArray.indexOf(b.pathSuffix));
       });
-    } else {
+    }
+
+    if (!courseData.isLessonStandalone) {
       const { subModulesOrder } = courseData;
       if (subModulesOrder) {
         const subModulesOrderArray = subModulesOrder.split(',').map((item) => item.trim());
         courseData.lessons.sort((a, b) => subModulesOrderArray.indexOf(a.pathSuffix)
-          - subModulesOrderArray.indexOf(b.pathSuffix));
+            - subModulesOrderArray.indexOf(b.pathSuffix));
       }
     }
 
