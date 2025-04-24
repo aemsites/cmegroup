@@ -16,6 +16,13 @@ const CACHE_EXPIRATION_PROD = 15 * 60 * 1000; // 15 minutes in milliseconds
 const CACHE_EXPIRATION_STAGE = 30 * 1000; // 30 seconds in milliseconds
 
 const isLessonStandalone = (template) => template.toLowerCase() === 'lesson-standalone';
+const getQueryIndexUrl = () => {
+  let origin = window.location.origin;
+  if (window.location.hostname === 'localhost') {
+    origin = 'https://main--www--cmegroup.aem.page';
+  }
+  return `${origin}${COURSES_INDEX_PATH}`;
+};
 
 const getCachedCourseData = (coursePath) => {
   const cachedData = localStorage.getItem(CACHE_KEY);
@@ -43,7 +50,7 @@ export async function getCourseData() {
   try {
     const currentPath = window.location.pathname;
     const template = getMetadata('template');
-    if (!TEMPLATES.includes(template)) {
+    if (!TEMPLATES.includes(template.toLowerCase())) {
       throw new Error('Not a course page');
     }
     let basePath = COURSES_BASE_PATH;
@@ -75,7 +82,7 @@ export async function getCourseData() {
     };
 
     // Get entries from query-index for course content
-    const entries = await ffetch(window.location.origin + COURSES_INDEX_PATH)
+    const entries = await ffetch(getQueryIndexUrl())
       .filter((entry) => TEMPLATES.includes(entry.template.toLowerCase())
         && entry.path.startsWith(fullPath))
       .all();
