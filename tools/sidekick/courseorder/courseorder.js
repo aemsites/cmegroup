@@ -151,11 +151,11 @@ class CourseOrganiser {
       // Get the template type metadata
       const templateType = this.getMetadata('template', doc);
       
-      // Use the getMetadata function to extract SubModulesOrder
-      const orderMetadata = this.getMetadata('submodulesorder', doc);
+      // Use the getMetadata function to extract modulesOrder
+      const orderMetadata = this.getMetadata('modules-order', doc);
       
       if (!orderMetadata) {
-        console.log('No SubModulesOrder metadata found, using default order');
+        console.log('No Modules Order metadata found, using default order');
         return { templateType };
       }
       

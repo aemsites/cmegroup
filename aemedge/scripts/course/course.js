@@ -123,22 +123,22 @@ export async function getCourseData() {
         }
       }
     });
-    // Sort chapters and lessons based on subModulesOrder
+    // Sort chapters and lessons based on modulesOrder
     if (courseData.hasChapters) {
       courseData.chapters.forEach((chapter) => {
-        const { subModulesOrder } = chapter;
-        const subModulesOrderArray = subModulesOrder.split(',').map((item) => item.trim());
-        chapter.lessons.sort((a, b) => subModulesOrderArray.indexOf(a.pathSuffix)
-          - subModulesOrderArray.indexOf(b.pathSuffix));
+        const { modulesOrder } = chapter;
+        const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
+        chapter.lessons.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix)
+          - modulesOrderArray.indexOf(b.pathSuffix));
       });
     }
 
     if (!courseData.isLessonStandalone) {
-      const { subModulesOrder } = courseData;
-      if (subModulesOrder) {
-        const subModulesOrderArray = subModulesOrder.split(',').map((item) => item.trim());
-        courseData.lessons.sort((a, b) => subModulesOrderArray.indexOf(a.pathSuffix)
-            - subModulesOrderArray.indexOf(b.pathSuffix));
+      const { modulesOrder } = courseData;
+      if (modulesOrder) {
+        const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
+        courseData.lessons.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix)
+            - modulesOrderArray.indexOf(b.pathSuffix));
       }
     }
 
