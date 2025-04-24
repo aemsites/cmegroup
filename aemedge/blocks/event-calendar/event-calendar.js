@@ -39,18 +39,6 @@ const params = {
   attributeParam: 'attributes',
 };
 
-function initFilters() {
-  const getUrlFilterParam = (hashParam, defaultValue = []) => {
-    const hashParamFilters = uriUtil.getHash(hashParam) || defaultValue;
-    return Array.isArray(hashParamFilters)
-      ? hashParamFilters
-      : [hashParamFilters];
-  };
-
-  filterPillsArray['input-country'] = getUrlFilterParam(params.countryParam);
-  filterPillsArray['input-impact'] = getUrlFilterParam(params.attributeParam);
-}
-
 function updateURLFilters(_filters) {
   if (!_filters) {
     return;
@@ -404,6 +392,18 @@ function renderFilterSection() {
   // date filters
   filtersSectionEventCalendar.append(filtersDateContainer);
 
+  // from url check correct checkboxes in dropdown
+  const checkboxInDropdown = filtersInputsContainer.querySelectorAll('.checkbox-dropdown input[type=checkbox]');
+  checkboxInDropdown.forEach((checkbox) => {
+    const listId = checkbox.closest('.checkbox-dropdown')?.id;
+    if (listId && filterPillsArray[listId]) {
+      const isChecked = filterPillsArray[listId].some((item) => item.id === checkbox.id);
+      checkbox.checked = isChecked;
+    } else {
+      checkbox.checked = false;
+    }
+  });
+
   return filtersSectionEventCalendar;
 }
 
@@ -422,11 +422,38 @@ function applyFilters() {
   closeFiltersInputsContainer();
 }
 
+function initFilters() {
+  // create filter array from url hashes
+  const getUrlFilterParam = (hashParam, defaultValue = []) => {
+    const hashParamFilters = uriUtil.getHash(hashParam) || defaultValue;
+    return Array.isArray(hashParamFilters)
+      ? hashParamFilters
+      : [hashParamFilters];
+  };
+  const createFilterPillsArrayFromUrl = (filterType, ids) => {
+    const sourceArray = economicFilters[filterType];
+    if (!sourceArray) {
+      return [];
+    }
+    return ids.map((id) => {
+      const foundItem = sourceArray.find((item) => item.id === id);
+      return foundItem ? { id: foundItem.id, name: foundItem.name } : null;
+    }).filter((item) => item !== null);
+  };
+  const countryIds = getUrlFilterParam(params.countryParam);
+  filterPillsArray['input-country'] = createFilterPillsArrayFromUrl('countries', countryIds);
+  const impactIds = getUrlFilterParam(params.attributeParam);
+  filterPillsArray['input-impact'] = createFilterPillsArrayFromUrl('impact', impactIds);
+
+  // render pills
+  renderCurrentPills(filterPillsArray);
+}
+
 async function init(block, version) {
   await initializeLabels();
   // economicFilters = await getEconomicReleaseFilters();
-
   economicFilters = { countries: [{ name: 'Australia', id: 'AU' }, { name: 'Canada', id: 'CA' }, { name: 'China', id: 'CN' }, { name: 'EMU', id: 'EMU' }, { name: 'France', id: 'FR' }, { name: 'Germany', id: 'DE' }, { name: 'Global', id: 'ALL' }, { name: 'Hong Kong', id: 'HK' }, { name: 'India', id: 'IN' }, { name: 'Italy', id: 'IT' }, { name: 'Japan', id: 'JP' }, { name: 'New Zealand', id: 'NZ' }, { name: 'Singapore', id: 'SG' }, { name: 'South Korea', id: 'KR' }, { name: 'Switzerland', id: 'CH' }, { name: 'Taiwan', id: 'TW' }, { name: 'United Kingdom', id: 'GB' }, { name: 'United States', id: 'US' }], impact: [{ name: 'Market Mover', id: 'HIGH' }, { name: 'Merits Extra Attention', id: 'MEDIUM' }, { name: 'Other Key Indicator', id: 'LOW' }], groups: { group: [{ name: 'Agricultural', id: 'AGRICULTURE' }, { name: 'Cryptocurrencies', id: 'CRYPTOCURRENCIES' }, { name: 'Energy', id: 'ENERGY' }, { name: 'Equity Index', id: 'EQUITIES' }, { name: 'FX', id: 'FX' }, { name: 'Interest Rates', id: 'INTEREST-RATE' }, { name: 'Metals', id: 'METALS' }] } };
+  initFilters();
 
   eventCalendarContainer.append(inputsCurtain);
   inputsCurtain.addEventListener('click', async () => {
