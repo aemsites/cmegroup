@@ -208,7 +208,9 @@ export default async function initFloatingElements(doc, header) {
         menu.style.top = `${offsetTop}px`;
       });
       const menuOpen = doc.querySelector('.nav-curtain.is-open');
-      menuOpen.style.top = `${offsetTop}px`;
+      if (menuOpen) {
+        menuOpen.style.top = `${offsetTop}px`;
+      }
     };
 
     const observer = new MutationObserver(updatePositions);
