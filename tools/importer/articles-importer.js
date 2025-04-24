@@ -16,12 +16,15 @@ import {
   threeColumnsArticleXS, generalColumns, generateEndColumns,
 } from './case-study-article.js';
 import { standardArticleInitialColumns } from './standard-article.js';
-import { fetchTemplate, SECTION_SELECTORS } from './utils.js';
+import { fetchTemplate, SECTION_SELECTORS, EDS_DOMAIN } from './utils.js';
 import { customReportElements } from './report.js';
-import { removeCourseSpecificItem } from './course-lesson.js';
+import {
+  removeCourseSpecificItem,
+  moduleOrder,
+  handleFragments,
+} from './course-lesson.js';
 
 const DOMAIN = 'https://www.cmegroup.com';
-const EDS_DOMAIN = 'https://main--www--cmegroup.aem.page';
 
 export const buildSectionMetadata = (cells) => WebImporter.Blocks.createBlock(document, {
   name: 'Section Metadata',
@@ -50,7 +53,8 @@ async function setMetadata(meta, document, url) {
       template: 'course',
     },
     'cme-group-standalone-lesson-template': {
-      template: 'standalone-lesson',
+      template: 'lesson',
+      subTemplate: 'standalone',
     },
     'cme-group-video-article-template': {
       template: 'article',
@@ -69,10 +73,17 @@ async function setMetadata(meta, document, url) {
       meta['Sub Template'] = templates[template].subTemplate;
     }
   }
+
   if (readTime) {
-    const time = readTime.textContent.split(' ')[0].trim().toLowerCase();
-    const type = readTime.textContent.split(' ')[1]?.trim().toLowerCase();
-    meta['Read Time'] = `${time} ${type}`;
+    // const time = readTime?.textContent?.trim().split(' ')[0].trim().toLowerCase();
+    // if (time.includes(':')) {
+    //   const [minutes, seconds] = time.split(':');
+    //   const totalSeconds = Number(minutes) * 60 + Number(seconds);
+    //   const nearestMinute = Math.round(totalSeconds / 60);
+    //   meta['Read Time'] = `${nearestMinute}`;
+    // } else {
+    //   meta['Read Time'] = `${time}`;
+    // }
     readTime.remove();
   }
 
@@ -118,11 +129,21 @@ async function setMetadata(meta, document, url) {
 
           meta['Primary Topic'] = arr.join(',');
         } else if (key === 'articleTime') {
-          const time = jsonData[key].split(':');
-          const minutes = Number(time[0]);
-          const seconds = Number(time[1]);
-          const nearestMinute = Math.round(minutes + seconds / 60);
-          meta['Read Time'] = `${nearestMinute} min`;
+          const readTimeTemp = jsonData[key];
+          const time = readTimeTemp?.trim().split(' ')[0].trim().toLowerCase();
+          if (time.includes(':')) {
+            const [minutes, seconds] = time.split(':');
+            const nearestMinute = Math.round(Number(minutes) + (Number(seconds) / 60));
+            meta['Read Time'] = `${nearestMinute}`;
+          } else {
+            meta['Read Time'] = `${time}`;
+          }
+        } else if (key === 'moduleId') {
+          meta['Module ID'] = jsonData[key];
+        } else if (key === 'hideCourseNavigation') {
+          meta['Hide Course Navigation'] = Boolean(jsonData[key]);
+        } else if (key === 'jcr:title' && (meta.Template === 'lesson' || meta.Template === 'course')) {
+          meta['Module Title'] = jsonData[key];
         }
       });
     } catch (error) {
@@ -605,7 +626,7 @@ const convertImagesToLinks = (document) => {
   });
 };
 
-const customBlocks = async (document, main, meta) => {
+const customBlocks = async (document, main, meta, url) => {
   tableBlock(document);
   convertSectionsToMetadata(document, main);
   articleHeroBlock(document, meta);
@@ -622,9 +643,13 @@ const customBlocks = async (document, main, meta) => {
     generateEndColumns(document);
   } else if (meta['Sub Template'] === 'standard') {
     standardArticleInitialColumns(document);
-  } else if (['lesson', 'course', 'standalone-lesson'].includes(meta.Template)) {
-    removeCourseSpecificItem(document);
+  } else if (['lesson', 'course'].includes(meta.Template)) {
+    await removeCourseSpecificItem(document, main, url);
+    handleFragments(document);
   }
+  await moduleOrder(document, meta, url);
+  document.querySelector('.course-nav')?.remove();
+
   brightCoveVideo(document);
   figCaptionEmphasize(document);
   document.querySelector('.tag-cloud')?.remove();
@@ -634,6 +659,13 @@ const customBlocks = async (document, main, meta) => {
   // document.querySelectorAll('form')?.forEach((form) => {
   //   form.remove();
   // });
+};
+
+const removeLinesEllipsis = (document) => {
+  const linesEllipsis = document.querySelectorAll('.LinesEllipsis-canvas');
+  linesEllipsis.forEach((line) => {
+    line.remove();
+  });
 };
 
 export default {
@@ -687,9 +719,11 @@ export default {
       '.education-language-selector',
       '.st-sticky-share-buttons',
       '.sitewide-marketing-popup',
-      '.course-nav',
+      // '.course-nav',
       '.top-info',
       '.slick-track',
+      '.w-sm-auto',
+      '.lateral-navigation',
     ]);
 
     const results = [];
@@ -697,11 +731,10 @@ export default {
 
     const meta = WebImporter.Blocks.getMetadata(document);
     await setMetadata(meta, document, url);
+    await customBlocks(document, main, meta, url);
 
     const mdb = WebImporter.Blocks.getMetadataBlock(document, meta);
     main.append(mdb);
-
-    await customBlocks(document, main, meta);
 
     let p = new URL(url).pathname;
     if (p.endsWith('/')) {
@@ -716,6 +749,7 @@ export default {
       .replace(/(^-|-$)/g, '');
 
     removeExtraSectionBreak(document);
+    removeLinesEllipsis(document);
 
     results.push({
       element: main,
