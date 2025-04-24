@@ -229,9 +229,9 @@ export async function fetchAndFilterDataCourse(searchTags = []) {
 
       let itemTags = [];
       try {
-        if (item.tags && item.tags !== '[]') {
-          const tagsString = item.tags.replace(/\\"/g, '"').replace(/'/g, '"');
-          itemTags = JSON.parse(tagsString).map((tag) => tag.toLowerCase());
+        if (item.tags && item.tags.length > 0) {
+          const tagsString = item.tags.map((tag) => tag.replace(/\\"/g, '"').replace(/'/g, '"'));
+          itemTags = tagsString.map((tag) => tag.toLowerCase());
         }
       } catch (e) {
         return false;
