@@ -1,13 +1,14 @@
 import { readBlockConfig } from '../../scripts/aem.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import { getEconomicReleaseFilters } from '../../scripts/services/ProductCalendarService.js';
-import { isEmpty } from '../../scripts/utils/index.js';
+import { URIUtil } from '../../scripts/utils/index.js';
 // import { store } from '../../scripts/store/store.js';
 // import { authentication as authStatus } from '../../scripts/modules/index.js';
 // import { renderFilterSection } from './filters/filters.js';
 
+const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
 const { body } = window.document;
-// const isDesktop = window.matchMedia('(min-width: 1200px)');
+let isDesktop = window.innerWidth > 1200;
 const inputsCurtain = createElement('div', { class: 'inputs-curtain' });
 const eventCalendarContainer = createElement('div', { class: 'event-calendar' });
 const filterSectionContainer = createElement('div', { class: 'filter-section-container' });
@@ -33,6 +34,44 @@ const currentPillsLabel = 'Currently filtering by:';
 let searchValueVar = '';
 let timeoutId;
 const filterPillsArray = {};
+const params = {
+  countryParam: 'countries',
+  attributeParam: 'attributes',
+};
+
+function initFilters() {
+  const getUrlFilterParam = (hashParam, defaultValue = []) => {
+    const hashParamFilters = uriUtil.getHash(hashParam) || defaultValue;
+    return Array.isArray(hashParamFilters)
+      ? hashParamFilters
+      : [hashParamFilters];
+  };
+
+  filterPillsArray['input-country'] = getUrlFilterParam(params.countryParam);
+  filterPillsArray['input-impact'] = getUrlFilterParam(params.attributeParam);
+}
+
+function updateURLFilters(_filters) {
+  if (!_filters) {
+    return;
+  }
+
+  const updateURLFilterParam = (filterParam, key) => {
+    if (
+      !_filters[key]
+      || (Array.isArray(_filters[key]) && !_filters[key].length)
+    ) {
+      uriUtil.removeHash(filterParam);
+    } else {
+      const filtersIds = _filters[key].map((item) => item.id);
+      uriUtil.addHash(filterParam, filtersIds);
+    }
+  };
+
+  updateURLFilterParam(params.countryParam, 'input-country');
+  updateURLFilterParam(params.attributeParam, 'input-impact');
+  uriUtil.navigate(true);
+}
 
 async function initializeLabels() {
   const [filtersLabelVar] = await Promise.all([
@@ -60,19 +99,6 @@ function openFiltersInputsContainer() {
   inputsCurtain.classList.add('is-open');
   filtersInputsContainer.classList.add('is-open');
   body.classList.add('curtain-visible');
-}
-
-function resetFilters() {
-  // reset and close modal
-  console.log('reset');
-  closeFiltersInputsContainer();
-}
-
-function applyFilters() {
-  // apply and close modal
-  console.log('apply');
-  console.log(`searchValueVar= ${searchValueVar}`);
-  closeFiltersInputsContainer();
 }
 
 function cleanInputSearch() {
@@ -145,6 +171,7 @@ function removePillHandler(pill) {
       }
     }
   }
+  updateURLFilters(filterPillsArray);
 }
 
 function decoratePills(container) {
@@ -197,6 +224,7 @@ function renderCurrentPills(pillsArray) {
   }
 
   decoratePills(pillsInnerContainer);
+  updateURLFilters(pillsArray);
 
   return filtersCurrentContainer;
 }
@@ -220,7 +248,9 @@ function filterPillsArrayHandler(listId, checkbox) {
     filterPillsArray[listId] = filterPillsArray[listId].filter((item) => item.id !== checkbox.id);
   }
 
-  renderCurrentPills(filterPillsArray);
+  if (isDesktop) {
+    renderCurrentPills(filterPillsArray);
+  }
 }
 
 function setupCountryCheckboxListeners(input) {
@@ -377,6 +407,21 @@ function renderFilterSection() {
   return filtersSectionEventCalendar;
 }
 
+function resetFilters() {
+  // reset and close modal
+  console.log('reset');
+  removePillHandler('clear-all');
+  closeFiltersInputsContainer();
+}
+
+function applyFilters() {
+  // apply and close modal
+  console.log('apply');
+  console.log(`searchValueVar= ${searchValueVar}`);
+  renderCurrentPills(filterPillsArray);
+  closeFiltersInputsContainer();
+}
+
 async function init(block, version) {
   await initializeLabels();
   // economicFilters = await getEconomicReleaseFilters();
@@ -394,8 +439,14 @@ async function init(block, version) {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
       const windowWidth = window.innerWidth;
+      const crossedBreakpointDown = (prevWindowWidth > 1200 && windowWidth <= 1199);
       const crossedBreakpointUp = (prevWindowWidth <= 1199 && windowWidth >= 1200);
+      if (crossedBreakpointDown) {
+        isDesktop = window.innerWidth > 1200;
+      }
       if (crossedBreakpointUp) {
+        isDesktop = window.innerWidth > 1200;
+        renderCurrentPills(filterPillsArray);
         const openInputsCurtain = document.querySelector('.inputs-curtain.is-open');
         if (openInputsCurtain) {
           closeFiltersInputsContainer();
