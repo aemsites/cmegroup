@@ -17,7 +17,7 @@ const CACHE_EXPIRATION_STAGE = 30 * 1000; // 30 seconds in milliseconds
 
 const isLessonStandalone = (template) => template.toLowerCase() === 'lesson-standalone';
 const getQueryIndexUrl = () => {
-  let origin = window.location.origin;
+  let { origin } = window.location;
   if (window.location.hostname === 'localhost') {
     origin = 'https://main--www--cmegroup.aem.page';
   }
