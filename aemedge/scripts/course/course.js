@@ -118,7 +118,7 @@ export async function getCourseData() {
         } else {
           courseData.lessons.push({
             ...entry,
-            pathSuffix: entry.path.split(coursePath)[1].substring(1),
+            pathSuffix: entry.path.split(fullPath)[1].substring(1),
           });
         }
       }
@@ -145,7 +145,7 @@ export async function getCourseData() {
     // Cache the course data with path and timestamp
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({
-        path: coursePath,
+        path: fullPath,
         data: courseData,
         timestamp: Date.now(),
       }));
