@@ -626,6 +626,19 @@ const convertImagesToLinks = (document) => {
   });
 };
 
+const correctLinks = (document) => {
+  const links = document.querySelectorAll('a');
+  links.forEach((link) => {
+    console.log('link', link.href);
+    if (link.href) {
+      const { pathname } = new URL(link.href);
+      if (link?.href.endsWith('.html') && pathname?.startsWith('/education/')) {
+        link.href = link.href.replace('.html', '');
+      }
+    }
+  });
+};
+
 const customBlocks = async (document, main, meta, url) => {
   tableBlock(document);
   convertSectionsToMetadata(document, main);
@@ -655,6 +668,7 @@ const customBlocks = async (document, main, meta, url) => {
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
   convertImagesToLinks(document);
+  correctLinks(document);
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
   //   form.remove();
