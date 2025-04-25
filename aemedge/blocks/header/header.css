@@ -1264,6 +1264,8 @@ button.search-icon::before {
 
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container {
         padding-left: 88px;
+        overflow-y: auto;
+        max-height: calc(100vh - 100px);
     }
 
     .right-side {
