@@ -187,6 +187,7 @@ button.search-icon::before {
     width: 25rem;
     max-height: calc(100vh - 50px);
     overflow: auto;
+    background-color: var(--blue2);
 }
 
 .nav-nav-item {
@@ -251,6 +252,7 @@ button.search-icon::before {
 
 .nav-nav-item.login-nav .nav-nav-item-menu .login div div.links-container {
     border-bottom: 0.0625rem solid rgba(255 255 255 / 30%);
+    margin-bottom: 2.8125rem;
 }
 
 .nav-nav-item.login-nav .nav-nav-item-menu .login div div.account-container li a {
