@@ -211,7 +211,7 @@ export async function createCourseBaseTemplate() {
     const type = createElement('div', { class: 'metadata type' });
     type.textContent = courseLabel;
     header.appendChild(type);
-  } else if (template.toLowerCase() === 'lesson') {
+  } else if (template.toLowerCase() === 'lesson' || template.toLowerCase() === 'lesson-standalone') {
     const type = createElement('div', { class: 'metadata type' });
     type.textContent = lessonLabel;
     getCourseData()
