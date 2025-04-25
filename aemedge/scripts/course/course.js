@@ -39,6 +39,19 @@ const getCachedCourseData = (coursePath) => {
   return null;
 };
 
+const addCourseDataToCache = (coursePath, courseData) => {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      path: coursePath,
+      data: courseData,
+      timestamp: Date.now(),
+    }));
+  } catch (cacheError) {
+    // eslint-disable-next-line no-console
+    console.warn('Failed to cache course data:', cacheError);
+  }
+};
+
 /**
  * Get the course data for the current course
  * It is used for the course page and the lesson page
@@ -53,6 +66,14 @@ export async function getCourseData() {
     if (!TEMPLATES.includes(template.toLowerCase())) {
       throw new Error('Not a course page');
     }
+
+    const courseData = {
+      isLessonStandalone: isLessonStandalone(template),
+      hasChapters: false, // Will be determined by data
+      chapters: [],
+      lessons: [],
+    };
+
     let basePath = COURSES_BASE_PATH;
     if (isLessonStandalone(template) && currentPath.includes('lessons')) {
       basePath = LESSONS_BASE_PATH;
@@ -66,27 +87,29 @@ export async function getCourseData() {
     }
 
     // build the full course path or lesson path in case of standalone lesson
-    const fullPath = (template !== 'lesson-standalone') ? `${COURSES_BASE_PATH}${course}` : `${LESSONS_BASE_PATH}${course}`;
+    const coursePath = (template !== 'lesson-standalone') ? `${COURSES_BASE_PATH}${course}` : `${LESSONS_BASE_PATH}${course}`;
 
     // Check if we have cached data for this course
-    const cachedData = getCachedCourseData(fullPath);
+    const cachedData = getCachedCourseData(coursePath);
     if (cachedData) {
       return cachedData;
     }
 
-    const courseData = {
-      isLessonStandalone: isLessonStandalone(template),
-      hasChapters: false, // Will be determined by data
-      chapters: [],
-      lessons: [],
-    };
-
     // Get entries from query-index for course content
     const entries = await ffetch(getQueryIndexUrl())
       .filter((entry) => TEMPLATES.includes(entry.template.toLowerCase())
-        && entry.path.startsWith(fullPath))
+        && (entry.path === coursePath
+          || entry.path.startsWith(coursePath) + '/'))
       .all();
 
+    // If the page is a lesson standalone, return the first entry
+    // ideally there should be only one entry in this case
+    if (isLessonStandalone(template)) {
+      Object.assign(courseData, entries[0]);
+      addCourseDataToCache(coursePath, courseData);
+      return courseData;
+    }
+ 
     // Determine if it course has chapters
     courseData.hasChapters = entries.some((entry) => entry.template.toLowerCase() === 'chapter');
 
@@ -125,7 +148,7 @@ export async function getCourseData() {
         } else {
           courseData.lessons.push({
             ...entry,
-            pathSuffix: entry.path.split(fullPath)[1].substring(1),
+            pathSuffix: entry.path.split(coursePath)[1].substring(1),
           });
         }
       }
@@ -139,28 +162,15 @@ export async function getCourseData() {
           - modulesOrderArray.indexOf(b.pathSuffix));
       });
     }
-
-    if (!courseData.isLessonStandalone) {
-      const { modulesOrder } = courseData;
-      if (modulesOrder) {
-        const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
-        courseData.lessons.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix)
-            - modulesOrderArray.indexOf(b.pathSuffix));
-      }
+    
+    const { modulesOrder } = courseData;
+    if (modulesOrder) {
+      const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
+      courseData.lessons.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix)
+          - modulesOrderArray.indexOf(b.pathSuffix));
     }
 
-    // Cache the course data with path and timestamp
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        path: fullPath,
-        data: courseData,
-        timestamp: Date.now(),
-      }));
-    } catch (cacheError) {
-      // eslint-disable-next-line no-console
-      console.warn('Failed to cache course data:', cacheError);
-    }
-
+    addCourseDataToCache(coursePath, courseData);
     return courseData;
   } catch (error) {
     // eslint-disable-next-line no-console

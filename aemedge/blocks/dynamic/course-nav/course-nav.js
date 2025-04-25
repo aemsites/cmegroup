@@ -90,6 +90,9 @@ export default async function decorate(main) {
   if (template.toLowerCase() !== 'course' && template.toLowerCase() !== 'lesson') return;
 
   const courseData = await getCourseData();
+  if (courseData.isLessonStandalone) {
+    return;
+  }
   await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/course-nav/course-nav.css`);
   const currentPath = window.location.pathname;
   const totalLessons = getTotalLessonsCount(courseData);
@@ -126,13 +129,14 @@ export default async function decorate(main) {
   const content = createElement('div', { class: 'course-nav-content' });
 
   // Add chapters or lessons
+  if (courseData.lessons?.length) {
+    const { ul } = createLessonsList(courseData.lessons, currentPath, true);
+    content.appendChild(ul);
+  }
   if (courseData.hasChapters) {
     courseData.chapters.forEach((chapter) => {
       content.appendChild(createChapterElement(chapter, currentPath));
     });
-  } else if (courseData.lessons?.length) {
-    const { ul } = createLessonsList(courseData.lessons, currentPath, true);
-    content.appendChild(ul);
   }
 
   nav.append(header, content);
