@@ -139,6 +139,27 @@ function buildAutoBlocks(main) {
 }
 
 /**
+ * Decorates external links to open in a new tab.
+ * @param {Element} main The main element
+ */
+export function decorateExternalLinks(main) {
+  main.querySelectorAll('a').forEach((a) => {
+    const href = a.getAttribute('href');
+    if (href) {
+      const extension = href.split('.').pop().trim();
+      const isExternal = !href.startsWith('/') && !href.startsWith('#');
+      const isPDF = extension === 'pdf';
+      const isCMEGroup = href.includes('cmegroup.com');
+      const hasLinkOverride = a.querySelector('code') !== null;
+
+      if (isPDF || (isExternal && !isCMEGroup) || (isCMEGroup && hasLinkOverride)) {
+        a.setAttribute('target', '_blank');
+      }
+    }
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -150,6 +171,7 @@ export function decorateMain(main) {
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
+  decorateExternalLinks(main);
 }
 
 /**
