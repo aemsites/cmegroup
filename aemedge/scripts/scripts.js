@@ -148,12 +148,8 @@ function buildAutoBlocks(main) {
 function isExternalImage(element) {
   // if the element is not an anchor, it's not an external image
   if (element.tagName !== 'A') return false;
-  // IMPLICIT via CME Group Delivery URLs
-  if (/https:\/\/www\.cmegroup\.com\/content\/dam\//.test(element.getAttribute('href'))) {
-    return true;
-  }
-  // IMPLICIT via OOTB DMOpenAPI Delivery URLs
-  return /delivery-p\d+-e\d+\.adobeaemcloud\.com/.test(element.getAttribute('href'));
+  // IMPLICIT via CME Group Delivery URLs or OOTB DMOpenAPI Delivery URLs
+  return /https:\/\/www\.cmegroup\.com\/content\/dam\/|delivery-p\d+-e\d+\.adobeaemcloud\.com/.test(element.getAttribute('href'));
 }
 
 /*
@@ -239,7 +235,8 @@ function decorateExternalImages(ele) {
   extImages.forEach((extImage) => {
     if (isExternalImage(extImage)) {
       const extImageSrc = extImage.getAttribute('href');
-      const extPicture = createOptimizedPicture(extImageSrc);
+      const extTitle = extImage.getAttribute('title');
+      const extPicture = createOptimizedPicture(extImageSrc, extTitle);
 
       /* copy query params from link to img */
       const extImageUrl = new URL(extImageSrc);
