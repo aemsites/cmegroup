@@ -90,9 +90,6 @@ export default async function decorate(main) {
   if (template.toLowerCase() !== 'course' && template.toLowerCase() !== 'lesson') return;
 
   const courseData = await getCourseData();
-  if (courseData.isLessonStandalone) {
-    return;
-  }
   await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/course-nav/course-nav.css`);
   const currentPath = window.location.pathname;
   const totalLessons = getTotalLessonsCount(courseData);
