@@ -99,7 +99,7 @@ export async function getCourseData() {
     const entries = await ffetch(getQueryIndexUrl())
       .filter((entry) => TEMPLATES.includes(entry.template.toLowerCase())
         && (entry.path === coursePath
-          || entry.path.startsWith(coursePath) + '/'))
+          || entry.path.startsWith(`${coursePath}/`)))
       .all();
 
     // If the page is a lesson standalone, return the first entry
@@ -109,7 +109,7 @@ export async function getCourseData() {
       addCourseDataToCache(coursePath, courseData);
       return courseData;
     }
- 
+
     // Determine if it course has chapters
     courseData.hasChapters = entries.some((entry) => entry.template.toLowerCase() === 'chapter');
 
@@ -162,7 +162,7 @@ export async function getCourseData() {
           - modulesOrderArray.indexOf(b.pathSuffix));
       });
     }
-    
+
     const { modulesOrder } = courseData;
     if (modulesOrder) {
       const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
