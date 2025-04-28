@@ -187,7 +187,6 @@
 }
 
 @media (width >=75rem) {
-
     .event-calendar-container .filters-inputs-container .input-search-container::after,
     .event-calendar-container .filters-inputs-container .input-search-container .clean-search-input {
         color: var(--blue5);
@@ -286,7 +285,7 @@
 }
 
 .event-calendar-container .checkbox-dropdown ul li {
-    font-family: Averta;
+    font-family: var(--averta);
     font-size: .875rem;
     font-weight: 400;
     height: 2.25rem;
@@ -314,7 +313,7 @@
     margin-right: .375rem;
 }
 
-.event-calendar-container .checkbox-dropdown ul li label input[type=checkbox] {
+.event-calendar-container .checkbox-dropdown ul li label input[type="checkbox"] {
     left: 0;
     margin: 0;
     opacity: 0;
@@ -322,11 +321,10 @@
     top: 0;
 }
 
-.event-calendar-container .checkbox-dropdown ul li label input[type=checkbox]~span {
+.event-calendar-container .checkbox-dropdown ul li label input[type="checkbox"]~span {
     background-color: transparent;
     line-height: 1.375rem;
     vertical-align: text-bottom;
-    background: transparent;
     border: .0625rem solid;
     display: inline-block;
     height: .875rem;
@@ -334,11 +332,11 @@
     width: .875rem;
 }
 
-.event-calendar-container .checkbox-dropdown ul li label input[type=checkbox]:checked~span {
+.event-calendar-container .checkbox-dropdown ul li label input[type="checkbox"]:checked~span {
     background-color: #fff;
 }
 
-.event-calendar-container .checkbox-dropdown ul li label input[type=checkbox]:checked~span::after {
+.event-calendar-container .checkbox-dropdown ul li label input[type="checkbox"]:checked~span::after {
     border-bottom: .1875rem solid #006eb6;
     border-right: .1875rem solid #006eb6;
     height: .6875rem;
@@ -354,9 +352,9 @@
 /* checkbox in dropdown */
 
 .event-calendar-container .filters-inputs-container.is-open {
-    background-color: #081d37;
+    background-color: var(--blue1);
     border: 0;
-    box-shadow: 0 .0625rem .125rem 0 rgba(60, 64, 67, .3), 0 .125rem .375rem .125rem rgba(60, 64, 67, .15);
+    box-shadow: 0 .0625rem .125rem 0 rgba(60 64 67 / 30%), 0 .125rem .375rem .125rem rgba(60 64 67 / 15%);
     padding: 1.625rem 1.875rem;
     position: fixed;
     top: 0;
@@ -468,7 +466,7 @@
 /* release */
 
 .event-calendar-container .event-calendar.release {
-    padding: 1.25rem 0 2.5rem 0;
+    padding: 1.25rem 0 2.5rem;
 }
 
 .event-calendar-container .event-calendar.release .result-list-section {

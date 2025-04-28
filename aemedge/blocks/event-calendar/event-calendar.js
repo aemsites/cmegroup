@@ -266,7 +266,7 @@ function decorateFilterCountryInput() {
                       <input id="${id}" type="checkbox" class='country-checkbox' name="${countryName}">
                       <span></span>
                     </div>
-                    <div class="flag-icon ${id}"></div>
+                    <div class="flag-icon ${id.toLowerCase()}"></div>
                     ${countryName}
                   </label>
                 </li>
