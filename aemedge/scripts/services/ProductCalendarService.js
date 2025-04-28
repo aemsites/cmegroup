@@ -1,9 +1,9 @@
 import { apiGet, getResponseData } from '../utils/index.js';
-import { getEconomicReleaseFiltersUrl } from '../legacy-api.js';
+import { urlByEnvType } from '../utils.js';
 
 // eslint-disable-next-line import/prefer-default-export
 export async function getEconomicReleaseFilters() {
-  const url = getEconomicReleaseFiltersUrl();
+  const url = `${urlByEnvType()}/services/economic-release-filters`;
   try {
     const response = await apiGet(url);
     return getResponseData(response);

@@ -1,6 +1,6 @@
 import { readBlockConfig } from '../../scripts/aem.js';
 import { createElement, i18n } from '../../scripts/utils.js';
-// import { getEconomicReleaseFilters } from '../../scripts/services/ProductCalendarService.js';
+import { getEconomicReleaseFilters } from '../../scripts/services/ProductCalendarService.js';
 import { URIUtil } from '../../scripts/utils/index.js';
 
 const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
@@ -295,7 +295,7 @@ function setupImpactCheckboxListeners(input) {
 
 function decorateFilterImpactInput() {
   const filterImpactInput = createElement('details', { class: 'checkbox-dropdown input-impact', id: 'input-impact' });
-  if (economicFilters && economicFilters.countries) {
+  if (economicFilters && economicFilters.impact) {
     const impactArray = economicFilters.impact;
     filterImpactInput.innerHTML = `
       <summary>Impact</summary>
@@ -338,6 +338,7 @@ function applyFilters() {
   console.log(`searchValueVar= ${searchValueVar}`);
   renderCurrentPills(filterPillsArray);
   closeFiltersInputsContainer();
+  // call service with variables here
 }
 
 function renderInputs() {
@@ -375,8 +376,12 @@ function renderInputs() {
   filterSearchInputContainer.append(filterSearchInput);
   inputsFlexContainer.append(filterSearchInputContainer);
 
-  inputsFlexContainer.append(decorateFilterCountryInput());
-  inputsFlexContainer.append(decorateFilterImpactInput());
+  if (economicFilters && economicFilters.countries) {
+    inputsFlexContainer.append(decorateFilterCountryInput());
+  }
+  if (economicFilters && economicFilters.impact) {
+    inputsFlexContainer.append(decorateFilterImpactInput());
+  }
 
   filtersInputsContainer.append(inputsFlexContainer);
 
@@ -447,8 +452,7 @@ function initFilters() {
 
 async function init(block, version) {
   await initializeLabels();
-  // economicFilters = await getEconomicReleaseFilters();
-  economicFilters = { countries: [{ name: 'Australia', id: 'AU' }, { name: 'Canada', id: 'CA' }, { name: 'China', id: 'CN' }, { name: 'EMU', id: 'EMU' }, { name: 'France', id: 'FR' }, { name: 'Germany', id: 'DE' }, { name: 'Global', id: 'ALL' }, { name: 'Hong Kong', id: 'HK' }, { name: 'India', id: 'IN' }, { name: 'Italy', id: 'IT' }, { name: 'Japan', id: 'JP' }, { name: 'New Zealand', id: 'NZ' }, { name: 'Singapore', id: 'SG' }, { name: 'South Korea', id: 'KR' }, { name: 'Switzerland', id: 'CH' }, { name: 'Taiwan', id: 'TW' }, { name: 'United Kingdom', id: 'GB' }, { name: 'United States', id: 'US' }], impact: [{ name: 'Market Mover', id: 'HIGH' }, { name: 'Merits Extra Attention', id: 'MEDIUM' }, { name: 'Other Key Indicator', id: 'LOW' }], groups: { group: [{ name: 'Agricultural', id: 'AGRICULTURE' }, { name: 'Cryptocurrencies', id: 'CRYPTOCURRENCIES' }, { name: 'Energy', id: 'ENERGY' }, { name: 'Equity Index', id: 'EQUITIES' }, { name: 'FX', id: 'FX' }, { name: 'Interest Rates', id: 'INTEREST-RATE' }, { name: 'Metals', id: 'METALS' }] } };
+  economicFilters = await getEconomicReleaseFilters();
   initFilters();
 
   eventCalendarContainer.append(inputsCurtain);
