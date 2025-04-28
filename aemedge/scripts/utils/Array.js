@@ -5,7 +5,7 @@ import {
   get,
   sortBy,
   find,
-} from './MiscUtil.js';
+} from './misc.js';
 
 export function multiKeyIntersection(
   arr1,
