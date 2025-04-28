@@ -13,6 +13,12 @@ Before using the aem-boilerplate, we recommand you to go through the documentati
 3. [Web Performance](https://www.aem.live/developer/keeping-it-100)
 4. [Markup, Sections, Blocks, and Auto Blocking](https://www.aem.live/developer/markup-sections-blocks)
 
+
+## Plugins
+
+- For local development, sidekick plugins can be configured at /tools/sidekick/config.json
+- For DA environments, sidekick plugins must be registered in the config bus using the Admin API. See [here](https://www.aem.live/docs/admin.html#schema/SidekickConfig) for more details.
+
 ## Installation
 
 ```sh
