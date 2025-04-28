@@ -3,5 +3,5 @@ Please always provide the [GitHub issue(s)](../issues) your PR is for, as well a
 Fix #<gh-issue-id>
 
 Test URLs:
-- Before: https://main--wwww--cmegroup.aem.live/
+- Before: https://main--www--cmegroup.aem.live/
 - After: https://<branch>--www--cmegroup.aem.live/
