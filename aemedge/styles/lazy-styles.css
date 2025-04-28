@@ -1,4 +1,6 @@
 /* add global styles that can be loaded post LCP here */
+@import url('./popups.css');
+
 .flag-icon {
     display: inline-block;
     background-repeat: no-repeat;

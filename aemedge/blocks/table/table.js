@@ -22,8 +22,8 @@ function initStyleMatrix(data) {
 function parseRegexStyles(styleMatrix, blockClassList, numberOfColumns, numberOfRows) {
   let hasRegexStyle = false;
   blockClassList.forEach((className) => {
-    // Match patterns: r2c3-style, r2-style, c2-style, r1-header-primary, etc.
-    const match = className.match(/^(r(\d+)?c(\d+)?|r(\d+)|c(\d+))-(.+)/);
+    // Match patterns: r2-style, c2-style, r1-header-primary, etc.
+    const match = className.match(/^(r(\d+)?|c(\d+))-(.+)/);
     if (match) {
       hasRegexStyle = true;
       let row = null;
@@ -31,22 +31,15 @@ function parseRegexStyles(styleMatrix, blockClassList, numberOfColumns, numberOf
 
       if (match[2]) {
         row = parseInt(match[2], 10) - 1;
-      } else if (match[4]) {
-        row = parseInt(match[4], 10) - 1;
       }
 
       if (match[3]) {
         col = parseInt(match[3], 10) - 1;
-      } else if (match[5]) {
-        col = parseInt(match[5], 10) - 1;
       }
 
-      const style = match[6]; // Capture everything after the dash as the style
+      const style = match[4]; // Capture everything after the dash as the style
 
-      if (row !== null && col !== null) {
-        // Specific cell: r2c3-style
-        styleMatrix[row][col] = style;
-      } else if (row !== null) {
+      if (row !== null) {
         // Full row: r2-style
         for (let c = 0; c < numberOfColumns; c += 1) {
           styleMatrix[row][c] = style;
@@ -139,6 +132,23 @@ export default async function decorate(block) {
 
       const cell = buildCell(colspan, rowspan, i === 0 && header);
       cell.innerHTML = col.innerHTML;
+
+      // Extract and apply inline styles from the last paragraph
+      const paragraphs = cell.querySelectorAll('p');
+      if (paragraphs.length > 0) {
+        const lastParagraph = paragraphs[paragraphs.length - 1];
+        const inlineStyleMatch = lastParagraph.textContent.match(/\[(.*?)\]/);
+        if (inlineStyleMatch) {
+          const styles = inlineStyleMatch[1].split(',').map((s) => s.trim());
+          styles.forEach((style) => {
+            const [property, value] = style.split(':').map((s) => s.trim());
+            cell.style[property] = value;
+          });
+          // Remove the style definition from the paragraph content
+          lastParagraph.textContent = lastParagraph.textContent.replace(inlineStyleMatch[0], '').trim();
+        }
+      }
+
       if (styleMatrix[i][j] !== 'body') {
         cell.classList.add(styleMatrix[i][j]);
       }
