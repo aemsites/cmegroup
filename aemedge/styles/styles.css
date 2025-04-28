@@ -79,6 +79,11 @@ body {
     font-family: var(--body-font-family);
     font-size: var(--body-font-size-s);
     margin: 0;
+    display: none;
+}
+
+body.appear {
+    display: block;
 }
 
 @media (width >=769px) {
