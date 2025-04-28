@@ -85,7 +85,7 @@ function createChapterElement(chapter, currentPath) {
   return chapterWrapper;
 }
 
-export default async function decorate(main) {
+export default async function createCourseNav(main) {
   const template = getMetadata('template');
   if (template.toLowerCase() !== 'course' && template.toLowerCase() !== 'lesson') return;
 
