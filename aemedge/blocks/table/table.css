@@ -97,11 +97,11 @@
 }
 
 .table table tbody tr:hover {
-  background-color: #ebf9ff;
+  background-color: #ebf9ff !important;
 }
 
 .table.dark table tbody tr:hover {
-  background-color: var(--navy2);
+  background-color: var(--navy2) !important;
 }
 
 .table table tr [class$="-header"] {
