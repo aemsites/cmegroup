@@ -12,7 +12,7 @@ export default async function decorate(block) {
   ];
 
   const PLACEHOLDER = 'IFRAME_TITLE_HERE';
-  const iframeURL = blockConfig.url;
+  const iframeURL = blockConfig.url.href;
   const iframeTitle = blockConfig.title;
   const iframefixedHeight = blockConfig.height;
 
