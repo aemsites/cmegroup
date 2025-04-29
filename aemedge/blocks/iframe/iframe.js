@@ -1,4 +1,8 @@
+import { readBlockConfig } from '../../scripts/aem.js';
+
 export default async function decorate(block) {
+  const blockConfig = readBlockConfig(block);
+
   // Allowlist of permitted iframe sources
   const ALLOWED_HOSTS = [
     'www.google.com',
@@ -6,35 +10,11 @@ export default async function decorate(block) {
     'cmeg.co1.qualtrics.com',
     'html5-player.libsyn.com',
   ];
-  // Block properties
-  const PROP_TITLE = 'Title:';
-  const PROP_URL = 'Url:';
-  const PROP_HEIGHT = 'Height:';
 
-  // Get the block properties
-  function getBlockProperties() {
-    const result = {};
-    if (block) {
-      const rows = block.querySelectorAll(':scope > div');
-
-      rows.forEach((row) => {
-        const columns = row.querySelectorAll(':scope > div');
-        if (columns.length === 2) {
-          const key = columns[0].innerText.trim();
-          // Check if the value column contains a link
-          const link = columns[1].querySelector('a');
-          const value = link ? link.getAttribute('href') : columns[1].innerText.trim();
-          result[key] = value;
-        }
-      });
-    }
-    return result;
-  }
-  const blockProperties = getBlockProperties();
   const PLACEHOLDER = 'IFRAME_TITLE_HERE';
-  const iframeURL = blockProperties[PROP_URL];
-  const iframeTitle = blockProperties[PROP_TITLE];
-  const iframefixedHeight = blockProperties[PROP_HEIGHT];
+  const iframeURL = blockConfig.url;
+  const iframeTitle = blockConfig.title;
+  const iframefixedHeight = blockConfig.height;
 
   // Helper function to check if URL is allowed
   function isAllowedUrl(url) {
@@ -87,13 +67,12 @@ export default async function decorate(block) {
     iframe.height = iframefixedHeight;
   }
   iframe.src = iframeURL;
-  iframe.setAttribute('title', 'Iframe for external content');
+  iframe.setAttribute('title', getMeaningfulTitle());
   iframe.setAttribute('frameborder', 0);
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
   iframe.setAttribute('referrerpolicy', 'no-referrer');
   iframe.setAttribute('loading', 'lazy'); // Performance improvement
   iframe.allow = ''; // Restrict permissions (camera, microphone, etc.)
-  iframe.setAttribute('title', getMeaningfulTitle());
 
   const options = {
     root: null,
