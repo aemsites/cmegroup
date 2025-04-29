@@ -48,4 +48,7 @@
     --navy1: #1f3655;
     --navy2: #354a66;
     --blue-active-state: #005c99;
+    --notification-success-background: #e5f1e3;
+    --notification-success-tick: #1f9a00;
+    --notification-fail-tick: #9f0026;
 }
