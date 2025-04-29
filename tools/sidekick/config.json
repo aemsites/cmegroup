@@ -1,0 +1,80 @@
+ {
+    "project": "cmegroup.com",
+    "editUrlLabel": "Document Authoring",
+    "editUrlPattern": "https://da.live/edit#/{{org}}/{{site}}{{pathname}}",
+    "plugins": [
+      {
+        "id": "library",
+        "title": "Library",
+        "environments": [
+          "edit"
+        ]
+      },
+      {
+        "id": "previewblocklibrary",
+        "title": "Preview Block Library",
+        "environments": [
+          "edit"
+        ],
+        "daLibrary": true,
+        "includePaths": [
+          "DA"
+        ],
+        "experience": "fullsize-dialog",
+        "icon": "https://da.live/blocks/edit/img/Smock_Images_18_N.svg",
+        "path": "/tools/sidekick/library.html"
+      },
+      {
+        "id": "onpremAssets",
+        "title": "Assets - On-Premise",
+        "environments": [
+          "edit"
+        ],
+        "daLibrary": true,
+        "includePaths": [
+          "DA"
+        ],
+        "experience": "window",
+        "icon": "https://da.live/blocks/edit/img/Smock_Images_18_N.svg",
+        "url": "https://web-beta-author01.cmegroup.com/aem/assetpicker.html"
+      },
+      {
+        "id": "tagger",
+        "title": "Tag Browser",
+        "environments": [
+          "edit"
+        ],
+        "daLibrary": true,
+        "includePaths": [
+          "DA"
+        ],
+        "experience": "fullsize-dialog",
+        "icon": "https://da.live/blocks/edit/img/Smock_Images_18_N.svg",
+        "path": "/tools/sidekick/tagger/tagger.html"
+      },
+      {
+        "id": "courseorder",
+        "title": "Course Order",
+        "environments": [
+          "edit"
+        ],
+        "daLibrary": true,
+        "includePaths": [
+          "DA"
+        ],
+        "experience": "dialog",
+        "icon": "https://da.live/blocks/edit/img/Smock_Images_18_N.svg",
+        "path": "/tools/sidekick/courseorder/courseorder.html"
+      },
+      {
+        "id": "scheduler",
+        "title": "Scheduler", 
+        "environments": ["edit"],
+        "daLibrary": true,
+        "includePaths": ["DA"],
+        "experience": "dialog",
+        "icon": "https://da.live/blocks/edit/img/Smock_Images_18_N.svg",
+        "path": "/tools/sidekick/scheduler/scheduler.html"
+      }
+    ]
+  }

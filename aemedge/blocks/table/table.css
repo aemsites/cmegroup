@@ -37,17 +37,25 @@
   color: #5a6874;
 }
 
-.table tbody tr:nth-child(2n) {
+.table table tbody tr:nth-child(2n) {
   background-color: #F1F5F7;
 }
 
-.table.dark tbody tr:nth-child(2n) {
+.table.disable-row-banding table tbody tr:nth-child(2n) {
+  background-color: inherit;
+}
+
+.table.dark table tbody tr:nth-child(2n) {
   background-color: var(--navy1);
 }
 
 .table.dark table tbody tr {
   background-color: var(--blue2);
   color: #fff;
+}
+
+.table.dark.disable-row-banding table tbody tr:nth-child(2n) {
+  background-color: var(--blue2);
 }
 
 .table.compact table tbody tr {
@@ -89,11 +97,11 @@
 }
 
 .table table tbody tr:hover {
-  background-color: #ebf9ff;
+  background-color: #ebf9ff !important;
 }
 
 .table.dark table tbody tr:hover {
-  background-color: var(--navy2);
+  background-color: var(--navy2) !important;
 }
 
 .table table tr [class$="-header"] {
@@ -111,10 +119,6 @@
 
 .table.dark table tr [class$="-header"] {
   color: var(--white);
-}
-
-.table.dark table tbody tr [class$="-header"] {
-  background-color: unset;
 }
 
 .table.compact table tr [class$="-header"] {
