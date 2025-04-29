@@ -79,9 +79,14 @@ body {
     font-family: var(--body-font-family);
     font-size: var(--body-font-size-s);
     margin: 0;
+    display: none;
 }
 
-@media (width >=769px) {
+body.appear {
+    display: block;
+}
+
+@media (width >= 769px) {
     body {
         font-size: var(--body-font-size-m);
     }
@@ -91,13 +96,17 @@ body.curtain-visible {
     overflow: hidden;
 }
 
-@media (width >=993px) {
+@media (width >= 993px) {
     body.include-nav {
         margin-top: 0;
     }
 }
 
-@media (width >=993px) {
+main {
+    padding-top: 3.125rem;
+}
+
+@media (width >= 993px) {
     main {
         padding-top: 6.25rem;
     }
@@ -469,12 +478,12 @@ button.secondary.disabled {
 
 /* sections */
 main>.section {
-    margin-bottom: 1.875rem 0;
+    margin-bottom: 1.875rem;
 }
 
 @media (width > 768px) {
     main .section {
-        margin-bottom: 3.75rem 0;
+        margin-bottom: 3.75rem;
     }
 }
 

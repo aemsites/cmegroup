@@ -280,15 +280,16 @@ export function decorateMain(main) {
  */
 export async function loadTemplate(doc, templateName) {
   try {
+    const templateNameLower = templateName.toLowerCase();
     const cssLoaded = new Promise((resolve) => {
       loadCSS(
-        `${window.hlx.codeBasePath}/templates/${templateName}/${templateName}.css`,
+        `${window.hlx.codeBasePath}/templates/${templateNameLower}/${templateNameLower}.css`,
       )
         .then(resolve)
         .catch((err) => {
           // eslint-disable-next-line no-console
           console.error(
-            `failed to load css module for ${templateName}`,
+            `failed to load css module for ${templateNameLower}`,
             err.target.href,
           );
           resolve();
@@ -298,20 +299,20 @@ export async function loadTemplate(doc, templateName) {
       (async () => {
         try {
           const mod = await import(
-            `../templates/${templateName}/${templateName}.js`
+            `../templates/${templateNameLower}/${templateNameLower}.js`
           );
           if (mod.default) {
             await mod.default(doc);
           }
         } catch (error) {
           // eslint-disable-next-line no-console
-          console.log(`failed to load module for ${templateName}`, error);
+          console.log(`failed to load module for ${templateNameLower}`, error);
         }
         resolve();
       })();
     });
 
-    document.body.classList.add(`${templateName}-template`);
+    document.body.classList.add(`${templateNameLower}-template`);
 
     await Promise.all([cssLoaded, decorationComplete]);
   } catch (error) {
