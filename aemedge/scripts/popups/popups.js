@@ -1,6 +1,9 @@
 import { getMetadata } from '../aem.js';
 import { getSitewidePopups } from '../legacy-api.js';
-import { createElement } from '../utils.js';
+import {
+  createElement,
+  decodeHtmlEntities,
+} from '../utils.js';
 
 const CACHE_KEY = 'popups_cache';
 const CACHE_DURATION = 15 * 60 * 1000;
@@ -17,12 +20,6 @@ function closePopup(popupId) {
   window.CookieUtil?.set('popupsCme', allCookies);
   const popup = document.querySelector('.sitewide-popup');
   popup.remove();
-}
-
-function decodeHTML(html) {
-  const txt = document.createElement('textarea');
-  txt.innerHTML = html;
-  return txt.value;
 }
 
 function insertPopupIntoDOM(popup) {
@@ -62,10 +59,11 @@ function insertPopupIntoDOM(popup) {
     class: `title ${popup.titleSize} ${popup.reverse ? 'reverse' : ''}`,
   });
   popupTitle.textContent = popup.title;
-  const popupText = createElement('span', {
-    class: `popup-description ${popup.reverse ? 'reverse' : ''}`,
-  });
-  popupText.innerHTML = decodeHTML(popup.description);
+  const popupText = createElement(
+    'span',
+    { class: `popup-description ${popup.reverse ? 'reverse' : ''}` },
+  );
+  popupText.innerHTML = decodeHtmlEntities(popup.description);
   const button = createElement('a', {
     class: `popup-button button ${popup.buttonStyle}`,
     href: `${popup.linkUrl}`,
