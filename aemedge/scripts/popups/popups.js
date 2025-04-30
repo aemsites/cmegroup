@@ -19,6 +19,12 @@ function closePopup(popupId) {
   popup.remove();
 }
 
+function decodeHTML(html) {
+  const txt = document.createElement('textarea');
+  txt.innerHTML = html;
+  return txt.value;
+}
+
 function insertPopupIntoDOM(popup) {
   const container = document.querySelector('footer');
   if (!container) return null;
@@ -59,15 +65,21 @@ function insertPopupIntoDOM(popup) {
   const popupText = createElement('span', {
     class: `popup-description ${popup.reverse ? 'reverse' : ''}`,
   });
-  popupText.textContent = popup.description;
+  popupText.innerHTML = decodeHTML(popup.description);
   const button = createElement('a', {
     class: `popup-button button ${popup.buttonStyle}`,
     href: `${popup.linkUrl}`,
-    target: `${popup.linkTarget}`,
-    download: `${popup.linkDownload}`,
-    rel: `${popup.linkNoFollow}`,
     type: 'button',
   });
+  if (popup.linkTarget) {
+    button.target = popup.linkTarget;
+  }
+  if (popup.linkDownload !== 'false') {
+    button.download = popup.linkDownload;
+  }
+  if (popup.linkNoFollow) {
+    button.rel = popup.linkNoFollow;
+  }
   const buttonText = createElement('span', { class: 'text' });
   buttonText.textContent = popup.buttonText;
   button.addEventListener('click', () => {
