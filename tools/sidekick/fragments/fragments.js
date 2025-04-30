@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable import/no-absolute-path */
 /* eslint-disable import/no-unresolved */
 
