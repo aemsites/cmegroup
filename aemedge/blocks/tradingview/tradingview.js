@@ -68,11 +68,23 @@ export default function decorate(block) {
   // Create widget elements needed for its script to decorate
   const widgetEl = createWidgetElements(widgetConfig.script, widgetConfig.config);
 
-  // Replace the original widget div with placeholder (first div after configs processed/removed)
-  const widgetDiv = block.querySelector(':scope > div:nth-child(1)');
-  if (widgetDiv) {
-    widgetDiv.replaceWith(widgetEl);
-  }
+  // add event listener for intersection observer when block is in view port
+  const options = {
+    root: null,
+    rootMargin: '20%',
+    threshold: 1.0,
+  };
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        block.replaceChildren(widgetEl);
+        observer.unobserve(block);
+      }
+    });
+  }, options);
+
+  // observe the block
+  observer.observe(block);
 
   // Apply the specified height
   block.style.height = widgetConfig.height;
