@@ -1,0 +1,309 @@
+.course-nav {
+  position: absolute;
+  max-width: 100%;
+  margin-top: 3.5rem;
+  box-sizing: border-box;
+  border: none;
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 45, 116, 0.08);
+  z-index: 1000;
+  transition: max-width 0.2s ease;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  min-width: 18.75rem;
+  flex-shrink: 0;
+}
+
+@media (width > 480px) {
+  .course-nav {
+    max-width: 18.75rem;
+    width: 18.75rem;
+  }
+}
+
+@media (width > 992px) {
+  .course-nav {
+    margin-top: 4rem;
+    left: 0;
+    top: 6rem;
+    width: 18.75rem;
+  }
+}
+
+.course-nav .course-nav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  border-right: 1px solid var(--gray11);
+  font-family: var(--body-font-family);
+  background-color: var(--white);
+  width: 100%;
+  box-sizing: border-box;
+  border-top-right-radius: 4px;
+  border-bottom: .0625rem solid var(--gray4);
+}
+
+.course-nav .course-nav-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.course-nav .course-nav-title-content {
+  flex: 1;
+}
+
+/* Title states */
+.course-nav .course-nav-title {
+  font-family: var(--heading-font-family);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .09375rem;
+  line-height: 1.375rem;
+  margin: 0;
+  color: var(--blue2);
+  text-transform: uppercase;
+}
+
+.course-nav:not(.expanded) .course-nav-title {
+  display: none;
+}
+
+/* View Lessons text for collapsed state */
+.course-nav .course-nav-view-lessons {
+  display: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--blue2);
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+.course-nav:not(.expanded) .course-nav-view-lessons {
+  display: block;
+}
+
+.course-nav .course-nav-lessons-count {
+  color: var(--gray3);
+  display: block;
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .09375rem;
+  line-height: .875rem;
+  text-transform: uppercase;
+}
+
+.course-nav:not(.expanded) .course-nav-lessons-count {
+  display: none;
+}
+
+/* Right side wrapper for progress and toggle */
+.course-nav .course-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Progress Circle Styles */
+.course-nav .course-nav-progress {
+  position: relative;
+  width: 2.625rem;
+  height: 2.625rem;
+  flex-shrink: 0;
+  border: 4px solid var(--gray4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-color, var(--white));
+}
+
+.course-nav .course-nav-progress-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--blue-10);
+  line-height: 1;
+}
+
+/* Toggle button */
+.course-nav .course-nav-toggle {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: start;
+  justify-content: right;
+  box-shadow: none;
+}
+
+.course-nav .course-nav-toggle .icon {
+  font-size: 24px;
+  line-height: 1;
+  filter: var(--blue4-filter);
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Chapter title toggle styles */
+.course-nav .course-nav-chapter-title::after {
+  content: '+';
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--blue4);
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.course-nav-chapter.expanded .course-nav-chapter-title::after {
+  content: '−';
+}
+
+/* Content area */
+.course-nav .course-nav-content {
+  display: none;
+  background-color: #f5f7f8;
+  border-right: 1px solid var(--gray11);
+  border-bottom: 1px solid var(--gray11);
+  margin: 0;
+}
+
+.course-nav.expanded .course-nav-content {
+  display: block;
+}
+
+/* Chapter wrapper and progress bar styles */
+.course-nav .chapter-wrapper {
+  background-color: var(--white);
+}
+
+.course-nav .progress-bar.linear {
+  background-color: var(--gray6);
+  height: 0.25rem;
+  padding: 0.25rem 0;
+  margin: 0;
+}
+
+/* Chapter styles */
+.course-nav .course-nav-chapter {
+  background-color: var(--white);
+  margin: 0;
+  width: 100%;
+  position: relative;
+}
+
+/* Chapter button styles */
+.course-nav .collapsible-button.chapter {
+  border-bottom: .0625rem solid var(--gray4);
+  border-radius: 0;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  background-color: var(--gray5);
+}
+
+.course-nav .collapsible-button.chapter .title {
+  font-family: var(--heading-font-family);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .09375rem;
+  line-height: 1.375rem;
+  color: var(--blue2);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.course-nav .collapsible-button.chapter .icon {
+  filter: var(--blue4-filter);
+  font-size: 1.5rem;
+  line-height: 1;
+  width: 1rem;
+  height: 1rem;
+  display: flex;
+  align-items: start;
+}
+
+/* Lessons list styles */
+.course-nav .lessons-list {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background-color: var(--white);
+}
+
+.course-nav .lessons-list.show {
+  display: block;
+}
+
+/* Lesson styles */
+.course-nav .course-nav-lesson {
+  border-bottom: .0625rem solid var(--gray4);
+  font-size: .875rem;
+  line-height: 1.25rem;
+  padding: 1.25rem 1.25rem;
+  margin-bottom: 0;
+}
+
+.course-nav .course-nav-lesson a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  font-family: var(--body-font-family);
+  color: var(--blue4);
+}
+
+.course-nav .course-nav-lesson.current {
+  background-color: rgb(0 110 182 / 10%);
+}
+
+.course-nav .course-nav-lesson a .title {
+  flex: 1;
+  margin-right: 0.75rem;
+}
+
+.course-nav .icon-uncheck {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--gray4);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Ensure consistent width for expanded content */
+.course-nav.expanded {
+  border: 1px solid var(--gray11);
+  border-left: none;
+  max-width: 30.625rem;
+  width: 100%;
+}
+
+.course-nav.expanded .course-nav-content {
+  display: block;
+  border: none;
+  margin: 0;
+}
+
+/* Reset margins and ensure box-sizing */
+.course-nav * {
+  box-sizing: border-box;
+}
+
+.course-nav .icon-uncheck {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--gray4);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+

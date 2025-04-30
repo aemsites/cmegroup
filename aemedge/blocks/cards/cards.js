@@ -1,10 +1,12 @@
 /* eslint-disable max-len */
-import { createOptimizedPicture, readBlockConfig } from '../../scripts/aem.js';
+import { readBlockConfig } from '../../scripts/aem.js';
+import { createOptimizedPicture } from '../../scripts/scripts.js';
 import {
   createElement,
   parseTime,
   formatDate,
   i18n,
+  decodeHtmlEntities,
 } from '../../scripts/utils.js';
 
 const QUERY_INDEX_ENDPOINT = '/query-index.json';
@@ -166,7 +168,7 @@ export async function createDynamicCardArticle({ content }) {
   const {
     path,
     mediaType,
-    image: imagePath,
+    fullImage,
     duration,
     date,
     title,
@@ -187,7 +189,7 @@ export async function createDynamicCardArticle({ content }) {
   const imageContainer = document.createElement('div');
   imageContainer.className = 'cards-image-container';
   const image = document.createElement('img');
-  image.src = `https://www.cmegroup.com${imagePath}`;
+  image.src = fullImage;
   imageContainer.append(image);
 
   const mainContainer = document.createElement('div');
@@ -214,6 +216,22 @@ export async function createDynamicCardArticle({ content }) {
   return li;
 }
 
+function createDynamicCardThumbnailMedium({ content }) {
+  const { dynamicProperties } = content;
+  const {
+    path,
+    fullImage,
+    title,
+  } = dynamicProperties;
+  const cardImgTop = createOptimizedPicture(fullImage);
+  cardImgTop.className = 'card-img-top';
+  const paragraph = createElement('p', { class: 'card-text' }, decodeHtmlEntities(title));
+  const titletag = createElement('div', { class: 'card-title' }, paragraph);
+  const cardBody = createElement('div', { class: 'card-body' }, titletag);
+  const link = createElement('a', { href: path }, cardImgTop, cardBody);
+  return createElement('li', null, link);
+}
+
 export async function fetchAndFilterDataCourse(searchTags = []) {
   try {
     const response = await fetch(QUERY_INDEX_ENDPOINT);
@@ -229,9 +247,9 @@ export async function fetchAndFilterDataCourse(searchTags = []) {
 
       let itemTags = [];
       try {
-        if (item.tags && item.tags !== '[]') {
-          const tagsString = item.tags.replace(/\\"/g, '"').replace(/'/g, '"');
-          itemTags = JSON.parse(tagsString).map((tag) => tag.toLowerCase());
+        if (item.tags?.length > 0) {
+          const tagsString = item.tags.map((tag) => tag.replace(/\\"/g, '"').replace(/'/g, '"'));
+          itemTags = tagsString.map((tag) => tag.toLowerCase());
         }
       } catch (e) {
         return false;
@@ -264,28 +282,36 @@ export async function fetchAndFilterDataArticle(endpoint) {
   }
 }
 
-export default async function decorate(block) {
+async function createDynamicCards(block) {
   const config = readBlockConfig(block);
-  let cards = null;
-  const cardsContainer = document.createElement('div');
-  if (block.classList.contains('dynamic')) {
-    const ul = createElement('ul');
-    let filteredData;
-    let cardElements;
-    if (block.classList.contains('course')) {
-      const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
-      filteredData = await fetchAndFilterDataCourse(tags);
-      cardElements = filteredData.map(createDynamicCard);
-    } else {
-      const { endpoint } = config;
-      filteredData = await fetchAndFilterDataArticle(endpoint);
-      cardElements = await Promise.all(filteredData.map(createDynamicCardArticle));
-    }
-    ul.append(...cardElements);
-    cardsContainer.append(ul);
-    cards = cardsContainer;
+  const ul = createElement('ul');
+  let filteredData;
+  let cardElements;
+  if (block.classList.contains('course')) {
+    const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
+    filteredData = await fetchAndFilterDataCourse(tags);
+    cardElements = filteredData.map(createDynamicCard);
+  } else if (block.classList.contains('article')) {
+    const { endpoint } = config;
+    filteredData = await fetchAndFilterDataArticle(endpoint);
+    cardElements = await Promise.all(filteredData.map(createDynamicCardArticle));
+  } else if (block.classList.contains('thumbnail-medium')) {
+    const { endpoint } = config;
+    filteredData = await fetchAndFilterDataArticle(endpoint);
+    cardElements = await Promise.all(filteredData.map(createDynamicCardThumbnailMedium));
   } else {
-    // Default to static mode
+    cardElements = [];
+  }
+  ul.append(...cardElements);
+  const cardsContainer = createElement('div', null, ul);
+  return cardsContainer;
+}
+
+export default async function decorate(block) {
+  let cards = null;
+  if (block.classList.contains('dynamic')) {
+    cards = await createDynamicCards(block);
+  } else {
     cards = await createStaticCards(block);
   }
 
