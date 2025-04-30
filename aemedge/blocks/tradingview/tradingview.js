@@ -12,11 +12,11 @@ export default function decorate(block) {
       try {
         config = JSON.parse(codeBlock.textContent);
       } catch (err) {
-        console.error('Invalid JSON in <code> block:', err);
+        // Suppress the error
       }
     }
 
-    // Remove config divs from DOM
+    // Remove config divs from DOM once consumed
     divs[0]?.remove();
     divs[1]?.remove();
 
