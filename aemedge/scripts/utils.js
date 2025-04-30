@@ -298,6 +298,11 @@ function isDateBefore(date1, date2) {
   return d1 < d2;
 }
 
+function decodeHtmlEntities(str) {
+  const doc = new DOMParser().parseFromString(str, 'text/html');
+  return doc.documentElement.textContent;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -313,4 +318,5 @@ export {
   isDateBefore,
   urlByEnvType,
   getCurrentLangInWords,
+  decodeHtmlEntities,
 };
