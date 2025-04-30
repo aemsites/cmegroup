@@ -303,6 +303,40 @@ function decodeHtmlEntities(str) {
   return doc.documentElement.textContent;
 }
 
+export const PRODUCTION_DOMAINS = ['cmegroup.com', 'beta.cmegroup.com'];
+const domainCheckCache = {};
+
+/**
+ * Checks a url to determine if it is a known domain.
+ * @param {string | URL} url the url to check
+ * @returns {Object} an object with properties indicating the urls domain types.
+ */
+function checkDomain(url) {
+  const urlToCheck = typeof url === 'string' ? new URL(url) : url;
+
+  let result = domainCheckCache[urlToCheck.hostname];
+  if (!result) {
+    const isProd = PRODUCTION_DOMAINS.some((host) => urlToCheck.hostname.includes(host));
+    const isAEM = ['aem.page', 'aem.live'].some((host) => urlToCheck.hostname.includes(host));
+    const isLocal = urlToCheck.hostname.includes('localhost');
+    const isPreview = isLocal || urlToCheck.hostname.includes('aem.page');
+    const isKnown = isProd || isAEM || isLocal;
+    const isExternal = !isKnown;
+    result = {
+      isProd,
+      isAEM,
+      isLocal,
+      isKnown,
+      isExternal,
+      isPreview,
+    };
+
+    domainCheckCache[urlToCheck.hostname] = result;
+  }
+
+  return result;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -319,4 +353,5 @@ export {
   urlByEnvType,
   getCurrentLangInWords,
   decodeHtmlEntities,
+  checkDomain,
 };
