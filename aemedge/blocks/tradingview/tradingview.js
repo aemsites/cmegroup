@@ -1,7 +1,7 @@
 export default function decorate(block) {
   // Helper: Extracts widget configuration from the authored block
-  function extractWidgetConfig(block) {
-    const divs = block.querySelectorAll(':scope > div');
+  function extractWidgetConfig(blockEl) {
+    const divs = blockEl.querySelectorAll(':scope > div');
 
     const script = divs[0]?.children[1]?.textContent.trim();
     const height = divs[1]?.children[1]?.textContent.trim();
