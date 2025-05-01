@@ -1,31 +1,7 @@
+import { readBlockConfig } from '../../scripts/aem.js';
+
 export default function decorate(block) {
-  // Helper: Extracts widget configuration from the authored block
-  function extractWidgetConfig(blockEl) {
-    const divs = blockEl.querySelectorAll(':scope > div');
-
-    const script = divs[0]?.children[1]?.textContent.trim();
-    const height = divs[1]?.children[1]?.textContent.trim();
-    let config = {};
-
-    const codeBlock = divs[2]?.querySelector('pre > code');
-    if (codeBlock) {
-      try {
-        config = JSON.parse(codeBlock.textContent);
-      } catch (err) {
-        // Suppress the error
-      }
-    }
-
-    // Remove config divs from DOM once consumed
-    divs[0]?.remove();
-    divs[1]?.remove();
-
-    return {
-      script,
-      height,
-      config,
-    };
-  }
+  const blockConfig = readBlockConfig(block);
 
   // Helper function to create placeholders needed for the widget script to decorate
   function createWidgetElements(script, config) {
@@ -63,10 +39,21 @@ export default function decorate(block) {
     return containerEl;
   }
 
-  // Extract widget configuration
-  const widgetConfig = extractWidgetConfig(block);
+  function extractWidgetJsonConfig(blockEl) {
+    const codeBlock = blockEl?.querySelector('pre > code');
+    if (codeBlock) {
+      try {
+        return JSON.parse(codeBlock.textContent);
+      } catch (err) {
+        // Suppress the error
+      }
+    }
+    return {};
+  }
+
   // Create widget elements needed for its script to decorate
-  const widgetEl = createWidgetElements(widgetConfig.script, widgetConfig.config);
+  const widgetEl = createWidgetElements(blockConfig.script, extractWidgetJsonConfig(block));
+  block.textContent = '';
 
   // add event listener for intersection observer when block is in view port
   const options = {
@@ -87,5 +74,5 @@ export default function decorate(block) {
   observer.observe(block);
 
   // Apply the specified height
-  block.style.height = widgetConfig.height;
+  block.style.height = blockConfig.height;
 }
