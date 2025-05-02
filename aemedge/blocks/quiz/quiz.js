@@ -1,11 +1,11 @@
 import { createElement, i18n } from '../../scripts/utils.js';
 
 async function checkQuizCompletion(block, questions) {
-  const allAnsweredCorrectly = questions.every((q) => q.classList.contains('answered-correctly'));
+  const answeredCorrectlyEls = block.querySelectorAll('.answered-correctly');
+  const allAnsweredCorrectly = answeredCorrectlyEls.length === questions.length;
+
   if (allAnsweredCorrectly && !block.querySelector('.message')) {
-    const [
-      quizLabel,
-    ] = await Promise.all([
+    const [quizLabel] = await Promise.all([
       i18n('Quiz complete!'),
     ]);
     const completionMessage = createElement(
@@ -38,37 +38,63 @@ function showQuestion(index, questionsWrapper, prevButton, nextButton, pag, ques
 }
 
 export default async function decorate(block) {
-  const questions = Array.from(block.querySelectorAll(':scope > div'));
+  const rows = Array.from(block.querySelectorAll(':scope > div'));
+
+  const questions = [];
+  let currentQuestion = null;
+
+  rows.forEach((row) => {
+    const firstChild = row.children[0];
+    const hasQuestion = firstChild && firstChild.querySelector('p');
+
+    const answerText = row.children[1]?.textContent.trim() || '';
+    const correctText = row.children[2]?.textContent.trim() || '';
+    const snippetText = row.children[3]?.textContent.trim() || '';
+
+    if (hasQuestion) {
+      currentQuestion = {
+        question: firstChild.textContent.trim(),
+        answers: [],
+      };
+      questions.push(currentQuestion);
+
+      currentQuestion.answers.push({
+        answer: answerText,
+        correct: correctText === 'true',
+        snippet: snippetText,
+      });
+    } else if (currentQuestion) {
+      currentQuestion.answers.push({
+        answer: answerText,
+        correct: correctText === 'true',
+        snippet: snippetText,
+      });
+    }
+  });
+
   let currentIndex = 0;
 
   let prevButton;
   let nextButton;
   let pag;
 
+  const questionsWrapper = createElement('div', { class: 'questions-wrapper' });
+
   questions.forEach((q) => {
-    const questionText = q.querySelector('p');
-    if (questionText) questionText.classList.add('question-text');
+    const questionDiv = createElement('div');
 
-    const table = q.querySelector('table');
-    if (!table) return;
-
-    const rows = Array.from(table.querySelectorAll('tbody tr')).slice(1);
-    if (rows.length === 0) return;
-
+    const questionText = createElement('p', { class: 'question-text' }, q.question);
     const optionsWrapper = createElement('div', { class: 'options-wrapper' });
 
-    rows.forEach((row, index) => {
-      const cells = row.querySelectorAll('td');
-      const answer = cells[0]?.textContent?.trim();
-      const isCorrect = cells[1]?.textContent?.trim().toLowerCase() === 'true';
-      const snippet = cells[2]?.textContent?.trim() || '';
+    q.answers.forEach((answerObj, answerIndex) => {
+      const { answer, correct: isCorrect, snippet } = answerObj;
 
       const optionButton = createElement(
         'button',
         {
           type: 'button',
           class: 'option-content-answer',
-          'data-index': index,
+          'data-index': answerIndex,
         },
         createElement('span', { class: 'option-text' }, answer),
         createElement('span', { class: 'option-icon' }),
@@ -87,10 +113,10 @@ export default async function decorate(block) {
       );
 
       optionButton.addEventListener('click', async () => {
-        if (q.classList.contains('answered-correctly')) return;
+        if (questionDiv.classList.contains('answered-correctly')) return;
 
-        const allButtons = q.querySelectorAll('.option-content-answer');
-        const allMessages = q.querySelectorAll('.question-message');
+        const allButtons = questionDiv.querySelectorAll('.option-content-answer');
+        const allMessages = questionDiv.querySelectorAll('.question-message');
 
         allMessages.forEach((msg) => {
           msg.style.display = 'none';
@@ -102,15 +128,11 @@ export default async function decorate(block) {
         optionButton.classList.add('pressed');
 
         if (isCorrect) {
-          const [
-            correctLabel,
-          ] = await Promise.all([
-            i18n('Correct'),
-          ]);
+          const [correctLabel] = await Promise.all([i18n('Correct')]);
           optionButton.classList.add('correct');
-          q.classList.add('answered-correctly');
+          questionDiv.classList.add('answered-correctly');
 
-          allButtons.forEach((btn) => btn.disabled);
+          allButtons.forEach((btn) => (btn.disabled));
 
           messageContainer.classList.add('correct');
           messageContainer.innerHTML = `<span class="result">${correctLabel}</span><span class="snippet">${snippet}</span>`;
@@ -118,11 +140,7 @@ export default async function decorate(block) {
 
           checkQuizCompletion(block, questions);
         } else {
-          const [
-            incorrectLabel,
-          ] = await Promise.all([
-            i18n('Incorrect'),
-          ]);
+          const [incorrectLabel] = await Promise.all([i18n('Incorrect')]);
           optionButton.classList.add('incorrect');
           messageContainer.classList.add('incorrect');
           messageContainer.innerHTML = `<span class="result">${incorrectLabel}</span><span class="snippet">${snippet}</span>`;
@@ -133,13 +151,11 @@ export default async function decorate(block) {
       optionsWrapper.appendChild(optionItem);
     });
 
-    q.innerHTML = '';
-    if (questionText) q.appendChild(questionText);
-    q.appendChild(optionsWrapper);
+    questionDiv.appendChild(questionText);
+    questionDiv.appendChild(optionsWrapper);
+    questionsWrapper.appendChild(questionDiv);
   });
 
-  const questionsWrapper = createElement('div', { class: 'questions-wrapper' });
-  questions.forEach((q) => questionsWrapper.appendChild(q));
   block.innerHTML = '';
   block.appendChild(questionsWrapper);
 
