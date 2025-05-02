@@ -7,6 +7,7 @@ import {
   formatDate,
   i18n,
   decodeHtmlEntities,
+  buildSlider,
 } from '../../scripts/utils.js';
 
 const QUERY_INDEX_ENDPOINT = '/query-index.json';
@@ -232,6 +233,21 @@ function createDynamicCardThumbnailMedium({ content }) {
   return createElement('li', null, link);
 }
 
+function createDynamicCardUpcomingEvent({ content }) {
+  const { dynamicProperties } = content;
+  const {
+    path,
+    date,
+    title,
+  } = dynamicProperties;
+  const paragraph = createElement('p', { class: 'card-text' }, decodeHtmlEntities(title));
+  const titletag = createElement('div', { class: 'card-title' }, paragraph);
+  const datetag = createElement('div', { class: 'card-date' }, date);
+  const cardBody = createElement('div', { class: 'card-body' }, titletag, datetag);
+  const link = createElement('a', { href: path }, cardBody);
+  return createElement('li', null, link);
+}
+
 export async function fetchAndFilterDataCourse(searchTags = []) {
   try {
     const response = await fetch(QUERY_INDEX_ENDPOINT);
@@ -299,10 +315,34 @@ async function createDynamicCards(block) {
     const { endpoint } = config;
     filteredData = await fetchAndFilterDataArticle(endpoint);
     cardElements = await Promise.all(filteredData.map(createDynamicCardThumbnailMedium));
+  } else if (block.classList.contains('upcoming-events')) {
+    const { endpoint } = config;
+    filteredData = await fetchAndFilterDataArticle(endpoint);
+    const cardElements1 = await Promise.all(filteredData.map(createDynamicCardUpcomingEvent));
+    const cardElements2 = await Promise.all(filteredData.map(createDynamicCardUpcomingEvent));
+    cardElements = [...cardElements1, ...cardElements2];
   } else {
     cardElements = [];
   }
   ul.append(...cardElements);
+  const sliderConfig = {
+    slidesToShow: 'auto',
+    slidesToScroll: 'auto',
+    scrollLock: true,
+    itemWidth: 230,
+    exactWidth: true,
+    draggable: true,
+    responsive: [
+      {
+        breakpoint: 993,
+        settings: {
+          itemWidth: 300,
+          duration: 0.25,
+        },
+      },
+    ],
+  };
+  buildSlider(ul, sliderConfig);
   const cardsContainer = createElement('div', null, ul);
   return cardsContainer;
 }

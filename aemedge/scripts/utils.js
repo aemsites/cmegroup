@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { getMetadata } from './aem.js';
+import { loadScript, loadCSS, getMetadata } from './aem.js';
 import ffetch from './ffetch.js';
 
 /**
@@ -303,6 +303,39 @@ function decodeHtmlEntities(str) {
   return doc.documentElement.textContent;
 }
 
+let sliderPromise = null;
+
+/**
+ * Builds a slider. See:
+ * https://nickpiscitelli.github.io/Glider.js/
+ *
+ * @param {*} el HTML parent element
+ * @param {*} config Glider configuration
+ * @param {*} includeArrows boolean, if true, arrows are included for navigation
+ */
+function buildSlider(el, config, includeArrows = true) {
+  if (!sliderPromise) {
+    sliderPromise = loadScript('/aemedge/scripts/third-party/glider/glider.min.js');
+    loadCSS('/aemedge/scripts/third-party/glider/glider.min.css');
+  }
+  sliderPromise.then(() => {
+    if (includeArrows && el && el.parentElement) {
+      const parent = el.parentElement;
+      const prev = createElement('button', { 'aria-label': 'Previous', class: 'glider-prev' }, '<');
+      const next = createElement('button', { 'aria-label': 'Next', class: 'glider-next' }, '>');
+      parent.append(prev);
+      parent.append(next);
+      config.arrows = {
+        prev: '.glider-prev',
+        next: '.glider-next',
+      };
+      parent.classList.add('glider-contain');
+    }
+    // eslint-disable-next-line no-new, no-undef
+    new Glider(el, config);
+  });
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -319,4 +352,5 @@ export {
   urlByEnvType,
   getCurrentLangInWords,
   decodeHtmlEntities,
+  buildSlider,
 };
