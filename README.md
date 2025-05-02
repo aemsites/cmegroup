@@ -18,6 +18,7 @@ Before using the aem-boilerplate, we recommand you to go through the documentati
 
 - For local development, sidekick plugins can be configured at /tools/sidekick/config.json
 - For DA environments, sidekick plugins must be registered in the config bus using the Admin API. See [here](https://www.aem.live/docs/admin.html#schema/SidekickConfig) for more details.
+- To test in DA environment, you could use url like : https://da.live/edit?ref=local#/cmegroup/www/<your-page-name>
 
 ## Installation
 
