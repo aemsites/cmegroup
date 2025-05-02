@@ -321,8 +321,10 @@ function buildSlider(el, config, includeArrows = true) {
   sliderPromise.then(() => {
     if (includeArrows && el && el.parentElement) {
       const parent = el.parentElement;
-      const prev = createElement('button', { 'aria-label': 'Previous', class: 'glider-prev' }, '<');
-      const next = createElement('button', { 'aria-label': 'Next', class: 'glider-next' }, '>');
+      const prevImg = createElement('img', { 'data-icon-name': 'chevron-left', src: '/aemedge/icons/chevron-left.svg' });
+      const nextImg = createElement('img', { 'data-icon-name': 'chevron-right', src: '/aemedge/icons/chevron-right.svg' });
+      const prev = createElement('button', { 'aria-label': 'Previous', class: 'glider-prev' }, prevImg);
+      const next = createElement('button', { 'aria-label': 'Next', class: 'glider-next' }, nextImg);
       parent.append(prev);
       parent.append(next);
       config.arrows = {

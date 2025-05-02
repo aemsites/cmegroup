@@ -303,6 +303,7 @@ async function createDynamicCards(block) {
   const ul = createElement('ul');
   let filteredData;
   let cardElements;
+  let sliderConfig = null;
   if (block.classList.contains('course')) {
     const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
     filteredData = await fetchAndFilterDataCourse(tags);
@@ -321,28 +322,30 @@ async function createDynamicCards(block) {
     const cardElements1 = await Promise.all(filteredData.map(createDynamicCardUpcomingEvent));
     const cardElements2 = await Promise.all(filteredData.map(createDynamicCardUpcomingEvent));
     cardElements = [...cardElements1, ...cardElements2];
+    sliderConfig = {
+      slidesToShow: 'auto',
+      slidesToScroll: 1,
+      scrollLock: false,
+      itemWidth: 249,
+      exactWidth: true,
+      draggable: true,
+      duration: 2,
+      responsive: [
+        {
+          breakpoint: 993,
+          settings: {
+            itemWidth: 324,
+          },
+        },
+      ],
+    };
   } else {
     cardElements = [];
   }
   ul.append(...cardElements);
-  const sliderConfig = {
-    slidesToShow: 'auto',
-    slidesToScroll: 'auto',
-    scrollLock: true,
-    itemWidth: 230,
-    exactWidth: true,
-    draggable: true,
-    responsive: [
-      {
-        breakpoint: 993,
-        settings: {
-          itemWidth: 300,
-          duration: 0.25,
-        },
-      },
-    ],
-  };
-  buildSlider(ul, sliderConfig);
+  if (sliderConfig) {
+    buildSlider(ul, sliderConfig);
+  }
   const cardsContainer = createElement('div', null, ul);
   return cardsContainer;
 }
