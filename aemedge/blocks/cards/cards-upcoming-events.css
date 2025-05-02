@@ -9,6 +9,6 @@
 }
 
 .cards.upcoming-events ul .glider-track .glider-slide {
-    box-shadow: 0 .0625rem .125rem 0 rgba(60, 64, 67, .3);
+    box-shadow: 0 .0625rem .125rem 0 rgb(60 64 67 / 30%);
     height: 10rem;
 }
