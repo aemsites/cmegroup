@@ -13,6 +13,25 @@ function getDefaultLang() {
   return 'en';
 }
 
+function getCurrentLangInWords() {
+  const LANGUAGE_MAP = {
+    en: 'English',
+    es: 'Español',
+    fr: 'Français',
+    de: 'Deutsch',
+    it: 'Italian',
+    he: 'עברית',
+    ko: '한국어',
+    nl: 'Dutch',
+    'cn-s': '中文(简体)',
+    'cn-t': '中文(繁體)',
+    pt: 'Português',
+    ar: 'العربية',
+  };
+  const locale = getCurrentLang();
+  return LANGUAGE_MAP[locale] || 'English';
+}
+
 /**
  * Taxonomy
  */
@@ -279,6 +298,11 @@ function isDateBefore(date1, date2) {
   return d1 < d2;
 }
 
+function decodeHtmlEntities(str) {
+  const doc = new DOMParser().parseFromString(str, 'text/html');
+  return doc.documentElement.textContent;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -293,4 +317,6 @@ export {
   formatToCentralTime,
   isDateBefore,
   urlByEnvType,
+  getCurrentLangInWords,
+  decodeHtmlEntities,
 };
