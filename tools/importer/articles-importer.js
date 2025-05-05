@@ -604,9 +604,12 @@ const tableBlock = (document) => {
         tableText += ` (${arr.join(', ')})`;
       }
 
-      const cells = [[tableText]];
-      cells.push([table.innerHTML]);
-      const tempTable = WebImporter.DOMUtils.createTable(cells, document);
+      const tempTable = WebImporter.Blocks.createBlock(document, {
+        name: tableText,
+        cells: [],
+      });
+      const row = tempTable.insertRow(1);
+      row.insertCell(0).innerHTML = table.innerHTML;
       table.replaceWith(tempTable);
     });
   }
