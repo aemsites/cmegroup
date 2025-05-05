@@ -629,11 +629,16 @@ const convertImagesToLinks = (document) => {
 const correctLinks = (document) => {
   const links = document.querySelectorAll('a');
   links.forEach((link) => {
-    console.log('link', link.href);
     if (link.href) {
-      const { pathname } = new URL(link.href);
-      if (link?.href.endsWith('.html') && pathname?.startsWith('/education/')) {
-        link.href = link.href.replace('.html', '');
+      try {
+        if (link?.href.endsWith('.html')) {
+          const { pathname } = new URL(link.href);
+          if (pathname.startsWith('/education/')) {
+            link.href = link.href.replace('.html', '');
+          }
+        }
+      } catch (error) {
+        console.log(`Error correcting links: ${error}, ${link.href}`);
       }
     }
   });
