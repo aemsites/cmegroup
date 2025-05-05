@@ -107,7 +107,7 @@
 }
 
 .quiz-wrapper .option-content-answer.disabled {
-    background-color: var(--gray5A);
+    background-color: var(--gray5-a);
 }
 
 .quiz-wrapper .option-content-answer.disabled:not(.correct) .option-text {

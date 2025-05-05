@@ -5,17 +5,11 @@ async function checkQuizCompletion(block, questions) {
   const allAnsweredCorrectly = answeredCorrectlyEls.length === questions.length;
 
   if (allAnsweredCorrectly && !block.querySelector('.message')) {
-    const [quizLabel] = await Promise.all([
-      i18n('Quiz complete!'),
-    ]);
+    const [quizLabel] = await Promise.all([i18n('Quiz complete!')]);
     const completionMessage = createElement(
       'div',
       { class: 'message' },
-      createElement(
-        'div',
-        { class: 'message-label' },
-        createElement('i', { class: 'icon' }),
-      ),
+      createElement('div', { class: 'message-label' }, createElement('i', { class: 'icon' })),
       createElement('div', { class: 'message-text' }, quizLabel),
     );
     block.insertBefore(completionMessage, block.firstChild);
@@ -23,23 +17,7 @@ async function checkQuizCompletion(block, questions) {
   }
 }
 
-function showQuestion(index, questionsWrapper, prevButton, nextButton, pag, questionsLength) {
-  questionsWrapper.style.transform = `translateX(-${index * 100}%)`;
-
-  if (prevButton) {
-    prevButton.classList.toggle('arrow-disabled', index === 0);
-  }
-  if (nextButton) {
-    nextButton.classList.toggle('arrow-disabled', index === questionsLength - 1);
-  }
-  if (pag) {
-    pag.textContent = `${index + 1} OF ${questionsLength}`;
-  }
-}
-
-export default async function decorate(block) {
-  const rows = Array.from(block.querySelectorAll(':scope > div'));
-
+function buildQuestions(rows) {
   const questions = [];
   let currentQuestion = null;
 
@@ -57,13 +35,9 @@ export default async function decorate(block) {
         answers: [],
       };
       questions.push(currentQuestion);
+    }
 
-      currentQuestion.answers.push({
-        answer: answerText,
-        correct: correctText === 'true',
-        snippet: snippetText,
-      });
-    } else if (currentQuestion) {
+    if (currentQuestion) {
       currentQuestion.answers.push({
         answer: answerText,
         correct: correctText === 'true',
@@ -72,29 +46,31 @@ export default async function decorate(block) {
     }
   });
 
-  let currentIndex = 0;
+  return questions;
+}
 
-  let prevButton;
-  let nextButton;
-  let pag;
+function showQuestion(index, wrapper, prev, next, pag, total) {
+  wrapper.style.transform = `translateX(-${index * 100}%)`;
+  if (prev) prev.classList.toggle('arrow-disabled', index === 0);
+  if (next) next.classList.toggle('arrow-disabled', index === total - 1);
+  if (pag) pag.textContent = `${index + 1} OF ${total}`;
+}
 
-  const questionsWrapper = createElement('div', { class: 'questions-wrapper' });
+function renderQuestions(questions, block) {
+  const wrapper = createElement('div', { class: 'questions-wrapper' });
 
   questions.forEach((q) => {
     const questionDiv = createElement('div');
-
     const questionText = createElement('p', { class: 'question-text' }, q.question);
     const optionsWrapper = createElement('div', { class: 'options-wrapper' });
 
-    q.answers.forEach((answerObj, answerIndex) => {
-      const { answer, correct: isCorrect, snippet } = answerObj;
-
+    q.answers.forEach(({ answer, correct, snippet }, index) => {
       const optionButton = createElement(
         'button',
         {
           type: 'button',
           class: 'option-content-answer',
-          'data-index': answerIndex,
+          'data-index': index,
         },
         createElement('span', { class: 'option-text' }, answer),
         createElement('span', { class: 'option-icon' }),
@@ -124,20 +100,15 @@ export default async function decorate(block) {
         });
 
         allButtons.forEach((btn) => btn.classList.remove('pressed', 'incorrect', 'correct'));
-
         optionButton.classList.add('pressed');
 
-        if (isCorrect) {
+        if (correct) {
           const [correctLabel] = await Promise.all([i18n('Correct')]);
           optionButton.classList.add('correct');
           questionDiv.classList.add('answered-correctly');
-
-          allButtons.forEach((btn) => (btn.disabled));
-
           messageContainer.classList.add('correct');
           messageContainer.innerHTML = `<span class="result">${correctLabel}</span><span class="snippet">${snippet}</span>`;
           messageContainer.style.display = 'block';
-
           checkQuizCompletion(block, questions);
         } else {
           const [incorrectLabel] = await Promise.all([i18n('Incorrect')]);
@@ -153,54 +124,60 @@ export default async function decorate(block) {
 
     questionDiv.appendChild(questionText);
     questionDiv.appendChild(optionsWrapper);
-    questionsWrapper.appendChild(questionDiv);
+    wrapper.appendChild(questionDiv);
   });
 
+  block.appendChild(wrapper);
+  return wrapper;
+}
+
+async function addNavigation(questions, block, wrapper) {
+  const [ofLabel] = await Promise.all([i18n('OF')]);
+  let currentIndex = 0;
+
+  const prev = createElement('button', {
+    type: 'button',
+    class: 'arrow arrow-prev',
+    style: 'display: block;',
+  });
+
+  const next = createElement('button', {
+    type: 'button',
+    class: 'arrow arrow-next',
+    style: 'display: block;',
+  });
+
+  const pag = createElement('span', { class: 'custom-paging-counter' });
+  pag.textContent = `1 ${ofLabel} ${questions.length}`;
+
+  prev.addEventListener('click', () => {
+    if (currentIndex > 0) {
+      currentIndex -= 1;
+      showQuestion(currentIndex, wrapper, prev, next, pag, questions.length);
+    }
+  });
+
+  next.addEventListener('click', () => {
+    if (currentIndex < questions.length - 1) {
+      currentIndex += 1;
+      showQuestion(currentIndex, wrapper, prev, next, pag, questions.length);
+    }
+  });
+
+  const nav = createElement('div', { class: 'quiz-navigation' }, prev, pag, next);
+  block.appendChild(nav);
+}
+
+export default async function decorate(block) {
+  const rows = Array.from(block.querySelectorAll(':scope > div'));
+  const questions = buildQuestions(rows);
+
   block.innerHTML = '';
-  block.appendChild(questionsWrapper);
+  const wrapper = renderQuestions(questions, block);
 
   if (questions.length > 1) {
-    const [
-      ofLabel,
-    ] = await Promise.all([
-      i18n('OF'),
-    ]);
-
-    prevButton = createElement('button', {
-      type: 'button',
-      'data-role': 'none',
-      class: 'arrow arrow-prev',
-      style: 'display: block;',
-    });
-
-    nextButton = createElement('button', {
-      type: 'button',
-      'data-role': 'none',
-      class: 'arrow arrow-next',
-      style: 'display: block;',
-    });
-
-    pag = createElement('span', { class: 'custom-paging-counter' });
-    pag.textContent = `1 ${ofLabel} ${questions.length}`;
-
-    prevButton.addEventListener('click', () => {
-      if (currentIndex > 0) {
-        currentIndex -= 1;
-        showQuestion(currentIndex, questionsWrapper, prevButton, nextButton, pag, questions.length);
-      }
-    });
-
-    nextButton.addEventListener('click', () => {
-      if (currentIndex < questions.length - 1) {
-        currentIndex += 1;
-        showQuestion(currentIndex, questionsWrapper, prevButton, nextButton, pag, questions.length);
-      }
-    });
-
-    const nav = createElement('div', { class: 'quiz-navigation' }, prevButton, pag, nextButton);
-    block.appendChild(nav);
+    await addNavigation(questions, block, wrapper);
   }
 
-  showQuestion(currentIndex, questionsWrapper, prevButton, nextButton, pag, questions.length);
   block.classList.add('showed');
 }
