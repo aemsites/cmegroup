@@ -505,35 +505,40 @@ const removeExtraSectionBreak = (document) => {
   }
 };
 
-const lightBoxGallery = (document) => {
+const lightBoxGallery = async (document) => {
   const components = document.querySelectorAll('.component');
   if (components?.length) {
-    components.forEach((lightBox) => {
+    for (let i = 0; i < components.length; i += 1) {
+      const lightBox = components[i];
       const attribute = lightBox.getAttribute('data-img-style');
       if (attribute === 'lightbox-gallery' || attribute === 'lightbox') {
         const cells = [['Lightbox']];
-        let imageSrc = lightBox.querySelector('img')?.src;
-        const figCaption = lightBox.querySelector('figcaption');
+        const dataPath = lightBox.getAttribute('data-path');
 
-        if (imageSrc) {
-          // remove host from src
-          const imgUrl = new URL(imageSrc);
-          imageSrc = imgUrl.pathname;
-          const anchor = document.createElement('a');
-          anchor.href = `https://www.cmegroup.com${imageSrc}`;
-          anchor.textContent = anchor.href;
+        if (dataPath) {
+          // eslint-disable-next-line no-await-in-loop
+          const data = await fetch(`${DOMAIN}${dataPath}.json`);
+          // eslint-disable-next-line no-await-in-loop
+          const dataJson = await data.json();
 
-          if (figCaption) {
-            cells.push([anchor], [figCaption.textContent]);
-          } else {
-            cells.push([anchor]);
+          if (dataJson?.fileReference) {
+            const imgSrc = dataJson.fileReference;
+            const figCaption = lightBox.querySelector('figcaption');
+            const anchor = document.createElement('a');
+            anchor.href = `https://www.cmegroup.com${imgSrc}`;
+            anchor.textContent = anchor.href;
+
+            if (figCaption) {
+              cells.push([anchor], [figCaption.textContent]);
+            } else {
+              cells.push([anchor]);
+            }
+            const table = WebImporter.DOMUtils.createTable(cells, document);
+            lightBox.replaceWith(table);
           }
-
-          const table = WebImporter.DOMUtils.createTable(cells, document);
-          lightBox.replaceWith(table);
         }
       }
-    });
+    }
   }
 };
 
@@ -657,7 +662,7 @@ const customBlocks = async (document, main, meta, url) => {
   quizBlock(document);
   faqBlock(document, meta);
   await accordionBlock(document);
-  lightBoxGallery(document);
+  await lightBoxGallery(document);
   if (meta['Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);
     generalColumns(document);
