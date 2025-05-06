@@ -78,7 +78,6 @@ function renderQuestions(questions, block) {
 
       const messageContainer = createElement('span', {
         class: 'question-message',
-        style: 'display: none;',
       });
 
       const optionItem = createElement(
@@ -95,8 +94,7 @@ function renderQuestions(questions, block) {
         const allMessages = questionDiv.querySelectorAll('.question-message');
 
         allMessages.forEach((msg) => {
-          msg.style.display = 'none';
-          msg.classList.remove('correct', 'incorrect');
+          msg.classList.remove('correct', 'incorrect', 'showed');
         });
 
         allButtons.forEach((btn) => btn.classList.remove('pressed', 'incorrect', 'correct'));
@@ -107,15 +105,19 @@ function renderQuestions(questions, block) {
           optionButton.classList.add('correct');
           questionDiv.classList.add('answered-correctly');
           messageContainer.classList.add('correct');
-          messageContainer.innerHTML = `<span class="result">${correctLabel}</span><span class="snippet">${snippet}</span>`;
-          messageContainer.style.display = 'block';
+          messageContainer.innerHTML = `<span class="result">${correctLabel}</span><span class="snippet"></span>`;
+          const snippetEl = messageContainer.querySelector('.snippet');
+          snippetEl.textContent = snippet;
+          messageContainer.classList.add('showed');
           checkQuizCompletion(block, questions);
         } else {
           const [incorrectLabel] = await Promise.all([i18n('Incorrect')]);
           optionButton.classList.add('incorrect');
           messageContainer.classList.add('incorrect');
-          messageContainer.innerHTML = `<span class="result">${incorrectLabel}</span><span class="snippet">${snippet}</span>`;
-          messageContainer.style.display = 'block';
+          messageContainer.innerHTML = `<span class="result">${incorrectLabel}</span><span class="snippet"></span>`;
+          const snippetEl = messageContainer.querySelector('.snippet');
+          snippetEl.textContent = snippet;
+          messageContainer.classList.add('showed');
         }
       });
 
