@@ -298,6 +298,14 @@ export async function fetchAndFilterDataArticle(endpoint) {
   }
 }
 
+function getCurrentDateFormatted() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 async function fetchAndFilterUpcomingEvent() {
   try {
     const opts = {
@@ -307,7 +315,7 @@ async function fetchAndFilterUpcomingEvent() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        date: '2025-04-29',
+        date: getCurrentDateFormatted(),
         size: 10,
       }),
     };
