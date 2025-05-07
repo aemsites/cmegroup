@@ -11,6 +11,7 @@ import {
 } from '../../scripts/utils.js';
 
 const QUERY_INDEX_ENDPOINT = '/query-index.json';
+const ECONOMIC_EVENTS_ENDPOINT = '/services/economic-release-events';
 
 async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
@@ -233,18 +234,17 @@ function createDynamicCardThumbnailMedium({ content }) {
   return createElement('li', null, link);
 }
 
-function createDynamicCardUpcomingEvent({ content }) {
-  const { dynamicProperties } = content;
+function createDynamicCardUpcomingEvent(content) {
   const {
-    path,
+    url,
     date,
     title,
-  } = dynamicProperties;
+  } = content;
   const paragraph = createElement('p', { class: 'card-text' }, decodeHtmlEntities(title));
   const titletag = createElement('div', { class: 'card-title' }, paragraph);
-  const datetag = createElement('div', { class: 'card-date' }, date);
+  const datetag = createElement('div', { class: 'card-date' }, formatDate(date, true));
   const cardBody = createElement('div', { class: 'card-body' }, titletag, datetag);
-  const link = createElement('a', { href: path }, cardBody);
+  const link = createElement('a', { href: url }, cardBody);
   return createElement('li', null, link);
 }
 
@@ -298,6 +298,32 @@ export async function fetchAndFilterDataArticle(endpoint) {
   }
 }
 
+async function fetchAndFilterUpcomingEvent() {
+  try {
+    const opts = {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        date: '2025-04-29',
+        size: 10,
+      }),
+    };
+    const response = await fetch(ECONOMIC_EVENTS_ENDPOINT, opts);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.events;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error loading data:', error);
+    return [];
+  }
+}
+
 async function createDynamicCards(block) {
   const config = readBlockConfig(block);
   const ul = createElement('ul');
@@ -317,11 +343,8 @@ async function createDynamicCards(block) {
     filteredData = await fetchAndFilterDataArticle(endpoint);
     cardElements = await Promise.all(filteredData.map(createDynamicCardThumbnailMedium));
   } else if (block.classList.contains('upcoming-events')) {
-    const { endpoint } = config;
-    filteredData = await fetchAndFilterDataArticle(endpoint);
-    const cardElements1 = await Promise.all(filteredData.map(createDynamicCardUpcomingEvent));
-    const cardElements2 = await Promise.all(filteredData.map(createDynamicCardUpcomingEvent));
-    cardElements = [...cardElements1, ...cardElements2];
+    filteredData = await fetchAndFilterUpcomingEvent();
+    cardElements = await Promise.all(filteredData.map(createDynamicCardUpcomingEvent));
     sliderConfig = {
       slidesToShow: 'auto',
       slidesToScroll: 1,
