@@ -8,10 +8,11 @@ import {
   i18n,
   decodeHtmlEntities,
   buildSlider,
+  urlByEnvType,
 } from '../../scripts/utils.js';
 
 const QUERY_INDEX_ENDPOINT = '/query-index.json';
-const ECONOMIC_EVENTS_ENDPOINT = '/services/economic-release-events';
+const ECONOMIC_EVENTS_ENDPOINT = `${urlByEnvType()}/services/economic-release-events`;
 
 async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
