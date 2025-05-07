@@ -1,4 +1,4 @@
-import { readBlockConfig } from '../../scripts/aem.js';
+import { readBlockConfig, loadScript } from '../../scripts/aem.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import { getEconomicReleaseFilters } from '../../scripts/services/ProductCalendarService.js';
 import { URIUtil } from '../../scripts/utils/index.js';
@@ -30,8 +30,12 @@ let filtersLabel;
 const currentPillsLabel = 'Currently filtering by:';
 let searchValueVar = '';
 let timeoutId;
-const filterPillsArray = {};
+const filtersArray = {};
+let datePicker;
+let showingDays = 7;
+let tradeDate = new Date();
 const params = {
+  tradeDateParam: 'tradeDate',
   countryParam: 'countries',
   attributeParam: 'attributes',
 };
@@ -52,7 +56,7 @@ function updateURLFilters(_filters) {
       uriUtil.addHash(filterParam, filtersIds);
     }
   };
-
+  updateURLFilterParam(params.tradeDateParam, 'tradeDate');
   updateURLFilterParam(params.countryParam, 'input-country');
   updateURLFilterParam(params.attributeParam, 'input-impact');
   uriUtil.navigate(true);
@@ -83,6 +87,16 @@ function closeFiltersInputsContainer() {
 function openFiltersInputsContainer() {
   inputsCurtain.classList.add('is-open');
   filtersInputsContainer.classList.add('is-open');
+  body.classList.add('curtain-visible');
+}
+
+function closeDatePickerMobileContainer() {
+  inputsCurtain.classList.remove('is-open');
+  body.classList.remove('curtain-visible');
+}
+
+function openDatePickerMobileContainer() {
+  inputsCurtain.classList.add('is-open');
   body.classList.add('curtain-visible');
 }
 
@@ -124,14 +138,18 @@ function removePillHandler(pill) {
     pillToRemove.remove();
     // remove pill from arrays
     // eslint-disable-next-line no-restricted-syntax
-    for (const listId in filterPillsArray) {
+    for (const listId in filtersArray) {
       // eslint-disable-next-line max-len
-      if (Object.prototype.hasOwnProperty.call(filterPillsArray, listId) && Array.isArray(filterPillsArray[listId])) {
-        filterPillsArray[listId] = filterPillsArray[listId].filter((item) => item.id !== pill);
+      if (
+        Object.prototype.hasOwnProperty.call(filtersArray, listId)
+        && Array.isArray(filtersArray[listId])
+        && listId !== 'tradeDate'
+      ) {
+        filtersArray[listId] = filtersArray[listId].filter((item) => item.id !== pill);
       }
     }
     // if filterPillsArray is empty clear all
-    if (Object.values(filterPillsArray).every((value) => !Array.isArray(value)
+    if (Object.values(filtersArray).every((value) => !Array.isArray(value)
       || value.length === 0)) {
       filtersCurrentContainer.innerHTML = '';
     }
@@ -150,14 +168,17 @@ function removePillHandler(pill) {
 
     // clean array
     // eslint-disable-next-line no-restricted-syntax
-    for (const listId in filterPillsArray) {
-      if (Object.prototype.hasOwnProperty.call(filterPillsArray, listId)
-        && Array.isArray(filterPillsArray[listId])) {
-        filterPillsArray[listId] = [];
+    for (const listId in filtersArray) {
+      if (
+        Object.prototype.hasOwnProperty.call(filtersArray, listId)
+        && Array.isArray(filtersArray[listId])
+        && listId !== 'tradeDate'
+      ) {
+        filtersArray[listId] = [];
       }
     }
   }
-  updateURLFilters(filterPillsArray);
+  updateURLFilters(filtersArray);
 }
 
 function decoratePills(container) {
@@ -182,7 +203,7 @@ function renderCurrentPills(pillsArray) {
 
   // eslint-disable-next-line no-restricted-syntax
   for (const key in pillsArray) {
-    if (Object.prototype.hasOwnProperty.call(pillsArray, key)) {
+    if (Object.prototype.hasOwnProperty.call(pillsArray, key) && key !== 'tradeDate') {
       const array = pillsArray[key];
       if (Array.isArray(array) && array.length > 0) {
         hasPills = true;
@@ -216,8 +237,8 @@ function renderCurrentPills(pillsArray) {
 }
 
 function filterPillsArrayHandler(listId, checkbox) {
-  if (!filterPillsArray[listId]) {
-    filterPillsArray[listId] = [];
+  if (!filtersArray[listId]) {
+    filtersArray[listId] = [];
   }
 
   const checkboxData = {
@@ -226,16 +247,16 @@ function filterPillsArrayHandler(listId, checkbox) {
   };
 
   if (checkbox.checked) {
-    const existingIndex = filterPillsArray[listId].findIndex((item) => item.id === checkbox.id);
+    const existingIndex = filtersArray[listId].findIndex((item) => item.id === checkbox.id);
     if (existingIndex === -1) {
-      filterPillsArray[listId].push(checkboxData);
+      filtersArray[listId].push(checkboxData);
     }
   } else {
-    filterPillsArray[listId] = filterPillsArray[listId].filter((item) => item.id !== checkbox.id);
+    filtersArray[listId] = filtersArray[listId].filter((item) => item.id !== checkbox.id);
   }
 
   if (isDesktop) {
-    renderCurrentPills(filterPillsArray);
+    renderCurrentPills(filtersArray);
   }
 }
 
@@ -336,7 +357,7 @@ function applyFilters() {
   // apply and close modal
   // eslint-disable-next-line no-console
   console.log(`searchValueVar= ${searchValueVar}`);
-  renderCurrentPills(filterPillsArray);
+  renderCurrentPills(filtersArray);
   closeFiltersInputsContainer();
   // call service with variables here
 }
@@ -373,6 +394,7 @@ function renderInputs() {
   filtersTitle.innerHTML = filtersLabel;
   filtersInputsContainer.append(filtersTitle);
   const inputsFlexContainer = createElement('div', { class: 'inputs-flex-container' });
+  filterSearchInput.placeholder = 'Search by event';
   filterSearchInputContainer.append(filterSearchInput);
   inputsFlexContainer.append(filterSearchInputContainer);
 
@@ -392,6 +414,226 @@ function renderInputs() {
   return filtersInputsContainer;
 }
 
+function customDropdownListener(dropdown) {
+  const customDropdown = dropdown;
+  const dropdownHeader = customDropdown.querySelector('.dropdown-header');
+  const dropdownList = customDropdown.querySelector('.dropdown-list');
+  const selectedValueSpan = customDropdown.querySelector('.selected-value');
+  const valueInput = customDropdown.querySelector('#timeframe-value');
+  const listItems = dropdownList.querySelectorAll('li');
+
+  dropdownHeader.addEventListener('click', () => {
+    dropdownList.classList.toggle('open');
+    dropdownHeader.classList.toggle('open');
+  });
+
+  listItems.forEach((item) => {
+    item.addEventListener('click', () => {
+      // eslint-disable-next-line prefer-destructuring
+      const value = item.dataset.value;
+      const text = item.textContent;
+
+      selectedValueSpan.textContent = text;
+      valueInput.value = value;
+      showingDays = value;
+      // eslint-disable-next-line no-console
+      console.log(showingDays);
+      // function to show "showingDays" number of item in lateral list here
+
+      listItems.forEach((li) => li.classList.remove('active'));
+      item.classList.add('active');
+
+      dropdownList.classList.remove('open');
+      dropdownHeader.classList.remove('open');
+    });
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!customDropdown.contains(event.target)) {
+      dropdownList.classList.remove('open');
+      dropdownHeader.classList.remove('open');
+    }
+  });
+}
+
+function renderDaysDropdown() {
+  const customDropdown = createElement('div', { class: 'custom-dropdown' });
+  customDropdown.innerHTML = `
+    <div class="dropdown-header">
+      <span class="selected-value">7 Days</span>
+      <div class="arrow"></div>
+    </div>
+    <ul class="dropdown-list">
+      <li data-value="7" class="active">7 Days</li>
+      <li data-value="14">14 Days</li>
+      <li data-value="30">30 Days</li>
+    </ul>
+    <input type="hidden" name="timeframe" id="timeframe-value" value="7">
+  `;
+  customDropdownListener(customDropdown);
+  return customDropdown;
+}
+
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function createTodayBtn(instance) {
+  const todayButton = document.createElement('button');
+  todayButton.classList.add('datepicker-today-btn');
+  todayButton.textContent = 'Today';
+  todayButton.addEventListener('click', () => {
+    tradeDate = new Date();
+    instance.setDate(new Date(), true);
+    filtersArray.tradeDate = [{ id: formatDate(new Date()) }];
+    updateURLFilters(filtersArray);
+    // service here
+  });
+
+  return todayButton;
+}
+
+function initDatePicker() {
+  // eslint-disable-next-line no-undef
+  datePicker = datepicker(document.querySelector('input.event-calendar-datepicker'), {
+    dateSelected: tradeDate,
+    formatter: (input, date) => {
+      const weekdayOptions = { weekday: 'long' };
+      const monthOptions = { month: 'long' };
+      const dayOptions = { day: 'numeric' };
+      const yearOptions = { year: 'numeric' };
+
+      const weekday = new Intl.DateTimeFormat('en-US', weekdayOptions).format(date);
+      const day = new Intl.DateTimeFormat('en-US', dayOptions).format(date);
+      const month = new Intl.DateTimeFormat('en-US', monthOptions).format(date);
+      const year = new Intl.DateTimeFormat('en-US', yearOptions).format(date);
+
+      const formattedDate = `${weekday}, ${day} ${month} ${year}`;
+      const value = formattedDate;
+      input.value = value;
+    },
+    disableYearOverlay: true,
+    customDays: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+    onSelect: (instance, date) => {
+      if (date === undefined) {
+        instance.setDate(tradeDate);
+        instance.hide();
+      } else {
+        tradeDate = date;
+      }
+      filtersArray.tradeDate = [{ id: formatDate(date) }];
+      updateURLFilters(filtersArray);
+      // service here
+    },
+    onShow: (instance) => {
+      instance.el.classList.add('datepicker-open');
+      if (!isDesktop) {
+        instance.calendarContainer.classList.add('open-mobile');
+      }
+      if (!instance.calendar.querySelector('.datepicker-today-btn')) {
+        const controls = instance.calendar.querySelector('.datepicker-controls');
+        if (controls) {
+          controls.appendChild(createTodayBtn(instance));
+        } else {
+          instance.calendar.appendChild(createTodayBtn(instance));
+        }
+      }
+    },
+    onHide: (instance) => {
+      instance.calendarContainer.classList.remove('open-mobile');
+      instance.el.classList.remove('datepicker-open');
+      closeDatePickerMobileContainer();
+    },
+    onMonthChange: (instance) => {
+      if (!instance.calendar.querySelector('.datepicker-today-btn')) {
+        const controls = instance.calendar.querySelector('.datepicker-controls');
+        if (controls) {
+          controls.appendChild(createTodayBtn(instance));
+        } else {
+          instance.calendar.appendChild(createTodayBtn(instance));
+        }
+      }
+    },
+  });
+}
+
+function changeMonth(dateString, monthsToAdd) {
+  const date = new Date(dateString);
+  const currentMonth = date.getMonth();
+
+  date.setMonth(currentMonth + monthsToAdd);
+
+  const targetMonth = date.getMonth();
+  const expectedMonth = (currentMonth + monthsToAdd + 12) % 12;
+
+  if (targetMonth !== expectedMonth) {
+    date.setDate(0);
+  }
+
+  return date;
+}
+
+function MonthListener(cta, isNext) {
+  cta.addEventListener('click', () => {
+    if (isNext) {
+      tradeDate = changeMonth(tradeDate, 1);
+      datePicker.setDate(tradeDate, true);
+      // update url
+      filtersArray.tradeDate = [{ id: formatDate(tradeDate) }];
+      updateURLFilters(filtersArray);
+      // service here
+    } else {
+      tradeDate = changeMonth(tradeDate, -1);
+      datePicker.setDate(tradeDate, true);
+      // update url
+      filtersArray.tradeDate = [{ id: formatDate(tradeDate) }];
+      updateURLFilters(filtersArray);
+      // service here
+    }
+  });
+}
+
+function renderMonthCTA() {
+  const dateCTAContainer = createElement('div', { class: 'date-filter-cta-container' });
+  const prevCta = createElement('button', { class: 'primary btn prev-cta' });
+  prevCta.innerHTML = 'Prev Month';
+  const nextCta = createElement('button', { class: 'primary btn next-cta' });
+  nextCta.innerHTML = 'Next Month';
+  dateCTAContainer.append(prevCta);
+  dateCTAContainer.append(nextCta);
+  MonthListener(prevCta);
+  MonthListener(nextCta, true);
+  return dateCTAContainer;
+}
+
+function renderDatePicker() {
+  const inputDateContainer = createElement('div', { class: 'event-calendar-datepicker-container' });
+  const inputDate = createElement('input', { class: 'event-calendar-datepicker' });
+  inputDate.addEventListener('click', () => {
+    if (!isDesktop) {
+      openDatePickerMobileContainer();
+    }
+  });
+  inputDateContainer.append(inputDate);
+  filtersDateContainer.append(inputDateContainer);
+
+  const dateFilterSubContainer = createElement('div', { class: 'date-filter-sub-container' });
+  const daysContainer = createElement('div', { class: 'date-filter-days-container' });
+  const showingLabel = createElement('p');
+  showingLabel.innerHTML = 'Showing:';
+
+  daysContainer.append(showingLabel);
+  daysContainer.append(renderDaysDropdown());
+  dateFilterSubContainer.append(daysContainer);
+  dateFilterSubContainer.append(renderMonthCTA());
+
+  filtersDateContainer.append(dateFilterSubContainer);
+  return filtersDateContainer;
+}
+
 function renderFilterSection() {
   // filters input and mobile modal
   const inputs = renderInputs();
@@ -406,14 +648,15 @@ function renderFilterSection() {
   // current filters - pills
   filtersSectionEventCalendar.append(filtersCurrentContainer);
   // date filters
+  renderDatePicker();
   filtersSectionEventCalendar.append(filtersDateContainer);
 
   // from url check correct checkboxes in dropdown
   const checkboxInDropdown = filtersInputsContainer.querySelectorAll('.checkbox-dropdown input[type=checkbox]');
   checkboxInDropdown.forEach((checkbox) => {
     const listId = checkbox.closest('.checkbox-dropdown')?.id;
-    if (listId && filterPillsArray[listId]) {
-      const isChecked = filterPillsArray[listId].some((item) => item.id === checkbox.id);
+    if (listId && filtersArray[listId]) {
+      const isChecked = filtersArray[listId].some((item) => item.id === checkbox.id);
       checkbox.checked = isChecked;
     } else {
       checkbox.checked = false;
@@ -442,17 +685,26 @@ function initFilters() {
     }).filter((item) => item !== null);
   };
   const countryIds = getUrlFilterParam(params.countryParam);
-  filterPillsArray['input-country'] = createFilterPillsArrayFromUrl('countries', countryIds);
+  filtersArray['input-country'] = createFilterPillsArrayFromUrl('countries', countryIds);
   const impactIds = getUrlFilterParam(params.attributeParam);
-  filterPillsArray['input-impact'] = createFilterPillsArrayFromUrl('impact', impactIds);
+  filtersArray['input-impact'] = createFilterPillsArrayFromUrl('impact', impactIds);
+  const date = getUrlFilterParam(params.tradeDateParam);
+  if (date.length > 0) {
+    tradeDate = new Date(date);
+    filtersArray.tradeDate = [{ id: date }];
+  } else {
+    filtersArray.tradeDate = [{ id: formatDate(tradeDate) }];
+  }
 
   // render pills
-  renderCurrentPills(filterPillsArray);
+  renderCurrentPills(filtersArray);
 }
 
 async function init(block, version) {
+  loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js');
   await initializeLabels();
   economicFilters = await getEconomicReleaseFilters();
+  economicFilters = { countries: [{ name: 'Australia', id: 'AU' }, { name: 'Canada', id: 'CA' }, { name: 'China', id: 'CN' }, { name: 'EMU', id: 'EMU' }, { name: 'France', id: 'FR' }, { name: 'Germany', id: 'DE' }, { name: 'Global', id: 'ALL' }, { name: 'Hong Kong', id: 'HK' }, { name: 'India', id: 'IN' }, { name: 'Italy', id: 'IT' }, { name: 'Japan', id: 'JP' }, { name: 'New Zealand', id: 'NZ' }, { name: 'Singapore', id: 'SG' }, { name: 'South Korea', id: 'KR' }, { name: 'Switzerland', id: 'CH' }, { name: 'Taiwan', id: 'TW' }, { name: 'United Kingdom', id: 'GB' }, { name: 'United States', id: 'US' }], impact: [{ name: 'Market Mover', id: 'HIGH' }, { name: 'Merits Extra Attention', id: 'MEDIUM' }, { name: 'Other Key Indicator', id: 'LOW' }] };
   initFilters();
 
   eventCalendarContainer.append(inputsCurtain);
@@ -470,13 +722,15 @@ async function init(block, version) {
       const crossedBreakpointUp = (prevWindowWidth <= 1199 && windowWidth >= 1200);
       if (crossedBreakpointDown) {
         isDesktop = window.innerWidth > 1200;
+        datePicker.hide();
       }
       if (crossedBreakpointUp) {
         isDesktop = window.innerWidth > 1200;
-        renderCurrentPills(filterPillsArray);
+        renderCurrentPills(filtersArray);
         const openInputsCurtain = document.querySelector('.inputs-curtain.is-open');
         if (openInputsCurtain) {
           closeFiltersInputsContainer();
+          datePicker.hide();
           // call service with variables here
         }
       }
@@ -489,6 +743,7 @@ async function init(block, version) {
   eventCalendarContainer.append(filterSectionContainer);
   eventCalendarContainer.classList.add(`${version}`);
   block.append(eventCalendarContainer);
+  initDatePicker();
 }
 
 export default async function decorate(block) {
