@@ -315,7 +315,7 @@ async function fetchAndFilterUpcomingEvent() {
         Accept: 'application/json',
         'Content-Type': 'application/json',
         'referer' : 'https://beta.cmegroup.com/education_qa',
-        'Referer' : 'https://beta.cmegroup.com/education_qa'
+        'Referer' : 'https://beta.cmegroup.com/education_qa',
       },
       body: JSON.stringify({
         date: getCurrentDateFormatted(),
