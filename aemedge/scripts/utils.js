@@ -251,7 +251,7 @@ function getEnvType() {
 }
 
 function urlByEnvType() {
-  return `https://${getEnvType() !== 'prod' ? 'web-beta-web01' : 'www'}.cmegroup.com`;
+  return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
 }
 
 function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true) {
