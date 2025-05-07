@@ -1,6 +1,9 @@
 import { getMetadata } from '../aem.js';
 import { getSitewidePopups } from '../legacy-api.js';
-import { createElement } from '../utils.js';
+import {
+  createElement,
+  decodeHtmlEntities,
+} from '../utils.js';
 
 const CACHE_KEY = 'popups_cache';
 const CACHE_DURATION = 15 * 60 * 1000;
@@ -56,18 +59,25 @@ function insertPopupIntoDOM(popup) {
     class: `title ${popup.titleSize} ${popup.reverse ? 'reverse' : ''}`,
   });
   popupTitle.textContent = popup.title;
-  const popupText = createElement('span', {
-    class: `popup-description ${popup.reverse ? 'reverse' : ''}`,
-  });
-  popupText.textContent = popup.description;
+  const popupText = createElement(
+    'span',
+    { class: `popup-description ${popup.reverse ? 'reverse' : ''}` },
+  );
+  popupText.innerHTML = decodeHtmlEntities(popup.description);
   const button = createElement('a', {
     class: `popup-button button ${popup.buttonStyle}`,
     href: `${popup.linkUrl}`,
-    target: `${popup.linkTarget}`,
-    download: `${popup.linkDownload}`,
-    rel: `${popup.linkNoFollow}`,
     type: 'button',
   });
+  if (popup.linkTarget) {
+    button.target = popup.linkTarget;
+  }
+  if (popup.linkDownload !== 'false') {
+    button.download = popup.linkDownload;
+  }
+  if (popup.linkNoFollow) {
+    button.rel = popup.linkNoFollow;
+  }
   const buttonText = createElement('span', { class: 'text' });
   buttonText.textContent = popup.buttonText;
   button.addEventListener('click', () => {

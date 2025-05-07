@@ -299,18 +299,27 @@ p {
 }
 
 /* links */
-a {
+a,
+a code {
     color: var(--link-color);
     text-decoration: none;
+    font-family: inherit;
+    font-size: inherit;
 }
 
-a:hover {
+a:hover,
+a:hover code {
     color: var(--link-hover-color);
     text-decoration: underline;
+    font-family: inherit;
+    font-size: inherit;
 }
 
-a:visited {
+a:visited,
+a:visited code {
     color: var(--link-color);
+    font-family: inherit;
+    font-size: inherit;
 }
 
 /* ul */
