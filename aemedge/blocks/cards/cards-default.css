@@ -35,7 +35,7 @@
 }
 
 .cards .glider-prev:hover{
-  background: linear-gradient(90deg,#fff,hsla(0, 0%, 100%, 0)) !important;
+  background: linear-gradient(90deg,#fff,hsl(0deg 0% 100% / 0%)) !important;
 }
 
 .cards .glider-next {
@@ -47,7 +47,7 @@
 }
 
 .cards .glider-next:hover {
-  background: linear-gradient(90deg, hsla(0, 0%, 100%, 0), #fff) !important;
+  background: linear-gradient(90deg, hsl(0deg 0% 100% / 0%), #fff) !important;
 }
 
 .cards .glider-prev img,
