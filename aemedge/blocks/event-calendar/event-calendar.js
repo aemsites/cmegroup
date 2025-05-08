@@ -704,6 +704,8 @@ async function init(block, version) {
   loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js');
   await initializeLabels();
   economicFilters = await getEconomicReleaseFilters();
+  // remove
+  economicFilters = { countries: [{ name: 'Australia', id: 'AU' }, { name: 'Canada', id: 'CA' }, { name: 'China', id: 'CN' }, { name: 'EMU', id: 'EMU' }, { name: 'France', id: 'FR' }, { name: 'Germany', id: 'DE' }, { name: 'Global', id: 'ALL' }, { name: 'Hong Kong', id: 'HK' }, { name: 'India', id: 'IN' }, { name: 'Italy', id: 'IT' }, { name: 'Japan', id: 'JP' }, { name: 'New Zealand', id: 'NZ' }, { name: 'Singapore', id: 'SG' }, { name: 'South Korea', id: 'KR' }, { name: 'Switzerland', id: 'CH' }, { name: 'Taiwan', id: 'TW' }, { name: 'United Kingdom', id: 'GB' }, { name: 'United States', id: 'US' }], impact: [{ name: 'Market Mover', id: 'HIGH' }, { name: 'Merits Extra Attention', id: 'MEDIUM' }, { name: 'Other Key Indicator', id: 'LOW' }] };
   initFilters();
 
   eventCalendarContainer.append(inputsCurtain);
