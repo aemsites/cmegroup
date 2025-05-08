@@ -333,6 +333,21 @@ async function fetchAndFilterUpcomingEvent() {
   }
 }
 
+async function fetchAndFilterUpcomingEventTest() {
+  try {
+    const response = await fetch(`${urlByEnvType()}/services/economic-release-filters`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.events;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error loading data:', error);
+    return [];
+  }
+}
+
 async function createDynamicCards(block) {
   const config = readBlockConfig(block);
   const ul = createElement('ul');
@@ -352,6 +367,7 @@ async function createDynamicCards(block) {
     filteredData = await fetchAndFilterDataArticle(endpoint);
     cardElements = await Promise.all(filteredData.map(createDynamicCardThumbnailMedium));
   } else if (block.classList.contains('upcoming-events')) {
+    fetchAndFilterUpcomingEventTest();
     filteredData = await fetchAndFilterUpcomingEvent();
     cardElements = await Promise.all(filteredData.map(createDynamicCardUpcomingEvent));
     sliderConfig = {
