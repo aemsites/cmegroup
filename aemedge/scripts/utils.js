@@ -307,9 +307,17 @@ export const PRODUCTION_DOMAINS = ['cmegroup.com', 'beta.cmegroup.com'];
 const domainCheckCache = {};
 
 /**
- * Checks a url to determine if it is a known domain.
- * @param {string | URL} url the url to check
- * @returns {Object} an object with properties indicating the urls domain types.
+ * Checks a url to determine if it is a known domain and categorizes it based on domain type.
+ * Uses a cache to avoid repeated checks for the same hostname.
+ *
+ * @param {string | URL} url - The url to check, can be a string or URL object
+ * @returns {Object} Domain categorization with properties:
+ *   - isProd {boolean} - True for production domains (cmegroup.com, beta.cmegroup.com)
+ *   - isAEM {boolean} - True for AEM domains (contains aem.page or aem.live)
+ *   - isLocal {boolean} - True for localhost
+ *   - isPreview {boolean} - True for localhost or aem.page domains
+ *   - isKnown {boolean} - True if domain is production, AEM, or local
+ *   - isExternal {boolean} - True if domain is not recognized as known
  */
 function checkDomain(url) {
   const urlToCheck = typeof url === 'string' ? new URL(url) : url;

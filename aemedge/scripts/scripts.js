@@ -142,26 +142,31 @@ function buildAutoBlocks(main) {
 }
 
 /**
- * check if link text is same as the href
- * @param {Element} link the link element
- * @returns {boolean} true or false
+ * Add list of fragment folder paths where we can decorate fragments from
  */
-export function linkTextIncludesHref(link) {
-  const href = link.getAttribute('href');
-  const textcontent = link.textContent;
+const FRAGMENT_PATHS = [
+  '/fragments/', // Phase 1
+];
 
-  return textcontent.includes(href);
+/**
+ * Checks if the link points to a fragment path
+ * @param {Element} link the link element
+ * @returns {boolean} true if the link points to a fragment
+ */
+export function isFragmentLink(link) {
+  const href = link.getAttribute('href');
+  return href && FRAGMENT_PATHS.some((path) => href.includes(path));
 }
 
 /**
-   * Builds fragment blocks from links to fragments
-   * @param {Element} main The container element
-   */
+ * Builds fragment blocks from links to fragments
+ * @param {Element} main The container element
+ */
 export function buildFragmentBlocks(main) {
   main.querySelectorAll('a[href]').forEach((a) => {
     const url = new URL(a.href);
     const domainCheck = checkDomain(url);
-    if (domainCheck.isKnown && linkTextIncludesHref(a) && url.pathname.includes('/fragments/')) {
+    if (domainCheck.isKnown && isFragmentLink(a)) {
       const block = buildBlock('fragment', url.pathname);
       a.replaceWith(block);
       decorateBlock(block);
