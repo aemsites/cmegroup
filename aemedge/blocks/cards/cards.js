@@ -7,9 +7,12 @@ import {
   formatDate,
   i18n,
   decodeHtmlEntities,
+  buildSlider,
+  urlByEnvType,
 } from '../../scripts/utils.js';
 
 const QUERY_INDEX_ENDPOINT = '/query-index.json';
+const ECONOMIC_EVENTS_ENDPOINT = `${urlByEnvType()}/services/economic-release-events`;
 
 async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
@@ -232,6 +235,20 @@ function createDynamicCardThumbnailMedium({ content }) {
   return createElement('li', null, link);
 }
 
+function createDynamicCardUpcomingEvent(content) {
+  const {
+    url,
+    date,
+    title,
+  } = content;
+  const paragraph = createElement('p', { class: 'card-text' }, decodeHtmlEntities(title));
+  const titletag = createElement('div', { class: 'card-title' }, paragraph);
+  const datetag = createElement('div', { class: 'card-date' }, formatDate(date, true));
+  const cardBody = createElement('div', { class: 'card-body' }, titletag, datetag);
+  const link = createElement('a', { href: url }, cardBody);
+  return createElement('li', null, link);
+}
+
 export async function fetchAndFilterDataCourse(searchTags = []) {
   try {
     const response = await fetch(QUERY_INDEX_ENDPOINT);
@@ -282,11 +299,46 @@ export async function fetchAndFilterDataArticle(endpoint) {
   }
 }
 
+function getCurrentDateFormatted() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+async function fetchAndFilterUpcomingEvent() {
+  try {
+    const opts = {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        date: getCurrentDateFormatted(),
+        size: 10,
+      }),
+    };
+    const response = await fetch(ECONOMIC_EVENTS_ENDPOINT, opts);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.events;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error loading data:', error);
+    return [];
+  }
+}
+
 async function createDynamicCards(block) {
   const config = readBlockConfig(block);
   const ul = createElement('ul');
   let filteredData;
   let cardElements;
+  let sliderConfig = null;
   if (block.classList.contains('course')) {
     const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
     filteredData = await fetchAndFilterDataCourse(tags);
@@ -299,10 +351,33 @@ async function createDynamicCards(block) {
     const { endpoint } = config;
     filteredData = await fetchAndFilterDataArticle(endpoint);
     cardElements = await Promise.all(filteredData.map(createDynamicCardThumbnailMedium));
+  } else if (block.classList.contains('upcoming-events')) {
+    filteredData = await fetchAndFilterUpcomingEvent();
+    cardElements = await Promise.all(filteredData.map(createDynamicCardUpcomingEvent));
+    sliderConfig = {
+      slidesToShow: 'auto',
+      slidesToScroll: 1,
+      scrollLock: false,
+      itemWidth: 249,
+      exactWidth: true,
+      draggable: true,
+      duration: 2,
+      responsive: [
+        {
+          breakpoint: 993,
+          settings: {
+            itemWidth: 324,
+          },
+        },
+      ],
+    };
   } else {
     cardElements = [];
   }
   ul.append(...cardElements);
+  if (sliderConfig) {
+    buildSlider(ul, sliderConfig);
+  }
   const cardsContainer = createElement('div', null, ul);
   return cardsContainer;
 }

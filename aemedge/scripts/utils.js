@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { getMetadata } from './aem.js';
+import { loadScript, loadCSS, getMetadata } from './aem.js';
 import ffetch from './ffetch.js';
 
 /**
@@ -209,14 +209,15 @@ function parseTime(time) {
   return `${timeInMins} min`;
 }
 
-function formatDate(dateString) {
+function formatDate(dateString, includeYear = false) {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) {
     return 'Invalid Date';
   }
   const day = date.getDate();
   const month = date.toLocaleString('en-US', { month: 'short' });
-  return `${day} ${month}`;
+  const year = includeYear ? ` ${date.getFullYear()}` : '';
+  return `${day} ${month}${year}`;
 }
 
 function getBrowserName() {
@@ -303,6 +304,41 @@ function decodeHtmlEntities(str) {
   return doc.documentElement.textContent;
 }
 
+let sliderPromise = null;
+
+/**
+ * Builds a slider. See:
+ * https://nickpiscitelli.github.io/Glider.js/
+ *
+ * @param {*} el HTML parent element
+ * @param {*} config Glider configuration
+ * @param {*} includeArrows boolean, if true, arrows are included for navigation
+ */
+function buildSlider(el, config, includeArrows = true) {
+  if (!sliderPromise) {
+    sliderPromise = loadScript('/aemedge/scripts/third-party/glider/glider.min.js');
+    loadCSS('/aemedge/scripts/third-party/glider/glider.min.css');
+  }
+  sliderPromise.then(() => {
+    if (includeArrows && el && el.parentElement) {
+      const parent = el.parentElement;
+      const prevImg = createElement('img', { 'data-icon-name': 'chevron-left', src: '/aemedge/icons/chevron-left.svg' });
+      const nextImg = createElement('img', { 'data-icon-name': 'chevron-right', src: '/aemedge/icons/chevron-right.svg' });
+      const prev = createElement('button', { 'aria-label': 'Previous', class: 'glider-prev' }, prevImg);
+      const next = createElement('button', { 'aria-label': 'Next', class: 'glider-next' }, nextImg);
+      parent.append(prev);
+      parent.append(next);
+      config.arrows = {
+        prev: '.glider-prev',
+        next: '.glider-next',
+      };
+      parent.classList.add('glider-contain');
+    }
+    // eslint-disable-next-line no-new, no-undef
+    new Glider(el, config);
+  });
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -319,4 +355,5 @@ export {
   urlByEnvType,
   getCurrentLangInWords,
   decodeHtmlEntities,
+  buildSlider,
 };
