@@ -99,7 +99,8 @@ export async function getCourseData() {
     const entries = await ffetch(getQueryIndexUrl())
       .filter((entry) => TEMPLATES.includes(entry.template.toLowerCase())
         && (entry.path === coursePath
-          || entry.path.startsWith(`${coursePath}/`)))
+          || entry.path.startsWith(`${coursePath}/`)
+          || entry.path.includes(coursePath)))
       .all();
 
     // If the page is a lesson standalone, return the first entry
