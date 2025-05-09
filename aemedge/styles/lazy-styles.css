@@ -1,3 +1,84 @@
 /* add global styles that can be loaded post LCP here */
-
 @import url('./popups.css');
+
+.flag-icon {
+    display: inline-block;
+    background-repeat: no-repeat;
+    padding-right: 20px;
+    margin-right: 5px;
+    margin-top: -2px;
+    height: 10px;
+    background-position: center;
+}
+
+.flag-icon.all {
+    background-image: url('../images/economic-flags/global.jpg');
+}
+
+.flag-icon.au {
+    background-image: url('../images/economic-flags/au.png');
+}
+
+.flag-icon.ca {
+    background-image: url('../images/economic-flags/ca.png');
+}
+
+.flag-icon.ch {
+    background-image: url('../images/economic-flags/ch.jpg');
+}
+
+.flag-icon.cn {
+    background-image: url('../images/economic-flags/cn.png');
+}
+
+.flag-icon.de {
+    background-image: url('../images/economic-flags/de.png');
+}
+
+.flag-icon.emu {
+    background-image: url('../images/economic-flags/eu.png');
+}
+
+.flag-icon.fr {
+    background-image: url('../images/economic-flags/fr.png');
+}
+
+.flag-icon.gb {
+    background-image: url('../images/economic-flags/gb.png');
+}
+
+.flag-icon.hk {
+    background-image: url('../images/economic-flags/hk.png');
+}
+
+.flag-icon.in {
+    background-image: url('../images/economic-flags/in.png');
+}
+
+.flag-icon.it {
+    background-image: url('../images/economic-flags/it.png');
+}
+
+.flag-icon.jp {
+    background-image: url('../images/economic-flags/jp.png');
+}
+
+.flag-icon.kr {
+    background-image: url('../images/economic-flags/kr.png');
+}
+
+.flag-icon.nz {
+    background-image: url('../images/economic-flags/nz.png');
+}
+
+.flag-icon.sg {
+    background-image: url('../images/economic-flags/sg.png');
+}
+
+.flag-icon.tw {
+    background-image: url('../images/economic-flags/tw.png');
+}
+
+.flag-icon.us {
+    background-image: url('../images/economic-flags/us.png');
+}
