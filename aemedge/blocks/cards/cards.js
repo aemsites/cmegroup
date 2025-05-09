@@ -14,16 +14,19 @@ const QUERY_INDEX_ENDPOINT = '/query-index.json';
 async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
   if (block.classList.contains('links')) {
+    const titleWrapper = block.querySelector('h6').closest('div');
     const cardTitle = document.createElement('h6');
     cardTitle.textContent = block.querySelector('h6').textContent;
-    block.querySelector('h6').parentElement.parentElement.remove();
+    titleWrapper.remove();
     const container = document.createElement('div');
     container.className = 'main-list-container';
     [...block.children].forEach((row) => {
+      const columns = row.children.length;
       [...row.children].forEach((div) => {
         div.className = 'cards-card-body';
+        div.style.setProperty('--cols', columns);
+        container.append(div);
       });
-      container.append(row);
     });
     cardsContainer.append(cardTitle);
     cardsContainer.append(container);
