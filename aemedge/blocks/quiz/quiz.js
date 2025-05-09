@@ -5,7 +5,7 @@ async function checkQuizCompletion(block, questions) {
   const allAnsweredCorrectly = answeredCorrectlyEls.length === questions.length;
 
   if (allAnsweredCorrectly && !block.querySelector('.message')) {
-    const [quizLabel] = await Promise.all([i18n('Quiz complete!')]);
+    const [quizLabel] = await Promise.all([i18n('Lesson complete')]);
     const completionMessage = createElement(
       'div',
       { class: 'message' },
