@@ -69,8 +69,8 @@ async function createStaticCards(block) {
       readLabel,
       watchLabel,
     ] = await Promise.all([
-      i18n('read'),
-      i18n('watch'),
+      i18n('Read'),
+      i18n('Watch'),
     ]);
     const ul = document.createElement('ul');
     [...block.children].forEach((row) => {
@@ -97,7 +97,7 @@ async function createStaticCards(block) {
       cardSubtitle.className = 'cards-subtitle';
       const cardTime = document.createElement('span');
       cardTime.className = 'cards-time';
-      cardTime.innerText = `${time} ${format === 'video' ? watchLabel : readLabel}`;
+      cardTime.innerText = `${parseTime(time)} ${format === 'video' ? watchLabel : readLabel}`;
       const cardDate = document.createElement('span');
       cardDate.className = 'cards-date';
       cardDate.innerText = date;
@@ -177,8 +177,8 @@ export async function createDynamicCardArticle({ content }) {
     readLabel,
     watchLabel,
   ] = await Promise.all([
-    i18n('read'),
-    i18n('watch'),
+    i18n('Read'),
+    i18n('Watch'),
   ]);
 
   const li = document.createElement('li');
@@ -200,7 +200,7 @@ export async function createDynamicCardArticle({ content }) {
 
   const cardTime = document.createElement('span');
   cardTime.className = 'cards-time';
-  cardTime.innerText = `${duration} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
+  cardTime.innerText = `${parseTime(duration)} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
 
   const cardDate = document.createElement('span');
   cardDate.className = 'cards-date';

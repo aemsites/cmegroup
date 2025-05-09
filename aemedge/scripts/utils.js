@@ -192,21 +192,18 @@ function parseTime(time) {
   if (!time) {
     return '';
   }
-  const parts = time.split(':');
-  if (parts.length !== 2) {
-    return '';
-  }
-  const timeInMins = parseInt(parts[1], 10) > 30
-    ? parseInt(parts[0], 10) + 1 : parseInt(parts[0], 10);
-  let hours = 0;
-  let mins = 0;
+  const [minStr, secStr] = time.split(':');
+  const seconds = parseInt(secStr, 10);
+  let minutes = parseInt(minStr, 10);
 
-  if (timeInMins > 60) {
-    hours = Math.floor(timeInMins / 60);
-    mins = timeInMins - 60 * hours;
-    return `${hours} hr ${mins} min`;
+  if (seconds > 30) {minutes += 1};
+  if (minutes === 0) {minutes = 1};
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours} Hr${mins ? ` ${mins} Min` : ''}`;
   }
-  return `${timeInMins} min`;
+  return `${minutes} Min`;
 }
 
 function formatDate(dateString) {
@@ -214,7 +211,7 @@ function formatDate(dateString) {
   if (Number.isNaN(date.getTime())) {
     return 'Invalid Date';
   }
-  const day = date.getDate();
+  const day = String(date.getDate()).padStart(2, "0");
   const month = date.toLocaleString('en-US', { month: 'short' });
   return `${day} ${month}`;
 }
