@@ -157,14 +157,16 @@ export async function getCourseData() {
     if (courseData.hasChapters) {
       courseData.chapters.forEach((chapter) => {
         const { modulesOrder } = chapter;
-        const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
-        chapter.lessons.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix)
-          - modulesOrderArray.indexOf(b.pathSuffix));
+        if (modulesOrder && typeof modulesOrder === 'string') {
+          const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
+          chapter.lessons.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix)
+            - modulesOrderArray.indexOf(b.pathSuffix));
+        }
       });
     }
 
     const { modulesOrder } = courseData;
-    if (modulesOrder) {
+    if (modulesOrder && typeof modulesOrder === 'string') {
       const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
       courseData.lessons.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix)
           - modulesOrderArray.indexOf(b.pathSuffix));
