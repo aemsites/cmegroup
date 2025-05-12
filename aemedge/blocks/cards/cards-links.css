@@ -54,7 +54,6 @@
 }
 
 @media (width >=993px) {
-
     .cards.links .cards-card-body {
         width: calc(100% / var(--cols));
         display: inline-flex;
