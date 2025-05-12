@@ -200,8 +200,7 @@ function parseTime(time) {
     minutes = 1;
   } else if (seconds > 30) {
     minutes += 1;
-  }
-  
+  }  
   if (minutes >= 60) {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -215,7 +214,7 @@ function formatDate(dateString) {
   if (Number.isNaN(date.getTime())) {
     return 'Invalid Date';
   }
-  const day = String(date.getDate()).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, '0');
   const month = date.toLocaleString('en-US', { month: 'short' });
   return `${day} ${month}`;
 }
