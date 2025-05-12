@@ -229,6 +229,7 @@
     font-size: .875rem;
     font-weight: 400;
     letter-spacing: .0938rem;
+    z-index: 1;
 }
 
 .event-calendar-container details.checkbox-dropdown summary {
