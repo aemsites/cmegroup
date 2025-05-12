@@ -200,7 +200,8 @@ function parseTime(time) {
     minutes = 1;
   } else if (seconds > 30) {
     minutes += 1;
-  }  
+  }
+
   if (minutes >= 60) {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
