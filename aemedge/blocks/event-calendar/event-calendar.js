@@ -1,6 +1,6 @@
 import { readBlockConfig, loadScript } from '../../scripts/aem.js';
 import { createElement, i18n } from '../../scripts/utils.js';
-import { getEconomicReleaseFilters } from '../../scripts/services/ProductCalendarService.js';
+import { getEconomicReleaseFilters, postEconomicReleaseDates } from '../../scripts/services/ProductCalendarService.js';
 import { URIUtil } from '../../scripts/utils/index.js';
 
 const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
@@ -9,6 +9,9 @@ let isDesktop = window.innerWidth > 1200;
 const inputsCurtain = createElement('div', { class: 'inputs-curtain' });
 const eventCalendarContainer = createElement('div', { class: 'event-calendar' });
 const filterSectionContainer = createElement('div', { class: 'filter-section-container' });
+const resultSectionContainer = createElement('div', { class: 'results-section-container' });
+const lateralDaysList = createElement('div', { class: 'lateral-days-list' });
+const resultListTableSection = createElement('div', { class: 'result-list-table-section' });
 const filtersSectionEventCalendar = createElement('div', { class: 'filters-section-event-calendar' });
 const filtersInputsMainContainer = createElement('div', { class: 'filters-block' });
 const filtersCurrentContainer = createElement('div', { class: 'current-filters' });
@@ -26,6 +29,8 @@ const pillsHeader = createElement('div', { class: 'current-pills-header' });
 const pillsWrapper = createElement('div', { class: 'current-pills-wrapper' });
 const pillsInnerContainer = createElement('div', { class: 'current-pills-inner-container' });
 let economicFilters;
+let leftPanelDays;
+let leftPanelSelectedDay = new Date();
 let filtersLabel;
 const currentPillsLabel = 'Currently filtering by:';
 let searchValueVar = '';
@@ -39,6 +44,13 @@ const params = {
   countryParam: 'countries',
   attributeParam: 'attributes',
 };
+
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 function updateURLFilters(_filters) {
   if (!_filters) {
@@ -68,6 +80,28 @@ async function initializeLabels() {
   ]);
 
   filtersLabel = filtersLabelVar;
+}
+
+async function getLeftPanelDays() {
+  const date = formatDate(new Date(tradeDate));
+  const countries = filtersArray['input-country'].map((country) => country.id);
+  const impacts = filtersArray['input-impact'].map((impact) => impact.id);
+  const daysLimit = 30;
+  const textSearch = searchValueVar;
+
+  leftPanelDays = await postEconomicReleaseDates(
+    date,
+    countries,
+    impacts,
+    daysLimit,
+    textSearch,
+  );
+  if (leftPanelDays) {
+    // eslint-disable-next-line no-use-before-define
+    const resultSection = renderResultSection();
+    resultSectionContainer.append(resultSection);
+    eventCalendarContainer.append(resultSectionContainer);
+  }
 }
 
 function addOutsideClickListener(detailsElement) {
@@ -107,8 +141,7 @@ function cleanInputSearch() {
     cleanInput.remove();
   }
   // call service with variables here
-  // eslint-disable-next-line no-console
-  console.log(`searchValueVar= ${searchValueVar}`);
+  getLeftPanelDays();
 }
 
 function decorateCleanInputSearch() {
@@ -124,9 +157,8 @@ function handleInputSearch(e) {
   if (searchValueVar !== '' && window.innerWidth >= 1200) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
-      // eslint-disable-next-line no-console
-      console.log(`searchValueVar= ${searchValueVar}`);
       // call service with variables here
+      getLeftPanelDays();
     }, 400);
   }
 }
@@ -179,6 +211,7 @@ function removePillHandler(pill) {
     }
   }
   updateURLFilters(filtersArray);
+  getLeftPanelDays();
 }
 
 function decoratePills(container) {
@@ -257,6 +290,7 @@ function filterPillsArrayHandler(listId, checkbox) {
 
   if (isDesktop) {
     renderCurrentPills(filtersArray);
+    getLeftPanelDays();
   }
 }
 
@@ -355,11 +389,10 @@ function resetFilters() {
 
 function applyFilters() {
   // apply and close modal
-  // eslint-disable-next-line no-console
-  console.log(`searchValueVar= ${searchValueVar}`);
   renderCurrentPills(filtersArray);
   closeFiltersInputsContainer();
   // call service with variables here
+  getLeftPanelDays();
 }
 
 function renderInputs() {
@@ -414,73 +447,6 @@ function renderInputs() {
   return filtersInputsContainer;
 }
 
-function customDropdownListener(dropdown) {
-  const customDropdown = dropdown;
-  const dropdownHeader = customDropdown.querySelector('.dropdown-header');
-  const dropdownList = customDropdown.querySelector('.dropdown-list');
-  const selectedValueSpan = customDropdown.querySelector('.selected-value');
-  const valueInput = customDropdown.querySelector('#timeframe-value');
-  const listItems = dropdownList.querySelectorAll('li');
-
-  dropdownHeader.addEventListener('click', () => {
-    dropdownList.classList.toggle('open');
-    dropdownHeader.classList.toggle('open');
-  });
-
-  listItems.forEach((item) => {
-    item.addEventListener('click', () => {
-      // eslint-disable-next-line prefer-destructuring
-      const value = item.dataset.value;
-      const text = item.textContent;
-
-      selectedValueSpan.textContent = text;
-      valueInput.value = value;
-      showingDays = value;
-      // eslint-disable-next-line no-console
-      console.log(showingDays);
-      // function to show "showingDays" number of item in lateral list here
-
-      listItems.forEach((li) => li.classList.remove('active'));
-      item.classList.add('active');
-
-      dropdownList.classList.remove('open');
-      dropdownHeader.classList.remove('open');
-    });
-  });
-
-  document.addEventListener('click', (event) => {
-    if (!customDropdown.contains(event.target)) {
-      dropdownList.classList.remove('open');
-      dropdownHeader.classList.remove('open');
-    }
-  });
-}
-
-function renderDaysDropdown() {
-  const customDropdown = createElement('div', { class: 'custom-dropdown' });
-  customDropdown.innerHTML = `
-    <div class="dropdown-header">
-      <span class="selected-value">7 Days</span>
-      <div class="arrow"></div>
-    </div>
-    <ul class="dropdown-list">
-      <li data-value="7" class="active">7 Days</li>
-      <li data-value="14">14 Days</li>
-      <li data-value="30">30 Days</li>
-    </ul>
-    <input type="hidden" name="timeframe" id="timeframe-value" value="7">
-  `;
-  customDropdownListener(customDropdown);
-  return customDropdown;
-}
-
-function formatDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
 function createTodayBtn(instance) {
   const todayButton = document.createElement('button');
   todayButton.classList.add('datepicker-today-btn');
@@ -491,6 +457,8 @@ function createTodayBtn(instance) {
     filtersArray.tradeDate = [{ id: formatDate(new Date()) }];
     updateURLFilters(filtersArray);
     // service here
+    leftPanelSelectedDay = tradeDate;
+    getLeftPanelDays();
   });
 
   return todayButton;
@@ -527,6 +495,8 @@ function initDatePicker() {
       filtersArray.tradeDate = [{ id: formatDate(date) }];
       updateURLFilters(filtersArray);
       // service here
+      leftPanelSelectedDay = tradeDate;
+      getLeftPanelDays();
     },
     onShow: (instance) => {
       instance.el.classList.add('datepicker-open');
@@ -585,6 +555,8 @@ function MonthListener(cta, isNext) {
       filtersArray.tradeDate = [{ id: formatDate(tradeDate) }];
       updateURLFilters(filtersArray);
       // service here
+      leftPanelSelectedDay = tradeDate;
+      getLeftPanelDays();
     } else {
       tradeDate = changeMonth(tradeDate, -1);
       datePicker.setDate(tradeDate, true);
@@ -592,6 +564,8 @@ function MonthListener(cta, isNext) {
       filtersArray.tradeDate = [{ id: formatDate(tradeDate) }];
       updateURLFilters(filtersArray);
       // service here
+      leftPanelSelectedDay = tradeDate;
+      getLeftPanelDays();
     }
   });
 }
@@ -607,6 +581,143 @@ function renderMonthCTA() {
   MonthListener(prevCta);
   MonthListener(nextCta, true);
   return dateCTAContainer;
+}
+
+function formatDayWithSuffix(dateString) {
+  const date = new Date(dateString);
+  const day = date.getDate();
+
+  if (day >= 11 && day <= 13) {
+    return `${day}th`;
+  }
+
+  switch (day % 10) {
+    case 1:
+      return `${day}st`;
+    case 2:
+      return `${day}nd`;
+    case 3:
+      return `${day}rd`;
+    default:
+      return `${day}th`;
+  }
+}
+
+function getDayName(dateString) {
+  const date = new Date(dateString);
+  const dayOfWeek = date.toLocaleDateString(undefined, { weekday: 'long' });
+  return dayOfWeek;
+}
+
+function getResultDays(days) {
+  const resultDays = days?.filter(
+    (day, index) => index <= Number(showingDays) - 1,
+  );
+  return resultDays;
+}
+
+function setupLateralDaysListeners(daysList) {
+  const daysAnchors = daysList.querySelectorAll('a');
+  daysAnchors.forEach((day) => {
+    // eslint-disable-next-line func-names
+    day.addEventListener('click', () => {
+      const innerActiveElem = daysList.querySelector('.active-date');
+      if (innerActiveElem) {
+        innerActiveElem.classList.remove('active-date');
+      }
+      day.parentElement.classList.add('active-date');
+      leftPanelSelectedDay = formatDate(new Date(day.dataset.date));
+      // service here
+    });
+  });
+}
+
+function renderResultListSection(days) {
+  const filteredDays = getResultDays(days);
+  lateralDaysList.innerHTML = `
+  <ul>
+    ${filteredDays.map(({ date, totalEventsCount }) => {
+    const li = `
+            <li class=${formatDate(new Date(leftPanelSelectedDay)) === formatDate(new Date(date)) ? 'active-date' : ''}>
+              <a role="button" tabindex="0" data-date=${date}>
+                <span class="number-date">${formatDayWithSuffix(date)}</span>
+                <span class="name-date">${getDayName(date)}</span>
+                <span class="events-date ${totalEventsCount === 0 ? 'no-events' : ''}">${totalEventsCount} Events</span>
+              </a>
+            </li>
+          `;
+    return li;
+  }).join('')}
+  </ul>`;
+  setupLateralDaysListeners(lateralDaysList);
+  return lateralDaysList;
+}
+
+function renderResultSection() {
+  if (leftPanelDays?.events?.length > 0) {
+    resultListTableSection.innerHTML = '';
+    resultListTableSection.append(renderResultListSection(leftPanelDays.events));
+  }
+
+  return resultListTableSection;
+}
+
+function customDropdownListener(dropdown) {
+  const customDropdown = dropdown;
+  const dropdownHeader = customDropdown.querySelector('.dropdown-header');
+  const dropdownList = customDropdown.querySelector('.dropdown-list');
+  const selectedValueSpan = customDropdown.querySelector('.selected-value');
+  const valueInput = customDropdown.querySelector('#timeframe-value');
+  const listItems = dropdownList.querySelectorAll('li');
+
+  dropdownHeader.addEventListener('click', () => {
+    dropdownList.classList.toggle('open');
+    dropdownHeader.classList.toggle('open');
+  });
+
+  listItems.forEach((item) => {
+    item.addEventListener('click', () => {
+      // eslint-disable-next-line prefer-destructuring
+      const value = item.dataset.value;
+      const text = item.textContent;
+
+      selectedValueSpan.textContent = text;
+      valueInput.value = value;
+      showingDays = value;
+      renderResultListSection(leftPanelDays.events);
+
+      listItems.forEach((li) => li.classList.remove('active'));
+      item.classList.add('active');
+
+      dropdownList.classList.remove('open');
+      dropdownHeader.classList.remove('open');
+    });
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!customDropdown.contains(event.target)) {
+      dropdownList.classList.remove('open');
+      dropdownHeader.classList.remove('open');
+    }
+  });
+}
+
+function renderDaysDropdown() {
+  const customDropdown = createElement('div', { class: 'custom-dropdown' });
+  customDropdown.innerHTML = `
+    <div class="dropdown-header">
+      <span class="selected-value">7 Days</span>
+      <div class="arrow"></div>
+    </div>
+    <ul class="dropdown-list">
+      <li data-value="7" class="active">7 Days</li>
+      <li data-value="14">14 Days</li>
+      <li data-value="30">30 Days</li>
+    </ul>
+    <input type="hidden" name="timeframe" id="timeframe-value" value="7">
+  `;
+  customDropdownListener(customDropdown);
+  return customDropdown;
 }
 
 function renderDatePicker() {
@@ -698,14 +809,17 @@ function initFilters() {
 
   // render pills
   renderCurrentPills(filtersArray);
+
+  // service
+  leftPanelSelectedDay = tradeDate;
+  getLeftPanelDays();
 }
 
 async function init(block, version) {
   loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js');
   await initializeLabels();
   economicFilters = await getEconomicReleaseFilters();
-  // remove
-  economicFilters = { countries: [{ name: 'Australia', id: 'AU' }, { name: 'Canada', id: 'CA' }, { name: 'China', id: 'CN' }, { name: 'EMU', id: 'EMU' }, { name: 'France', id: 'FR' }, { name: 'Germany', id: 'DE' }, { name: 'Global', id: 'ALL' }, { name: 'Hong Kong', id: 'HK' }, { name: 'India', id: 'IN' }, { name: 'Italy', id: 'IT' }, { name: 'Japan', id: 'JP' }, { name: 'New Zealand', id: 'NZ' }, { name: 'Singapore', id: 'SG' }, { name: 'South Korea', id: 'KR' }, { name: 'Switzerland', id: 'CH' }, { name: 'Taiwan', id: 'TW' }, { name: 'United Kingdom', id: 'GB' }, { name: 'United States', id: 'US' }], impact: [{ name: 'Market Mover', id: 'HIGH' }, { name: 'Merits Extra Attention', id: 'MEDIUM' }, { name: 'Other Key Indicator', id: 'LOW' }] };
+  // getLeftPanelDays();
   initFilters();
 
   eventCalendarContainer.append(inputsCurtain);
@@ -733,6 +847,7 @@ async function init(block, version) {
           closeFiltersInputsContainer();
           datePicker.hide();
           // call service with variables here
+          getLeftPanelDays();
         }
       }
       prevWindowWidth = windowWidth;
