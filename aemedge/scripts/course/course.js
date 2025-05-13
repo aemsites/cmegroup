@@ -140,7 +140,7 @@ export async function getCourseData() {
       } else if (entry.template.toLowerCase() === 'lesson') {
         if (courseData.hasChapters) {
           // Split into multiple lines to reduce line length
-          const chapterObj = courseData.chapters.find((ch) => entry.path.startsWith(ch.path));
+          const chapterObj = courseData.chapters.find((ch) => entry.path.startsWith(`${ch.path}/`));
           chapterObj?.lessons.push({
             ...entry,
             // Split into multiple lines to reduce line length
