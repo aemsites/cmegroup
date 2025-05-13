@@ -213,7 +213,7 @@ export async function createDynamicCardArticle({ content }) {
   const cardDate = document.createElement('span');
   cardDate.className = 'cards-date';
   const utcDate = getUTCfromDateString(date);
-  const { day, month } = formatToCentralTime(utcDate, false, false, ["month", "day"]);
+  const { day, month } = formatToCentralTime(utcDate, false, false, ['month', 'day']);
   cardDate.innerText = `${day} ${month}`;
 
   const cardTitle = document.createElement('h3');

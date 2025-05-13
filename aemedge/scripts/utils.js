@@ -313,12 +313,13 @@ function decodeHtmlEntities(str) {
   return doc.documentElement.textContent;
 }
 
-//only to be used with dates with no time, eg. '2025-10-28'
+// only to be used with dates with no time, eg. '2025-10-28'
+// eslint-disable-next-line jsdoc/require-returns
 function getUTCfromDateString(date) {
   if (!date) {
     return;
   }
-  const [cleanDate] = date.split('/[T\s]/');
+  const [cleanDate] = date.split(/[T\s]/);
   const parts = cleanDate.split('-').map(Number);
   const [year, month, day] = parts;
   return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
