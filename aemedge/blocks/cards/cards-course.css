@@ -3,6 +3,10 @@
     min-height: 20.875rem !important;
 }
 
+.cards.course ul {
+    grid-template-columns: repeat(4, 1fr);
+}
+
 .cards.course .cards-card .cards-card-image {
     background-position: 50%;
     background-size: cover;
@@ -53,13 +57,13 @@
     opacity: .8;
 }
 
-.cards.course .cards-card a:hover .cards-card-body{
+.cards.course .cards-card a:hover .cards-card-body {
     background-color: var(--blue2);
     min-height: 20.625rem;
     top: 0;
 }
 
-.cards.course .cards-card a .cards-card-body .cards-card-title h3{
+.cards.course .cards-card a .cards-card-body .cards-card-title h3 {
     color: var(--white);
     margin: 0 0 0.625rem;
     letter-spacing: 0.045rem;
@@ -73,7 +77,7 @@
     -webkit-box-orient: vertical;
 }
 
-.cards.course .cards-card a:hover .cards-card-body .cards-card-title h3{
+.cards.course .cards-card a:hover .cards-card-body .cards-card-title h3 {
     color: var(--blue5);
 }
 
@@ -93,13 +97,13 @@
     -webkit-box-orient: vertical;
 }
 
-.cards.course .cards-card a:hover .cards-card-body .cards-card-description p{
+.cards.course .cards-card a:hover .cards-card-body .cards-card-description p {
     opacity: 1;
     transition-delay: .2s;
     transition-duration: .3s;
 }
 
-@media (width >= 993px) {
+@media (width >=993px) {
     .cards.course .cards-card a .cards-card-body .cards-card-description p {
         -webkit-line-clamp: 5;
         line-clamp: 5;
