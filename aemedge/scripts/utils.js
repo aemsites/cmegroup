@@ -314,10 +314,10 @@ function decodeHtmlEntities(str) {
 }
 
 // only to be used with dates with no time, eg. '2025-10-28'
-// eslint-disable-next-line jsdoc/require-returns
+// eslint-disable-next-line consistent-return
 function getUTCfromDateString(date) {
   if (!date) {
-    return;
+    return null;
   }
   const [cleanDate] = date.split(/[T\s]/);
   const parts = cleanDate.split('-').map(Number);
