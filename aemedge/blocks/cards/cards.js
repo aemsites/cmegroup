@@ -9,6 +9,8 @@ import {
   decodeHtmlEntities,
   buildSlider,
   urlByEnvType,
+  formatToCentralTime,
+  getUTCfromDateString,
 } from '../../scripts/utils.js';
 
 const QUERY_INDEX_ENDPOINT = '/query-index.json';
@@ -210,7 +212,9 @@ export async function createDynamicCardArticle({ content }) {
 
   const cardDate = document.createElement('span');
   cardDate.className = 'cards-date';
-  cardDate.innerText = formatDate(date);
+  const utcDate = getUTCfromDateString(date);
+  const { day, month } = formatToCentralTime(utcDate, false, false, ["month", "day"]);
+  cardDate.innerText = `${day} ${month}`;
 
   const cardTitle = document.createElement('h3');
   cardTitle.innerText = title;

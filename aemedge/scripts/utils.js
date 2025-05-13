@@ -255,7 +255,7 @@ function urlByEnvType() {
   return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
 }
 
-function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true) {
+function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true, getParts = []) {
   const utcDate = new Date(utcDateString);
   const options = {
     timeZone: 'America/Chicago',
@@ -276,6 +276,14 @@ function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true) {
   const minute = parts.find((p) => p.type === 'minute').value.padStart(2, '0');
   const second = parts.find((p) => p.type === 'second').value.padStart(2, '0');
   const period = parts.find((p) => p.type === 'dayPeriod').value.toUpperCase();
+
+  if (getParts.length) {
+    return getParts.reduce((acc, cur) => {
+      acc[cur] = parts.find((p) => p.type === cur).value;
+      return acc;
+    }, {});
+  }
+
   if (lastUpdatedFormat) {
     return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
   }
@@ -303,6 +311,17 @@ function isDateBefore(date1, date2) {
 function decodeHtmlEntities(str) {
   const doc = new DOMParser().parseFromString(str, 'text/html');
   return doc.documentElement.textContent;
+}
+
+//only to be used with dates with no time, eg. '2025-10-28'
+function getUTCfromDateString(date) {
+  if (!date) {
+    return;
+  }
+  const [cleanDate] = date.split('/[T\s]/');
+  const parts = cleanDate.split('-').map(Number);
+  const [year, month, day] = parts;
+  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
 }
 
 let sliderPromise = null;
@@ -357,4 +376,5 @@ export {
   getCurrentLangInWords,
   decodeHtmlEntities,
   buildSlider,
+  getUTCfromDateString,
 };
