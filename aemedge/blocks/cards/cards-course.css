@@ -103,7 +103,7 @@
     transition-duration: .3s;
 }
 
-@media (width >=993px) {
+@media (width >= 993px) {
     .cards.course .cards-card a .cards-card-body .cards-card-description p {
         -webkit-line-clamp: 5;
         line-clamp: 5;
