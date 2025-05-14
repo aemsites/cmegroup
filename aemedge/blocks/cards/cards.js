@@ -75,8 +75,8 @@ async function createStaticCards(block) {
       readLabel,
       watchLabel,
     ] = await Promise.all([
-      i18n('Read'),
-      i18n('Watch'),
+      i18n('read'),
+      i18n('watch'),
     ]);
     const ul = document.createElement('ul');
     [...block.children].forEach((row) => {
@@ -183,8 +183,8 @@ export async function createDynamicCardArticle({ content }) {
     readLabel,
     watchLabel,
   ] = await Promise.all([
-    i18n('Read'),
-    i18n('Watch'),
+    i18n('read'),
+    i18n('watch'),
   ]);
 
   const li = document.createElement('li');
