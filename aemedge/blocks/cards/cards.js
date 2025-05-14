@@ -17,16 +17,19 @@ const ECONOMIC_EVENTS_ENDPOINT = `${urlByEnvType()}/services/economic-release-ev
 async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
   if (block.classList.contains('links')) {
+    const titleWrapper = block.querySelector('h6').closest('div');
     const cardTitle = document.createElement('h6');
     cardTitle.textContent = block.querySelector('h6').textContent;
-    block.querySelector('h6').parentElement.parentElement.remove();
+    titleWrapper.remove();
     const container = document.createElement('div');
     container.className = 'main-list-container';
     [...block.children].forEach((row) => {
+      const columns = row.children.length;
       [...row.children].forEach((div) => {
         div.className = 'cards-card-body';
+        div.style.setProperty('--cols', columns);
+        container.append(div);
       });
-      container.append(row);
     });
     cardsContainer.append(cardTitle);
     cardsContainer.append(container);
@@ -72,8 +75,8 @@ async function createStaticCards(block) {
       readLabel,
       watchLabel,
     ] = await Promise.all([
-      i18n('read'),
-      i18n('watch'),
+      i18n('Read'),
+      i18n('Watch'),
     ]);
     const ul = document.createElement('ul');
     [...block.children].forEach((row) => {
@@ -100,7 +103,7 @@ async function createStaticCards(block) {
       cardSubtitle.className = 'cards-subtitle';
       const cardTime = document.createElement('span');
       cardTime.className = 'cards-time';
-      cardTime.innerText = `${time} ${format === 'video' ? watchLabel : readLabel}`;
+      cardTime.innerText = `${parseTime(time)} ${format === 'video' ? watchLabel : readLabel}`;
       const cardDate = document.createElement('span');
       cardDate.className = 'cards-date';
       cardDate.innerText = date;
@@ -180,8 +183,8 @@ export async function createDynamicCardArticle({ content }) {
     readLabel,
     watchLabel,
   ] = await Promise.all([
-    i18n('read'),
-    i18n('watch'),
+    i18n('Read'),
+    i18n('Watch'),
   ]);
 
   const li = document.createElement('li');
@@ -203,7 +206,7 @@ export async function createDynamicCardArticle({ content }) {
 
   const cardTime = document.createElement('span');
   cardTime.className = 'cards-time';
-  cardTime.innerText = `${duration} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
+  cardTime.innerText = `${parseTime(duration)} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
 
   const cardDate = document.createElement('span');
   cardDate.className = 'cards-date';
