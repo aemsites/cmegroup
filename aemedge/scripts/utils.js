@@ -340,6 +340,48 @@ function buildSlider(el, config, includeArrows = true) {
   });
 }
 
+export const PRODUCTION_DOMAINS = ['cmegroup.com', 'beta.cmegroup.com'];
+const domainCheckCache = {};
+
+/**
+ * Checks a url to determine if it is a known domain and categorizes it based on domain type.
+ * Uses a cache to avoid repeated checks for the same hostname.
+ *
+ * @param {string | URL} url - The url to check, can be a string or URL object
+ * @returns {Object} Domain categorization with properties:
+ *   - isProd {boolean} - True for production domains (cmegroup.com, beta.cmegroup.com)
+ *   - isAEM {boolean} - True for AEM domains (contains aem.page or aem.live)
+ *   - isLocal {boolean} - True for localhost
+ *   - isPreview {boolean} - True for localhost or aem.page domains
+ *   - isKnown {boolean} - True if domain is production, AEM, or local
+ *   - isExternal {boolean} - True if domain is not recognized as known
+ */
+function checkDomain(url) {
+  const urlToCheck = typeof url === 'string' ? new URL(url) : url;
+
+  let result = domainCheckCache[urlToCheck.hostname];
+  if (!result) {
+    const isProd = PRODUCTION_DOMAINS.some((host) => urlToCheck.hostname.includes(host));
+    const isAEM = ['aem.page', 'aem.live'].some((host) => urlToCheck.hostname.includes(host));
+    const isLocal = urlToCheck.hostname.includes('localhost');
+    const isPreview = isLocal || urlToCheck.hostname.includes('aem.page');
+    const isKnown = isProd || isAEM || isLocal;
+    const isExternal = !isKnown;
+    result = {
+      isProd,
+      isAEM,
+      isLocal,
+      isKnown,
+      isExternal,
+      isPreview,
+    };
+
+    domainCheckCache[urlToCheck.hostname] = result;
+  }
+
+  return result;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -356,5 +398,6 @@ export {
   urlByEnvType,
   getCurrentLangInWords,
   decodeHtmlEntities,
+  checkDomain,
   buildSlider,
 };
