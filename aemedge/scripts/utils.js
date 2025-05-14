@@ -255,7 +255,7 @@ function urlByEnvType() {
   return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
 }
 
-function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true) {
+function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true, getParts = []) {
   const utcDate = new Date(utcDateString);
   const options = {
     timeZone: 'America/Chicago',
@@ -276,6 +276,14 @@ function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true) {
   const minute = parts.find((p) => p.type === 'minute').value.padStart(2, '0');
   const second = parts.find((p) => p.type === 'second').value.padStart(2, '0');
   const period = parts.find((p) => p.type === 'dayPeriod').value.toUpperCase();
+
+  if (getParts.length) {
+    return getParts.reduce((acc, cur) => {
+      acc[cur] = parts.find((p) => p.type === cur).value;
+      return acc;
+    }, {});
+  }
+
   if (lastUpdatedFormat) {
     return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
   }
@@ -303,6 +311,18 @@ function isDateBefore(date1, date2) {
 function decodeHtmlEntities(str) {
   const doc = new DOMParser().parseFromString(str, 'text/html');
   return doc.documentElement.textContent;
+}
+
+// only to be used with dates with no time, eg. '2025-10-28'
+// eslint-disable-next-line consistent-return
+function getUTCfromDateString(date) {
+  if (!date) {
+    return null;
+  }
+  const [cleanDate] = date.split(/[T\s]/);
+  const parts = cleanDate.split('-').map(Number);
+  const [year, month, day] = parts;
+  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
 }
 
 let sliderPromise = null;
@@ -340,6 +360,48 @@ function buildSlider(el, config, includeArrows = true) {
   });
 }
 
+export const PRODUCTION_DOMAINS = ['cmegroup.com', 'beta.cmegroup.com'];
+const domainCheckCache = {};
+
+/**
+ * Checks a url to determine if it is a known domain and categorizes it based on domain type.
+ * Uses a cache to avoid repeated checks for the same hostname.
+ *
+ * @param {string | URL} url - The url to check, can be a string or URL object
+ * @returns {Object} Domain categorization with properties:
+ *   - isProd {boolean} - True for production domains (cmegroup.com, beta.cmegroup.com)
+ *   - isAEM {boolean} - True for AEM domains (contains aem.page or aem.live)
+ *   - isLocal {boolean} - True for localhost
+ *   - isPreview {boolean} - True for localhost or aem.page domains
+ *   - isKnown {boolean} - True if domain is production, AEM, or local
+ *   - isExternal {boolean} - True if domain is not recognized as known
+ */
+function checkDomain(url) {
+  const urlToCheck = typeof url === 'string' ? new URL(url) : url;
+
+  let result = domainCheckCache[urlToCheck.hostname];
+  if (!result) {
+    const isProd = PRODUCTION_DOMAINS.some((host) => urlToCheck.hostname.includes(host));
+    const isAEM = ['aem.page', 'aem.live'].some((host) => urlToCheck.hostname.includes(host));
+    const isLocal = urlToCheck.hostname.includes('localhost');
+    const isPreview = isLocal || urlToCheck.hostname.includes('aem.page');
+    const isKnown = isProd || isAEM || isLocal;
+    const isExternal = !isKnown;
+    result = {
+      isProd,
+      isAEM,
+      isLocal,
+      isKnown,
+      isExternal,
+      isPreview,
+    };
+
+    domainCheckCache[urlToCheck.hostname] = result;
+  }
+
+  return result;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -356,5 +418,7 @@ export {
   urlByEnvType,
   getCurrentLangInWords,
   decodeHtmlEntities,
+  checkDomain,
   buildSlider,
+  getUTCfromDateString,
 };
