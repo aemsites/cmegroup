@@ -1,6 +1,10 @@
 import { readBlockConfig, loadScript } from '../../scripts/aem.js';
 import { createElement, i18n } from '../../scripts/utils.js';
-import { getEconomicReleaseFilters, postEconomicReleaseDates } from '../../scripts/services/ProductCalendarService.js';
+import {
+  getEconomicReleaseFilters,
+  postEconomicReleaseDates,
+  postEconomicReleaseEvents,
+} from '../../scripts/services/ProductCalendarService.js';
 import { URIUtil } from '../../scripts/utils/index.js';
 
 const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
@@ -11,7 +15,9 @@ const eventCalendarContainer = createElement('div', { class: 'event-calendar' })
 const filterSectionContainer = createElement('div', { class: 'filter-section-container' });
 const resultSectionContainer = createElement('div', { class: 'results-section-container' });
 const lateralDaysList = createElement('div', { class: 'lateral-days-list' });
+const calendarTableContainer = createElement('div', { class: 'event-calendar-table-container' });
 const resultListTableSection = createElement('div', { class: 'result-list-table-section' });
+const calendarResume = createElement('div', { class: 'event-calendar-resume-wrapper' });
 const filtersSectionEventCalendar = createElement('div', { class: 'filters-section-event-calendar' });
 const filtersInputsMainContainer = createElement('div', { class: 'filters-block' });
 const filtersCurrentContainer = createElement('div', { class: 'current-filters' });
@@ -30,7 +36,9 @@ const pillsWrapper = createElement('div', { class: 'current-pills-wrapper' });
 const pillsInnerContainer = createElement('div', { class: 'current-pills-inner-container' });
 let economicFilters;
 let leftPanelDays;
+let events;
 let leftPanelSelectedDay = new Date();
+let nthEvents;
 let filtersLabel;
 const currentPillsLabel = 'Currently filtering by:';
 let searchValueVar = '';
@@ -104,6 +112,27 @@ async function getLeftPanelDays() {
   }
 }
 
+async function getEvents() {
+  // remove interior de tabla here
+  // add spinner here
+  const date = formatDate(new Date(leftPanelSelectedDay));
+  const countries = filtersArray['input-country'].map((country) => country.id);
+  const impacts = filtersArray['input-impact'].map((impact) => impact.id);
+  const textSearch = searchValueVar;
+
+  events = await postEconomicReleaseEvents(
+    date,
+    countries,
+    impacts,
+    textSearch,
+  );
+  if (events) {
+    // eslint-disable-next-line no-use-before-define
+    const eventsSection = renderEventSection();
+    resultListTableSection.append(eventsSection);
+  }
+}
+
 function addOutsideClickListener(detailsElement) {
   document.addEventListener('click', (event) => {
     if (detailsElement.open && !detailsElement.contains(event.target)) {
@@ -142,6 +171,7 @@ function cleanInputSearch() {
   }
   // call service with variables here
   getLeftPanelDays();
+  getEvents();
 }
 
 function decorateCleanInputSearch() {
@@ -159,6 +189,7 @@ function handleInputSearch(e) {
     timeoutId = setTimeout(() => {
       // call service with variables here
       getLeftPanelDays();
+      getEvents();
     }, 400);
   }
 }
@@ -212,6 +243,7 @@ function removePillHandler(pill) {
   }
   updateURLFilters(filtersArray);
   getLeftPanelDays();
+  getEvents();
 }
 
 function decoratePills(container) {
@@ -291,6 +323,7 @@ function filterPillsArrayHandler(listId, checkbox) {
   if (isDesktop) {
     renderCurrentPills(filtersArray);
     getLeftPanelDays();
+    getEvents();
   }
 }
 
@@ -393,6 +426,7 @@ function applyFilters() {
   closeFiltersInputsContainer();
   // call service with variables here
   getLeftPanelDays();
+  getEvents();
 }
 
 function renderInputs() {
@@ -459,6 +493,7 @@ function createTodayBtn(instance) {
     // service here
     leftPanelSelectedDay = tradeDate;
     getLeftPanelDays();
+    getEvents();
   });
 
   return todayButton;
@@ -497,6 +532,7 @@ function initDatePicker() {
       // service here
       leftPanelSelectedDay = tradeDate;
       getLeftPanelDays();
+      getEvents();
     },
     onShow: (instance) => {
       instance.el.classList.add('datepicker-open');
@@ -557,6 +593,7 @@ function MonthListener(cta, isNext) {
       // service here
       leftPanelSelectedDay = tradeDate;
       getLeftPanelDays();
+      getEvents();
     } else {
       tradeDate = changeMonth(tradeDate, -1);
       datePicker.setDate(tradeDate, true);
@@ -566,6 +603,7 @@ function MonthListener(cta, isNext) {
       // service here
       leftPanelSelectedDay = tradeDate;
       getLeftPanelDays();
+      getEvents();
     }
   });
 }
@@ -627,7 +665,10 @@ function setupLateralDaysListeners(daysList) {
       }
       day.parentElement.classList.add('active-date');
       leftPanelSelectedDay = formatDate(new Date(day.dataset.date));
+      nthEvents = day.dataset.nthEvents;
       // service here
+      // eslint-disable-next-line no-use-before-define
+      getEvents();
     });
   });
 }
@@ -636,10 +677,13 @@ function renderResultListSection(days) {
   const filteredDays = getResultDays(days);
   lateralDaysList.innerHTML = `
   <ul>
-    ${filteredDays.map(({ date, totalEventsCount }) => {
+    ${filteredDays.map(({ date, totalEventsCount }, index) => {
+    if (index === 0) {
+      nthEvents = totalEventsCount;
+    }
     const li = `
             <li class=${formatDate(new Date(leftPanelSelectedDay)) === formatDate(new Date(date)) ? 'active-date' : ''}>
-              <a role="button" tabindex="0" data-date=${date}>
+              <a role="button" tabindex="0" data-date=${date} data-nth-events=${totalEventsCount}>
                 <span class="number-date">${formatDayWithSuffix(date)}</span>
                 <span class="name-date">${getDayName(date)}</span>
                 <span class="events-date ${totalEventsCount === 0 ? 'no-events' : ''}">${totalEventsCount} Events</span>
@@ -650,16 +694,71 @@ function renderResultListSection(days) {
   }).join('')}
   </ul>`;
   setupLateralDaysListeners(lateralDaysList);
+  // eslint-disable-next-line no-use-before-define
+  renderCalendarResume();
   return lateralDaysList;
 }
 
 function renderResultSection() {
   if (leftPanelDays?.events?.length > 0) {
-    resultListTableSection.innerHTML = '';
+    lateralDaysList.innerHTML = '';
     resultListTableSection.append(renderResultListSection(leftPanelDays.events));
   }
 
   return resultListTableSection;
+}
+
+function renderEvents() {
+  // eslint-disable-next-line no-use-before-define
+  renderCalendarResume();
+  // remove spinner here
+  // if (events)
+  // tabla
+  // texto de no hay reports
+
+  // const filteredDays = getResultDays(days);
+  // lateralDaysList.innerHTML = `
+  // <ul>
+  //   ${filteredDays.map(({ date, totalEventsCount }) => {
+  //   const li = `
+  //           <li class=${formatDate(new Date(leftPanelSelectedDay)) === formatDate(new Date(date)) ? 'active-date' : ''}>
+  //             <a role="button" tabindex="0" data-date=${date}>
+  //               <span class="number-date">${formatDayWithSuffix(date)}</span>
+  //               <span class="name-date">${getDayName(date)}</span>
+  //               <span class="events-date ${totalEventsCount === 0 ? 'no-events' : ''}">${totalEventsCount} Events</span>
+  //             </a>
+  //           </li>
+  //         `;
+  //   return li;
+  // }).join('')}
+  // </ul>`;
+  // setupLateralDaysListeners(lateralDaysList);
+  // return lateralDaysList;
+}
+
+function formateDateForResume(date) {
+  const dateNoFormat = new Date(date);
+  const month = dateNoFormat.toLocaleString('en-US', { month: 'long' });
+  const year = dateNoFormat.getFullYear();
+  const dayWithSuffix = formatDayWithSuffix(dateNoFormat);
+
+  return `${dayWithSuffix} ${month} ${year}`;
+}
+
+function renderCalendarResume() {
+  calendarResume.innerHTML = `
+  <p>
+    Showing<span> '${nthEvents === 0 ? 'NO' : nthEvents}' </span>Matching Events for<span> "${formateDateForResume(leftPanelSelectedDay)}"</span>
+  </p>
+  `;
+  return calendarResume;
+}
+
+function renderEventSection() {
+  calendarTableContainer.append(renderCalendarResume());
+  calendarTableContainer.append(renderEvents());
+
+  return calendarTableContainer;
 }
 
 function customDropdownListener(dropdown) {
@@ -813,6 +912,7 @@ function initFilters() {
   // service
   leftPanelSelectedDay = tradeDate;
   getLeftPanelDays();
+  getEvents();
 }
 
 async function init(block, version) {
@@ -848,6 +948,7 @@ async function init(block, version) {
           datePicker.hide();
           // call service with variables here
           getLeftPanelDays();
+          getEvents();
         }
       }
       prevWindowWidth = windowWidth;

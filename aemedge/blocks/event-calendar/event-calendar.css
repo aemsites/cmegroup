@@ -1110,7 +1110,7 @@
     .event-calendar-container .result-list-table-section .lateral-days-list {
         display: block;
         width: 25%;
-        padding-right: 1.25rem;
+        padding-right: 0.625rem;
     }
 }
 
@@ -1127,6 +1127,10 @@
     margin-bottom: .3125rem;
     position: relative;
     width: 100%;
+}
+
+.event-calendar-container .result-list-table-section .lateral-days-list ul li:last-child {
+    margin-bottom: 0;
 }
 
 .event-calendar-container .result-list-table-section .lateral-days-list ul li.active-date {
@@ -1210,4 +1214,36 @@
     font-family: var(--cme-group-icons);
     font-variant: normal;
     margin-left: 1.25rem;
+}
+
+/* right panel */
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container {
+    order: 1;
+    width: 75%;
+    background-color: #081d37;
+    border: .0625rem solid #5a6874;
+    border-left: .3125rem solid #3cc8ff;
+    padding: 1.5625rem 1.875rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper{
+    flex: 0 0 auto;
+    width: 66.66666667%;
+    margin-bottom: 1.25rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper p{
+    margin: 0;
+    color: var(--gray4);
+    font-family: var(--averta);
+    font-size: .8125rem;
+    letter-spacing: .0625rem;
+    line-height: .875rem;
+    text-transform: uppercase;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span{
+    color: var(--white);
+    font-weight: 600;
 }
