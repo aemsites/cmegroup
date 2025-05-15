@@ -113,11 +113,11 @@
 }
 
 .cards.course .glider-prev:hover {
-    background: linear-gradient(90deg, var(--blue2), rgb(17 43 74 / 0)) !important;
+    background: linear-gradient(90deg, var(--blue2), rgb(17 43 74 / 0%)) !important;
 }
 
 .cards.course .glider-next:hover {
-    background: linear-gradient(-90deg, var(--blue2), rgb(17 43 74 / 0)) !important;
+    background: linear-gradient(-90deg, var(--blue2), rgb(17 43 74 / 0%)) !important;
 }
 
 .cards.course .glider-prev img,
