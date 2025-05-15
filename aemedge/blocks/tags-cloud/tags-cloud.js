@@ -4,6 +4,9 @@ import ffetch from '../../scripts/ffetch.js';
 
 const defaultUrl = '/education/browse-all';
 
+const CACHE_KEY = 'tags_exclusions_cache';
+const CACHE_DURATION = 15 * 60 * 1000;
+
 /**
  * Tags Cloud Exclusions
  */
@@ -15,11 +18,24 @@ function fetchTagsCloudExclusions() {
     tagsCloudExclusionsPromise = new Promise((resolve, reject) => {
       (async () => {
         try {
+          const cached = localStorage.getItem(CACHE_KEY);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (parsed.timestamp && parsed.exclusions
+              && Date.now() - parsed.timestamp < CACHE_DURATION) {
+              resolve(parsed.exclusions);
+              return;
+            }
+          }
           const tagsCloudExclusionsJson = await ffetch(`${tagsCloudExclusionsEndpoint}`).all();
           const tagsCloudExclusions = [];
           tagsCloudExclusionsJson.forEach((row) => {
             tagsCloudExclusions.push(row.tag);
           });
+          localStorage.setItem(CACHE_KEY, JSON.stringify({
+            timestamp: Date.now(),
+            exclusions: tagsCloudExclusions,
+          }));
           resolve(tagsCloudExclusions);
         } catch (e) {
           reject(e);
