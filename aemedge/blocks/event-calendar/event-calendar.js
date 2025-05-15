@@ -15,6 +15,7 @@ const resultListTableSection = createElement('div', { class: 'result-list-table-
 const filtersSectionEventCalendar = createElement('div', { class: 'filters-section-event-calendar' });
 const filtersInputsMainContainer = createElement('div', { class: 'filters-block' });
 const filtersCurrentContainer = createElement('div', { class: 'current-filters' });
+const filterExpander = createElement('button', { class: 'filter-expander filter-collapsed' });
 const filtersDateContainer = createElement('div', { class: 'date-filter-container' });
 const filtersTitle = createElement('h3', { class: 'filters-title' });
 const filterSearchInputContainer = createElement('div', { class: 'input-search-container' });
@@ -181,8 +182,9 @@ function removePillHandler(pill) {
       }
     }
     // if filterPillsArray is empty clear all
-    if (Object.values(filtersArray).every((value) => !Array.isArray(value)
-      || value.length === 0)) {
+    const otherKeys = Object.keys(filtersArray).filter((key) => key !== 'tradeDate');
+    if (otherKeys.every((key) => Array.isArray(filtersArray[key])
+      && filtersArray[key].length === 0)) {
       filtersCurrentContainer.innerHTML = '';
     }
     // uncheck dropdown
@@ -221,6 +223,22 @@ function decoratePills(container) {
       removePillHandler(pill.dataset.filter);
     });
   });
+}
+
+function renderPillsExpandBtn() {
+  filterExpander.setAttribute('type', 'button');
+  filterExpander.addEventListener('click', async () => {
+    if (filterExpander.classList.contains('filter-collapsed')) {
+      filterExpander.classList.remove('filter-collapsed');
+      pillsWrapper.classList.add('open');
+    } else {
+      filterExpander.classList.add('filter-collapsed');
+      pillsWrapper.classList.remove('open');
+    }
+  });
+  if (pillsInnerContainer.clientHeight > 160) {
+    filtersCurrentContainer.append(filterExpander);
+  }
 }
 
 function renderCurrentPills(pillsArray) {
@@ -817,10 +835,17 @@ function initFilters() {
 
 async function init(block, version) {
   loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js');
+  loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js');
+  loadScript('/aemedge/scripts/third-party/dayjs/timezone.js');
+  loadScript('/aemedge/scripts/third-party/dayjs/utc.js');
   await initializeLabels();
   economicFilters = await getEconomicReleaseFilters();
-  // getLeftPanelDays();
   initFilters();
+
+  // eslint-disable-next-line no-undef
+  dayjs.extend(dayjs_plugin_utc);
+  // eslint-disable-next-line no-undef
+  dayjs.extend(dayjs_plugin_timezone);
 
   eventCalendarContainer.append(inputsCurtain);
   inputsCurtain.addEventListener('click', async () => {
@@ -851,6 +876,11 @@ async function init(block, version) {
         }
       }
       prevWindowWidth = windowWidth;
+      if (pillsInnerContainer.clientHeight > 160) {
+        filtersCurrentContainer.append(filterExpander);
+      } else {
+        filterExpander.remove();
+      }
     }, 50);
   });
 
@@ -859,6 +889,8 @@ async function init(block, version) {
   eventCalendarContainer.append(filterSectionContainer);
   eventCalendarContainer.classList.add(`${version}`);
   block.append(eventCalendarContainer);
+
+  renderPillsExpandBtn();
   initDatePicker();
 }
 
