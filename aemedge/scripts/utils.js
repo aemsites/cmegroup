@@ -344,7 +344,8 @@ function buildSlider(el, config, includeArrows = true, disableOnDesktop = false)
   sliderPromise.then(() => {
     let gliderInstance = null;
     let currentEl = el;
-    let prevClass, nextClass;
+    let prevClass;
+    let nextClass;
 
     const createArrows = () => {
       const parent = currentEl.parentElement;
@@ -384,13 +385,13 @@ function buildSlider(el, config, includeArrows = true, disableOnDesktop = false)
               clone.children[0].outerHTML = clone.children[0].innerHTML;
             }
             const cleanElement = (node) => {
-              node.removeAttribute("style");
-              [...node.classList].forEach(cls => {
+              node.removeAttribute('style');
+              [...node.classList].forEach((cls) => {
                 if (/^glider/.test(cls)) node.classList.remove(cls);
               });
             };
             cleanElement(clone);
-            [...clone.getElementsByTagName("*")].forEach(cleanElement);
+            [...clone.getElementsByTagName('*')].forEach(cleanElement);
             original.parentNode.replaceChild(clone, original);
             currentEl = clone;
           }
@@ -400,7 +401,7 @@ function buildSlider(el, config, includeArrows = true, disableOnDesktop = false)
           prevBtn?.remove();
           nextBtn?.remove();
         } catch (err) {
-          console.warn('Error destroying slider:', err);
+          console.error('Error destroying slider:', err);
         }
         gliderInstance = null;
       }
