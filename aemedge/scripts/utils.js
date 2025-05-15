@@ -166,8 +166,14 @@ async function getArticleRelatedMetadata() {
  */
 async function getPageTags() {
   const metadataTags = getMetadata('article:tag');
+  if (!metadataTags || metadataTags.trim() === '') {
+    return [];
+  }
   const mapTag = async (tagName) => {
     const finalName = tagName.trim();
+    if (!finalName) {
+      return null;
+    }
     const tag = await getTag(finalName);
     return {
       name: finalName,
