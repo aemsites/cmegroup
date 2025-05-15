@@ -346,14 +346,51 @@ async function createDynamicCards(block) {
   let filteredData;
   let cardElements;
   let sliderConfig = null;
+  let disabledOnDesktop = false;
   if (block.classList.contains('course')) {
     const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
     filteredData = await fetchAndFilterDataCourse(tags);
+    sliderConfig = {
+      slidesToShow: 'auto',
+      slidesToScroll: 1,
+      scrollLock: false,
+      itemWidth: 270,
+      exactWidth: true,
+      draggable: true,
+      duration: 2,
+      responsive: [
+        {
+          breakpoint: 481,
+          settings: {
+            itemWidth: 434,
+          },
+        },
+      ],
+    };
+    disabledOnDesktop = true;
     cardElements = filteredData.map(createDynamicCard);
   } else if (block.classList.contains('article')) {
     const { endpoint } = config;
     filteredData = await fetchAndFilterDataArticle(endpoint);
     cardElements = await Promise.all(filteredData.map(createDynamicCardArticle));
+    sliderConfig = {
+      slidesToShow: 'auto',
+      slidesToScroll: 1,
+      scrollLock: false,
+      itemWidth: 255,
+      exactWidth: true,
+      draggable: true,
+      duration: 2,
+      responsive: [
+        {
+          breakpoint: 481,
+          settings: {
+            itemWidth: 426,
+          },
+        },
+      ],
+    };
+    disabledOnDesktop = true;
   } else if (block.classList.contains('thumbnail-medium')) {
     const { endpoint } = config;
     filteredData = await fetchAndFilterDataArticle(endpoint);
@@ -382,10 +419,11 @@ async function createDynamicCards(block) {
     cardElements = [];
   }
   ul.append(...cardElements);
-  if (sliderConfig) {
-    buildSlider(ul, sliderConfig);
-  }
   const cardsContainer = createElement('div', null, ul);
+  block.appendChild(cardsContainer);
+  if (sliderConfig) {
+    buildSlider(ul, sliderConfig, true, disabledOnDesktop);
+  }
   return cardsContainer;
 }
 
