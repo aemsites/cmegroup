@@ -80,6 +80,7 @@ export async function getCourseData() {
     }
 
     const relevantPath = currentPath.split(basePath)[1];
+    const preBasePath = (currentPath.split(basePath)[0] === '' || currentPath.split(basePath)[0] === '/') ? '' : currentPath.split(basePath)[0];
 
     const course = (template !== 'lesson-standalone') ? relevantPath.split('/')[0] : '';
     if (template !== 'lesson-standalone' && !course) {
@@ -87,7 +88,7 @@ export async function getCourseData() {
     }
 
     // build the full course path or lesson path in case of standalone lesson
-    const coursePath = (template !== 'lesson-standalone') ? `${COURSES_BASE_PATH}${course}` : `${LESSONS_BASE_PATH}${course}`;
+    const coursePath = (template !== 'lesson-standalone') ? `${preBasePath}${COURSES_BASE_PATH}${course}` : `${preBasePath}${LESSONS_BASE_PATH}${course}`;
 
     // Check if we have cached data for this course
     const cachedData = getCachedCourseData(coursePath);
@@ -99,8 +100,7 @@ export async function getCourseData() {
     const entries = await ffetch(getQueryIndexUrl())
       .filter((entry) => TEMPLATES.includes(entry.template.toLowerCase())
         && (entry.path === coursePath
-          || entry.path.startsWith(`${coursePath}/`)
-          || entry.path.includes(coursePath)))
+          || entry.path.startsWith(`${coursePath}/`)))
       .all();
 
     // If the page is a lesson standalone, return the first entry
@@ -141,11 +141,19 @@ export async function getCourseData() {
         if (courseData.hasChapters) {
           // Split into multiple lines to reduce line length
           const chapterObj = courseData.chapters.find((ch) => entry.path.startsWith(`${ch.path}/`));
-          chapterObj?.lessons.push({
-            ...entry,
-            // Split into multiple lines to reduce line length
-            pathSuffix: entry.path.split(chapterObj.path)[1].substring(1),
-          });
+          if (chapterObj) {
+            chapterObj?.lessons.push({
+              ...entry,
+              // Split into multiple lines to reduce line length
+              pathSuffix: entry.path.split(chapterObj.path)[1].substring(1),
+            });
+          } else {
+            // Handling case when lesson is not part of any chapter
+            courseData.lessons.push({
+              ...entry,
+              pathSuffix: entry.path.split(coursePath)[1].substring(1),
+            });
+          }
         } else {
           courseData.lessons.push({
             ...entry,
