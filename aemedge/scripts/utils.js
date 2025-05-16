@@ -335,7 +335,7 @@ let sliderPromise = null;
  * @param {*} config Glider configuration
  * @param {*} includeArrows boolean, if true, arrows are included for navigation
  */
-function buildSlider(el, config, includeArrows = true, disableOnDesktop = false) {
+function buildSlider(el, config, includeArrows = true, disableOnDesktop = false, inverse = false) {
   if (!sliderPromise) {
     sliderPromise = loadScript('/aemedge/scripts/third-party/glider/glider.min.js');
     loadCSS('/aemedge/scripts/third-party/glider/glider.min.css');
@@ -355,7 +355,7 @@ function buildSlider(el, config, includeArrows = true, disableOnDesktop = false)
       prevClass = `glider-prev-${uniqueId}`;
       nextClass = `glider-next-${uniqueId}`;
       const prev = createElement('button', { 'aria-label': 'Previous', class: `glider-prev ${prevClass}` }, prevImg);
-      const next = createElement('button', { 'aria-label': 'Next', class: `glider-next ${nextClass}` }, nextImg);
+      const next = createElement('button', { 'aria-label': 'Next', class: `glider-next ${nextClass} ${inverse && 'inverse'}` }, nextImg);
       parent.append(prev);
       parent.append(next);
       parent.classList.add('glider-contain');

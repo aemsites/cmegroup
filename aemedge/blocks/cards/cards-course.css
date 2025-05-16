@@ -112,19 +112,6 @@
     margin: 0;
 }
 
-.cards.course .glider-prev:hover {
-    background: linear-gradient(90deg, var(--blue2), rgb(17 43 74 / 0%)) !important;
-}
-
-.cards.course .glider-next:hover {
-    background: linear-gradient(-90deg, var(--blue2), rgb(17 43 74 / 0%)) !important;
-}
-
-.cards.course .glider-prev img,
-.cards.course .glider-next img {
-    filter: invert(1);
-}
-
 @media (width >= 993px) {
     .cards.course .cards-card a .cards-card-body .cards-card-description p {
         -webkit-line-clamp: 5;

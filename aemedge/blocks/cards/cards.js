@@ -347,6 +347,7 @@ async function createDynamicCards(block) {
   let cardElements;
   let sliderConfig = null;
   let disabledOnDesktop = false;
+  let inverse = false;
   if (block.classList.contains('course')) {
     const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
     filteredData = await fetchAndFilterDataCourse(tags);
@@ -367,6 +368,7 @@ async function createDynamicCards(block) {
         },
       ],
     };
+    inverse = true;
     disabledOnDesktop = true;
     cardElements = filteredData.map(createDynamicCard);
   } else if (block.classList.contains('article')) {
@@ -422,7 +424,7 @@ async function createDynamicCards(block) {
   const cardsContainer = createElement('div', null, ul);
   block.appendChild(cardsContainer);
   if (sliderConfig) {
-    buildSlider(ul, sliderConfig, true, disabledOnDesktop);
+    buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
   }
   return cardsContainer;
 }

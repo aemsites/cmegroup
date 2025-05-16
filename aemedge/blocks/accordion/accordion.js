@@ -27,7 +27,7 @@ function createCardsBlock(cards) {
   ul.append(...cards);
   block.appendChild(ul);
   block.classList.add('course');
-  buildSlider(ul, sliderConfig, true, true);
+  buildSlider(ul, sliderConfig, true, true, true);
   return block;
 }
 
