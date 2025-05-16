@@ -31,27 +31,29 @@ const pillsWrapper = createElement('div', { class: 'current-pills-wrapper' });
 const pillsInnerContainer = createElement('div', { class: 'current-pills-inner-container' });
 let economicFilters;
 let leftPanelDays;
-let leftPanelSelectedDay = new Date();
+let leftPanelSelectedDay;
 let filtersLabel;
-const currentPillsLabel = 'Currently filtering by:';
+let currentPillsLabel;
+let clearAllLabel;
+let resetLabel;
+let applyLabel;
+let searchByEventLabel;
+let todayLabel;
+let prevMonthLabel;
+let nextMonthLabel;
+let daysLabel;
+let showingLabel;
 let searchValueVar = '';
 let timeoutId;
 const filtersArray = {};
 let datePicker;
 let showingDays = 7;
-let tradeDate = new Date();
+let tradeDate;
 const params = {
   tradeDateParam: 'tradeDate',
   countryParam: 'countries',
   attributeParam: 'attributes',
 };
-
-function formatDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 function updateURLFilters(_filters) {
   if (!_filters) {
@@ -76,15 +78,47 @@ function updateURLFilters(_filters) {
 }
 
 async function initializeLabels() {
-  const [filtersLabelVar] = await Promise.all([
+  const [
+    filtersLabelVar,
+    currentPillsLabelVar,
+    clearAllLabelVar,
+    resetLabelVar,
+    applyLabelVar,
+    searchByEventLabelVar,
+    todayLabelVar,
+    prevMonthLabelVar,
+    nextMonthLabelVar,
+    daysLabelVar,
+    showingLabelVar,
+  ] = await Promise.all([
     i18n('Filters'),
+    i18n('Currently filtering by:'),
+    i18n('Clear All'),
+    i18n('RESET'),
+    i18n('APPLY'),
+    i18n('Search by event'),
+    i18n('Today'),
+    i18n('Prev Month'),
+    i18n('Days'),
+    i18n('Showing:'),
   ]);
 
   filtersLabel = filtersLabelVar;
+  currentPillsLabel = currentPillsLabelVar;
+  clearAllLabel = clearAllLabelVar;
+  resetLabel = resetLabelVar;
+  applyLabel = applyLabelVar;
+  searchByEventLabel = searchByEventLabelVar;
+  todayLabel = todayLabelVar;
+  prevMonthLabel = prevMonthLabelVar;
+  nextMonthLabel = nextMonthLabelVar;
+  daysLabel = daysLabelVar;
+  showingLabel = showingLabelVar;
 }
 
 async function getLeftPanelDays() {
-  const date = formatDate(new Date(tradeDate));
+  // eslint-disable-next-line no-undef
+  const date = dayjs(new Date(tradeDate)).format('YYYY-MM-DD');
   const countries = filtersArray['input-country'].map((country) => country.id);
   const impacts = filtersArray['input-impact'].map((impact) => impact.id);
   const daysLimit = 30;
@@ -248,7 +282,7 @@ function renderCurrentPills(pillsArray) {
   const clearAllPill = createElement('button', { class: 'btn-pill clear-all' });
   clearAllPill.setAttribute('type', 'button');
   clearAllPill.dataset.filter = 'clear-all';
-  clearAllPill.innerHTML = 'Clear All';
+  clearAllPill.innerHTML = clearAllLabel;
   let htmlPills = '';
   let hasPills = false;
 
@@ -426,13 +460,13 @@ function renderInputs() {
   const filtersBtnContainer = createElement('div', { class: 'btn-container' });
 
   const filtersResetBtn = createElement('button', { class: 'secondary btn' });
-  filtersResetBtn.innerHTML = 'RESET';
+  filtersResetBtn.innerHTML = resetLabel;
   filtersResetBtn.addEventListener('click', async () => {
     resetFilters();
   });
 
   const filtersApplyBtn = createElement('button', { class: 'primary btn' });
-  filtersApplyBtn.innerHTML = 'APPLY';
+  filtersApplyBtn.innerHTML = applyLabel;
   filtersApplyBtn.addEventListener('click', async () => {
     applyFilters();
   });
@@ -445,7 +479,7 @@ function renderInputs() {
   filtersTitle.innerHTML = filtersLabel;
   filtersInputsContainer.append(filtersTitle);
   const inputsFlexContainer = createElement('div', { class: 'inputs-flex-container' });
-  filterSearchInput.placeholder = 'Search by event';
+  filterSearchInput.placeholder = searchByEventLabel;
   filterSearchInputContainer.append(filterSearchInput);
   inputsFlexContainer.append(filterSearchInputContainer);
 
@@ -468,11 +502,15 @@ function renderInputs() {
 function createTodayBtn(instance) {
   const todayButton = document.createElement('button');
   todayButton.classList.add('datepicker-today-btn');
-  todayButton.textContent = 'Today';
+  todayButton.textContent = todayLabel;
   todayButton.addEventListener('click', () => {
-    tradeDate = new Date();
-    instance.setDate(new Date(), true);
-    filtersArray.tradeDate = [{ id: formatDate(new Date()) }];
+    // eslint-disable-next-line no-undef
+    tradeDate = dayjs().$d;
+    // eslint-disable-next-line no-undef
+    instance.setDate(dayjs().$d, true);
+
+    // eslint-disable-next-line no-undef
+    filtersArray.tradeDate = [{ id: dayjs(new Date()).format('YYYY-MM-DD') }];
     updateURLFilters(filtersArray);
     // service here
     leftPanelSelectedDay = tradeDate;
@@ -510,7 +548,8 @@ function initDatePicker() {
       } else {
         tradeDate = date;
       }
-      filtersArray.tradeDate = [{ id: formatDate(date) }];
+      // eslint-disable-next-line no-undef
+      filtersArray.tradeDate = [{ id: dayjs(date).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
@@ -549,7 +588,8 @@ function initDatePicker() {
 }
 
 function changeMonth(dateString, monthsToAdd) {
-  const date = new Date(dateString);
+  // eslint-disable-next-line no-undef
+  const date = dayjs(dateString).$d;
   const currentMonth = date.getMonth();
 
   date.setMonth(currentMonth + monthsToAdd);
@@ -564,13 +604,14 @@ function changeMonth(dateString, monthsToAdd) {
   return date;
 }
 
-function MonthListener(cta, isNext) {
+function monthListener(cta, isNext) {
   cta.addEventListener('click', () => {
     if (isNext) {
       tradeDate = changeMonth(tradeDate, 1);
       datePicker.setDate(tradeDate, true);
       // update url
-      filtersArray.tradeDate = [{ id: formatDate(tradeDate) }];
+      // eslint-disable-next-line no-undef
+      filtersArray.tradeDate = [{ id: dayjs(tradeDate).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
@@ -579,7 +620,8 @@ function MonthListener(cta, isNext) {
       tradeDate = changeMonth(tradeDate, -1);
       datePicker.setDate(tradeDate, true);
       // update url
-      filtersArray.tradeDate = [{ id: formatDate(tradeDate) }];
+      // eslint-disable-next-line no-undef
+      filtersArray.tradeDate = [{ id: dayjs(tradeDate).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
@@ -591,40 +633,14 @@ function MonthListener(cta, isNext) {
 function renderMonthCTA() {
   const dateCTAContainer = createElement('div', { class: 'date-filter-cta-container' });
   const prevCta = createElement('button', { class: 'primary btn prev-cta' });
-  prevCta.innerHTML = 'Prev Month';
+  prevCta.innerHTML = prevMonthLabel;
   const nextCta = createElement('button', { class: 'primary btn next-cta' });
-  nextCta.innerHTML = 'Next Month';
+  nextCta.innerHTML = nextMonthLabel;
   dateCTAContainer.append(prevCta);
   dateCTAContainer.append(nextCta);
-  MonthListener(prevCta);
-  MonthListener(nextCta, true);
+  monthListener(prevCta);
+  monthListener(nextCta, true);
   return dateCTAContainer;
-}
-
-function formatDayWithSuffix(dateString) {
-  const date = new Date(dateString);
-  const day = date.getDate();
-
-  if (day >= 11 && day <= 13) {
-    return `${day}th`;
-  }
-
-  switch (day % 10) {
-    case 1:
-      return `${day}st`;
-    case 2:
-      return `${day}nd`;
-    case 3:
-      return `${day}rd`;
-    default:
-      return `${day}th`;
-  }
-}
-
-function getDayName(dateString) {
-  const date = new Date(dateString);
-  const dayOfWeek = date.toLocaleDateString(undefined, { weekday: 'long' });
-  return dayOfWeek;
 }
 
 function getResultDays(days) {
@@ -644,7 +660,8 @@ function setupLateralDaysListeners(daysList) {
         innerActiveElem.classList.remove('active-date');
       }
       day.parentElement.classList.add('active-date');
-      leftPanelSelectedDay = formatDate(new Date(day.dataset.date));
+      // eslint-disable-next-line no-undef
+      leftPanelSelectedDay = dayjs(new Date(day.dataset.date)).format('YYYY-MM-DD');
       // service here
     });
   });
@@ -655,11 +672,17 @@ function renderResultListSection(days) {
   lateralDaysList.innerHTML = `
   <ul>
     ${filteredDays.map(({ date, totalEventsCount }) => {
+    // eslint-disable-next-line no-undef
+    const isActiveDate = dayjs(new Date(leftPanelSelectedDay)).format('YYYY-MM-DD') === dayjs(new Date(date)).format('YYYY-MM-DD');
+    // eslint-disable-next-line no-undef
+    const dayName = dayjs(date).format('dddd');
+    // eslint-disable-next-line no-undef
+    const dayWithSuffix = dayjs(date).format('Do');
     const li = `
-            <li class=${formatDate(new Date(leftPanelSelectedDay)) === formatDate(new Date(date)) ? 'active-date' : ''}>
+            <li class=${isActiveDate ? 'active-date' : ''}>
               <a role="button" tabindex="0" data-date=${date}>
-                <span class="number-date">${formatDayWithSuffix(date)}</span>
-                <span class="name-date">${getDayName(date)}</span>
+                <span class="number-date">${dayWithSuffix}</span>
+                <span class="name-date">${dayName}</span>
                 <span class="events-date ${totalEventsCount === 0 ? 'no-events' : ''}">${totalEventsCount} Events</span>
               </a>
             </li>
@@ -724,13 +747,13 @@ function renderDaysDropdown() {
   const customDropdown = createElement('div', { class: 'custom-dropdown' });
   customDropdown.innerHTML = `
     <div class="dropdown-header">
-      <span class="selected-value">7 Days</span>
+      <span class="selected-value">7 ${daysLabel}</span>
       <div class="arrow"></div>
     </div>
     <ul class="dropdown-list">
-      <li data-value="7" class="active">7 Days</li>
-      <li data-value="14">14 Days</li>
-      <li data-value="30">30 Days</li>
+      <li data-value="7" class="active">7 ${daysLabel}</li>
+      <li data-value="14">14 ${daysLabel}</li>
+      <li data-value="30">30 ${daysLabel}</li>
     </ul>
     <input type="hidden" name="timeframe" id="timeframe-value" value="7">
   `;
@@ -751,10 +774,10 @@ function renderDatePicker() {
 
   const dateFilterSubContainer = createElement('div', { class: 'date-filter-sub-container' });
   const daysContainer = createElement('div', { class: 'date-filter-days-container' });
-  const showingLabel = createElement('p');
-  showingLabel.innerHTML = 'Showing:';
+  const showingLabelPar = createElement('p');
+  showingLabelPar.innerHTML = showingLabel;
 
-  daysContainer.append(showingLabel);
+  daysContainer.append(showingLabelPar);
   daysContainer.append(renderDaysDropdown());
   dateFilterSubContainer.append(daysContainer);
   dateFilterSubContainer.append(renderMonthCTA());
@@ -819,10 +842,12 @@ function initFilters() {
   filtersArray['input-impact'] = createFilterPillsArrayFromUrl('impact', impactIds);
   const date = getUrlFilterParam(params.tradeDateParam);
   if (date.length > 0) {
-    tradeDate = new Date(date);
+    // eslint-disable-next-line no-undef
+    tradeDate = dayjs(date).$d;
     filtersArray.tradeDate = [{ id: date }];
   } else {
-    filtersArray.tradeDate = [{ id: formatDate(tradeDate) }];
+    // eslint-disable-next-line no-undef
+    filtersArray.tradeDate = [{ id: dayjs(tradeDate).format('YYYY-MM-DD') }];
   }
 
   // render pills
@@ -836,16 +861,12 @@ function initFilters() {
 async function init(block, version) {
   loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js');
   loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js');
-  loadScript('/aemedge/scripts/third-party/dayjs/timezone.js');
   loadScript('/aemedge/scripts/third-party/dayjs/utc.js');
+  loadScript('/aemedge/scripts/third-party/dayjs/timezone.js');
+  loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js');
   await initializeLabels();
   economicFilters = await getEconomicReleaseFilters();
   initFilters();
-
-  // eslint-disable-next-line no-undef
-  dayjs.extend(dayjs_plugin_utc);
-  // eslint-disable-next-line no-undef
-  dayjs.extend(dayjs_plugin_timezone);
 
   eventCalendarContainer.append(inputsCurtain);
   inputsCurtain.addEventListener('click', async () => {
@@ -891,6 +912,12 @@ async function init(block, version) {
   block.append(eventCalendarContainer);
 
   renderPillsExpandBtn();
+  // eslint-disable-next-line no-undef
+  dayjs.extend(dayjs_plugin_utc);
+  // eslint-disable-next-line no-undef
+  dayjs.extend(dayjs_plugin_timezone);
+  // eslint-disable-next-line no-undef
+  dayjs.extend(dayjs_plugin_advancedFormat);
   initDatePicker();
 }
 
