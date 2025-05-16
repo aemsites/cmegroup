@@ -326,7 +326,7 @@ function expandToDepth(item, currentDepth, targetDepth) {
       fragmentsContainer.innerHTML = '';
 
       const tree = createFileTree(files, basePath);
-      const targetDepth = getBasePathDepth(); // Get the depth to expand to
+      const targetDepth = getBasePathDepth();
 
       Object.entries(tree)
         .sort(([a], [b]) => a.localeCompare(b))
