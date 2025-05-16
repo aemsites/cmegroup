@@ -358,8 +358,8 @@ main img {
 
 .icon {
     display: inline-block;
-    height: 24px;
-    width: 24px;
+    height: 0.875rem;
+    width: 0.875rem;
 }
 
 .icon img {
