@@ -9,18 +9,18 @@ function flattenLessons(courseData) {
   const flatLessons = [];
 
   modulesOrder.forEach((key) => {
-    const lesson = lessonsAtRoot.find((l) => l.pathSuffix === key);
-    if (lesson) {
-      flatLessons.push({ ...lesson, chapterPath: null });
+    const foundLesson = lessonsAtRoot.find((lesson) => lesson.pathSuffix === key);
+    if (foundLesson) {
+      flatLessons.push({ ...foundLesson, chapterPath: null });
       return;
     }
 
-    const chapter = chapters.find((c) => c.path.split('/').pop() === key);
-    if (chapter && chapter.lessons) {
-      chapter.lessons.forEach((l) => {
+    const foundChapter = chapters.find((chapter) => chapter.path.split('/').pop() === key);
+    if (foundChapter?.lessons) {
+      foundChapter.lessons.forEach((lesson) => {
         flatLessons.push({
-          ...l,
-          chapterPath: chapter.path,
+          ...lesson,
+          chapterPath: foundChapter.path,
         });
       });
     }
@@ -86,7 +86,7 @@ async function addLateralNavigation(prevHref, nextHref) {
   );
 
   const lastSection = main.querySelector('.section:last-child');
-  if (lastSection && lastSection.parentNode) {
+  if (lastSection?.parentNode) {
     lastSection.parentNode.insertBefore(nav, lastSection.nextSibling);
   }
 }
