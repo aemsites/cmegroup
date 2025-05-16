@@ -6,6 +6,7 @@ import {
   i18n,
 } from '../utils.js';
 import { getMetadata } from '../aem.js';
+import { loadFragment } from '../../blocks/fragment/fragment.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
 const LESSONS_BASE_PATH = '/education/lessons/';
@@ -248,4 +249,14 @@ export async function createCourseBaseTemplate() {
   header.appendChild(language);
 
   courseHeading.before(header);
+
+  // Append disclaimer if present
+  const disclaimer = getMetadata('disclaimer');
+  if (disclaimer) {
+    const fragment = await loadFragment(disclaimer);
+    const div = document.createElement('div');
+    div.classList.add('fragment-wrapper');
+    div.appendChild(fragment.firstElementChild);
+    header.parentElement.appendChild(div);
+  }
 }
