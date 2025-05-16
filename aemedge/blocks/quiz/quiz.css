@@ -52,6 +52,7 @@
     border: none;
     box-shadow: none;
     cursor: pointer;
+    text-transform: none;
 }
 
 @media (width >= 481px) {
@@ -369,5 +370,6 @@
 }
 
 .questions-wrapper > div {
+    overflow: hidden;
     flex: 0 0 100%;
 }

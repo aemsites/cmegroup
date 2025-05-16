@@ -14,11 +14,13 @@ import {
   toCamelCase,
   toClassName,
   getMetadata,
+  buildBlock,
 } from './aem.js';
 import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
+import { checkDomain } from './utils.js';
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
@@ -137,6 +139,39 @@ function buildAutoBlocks(main) {
     // eslint-disable-next-line no-console
     console.error('Auto Blocking failed', error);
   }
+}
+
+/**
+ * Add list of fragment folder paths where we can decorate fragments from
+ */
+const FRAGMENT_PATHS = [
+  '/fragments/', // Phase 1
+];
+
+/**
+ * Checks if the link points to a fragment path
+ * @param {Element} link the link element
+ * @returns {boolean} true if the link points to a fragment
+ */
+export function isFragmentLink(link) {
+  const href = link.getAttribute('href');
+  return href && FRAGMENT_PATHS.some((path) => href.includes(path));
+}
+
+/**
+ * Builds fragment blocks from links to fragments
+ * @param {Element} main The container element
+ */
+export function buildFragmentBlocks(main) {
+  main.querySelectorAll('a[href]').forEach((a) => {
+    const url = new URL(a.href);
+    const domainCheck = checkDomain(url);
+    if (domainCheck.isKnown && isFragmentLink(a)) {
+      const block = buildBlock('fragment', url.pathname);
+      a.replaceWith(block);
+      decorateBlock(block);
+    }
+  });
 }
 
 /**
@@ -290,6 +325,7 @@ export function decorateMain(main) {
   decorateButtons(main);
   decorateIcons(main);
   buildAutoBlocks(main);
+  buildFragmentBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
   decorateExternalLinks(main);

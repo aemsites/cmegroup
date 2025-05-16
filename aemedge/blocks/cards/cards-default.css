@@ -25,3 +25,55 @@
   aspect-ratio: 4 / 3;
   object-fit: cover;
 }
+
+.cards .glider-prev {
+  left: 0;
+  height: 100%;
+  width: 4.0625rem;
+  top: 0;
+  box-shadow: none;
+}
+
+.cards .glider-prev:hover{
+  background: linear-gradient(90deg,#fff,hsl(0deg 0% 100% / 0%)) !important;
+}
+
+.cards .glider-next {
+  right: 0;
+  height: 100%;
+  width: 4.0625rem;
+  top: 0;
+  box-shadow: none;
+}
+
+.cards .glider-next:hover {
+  background: linear-gradient(90deg, hsl(0deg 0% 100% / 0%), #fff) !important;
+}
+
+.cards .glider-prev img,
+.cards .glider-next img {
+  width: 1.6875rem;
+  filter: brightness(0) saturate(100%) invert(12%) sepia(27%) saturate(2740%) hue-rotate(184deg) brightness(97%) contrast(92%);
+}
+
+.cards .glider-prev:active img,
+.cards .glider-next:active img {
+  filter: brightness(0) saturate(100%) invert(72%) sepia(59%) saturate(2700%) hue-rotate(167deg) brightness(102%) contrast(101%);
+}
+
+.cards .glider-prev.disabled,
+.cards .glider-next.disabled {
+  opacity: 0;
+}
+
+@media (width >= 769px) {
+  .cards .glider-prev img,
+  .cards .glider-next img {
+    opacity: 0;
+  }
+
+  .cards .glider-prev:hover img,
+  .cards .glider-next:hover img {
+    opacity: 1;
+  }
+}

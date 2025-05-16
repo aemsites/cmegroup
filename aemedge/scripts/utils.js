@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { getMetadata } from './aem.js';
+import { loadScript, loadCSS, getMetadata } from './aem.js';
 import ffetch from './ffetch.js';
 
 /**
@@ -166,8 +166,14 @@ async function getArticleRelatedMetadata() {
  */
 async function getPageTags() {
   const metadataTags = getMetadata('article:tag');
+  if (!metadataTags || metadataTags.trim() === '') {
+    return [];
+  }
   const mapTag = async (tagName) => {
     const finalName = tagName.trim();
+    if (!finalName) {
+      return null;
+    }
     const tag = await getTag(finalName);
     return {
       name: finalName,
@@ -192,31 +198,33 @@ function parseTime(time) {
   if (!time) {
     return '';
   }
-  const parts = time.split(':');
-  if (parts.length !== 2) {
-    return '';
-  }
-  const timeInMins = parseInt(parts[1], 10) > 30
-    ? parseInt(parts[0], 10) + 1 : parseInt(parts[0], 10);
-  let hours = 0;
-  let mins = 0;
+  const [minStr, secStr] = time.split(':');
+  const seconds = parseInt(secStr, 10);
+  let minutes = parseInt(minStr, 10);
 
-  if (timeInMins > 60) {
-    hours = Math.floor(timeInMins / 60);
-    mins = timeInMins - 60 * hours;
-    return `${hours} hr ${mins} min`;
+  if (minutes === 0) {
+    minutes = 1;
+  } else if (seconds > 30) {
+    minutes += 1;
   }
-  return `${timeInMins} min`;
+
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours} Hr${mins ? ` ${mins} Min` : ''}`;
+  }
+  return `${minutes} Min`;
 }
 
-function formatDate(dateString) {
+function formatDate(dateString, includeYear = false) {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) {
     return 'Invalid Date';
   }
-  const day = date.getDate();
+  const day = String(date.getDate()).padStart(2, '0');
   const month = date.toLocaleString('en-US', { month: 'short' });
-  return `${day} ${month}`;
+  const year = includeYear ? ` ${date.getFullYear()}` : '';
+  return `${day} ${month}${year}`;
 }
 
 function getBrowserName() {
@@ -253,7 +261,7 @@ function urlByEnvType() {
   return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
 }
 
-function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true) {
+function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true, getParts = []) {
   const utcDate = new Date(utcDateString);
   const options = {
     timeZone: 'America/Chicago',
@@ -274,6 +282,14 @@ function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true) {
   const minute = parts.find((p) => p.type === 'minute').value.padStart(2, '0');
   const second = parts.find((p) => p.type === 'second').value.padStart(2, '0');
   const period = parts.find((p) => p.type === 'dayPeriod').value.toUpperCase();
+
+  if (getParts.length) {
+    return getParts.reduce((acc, cur) => {
+      acc[cur] = parts.find((p) => p.type === cur).value;
+      return acc;
+    }, {});
+  }
+
   if (lastUpdatedFormat) {
     return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
   }
@@ -303,6 +319,95 @@ function decodeHtmlEntities(str) {
   return doc.documentElement.textContent;
 }
 
+// only to be used with dates with no time, eg. '2025-10-28'
+// eslint-disable-next-line consistent-return
+function getUTCfromDateString(date) {
+  if (!date) {
+    return null;
+  }
+  const [cleanDate] = date.split(/[T\s]/);
+  const parts = cleanDate.split('-').map(Number);
+  const [year, month, day] = parts;
+  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+}
+
+let sliderPromise = null;
+
+/**
+ * Builds a slider. See:
+ * https://nickpiscitelli.github.io/Glider.js/
+ *
+ * @param {*} el HTML parent element
+ * @param {*} config Glider configuration
+ * @param {*} includeArrows boolean, if true, arrows are included for navigation
+ */
+function buildSlider(el, config, includeArrows = true) {
+  if (!sliderPromise) {
+    sliderPromise = loadScript('/aemedge/scripts/third-party/glider/glider.min.js');
+    loadCSS('/aemedge/scripts/third-party/glider/glider.min.css');
+  }
+  sliderPromise.then(() => {
+    if (includeArrows && el && el.parentElement) {
+      const parent = el.parentElement;
+      const prevImg = createElement('img', { 'data-icon-name': 'chevron-left', src: '/aemedge/icons/chevron-left.svg' });
+      const nextImg = createElement('img', { 'data-icon-name': 'chevron-right', src: '/aemedge/icons/chevron-right.svg' });
+      const prev = createElement('button', { 'aria-label': 'Previous', class: 'glider-prev' }, prevImg);
+      const next = createElement('button', { 'aria-label': 'Next', class: 'glider-next' }, nextImg);
+      parent.append(prev);
+      parent.append(next);
+      config.arrows = {
+        prev: '.glider-prev',
+        next: '.glider-next',
+      };
+      parent.classList.add('glider-contain');
+    }
+    // eslint-disable-next-line no-new, no-undef
+    new Glider(el, config);
+  });
+}
+
+export const PRODUCTION_DOMAINS = ['cmegroup.com', 'beta.cmegroup.com'];
+const domainCheckCache = {};
+
+/**
+ * Checks a url to determine if it is a known domain and categorizes it based on domain type.
+ * Uses a cache to avoid repeated checks for the same hostname.
+ *
+ * @param {string | URL} url - The url to check, can be a string or URL object
+ * @returns {Object} Domain categorization with properties:
+ *   - isProd {boolean} - True for production domains (cmegroup.com, beta.cmegroup.com)
+ *   - isAEM {boolean} - True for AEM domains (contains aem.page or aem.live)
+ *   - isLocal {boolean} - True for localhost
+ *   - isPreview {boolean} - True for localhost or aem.page domains
+ *   - isKnown {boolean} - True if domain is production, AEM, or local
+ *   - isExternal {boolean} - True if domain is not recognized as known
+ */
+function checkDomain(url) {
+  const urlToCheck = typeof url === 'string' ? new URL(url) : url;
+
+  let result = domainCheckCache[urlToCheck.hostname];
+  if (!result) {
+    const isProd = PRODUCTION_DOMAINS.some((host) => urlToCheck.hostname.includes(host));
+    const isAEM = ['aem.page', 'aem.live'].some((host) => urlToCheck.hostname.includes(host));
+    const isLocal = urlToCheck.hostname.includes('localhost');
+    const isPreview = isLocal || urlToCheck.hostname.includes('aem.page');
+    const isKnown = isProd || isAEM || isLocal;
+    const isExternal = !isKnown;
+    result = {
+      isProd,
+      isAEM,
+      isLocal,
+      isKnown,
+      isExternal,
+      isPreview,
+    };
+
+    domainCheckCache[urlToCheck.hostname] = result;
+  }
+
+  return result;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -319,4 +424,7 @@ export {
   urlByEnvType,
   getCurrentLangInWords,
   decodeHtmlEntities,
+  checkDomain,
+  buildSlider,
+  getUTCfromDateString,
 };
