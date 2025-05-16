@@ -99,6 +99,7 @@ async function initializeLabels() {
     i18n('Search by event'),
     i18n('Today'),
     i18n('Prev Month'),
+    i18n('Next Month'),
     i18n('Days'),
     i18n('Showing:'),
   ]);
