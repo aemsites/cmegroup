@@ -407,7 +407,7 @@ function buildSlider(el, config, includeArrows = true, disableOnDesktop = false,
           prevBtn?.remove();
           nextBtn?.remove();
         } catch (err) {
-          console.error('Error destroying slider:', err);
+          console.log('Error destroying slider:', err);
         }
         gliderInstance = null;
       }
