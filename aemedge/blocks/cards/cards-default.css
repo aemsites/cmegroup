@@ -34,8 +34,8 @@
   box-shadow: none;
 }
 
-.cards .glider-prev:hover{
-  background: linear-gradient(90deg,#fff,hsl(0deg 0% 100% / 0%)) !important;
+.cards .glider-prev:hover {
+  background: linear-gradient(90deg, #fff, hsl(0deg 0% 100% / 0%)) !important;
 }
 
 .cards .glider-next {
@@ -48,6 +48,19 @@
 
 .cards .glider-next:hover {
   background: linear-gradient(90deg, hsl(0deg 0% 100% / 0%), #fff) !important;
+}
+
+.cards .glider-prev.inverse:hover {
+  background: linear-gradient(90deg, var(--blue2), rgb(17 43 74 / 0%)) !important;
+}
+
+.cards .glider-next.inverse:hover {
+  background: linear-gradient(-90deg, var(--blue2), rgb(17 43 74 / 0%)) !important;
+}
+
+.cards .glider-prev.inverse img,
+.cards .glider-next.inverse img {
+  filter: invert(1);
 }
 
 .cards .glider-prev img,
