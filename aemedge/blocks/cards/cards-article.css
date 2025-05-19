@@ -43,6 +43,8 @@
 
 .cards.article li a .cards-image-container img {
     height: 14.375rem;
+    object-fit: cover;
+    width: 100%;
 }
 
 .cards.article li a .cards-body-container {
@@ -102,4 +104,19 @@
 
 .cards.article li a:hover .cards-body-container h3 {
     text-decoration: none;
+}
+
+.cards.article .glider-track {
+    gap: 32px;
+    padding-left: 3px;
+}
+
+@media (width >= 769px) {
+    .cards.article .glider-prev {
+        display: none;
+    }
+
+    .cards.article .glider-next {
+        display: none;
+    }
 }
