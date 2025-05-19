@@ -50,7 +50,7 @@
     background-color: transparent;
     height: 12.5rem;
     left: 0;
-    padding: 1.875rem;
+    padding: 20px;
     position: absolute;
     top: 124px;
     transition: height .5s ease-in-out 0s, top .5s ease-in-out 0s;
@@ -103,9 +103,22 @@
     transition-duration: .3s;
 }
 
-@media (width >=993px) {
+.cards.course .glider-track {
+    gap: 32px;
+    padding-left: 3px;
+}
+
+.cards.course .glider-slide {
+    margin: 0;
+}
+
+@media (width >= 993px) {
     .cards.course .cards-card a .cards-card-body .cards-card-description p {
         -webkit-line-clamp: 5;
         line-clamp: 5;
+    }
+
+    .cards.course .cards-card-body {
+        padding: 30px;
     }
 }
