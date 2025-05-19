@@ -1,7 +1,6 @@
-import { apiGet, getResponseData } from '../utils/index.js';
+import { apiGet, apiPost, getResponseData } from '../utils/index.js';
 import { urlByEnvType } from '../utils.js';
 
-// eslint-disable-next-line import/prefer-default-export
 export async function getEconomicReleaseFilters() {
   const url = `${urlByEnvType()}/services/economic-release-filters`;
   try {
@@ -10,6 +9,24 @@ export async function getEconomicReleaseFilters() {
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('Calendar => getEconomicReleaseFilters error:', e);
+    return [];
+  }
+}
+
+export async function postEconomicReleaseDates(date, countries, impact, daysLimit, textSearch) {
+  const url = `${urlByEnvType()}/services/economic-release-dates`;
+  try {
+    const response = await apiPost(url, {
+      date,
+      countries,
+      impact,
+      daysLimit,
+      textSearch,
+    });
+    return getResponseData(response);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('Calendar => postEconomicReleaseDates error:', e);
     return [];
   }
 }
