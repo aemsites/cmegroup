@@ -2,6 +2,7 @@ import ffetch from './ffetch.js';
 
 const taxonomyEndpoint = '/eds-config/taxonomy.json';
 const taxonomyPromises = {};
+const taxonomyWithoutModificationsPromises = {};
 
 function fetchTaxonomy(sheet) {
   if (!taxonomyPromises[sheet]) {
@@ -45,6 +46,28 @@ function fetchTaxonomy(sheet) {
   return taxonomyPromises[sheet];
 }
 
+function fetchTaxonomyWithoutModifications(sheet) {
+  if (!taxonomyWithoutModificationsPromises[sheet]) {
+    taxonomyWithoutModificationsPromises[sheet] = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const sheetParameter = sheet ? `?sheet=${sheet}` : '';
+          const taxonomyJson = await ffetch(`${taxonomyEndpoint}${sheetParameter}`).all();
+          const taxonomy = {};
+          taxonomyJson.forEach((row) => {
+            taxonomy[row.tag] = row;
+          });
+          console.log('taxonomy', taxonomy);
+          resolve(taxonomy);
+        } catch (e) {
+          reject(e);
+        }
+      })();
+    });
+  }
+  return taxonomyWithoutModificationsPromises[sheet];
+}
+
 const getDeepNestedObject = (obj, filter) => Object.entries(obj)
   .reduce((acc, [key, value]) => {
     let result = [];
@@ -64,6 +87,10 @@ const getDeepNestedObject = (obj, filter) => Object.entries(obj)
  */
 export function getTaxonomy(sheet) {
   return fetchTaxonomy(sheet);
+}
+
+export function getTaxonomyWithoutModifications(sheet) {
+  return fetchTaxonomyWithoutModifications(sheet);
 }
 
 /**
