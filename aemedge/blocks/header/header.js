@@ -641,9 +641,10 @@ class Nav {
     });
 
     const linksInNav = subMenu.querySelectorAll('li a');
+    const desktop = window.matchMedia('(min-width: 993px)');
     linksInNav.forEach((link) => {
       link.addEventListener('click', () => {
-        this.closeNav(this.nav);
+        this.closeNav(desktop.matches ? this.curtain : this.nav);
       });
     });
 
@@ -658,9 +659,11 @@ class Nav {
   };
 
   closeNav = (nav) => {
+    const openMenu = document.querySelector('.has-menu.is-open');
     if (nav.classList.contains(IS_OPEN)) {
       nav.parentElement.classList.remove(IS_OPEN);
       nav.classList.remove(IS_OPEN);
+      openMenu.remove(IS_OPEN);
       this.curtain.classList.remove(IS_OPEN);
       const allElOpen = nav.querySelectorAll('.is-open');
       // eslint-disable-next-line no-plusplus
