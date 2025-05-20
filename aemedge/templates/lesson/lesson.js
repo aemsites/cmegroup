@@ -2,27 +2,31 @@ import { createCourseBaseTemplate, getCourseData } from '../../scripts/course/co
 import { createElement, i18n } from '../../scripts/utils.js';
 
 function flattenLessons(courseData) {
-  const lessonsAtRoot = courseData.lessons || [];
+  const lessons = courseData.lessons || [];
   const chapters = courseData.chapters || [];
-  const modulesOrder = courseData.modulesOrder.split(',').map((s) => s.trim()) || [];
+  const modulesOrder = courseData.modulesOrder?.split(',').map((s) => s.trim()) || [];
 
   const flatLessons = [];
 
-  modulesOrder.forEach((key) => {
-    const foundLesson = lessonsAtRoot.find((lesson) => lesson.pathSuffix === key);
-    if (foundLesson) {
-      flatLessons.push({ ...foundLesson, chapterPath: null });
-      return;
-    }
+  const lessonMap = new Map(
+    lessons.map((lesson) => [lesson.pathSuffix, lesson]),
+  );
 
-    const foundChapter = chapters.find((chapter) => chapter.path.split('/').pop() === key);
-    if (foundChapter?.lessons) {
-      foundChapter.lessons.forEach((lesson) => {
-        flatLessons.push({
-          ...lesson,
-          chapterPath: foundChapter.path,
-        });
-      });
+  const chapterMap = new Map(
+    chapters.map((chapter) => [
+      chapter.path.split('/').pop(),
+      chapter.lessons?.map((lesson) => ({
+        ...lesson,
+        chapterPath: chapter.path,
+      })) || [],
+    ]),
+  );
+
+  modulesOrder.forEach((key) => {
+    if (lessonMap.has(key)) {
+      flatLessons.push({ ...lessonMap.get(key), chapterPath: null });
+    } else if (chapterMap.has(key)) {
+      flatLessons.push(...chapterMap.get(key));
     }
   });
 
@@ -85,10 +89,7 @@ async function addLateralNavigation(prevHref, nextHref) {
     ),
   );
 
-  const lastSection = main.querySelector('.section:last-child');
-  if (lastSection?.parentNode) {
-    lastSection.parentNode.insertBefore(nav, lastSection.nextSibling);
-  }
+  main.appendChild(nav);
 }
 
 export default async function lessonTemplate() {
