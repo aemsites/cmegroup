@@ -41,7 +41,7 @@ export default async function decorate(block) {
   const {
     url,
   } = dataBlock;
-  const id = 'test';
+  const id = Math.random().toString(36).slice(-4);
 
   block.innerHTML = `
     <div class='media-player' id='media-player-id'>
