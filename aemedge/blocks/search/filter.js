@@ -1,325 +1,228 @@
 import {
-  a,
-  button,
-  div, input, label,
-  span,
+  a, button, div, input, label,
 } from '../../scripts/dom-helpers.js';
 import { getTaxonomyWithoutModifications } from '../../scripts/taxonomy.js';
-import { i18n } from '../../scripts/utils.js';
+import searchConfig from './search-config.js';
 
-// const appliedFilters = {};
-
-const filterJson = {
-  numbers: true,
-  position: 'default',
-  filters: [],
-  appliedFilters: [],
-  searchInput: '',
-};
-
+// === Filter Helpers ===
 const addAppliedFilter = (filterId, value) => {
-  if (!filterJson.appliedFilters.some((f) => f.filterId === filterId && f.value === value)) {
-    filterJson.appliedFilters.push({ filterId, value });
-  }
+  const exists = searchConfig.appliedFilters
+    .some((f) => f.filterId === filterId && f.value === value);
+  if (!exists) searchConfig.appliedFilters.push({ filterId, value });
 };
 
 const removeAppliedFilter = (filterId, value) => {
-  filterJson.appliedFilters = filterJson.appliedFilters.filter(
-    (f) => !(f.filterId === filterId && f.value === value),
-  );
+  searchConfig.appliedFilters = searchConfig
+    .appliedFilters.filter((f) => f.filterId !== filterId || f.value !== value);
 };
 
-const clearAllAppliedFilters = () => {
-  filterJson.appliedFilters = [];
+const clearAllFilters = () => {
+  searchConfig.appliedFilters = [];
+  searchConfig.searchInput = '';
+  document
+    .querySelectorAll('.dropdown-option-checkbox, .checkbox-input')
+    .forEach((cb) => {
+      cb.checked = false;
+    });
+  const tempInput = document.querySelector('.search-input');
+  if (tempInput) {
+    tempInput.value = '';
+  }
 };
 
-const getAppliedFilters = () => filterJson.appliedFilters;
+const updateFilteringByUI = (container, onChange) => {
+  container.innerHTML = '';
+  const { appliedFilters, searchInput } = searchConfig;
+
+  if (!appliedFilters.length && !searchInput) return;
+
+  const filterTitle = div({ class: 'filter-title' }, 'Currently filtering by:');
+  const filterTags = div({ class: 'filter-tags' });
+
+  // Add search term as filter tag
+  if (searchInput) {
+    const searchTag = button({ class: 'filter-tag' }, `Search: ${searchInput}`);
+    searchTag.onclick = () => {
+      searchConfig.searchInput = '';
+      const searchField = document.querySelector('.search-input');
+      if (searchField) searchField.value = '';
+      updateFilteringByUI(container, onChange);
+      onChange?.();
+    };
+    filterTags.appendChild(searchTag);
+  }
+
+  // Add each applied filter as tag
+  appliedFilters.forEach(({ filterId, value }) => {
+    const tag = button({ class: 'filter-tag' }, value);
+    tag.onclick = () => {
+      const cb = document.querySelector(`#${filterId} input[value="${value}"]`);
+      if (cb) cb.checked = false;
+      removeAppliedFilter(filterId, value);
+      updateFilteringByUI(container, onChange);
+      onChange?.();
+    };
+    filterTags.appendChild(tag);
+  });
+
+  // Add reset link
+  const reset = a({ class: 'reset', href: '#' }, 'Reset');
+  reset.onclick = (e) => {
+    e.preventDefault();
+    clearAllFilters();
+    updateFilteringByUI(container, onChange);
+    onChange?.();
+  };
+
+  filterTitle.appendChild(reset);
+  container.appendChild(filterTitle);
+  container.appendChild(filterTags);
+};
+
+// === UI Components ===
+const createOption = (opt, labelContent, type, className, filterId, index) => {
+  const wrapper = div({ class: `${type}-option`, id: `${type === 'dropdown' ? 'option' : 'item'}-${filterId}-${index}` });
+  const cb = input({ type: 'checkbox', class: className, value: opt });
+  const lbl = label({ class: `${type}-label` }, labelContent);
+
+  cb.addEventListener('change', (e) => {
+    const isChecked = e.target.checked;
+    if (isChecked) {
+      addAppliedFilter(filterId, opt);
+    } else {
+      removeAppliedFilter(filterId, opt);
+    }
+    updateFilteringByUI(document.querySelector('.filter-bullets'));
+  });
+
+  wrapper.addEventListener('click', (e) => {
+    if (e.target !== cb) {
+      cb.checked = !cb.checked;
+      cb.dispatchEvent(new Event('change'));
+    }
+  });
+
+  wrapper.append(cb, lbl);
+  return wrapper;
+};
+
+const sortOptions = (options, order) => {
+  if (order === 'asc') {
+    return [...options].sort((aa, bb) => aa.localeCompare(bb));
+  }
+  if (order === 'desc') {
+    return [...options].sort((aa, bb) => bb.localeCompare(aa));
+  }
+  return options;
+};
 
 const createDropdown = async (options, labelText, order, filterId) => {
   const dropdown = div({ class: 'dropdown', id: filterId });
-  const dropdownToggle = div({ class: 'dropdown-toggle' }, labelText);
-  const dropdownMenu = div({ class: 'dropdown-menu' });
+  const toggle = div({ class: 'dropdown-toggle' }, labelText);
+  const menu = div({ class: 'dropdown-menu' });
+
   const taxonomy = await getTaxonomyWithoutModifications('tags');
-
-  options.sort((a, b) => {
-    if (!order || order === 'default') {
-      return 0;
-    }
-    return order === 'asc' ? a.localeCompare(b) : b.localeCompare(a);
-  }).forEach((opt, index) => {
-    const dropdownItem = div({ class: 'dropdown-option', id: `option-${filterId}-${index}` });
-    const checkboxWrapper = div({ class: 'dropdown-option-checkbox-wrapper' });
-    const checkbox = input({ type: 'checkbox', class: 'dropdown-option-checkbox', value: opt });
-    checkboxWrapper.appendChild(checkbox);
-    dropdownItem.appendChild(checkboxWrapper);
-    dropdownItem.appendChild(label({ class: 'dropdown-option-label' }, taxonomy[opt]?.en || opt));
-    dropdownMenu.appendChild(dropdownItem);
-
-    dropdownItem.addEventListener('click', (e) => {
-      // Only toggle if the click wasn't directly on the checkbox
-      if (e.target !== checkbox) {
-        const internalCheckbox = dropdownItem.querySelector('.dropdown-option-checkbox');
-        if (internalCheckbox) {
-          internalCheckbox.checked = !internalCheckbox.checked;
-          // trigger checkbox change here
-          internalCheckbox.dispatchEvent(new Event('change'));
-        }
-      }
+  sortOptions(options, order)
+    .forEach((opt, i) => {
+      const labelContent = taxonomy[opt]?.en || opt;
+      menu.appendChild(createOption(opt, labelContent, 'dropdown', 'dropdown-option-checkbox', filterId, i));
     });
 
-    // Add change event listener for the checkbox
-    checkbox.addEventListener('change', (e) => {
-      const { value } = e.target;
-      console.log(e.target);
-      // tempSpan.classList.toggle('checked');
-      if (e.target.checked) {
-        addAppliedFilter(filterId, value);
-      } else {
-        removeAppliedFilter(filterId, value);
-      }
+  toggle.addEventListener('click', () => {
+    menu.classList.toggle('visible');
+    toggle.classList.toggle('visible');
 
-      updateFilteringByUI(document.querySelector('.filter-bullets'));
-      // Optionally: trigger API call or UI update here
-    });
-  });
+    // eslint-disable-next-line no-use-before-define
+    const onEscape = (e) => e.key === 'Escape' && close();
+    // eslint-disable-next-line no-use-before-define
+    const onOutsideClick = (e) => !dropdown.contains(e.target) && close();
 
-  dropdown.appendChild(dropdownToggle);
-  dropdown.appendChild(dropdownMenu);
-
-  dropdownToggle.addEventListener('click', () => {
-    // on escape and click some where else hide dropdownmenu
-    dropdownMenu.classList.toggle('visible');
-    dropdownToggle.classList.toggle('visible');
-
-    // Close on Escape key
-    const handleEscapePress = (e) => {
-      if (e.key === 'Escape') {
-        dropdownMenu.classList.remove('visible');
-        dropdownToggle.classList.remove('visible');
-      }
+    const close = () => {
+      menu.classList.remove('visible');
+      toggle.classList.remove('visible');
+      document.removeEventListener('click', onOutsideClick);
+      document.removeEventListener('keydown', onEscape);
     };
 
-    // Close on outside click
-    const handleOutsideClick = (e) => {
-      if (!dropdown.contains(e.target)) {
-        dropdownMenu.classList.remove('visible');
-        dropdownToggle.classList.remove('visible');
-      }
-    };
-
-    // Add listeners
     setTimeout(() => {
-      document.addEventListener('click', handleOutsideClick);
-      document.addEventListener('keydown', handleEscapePress);
-    }, 0); // Allow current click to propagate first
+      document.addEventListener('click', onOutsideClick);
+      document.addEventListener('keydown', onEscape);
+    }, 0);
   });
 
+  dropdown.append(toggle, menu);
   return dropdown;
 };
 
 const createCheckbox = (options, labelText, order, filterId) => {
-  const checkbox = div({ class: 'checkbox', id: filterId }, label({ class: 'checkbox-label' }, labelText));
-  const checkboxItems = div({ class: 'checkbox-items' });
-  checkbox.appendChild(checkboxItems);
+  const wrapper = div({ class: 'checkbox', id: filterId });
+  wrapper.appendChild(label({ class: 'checkbox-label' }, labelText));
 
-  options.sort((a, b) => {
-    if (!order || order === 'default') {
-      return 0;
-    }
-    return order === 'asc' ? a.localeCompare(b) : b.localeCompare(a);
-  }).forEach((opt, index) => {
-    const checkboxItem = div({ class: 'checkbox-item', id: `item-${filterId}-${index}` });
-    const inputEl = input({ type: 'checkbox', class: 'checkbox-input', value: opt });
-    checkboxItem.appendChild(inputEl);
-    checkboxItem.appendChild(label({ class: 'checkbox-label' }, opt));
-    checkboxItems.appendChild(checkboxItem);
+  const container = div({ class: 'checkbox-items' });
+  wrapper.appendChild(container);
 
-    checkboxItem.addEventListener('click', (e) => {
-      // Only toggle if the click wasn't directly on the checkbox
-      if (e.target !== inputEl) {
-        const internalCheckbox = checkboxItem.querySelector('.checkbox-input');
-        if (internalCheckbox) {
-          internalCheckbox.checked = !internalCheckbox.checked;
-          // trigger checkbox change here
-          internalCheckbox.dispatchEvent(new Event('change'));
-        }
-      }
+  sortOptions(options, order)
+    .forEach((opt, i) => {
+      container.appendChild(createOption(opt, opt, 'checkbox', 'checkbox-input', filterId, i));
     });
 
-    inputEl.addEventListener('change', (e) => {
-      const { value } = e.target;
-      if (e.target.checked) {
-        addAppliedFilter(filterId, value);
-      } else {
-        removeAppliedFilter(filterId, value);
-      }
-
-      updateFilteringByUI(document.querySelector('.filter-bullets'));
-      // Optionally: trigger API call or UI update here
-    });
-  });
-
-  return checkbox;
+  return wrapper;
 };
 
+// === Filter Creation ===
 const createFilters = async () => {
-  const filtersWrapper = div({ class: 'filters-wrapper' });
-  filtersWrapper.appendChild(div({ class: 'filters-wrapper-title' }, 'Filters'));
-  const filters = div({ class: 'filters' });
-  filtersWrapper.appendChild(filters);
+  const wrapper = div({ class: 'filters-wrapper' });
+  wrapper.appendChild(div({ class: 'filters-wrapper-title' }, 'Filters'));
 
-  for (let index = 0; index < filterJson.filters.length; index += 1) {
-    const filter = filterJson.filters[index];
-    const {
-      type, name, values, order,
-    } = filter;
+  const filtersContainer = div({ class: 'filters' });
+  wrapper.appendChild(filtersContainer);
 
-    if (type === 'dropdown') {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const [index, filter] of searchConfig.filters.entries()) {
+    const filterId = `${filter.type}-${index}`;
+
+    const control = filter.type === 'dropdown'
       // eslint-disable-next-line no-await-in-loop
-      const dropdown = await createDropdown(values, name, order, `dropdown-${index}`);
-      filters.appendChild(dropdown);
-    } else if (type === 'checkbox') {
-      const checkbox = createCheckbox(values, name, order, `checkbox-${index}`);
-      filters.appendChild(checkbox);
-    }
-
-    // updateFilteringByUI();
+      ? await createDropdown(filter.values, filter.name, filter.order, filterId)
+      : createCheckbox(filter.values, filter.name, filter.order, filterId);
+    filtersContainer.appendChild(control);
   }
 
-  return filtersWrapper;
+  return wrapper;
 };
 
+// === Filter Parsing ===
 const manageFilters = async (key, block, index) => {
   let currentFilter = null;
 
   for (let i = index; i < block.children.length; i += 1) {
     const child = block.children[i];
-    const firstChild = child?.firstElementChild;
-    const textContent = firstChild?.textContent.trim();
-    let secondChild;
-    if (textContent.toLowerCase() === key || !textContent) {
-      secondChild = child?.children[1];
-      const secondChildTextContent = secondChild?.textContent.trim();
-      if (secondChildTextContent) {
-        currentFilter = {
-          name: secondChildTextContent,
-          type: child?.children[2]?.textContent.trim(),
-          values: Array.from(child?.children[3]?.querySelectorAll('li')).map((li) => li.textContent.trim()),
-        };
-      } else {
-        const thirdChild = child.children[2];
-        const thirdChildTextContent = thirdChild?.textContent.trim().toLowerCase();
-        if (thirdChildTextContent === 'order') {
-          currentFilter.order = child.children[3]?.textContent.trim();
-          filterJson.filters.push(currentFilter);
-          currentFilter = null;
-        }
+    const header = child?.firstElementChild?.textContent.trim().toLowerCase();
+    if (!header || header === key.toLowerCase()) {
+      const name = child?.children[1]?.textContent.trim();
+      const type = child?.children[2]?.textContent.trim();
+      const values = Array.from(child?.children[3]?.querySelectorAll('li')).map((li) => li.textContent.trim());
+
+      if (name && type && values.length) {
+        currentFilter = { name, type, values };
+      } else if (child?.children[2]?.textContent.trim().toLowerCase() === 'order') {
+        currentFilter.order = child.children[3]?.textContent.trim();
+        searchConfig.filters.push(currentFilter);
+        currentFilter = null;
       }
     } else {
       break;
     }
   }
 
-  const filters = await createFilters();
-  return filters;
+  const tempObj = await createFilters();
+  return tempObj;
 };
 
-/**
- * Renders the "Currently filtering by" UI using filterJson.appliedFilters.
- * @param {HTMLElement} container - The DOM element to render the filtering UI into.
- * @param {Function} onChange - Callback to trigger when filters change (e.g., to re-filter results).
- */
-function updateFilteringByUI(container, onChange) {
-  container.innerHTML = ''; // Clear previous
-
-  if (filterJson.appliedFilters.length === 0 && !filterJson.searchInput) {
-    return;
-  }
-  // Create filter title section
-  const filterTitle = div({ class: 'filter-title' });
-  const title = document.createElement('span');
-  title.textContent = 'Currently filtering by:';
-  filterTitle.appendChild(title);
-
-  container.appendChild(filterTitle);
-
-  const filterTags = div({ class: 'filter-tags' });
-
-  // Add search input as first filter if it exists
-  if (filterJson.searchInput) {
-    const searchTag = button({ class: 'filter-tag' }, `Search: ${filterJson.searchInput}`);
-    searchTag.onclick = () => {
-      filterJson.searchInput = '';
-      // Clear the search input field
-      const searchInput = document.querySelector('.search-input');
-      if (searchInput) {
-        searchInput.value = '';
-      }
-      updateFilteringByUI(container, onChange);
-      if (onChange) onChange();
-    };
-    filterTags.appendChild(searchTag);
-  }
-
-  if (filterJson.appliedFilters.length === 0 && !filterJson.searchInput) {
-    // Uncheck all checkboxes in both dropdowns and regular checkboxes
-    document.querySelectorAll('.dropdown-option-checkbox, .checkbox-input').forEach((checkbox) => {
-      checkbox.checked = false;
-    });
-    return;
-  }
-
-  // Render each applied filter as a tag
-  filterJson.appliedFilters.forEach(({ filterId, value }) => {
-    const tag = button({ class: 'filter-tag' }, value);
-
-    tag.onclick = () => {
-      // Find and uncheck the corresponding checkbox
-      const checkbox = document.querySelector(`#${filterId} input[value="${value}"]`);
-      if (checkbox) {
-        checkbox.checked = false;
-      }
-      
-      removeAppliedFilter(filterId, value);
-      updateFilteringByUI(container, onChange);
-      if (onChange) onChange();
-    };
-    
-    filterTags.appendChild(tag);
-  });
-
-  // Reset link
-  const reset = a({ class: 'reset' }, 'Reset');
-  reset.href = '#';
-  reset.onclick = (e) => {
-    e.preventDefault();
-    
-    // Uncheck all checkboxes in both dropdowns and regular checkboxes
-    document.querySelectorAll('.dropdown-option-checkbox, .checkbox-input').forEach((checkbox) => {
-      checkbox.checked = false;
-    });
-    
-    clearAllAppliedFilters();
-    filterJson.searchInput = ''; // Clear search input
-    // Clear the search input field
-    const searchInput = document.querySelector('.search-input');
-    if (searchInput) {
-      searchInput.value = '';
-    }
-    updateFilteringByUI(container, onChange);
-    if (onChange) onChange();
-  };
-  
-  filterTitle.appendChild(reset);
-  container.appendChild(filterTags);
-}
-
 export {
-  filterJson,
   manageFilters,
   addAppliedFilter,
   removeAppliedFilter,
-  clearAllAppliedFilters,
-  getAppliedFilters,
+  clearAllFilters,
   updateFilteringByUI,
 };

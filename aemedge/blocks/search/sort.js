@@ -1,100 +1,111 @@
-import { a, div, input, label, span } from '../../scripts/dom-helpers.js';
+import {
+  a, div, label, span,
+} from '../../scripts/dom-helpers.js';
+import searchConfig from './search-config.js';
 
-const createDropdown = (options, labelText, dropdownId = 'sort-dropdown', onChange) => {
-  let selectedIndex = 0; // Default to first option
+const createDropdown = (options, labelText, onChange, dropdownId = 'sort-dropdown') => {
   const dropdown = div({ class: 'dropdown', id: dropdownId });
-  const dropdownLabel = label({ class: 'dropdown-label' }, 'Sort by');
-
-  // Dropdown toggle with arrow
-  // const arrow = span({ class: 'dropdown-arrow', style: 'margin-left: 8px; font-size: 1.1em;' });
-  const dropdownToggle = div({ class: 'dropdown-toggle' }, options[selectedIndex].name);
-
+  const dropdownLabel = label({ class: 'dropdown-label' }, labelText);
+  const dropdownToggle = div({ class: 'dropdown-toggle' }, options[0]?.name || '');
   const dropdownMenu = div({ class: 'dropdown-menu' });
 
-  // Build options
   options.forEach((opt, index) => {
     const dropdownItem = div({ class: 'dropdown-option', id: `option-${dropdownId}-${index}` });
-    // Option text
-    const optionText = a(span({ class: 'dropdown-option-text', type: 'button', value: opt.value, sortType: opt.sortType }, opt.name));
+    const optionText = a(span({
+      class: 'dropdown-option-text',
+      value: opt.value,
+      sortType: opt.sortType,
+    }, opt.name));
 
-    if (index === selectedIndex) {
-      optionText.classList.add('selected');
-    } else {
-      optionText.classList.remove('selected');
-    }
-    // Checkmark
-    // const check = span({
-    //   class: 'dropdown-check',
-    //   style: `margin-right: 8px; color: #1976d2; visibility: ${index === selectedIndex ? 'visible' : 'hidden'};`,
-    // }, '✔');
-    // dropdownItem.appendChild(check);
+    if (index === 0) optionText.classList.add('selected');
+
     dropdownItem.appendChild(optionText);
-
     dropdownItem.addEventListener('click', () => {
-      selectedIndex = index;
-      dropdownToggle.childNodes[0].textContent = opt.name; // update label
-      // Update checkmarks
-      // Array.from(dropdownMenu.children).forEach((child, idx) => {
-      //   child.querySelector('.dropdown-check').style.visibility = idx === selectedIndex ? 'visible' : 'hidden';
-      // });
+      dropdownMenu.querySelectorAll('.dropdown-option a').forEach((el) => el.classList.remove('selected'));
+      optionText.classList.add('selected');
+      dropdownToggle.textContent = opt.name;
+      searchConfig.sortOptions = opt;
       dropdownMenu.classList.remove('visible');
-      if (onChange) onChange(opt, index);
+      dropdownToggle.classList.remove('visible');
+      onChange?.(opt, index);
     });
 
     dropdownMenu.appendChild(dropdownItem);
   });
 
-  dropdown.appendChild(dropdownLabel);
-  dropdown.appendChild(dropdownToggle);
-  dropdown.appendChild(dropdownMenu);
+  const toggleContainer = div({ class: 'dropdown-toggle-menu' }, dropdownToggle, dropdownMenu);
+  dropdown.append(dropdownLabel, toggleContainer);
+
+  const closeDropdown = () => {
+    dropdownMenu.classList.remove('visible');
+    dropdownToggle.classList.remove('visible');
+  };
+
+  // Dropdown toggle functionality
+  const handleEscapePress = (e) => {
+    if (e.key === 'Escape') closeDropdown();
+  };
+
+  const handleOutsideClick = (e) => {
+    if (!dropdown.contains(e.target)) closeDropdown();
+  };
+
+  const openDropdown = () => {
+    dropdownMenu.classList.add('visible');
+    dropdownToggle.classList.add('visible');
+    document.addEventListener('click', handleOutsideClick, { once: true });
+    document.addEventListener('keydown', handleEscapePress, { once: true });
+  };
 
   dropdownToggle.addEventListener('click', () => {
-    dropdownMenu.classList.toggle('visible');
-    dropdownToggle.classList.toggle('visible');
-    // arrow.textContent = isOpen ? '▲' : '▼';
-  });
-
-  // Close dropdown on outside click
-  document.addEventListener('click', (e) => {
-    if (!dropdown.contains(e.target)) {
-      dropdownMenu.classList.remove('visible');
+    const isVisible = dropdownMenu.classList.contains('visible');
+    if (isVisible) {
+      closeDropdown();
+    } else {
+      openDropdown();
     }
   });
 
   return dropdown;
 };
 
-const createSortDropdown = (sortOptions, onChange) => {
-  return createDropdown(sortOptions, 'Sort by', 'sort-dropdown', onChange);
-};
+const createSortDropdown = (sortOptions, onChange) => createDropdown(sortOptions, 'Sort by', onChange);
 
 const manageSort = (key, block, index, onChange) => {
   const sortOptions = [];
+
   for (let i = index; i < block.children.length; i += 1) {
     const child = block.children[i];
-    const firstChild = child?.firstElementChild;
-    const textContent = firstChild?.textContent.trim();
-    let secondChild;
-    if (textContent.toLowerCase() === key || !textContent) {
-      secondChild = child?.children[1];
-      const secondChildTextContent = secondChild?.textContent.trim();
-      const sortOption = {
-        name: secondChildTextContent,
-        value: child?.children[2]?.textContent.trim(),
-        sortType: child?.children[3]?.textContent.trim(),
-      };
-      if (secondChildTextContent) {
-        sortOptions.push(sortOption);
-      }
-    } else {
-      break;
+    const firstChildText = child?.firstElementChild?.textContent.trim().toLowerCase();
+    if (firstChildText !== key.toLowerCase() && firstChildText) break;
+
+    const [, nameEl, valueEl, typeEl] = child.children;
+    const name = nameEl?.textContent.trim();
+    const value = valueEl?.textContent.trim();
+    const sortType = typeEl?.textContent.trim();
+
+    if (name) {
+      sortOptions.push({ name, value, sortType });
     }
   }
 
-  return createSortDropdown(sortOptions, onChange);
+  const dropdown = createSortDropdown(sortOptions, onChange);
+  searchConfig.sortOptions = sortOptions[0] || null;
+  return dropdown;
+};
+
+const getCurrentSort = () => searchConfig.sortOptions;
+
+const resetSort = () => {
+  if (Array.isArray(searchConfig.sortOptions)) {
+    searchConfig.sortOptions = searchConfig.sortOptions[0] || null;
+  } else {
+    searchConfig.sortOptions = null;
+  }
 };
 
 export {
-  // searchSort,
   manageSort,
+  getCurrentSort,
+  resetSort,
 };

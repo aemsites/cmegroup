@@ -57,7 +57,6 @@ function fetchTaxonomyWithoutModifications(sheet) {
           taxonomyJson.forEach((row) => {
             taxonomy[row.tag] = row;
           });
-          console.log('taxonomy', taxonomy);
           resolve(taxonomy);
         } catch (e) {
           reject(e);
