@@ -12,8 +12,8 @@ const LESSONS_BASE_PATH = '/education/lessons/';
 const COURSES_INDEX_PATH = '/courses-index.json';
 const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone'];
 const CACHE_KEY = 'course_data';
-const CACHE_EXPIRATION_PROD = 15 * 60 * 1000; // 15 minutes in milliseconds
-const CACHE_EXPIRATION_STAGE = 30 * 1000; // 30 seconds in milliseconds
+const CACHE_EXPIRATION_PROD = 0; // 15 * 60 * 1000; // 15 minutes in milliseconds
+const CACHE_EXPIRATION_STAGE = 0; // 30 * 1000; // 30 seconds in milliseconds
 
 const isLessonStandalone = (template) => template.toLowerCase() === 'lesson-standalone';
 const getQueryIndexUrl = () => {
