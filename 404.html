@@ -40,8 +40,19 @@
   </script>
   <link rel="stylesheet" href="/aemedge/styles/styles.css">
   <style>
+    .whats-next-title {
+      margin-top: 1.875rem;
+    }
+
+    .cards-container {
+      margin-bottom: 0.625rem !important;
+    }
+
+    main>.section {
+      margin-bottom: 1.25rem;
+    }
+
     main.error {
-      min-height: calc(100vh - var(--nav-height));
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -57,12 +68,12 @@
     }
 
     main.error .introText {
-      font-size: 18px;
+      font-size: 1.125rem;
     }
 
-    main.error p, 
+    main.error p,
     main.error li {
-      font-size: 14px;
+      font-size: 0.875rem;
       margin-bottom: 0 !important;
     }
 
@@ -80,47 +91,47 @@
 
     main.error form input[type="text"] {
       width: 100%;
-      padding: 5px;
-      font-size: 14px;
+      padding: 0.3125rem;
+      font-size: 0.875rem;
       margin-right: 1%;
     }
 
     main.error form button {
       flex-shrink: 0;
-      padding: 13px;
+      padding: 0.8125rem;
     }
 
-    @media(width >= 600px) {
+    @media(width >= 37.5rem) {
       main.error .introText {
-        font-size: 20px;
+        font-size: 1.25rem;
       }
     }
 
-    @media(width >= 768px) {
+    @media(width >= 48rem) {
       main.error .section {
-          margin-bottom: 30px;
+        margin-bottom: 1.25rem;
       }
 
       main.error .introText {
-          font-size: 24px;
+        font-size: 1.5rem;
       }
     }
 
-    @media (width >= 992px) {
+    @media (width >= 62rem) {
       main.error .section {
-        max-width: 992px;
-        margin: 30px auto 0;
+        max-width: 62rem;
+        margin: 1.25rem auto 0;
       }
 
       main.error .section:last-child {
-        margin-bottom: 30px;
+        margin-bottom: 1.25rem;
       }
     }
 
-    @media (width >= 1200px) {
+    @media (width >= 75rem) {
       main.error .section {
-        max-width: 1200px;
-        margin: 30px auto 0;
+        max-width: 75rem;
+        margin: 1.25rem auto 0;
       }
     }
   </style>
@@ -131,20 +142,22 @@
   <header></header>
   <main class="error">
     <div class="section">
-        <h2>Sorry...</h2>
-        <p><span class="introText">The page you are looking for cannot be found.</span></p>
-        <p>You may have typed in the wrong address, or the page may no longer exist.</p>
-        <h3>What next?</h3>
-        <ul>
-          <li>Go back to the previous page</li>
-          <li>Go to the CME Group <a href="https://www.cmegroup.com">home page</a></li>
-          <li>Consider using the CME Group site navigation above or the search box below to find the page that you want on our site.</li>
-        </ul>
+      <h2>Sorry...</h2>
+      <p><span class="introText">The page you are looking for cannot be found.</span></p>
+      <p>You may have typed in the wrong address, or the page may no longer exist.</p>
+      <h3 class="whats-next-title">What next?</h3>
+      <ul>
+        <li>Go back to the previous page</li>
+        <li>Go to the CME Group <a href="https://www.cmegroup.com">home page</a></li>
+        <li>Consider using the CME Group site navigation above or the search box below to find the page that you want on
+          our site.</li>
+      </ul>
     </div>
 
     <div class="section">
       <form action="/search/index.html">
-        <input type="text" name="q" placeholder="Search CME Group" style="width: 100%; padding: 5px; font-size: 14px; margin-right: 1%;">
+        <input type="text" name="q" placeholder="Search CME Group"
+          style="width: 100%; padding: 5px; font-size: 14px; margin-right: 1%;">
         <button type="submit">Search</button>
       </form>
     </div>
@@ -153,28 +166,28 @@
       <h3>Useful Links</h3>
       <div class="cards tiles">
         <div>
-              <div class="cards-card-image">
-                <a href="https://www.cmegroup.com/markets/products.html" rel="external">  
-                  <picture>
-                    <source srcset="/aemedge/images/leading-products_459x293.avif" type="image/jpeg">
-                    <img src="/aemedge/images/leading-products_459x293.avif" alt="Leading Products">
-                  </picture>
-                </a>
-                <div class="cards-card-image-overlay">
-                  <span>Product Slate</span>
-                </div>
-                <div class="triangle-arrow">
-                  <img src="/aemedge/images/fpl-corner-arrow.webp" alt="Read More">
-                </div>
-              </div>
-              <div class="cards-card-body">
-                <h3>
-                  <a href="https://www.cmegroup.com/markets/products.html" rel="external">
-                    View All Products
-                  </a>
-                </h3>
-                <p>View all available products to see quotes, volume, settlements and time & sales.</p>
-              </div>
+          <div class="cards-card-image">
+            <a href="https://www.cmegroup.com/markets/products.html" rel="external">
+              <picture>
+                <source srcset="/aemedge/images/leading-products_459x293.avif" type="image/jpeg">
+                <img src="/aemedge/images/leading-products_459x293.avif" alt="Leading Products">
+              </picture>
+            </a>
+            <div class="cards-card-image-overlay">
+              <span>Product Slate</span>
+            </div>
+            <div class="triangle-arrow">
+              <img src="/aemedge/images/fpl-corner-arrow.webp" alt="Read More">
+            </div>
+          </div>
+          <div class="cards-card-body">
+            <h3>
+              <a href="https://www.cmegroup.com/markets/products.html" rel="external">
+                View All Products
+              </a>
+            </h3>
+            <p>View all available products to see quotes, volume, settlements and time & sales.</p>
+          </div>
         </div>
         <div>
           <div class="cards-card-image">
@@ -204,7 +217,7 @@
           <div class="cards-card-image">
             <a href="https://www.cmegroup.com/trading/market-tech-and-data-services.html" rel="external">
               <picture>
-                <source srcset="/aemedge/images/bnr-technology-459x293.avif" type="image/jpeg">  
+                <source srcset="/aemedge/images/bnr-technology-459x293.avif" type="image/jpeg">
                 <img src="/aemedge/images/bnr-technology-459x293.avif" alt="Technology">
               </picture>
             </a>

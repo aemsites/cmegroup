@@ -1,3 +1,7 @@
+.cards.article div>ul {
+    grid-template-columns: repeat(auto-fit, minmax(134px, 1fr));
+}
+
 .cards.article li {
     box-shadow: 0 .0625rem .3125rem .0625rem hsla(0deg 0% 70% / 70%);
     display: block;
@@ -37,18 +41,20 @@
     position: absolute;
 }
 
-.cards.article li a .cards-image-container img{
+.cards.article li a .cards-image-container img {
     height: 14.375rem;
+    object-fit: cover;
+    width: 100%;
 }
 
 .cards.article li a .cards-body-container {
     min-height: 8.125rem;
-    padding: 1.25rem 1.25rem 2.5rem;
+    padding: 1.25rem 1.25rem 0.625rem;
 }
 
 .cards.article li a .cards-body-container .cards-time,
 .cards.article li a .cards-body-container .cards-date {
-    color: var(--blue1);
+    color: var(--blue2);
     font-family: var(--averta);
     font-style: italic;
     font-weight: 400;
@@ -98,4 +104,19 @@
 
 .cards.article li a:hover .cards-body-container h3 {
     text-decoration: none;
+}
+
+.cards.article .glider-track {
+    gap: 32px;
+    padding-left: 3px;
+}
+
+@media (width >= 769px) {
+    .cards.article .glider-prev {
+        display: none;
+    }
+
+    .cards.article .glider-next {
+        display: none;
+    }
 }
