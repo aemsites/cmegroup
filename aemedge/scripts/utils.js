@@ -194,6 +194,13 @@ function addDividerLine(element) {
   element.appendChild(divider);
 }
 
+/**
+ * Random Id generation
+ */
+function generateRandomId() {
+  return Math.random().toString(36).slice(-8);
+}
+
 function parseTime(time) {
   if (!time) {
     return '';
@@ -466,10 +473,6 @@ function checkDomain(url) {
   }
 
   return result;
-}
-
-function generateRandomId() {
-  return Math.random().toString(36).slice(-8);
 }
 
 export {
