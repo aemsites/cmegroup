@@ -70,7 +70,7 @@ export class Authentication {
 
     this.loginProcessUrl = '/login-confirmed';
     this.loginUrl = 'http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://beta.cmegroup.com';
-    this.registerUrl = 'https://login.cmegroup.com/sso/register/';
+    this.registerUrl = 'https://loginnr.cmegroup.com/sso/register/';
     this.logoutUrl = '/libs/cmegroup/security/logout';
     this.logoutProfileUrl = 'https://myprofile.cmegroup.com/admin/ssoflo';
     this.isMobileLogin = false;

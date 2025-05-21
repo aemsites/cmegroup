@@ -194,6 +194,13 @@ function addDividerLine(element) {
   element.appendChild(divider);
 }
 
+/**
+ * Random Id generation
+ */
+function generateRandomId() {
+  return Math.random().toString(36).slice(-8);
+}
+
 function parseTime(time) {
   if (!time) {
     return '';
@@ -355,7 +362,7 @@ function buildSlider(el, config, includeArrows = true, disableOnDesktop = false,
 
     const createArrows = () => {
       const parent = currentEl.parentElement;
-      const uniqueId = `glider-${Math.random().toString(36).substr(2, 9)}`;
+      const uniqueId = `glider-${generateRandomId()}`;
       const prevImg = createElement('img', { 'data-icon-name': 'chevron-left', src: '/aemedge/icons/chevron-left.svg' });
       const nextImg = createElement('img', { 'data-icon-name': 'chevron-right', src: '/aemedge/icons/chevron-right.svg' });
       prevClass = `glider-prev-${uniqueId}`;
@@ -407,7 +414,7 @@ function buildSlider(el, config, includeArrows = true, disableOnDesktop = false,
           prevBtn?.remove();
           nextBtn?.remove();
         } catch (err) {
-          console.error('Error destroying slider:', err);
+          console.log('Error destroying slider:', err);
         }
         gliderInstance = null;
       }
@@ -487,4 +494,5 @@ export {
   checkDomain,
   buildSlider,
   getUTCfromDateString,
+  generateRandomId,
 };
