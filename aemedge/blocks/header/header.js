@@ -663,7 +663,9 @@ class Nav {
     if (nav.classList.contains(IS_OPEN)) {
       nav.parentElement.classList.remove(IS_OPEN);
       nav.classList.remove(IS_OPEN);
-      openMenu.remove(IS_OPEN);
+      if (openMenu) {
+        openMenu.classList.remove(IS_OPEN);
+      }
       this.curtain.classList.remove(IS_OPEN);
       const allElOpen = nav.querySelectorAll('.is-open');
       // eslint-disable-next-line no-plusplus
