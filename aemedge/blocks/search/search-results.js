@@ -19,6 +19,8 @@ const mockResults = [
     date: 'Jul 11, 2024',
     lessons: 0,
     template: 'lesson',
+    href: 'www.google.com',
+    image: 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png',
   },
   {
     type: 'course',
@@ -30,6 +32,8 @@ const mockResults = [
     date: 'Jul 11, 2024',
     lessons: 18,
     template: 'article',
+    href: 'www.google.com',
+    image: 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png',
   },
   // Add more mock results as needed
 ];

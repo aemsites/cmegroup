@@ -8,6 +8,7 @@ const updateFilteringByUI = async (container, onChange) => {
   const { appliedFilters, searchInput } = searchConfig;
 
   if (!appliedFilters.length && !searchInput) {
+    onChange?.();
     return;
   }
 
@@ -33,7 +34,6 @@ const updateFilteringByUI = async (container, onChange) => {
         toggleClearButton(document.querySelector('.search'), false);
       }
       await updateFilteringByUI(container, onChange);
-      onChange?.();
     };
     filterTags.appendChild(searchTag);
   }
@@ -46,7 +46,6 @@ const updateFilteringByUI = async (container, onChange) => {
       if (cb) cb.checked = false;
       removeAppliedFilter(filterId, value);
       await updateFilteringByUI(container, onChange);
-      onChange?.();
     };
     filterTags.appendChild(tag);
   });
@@ -57,7 +56,6 @@ const updateFilteringByUI = async (container, onChange) => {
     e.preventDefault();
     clearAllFilters();
     await updateFilteringByUI(container, onChange);
-    onChange?.();
   };
 
   filterTitle.appendChild(reset);

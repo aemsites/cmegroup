@@ -1,36 +1,36 @@
 .block.search .result-card {
   background: var(--white);
-  padding: 2rem 2rem 1.5rem;
-  flex: 1 1 340px;
+  padding: 1rem;
   display: flex;
-  flex-direction: column;
   gap: 0.7rem;
-  border: 1px solid #e6ecef;
+  border: 1px solid var(--gray4);
+  box-shadow: inset 0 6px 0 #f1f5f7, 0 1px 5px 1px rgb(178 178 178 / 70%);
   transition: box-shadow 0.2s, border 0.2s, transform 0.15s;
   cursor: pointer;
-  max-height: none;
-  box-shadow: inset 0 6px 0 0 #f1f5f7, 0 1px 5px 1px rgb(178 178 178 / 70%);
-  height: 200px;
+  flex: 1 1 340px;
+  flex-direction: row;
   min-height: 150px;
+  max-height: 200px;
+}
+
+.block.search .result-card img {
+  width: 33%;
+  display: none;
 }
 
 .block.search .result-card .result-header {
   text-transform: uppercase;
-  color: #5A6874;
-  font-size: 11px;
+  color: var(--gray3);
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  margin-bottom: 0.5rem;
 }
 
 .block.search .result-card .result-title {
-  /* margin-bottom: 11px; */
-  margin-bottom: 0;
   font-size: 20px;
-  line-height: 26px;
   height: 26px;
   font-weight: 700;
-  display: flex;
-  align-items: baseline;
+  margin-bottom: 1rem;
 }
 
 .block.search .result-card a {
@@ -39,29 +39,23 @@
 
 .block.search .result-card .result-desc {
   font-size: 14px;
-  letter-spacing: 0;
-  line-height: 20px;
   height: 60px;
-  overflow: hidden;
-  margin-top: 0;
-  color: #5a6874;
+  color: var(--gray3);
+  margin-bottom: 2.5rem;
+}
+
+.block.search .result-card .result-footer {
+  font-size: 12px;
+  color: var(--gray3);
 }
 
 .block.search .result-card.course .result-footer {
-  /* font-family: Averta-Bold; */
-  font-size: 11px;
-  float: left;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: #5a6874;
-  line-height: 14px;
   font-weight: 700;
 }
 
-.block.search .result-card.lesson .result-footer {
-  /* font-family: Averta-RegularItalic; */
-  font-size: 11px;
-  float: left;
-  color: #5a6874;
-  line-height: 14px;
+@media (width > 768px) {
+  .block.search .result-card img {
+    display: block;
+  }
 }
