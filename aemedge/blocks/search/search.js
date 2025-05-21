@@ -10,6 +10,7 @@ import {
 import { manageSort } from './sort.js';
 import searchConfig from './search-config.js';
 import { searchResults } from './search-results.js';
+import { i18n } from '../../scripts/utils.js';
 
 const mapKey = (key) => key?.toLowerCase()?.trim().split(/\s+/).join('-');
 
@@ -25,13 +26,18 @@ const createResultsTitle = (sortOptions) => {
   return wrapper;
 };
 
-const createSearchBar = (block, isEnabled) => {
+const createSearchBar = async (block, isEnabled) => {
   if (isEnabled !== 'true') {
     return {};
   }
 
   const wrapper = div({ class: 'search-bar-wrapper' });
-  const inputEl = input({ type: 'text', placeholder: 'Search', class: 'search-input' });
+  const [
+    searchLabel,
+  ] = await Promise.all([
+    i18n('Search'),
+  ]);
+  const inputEl = input({ type: 'text', placeholder: searchLabel, class: 'search-input' });
   const searchBtn = button({ class: 'search-icon' });
   const clearBtn = button({ class: 'nav-close display-none' });
 
@@ -92,7 +98,8 @@ export default async function decorate(block) {
     switch (key) {
       case 'search-input':
         searchConfig.searchBar = val;
-        ({ searchBarWrapper, searchInput } = createSearchBar(block, val));
+        // eslint-disable-next-line no-await-in-loop
+        ({ searchBarWrapper, searchInput } = await createSearchBar(block, val));
         break;
       case 'filters-position':
         searchConfig.filtersPosition = val;
@@ -105,7 +112,8 @@ export default async function decorate(block) {
         filtersWrapper = await manageFilters(key, block, children.indexOf(child));
         break;
       case 'sort':
-        sortOptions = manageSort(key, block, children.indexOf(child), null, searchConfig);
+        // eslint-disable-next-line no-await-in-loop
+        sortOptions = await manageSort(key, block, children.indexOf(child), null, searchConfig);
         break;
       case 'pagination':
         searchConfig.pagination = {

@@ -1,18 +1,31 @@
 import { div, h3, p } from '../../scripts/dom-helpers.js';
+import { i18n } from '../../scripts/utils.js';
 
-const courseCard = (card, item) => {
-  const header = div({ class: 'result-header' }, 'Course');
+const courseCard = async (card, item) => {
+  const [
+    courseLabel,
+    lessonsLabel,
+  ] = await Promise.all([
+    i18n('Course'),
+    i18n('Lessons'),
+  ]);
+  const header = div({ class: 'result-header' }, courseLabel);
   const titleEl = h3({ class: 'result-title' }, item.title);
   const descEl = p({ class: 'result-desc' }, item.description);
-  const numLesson = div({ class: 'result-footer' }, `${item.lessons} Lessons`);
+  const numLesson = div({ class: 'result-footer' }, `${item.lessons} ${lessonsLabel}`);
   card.appendChild(header);
   card.appendChild(titleEl);
   card.appendChild(descEl);
   card.appendChild(numLesson);
 };
 
-const lessonCard = (card, item) => {
-  const header = div({ class: 'result-header' }, 'Lesson'); // todo piyush add course name here
+const lessonCard = async (card, item) => {
+  const [
+    lessonLabel,
+  ] = await Promise.all([
+    i18n('Lesson'),
+  ]);
+  const header = div({ class: 'result-header' }, lessonLabel); // todo piyush add course name here
   const titleEl = h3({ class: 'result-title' }, item.title);
   const descEl = p({ class: 'result-desc' }, item.description);
   const date = div({ class: 'result-footer' }, item.date);
@@ -22,14 +35,14 @@ const lessonCard = (card, item) => {
   card.appendChild(date);
 };
 
-const getCards = (cardType, item) => {
+const getCards = async (cardType, item) => {
   const card = div({ class: `result-card ${cardType}` });
   switch (cardType) {
     case 'course':
-      courseCard(card, item);
+      await courseCard(card, item);
       break;
     case 'lesson':
-      lessonCard(card, item);
+      await lessonCard(card, item);
       break;
     default:
       break;

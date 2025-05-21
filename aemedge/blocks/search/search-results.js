@@ -4,6 +4,7 @@ import {
 import searchConfig from './search-config.js';
 import { clearAllFilters, updateFilteringByUI } from './filter.js';
 import { getCards } from './cards-template.js';
+import { i18n } from '../../scripts/utils.js';
 
 // Mock dataset
 const mockResults = [
@@ -38,34 +39,46 @@ const searchResults = () => {
   filterAndRender(mockResults);
 };
 
-function filterAndRender(results) {
+async function filterAndRender(results) {
   const resultsTitle = document.querySelector('.results-title');
   const resultsWrapper = document.querySelector('.results-wrapper');
 
+  const [
+    resultsTitleText,
+    resultsTitleText2,
+    noResultsText,
+    resetText,
+  ] = await Promise.all([
+    i18n('Showing'),
+    i18n('Results'),
+    i18n('No results found. There are no results that meet your selection criteria.'),
+    i18n('Reset filters'),
+  ]);
+
   if (resultsTitle) {
-    resultsTitle.querySelector('h4').textContent = `Showing ${results.length} Results`;
+    resultsTitle.querySelector('h4').textContent = `${resultsTitleText} ${results.length} ${resultsTitleText2}`;
   }
 
   resultsWrapper.innerHTML = '';
 
   if (results.length === 0) {
-    const noResultsDiv = div({ class: 'no-results' }, 'No results found. There are no results that meet your selection criteria. ');
-    const reset = a({ class: 'reset', href: '#' }, 'Reset filters');
+    const noResultsDiv = div({ class: 'no-results' }, `${noResultsText} `);
+    const reset = a({ class: 'reset', href: '#' }, resetText);
     noResultsDiv.appendChild(reset);
 
-    reset.onclick = (e) => {
+    reset.onclick = async (e) => {
       e.preventDefault();
       clearAllFilters();
-      updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
+      await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
       searchResults?.();
     };
     resultsWrapper.appendChild(noResultsDiv);
     return;
   }
 
-  results.forEach((item) => {
+  results.forEach(async (item) => {
     const cardType = searchConfig.template[item.template]?.cardType || '';
-    const cardDetails = getCards(cardType, item);
+    const cardDetails = await getCards(cardType, item);
     resultsWrapper.appendChild(cardDetails);
   });
 }

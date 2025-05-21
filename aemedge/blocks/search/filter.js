@@ -4,6 +4,7 @@ import {
 import { getTaxonomyWithoutModifications } from '../../scripts/taxonomy.js';
 import searchConfig from './search-config.js';
 import { searchResults } from './search-results.js';
+import { i18n } from '../../scripts/utils.js';
 
 // === Filter Helpers ===
 const addAppliedFilter = (filterId, value) => {
@@ -38,26 +39,34 @@ const clearAllFilters = () => {
   }
 };
 
-const updateFilteringByUI = (container, onChange) => {
+const updateFilteringByUI = async (container, onChange) => {
   container.innerHTML = '';
   const { appliedFilters, searchInput } = searchConfig;
 
   if (!appliedFilters.length && !searchInput) return;
 
-  const filterTitle = div({ class: 'filter-title' }, 'Currently filtering by:');
+  const [
+    filterTitleText,
+    resetText,
+  ] = await Promise.all([
+    i18n('Currently filtering by'),
+    i18n('Reset'),
+  ]);
+
+  const filterTitle = div({ class: 'filter-title' }, `${filterTitleText}:`);
   const filterTags = div({ class: 'filter-tags' });
 
   // Add search term as filter tag
   if (searchInput) {
-    const searchTag = button({ class: 'filter-tag' }, `Search: ${searchInput}`);
-    searchTag.onclick = () => {
+    const searchTag = button({ class: 'filter-tag' }, `${searchInput}`);
+    searchTag.onclick = async () => {
       searchConfig.searchInput = '';
       const searchField = document.querySelector('.search-input');
       if (searchField) {
         searchField.value = '';
         toggleClearButton(document.querySelector('.search'), false);
       }
-      updateFilteringByUI(container, onChange);
+      await updateFilteringByUI(container, onChange);
       onChange?.();
     };
     filterTags.appendChild(searchTag);
@@ -67,11 +76,11 @@ const updateFilteringByUI = (container, onChange) => {
   // Add each applied filter as tag
   appliedFilters.forEach(({ filterId, value }) => {
     const tag = button({ class: 'filter-tag' }, value);
-    tag.onclick = () => {
+    tag.onclick = async () => {
       const cb = document.querySelector(`#${filterId} input[value="${value}"]`);
       if (cb) cb.checked = false;
       removeAppliedFilter(filterId, value);
-      updateFilteringByUI(container, onChange);
+      await updateFilteringByUI(container, onChange);
       onChange?.();
     };
     filterTags.appendChild(tag);
@@ -79,11 +88,11 @@ const updateFilteringByUI = (container, onChange) => {
   });
 
   // Add reset link
-  const reset = a({ class: 'reset', href: '#' }, 'Reset');
-  reset.onclick = (e) => {
+  const reset = a({ class: 'reset', href: '#' }, resetText);
+  reset.onclick = async (e) => {
     e.preventDefault();
     clearAllFilters();
-    updateFilteringByUI(container, onChange);
+    await updateFilteringByUI(container, onChange);
     onChange?.();
   };
 
@@ -98,14 +107,14 @@ const createOption = (opt, labelContent, type, className, filterId, index) => {
   const cb = input({ type: 'checkbox', class: className, value: opt });
   const lbl = label({ class: `${type}-label` }, labelContent);
 
-  cb.addEventListener('change', (e) => {
+  cb.addEventListener('change', async (e) => {
     const isChecked = e.target.checked;
     if (isChecked) {
       addAppliedFilter(filterId, opt);
     } else {
       removeAppliedFilter(filterId, opt);
     }
-    updateFilteringByUI(document.querySelector('.filter-bullets'));
+    await updateFilteringByUI(document.querySelector('.filter-bullets'));
   });
 
   wrapper.addEventListener('click', (e) => {
@@ -185,7 +194,12 @@ const createCheckbox = (options, labelText, order, filterId) => {
 // === Filter Creation ===
 const createFilters = async () => {
   const wrapper = div({ class: 'filters-wrapper' });
-  wrapper.appendChild(div({ class: 'filters-wrapper-title' }, 'Filters'));
+  const [
+    filtersLabel,
+  ] = await Promise.all([
+    i18n('Filters'),
+  ]);
+  wrapper.appendChild(div({ class: 'filters-wrapper-title' }, filtersLabel));
 
   const filtersContainer = div({ class: 'filters' });
   wrapper.appendChild(filtersContainer);

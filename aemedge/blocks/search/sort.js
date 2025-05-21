@@ -2,6 +2,7 @@ import {
   a, div, label, span,
 } from '../../scripts/dom-helpers.js';
 import searchConfig from './search-config.js';
+import { i18n } from '../../scripts/utils.js';
 
 const createDropdown = (options, labelText, onChange, dropdownId = 'sort-dropdown') => {
   const dropdown = div({ class: 'dropdown', id: dropdownId });
@@ -69,9 +70,16 @@ const createDropdown = (options, labelText, onChange, dropdownId = 'sort-dropdow
   return dropdown;
 };
 
-const createSortDropdown = (sortOptions, onChange) => createDropdown(sortOptions, 'Sort by', onChange);
+const createSortDropdown = async (sortOptions, onChange) => {
+  const [
+    sortLabel,
+  ] = await Promise.all([
+    i18n('Sort by'),
+  ]);
+  return createDropdown(sortOptions, sortLabel, onChange);
+};
 
-const manageSort = (key, block, index, onChange) => {
+const manageSort = async (key, block, index, onChange) => {
   const sortOptions = [];
 
   for (let i = index; i < block.children.length; i += 1) {
@@ -89,7 +97,7 @@ const manageSort = (key, block, index, onChange) => {
     }
   }
 
-  const dropdown = createSortDropdown(sortOptions, onChange);
+  const dropdown = await createSortDropdown(sortOptions, onChange);
   searchConfig.sortOptions = sortOptions[0] || null;
   return dropdown;
 };
