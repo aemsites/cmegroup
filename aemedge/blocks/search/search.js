@@ -140,12 +140,6 @@ export default async function decorate(block) {
 
   if (searchInput) {
     ['input', 'change'].forEach((event) => searchInput.addEventListener(event, () => toggleClearButton(block, searchInput.value)));
-    searchInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        toggleClearButton(block, searchInput.value);
-        searchResults();
-      }
-    });
   }
 
   searchResults();
