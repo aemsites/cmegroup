@@ -30,6 +30,7 @@ const clearAllFilters = () => {
   if (tempInput) {
     tempInput.value = '';
   }
+  toggleClearButton(document.querySelector('.search'), false);
 };
 
 export {

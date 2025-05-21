@@ -75,7 +75,6 @@ async function filterAndRender(results) {
       e.preventDefault();
       clearAllFilters();
       await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
-      searchResults?.();
     };
     resultsWrapper.appendChild(noResultsDiv);
     return;
