@@ -1,3 +1,51 @@
-.block.search .result-card.course {
-  
+.block.search .result-card .result-header {
+  text-transform: uppercase;
+  color: #5A6874;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.block.search .result-card .result-title {
+  /* margin-bottom: 11px; */
+  margin-bottom: 0;
+  font-size: 20px;
+  line-height: 26px;
+  height: 26px;
+  font-weight: 700;
+  display: flex;
+  align-items: baseline;
+}
+
+.block.search a.result-card {
+  text-decoration: none;
+}
+
+.block.search .result-card .result-desc {
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 20px;
+  height: 60px;
+  overflow: hidden;
+  margin-top: 0;
+  color: #5a6874;
+}
+
+.block.search .result-card.course .result-footer {
+  /* font-family: Averta-Bold; */
+  font-size: 11px;
+  float: left;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #5a6874;
+  line-height: 14px;
+  font-weight: 700;
+}
+
+.block.search .result-card.lesson .result-footer {
+  /* font-family: Averta-RegularItalic; */
+  font-size: 11px;
+  float: left;
+  color: #5a6874;
+  line-height: 14px;
 }

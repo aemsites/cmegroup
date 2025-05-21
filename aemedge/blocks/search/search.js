@@ -4,7 +4,9 @@ import {
   button,
   h4,
 } from '../../scripts/dom-helpers.js';
-import { manageFilters, updateFilteringByUI, templateFiltering, toggleClearButton } from './filter.js';
+import {
+  manageFilters, updateFilteringByUI, templateFiltering, toggleClearButton,
+} from './filter.js';
 import { manageSort } from './sort.js';
 import searchConfig from './search-config.js';
 import { searchResults } from './search-results.js';
