@@ -305,9 +305,8 @@
 
 .block.search .filter-tags {
   display: flex;
-  flex-direction: row;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-flow: row wrap;
 }
 
 .block.search .filter-tags .filter-tag {
