@@ -1,5 +1,8 @@
-import { div, h3, p } from '../../scripts/dom-helpers.js';
-// import searchConfig from './search-config.js';
+import {
+  a, div, h3, p,
+} from '../../scripts/dom-helpers.js';
+import searchConfig from './search-config.js';
+import { clearAllFilters, updateFilteringByUI } from './filter.js';
 
 // Mock dataset
 const mockResults = [
@@ -12,6 +15,7 @@ const mockResults = [
     description: 'Learn more about the functions of a Futures contract, including the benefits of a standardized, exchange-traded contract.',
     date: 'Jul 11, 2024',
     lessons: 0,
+    template: 'lesson',
   },
   {
     type: 'course',
@@ -22,6 +26,7 @@ const mockResults = [
     description: 'Learn about futures contracts, the role of a futures exchange, who participates in this market and how a futures trade works.',
     date: '',
     lessons: 18,
+    template: 'course',
   },
   // Add more mock results as needed
 ];
@@ -35,10 +40,28 @@ function filterAndRender(results) {
   }
 
   resultsWrapper.innerHTML = '';
+
+  if (results.length === 0) {
+    const noResultsDiv = div({ class: 'no-results' }, 'No results found. There are no results that meet your selection criteria. ');
+    const reset = a({ class: 'reset', href: '#' }, 'Reset filters');
+    noResultsDiv.appendChild(reset);
+
+    reset.onclick = (e) => {
+      e.preventDefault();
+      clearAllFilters();
+      updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
+      searchResults?.();
+    };
+    resultsWrapper.appendChild(noResultsDiv);
+    return;
+  }
+
   // todo piyush handle template part here
   // how card will style here
   results.forEach((item) => {
-    const card = div({ class: 'result-card' });
+    // todo piyush add code here wrt to card template
+    const cardType = searchConfig.template[item.template]?.cardType || '';
+    const card = div({ class: `result-card ${cardType}` });
     const meta = div({ class: 'result-meta' }, item.type === 'lesson' ? `Lesson: ${item.topic}` : 'Course');
     const titleEl = h3({ class: 'result-title' }, item.title);
     const descEl = p({ class: 'result-desc' }, item.description);
@@ -49,15 +72,14 @@ function filterAndRender(results) {
       const dateEl = div({ class: 'result-date' }, item.date);
       card.appendChild(dateEl);
     } else if (item.type === 'course') {
-      const lessonsEl = div({ class: 'result-lessons' }, `${item.lessons} Lessons`);
-      card.appendChild(lessonsEl);
+      // const lessonsEl = div({ class: 'result-lessons' }, `${item.lessons} Lessons`);
+      // card.appendChild(lessonsEl);
     }
     resultsWrapper.appendChild(card);
   });
 }
 
 const searchResults = () => {
-  // todo piyush call api here with the searchConfig
   filterAndRender(mockResults);
 };
 

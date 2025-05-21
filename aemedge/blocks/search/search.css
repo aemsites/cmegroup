@@ -1,3 +1,5 @@
+@import url("search-results.css");
+
 .block.search .search-bar-and-filters {
   background-color: var(--gray6);
   display: flex;
@@ -153,8 +155,21 @@
   vertical-align: .255em;
 }
 
-.block.search .sort-options .dropdown-option {
-  /* padding: 1rem; */
+.block.search .no-results {
+  background-color: var(--yellow);
+  color: var(--gray2);
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.625rem;
+  margin-bottom: 1.875rem;
+  padding: 1.875rem;
+  text-align: center;
+  width: 100%;
+}
+
+.block.search .no-results a {
+  color: var(--blue4);
+  text-decoration: none;
 }
 
 .block.search .sort-options .dropdown-option span {
@@ -339,7 +354,7 @@
   background-color: var(--white);
 }
 
-.block.search .checkbox-item .checkbox-label {
+.block.search .checkbox-option .checkbox-label {
   font-size: .875rem;
   font-weight: 400;
   letter-spacing: 0;
@@ -365,7 +380,7 @@
   border: 1px solid #e6ecef;
   transition: box-shadow 0.2s, border 0.2s, transform 0.15s;
   cursor: pointer;
-  max-height: max-content;
+  max-height: none;
 }
 
 .block.search .result-card:hover {

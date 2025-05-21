@@ -4,7 +4,7 @@ import {
   button,
   h4,
 } from '../../scripts/dom-helpers.js';
-import { manageFilters, updateFilteringByUI } from './filter.js';
+import { manageFilters, updateFilteringByUI, templateFiltering, toggleClearButton } from './filter.js';
 import { manageSort } from './sort.js';
 import searchConfig from './search-config.js';
 import { searchResults } from './search-results.js';
@@ -67,12 +67,13 @@ const createSearchBar = (block, isEnabled) => {
   return { searchBarWrapper: wrapper, searchInput: inputEl };
 };
 
-const toggleClearButton = (block, value) => {
-  const clearBtn = block.querySelector('.search-bar-wrapper .nav-close');
-  if (clearBtn) {
-    clearBtn.classList.toggle('display-none', !value);
-  }
-};
+// const toggleClearButton = (block, value) => {
+//   console.log(value);
+//   const clearBtn = block.querySelector('.search-bar-wrapper .nav-close');
+//   if (clearBtn) {
+//     clearBtn.classList.toggle('display-none', !value);
+//   }
+// };
 
 export default async function decorate(block) {
   const children = [...block.children];
@@ -112,6 +113,9 @@ export default async function decorate(block) {
         break;
       case 'result-columns':
         searchConfig.resultColumns = Number(val);
+        break;
+      case 'template':
+        templateFiltering(key, block, children.indexOf(child));
         break;
       default:
         break;

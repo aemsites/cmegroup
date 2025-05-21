@@ -3,6 +3,7 @@ import {
 } from '../../scripts/dom-helpers.js';
 import { getTaxonomyWithoutModifications } from '../../scripts/taxonomy.js';
 import searchConfig from './search-config.js';
+import { searchResults } from './search-results.js';
 
 // === Filter Helpers ===
 const addAppliedFilter = (filterId, value) => {
@@ -14,6 +15,13 @@ const addAppliedFilter = (filterId, value) => {
 const removeAppliedFilter = (filterId, value) => {
   searchConfig.appliedFilters = searchConfig
     .appliedFilters.filter((f) => f.filterId !== filterId || f.value !== value);
+};
+
+const toggleClearButton = (block, value) => {
+  const clearBtn = block.querySelector('.search-bar-wrapper .nav-close');
+  if (clearBtn) {
+    clearBtn.classList.toggle('display-none', !value);
+  }
 };
 
 const clearAllFilters = () => {
@@ -45,11 +53,15 @@ const updateFilteringByUI = (container, onChange) => {
     searchTag.onclick = () => {
       searchConfig.searchInput = '';
       const searchField = document.querySelector('.search-input');
-      if (searchField) searchField.value = '';
+      if (searchField) {
+        searchField.value = '';
+        toggleClearButton(document.querySelector('.search'), false);
+      }
       updateFilteringByUI(container, onChange);
       onChange?.();
     };
     filterTags.appendChild(searchTag);
+    searchResults();
   }
 
   // Add each applied filter as tag
@@ -63,6 +75,7 @@ const updateFilteringByUI = (container, onChange) => {
       onChange?.();
     };
     filterTags.appendChild(tag);
+    searchResults();
   });
 
   // Add reset link
@@ -219,10 +232,40 @@ const manageFilters = async (key, block, index) => {
   return tempObj;
 };
 
+const templateFiltering = (key, block, index) => {
+  for (let i = index; i < block.children.length; i += 1) {
+    const child = block.children[i];
+    const header = child?.firstElementChild?.textContent.trim().toLowerCase();
+    if (!header || header === key.toLowerCase()) {
+      const templates = child?.children[1]?.textContent.trim().split(',');
+      const paths = child?.children[2]?.textContent.trim().split(',');
+      const cardType = child?.children[3]?.textContent.trim();
+
+      if (templates.length && paths.length && cardType) {
+        if (searchConfig.template) {
+          templates.forEach((template) => {
+            searchConfig.template[template] = { template, paths, cardType };
+          });
+        } else {
+          templates.forEach((template) => {
+            searchConfig.template = {
+              [template]: { template, paths, cardType },
+            };
+          });
+        }
+      }
+    } else {
+      break;
+    }
+  }
+};
+
 export {
+  templateFiltering,
   manageFilters,
   addAppliedFilter,
   removeAppliedFilter,
   clearAllFilters,
   updateFilteringByUI,
+  toggleClearButton,
 };
