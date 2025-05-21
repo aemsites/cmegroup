@@ -273,7 +273,7 @@
 
 .quiz .custom-paging-counter {
     text-align: center;
-    font-family: var(--font-averta, sans-serif);
+    font-family: var(--averta, sans-serif);
     font-weight: 600;
     color: var(--gray4);
     font-size: 0.75rem;
