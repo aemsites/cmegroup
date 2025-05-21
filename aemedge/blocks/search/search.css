@@ -22,7 +22,7 @@
   outline: none;
   padding-left: 1rem;
   width: 100%;
-  color: var(--black);
+  /* color: var(--black); */
 }
 
 .block.search .search-bar-wrapper .nav-close.display-none {
@@ -297,7 +297,7 @@
 .block.search .filter-title {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  white-space: nowrap;
   font-size: .875rem;
 }
 
@@ -305,6 +305,7 @@
   display: flex;
   flex-direction: row;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .block.search .filter-tags .filter-tag {
@@ -368,43 +369,6 @@
   margin-left: 0;
 }
 
-.block.search .result-card:hover {
-  box-shadow: 0 6px 24px rgb(0 0 0 / 10%);
-  border: 1.5px solid #b3c6d1;
-  transform: translateY(-2px) scale(1.01);
-}
-
-/* .block.search .result-meta {
-  font-size: 0.98rem;
-  color: #6a7a7f;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 0.15rem;
-  font-weight: 600;
-}
-
-.block.search .result-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #1a2a32;
-  margin: 0 0 0.4rem;
-  line-height: 1.2;
-}
-
-.block.search .result-desc {
-  font-size: 1.08rem;
-  color: #4a5a5f;
-  margin-bottom: 0.3rem;
-  line-height: 1.5;
-}
-
-.block.search .result-date, .block.search .result-lessons {
-  font-size: 1.01rem;
-  color: #6a7a7f;
-  margin-top: 0.4rem;
-  font-weight: 500;
-} */
-
 .block.search .results-wrapper.columns-1 {
   display: flex;
   flex-direction: column;
@@ -417,20 +381,6 @@
   gap: 1rem;
 }
 
-@media (width < 900px) {
-  .block.search .results-wrapper {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .block.search .result-card {
-    max-width: 100%;
-    min-width: 0;
-  }
-}
-
-@media (width < 600px) {
-  .block.search .result-card {
-    padding: 1.2rem 1rem 1rem;
-  }
+.block.search .results-wrapper.columns-2 .result-card img {
+  display: none;
 }
