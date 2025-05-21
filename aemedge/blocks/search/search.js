@@ -70,7 +70,9 @@ const createSearchBar = async (block, isEnabled) => {
     inputEl.value = '';
     searchConfig.searchInput = '';
     clearBtn.classList.add('display-none');
-    dispatchEnterKey();
+    if (document.querySelector('.search-input-tag')) {
+      dispatchEnterKey();
+    }
   });
 
   wrapper.append(inputEl, clearBtn, searchBtn);
@@ -107,7 +109,7 @@ export default async function decorate(block) {
         break;
       case 'sort':
         // eslint-disable-next-line no-await-in-loop
-        sortOptions = await manageSort(key, block, children.indexOf(child), null, searchConfig);
+        sortOptions = await manageSort(key, block, children.indexOf(child), searchResults);
         break;
       case 'pagination':
         searchConfig.pagination = {

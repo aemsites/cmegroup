@@ -24,7 +24,7 @@ const updateFilteringByUI = async (container, onChange) => {
 
   // Add search term as filter tag
   if (searchInput) {
-    const searchTag = button({ class: 'filter-tag' }, `${searchInput}`);
+    const searchTag = button({ class: 'filter-tag search-input-tag' }, `${searchInput}`);
     searchTag.onclick = async () => {
       searchConfig.searchInput = '';
       const searchField = document.querySelector('.search-input');

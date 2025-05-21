@@ -1,4 +1,6 @@
-import { div, h3, p } from '../../scripts/dom-helpers.js';
+import {
+  a, div, h3, p,
+} from '../../scripts/dom-helpers.js';
 import { i18n } from '../../scripts/utils.js';
 
 const courseCard = async (card, item) => {
@@ -13,10 +15,12 @@ const courseCard = async (card, item) => {
   const titleEl = h3({ class: 'result-title' }, item.title);
   const descEl = p({ class: 'result-desc' }, item.description);
   const numLesson = div({ class: 'result-footer' }, `${item.lessons} ${lessonsLabel}`);
-  card.appendChild(header);
-  card.appendChild(titleEl);
-  card.appendChild(descEl);
-  card.appendChild(numLesson);
+  const anchor = a();
+  anchor.appendChild(header);
+  anchor.appendChild(titleEl);
+  anchor.appendChild(descEl);
+  anchor.appendChild(numLesson);
+  card.appendChild(anchor);
 };
 
 const lessonCard = async (card, item) => {
@@ -29,10 +33,13 @@ const lessonCard = async (card, item) => {
   const titleEl = h3({ class: 'result-title' }, item.title);
   const descEl = p({ class: 'result-desc' }, item.description);
   const date = div({ class: 'result-footer' }, item.date);
-  card.appendChild(header);
-  card.appendChild(titleEl);
-  card.appendChild(descEl);
-  card.appendChild(date);
+
+  const anchor = a();
+  anchor.appendChild(header);
+  anchor.appendChild(titleEl);
+  anchor.appendChild(descEl);
+  anchor.appendChild(date);
+  card.appendChild(anchor);
 };
 
 const getCards = async (cardType, item) => {

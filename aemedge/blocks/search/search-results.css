@@ -1,3 +1,19 @@
+.block.search .result-card {
+  background: var(--white);
+  padding: 2rem 2rem 1.5rem;
+  flex: 1 1 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  border: 1px solid #e6ecef;
+  transition: box-shadow 0.2s, border 0.2s, transform 0.15s;
+  cursor: pointer;
+  max-height: none;
+  box-shadow: inset 0 6px 0 0 #f1f5f7, 0 1px 5px 1px rgb(178 178 178 / 70%);
+  height: 200px;
+  min-height: 150px;
+}
+
 .block.search .result-card .result-header {
   text-transform: uppercase;
   color: #5A6874;
@@ -17,7 +33,7 @@
   align-items: baseline;
 }
 
-.block.search a.result-card {
+.block.search .result-card a {
   text-decoration: none;
 }
 
