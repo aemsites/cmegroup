@@ -2,9 +2,10 @@ import {
   a, div,
 } from '../../scripts/dom-helpers.js';
 import searchConfig from './search-config.js';
-import { clearAllFilters, updateFilteringByUI } from './filter.js';
+import { updateFilteringByUI } from './filter-tags.js';
 import { getCards } from './cards-template.js';
 import { i18n } from '../../scripts/utils.js';
+import { clearAllFilters } from './search-utils.js';
 
 // Mock dataset
 const mockResults = [

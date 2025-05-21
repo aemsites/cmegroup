@@ -1,105 +1,14 @@
 import {
-  a, button, div, input, label,
+  div, input, label,
 } from '../../scripts/dom-helpers.js';
 import { getTaxonomyWithoutModifications } from '../../scripts/taxonomy.js';
 import searchConfig from './search-config.js';
-import { searchResults } from './search-results.js';
 import { i18n } from '../../scripts/utils.js';
-
-// === Filter Helpers ===
-const addAppliedFilter = (filterId, value) => {
-  const exists = searchConfig.appliedFilters
-    .some((f) => f.filterId === filterId && f.value === value);
-  if (!exists) searchConfig.appliedFilters.push({ filterId, value });
-};
-
-const removeAppliedFilter = (filterId, value) => {
-  searchConfig.appliedFilters = searchConfig
-    .appliedFilters.filter((f) => f.filterId !== filterId || f.value !== value);
-};
-
-const toggleClearButton = (block, value) => {
-  const clearBtn = block.querySelector('.search-bar-wrapper .nav-close');
-  if (clearBtn) {
-    clearBtn.classList.toggle('display-none', !value);
-  }
-};
-
-const clearAllFilters = () => {
-  searchConfig.appliedFilters = [];
-  searchConfig.searchInput = '';
-  document
-    .querySelectorAll('.dropdown-option-checkbox, .checkbox-input')
-    .forEach((cb) => {
-      cb.checked = false;
-    });
-  const tempInput = document.querySelector('.search-input');
-  if (tempInput) {
-    tempInput.value = '';
-  }
-};
-
-const updateFilteringByUI = async (container, onChange) => {
-  container.innerHTML = '';
-  const { appliedFilters, searchInput } = searchConfig;
-
-  if (!appliedFilters.length && !searchInput) return;
-
-  const [
-    filterTitleText,
-    resetText,
-  ] = await Promise.all([
-    i18n('Currently filtering by'),
-    i18n('Reset'),
-  ]);
-
-  const filterTitle = div({ class: 'filter-title' }, `${filterTitleText}:`);
-  const filterTags = div({ class: 'filter-tags' });
-
-  // Add search term as filter tag
-  if (searchInput) {
-    const searchTag = button({ class: 'filter-tag' }, `${searchInput}`);
-    searchTag.onclick = async () => {
-      searchConfig.searchInput = '';
-      const searchField = document.querySelector('.search-input');
-      if (searchField) {
-        searchField.value = '';
-        toggleClearButton(document.querySelector('.search'), false);
-      }
-      await updateFilteringByUI(container, onChange);
-      onChange?.();
-    };
-    filterTags.appendChild(searchTag);
-    searchResults();
-  }
-
-  // Add each applied filter as tag
-  appliedFilters.forEach(({ filterId, value }) => {
-    const tag = button({ class: 'filter-tag' }, value);
-    tag.onclick = async () => {
-      const cb = document.querySelector(`#${filterId} input[value="${value}"]`);
-      if (cb) cb.checked = false;
-      removeAppliedFilter(filterId, value);
-      await updateFilteringByUI(container, onChange);
-      onChange?.();
-    };
-    filterTags.appendChild(tag);
-    searchResults();
-  });
-
-  // Add reset link
-  const reset = a({ class: 'reset', href: '#' }, resetText);
-  reset.onclick = async (e) => {
-    e.preventDefault();
-    clearAllFilters();
-    await updateFilteringByUI(container, onChange);
-    onChange?.();
-  };
-
-  filterTitle.appendChild(reset);
-  container.appendChild(filterTitle);
-  container.appendChild(filterTags);
-};
+import {
+  addAppliedFilter, removeAppliedFilter,
+} from './search-utils.js';
+import { updateFilteringByUI } from './filter-tags.js';
+import { searchResults } from './search-results.js';
 
 // === UI Components ===
 const createOption = (opt, labelContent, type, className, filterId, index) => {
@@ -114,7 +23,7 @@ const createOption = (opt, labelContent, type, className, filterId, index) => {
     } else {
       removeAppliedFilter(filterId, opt);
     }
-    await updateFilteringByUI(document.querySelector('.filter-bullets'));
+    await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
   });
 
   wrapper.addEventListener('click', (e) => {
@@ -277,9 +186,4 @@ const templateFiltering = (key, block, index) => {
 export {
   templateFiltering,
   manageFilters,
-  addAppliedFilter,
-  removeAppliedFilter,
-  clearAllFilters,
-  updateFilteringByUI,
-  toggleClearButton,
 };

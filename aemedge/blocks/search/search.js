@@ -5,12 +5,14 @@ import {
   h4,
 } from '../../scripts/dom-helpers.js';
 import {
-  manageFilters, updateFilteringByUI, templateFiltering, toggleClearButton,
+  manageFilters, templateFiltering,
 } from './filter.js';
+import { toggleClearButton } from './search-utils.js';
 import { manageSort } from './sort.js';
 import searchConfig from './search-config.js';
 import { searchResults } from './search-results.js';
 import { i18n } from '../../scripts/utils.js';
+import { updateFilteringByUI } from './filter-tags.js';
 
 const mapKey = (key) => key?.toLowerCase()?.trim().split(/\s+/).join('-');
 
@@ -74,14 +76,6 @@ const createSearchBar = async (block, isEnabled) => {
   wrapper.append(inputEl, clearBtn, searchBtn);
   return { searchBarWrapper: wrapper, searchInput: inputEl };
 };
-
-// const toggleClearButton = (block, value) => {
-//   console.log(value);
-//   const clearBtn = block.querySelector('.search-bar-wrapper .nav-close');
-//   if (clearBtn) {
-//     clearBtn.classList.toggle('display-none', !value);
-//   }
-// };
 
 export default async function decorate(block) {
   const children = [...block.children];
