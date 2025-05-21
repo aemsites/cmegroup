@@ -355,7 +355,7 @@ function buildSlider(el, config, includeArrows = true, disableOnDesktop = false,
 
     const createArrows = () => {
       const parent = currentEl.parentElement;
-      const uniqueId = `glider-${Math.random().toString(36).substr(2, 9)}`;
+      const uniqueId = `glider-${generateRandomId()}`;
       const prevImg = createElement('img', { 'data-icon-name': 'chevron-left', src: '/aemedge/icons/chevron-left.svg' });
       const nextImg = createElement('img', { 'data-icon-name': 'chevron-right', src: '/aemedge/icons/chevron-right.svg' });
       prevClass = `glider-prev-${uniqueId}`;
@@ -468,6 +468,10 @@ function checkDomain(url) {
   return result;
 }
 
+function generateRandomId() {
+  return Math.random().toString(36).slice(-8);
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -487,4 +491,5 @@ export {
   checkDomain,
   buildSlider,
   getUTCfromDateString,
+  generateRandomId,
 };
