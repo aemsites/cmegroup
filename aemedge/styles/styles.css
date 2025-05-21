@@ -358,8 +358,8 @@ main img {
 
 .icon {
     display: inline-block;
-    height: 24px;
-    width: 24px;
+    height: 0.875rem;
+    width: 0.875rem;
 }
 
 .icon img {
@@ -371,7 +371,6 @@ main img {
 a.button,
 button {
     border-radius: 4px;
-    display: inline-block;
     font-family: var(--averta);
     font-weight: 700;
     font-size: 12px;
@@ -383,6 +382,10 @@ button {
     box-shadow: 0 1px 2px 0 rgb(60 64 67 / 30%), 0 2px 6px 2px rgba(60 64 67 / 15%);
     background-image: none !important;
     border: none;
+    display: inline-flex;
+    align-items: center;
+    color: var(--blue4);
+    gap: 0.25rem;
 }
 
 a.button,
