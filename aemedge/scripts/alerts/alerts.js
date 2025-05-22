@@ -5,6 +5,8 @@
 import { getMetadata } from '../aem.js';
 import { getBrowserName, formatToCentralTime } from '../utils.js';
 import { getLegacyAlerts } from '../legacy-api.js';
+import { store } from '../store/store.js';
+import { stackFloatingElement, unstackFloatingElement } from '../actions/floatingElements.js';
 
 const CACHE_KEY = 'alerts_cache';
 const CACHE_DURATION = 15 * 60 * 1000;
@@ -190,6 +192,7 @@ export default async function initFloatingElements(doc, header) {
   let lastScrollTop = 0;
   const main = doc.querySelector('main');
   const alerts = doc.querySelectorAll('.alert-item');
+  let lastOffsetTop = 0;
 
   if (alertsFetched.length) {
     const updatePositions = () => {
@@ -211,6 +214,10 @@ export default async function initFloatingElements(doc, header) {
       if (menuOpen) {
         menuOpen.style.top = `${offsetTop}px`;
       }
+      if (offsetTop !== lastOffsetTop) {
+        store.dispatch(stackFloatingElement(offsetTop - lastOffsetTop));
+        lastOffsetTop = offsetTop;
+      }
     };
 
     const observer = new MutationObserver(updatePositions);
@@ -225,6 +232,8 @@ export default async function initFloatingElements(doc, header) {
     });
 
     updatePositions();
+  } else {
+    store.dispatch(stackFloatingElement(header.offsetHeight));
   }
 
   window.addEventListener('scroll', () => {
@@ -233,20 +242,17 @@ export default async function initFloatingElements(doc, header) {
     if (scrollTop > lastScrollTop) {
       changed = !header.classList.contains('hidden');
       header.classList.add('hidden');
+      if (changed) {
+        store.dispatch(unstackFloatingElement(header.offsetHeight));
+      }
     } else {
       changed = header.classList.contains('hidden');
       header.classList.remove('hidden');
+      if (changed) {
+        store.dispatch(stackFloatingElement(header.offsetHeight));
+      }
     }
     lastScrollTop = scrollTop;
-    if (changed) {
-      const event = new CustomEvent('floatingElementsChange', {
-        detail: {
-          height: header.offsetHeight,
-          navbarVisible: !header.classList.contains('hidden'),
-        },
-      });
-      doc.dispatchEvent(event);
-    }
   });
 
   return Promise.resolve();

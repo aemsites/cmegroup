@@ -1,3 +1,5 @@
+import { store } from '../../scripts/store/store.js';
+
 function buildCell(colspan = 1, rowspan = 1, header = false) {
   const cell = header ? document.createElement('th') : document.createElement('td');
   if (colspan > 1) cell.setAttribute('colspan', colspan);
@@ -170,12 +172,9 @@ export default async function decorate(block) {
       }
     });
   }
-
-  document.addEventListener('floatingElementsChange', (e) => {
-    const { height, navbarVisible } = e.detail;
-    const top = navbarVisible ? height : 0;
+  store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
     document.querySelectorAll('.table.fixed-row-header thead th').forEach((th) => {
-      th.style.top = `${top}px`;
+      th.style.top = `${height}px`;
     });
   });
 }
