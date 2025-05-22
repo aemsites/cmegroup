@@ -18,6 +18,9 @@ const lateralDaysList = createElement('div', { class: 'lateral-days-list' });
 const calendarTableContainer = createElement('div', { class: 'event-calendar-table-container' });
 const resultListTableSection = createElement('div', { class: 'result-list-table-section' });
 const calendarResume = createElement('div', { class: 'event-calendar-resume-wrapper' });
+const eventCalendarTable = createElement('div', { class: 'event-calendar-table' });
+const eventCalendarTHead = createElement('div', { class: 'event-calendar-table-thead' });
+const eventCalendarTBody = createElement('div', { class: 'event-calendar-table-tbody' });
 const filtersSectionEventCalendar = createElement('div', { class: 'filters-section-event-calendar' });
 const filtersInputsMainContainer = createElement('div', { class: 'filters-block' });
 const filtersCurrentContainer = createElement('div', { class: 'current-filters' });
@@ -35,6 +38,13 @@ const cleanInput = createElement('button', {
 const pillsHeader = createElement('div', { class: 'current-pills-header' });
 const pillsWrapper = createElement('div', { class: 'current-pills-wrapper' });
 const pillsInnerContainer = createElement('div', { class: 'current-pills-inner-container' });
+const spinnerInEventCalendar = createElement('div', { class: 'lds-ring spinner-in-event-calendar' });
+spinnerInEventCalendar.innerHTML = `
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+`;
 let economicFilters;
 let leftPanelDays;
 let events;
@@ -51,6 +61,17 @@ let prevMonthLabel;
 let nextMonthLabel;
 let daysLabel;
 let showingLabel;
+let timeLabel;
+let countryLabel;
+let eventLabel;
+let actualLabel;
+let previousLabel;
+let previousInfoLabel;
+let consensusLabel;
+let impactLabel;
+let highImpactLabel;
+let minimalImpactLabel;
+let lowImpactLabel;
 let searchValueVar = '';
 let timeoutId;
 const filtersArray = {};
@@ -98,6 +119,17 @@ async function initializeLabels() {
     nextMonthLabelVar,
     daysLabelVar,
     showingLabelVar,
+    timeLabelVar,
+    countryLabelVar,
+    eventLabelVar,
+    actualLabelVar,
+    previousLabelVar,
+    previousInfoLabelVar,
+    consensusLabelVar,
+    impactLabelVar,
+    highImpactLabelVar,
+    minimalImpactLabelVar,
+    lowImpactLabelVar,
   ] = await Promise.all([
     i18n('Filters'),
     i18n('Currently filtering by:'),
@@ -110,6 +142,17 @@ async function initializeLabels() {
     i18n('Next Month'),
     i18n('Days'),
     i18n('Showing:'),
+    i18n('Time'),
+    i18n('Country'),
+    i18n('Event'),
+    i18n('Actual'),
+    i18n('Previous'),
+    i18n('Asterisk indicates that the Actual value for the Previous period was revised from its originally published value.'),
+    i18n('Consensus'),
+    i18n('Impact'),
+    i18n('High Impact'),
+    i18n('Minimal Impact'),
+    i18n('Low Impact'),
   ]);
 
   filtersLabel = filtersLabelVar;
@@ -123,6 +166,17 @@ async function initializeLabels() {
   nextMonthLabel = nextMonthLabelVar;
   daysLabel = daysLabelVar;
   showingLabel = showingLabelVar;
+  timeLabel = timeLabelVar;
+  countryLabel = countryLabelVar;
+  eventLabel = eventLabelVar;
+  actualLabel = actualLabelVar;
+  previousLabel = previousLabelVar;
+  previousInfoLabel = previousInfoLabelVar;
+  consensusLabel = consensusLabelVar;
+  impactLabel = impactLabelVar;
+  highImpactLabel = highImpactLabelVar;
+  minimalImpactLabel = minimalImpactLabelVar;
+  lowImpactLabel = lowImpactLabelVar;
 }
 
 async function getLeftPanelDays() {
@@ -149,20 +203,26 @@ async function getLeftPanelDays() {
 }
 
 async function getEvents() {
-  // remove interior de tabla here
+  // remove table here
+  eventCalendarTBody.innerHTML = '';
   // add spinner here
+  eventCalendarTBody.append(spinnerInEventCalendar);
 
-  const date = formatDate(new Date(leftPanelSelectedDay));
+  // eslint-disable-next-line no-undef
+  const date = dayjs(new Date(leftPanelSelectedDay)).format('YYYY-MM-DD');
   const countries = filtersArray['input-country'].map((country) => country.id);
   const impacts = filtersArray['input-impact'].map((impact) => impact.id);
   const textSearch = searchValueVar;
 
-  events = await postEconomicReleaseEvents(
+  const eventsService = await postEconomicReleaseEvents(
     date,
     countries,
     impacts,
     textSearch,
   );
+
+  events = eventsService.events;
+
   if (events) {
     // eslint-disable-next-line no-use-before-define
     const eventsSection = renderEventSection();
@@ -726,7 +786,7 @@ function renderResultListSection(days) {
     const dayWithSuffix = dayjs(date).format('Do');
     const li = `
             <li class=${isActiveDate ? 'active-date' : ''}>
-              <a role="button" tabindex="0" data-date=${date}>
+              <a role="button" tabindex="0" data-date=${date} data-nth-events=${totalEventsCount}>
                 <span class="number-date">${dayWithSuffix}</span>
                 <span class="name-date">${dayName}</span>
                 <span class="events-date ${totalEventsCount === 0 ? 'no-events' : ''}">${totalEventsCount} Events</span>
@@ -751,50 +811,220 @@ function renderResultSection() {
   return resultListTableSection;
 }
 
-function renderEvents() {
-  // eslint-disable-next-line no-use-before-define
-  renderCalendarResume();
-  // remove spinner here
-  // if (events)
-  // tabla
-  // texto de no hay reports
-
-  // const filteredDays = getResultDays(days);
-  // lateralDaysList.innerHTML = `
-  // <ul>
-  //   ${filteredDays.map(({ date, totalEventsCount }) => {
-  //   const li = `
-  //           <li class=${formatDate(new Date(leftPanelSelectedDay))
-  // === formatDate(new Date(date)) ? 'active-date' : ''}>
-  //             <a role="button" tabindex="0" data-date=${date}>
-  //               <span class="number-date">${formatDayWithSuffix(date)}</span>
-  //               <span class="name-date">${getDayName(date)}</span>
-  //               <span class="events-date ${totalEventsCount
-  // === 0 ? 'no-events' : ''}">${totalEventsCount} Events</span>
-  //             </a>
-  //           </li>
-  //         `;
-  //   return li;
-  // }).join('')}
-  // </ul>`;
-  // setupLateralDaysListeners(lateralDaysList);
-  // return lateralDaysList;
+function valueInTable(value1, value2) {
+  const numValue1 = parseFloat(value1);
+  const numValue2 = parseFloat(value2);
+  if (value1 != null && value2 != null
+    && !Number.isNaN(numValue1) && !Number.isNaN(numValue2)) {
+    if (numValue1 > numValue2) {
+      return 'positive';
+    } if (numValue1 < numValue2) {
+      return 'negative';
+    }
+  }
+  return '';
 }
 
-function formateDateForResume(date) {
-  const dateNoFormat = new Date(date);
-  const month = dateNoFormat.toLocaleString('en-US', { month: 'long' });
-  const year = dateNoFormat.getFullYear();
-  
-  const dayWithSuffix = formatDayWithSuffix(dateNoFormat);
+function setupEventAccordionCardListeners(accordionCardListContainer) {
+  const accordionCardList = accordionCardListContainer.querySelectorAll('.event-accordion-card');
+  accordionCardList.forEach((accordionCard) => {
+    accordionCard.addEventListener('click', (event) => {
+      if (event.target.closest('a')) {
+        return;
+      }
+      const accordionCardHeader = accordionCard.querySelector('.event-accordion-card-header');
+      const accordionCardBody = accordionCard.querySelector('.collapse');
+      const isOpen = accordionCardHeader && accordionCardHeader.classList.contains('open');
+      accordionCardList.forEach((card) => {
+        const cardHeader = card.querySelector('.event-accordion-card-header');
+        const cardBody = card.querySelector('.collapse');
+        if (cardHeader) {
+          cardHeader.classList.remove('open');
+        }
+        if (cardBody) {
+          cardBody.classList.remove('show');
+        }
+      });
 
-  return `${dayWithSuffix} ${month} ${year}`;
+      if (!isOpen) {
+        if (accordionCardHeader) {
+          accordionCardHeader.classList.add('open');
+        }
+        if (accordionCardBody) {
+          accordionCardBody.classList.add('show');
+        }
+      }
+    });
+  });
+}
+
+function renderEvents() {
+  // clear table body
+  eventCalendarTBody.innerHTML = '';
+
+  if (Array.isArray(events) && events.length > 0) {
+    eventCalendarTBody.innerHTML = `
+    ${events.map(({
+    country,
+    date,
+    eventName,
+    eventValues,
+    impact,
+    nextReleaseDate,
+    tags,
+    text,
+    title,
+    url,
+  }, index) => {
+    // eslint-disable-next-line no-undef
+    const timeFormatted = `${dayjs(date).tz('America/Chicago').format('hh:mm A [CT]')}` || '-';
+    // eslint-disable-next-line no-undef
+    const nextReleaseDateFormatted = `${dayjs(nextReleaseDate).tz('America/Chicago').format('dddd DD MMM YYYY')}` || '-';
+    const {
+      actual,
+      consensus,
+      isConsensus,
+      isReport,
+      previous,
+    } = eventValues[0];
+    const actualResult = valueInTable(actual, previous);
+    const consensusResult = valueInTable(consensus, previous);
+    const isExpandable = !!text;
+    const div = `
+      <div class="event-accordion-card">
+        <div data-index=${index} class="event-accordion-card-header ${isExpandable ? '' : 'not-expandable'}">
+          <div class="event-container">
+            <ul>
+              <li class="time">${timeFormatted}</li>
+              <li class="country">
+                <div class="country-content">
+                <div class="flag-icon ${country.toLowerCase()}"></div>
+                <span>${country}</span>
+                </div>
+              </li>
+              <li>
+                <a href=${url} target="_self">
+                  <span class="event-name">${eventName || '-'}</span>
+                  <i class="icon"></i>
+                  ${(isReport || isConsensus) ? (
+    `<span class="label">
+                      ${isReport ? 'report' : 'consensus'}
+                    </span>`
+  ) : ''}
+                </a>
+              </li>
+              <li class=${actualResult}>${actual || '-'}</li>
+              <li>${previous || '-'}</li>
+              <li class=${consensusResult}>${consensus || '-'}</li>
+              <li>
+                <div class="impact ${impact.toLowerCase()}"><div>
+                <div></div>
+              </li>
+              <li></li>
+            </ul>
+          </div>
+        </div>
+        ${isExpandable ? (`
+        <div class="collapse">
+          <div class="event-accordion-card-body">
+            <div class="expandable-content">
+              <span class="highlight">${title}</span>
+              <div class="main-content">
+                <div class="left-section">
+                  <p class="text">${text}</p>
+                  <div class="more">
+                    <span class="icon"></span>
+                    <a href=${url}>Read more</a>
+                  </div>
+                </div>
+                <div class="right-section">
+                  <div class="tags-section">
+                    <span class="bold">Tags:</span>
+                    <div>
+                    ${tags.map((tagEl) => {
+      const tag = `<span class="tag">${tagEl}</span>`;
+      return tag;
+    }).join('')}
+                    </div>
+                  </div>
+                  <div>
+                    <span class="bold">Next release date:</span>${nextReleaseDateFormatted}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        `) : ''}
+      </div>`;
+    return div;
+  }).join('')}`;
+    setupEventAccordionCardListeners(eventCalendarTBody);
+  } else {
+    // eslint-disable-next-line no-undef
+    const formateDateForNoResults = dayjs(leftPanelSelectedDay).format('Do MMM YYYY');
+    eventCalendarTBody.innerHTML = `
+      <div class="no-results">
+        <p>There are
+        <span> no matching </span>
+        reports for
+        <span> "${formateDateForNoResults}"</span>
+        </p>
+        <p>See other dates or refilter results</p>
+      </div>
+    `;
+  }
+
+  eventCalendarTable.append(eventCalendarTBody);
+}
+
+function renderEventsTableHeader() {
+  eventCalendarTHead.innerHTML = `
+    <ul>
+      <li>${timeLabel}</li>
+      <li>${countryLabel}</li>
+      <li>${eventLabel}</li>
+      <li>${actualLabel}</li>
+      <li>
+        ${previousLabel}
+        <div class="tooltip-container">
+          <span class="info-icon"></span>
+          <div class="tooltip">
+            <p>
+              ${previousInfoLabel}
+            </p>
+          </div>
+        </div>
+      </li>
+      <li>${consensusLabel}</li>
+      <li>
+      ${impactLabel}
+      <div class="tooltip-container">
+        <span class="info-icon"></span>
+        <div class="tooltip impact-tooltip">
+          <div class="impact-info">
+            <ul>
+              <li><span class="bullet"></span>${highImpactLabel}</li>
+              <li><span class="bullet"></span>${minimalImpactLabel}</li>
+              <li><span class="bullet"></span>${lowImpactLabel}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      </li>
+      <li></li>
+    </ul>
+  `;
+  eventCalendarTable.append(eventCalendarTHead);
+  return eventCalendarTable;
 }
 
 function renderCalendarResume() {
+  // eslint-disable-next-line no-undef
+  const formateDateForResume = dayjs(leftPanelSelectedDay).format('Do MMM YYYY');
   calendarResume.innerHTML = `
   <p>
-    Showing<span> '${nthEvents === 0 ? 'NO' : nthEvents}' </span>Matching Events for<span> "${formateDateForResume(leftPanelSelectedDay)}"</span>
+    Showing<span> '${nthEvents === '0' ? 'NO' : nthEvents}' </span>Matching Events for<span> "${formateDateForResume}"</span>
   </p>
   `;
   return calendarResume;
@@ -802,7 +1032,8 @@ function renderCalendarResume() {
 
 function renderEventSection() {
   calendarTableContainer.append(renderCalendarResume());
-  calendarTableContainer.append(renderEvents());
+  calendarTableContainer.append(renderEventsTableHeader());
+  renderEvents();
 
   return calendarTableContainer;
 }
