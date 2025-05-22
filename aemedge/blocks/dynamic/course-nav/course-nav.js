@@ -4,8 +4,9 @@ import { createElement, i18n } from '../../../scripts/utils.js';
 
 function getTotalLessonsCount(courseData) {
   return courseData.hasChapters
-    ? courseData.chapters.reduce((total, chapter) => total + chapter.lessons.length, 0)
-    : courseData.lessons?.length || 0;
+    ? (courseData.chapters.reduce((total, chapter) => total + chapter.lessons.length, 0)
+      + (courseData.lessons?.length || 0))
+    : (courseData.lessons?.length || 0);
 }
 
 function createIconSpan(iconName, isHidden = false) {

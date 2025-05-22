@@ -20,47 +20,6 @@ const CONSTANTS = {
   },
 };
 
-// Consolidate message handling
-class MessageManager {
-  static elements = {
-    message: () => document.querySelector('.feedback-message'),
-    container: () => document.querySelector('.message-wrapper'),
-    infoWrapper: () => document.querySelector('.info-list-wrapper'),
-    indicator: () => document.querySelector('.message-indicator'),
-    fragmentList: () => document.querySelector('.info-list'),
-  };
-
-  static showMessage(text, isError = false, autoHide = false) {
-    const message = this.elements.message();
-    const container = this.elements.container();
-
-    message.innerHTML = text.replace(/\r?\n/g, '<br>');
-    message.classList.toggle('error', isError);
-    container.classList.remove('hidden');
-
-    if (autoHide && !isError) {
-      setTimeout(() => container.classList.add('hidden'), CONSTANTS.AUTO_HIDE_DELAY);
-    }
-  }
-
-  static addToInfoList(text) {
-    const { indicator, fragmentList } = this.elements;
-    const listItem = document.createElement('li');
-    const fragmentUrl = text.replace('Inserted fragment link: ', '');
-    listItem.innerHTML = `<a href="${fragmentUrl}" target="_blank" rel="noopener noreferrer">${fragmentUrl}</a>`;
-    fragmentList().appendChild(listItem);
-    indicator().classList.remove('hidden');
-  }
-
-  static hideMessageContainer() {
-    const { infoWrapper, indicator } = this.elements;
-    if (!infoWrapper().classList.contains('hidden')) {
-      infoWrapper().classList.add('hidden');
-      indicator().classList.remove('active');
-    }
-  }
-}
-
 /**
  * Creates a tree structure from file paths
  * @param {Array} files - Array of file objects with paths
@@ -201,7 +160,7 @@ function createTreeItem(name, node, onClick) {
  */
 function handleFragmentSelect(actions, file, context) {
   if (!actions?.sendHTML) {
-    MessageManager.showMessage('Cannot insert fragment: Editor not available', true);
+    console.error('Cannot insert fragment: Editor not available');
     return;
   }
 
@@ -210,10 +169,9 @@ function handleFragmentSelect(actions, file, context) {
     const displayPath = file.path.replace(basePath, '').replace(/\.html$/, '');
     const fragmentUrl = `https://main--${context.repo}--${context.org}.aem.page${displayPath}`;
     actions.sendHTML(`<a href="${fragmentUrl}" class="fragment">${fragmentUrl}</a>`);
-    MessageManager.addToInfoList(`Inserted fragment link: ${fragmentUrl}`);
+    actions.closeLibrary();
   } catch (error) {
-    MessageManager.showMessage('Failed to insert fragment', true);
-    console.error(error);
+    console.error('Failed to insert fragment:', error);
   }
 }
 
@@ -324,8 +282,6 @@ function expandToDepth(item, currentDepth, targetDepth) {
   const fragmentsList = document.querySelector('.fragments-list');
   const searchInput = document.querySelector('.fragment-search');
   const refreshBtn = document.querySelector('.fragment-btn[type="button"]');
-  const indicator = document.querySelector('.message-indicator');
-  const infoWrapper = document.querySelector('.info-list-wrapper');
 
   // Prevent default form submission
   form.addEventListener('submit', (e) => e.preventDefault());
@@ -333,13 +289,6 @@ function expandToDepth(item, currentDepth, targetDepth) {
   // Add search handler
   searchInput.addEventListener('input', (e) => {
     filterFragments(e.target.value, fragmentsList);
-  });
-
-  // Add indicator click handler
-  indicator.addEventListener('click', () => {
-    const isHidden = infoWrapper.classList.toggle('hidden');
-    indicator.classList.toggle('active');
-    indicator.setAttribute('aria-expanded', !isHidden);
   });
 
   // Function to load fragments
@@ -377,7 +326,7 @@ function expandToDepth(item, currentDepth, targetDepth) {
       fragmentsContainer.innerHTML = '';
 
       const tree = createFileTree(files, basePath);
-      const targetDepth = getBasePathDepth(); // Get the depth to expand to
+      const targetDepth = getBasePathDepth();
 
       Object.entries(tree)
         .sort(([a], [b]) => a.localeCompare(b))
@@ -393,8 +342,7 @@ function expandToDepth(item, currentDepth, targetDepth) {
           expandToDepth(item, 1, targetDepth);
         });
     } catch (error) {
-      MessageManager.showMessage('Failed to load fragments', true);
-      console.error(error);
+      console.error('Failed to load fragments:', error);
       // Also disable cancel button on error
       cancelBtn.disabled = true;
     }

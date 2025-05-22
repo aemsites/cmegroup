@@ -60,7 +60,7 @@
                 {{#values}}
                 <tr>
                   <td>{{valueName}}</td>
-                  {{#hasConsensus}}<td>{{prefix}}{{consensus}}{{suffix}}</td>{{/hasConsensus}}
+                  {{#hasConsensus}}<td>{{#consensus}}{{prefix}}{{consensus}}{{suffix}}{{/consensus}}</td>{{/hasConsensus}}
                   {{#hasConsensusRange}}
                     <td>
                       {{#consensusRangeFrom}}{{prefix}}{{consensusRangeFrom}}{{suffix}}{{/consensusRangeFrom}}
@@ -68,9 +68,9 @@
                       {{#consensusRangeTo}}{{prefix}}{{consensusRangeTo}}{{suffix}}{{/consensusRangeTo}}
                     </td>
                   {{/hasConsensusRange}}
-                  {{#hasActual}}<td>{{prefix}}{{actual}}{{suffix}}</td>{{/hasActual}}
-                  {{#hasPrevious}}<td>{{prefix}}{{previous}}{{suffix}}</td>{{/hasPrevious}}
-                  {{#hasRevised}}<td>{{prefix}}{{revised}}{{suffix}}</td>{{/hasRevised}}
+                  {{#hasActual}}<td>{{#actual}}{{prefix}}{{actual}}{{suffix}}{{/actual}}</td>{{/hasActual}}
+                  {{#hasPrevious}}<td>{{#previous}}{{prefix}}{{previous}}{{suffix}}{{/previous}}</td>{{/hasPrevious}}
+                  {{#hasRevised}}<td>{{#revised}}{{prefix}}{{revised}}{{suffix}}{{/revised}}</td>{{/hasRevised}}
                 </tr>
                 {{/values}}
               </tbody>

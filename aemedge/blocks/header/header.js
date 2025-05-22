@@ -658,16 +658,13 @@ class Nav {
   };
 
   closeNav = (nav) => {
+    const allElOpen = nav.querySelectorAll(`.${IS_OPEN}`);
     if (nav.classList.contains(IS_OPEN)) {
       nav.parentElement.classList.remove(IS_OPEN);
       nav.classList.remove(IS_OPEN);
       this.curtain.classList.remove(IS_OPEN);
-      const allElOpen = nav.querySelectorAll('.is-open');
-      // eslint-disable-next-line no-plusplus
-      for (let i = 0; i < allElOpen.length; i++) {
-        this.closeMenu(allElOpen[i]);
-      }
     }
+    allElOpen.forEach((element) => this.closeMenu(element));
   };
 
   toggleMenu = (el) => {
