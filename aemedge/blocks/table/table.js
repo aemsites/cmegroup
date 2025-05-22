@@ -170,4 +170,12 @@ export default async function decorate(block) {
       }
     });
   }
+
+  document.addEventListener('floatingElementsChange', (e) => {
+    const { height, navbarVisible } = e.detail;
+    const top = navbarVisible ? height : 0;
+    document.querySelectorAll('.table.fixed-row-header thead th').forEach((th) => {
+      th.style.top = `${top}px`;
+    });
+  });
 }

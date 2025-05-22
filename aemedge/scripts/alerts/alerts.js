@@ -229,12 +229,24 @@ export default async function initFloatingElements(doc, header) {
 
   window.addEventListener('scroll', () => {
     const scrollTop = window.pageYOffset || doc.documentElement.scrollTop;
+    let changed = false;
     if (scrollTop > lastScrollTop) {
+      changed = !header.classList.contains('hidden');
       header.classList.add('hidden');
     } else {
+      changed = header.classList.contains('hidden');
       header.classList.remove('hidden');
     }
     lastScrollTop = scrollTop;
+    if (changed) {
+      const event = new CustomEvent('floatingElementsChange', {
+        detail: {
+          height: header.offsetHeight,
+          navbarVisible: !header.classList.contains('hidden'),
+        },
+      });
+      doc.dispatchEvent(event);
+    }
   });
 
   return Promise.resolve();
