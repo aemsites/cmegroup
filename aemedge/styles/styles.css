@@ -16,10 +16,6 @@
 @import url("util-styles.css");
 @import url("util-styles-responsive.css");
 
-*,:after,:before {
-    box-sizing: border-box
-}
-
 :root {
     /* colors */
     --background-color: var(--white);

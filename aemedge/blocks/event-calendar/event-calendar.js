@@ -181,7 +181,7 @@ async function initializeLabels() {
 
 async function getLeftPanelDays() {
   // eslint-disable-next-line no-undef
-  const date = dayjs(new Date(tradeDate)).format('YYYY-MM-DD');
+  const date = dayjs(tradeDate).tz('America/Chicago', true).format('YYYY-MM-DD');
   const countries = filtersArray['input-country'].map((country) => country.id);
   const impacts = filtersArray['input-impact'].map((impact) => impact.id);
   const daysLimit = 30;
@@ -209,7 +209,7 @@ async function getEvents() {
   eventCalendarTBody.append(spinnerInEventCalendar);
 
   // eslint-disable-next-line no-undef
-  const date = dayjs(new Date(leftPanelSelectedDay)).format('YYYY-MM-DD');
+  const date = dayjs(leftPanelSelectedDay).tz('America/Chicago', true).format('YYYY-MM-DD');
   const countries = filtersArray['input-country'].map((country) => country.id);
   const impacts = filtersArray['input-impact'].map((impact) => impact.id);
   const textSearch = searchValueVar;
@@ -601,12 +601,12 @@ function createTodayBtn(instance) {
   todayButton.textContent = todayLabel;
   todayButton.addEventListener('click', () => {
     // eslint-disable-next-line no-undef
-    tradeDate = dayjs().$d;
+    tradeDate = dayjs().tz('America/Chicago', true).$d;
     // eslint-disable-next-line no-undef
-    instance.setDate(dayjs().$d, true);
+    instance.setDate(dayjs().tz('America/Chicago', true).$d, true);
 
     // eslint-disable-next-line no-undef
-    filtersArray.tradeDate = [{ id: dayjs(new Date()).format('YYYY-MM-DD') }];
+    filtersArray.tradeDate = [{ id: dayjs().tz('America/Chicago', true).format('YYYY-MM-DD') }];
     updateURLFilters(filtersArray);
     // service here
     leftPanelSelectedDay = tradeDate;
@@ -646,7 +646,7 @@ function initDatePicker() {
         tradeDate = date;
       }
       // eslint-disable-next-line no-undef
-      filtersArray.tradeDate = [{ id: dayjs(date).format('YYYY-MM-DD') }];
+      filtersArray.tradeDate = [{ id: dayjs(date).tz('America/Chicago', true).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
@@ -687,7 +687,7 @@ function initDatePicker() {
 
 function changeMonth(dateString, monthsToAdd) {
   // eslint-disable-next-line no-undef
-  const date = dayjs(dateString).$d;
+  const date = dayjs(dateString).tz('America/Chicago', true).$d;
   const currentMonth = date.getMonth();
 
   date.setMonth(currentMonth + monthsToAdd);
@@ -709,7 +709,7 @@ function monthListener(cta, isNext) {
       datePicker.setDate(tradeDate, true);
       // update url
       // eslint-disable-next-line no-undef
-      filtersArray.tradeDate = [{ id: dayjs(tradeDate).format('YYYY-MM-DD') }];
+      filtersArray.tradeDate = [{ id: dayjs(tradeDate).tz('America/Chicago', true).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
@@ -720,7 +720,7 @@ function monthListener(cta, isNext) {
       datePicker.setDate(tradeDate, true);
       // update url
       // eslint-disable-next-line no-undef
-      filtersArray.tradeDate = [{ id: dayjs(tradeDate).format('YYYY-MM-DD') }];
+      filtersArray.tradeDate = [{ id: dayjs(tradeDate).tz('America/Chicago', true).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
@@ -761,7 +761,7 @@ function setupLateralDaysListeners(daysList) {
       }
       day.parentElement.classList.add('active-date');
       // eslint-disable-next-line no-undef
-      leftPanelSelectedDay = dayjs(new Date(day.dataset.date)).format('YYYY-MM-DD');
+      leftPanelSelectedDay = dayjs(day.dataset.date).tz('America/Chicago', true).format('YYYY-MM-DD');
       nthEvents = day.dataset.nthEvents;
       // service here
       // eslint-disable-next-line no-use-before-define
@@ -779,11 +779,11 @@ function renderResultListSection(days) {
       nthEvents = totalEventsCount;
     }
     // eslint-disable-next-line no-undef
-    const isActiveDate = dayjs(new Date(leftPanelSelectedDay)).format('YYYY-MM-DD') === dayjs(new Date(date)).format('YYYY-MM-DD');
+    const isActiveDate = dayjs(leftPanelSelectedDay).tz('America/Chicago', true).format('YYYY-MM-DD') === dayjs(date).tz('America/Chicago', true).format('YYYY-MM-DD');
     // eslint-disable-next-line no-undef
-    const dayName = dayjs(date).format('dddd');
+    const dayName = dayjs(date).tz('America/Chicago', true).format('dddd');
     // eslint-disable-next-line no-undef
-    const dayWithSuffix = dayjs(date).format('Do');
+    const dayWithSuffix = dayjs(date).tz('America/Chicago', true).format('Do');
     const li = `
             <li class=${isActiveDate ? 'active-date' : ''}>
               <a role="button" tabindex="0" data-date=${date} data-nth-events=${totalEventsCount}>
@@ -858,13 +858,9 @@ function setupEventAccordionCardListeners(accordionCardListContainer) {
   });
 }
 
-function renderEvents() {
-  // clear table body
-  eventCalendarTBody.innerHTML = '';
-
-  if (Array.isArray(events) && events.length > 0) {
-    eventCalendarTBody.innerHTML = `
-    ${events.map(({
+function renderDesktopAccordion(eventsToRender) {
+  eventCalendarTBody.innerHTML = `
+    ${eventsToRender.map(({
     country,
     date,
     eventName,
@@ -877,9 +873,9 @@ function renderEvents() {
     url,
   }, index) => {
     // eslint-disable-next-line no-undef
-    const timeFormatted = `${dayjs(date).tz('America/Chicago').format('hh:mm A [CT]')}` || '-';
+    const timeFormatted = `${dayjs(date).tz('America/Chicago', true).format('hh:mm A [CT]')}` || '-';
     // eslint-disable-next-line no-undef
-    const nextReleaseDateFormatted = `${dayjs(nextReleaseDate).tz('America/Chicago').format('dddd DD MMM YYYY')}` || '-';
+    const nextReleaseDateFormatted = `${dayjs(nextReleaseDate).tz('America/Chicago', true).format('dddd DD MMM YYYY')}` || '-';
     const {
       actual,
       consensus,
@@ -959,20 +955,148 @@ function renderEvents() {
       </div>`;
     return div;
   }).join('')}`;
-    setupEventAccordionCardListeners(eventCalendarTBody);
-  } else {
+  setupEventAccordionCardListeners(eventCalendarTBody);
+}
+
+function renderMobileAccordion(eventsToRender) {
+  eventCalendarTBody.innerHTML = `
+    ${eventsToRender.map(({
+    country,
+    date,
+    eventName,
+    eventValues,
+    impact,
+    nextReleaseDate,
+    tags,
+    text,
+    title,
+    url,
+  }, index) => {
     // eslint-disable-next-line no-undef
-    const formateDateForNoResults = dayjs(leftPanelSelectedDay).format('Do MMM YYYY');
-    eventCalendarTBody.innerHTML = `
-      <div class="no-results">
-        <p>There are
-        <span> no matching </span>
-        reports for
-        <span> "${formateDateForNoResults}"</span>
-        </p>
-        <p>See other dates or refilter results</p>
-      </div>
-    `;
+    const timeFormatted = `${dayjs(date).tz('America/Chicago', true).format('hh:mm A [CT]')}` || '-';
+    // eslint-disable-next-line no-undef
+    const nextReleaseDateFormatted = `${dayjs(nextReleaseDate).tz('America/Chicago', true).format('dddd DD MMM YYYY')}` || '-';
+    const {
+      actual,
+      consensus,
+      isConsensus,
+      isReport,
+      previous,
+    } = eventValues[0];
+    const actualResult = valueInTable(actual, previous);
+    const consensusResult = valueInTable(consensus, previous);
+    const isExpandable = !!text;
+    const div = `
+      <div class="event-accordion-card mobile-accordion">
+        <div data-index=${index} class="event-accordion-card-header ${isExpandable ? '' : 'not-expandable'}">
+          <div class="event-container">
+            <ul>
+              <li class="time">MOBILE ${timeFormatted}</li>
+              <li class="country">
+                <div class="country-content">
+                <div class="flag-icon ${country.toLowerCase()}"></div>
+                <span>${country}</span>
+                </div>
+              </li>
+              <li>
+                <a href=${url} target="_self">
+                  <span class="event-name">${eventName || '-'}</span>
+                  <i class="icon"></i>
+                  ${(isReport || isConsensus) ? (
+    `<span class="label">
+                      ${isReport ? 'report' : 'consensus'}
+                    </span>`
+  ) : ''}
+                </a>
+              </li>
+              <li class=${actualResult}>${actual || '-'}</li>
+              <li>${previous || '-'}</li>
+              <li class=${consensusResult}>${consensus || '-'}</li>
+              <li>
+                <div class="impact ${impact.toLowerCase()}"><div>
+                <div></div>
+              </li>
+              <li></li>
+            </ul>
+          </div>
+        </div>
+        ${isExpandable ? (`
+        <div class="collapse">
+          <div class="event-accordion-card-body">
+            <div class="expandable-content">
+              <span class="highlight">${title}</span>
+              <div class="main-content">
+                <div class="left-section">
+                  <p class="text">${text}</p>
+                  <div class="more">
+                    <span class="icon"></span>
+                    <a href=${url}>Read more</a>
+                  </div>
+                </div>
+                <div class="right-section">
+                  <div class="tags-section">
+                    <span class="bold">Tags:</span>
+                    <div>
+                    ${tags.map((tagEl) => {
+      const tag = `<span class="tag">${tagEl}</span>`;
+      return tag;
+    }).join('')}
+                    </div>
+                  </div>
+                  <div>
+                    <span class="bold">Next release date:</span>${nextReleaseDateFormatted}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        `) : ''}
+      </div>`;
+    return div;
+  }).join('')}`;
+  setupEventAccordionCardListeners(eventCalendarTBody);
+}
+
+function renderDesktopNoResults() {
+  // eslint-disable-next-line no-undef
+  const formateDateForNoResults = dayjs(leftPanelSelectedDay).tz('America/Chicago', true).format('Do MMM YYYY');
+  eventCalendarTBody.innerHTML = `
+    <div class="no-results">
+      <p>There are
+      <span> no matching </span>
+      reports for
+      <span> "${formateDateForNoResults}"</span>
+      </p>
+      <p>See other dates or refilter results</p>
+    </div>
+  `;
+}
+
+function renderMobileNoResults() {
+  eventCalendarTBody.innerHTML = `
+    <div class="no-results">
+      <p>
+        <span class="calendar-icon"></span>
+        No Matching Events
+      </p>
+    </div>
+  `;
+}
+
+function renderEvents() {
+  // clear table body
+  eventCalendarTBody.innerHTML = '';
+  if (Array.isArray(events) && events.length > 0) {
+    if (isDesktop) {
+      renderDesktopAccordion(events);
+    } else {
+      renderMobileAccordion(events);
+    }
+  } else if (isDesktop) {
+    renderDesktopNoResults();
+  } else {
+    renderMobileNoResults();
   }
 
   eventCalendarTable.append(eventCalendarTBody);
@@ -1020,13 +1144,22 @@ function renderEventsTableHeader() {
 }
 
 function renderCalendarResume() {
-  // eslint-disable-next-line no-undef
-  const formateDateForResume = dayjs(leftPanelSelectedDay).format('Do MMM YYYY');
-  calendarResume.innerHTML = `
-  <p>
-    Showing<span> '${nthEvents === '0' ? 'NO' : nthEvents}' </span>Matching Events for<span> "${formateDateForResume}"</span>
-  </p>
-  `;
+  if (isDesktop) {
+    // eslint-disable-next-line no-undef
+    const formateDateForResume = dayjs(leftPanelSelectedDay).tz('America/Chicago', true).format('Do MMM YYYY');
+    calendarResume.innerHTML = `
+    <p>
+      Showing<span> '${nthEvents === '0' ? 'NO' : nthEvents}' </span>Matching Events for<span> "${formateDateForResume}"</span>
+    </p>
+    `;
+  } else {
+    calendarResume.innerHTML = `
+    <p>
+      <span class="calendar-icon"></span>
+      ${nthEvents} Matching Events
+    </p>
+    `;
+  }
   return calendarResume;
 }
 
@@ -1062,11 +1195,19 @@ function customDropdownListener(dropdown) {
       showingDays = value;
       renderResultListSection(leftPanelDays.events);
 
+      eventCalendarTBody.classList.forEach((className) => {
+        if (className.startsWith('showing-days-')) {
+          eventCalendarTBody.classList.remove(className);
+        }
+      });
+
       listItems.forEach((li) => li.classList.remove('active'));
       item.classList.add('active');
 
       dropdownList.classList.remove('open');
       dropdownHeader.classList.remove('open');
+
+      eventCalendarTBody.classList.add(`showing-days-${showingDays}`);
     });
   });
 
@@ -1178,11 +1319,11 @@ function initFilters() {
   const date = getUrlFilterParam(params.tradeDateParam);
   if (date.length > 0) {
     // eslint-disable-next-line no-undef
-    tradeDate = dayjs(date).$d;
+    tradeDate = dayjs(date).tz('America/Chicago', true).$d;
     filtersArray.tradeDate = [{ id: date }];
   } else {
     // eslint-disable-next-line no-undef
-    filtersArray.tradeDate = [{ id: dayjs(tradeDate).format('YYYY-MM-DD') }];
+    filtersArray.tradeDate = [{ id: dayjs(tradeDate).tz('America/Chicago', true).format('YYYY-MM-DD') }];
   }
 
   // render pills
@@ -1195,11 +1336,12 @@ function initFilters() {
 }
 
 async function init(block, version) {
-  loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js');
-  loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js');
-  loadScript('/aemedge/scripts/third-party/dayjs/utc.js');
-  loadScript('/aemedge/scripts/third-party/dayjs/timezone.js');
-  loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js');
+  // eslint-disable-next-line no-undef
+  dayjs.extend(dayjs_plugin_utc);
+  // eslint-disable-next-line no-undef
+  dayjs.extend(dayjs_plugin_timezone);
+  // eslint-disable-next-line no-undef
+  dayjs.extend(dayjs_plugin_advancedFormat);
   await initializeLabels();
   economicFilters = await getEconomicReleaseFilters();
   initFilters();
@@ -1218,12 +1360,29 @@ async function init(block, version) {
       const crossedBreakpointDown = (prevWindowWidth > 1200 && windowWidth <= 1199);
       const crossedBreakpointUp = (prevWindowWidth <= 1199 && windowWidth >= 1200);
       if (crossedBreakpointDown) {
+        calendarResume.innerHTML = '';
+        eventCalendarTBody.innerHTML = '';
+        eventCalendarTBody.append(spinnerInEventCalendar);
         isDesktop = window.innerWidth > 1200;
         datePicker.hide();
+        setTimeout(() => {
+          // 1.5 seconds delay for visual effect
+          renderCalendarResume();
+          renderEvents();
+        }, 1500);
       }
       if (crossedBreakpointUp) {
+        calendarResume.innerHTML = '';
+        calendarResume.append(spinnerInEventCalendar);
+        eventCalendarTBody.innerHTML = '';
+        eventCalendarTBody.append(spinnerInEventCalendar);
         isDesktop = window.innerWidth > 1200;
         renderCurrentPills(filtersArray);
+        setTimeout(() => {
+          // 1.5 seconds delay for visual effect
+          renderCalendarResume();
+          renderEvents();
+        }, 1500);
         const openInputsCurtain = document.querySelector('.inputs-curtain.is-open');
         if (openInputsCurtain) {
           closeFiltersInputsContainer();
@@ -1249,12 +1408,6 @@ async function init(block, version) {
   block.append(eventCalendarContainer);
 
   renderPillsExpandBtn();
-  // eslint-disable-next-line no-undef
-  dayjs.extend(dayjs_plugin_utc);
-  // eslint-disable-next-line no-undef
-  dayjs.extend(dayjs_plugin_timezone);
-  // eslint-disable-next-line no-undef
-  dayjs.extend(dayjs_plugin_advancedFormat);
   initDatePicker();
 }
 
@@ -1265,5 +1418,16 @@ export default async function decorate(block) {
   } = dataBlock;
 
   block.innerHTML = '';
+  // Array to hold promises for script loading
+  const scriptPromises = [
+    loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/utc.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/timezone.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js'),
+  ];
+
+  // Wait for all scripts to load
+  await Promise.all(scriptPromises);
   init(block, version);
 }

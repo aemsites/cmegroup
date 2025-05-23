@@ -570,11 +570,13 @@
 
 .event-calendar-container .event-calendar-datepicker-container {
     width: 100%;
+    padding-right: 12px;
 }
 
 @media (width >=1200px) {
     .event-calendar-container .event-calendar-datepicker-container {
         width: 25%;
+        padding-right: 0;
     }
 }
 
@@ -1175,7 +1177,7 @@
     background-color: var(--blue1);
     border-left: .3125rem solid var(--blue5);
     border-right: 0;
-    width: calc(100% + 0.9375rem);
+    width: calc(100% + 0.625rem);
 }
 
 .event-calendar-container .result-list-table-section .lateral-days-list ul li.active-date a {
@@ -1261,7 +1263,7 @@
     width: 100%;
     background-color: transparent;
     border: 0;
-    border-left: .3125rem solid #3cc8ff;
+    border-left: 0;
     padding: 0;
 }
 
@@ -1269,31 +1271,83 @@
     .event-calendar-container .result-list-table-section .event-calendar-table-container {
        width: 75%;
        background-color: #081d37;
-       border: .0625rem solid #5a6874;
+       border: 1px solid var(--gray3);
+       border-left: .3125rem solid #3cc8ff;
        padding: 1.5625rem 1.875rem;
        padding-right: 0;
     }
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper {
-    flex: 0 0 auto;
-    width: 66.66666667%;
-    margin-bottom: 1.25rem;
+    box-shadow: 0 .25rem 0 #081d37;
+    position: sticky;
+    top: 80px;
+    background-color: #112b4a;
+    margin-bottom: .3125rem;
+    padding: .625rem;
+    text-align: center;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper p {
-    margin: 0;
-    color: var(--gray4);
+    color: #fff;
     font-family: var(--averta);
-    font-size: .8125rem;
-    letter-spacing: .0625rem;
+    font-weight: 500;
+    font-size: .6875rem;
     line-height: .875rem;
-    text-transform: uppercase;
+    margin: 0;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span {
-    color: var(--white);
-    font-weight: 600;
+    color: #e3e935;
+    font-family: var(--cme-group-icons);
+    font-weight: 1000;
+    height: 1rem;
+    padding-right: .625rem;
+    position: relative;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-transform: none;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span::before {
+    content: var(--icon-calendar-regular);
+}
+
+@media (width >=1200px) {
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper {
+        flex: 0 0 auto;
+        width: 66.66666667%;
+        margin-bottom: 1.25rem;
+        box-shadow: none;
+        position: relative;
+        background-color: transparent;
+        padding: 0;
+        text-align: left;
+        top: 0;
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper p {
+        margin: 0;
+        color: var(--gray4);
+        font-family: var(--averta);
+        font-size: .8125rem;
+        letter-spacing: .0625rem;
+        line-height: .875rem;
+        text-transform: uppercase;
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span {
+        color: var(--white);
+        font-weight: 600;
+        font-family: var(--averta);
+        padding-right: 0;
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span::before {
+        content: '';
+    }
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead {
@@ -1386,7 +1440,15 @@
         padding-right: .875rem;
         margin-right: 1rem;
         scrollbar-color: hsla(0, 0%, 100%, .15) transparent;
-    }   
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody.showing-days-14 {
+        max-height: 900px;
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody.showing-days-30 {
+        max-height: 1800px;
+    }
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .no-results {
@@ -1409,6 +1471,27 @@
     color: #fff;
     font-weight: 600;
 }
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .no-results p span.calendar-icon::before {
+    color: #5a6874;
+    font-family: var(--cme-group-icons);
+    content: var(--icon-calendar-regular);
+    font-weight: 1000;
+    height: 1rem;
+    padding-right: 1rem;
+    position: relative;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-transform: none;
+}
+
+/* mobile accordion */
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-accordion-card-header {
+    
+}
+/* desktop accordion */
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header {
     background-color: #112b4a;
