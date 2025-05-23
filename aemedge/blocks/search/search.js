@@ -141,7 +141,7 @@ export default async function decorate(block) {
   block.append(layout, resultsTitle, resultsWrapper);
 
   if (searchInput) {
-    ['input', 'change'].forEach((event) => searchInput.addEventListener(event, () => toggleClearButton(block, searchInput.value)));
+    ['input', 'change'].forEach((event) => searchInput.addEventListener(event, () => toggleClearButton(searchInput.value)));
   }
 
   searchResults();

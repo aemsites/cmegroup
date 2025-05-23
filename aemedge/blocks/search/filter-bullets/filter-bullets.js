@@ -31,7 +31,7 @@ const updateFilteringByUI = async (container, onChange) => {
       const searchField = document.querySelector('.search-input');
       if (searchField) {
         searchField.value = '';
-        toggleClearButton(document.querySelector('.search'), false);
+        toggleClearButton(false);
       }
       await updateFilteringByUI(container, onChange);
     };
@@ -43,7 +43,9 @@ const updateFilteringByUI = async (container, onChange) => {
     const tag = button({ class: 'filter-tag' }, value);
     tag.onclick = async () => {
       const cb = document.querySelector(`#${filterId} input[value="${value}"]`);
-      if (cb) cb.checked = false;
+      if (cb) {
+        cb.checked = false;
+      }
       removeAppliedFilter(filterId, value);
       await updateFilteringByUI(container, onChange);
     };
