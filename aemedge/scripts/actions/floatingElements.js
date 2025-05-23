@@ -1,15 +1,18 @@
+/* eslint-disable import/prefer-default-export */
 import { FLOATING_ELEMENTS_ACTIONS } from '../constants/index.js';
 
-export function stackFloatingElement(height) {
+export function updateFloatingElements() {
   return {
-    type: FLOATING_ELEMENTS_ACTIONS.STACK,
-    payload: height,
+    type: FLOATING_ELEMENTS_ACTIONS.UPDATE,
   };
 }
 
-export function unstackFloatingElement(height) {
+export function addFloatingElement(element, callback) {
   return {
-    type: FLOATING_ELEMENTS_ACTIONS.UNSTACK,
-    payload: height,
+    type: FLOATING_ELEMENTS_ACTIONS.ADD,
+    payload: {
+      element,
+      callback,
+    },
   };
 }

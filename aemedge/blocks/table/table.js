@@ -174,7 +174,11 @@ export default async function decorate(block) {
   }
   store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
     document.querySelectorAll('.table.fixed-row-header thead th').forEach((th) => {
-      th.style.top = `${height}px`;
+      if (getComputedStyle(th.closest('.table')).overflow === 'auto') {
+        th.style.top = 'auto';
+      } else {
+        th.style.top = `${height}px`;
+      }
     });
   });
 }
