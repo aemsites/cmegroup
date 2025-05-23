@@ -8,11 +8,11 @@ import {
   manageFilters, templateFiltering,
 } from './filter.js';
 import { toggleClearButton } from './search-utils.js';
-import { manageSort } from './sort.js';
+import { manageSort } from './sort/sort.js';
 import searchConfig from './search-config.js';
-import { searchResults } from './search-results.js';
+import { searchResults } from './search-results/search-results.js';
 import { i18n } from '../../scripts/utils.js';
-import { updateFilteringByUI } from './filter-tags.js';
+import { updateFilteringByUI } from './filter-bullets/filter-bullets.js';
 
 const mapKey = (key) => key?.toLowerCase()?.trim().split(/\s+/).join('-');
 

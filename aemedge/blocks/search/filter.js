@@ -7,8 +7,8 @@ import { i18n } from '../../scripts/utils.js';
 import {
   addAppliedFilter, removeAppliedFilter,
 } from './search-utils.js';
-import { updateFilteringByUI } from './filter-tags.js';
-import { searchResults } from './search-results.js';
+import { updateFilteringByUI } from './filter-bullets/filter-bullets.js';
+import { searchResults } from './search-results/search-results.js';
 
 // === UI Components ===
 const createOption = (opt, labelContent, type, className, filterId, index) => {

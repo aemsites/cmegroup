@@ -1,7 +1,7 @@
 import {
   a, div, h3, img, p,
-} from '../../scripts/dom-helpers.js';
-import { i18n } from '../../scripts/utils.js';
+} from '../../../scripts/dom-helpers.js';
+import { i18n } from '../../../scripts/utils.js';
 
 const courseCard = async (card, item) => {
   const [

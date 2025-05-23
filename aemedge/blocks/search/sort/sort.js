@@ -1,8 +1,8 @@
 import {
   a, div, label, span,
-} from '../../scripts/dom-helpers.js';
-import searchConfig from './search-config.js';
-import { i18n } from '../../scripts/utils.js';
+} from '../../../scripts/dom-helpers.js';
+import searchConfig from '../search-config.js';
+import { i18n } from '../../../scripts/utils.js';
 
 const createDropdown = (options, labelText, onChange, dropdownId = 'sort-dropdown') => {
   const dropdown = div({ class: 'dropdown', id: dropdownId });

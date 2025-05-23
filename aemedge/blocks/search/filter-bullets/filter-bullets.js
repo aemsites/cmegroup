@@ -1,7 +1,7 @@
-import searchConfig from './search-config.js';
-import { i18n } from '../../scripts/utils.js';
-import { div, button, a } from '../../scripts/dom-helpers.js';
-import { toggleClearButton, removeAppliedFilter, clearAllFilters } from './search-utils.js';
+import searchConfig from '../search-config.js';
+import { i18n } from '../../../scripts/utils.js';
+import { div, button, a } from '../../../scripts/dom-helpers.js';
+import { toggleClearButton, removeAppliedFilter, clearAllFilters } from '../search-utils.js';
 
 const updateFilteringByUI = async (container, onChange) => {
   container.innerHTML = '';
