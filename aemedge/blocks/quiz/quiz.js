@@ -50,7 +50,7 @@ function buildQuestions(rows) {
 }
 
 function showQuestion(index, wrapper, prev, next, pag, total) {
-  wrapper.style.transform = `translateX(-${index * 100}%)`;
+  wrapper.style.transform = `translateX(calc(-${index * 100}% - ${index * 1.25}rem))`;
   if (prev) prev.classList.toggle('arrow-disabled', index === 0);
   if (next) next.classList.toggle('arrow-disabled', index === total - 1);
   if (pag) pag.textContent = `${index + 1} OF ${total}`;

@@ -3,21 +3,8 @@ main > .section:first-child {
 }
 
 main > .section {
-  padding-inline: 24px;
   padding-top: 3.75rem;
   width: 100%;
-}
-
-@media (width > 480px) {
-  main > .section {
-    padding-inline: 32px;
-  }
-}
-
-@media (width > 768px) {
-  main > .section {
-    padding-inline: 54px;
-  }
 }
 
 @media (width > 992px) {

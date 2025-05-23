@@ -1,17 +1,15 @@
 .quiz {
     display: none;
+    margin: 1.25rem 0;
+    padding: 1.25rem ;
+    border: 1px solid var(--gray6);
+    overflow: hidden;
 }
 
 .quiz.showed {
     display: block;
     position: relative;
     overflow: hidden;
-}
-
-.quiz-wrapper {
-    margin: 1.25rem 0;
-    padding: 1.25rem !important;
-    border: 1px solid var(--gray6);
 }
 
 .quiz .question-text {
@@ -24,6 +22,7 @@
 }
 
 .quiz .quiz-navigation {
+    position: relative;
     display: flex;
     justify-content: space-between;
     margin-top: 6.25rem;
@@ -363,6 +362,7 @@
 }
 
 .questions-wrapper {
+    gap: 1.25rem;
     display: flex;
     flex-wrap: nowrap;
     width: 100%;
