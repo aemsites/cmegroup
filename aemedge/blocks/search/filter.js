@@ -1,27 +1,21 @@
-import {
-  div, input, label,
-} from '../../scripts/dom-helpers.js';
-import { getTaxonomyWithoutModifications } from '../../scripts/taxonomy.js';
+import { div, input, label } from '../../scripts/dom-helpers.js';
+import { getTaxonomy } from '../../scripts/taxonomy.js';
 import searchConfig from './search-config.js';
 import { i18n } from '../../scripts/utils.js';
-import {
-  addAppliedFilter, removeAppliedFilter,
-} from './search-utils.js';
+import { addAppliedFilter, removeAppliedFilter } from './search-utils.js';
 import { updateFilteringByUI } from './filter-bullets/filter-bullets.js';
 import { searchResults } from './search-results/search-results.js';
 
-// === UI Components ===
-const createOption = (opt, labelContent, type, className, filterId, index) => {
+const createOption = (value, labelText, type, className, filterId, index) => {
   const wrapper = div({ class: `${type}-option`, id: `${type === 'dropdown' ? 'option' : 'item'}-${filterId}-${index}` });
-  const cb = input({ type: 'checkbox', class: className, value: opt });
-  const lbl = label({ class: `${type}-label` }, labelContent);
+  const cb = input({ type: 'checkbox', class: className, value });
+  const lbl = label({ class: `${type}-label` }, labelText);
 
-  cb.addEventListener('change', async (e) => {
-    const isChecked = e.target.checked;
-    if (isChecked) {
-      addAppliedFilter(filterId, opt, labelContent);
+  cb.addEventListener('change', async ({ target }) => {
+    if (target.checked) {
+      addAppliedFilter(filterId, value, labelText);
     } else {
-      removeAppliedFilter(filterId, opt, labelContent);
+      removeAppliedFilter(filterId, value, labelText);
     }
     await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
   });
@@ -37,43 +31,88 @@ const createOption = (opt, labelContent, type, className, filterId, index) => {
   return wrapper;
 };
 
-const sortOptions = (options, order) => {
-  if (order === 'asc') {
-    return [...options].sort((aa, bb) => aa.localeCompare(bb));
+const sortOptions = (arr, key, order) => [...arr].sort((a, b) => {
+  const aVal = key ? a?.[key] : a;
+  const bVal = key ? b?.[key] : b;
+  return order === 'desc'
+    ? bVal?.localeCompare?.(aVal)
+    : aVal?.localeCompare?.(bVal);
+});
+
+const recursiveOptionsGet = (node, collected = [], excluded = new Set()) => {
+  Object.entries(node).forEach(([key, value]) => {
+    if (typeof value === 'object' && value.path) {
+      if (!excluded.has(key) && !excluded.has(value.path)) {
+        collected.push({ value: key, label: value.title || key, path: value.path });
+      }
+      recursiveOptionsGet(value, collected, excluded);
+    }
+  });
+  return collected;
+};
+
+const resolveTaxonomyPath = (path, taxonomy) => {
+  const isStar = path.endsWith('--star');
+  const parts = path.split('/');
+  const last = isStar ? parts.at(-1).replace('--star', '') : parts.at(-1);
+  let current = taxonomy;
+
+  for (let i = 0; i < parts.length; i += 1) {
+    const key = (i === parts.length - 1 && isStar) ? last : parts[i];
+    if (!current[key]) return null;
+    current = current[key];
   }
-  if (order === 'desc') {
-    return [...options].sort((aa, bb) => bb.localeCompare(aa));
-  }
-  return options;
+
+  return { node: current, isStar };
 };
 
 const createDropdown = async (options, labelText, order, filterId) => {
   const dropdown = div({ class: 'dropdown', id: filterId });
   const toggle = div({ class: 'dropdown-toggle' }, labelText);
   const menu = div({ class: 'dropdown-menu' });
+  const taxonomy = await getTaxonomy('tags');
+  const resultMap = new Map();
+  const excluded = new Set();
 
-  const taxonomy = await getTaxonomyWithoutModifications('tags');
-  sortOptions(options, order)
-    .forEach((opt, i) => {
-      const labelContent = taxonomy[opt]?.en || opt;
-      menu.appendChild(createOption(opt, labelContent, 'dropdown', 'dropdown-option-checkbox', filterId, i));
-    });
+  options.forEach((opt) => {
+    if (opt.endsWith('--star')) excluded.add(opt.replace('--star', ''));
+    excluded.add(opt);
+  });
+
+  options.forEach((opt) => {
+    const resolved = resolveTaxonomyPath(opt, taxonomy);
+    if (!resolved) return;
+
+    const { node, isStar } = resolved;
+    if (!resultMap.has(opt)) resultMap.set(opt, { path: opt, title: node.title || opt });
+
+    if (isStar) {
+      const subOptions = recursiveOptionsGet(node, [], excluded);
+      subOptions.forEach((o) => {
+        if (!resultMap.has(o.path)) resultMap.set(o.path, { path: o.path, title: o.label });
+      });
+    }
+  });
+
+  const sorted = sortOptions([...resultMap.values()], 'title', order);
+  sorted
+    .forEach(({ path, title }, i) => menu.appendChild(createOption(path, title, 'dropdown', 'dropdown-option-checkbox', filterId, i)));
 
   toggle.addEventListener('click', () => {
     menu.classList.toggle('visible');
     toggle.classList.toggle('visible');
 
-    // eslint-disable-next-line no-use-before-define
-    const onEscape = (e) => e.key === 'Escape' && close();
-    // eslint-disable-next-line no-use-before-define
-    const onOutsideClick = (e) => !dropdown.contains(e.target) && close();
-
     const close = () => {
       menu.classList.remove('visible');
       toggle.classList.remove('visible');
+      // eslint-disable-next-line no-use-before-define
       document.removeEventListener('click', onOutsideClick);
+      // eslint-disable-next-line no-use-before-define
       document.removeEventListener('keydown', onEscape);
     };
+
+    const onEscape = (e) => e.key === 'Escape' && close();
+    const onOutsideClick = (e) => !dropdown.contains(e.target) && close();
 
     setTimeout(() => {
       document.addEventListener('click', onOutsideClick);
@@ -87,49 +126,39 @@ const createDropdown = async (options, labelText, order, filterId) => {
 
 const createCheckbox = (options, labelText, order, filterId) => {
   const wrapper = div({ class: 'checkbox', id: filterId });
-  wrapper.appendChild(label({ class: 'checkbox-label' }, labelText));
+  wrapper.append(label({ class: 'checkbox-label' }, labelText));
 
   const container = div({ class: 'checkbox-items' });
-  wrapper.appendChild(container);
+  wrapper.append(container);
 
-  sortOptions(options, order)
-    .forEach((opt, i) => {
-      container.appendChild(createOption(opt, opt, 'checkbox', 'checkbox-input', filterId, i));
-    });
+  sortOptions(options, null, order)
+    .forEach((opt, i) => container.appendChild(createOption(opt, opt, 'checkbox', 'checkbox-input', filterId, i)));
 
   return wrapper;
 };
 
-// === Filter Creation ===
 const createFilters = async () => {
   const wrapper = div({ class: 'filters-wrapper' });
-  const [
-    filtersLabel,
-  ] = await Promise.all([
-    i18n('Filters'),
-  ]);
-  wrapper.appendChild(div({ class: 'filters-wrapper-title' }, filtersLabel));
+  wrapper.append(div({ class: 'filters-wrapper-title' }, await i18n('Filters')));
 
-  const filtersContainer = div({ class: 'filters' });
-  wrapper.appendChild(filtersContainer);
+  const container = div({ class: 'filters' });
+  wrapper.append(container);
 
-  // eslint-disable-next-line no-restricted-syntax
-  for (const [index, filter] of searchConfig.filters.entries()) {
-    const filterId = `${filter.type}-${index}`;
+  const controls = await Promise.all(
+    searchConfig.filters.map((filter, i) => {
+      const id = `${filter.type}-${i}`;
+      return filter.type === 'dropdown'
+        ? createDropdown(filter.values, filter.name, filter.order, id)
+        : Promise.resolve(createCheckbox(filter.values, filter.name, filter.order, id));
+    }),
+  );
 
-    const control = filter.type === 'dropdown'
-      // eslint-disable-next-line no-await-in-loop
-      ? await createDropdown(filter.values, filter.name, filter.order, filterId)
-      : createCheckbox(filter.values, filter.name, filter.order, filterId);
-    filtersContainer.appendChild(control);
-  }
-
+  controls.forEach((control) => container.append(control));
   return wrapper;
 };
 
-// === Filter Parsing ===
 const manageFilters = async (key, block, index) => {
-  let currentFilter = null;
+  let current = null;
 
   for (let i = index; i < block.children.length; i += 1) {
     const child = block.children[i];
@@ -140,19 +169,19 @@ const manageFilters = async (key, block, index) => {
       const values = Array.from(child?.children[3]?.querySelectorAll('li')).map((li) => li.textContent.trim());
 
       if (name && type && values.length) {
-        currentFilter = { name, type, values };
+        current = { name, type, values };
       } else if (child?.children[2]?.textContent.trim().toLowerCase() === 'order') {
-        currentFilter.order = child.children[3]?.textContent.trim();
-        searchConfig.filters.push(currentFilter);
-        currentFilter = null;
+        current.order = child.children[3]?.textContent.trim();
+        searchConfig.filters.push(current);
+        current = null;
       }
     } else {
       break;
     }
   }
 
-  const tempObj = await createFilters();
-  return tempObj;
+  const tempFilters = await createFilters();
+  return tempFilters;
 };
 
 const templateFiltering = (key, block, index) => {
@@ -165,17 +194,10 @@ const templateFiltering = (key, block, index) => {
       const cardType = child?.children[3]?.textContent.trim();
 
       if (templates.length && paths.length && cardType) {
-        if (searchConfig.template) {
-          templates.forEach((template) => {
-            searchConfig.template[template] = { template, paths, cardType };
-          });
-        } else {
-          templates.forEach((template) => {
-            searchConfig.template = {
-              [template]: { template, paths, cardType },
-            };
-          });
-        }
+        if (!searchConfig.template) searchConfig.template = {};
+        templates.forEach((template) => {
+          searchConfig.template[template] = { template, paths, cardType };
+        });
       }
     } else {
       break;
@@ -183,7 +205,4 @@ const templateFiltering = (key, block, index) => {
   }
 };
 
-export {
-  templateFiltering,
-  manageFilters,
-};
+export { templateFiltering, manageFilters };

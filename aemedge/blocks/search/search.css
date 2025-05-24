@@ -173,6 +173,8 @@
   width: 100%;
   background-color: var(--gray5);
   z-index: 1;
+  max-height: 205px;
+  overflow-y: scroll;
 }
 
 .block.search .dropdown-menu.visible {
