@@ -1,7 +1,9 @@
 import searchConfig from '../search-config.js';
 import { i18n } from '../../../scripts/utils.js';
 import { div, button, a } from '../../../scripts/dom-helpers.js';
-import { toggleClearButton, removeAppliedFilter, clearAllFilters } from '../search-utils.js';
+import {
+  toggleClearButton, removeAppliedFilter, clearAllFilters, urlUpdate,
+} from '../search-utils.js';
 
 const updateFilteringByUI = async (container, onChange) => {
   container.innerHTML = '';
@@ -9,6 +11,7 @@ const updateFilteringByUI = async (container, onChange) => {
 
   if (!appliedFilters.length && !searchInput) {
     onChange?.();
+    urlUpdate();
     return;
   }
 
@@ -39,8 +42,8 @@ const updateFilteringByUI = async (container, onChange) => {
   }
 
   // Add each applied filter as tag
-  appliedFilters.forEach(({ filterId, value }) => {
-    const tag = button({ class: 'filter-tag' }, value);
+  appliedFilters.forEach(({ filterId, value, labelContent }) => {
+    const tag = button({ class: 'filter-tag' }, labelContent);
     tag.onclick = async () => {
       const cb = document.querySelector(`#${filterId} input[value="${value}"]`);
       if (cb) {
@@ -64,6 +67,7 @@ const updateFilteringByUI = async (container, onChange) => {
   container.appendChild(filterTitle);
   container.appendChild(filterTags);
   onChange?.();
+  urlUpdate();
 };
 
 const temp = () => {};

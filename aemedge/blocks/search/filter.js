@@ -19,9 +19,9 @@ const createOption = (opt, labelContent, type, className, filterId, index) => {
   cb.addEventListener('change', async (e) => {
     const isChecked = e.target.checked;
     if (isChecked) {
-      addAppliedFilter(filterId, opt);
+      addAppliedFilter(filterId, opt, labelContent);
     } else {
-      removeAppliedFilter(filterId, opt);
+      removeAppliedFilter(filterId, opt, labelContent);
     }
     await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
   });

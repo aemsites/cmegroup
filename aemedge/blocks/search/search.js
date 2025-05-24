@@ -7,7 +7,7 @@ import {
 import {
   manageFilters, templateFiltering,
 } from './filter.js';
-import { toggleClearButton } from './search-utils.js';
+import { toggleClearButton, populateFromURL } from './search-utils.js';
 import { manageSort } from './sort/sort.js';
 import searchConfig from './search-config.js';
 import { searchResults } from './search-results/search-results.js';
@@ -144,5 +144,10 @@ export default async function decorate(block) {
     ['input', 'change'].forEach((event) => searchInput.addEventListener(event, () => toggleClearButton(searchInput.value)));
   }
 
-  searchResults();
+  populateFromURL();
+  if (searchConfig.appliedFilters.length > 0 || searchConfig.searchInput) {
+    updateFilteringByUI(block.querySelector('.filter-bullets'), searchResults);
+  } else {
+    searchResults();
+  }
 }

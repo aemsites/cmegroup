@@ -1,15 +1,39 @@
 import searchConfig from './search-config.js';
 
+const urlUpdate = () => {
+  const url = new URL(window.location.href);
+
+  // Remove existing hash
+  url.hash = '';
+
+  // Handle filters
+  if (searchConfig.appliedFilters.length > 0) {
+    const filterValues = searchConfig.appliedFilters
+      .map((f) => f.value.split('/').at(-1))
+      .join(',');
+    url.hash = `filters=${filterValues}`;
+  }
+
+  // Handle search
+  if (searchConfig.searchInput && searchConfig.searchInput.trim() !== '') {
+    const searchParam = `search=${encodeURIComponent(searchConfig.searchInput.trim())}`;
+    url.hash = url.hash ? `${url.hash}&${searchParam}` : searchParam;
+  }
+
+  // Update the URL
+  window.history.pushState({}, '', url.toString());
+};
+
 /**
  * Add a filter to the search config
  * @param {string} filterId - The ID of the filter
  * @param {string} value - The value of the filter
  */
-const addAppliedFilter = (filterId, value) => {
+const addAppliedFilter = (filterId, value, labelContent) => {
   const exists = searchConfig.appliedFilters
     .some((f) => f.filterId === filterId && f.value === value);
   if (!exists) {
-    searchConfig.appliedFilters.push({ filterId, value });
+    searchConfig.appliedFilters.push({ filterId, value, labelContent });
   }
 };
 
@@ -52,9 +76,53 @@ const clearAllFilters = () => {
   toggleClearButton(false);
 };
 
+/**
+ * Parse URL hash and populate filters and search input
+ */
+const populateFromURL = () => {
+  const url = new URL(window.location.href);
+  const hashParams = new URLSearchParams(url.hash.replace('#', ''));
+
+  // Handle search input
+  const searchValue = hashParams.get('search');
+  if (searchValue) {
+    searchConfig.searchInput = decodeURIComponent(searchValue);
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+      searchInput.value = searchConfig.searchInput;
+      toggleClearButton(true);
+    }
+  }
+
+  // Handle filters
+  const filterValues = hashParams.get('filters');
+  if (filterValues) {
+    const filters = filterValues.split(',');
+
+    filters.forEach((filterValue) => {
+      // Find the corresponding checkbox
+      const checkbox = document.querySelector(`.dropdown-option-checkbox[value$="/${filterValue}"],
+        .dropdown-option-checkbox[value="${filterValue}"], .checkbox-input[value$="/${filterValue}"],
+        .checkbox-input[value="${filterValue}"]`);
+      if (checkbox) {
+        checkbox.checked = true;
+        // Add to applied filters
+        const filterId = checkbox.closest('.dropdown')?.id || checkbox.closest('.checkbox')?.id || '';
+        const labelContent = checkbox.closest('.dropdown')?.querySelector('.dropdown-option-label')?.textContent
+          || checkbox.nextElementSibling?.textContent;
+        if (filterId) {
+          addAppliedFilter(filterId, checkbox.value, labelContent);
+        }
+      }
+    });
+  }
+};
+
 export {
   addAppliedFilter,
   removeAppliedFilter,
   toggleClearButton,
   clearAllFilters,
+  urlUpdate,
+  populateFromURL,
 };
