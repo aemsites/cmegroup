@@ -39,7 +39,24 @@ const mockResults = [
 ];
 
 const searchResults = () => {
-  console.log('searchResults');
+  const apiReq = {};
+  if (searchConfig.pagination?.show) {
+    apiReq.pagination = searchConfig.pagination.num;
+  }
+  if (searchConfig.sortOptions) {
+    apiReq.sort = searchConfig.sortOptions;
+  }
+  if (searchConfig.template) {
+    apiReq.template = searchConfig.template;
+  }
+
+  apiReq.filters = searchConfig.appliedFilters.map((filter) => {
+    if (filter.value.endsWith('--star')) {
+      return filter.value.replace('--star', '');
+    }
+    return filter.value;
+  });
+
   // eslint-disable-next-line no-use-before-define
   filterAndRender(mockResults);
 };
