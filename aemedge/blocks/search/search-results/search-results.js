@@ -6,37 +6,7 @@ import { updateFilteringByUI } from '../filter-bullets/filter-bullets.js';
 import { getCards } from './cards-template.js';
 import { i18n } from '../../../scripts/utils.js';
 import { clearAllFilters } from '../search-utils.js';
-
-// Mock dataset
-const mockResults = [
-  {
-    type: 'lesson',
-    topic: 'Introduction to Futures',
-    assetClass: 'Derivatives',
-    product: 'Futures',
-    title: 'Definition of a Futures Contract',
-    description: 'Learn more about the functions of a Futures contract, including the benefits of a standardized, exchange-traded contract.',
-    date: 'Jul 11, 2024',
-    lessons: 0,
-    template: 'lesson',
-    href: 'www.google.com',
-    image: 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png',
-  },
-  {
-    type: 'course',
-    topic: 'Introduction to Futures',
-    assetClass: 'Derivatives',
-    product: 'Futures',
-    title: 'Introduction to Futures',
-    description: 'Learn about futures contracts, the role of a futures exchange, who participates in this market and how a futures trade works.',
-    date: 'Jul 11, 2024',
-    lessons: 18,
-    template: 'article',
-    href: 'www.google.com',
-    image: 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png',
-  },
-  // Add more mock results as needed
-];
+import mockResults from '../mock-results.js';
 
 const searchResults = () => {
   const apiReq = {};
@@ -57,8 +27,10 @@ const searchResults = () => {
     return filter.value;
   });
 
+  console.log(1111, mockResults);
+
   // eslint-disable-next-line no-use-before-define
-  filterAndRender(mockResults);
+  filterAndRender(mockResults.results);
 };
 
 async function filterAndRender(results) {
