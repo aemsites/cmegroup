@@ -7,9 +7,12 @@ import { updateFilteringByUI } from './filter-bullets/filter-bullets.js';
 import { searchResults } from './search-results/search-results.js';
 
 const createOption = (value, labelText, type, className, filterId, index) => {
-  const wrapper = div({ class: `${type}-option`, id: `${type === 'dropdown' ? 'option' : 'item'}-${filterId}-${index}` });
-  const cb = input({ type: 'checkbox', class: className, value });
-  const lbl = label({ class: `${type}-label` }, labelText);
+  const id = `${type === 'dropdown' ? 'option' : 'item'}-${filterId}-${index}`;
+  const wrapper = div({ class: `${type}-option`, id });
+  const cb = input({
+    type: 'checkbox', class: className, value, id: `${id}-input`,
+  });
+  const lbl = label({ class: `${type}-label`, for: `${id}-input` }, labelText);
 
   cb.addEventListener('change', async ({ target }) => {
     if (target.checked) {

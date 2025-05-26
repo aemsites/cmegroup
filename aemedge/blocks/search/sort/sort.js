@@ -1,5 +1,5 @@
 import {
-  a, div, label, span,
+  div, label, span,
 } from '../../../scripts/dom-helpers.js';
 import searchConfig from '../search-config.js';
 import { i18n } from '../../../scripts/utils.js';
