@@ -147,7 +147,7 @@ export default async function decorate(block) {
         const links = ul.querySelectorAll('a');
         const ulParent = ul.parentNode;
         ulParent.classList.add('disclaimer-links');
-        links.forEach(link => {
+        links.forEach((link) => {
           ulParent.insertBefore(link, ul);
         });
         ul.remove();
