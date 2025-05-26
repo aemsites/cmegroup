@@ -148,6 +148,6 @@ export default async function decorate(block) {
   if (searchConfig.appliedFilters.length > 0 || searchConfig.searchInput) {
     await updateFilteringByUI(block.querySelector('.filter-bullets'), searchResults);
   } else {
-    searchResults();
+    await searchResults();
   }
 }

@@ -21,14 +21,14 @@ const createDropdown = (options, labelText, onChange, dropdownId = 'sort-dropdow
     if (index === 0) optionText.classList.add('selected');
 
     dropdownItem.appendChild(optionText);
-    dropdownItem.addEventListener('click', () => {
+    dropdownItem.addEventListener('click', async () => {
       dropdownMenu.querySelectorAll('.dropdown-option a').forEach((el) => el.classList.remove('selected'));
       optionText.classList.add('selected');
       dropdownToggle.textContent = opt.name;
       searchConfig.sortOptions = opt;
       dropdownMenu.classList.remove('visible');
       dropdownToggle.classList.remove('visible');
-      onChange?.(opt, index);
+      await onChange?.(opt, index);
     });
 
     dropdownMenu.appendChild(dropdownItem);
@@ -76,7 +76,8 @@ const createSortDropdown = async (sortOptions, onChange) => {
   ] = await Promise.all([
     i18n('Sort by'),
   ]);
-  return createDropdown(sortOptions, sortLabel, onChange);
+  const tempDropdown = await createDropdown(sortOptions, sortLabel, onChange);
+  return tempDropdown;
 };
 
 const manageSort = async (key, block, index, onChange) => {

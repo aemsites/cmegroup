@@ -6,9 +6,8 @@ import { updateFilteringByUI } from '../filter-bullets/filter-bullets.js';
 import { getCards } from './cards-template.js';
 import { i18n } from '../../../scripts/utils.js';
 import { clearAllFilters } from '../search-utils.js';
-import mockResults from '../mock-results.js';
 
-const searchResults = () => {
+const searchResults = async () => {
   const apiReq = {};
   if (searchConfig.pagination?.show) {
     apiReq.pagination = searchConfig.pagination.num;
@@ -26,6 +25,9 @@ const searchResults = () => {
     }
     return filter.value;
   });
+
+  const mockResults = await fetch('/aemedge/blocks/search/mock-results.json').then((res) => res.json());
+  console.log('Search Results Called');
 
   // eslint-disable-next-line no-use-before-define
   filterAndRender(mockResults.results);
