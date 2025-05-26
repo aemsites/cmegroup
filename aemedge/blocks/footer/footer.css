@@ -165,8 +165,10 @@ footer .footer .footer-disclaimer-wrapper {
 
 footer .footer .footer-disclaimer > div:first-child {
     margin-bottom: 0.9375rem;
+}
 
-    @media (width > 480px) {
+@media (width > 480px) {
+    footer .footer .footer-disclaimer > div:first-child {
         margin-bottom: 1.875rem;
     }
 }
@@ -272,8 +274,8 @@ footer .footer .footer-section .footer-links .footer-collapsible ul li {
     line-height: 1.25rem;
 }
 
-footer .footer .footer-section .footer-links .footer-collapsible ul li {
-    @media (width > 480px) {
+@media (width > 480px) {
+    footer .footer .footer-section .footer-links .footer-collapsible ul li {
         font-size: 1rem;
     }
 }
