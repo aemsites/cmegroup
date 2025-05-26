@@ -54,6 +54,29 @@
   font-weight: 700;
 }
 
+.block.search .search-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50px;
+}
+
+.block.search .spinner {
+  width: 25px;
+  height: 25px;
+  border: 4px solid var(--white);
+  border-right: 4px solid var(--gray3);
+  border-top: 4px solid var(--gray3);
+  border-bottom: 4px solid var(--gray3);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 @media (width > 768px) {
   .block.search .result-card img {
     display: block;

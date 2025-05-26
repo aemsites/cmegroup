@@ -7,6 +7,12 @@ import { getCards } from './cards-template.js';
 import { i18n } from '../../../scripts/utils.js';
 import { clearAllFilters } from '../search-utils.js';
 
+function showSpinner(container) {
+  const spinner = div({ class: 'search-spinner' }, div({ class: 'spinner' }));
+  container.innerHTML = '';
+  container.appendChild(spinner);
+}
+
 const searchResults = async () => {
   const apiReq = {};
   if (searchConfig.pagination?.show) {
@@ -26,7 +32,9 @@ const searchResults = async () => {
     return filter.value;
   });
 
+  showSpinner(document.querySelector('.results-wrapper'));
   const mockResults = await fetch('/aemedge/blocks/search/mock-results.json').then((res) => res.json());
+
   console.log('Search Results Called');
 
   // eslint-disable-next-line no-use-before-define
