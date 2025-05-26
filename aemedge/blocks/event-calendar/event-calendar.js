@@ -966,16 +966,13 @@ function renderMobileAccordion(eventsToRender) {
     eventName,
     eventValues,
     impact,
-    nextReleaseDate,
     tags,
     text,
     title,
     url,
   }, index) => {
     // eslint-disable-next-line no-undef
-    const timeFormatted = `${dayjs(date).tz('America/Chicago', true).format('hh:mm A [CT]')}` || '-';
-    // eslint-disable-next-line no-undef
-    const nextReleaseDateFormatted = `${dayjs(nextReleaseDate).tz('America/Chicago', true).format('dddd DD MMM YYYY')}` || '-';
+    const timeFormatted = `${dayjs(date).tz('America/Chicago', true).format('hh:mm A [CT] |')}` || '-';
     const {
       actual,
       consensus,
@@ -989,63 +986,63 @@ function renderMobileAccordion(eventsToRender) {
     const div = `
       <div class="event-accordion-card mobile-accordion">
         <div data-index=${index} class="event-accordion-card-header ${isExpandable ? '' : 'not-expandable'}">
-          <div class="event-container">
-            <ul>
-              <li class="time">MOBILE ${timeFormatted}</li>
-              <li class="country">
-                <div class="country-content">
-                <div class="flag-icon ${country.toLowerCase()}"></div>
-                <span>${country}</span>
-                </div>
-              </li>
-              <li>
-                <a href=${url} target="_self">
-                  <span class="event-name">${eventName || '-'}</span>
-                  <i class="icon"></i>
-                  ${(isReport || isConsensus) ? (
+          <div class="event-container mobile">
+            <div class="mobile-first-row">
+              <div>
+                <span class="time">${timeFormatted}</span>
+              </div>
+              <div class="event-details">
+                <span class="event-name">${eventName || '-'}</span>
+                ${(isReport || isConsensus) ? (
     `<span class="label">
                       ${isReport ? 'report' : 'consensus'}
                     </span>`
   ) : ''}
-                </a>
-              </li>
-              <li class=${actualResult}>${actual || '-'}</li>
-              <li>${previous || '-'}</li>
-              <li class=${consensusResult}>${consensus || '-'}</li>
-              <li>
-                <div class="impact ${impact.toLowerCase()}"><div>
-                <div></div>
-              </li>
-              <li></li>
-            </ul>
+              </div>
+            </div>
+            <div class="mobile-second-row">
+              <ul>
+                <li class="country">
+                    <div class="country-content">
+                      <div class="flag-icon ${country.toLowerCase()}"></div>
+                      <span>${country}</span>
+                    </div>
+                </li>
+                <li class="act">
+                  <span>Act</span><span class=${actualResult}>${actual || '-'}</span>
+                </li>
+                <li class="prev">
+                  <span>Prev</span><span>${previous || '-'}</span>
+                </li>
+                <li>
+                  <span>Cons</span><span class=${consensusResult}>${consensus || '-'}</span>
+                </li>
+                <li class="impct"><span>Impact</span><span>
+                  <div class="impact ${impact.toLowerCase()}"><div></div></div>
+                </li>
+              </ul>
+            </div> 
           </div>
         </div>
         ${isExpandable ? (`
         <div class="collapse">
           <div class="event-accordion-card-body">
-            <div class="expandable-content">
-              <span class="highlight">${title}</span>
+            <div class="expandable-content mobile">
               <div class="main-content">
-                <div class="left-section">
-                  <p class="text">${text}</p>
-                  <div class="more">
-                    <span class="icon"></span>
-                    <a href=${url}>Read more</a>
-                  </div>
-                </div>
-                <div class="right-section">
-                  <div class="tags-section">
-                    <span class="bold">Tags:</span>
-                    <div>
+                <span class="highlight">${title}</span>
+                <p class="text">${text}</p>
+                <div class="tags-section">
+                  <span class="bold">Tags:</span>
+                  <div>
                     ${tags.map((tagEl) => {
       const tag = `<span class="tag">${tagEl}</span>`;
       return tag;
     }).join('')}
-                    </div>
                   </div>
-                  <div>
-                    <span class="bold">Next release date:</span>${nextReleaseDateFormatted}
-                  </div>
+                </div>
+                <div class="more">
+                  <span class="icon"></span>
+                  <a href=${url}>Read more</a>
                 </div>
               </div>
             </div>
