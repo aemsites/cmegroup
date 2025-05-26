@@ -140,7 +140,19 @@ export default async function decorate(block) {
     const html = await resp.text();
     const footer = createElement('div');
     footer.innerHTML = html;
-
+    const disclaimer = footer.querySelector('.footer-disclaimer');
+    if (disclaimer) {
+      const ul = disclaimer.querySelector('ul');
+      if (ul) {
+        const links = ul.querySelectorAll('a');
+        const ulParent = ul.parentNode;
+        ulParent.classList.add('disclaimer-links');
+        links.forEach(link => {
+          ulParent.insertBefore(link, ul);
+        });
+        ul.remove();
+      }
+    }
     decorateIcons(footer);
     decorateFooter(footer);
     decorateFeedback(footer);
