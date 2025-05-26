@@ -321,6 +321,15 @@ footer .footer .footer-feedback button:hover .icon img {
         .language-selector-dropdown {
         inset: 0 0 auto auto;
     }
+
+    footer
+        .footer
+        .footer-section
+        .container
+        .footer-languages
+        .language-selector-dropdown.open-up {
+        top: calc(var(--height) - 22px);
+    }
 }
 
 @media (width > 768px) {
