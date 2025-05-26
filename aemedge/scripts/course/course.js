@@ -21,7 +21,7 @@ const isLessonStandalone = (template) => template.toLowerCase() === 'lesson-stan
 const getQueryIndexUrl = () => {
   let { origin } = window.location;
   if (window.location.hostname === 'localhost' || window.location.hostname === 'beta.cmegroup.com') {
-    origin = 'https://main--www--cmegroup.aem.live';
+    origin = 'https://main--www--cmegroup.aem.page';
   }
   return `${origin}${COURSES_INDEX_PATH}`;
 };
