@@ -1,6 +1,6 @@
 import { getMetadata, loadCSS } from '../../../scripts/aem.js';
-import { getCourseData } from '../../../scripts/course/course.js';
 import { createElement, i18n } from '../../../scripts/utils.js';
+import { store } from '../../../scripts/store/store.js';
 
 function getTotalLessonsCount(courseData) {
   return courseData.hasChapters
@@ -30,7 +30,7 @@ function createLessonElement(lesson, currentPath) {
   const lessonLink = createElement('a', { href: lesson.path, rel: 'noopener noreferrer' });
   const titleSpan = createElement('span', { class: 'title' });
   titleSpan.textContent = lesson.moduleTitle;
-  const iconSpan = createElement('span', { class: 'icon-uncheck' });
+  const iconSpan = createElement('span', { class: lesson.completed ? 'icon-check' : 'icon-uncheck' });
   lessonLink.append(titleSpan, iconSpan);
   li.appendChild(lessonLink);
   if (lesson.path === currentPath) {
@@ -86,17 +86,15 @@ function createChapterElement(chapter, currentPath) {
   return chapterWrapper;
 }
 
-export default async function createCourseNav(main) {
-  const template = getMetadata('template');
-  if (template.toLowerCase() !== 'course' && template.toLowerCase() !== 'lesson') return;
-
-  const courseData = await getCourseData();
+async function init(main, courseData) {
   await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/course-nav/course-nav.css`);
   const currentPath = window.location.pathname;
   const totalLessons = getTotalLessonsCount(courseData);
 
+  let nav = main.querySelector('.course-nav');
+  nav?.remove();
   // Create navigation structure
-  const nav = createElement('nav', { class: 'course-nav' });
+  nav = createElement('nav', { class: 'course-nav' });
   // Create header
   const header = createElement('div', { class: 'course-nav-header' });
   const titleWrapper = createElement('div', { class: 'course-nav-title-wrapper' });
@@ -116,9 +114,9 @@ export default async function createCourseNav(main) {
   titleWrapper.appendChild(titleContent);
   // Controls section
   const controls = createElement('div', { class: 'course-nav-controls' });
-  const progress = createElement('div', { class: 'course-nav-progress' });
+  const progress = createElement('div', { class: `course-nav-progress ${courseData.completed ? 'completed' : ''}` });
   const progressText = createElement('span', { class: 'course-nav-progress-text' });
-  progressText.textContent = '0%';
+  progressText.textContent = `${courseData.progressPercentage || 0}%`;
   progress.appendChild(progressText);
   const { toggle, plusIcon: toggleIconPlus, minusIcon: toggleIconMinus } = createToggleButton();
   controls.append(progress, toggle);
@@ -154,6 +152,18 @@ export default async function createCourseNav(main) {
       nav.classList.remove('expanded');
       toggleIconPlus.style.display = 'block';
       toggleIconMinus.style.display = 'none';
+    }
+  });
+}
+
+export default async function createCourseNav(main) {
+  const template = getMetadata('template');
+  if (template.toLowerCase() !== 'course' && template.toLowerCase() !== 'lesson') return;
+
+  //  courseData change event
+  store.subscribe(({ courseData }) => courseData, (courseData) => {
+    if (courseData) {
+      init(main, courseData);
     }
   });
 }

@@ -1,4 +1,6 @@
 import { authInitState, authReducer } from '../reducers/auth.js';
+import { courseInitState, courseReducer } from '../reducers/course.js';
+import { quizInitState, quizReducer } from '../reducers/quiz.js';
 
 class Store {
   constructor(reducer, initialState = {}) {
@@ -63,9 +65,13 @@ function combineReducers(reducers) {
 
 const rootReducer = combineReducers({
   authentication: authReducer,
+  courseData: courseReducer,
+  quiz: quizReducer,
 });
 
 // eslint-disable-next-line import/prefer-default-export
 export const store = new Store(rootReducer, {
   authentication: authInitState,
+  courseData: courseInitState,
+  quiz: quizInitState,
 });
