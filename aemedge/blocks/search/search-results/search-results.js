@@ -27,8 +27,6 @@ const searchResults = () => {
     return filter.value;
   });
 
-  console.log(1111, mockResults);
-
   // eslint-disable-next-line no-use-before-define
   filterAndRender(mockResults.results);
 };
