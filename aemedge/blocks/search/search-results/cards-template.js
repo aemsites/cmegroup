@@ -16,11 +16,13 @@ const courseCard = async (card, item) => {
   const descEl = p({ class: 'result-desc' }, item.description);
   const numLesson = div({ class: 'result-footer' }, `${item.lessons} ${lessonsLabel}`);
   const anchor = a({ href: item.href });
+  const tempDiv = div({ class: 'result-item' });
 
-  anchor.appendChild(header);
-  anchor.appendChild(titleEl);
-  anchor.appendChild(descEl);
-  anchor.appendChild(numLesson);
+  tempDiv.appendChild(header);
+  tempDiv.appendChild(titleEl);
+  tempDiv.appendChild(descEl);
+  tempDiv.appendChild(numLesson);
+  anchor.appendChild(tempDiv);
   card.appendChild(anchor);
 };
 
@@ -35,24 +37,26 @@ const lessonCard = async (card, item) => {
   const descEl = p({ class: 'result-desc' }, item.description);
   const date = div({ class: 'result-footer' }, item.date);
   const anchor = a({ href: item.href });
+  const tempDiv = div({ class: 'result-item' });
 
-  anchor.appendChild(header);
-  anchor.appendChild(titleEl);
-  anchor.appendChild(descEl);
-  anchor.appendChild(date);
+  tempDiv.appendChild(header);
+  tempDiv.appendChild(titleEl);
+  tempDiv.appendChild(descEl);
+  tempDiv.appendChild(date);
+  anchor.appendChild(tempDiv);
   card.appendChild(anchor);
 };
 
 const courseImageCard = async (card, item) => {
   const image = img({ src: item.image });
-  card.appendChild(image);
-  courseCard(card, item);
+  await courseCard(card, item);
+  card.children[0]?.prepend(image);
 };
 
 const lessonImageCard = async (card, item) => {
   const image = img({ src: item.image });
-  card.appendChild(image);
-  lessonCard(card, item);
+  await lessonCard(card, item);
+  card.children[0]?.prepend(image);
 };
 
 const getCards = async (cardType, item) => {

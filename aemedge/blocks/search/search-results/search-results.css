@@ -33,8 +33,23 @@
   margin-bottom: 1rem;
 }
 
+.block.search .result-card:hover .result-title::after {
+  padding-left: 0.3rem;
+}
+
+.block.search .result-card .result-title::after {
+  content: var(--icon-chevron-right);
+  font-family: var(--cme-group-icons);
+  line-height: 1;
+  font-size: 16px;
+  margin-left: 0.5rem;
+  color: var(--blue5);
+}
+
 .block.search .result-card a {
   text-decoration: none;
+  display: flex;
+  gap: 1rem;
 }
 
 .block.search .result-card .result-desc {

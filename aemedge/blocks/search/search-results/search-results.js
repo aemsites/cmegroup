@@ -36,7 +36,6 @@ const searchResults = async () => {
   const mockResults = await fetch('/aemedge/blocks/search/mock-results.json').then((res) => res.json());
 
   console.log('Search Results Called');
-
   // eslint-disable-next-line no-use-before-define
   filterAndRender(mockResults.results);
 };
