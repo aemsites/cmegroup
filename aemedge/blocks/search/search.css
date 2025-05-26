@@ -65,8 +65,9 @@
 
 .block.search .dropdown-label {
   cursor: pointer;
+  font-size: 14px;
+  margin-left: 0.5rem;
 }
-
 
 .block.search .search-input::placeholder {
   color: #aeb7bc;

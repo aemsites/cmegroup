@@ -12,7 +12,7 @@ const createDropdown = (options, labelText, onChange, dropdownId = 'sort-dropdow
 
   options.forEach((opt, index) => {
     const dropdownItem = div({ class: 'dropdown-option', id: `option-${dropdownId}-${index}` });
-    const optionText = a(span({
+    const optionText = div({ href: '#' }, span({
       class: 'dropdown-option-text',
       value: opt.value,
       sortType: opt.sortType,
@@ -22,7 +22,7 @@ const createDropdown = (options, labelText, onChange, dropdownId = 'sort-dropdow
 
     dropdownItem.appendChild(optionText);
     dropdownItem.addEventListener('click', async () => {
-      dropdownMenu.querySelectorAll('.dropdown-option a').forEach((el) => el.classList.remove('selected'));
+      dropdownMenu.querySelectorAll('.dropdown-option>div').forEach((el) => el.classList.remove('selected'));
       optionText.classList.add('selected');
       dropdownToggle.textContent = opt.name;
       searchConfig.sortOptions = opt;

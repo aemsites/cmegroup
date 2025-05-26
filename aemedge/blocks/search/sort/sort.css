@@ -18,11 +18,8 @@
 }
 
 .block.search .sort-options .dropdown-option span {
-  padding-left: 1.5rem;
-}
-
-.block.search .sort-options .dropdown-option a.selected span {
-  padding-left: 0.8rem;
+  padding-left: 0.5rem;
+  padding-right: 1rem;
 }
 
 .block.search .sort-options .dropdown-toggle::after {
@@ -41,7 +38,7 @@
   background-color: var(--blue6);
 }
 
-.block.search .sort-options .dropdown-option .selected::before {
+.block.search .sort-options .dropdown-option>div::before {
   font-family: var(--cme-group-icons);
   left: .75rem;
   top: .6875rem;
@@ -55,4 +52,9 @@
   -moz-osx-font-smoothing: grayscale;
   font-size: .75rem;
   color: var(--blue4);
+  visibility: hidden;
+}
+
+.block.search .sort-options .dropdown-option .selected::before {
+  visibility: visible;
 }

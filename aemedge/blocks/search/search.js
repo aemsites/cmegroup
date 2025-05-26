@@ -40,7 +40,7 @@ const createSearchBar = async (block, isEnabled) => {
     i18n('Search'),
   ]);
   const inputEl = input({ type: 'text', placeholder: searchLabel, class: 'search-input' });
-  const searchBtn = button({ class: 'search-icon' });
+  const searchBtn = button({ class: 'search-icon', 'aria-label': 'Search' });
   const clearBtn = button({ class: 'nav-close display-none' });
 
   inputEl.addEventListener('keypress', async (e) => {
