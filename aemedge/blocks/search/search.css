@@ -132,6 +132,7 @@
   letter-spacing: 0.02rem;
   font-size: 14px;
   padding-left: 1rem;
+  height: 1rem;
 }
 
 .block.search .dropdown-toggle::after {

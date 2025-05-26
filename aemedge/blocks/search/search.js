@@ -43,11 +43,11 @@ const createSearchBar = async (block, isEnabled) => {
   const searchBtn = button({ class: 'search-icon' });
   const clearBtn = button({ class: 'nav-close display-none' });
 
-  inputEl.addEventListener('keypress', (e) => {
+  inputEl.addEventListener('keypress', async (e) => {
     if (e.key === 'Enter') {
       searchConfig.searchInput = inputEl.value;
       const bullets = block.querySelector('.filter-bullets');
-      updateFilteringByUI(bullets, searchResults);
+      await updateFilteringByUI(bullets, searchResults);
     }
   });
 
@@ -146,7 +146,7 @@ export default async function decorate(block) {
 
   populateFromURL();
   if (searchConfig.appliedFilters.length > 0 || searchConfig.searchInput) {
-    updateFilteringByUI(block.querySelector('.filter-bullets'), searchResults);
+    await updateFilteringByUI(block.querySelector('.filter-bullets'), searchResults);
   } else {
     searchResults();
   }
