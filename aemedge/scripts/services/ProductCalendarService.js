@@ -30,3 +30,20 @@ export async function postEconomicReleaseDates(date, countries, impact, daysLimi
     return [];
   }
 }
+
+export async function postEconomicReleaseEvents(date, countries, impact, textSearch) {
+  const url = `${urlByEnvType()}/services/economic-release-events`;
+  try {
+    const response = await apiPost(url, {
+      date,
+      countries,
+      impact,
+      textSearch,
+    });
+    return getResponseData(response);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('Calendar => postEconomicReleaseEvents error:', e);
+    return [];
+  }
+}
