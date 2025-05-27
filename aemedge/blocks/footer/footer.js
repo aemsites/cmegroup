@@ -34,9 +34,21 @@ function decorateCollapsibles(footerLinks) {
 // Footer Links collapsible - End
 
 // Language Dropdown - Start
-function toggleLanguageSelector(e) {
+function toggleLanguageSelector(e, dropdown) {
   const button = e.target.closest('button');
   const expanded = button.getAttribute('aria-expanded');
+  const buttonRect = button.getBoundingClientRect();
+  const dropdownHeight = dropdown.offsetHeight;
+  const spaceBelow = window.innerHeight - buttonRect.bottom;
+  const spaceAbove = buttonRect.top;
+  dropdown.style.setProperty('--height', `-${dropdownHeight}px`);
+  if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+    dropdown.classList.add('open-up');
+    dropdown.classList.remove('open-down');
+  } else {
+    dropdown.classList.add('open-down');
+    dropdown.classList.remove('open-up');
+  }
   if (expanded === 'true') {
     button.setAttribute('aria-expanded', false);
   } else {
@@ -72,24 +84,24 @@ function decorateLanguageSelector(footerLanguages) {
     'aria-expanded': false,
     type: 'button',
   });
-  button.id = 'language-selector-button';
-  button.addEventListener('click', toggleLanguageSelector);
-  document.addEventListener('click', closeOnDocClick);
-
   const languages = footerLanguages.querySelector('ul');
   languages.remove();
   languages.classList.add('language-selector-options');
   const currentLang = getCurrentLanguageOption(languages);
-  if (currentLang) {
-    button.textContent = currentLang.innerText;
-    const check = createElement('img', { src: '/aemedge/icons/check.svg' });
-    currentLang.prepend(check);
-  }
   const dropdown = createElement('div', {
     class: 'language-selector-dropdown',
     'aria-labelledby': 'language-selector-button',
     role: 'menu',
   }, languages);
+  button.id = 'language-selector-button';
+  button.addEventListener('click', (event) => toggleLanguageSelector(event, dropdown));
+  document.addEventListener('click', closeOnDocClick);
+
+  if (currentLang) {
+    button.textContent = currentLang.innerText;
+    const check = createElement('img', { src: '/aemedge/icons/check.svg' });
+    currentLang.prepend(check);
+  }
   footerLanguages.append(button, dropdown);
 }
 // Language Dropdown - End
@@ -140,7 +152,19 @@ export default async function decorate(block) {
     const html = await resp.text();
     const footer = createElement('div');
     footer.innerHTML = html;
-
+    const disclaimer = footer.querySelector('.footer-disclaimer');
+    if (disclaimer) {
+      const ul = disclaimer.querySelector('ul');
+      if (ul) {
+        const links = ul.querySelectorAll('a');
+        const ulParent = ul.parentNode;
+        ulParent.classList.add('disclaimer-links');
+        links.forEach((link) => {
+          ulParent.insertBefore(link, ul);
+        });
+        ul.remove();
+      }
+    }
     decorateIcons(footer);
     decorateFooter(footer);
     decorateFeedback(footer);
