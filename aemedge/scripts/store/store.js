@@ -1,4 +1,5 @@
 import { authInitState, authReducer } from '../reducers/auth.js';
+import { floatingElementsInitState, floatingElementsReducer } from '../reducers/floatingElements.js';
 
 class Store {
   constructor(reducer, initialState = {}) {
@@ -63,9 +64,11 @@ function combineReducers(reducers) {
 
 const rootReducer = combineReducers({
   authentication: authReducer,
+  floatingElements: floatingElementsReducer,
 });
 
 // eslint-disable-next-line import/prefer-default-export
 export const store = new Store(rootReducer, {
   authentication: authInitState,
+  floatingElements: floatingElementsInitState,
 });
