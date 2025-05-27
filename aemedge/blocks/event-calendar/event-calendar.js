@@ -180,8 +180,7 @@ async function initializeLabels() {
 }
 
 async function getLeftPanelDays() {
-  // eslint-disable-next-line no-undef
-  const date = dayjs(tradeDate).tz('America/Chicago', true).format('YYYY-MM-DD');
+  const date = dayjs.utc(tradeDate).format('YYYY-MM-DD');
   const countries = filtersArray['input-country'].map((country) => country.id);
   const impacts = filtersArray['input-impact'].map((impact) => impact.id);
   const daysLimit = 30;
@@ -208,8 +207,7 @@ async function getEvents() {
   // add spinner here
   eventCalendarTBody.append(spinnerInEventCalendar);
 
-  // eslint-disable-next-line no-undef
-  const date = dayjs(leftPanelSelectedDay).tz('America/Chicago', true).format('YYYY-MM-DD');
+  const date = dayjs.utc(leftPanelSelectedDay).format('YYYY-MM-DD');
   const countries = filtersArray['input-country'].map((country) => country.id);
   const impacts = filtersArray['input-impact'].map((impact) => impact.id);
   const textSearch = searchValueVar;
@@ -600,13 +598,9 @@ function createTodayBtn(instance) {
   todayButton.classList.add('datepicker-today-btn');
   todayButton.textContent = todayLabel;
   todayButton.addEventListener('click', () => {
-    // eslint-disable-next-line no-undef
-    tradeDate = dayjs().tz('America/Chicago', true).$d;
-    // eslint-disable-next-line no-undef
-    instance.setDate(dayjs().tz('America/Chicago', true).$d, true);
-
-    // eslint-disable-next-line no-undef
-    filtersArray.tradeDate = [{ id: dayjs().tz('America/Chicago', true).format('YYYY-MM-DD') }];
+    tradeDate = dayjs.utc().$d;
+    instance.setDate(dayjs.utc().$d, true);
+    filtersArray.tradeDate = [{ id: dayjs.utc().format('YYYY-MM-DD') }];
     updateURLFilters(filtersArray);
     // service here
     leftPanelSelectedDay = tradeDate;
@@ -618,7 +612,6 @@ function createTodayBtn(instance) {
 }
 
 function initDatePicker() {
-  // eslint-disable-next-line no-undef
   datePicker = datepicker(document.querySelector('input.event-calendar-datepicker'), {
     dateSelected: tradeDate,
     formatter: (input, date) => {
@@ -645,8 +638,7 @@ function initDatePicker() {
       } else {
         tradeDate = date;
       }
-      // eslint-disable-next-line no-undef
-      filtersArray.tradeDate = [{ id: dayjs(date).tz('America/Chicago', true).format('YYYY-MM-DD') }];
+      filtersArray.tradeDate = [{ id: dayjs.utc(date).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
@@ -686,8 +678,7 @@ function initDatePicker() {
 }
 
 function changeMonth(dateString, monthsToAdd) {
-  // eslint-disable-next-line no-undef
-  const date = dayjs(dateString).tz('America/Chicago', true).$d;
+  const date = dayjs.utc(dateString).$d;
   const currentMonth = date.getMonth();
 
   date.setMonth(currentMonth + monthsToAdd);
@@ -708,8 +699,7 @@ function monthListener(cta, isNext) {
       tradeDate = changeMonth(tradeDate, 1);
       datePicker.setDate(tradeDate, true);
       // update url
-      // eslint-disable-next-line no-undef
-      filtersArray.tradeDate = [{ id: dayjs(tradeDate).tz('America/Chicago', true).format('YYYY-MM-DD') }];
+      filtersArray.tradeDate = [{ id: dayjs.utc(tradeDate).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
@@ -719,8 +709,7 @@ function monthListener(cta, isNext) {
       tradeDate = changeMonth(tradeDate, -1);
       datePicker.setDate(tradeDate, true);
       // update url
-      // eslint-disable-next-line no-undef
-      filtersArray.tradeDate = [{ id: dayjs(tradeDate).tz('America/Chicago', true).format('YYYY-MM-DD') }];
+      filtersArray.tradeDate = [{ id: dayjs.utc(tradeDate).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
@@ -760,8 +749,7 @@ function setupLateralDaysListeners(daysList) {
         innerActiveElem.classList.remove('active-date');
       }
       day.parentElement.classList.add('active-date');
-      // eslint-disable-next-line no-undef
-      leftPanelSelectedDay = dayjs(day.dataset.date).tz('America/Chicago', true).format('YYYY-MM-DD');
+      leftPanelSelectedDay = dayjs.utc(day.dataset.date).format('YYYY-MM-DD');
       nthEvents = day.dataset.nthEvents;
       // service here
       // eslint-disable-next-line no-use-before-define
@@ -778,12 +766,9 @@ function renderResultListSection(days) {
     if (index === 0) {
       nthEvents = totalEventsCount;
     }
-    // eslint-disable-next-line no-undef
-    const isActiveDate = dayjs(leftPanelSelectedDay).tz('America/Chicago', true).format('YYYY-MM-DD') === dayjs(date).tz('America/Chicago', true).format('YYYY-MM-DD');
-    // eslint-disable-next-line no-undef
-    const dayName = dayjs(date).tz('America/Chicago', true).format('dddd');
-    // eslint-disable-next-line no-undef
-    const dayWithSuffix = dayjs(date).tz('America/Chicago', true).format('Do');
+    const isActiveDate = dayjs.utc(leftPanelSelectedDay).format('YYYY-MM-DD') === dayjs.utc(date).format('YYYY-MM-DD');
+    const dayName = dayjs.utc(date).format('dddd');
+    const dayWithSuffix = dayjs.utc(date).format('Do');
     const li = `
             <li class=${isActiveDate ? 'active-date' : ''}>
               <a role="button" tabindex="0" data-date=${date} data-nth-events=${totalEventsCount}>
@@ -872,10 +857,8 @@ function renderDesktopAccordion(eventsToRender) {
     title,
     url,
   }, index) => {
-    // eslint-disable-next-line no-undef
-    const timeFormatted = `${dayjs(date).tz('America/Chicago', true).format('hh:mm A [CT]')}` || '-';
-    // eslint-disable-next-line no-undef
-    const nextReleaseDateFormatted = `${dayjs(nextReleaseDate).tz('America/Chicago', true).format('dddd DD MMM YYYY')}` || '-';
+    const timeFormatted = `${dayjs.utc(date).format('hh:mm A [CT]')}` || '-';
+    const nextReleaseDateFormatted = `${dayjs.utc(nextReleaseDate).format('dddd DD MMM YYYY')}` || '-';
     const {
       actual,
       consensus,
@@ -971,8 +954,7 @@ function renderMobileAccordion(eventsToRender) {
     title,
     url,
   }, index) => {
-    // eslint-disable-next-line no-undef
-    const timeFormatted = `${dayjs(date).tz('America/Chicago', true).format('hh:mm A [CT] |')}` || '-';
+    const timeFormatted = `${dayjs.utc(date).format('hh:mm A [CT] |')}` || '-';
     const {
       actual,
       consensus,
@@ -1056,8 +1038,7 @@ function renderMobileAccordion(eventsToRender) {
 }
 
 function renderDesktopNoResults() {
-  // eslint-disable-next-line no-undef
-  const formateDateForNoResults = dayjs(leftPanelSelectedDay).tz('America/Chicago', true).format('Do MMM YYYY');
+  const formateDateForNoResults = dayjs.utc(leftPanelSelectedDay).format('Do MMM YYYY');
   eventCalendarTBody.innerHTML = `
     <div class="no-results">
       <p>There are
@@ -1142,8 +1123,7 @@ function renderEventsTableHeader() {
 
 function renderCalendarResume() {
   if (isDesktop) {
-    // eslint-disable-next-line no-undef
-    const formateDateForResume = dayjs(leftPanelSelectedDay).tz('America/Chicago', true).format('Do MMM YYYY');
+    const formateDateForResume = dayjs.utc(leftPanelSelectedDay).format('Do MMM YYYY');
     calendarResume.innerHTML = `
     <p>
       Showing<span> '${nthEvents === '0' ? 'NO' : nthEvents}' </span>Matching Events for<span> "${formateDateForResume}"</span>
@@ -1314,14 +1294,8 @@ function initFilters() {
   const impactIds = getUrlFilterParam(params.attributeParam);
   filtersArray['input-impact'] = createFilterPillsArrayFromUrl('impact', impactIds);
   const date = getUrlFilterParam(params.tradeDateParam);
-  if (date.length > 0) {
-    // eslint-disable-next-line no-undef
-    tradeDate = dayjs(date).tz('America/Chicago', true).$d;
-    filtersArray.tradeDate = [{ id: date }];
-  } else {
-    // eslint-disable-next-line no-undef
-    filtersArray.tradeDate = [{ id: dayjs(tradeDate).tz('America/Chicago', true).format('YYYY-MM-DD') }];
-  }
+  tradeDate = dayjs.utc(date.length ? date : Date.now()).tz('America/Chicago', true).$d;
+  filtersArray.tradeDate = [{ id: dayjs.utc(tradeDate).format('YYYY-MM-DD') }];
 
   // render pills
   renderCurrentPills(filtersArray);
@@ -1333,12 +1307,12 @@ function initFilters() {
 }
 
 async function init(block, version) {
-  // eslint-disable-next-line no-undef
+  /* eslint-disable no-undef */
   dayjs.extend(dayjs_plugin_utc);
-  // eslint-disable-next-line no-undef
   dayjs.extend(dayjs_plugin_timezone);
-  // eslint-disable-next-line no-undef
+  dayjs.tz.setDefault('America/Chicago');
   dayjs.extend(dayjs_plugin_advancedFormat);
+  /* eslint-enable no-undef */
   await initializeLabels();
   economicFilters = await getEconomicReleaseFilters();
   initFilters();
