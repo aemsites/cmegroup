@@ -194,6 +194,13 @@ function addDividerLine(element) {
   element.appendChild(divider);
 }
 
+/**
+ * Random Id generation
+ */
+function generateRandomId() {
+  return Math.random().toString(36).slice(-8);
+}
+
 function parseTime(time) {
   if (!time) {
     return '';
@@ -341,28 +348,88 @@ let sliderPromise = null;
  * @param {*} config Glider configuration
  * @param {*} includeArrows boolean, if true, arrows are included for navigation
  */
-function buildSlider(el, config, includeArrows = true) {
+function buildSlider(el, config, includeArrows = true, disableOnDesktop = false, inverse = false) {
   if (!sliderPromise) {
     sliderPromise = loadScript('/aemedge/scripts/third-party/glider/glider.min.js');
     loadCSS('/aemedge/scripts/third-party/glider/glider.min.css');
   }
+
   sliderPromise.then(() => {
-    if (includeArrows && el && el.parentElement) {
-      const parent = el.parentElement;
+    let gliderInstance = null;
+    let currentEl = el;
+    let prevClass;
+    let nextClass;
+
+    const createArrows = () => {
+      const parent = currentEl.parentElement;
+      const uniqueId = `glider-${generateRandomId()}`;
       const prevImg = createElement('img', { 'data-icon-name': 'chevron-left', src: '/aemedge/icons/chevron-left.svg' });
       const nextImg = createElement('img', { 'data-icon-name': 'chevron-right', src: '/aemedge/icons/chevron-right.svg' });
-      const prev = createElement('button', { 'aria-label': 'Previous', class: 'glider-prev' }, prevImg);
-      const next = createElement('button', { 'aria-label': 'Next', class: 'glider-next' }, nextImg);
+      prevClass = `glider-prev-${uniqueId}`;
+      nextClass = `glider-next-${uniqueId}`;
+      const prev = createElement('button', { 'aria-label': 'Previous', class: `glider-prev ${prevClass}` }, prevImg);
+      const next = createElement('button', { 'aria-label': 'Next', class: `glider-next ${nextClass} ${inverse && 'inverse'}` }, nextImg);
       parent.append(prev);
       parent.append(next);
-      config.arrows = {
-        prev: '.glider-prev',
-        next: '.glider-next',
-      };
       parent.classList.add('glider-contain');
-    }
-    // eslint-disable-next-line no-new, no-undef
-    new Glider(el, config);
+    };
+
+    const initSlider = () => {
+      if (!gliderInstance && currentEl) {
+        if (includeArrows) {
+          createArrows();
+          config.arrows = {
+            prev: `.${prevClass}`,
+            next: `.${nextClass}`,
+          };
+        }
+        // eslint-disable-next-line no-new, no-undef
+        gliderInstance = new Glider(currentEl, config);
+      }
+    };
+
+    const destroySlider = () => {
+      if (gliderInstance) {
+        try {
+          if (gliderInstance.ele?.parentNode) {
+            const original = gliderInstance.ele;
+            const clone = original.cloneNode(true);
+            if (!config.skipTrack && clone.children[0]) {
+              clone.children[0].outerHTML = clone.children[0].innerHTML;
+            }
+            const cleanElement = (node) => {
+              node.removeAttribute('style');
+              [...node.classList].forEach((cls) => {
+                if (/^glider/.test(cls)) node.classList.remove(cls);
+              });
+            };
+            cleanElement(clone);
+            [...clone.getElementsByTagName('*')].forEach(cleanElement);
+            original.parentNode.replaceChild(clone, original);
+            currentEl = clone;
+          }
+
+          const prevBtn = document.querySelector(`.${prevClass}`);
+          const nextBtn = document.querySelector(`.${nextClass}`);
+          prevBtn?.remove();
+          nextBtn?.remove();
+        } catch (err) {
+          console.log('Error destroying slider:', err);
+        }
+        gliderInstance = null;
+      }
+    };
+
+    const handleResize = () => {
+      if (disableOnDesktop && window.innerWidth >= 769) {
+        destroySlider();
+      } else {
+        initSlider();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
   });
 }
 
@@ -427,4 +494,5 @@ export {
   checkDomain,
   buildSlider,
   getUTCfromDateString,
+  generateRandomId,
 };

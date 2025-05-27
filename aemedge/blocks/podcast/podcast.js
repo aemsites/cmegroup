@@ -1,4 +1,5 @@
 import { readBlockConfig } from '../../scripts/aem.js';
+import { generateRandomId } from '../../scripts/utils.js';
 
 function loadPodcast(block, id, url) {
   if (block.getAttribute('data-podcast-status') === 'loaded' || !url) {
@@ -41,7 +42,7 @@ export default async function decorate(block) {
   const {
     url,
   } = dataBlock;
-  const id = 'test';
+  const id = generateRandomId();
 
   block.innerHTML = `
     <div class='media-player' id='media-player-id'>

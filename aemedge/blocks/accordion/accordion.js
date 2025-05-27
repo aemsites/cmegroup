@@ -1,12 +1,33 @@
 import { createDynamicCard, fetchAndFilterDataCourse } from '../cards/cards.js';
-import { createElement } from '../../scripts/utils.js';
+import {
+  createElement,
+  buildSlider,
+} from '../../scripts/utils.js';
 
 function createCardsBlock(cards) {
   const block = createElement('div', { class: 'cards block' });
   const ul = createElement('ul', { class: 'cards-container' });
+  const sliderConfig = {
+    slidesToShow: 'auto',
+    slidesToScroll: 1,
+    scrollLock: false,
+    itemWidth: 255,
+    exactWidth: true,
+    draggable: true,
+    duration: 2,
+    responsive: [
+      {
+        breakpoint: 481,
+        settings: {
+          itemWidth: 426,
+        },
+      },
+    ],
+  };
   ul.append(...cards);
   block.appendChild(ul);
   block.classList.add('course');
+  buildSlider(ul, sliderConfig, true, true, true);
   return block;
 }
 
