@@ -959,6 +959,7 @@
     text-align: center;
     text-transform: capitalize;
     width: 100%;
+    display: block;
 }
 
 .event-calendar-container .datepicker-today-btn:hover {
@@ -1300,7 +1301,6 @@
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span {
     color: var(--citron);
     font-family: var(--cme-group-icons);
-    font-weight: 1000;
     height: 1rem;
     padding-right: .625rem;
     position: relative;
@@ -1318,7 +1318,7 @@
 @media (width >=1200px) {
     .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper {
         flex: 0 0 auto;
-        width: 66.66666667%;
+        width: 66.6667%;
         margin-bottom: 1.25rem;
         box-shadow: none;
         position: relative;
@@ -1435,11 +1435,10 @@
 @media (width >=1200px) {
     .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody {
         max-height: 39.375rem;
-        overflow-y: auto;
-        overflow-x: hidden;
+        overflow: hidden auto;
         padding-right: .875rem;
         margin-right: 1rem;
-        scrollbar-color: hsla(0, 0%, 100%, .15) transparent;
+        scrollbar-color: rgba(255 255 255 / 15%) transparent;
     }
 
     .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody.showing-days-14 {
@@ -1476,7 +1475,6 @@
     color: var(--gray3);
     font-family: var(--cme-group-icons);
     content: var(--icon-calendar-regular);
-    font-weight: 1000;
     height: 1rem;
     padding-right: 1rem;
     position: relative;
@@ -1624,7 +1622,7 @@
     text-transform: none;
     font-family: var(--cme-group-icons);
     font-variant: normal; 
-    color: rgb(60, 200, 255);
+    color: var(--blue5);
     content: var(--icon-chevron-down);
     padding-right: 1.25rem;
     position: absolute;
@@ -1734,7 +1732,6 @@
     color: var(--blue5);
     font-family: var(--cme-group-icons);
     font-size: 80%;
-    font-weight: 1000;
     height: 100%;
     padding-left: .5rem;
     position: relative;
@@ -1754,7 +1751,6 @@
     border-radius: .125rem;
     color: var(--gray4);
     font-size: .6875rem;
-    line-height: .875rem;
     line-height: 1.25rem;
     text-transform: uppercase;
 }
@@ -1870,7 +1866,6 @@
     color: var(--blue5);
     font-family: var(--cme-group-icons);
     font-size: 80%;
-    font-weight: 1000;
     height: 100%;
     padding-left: .5rem;
     position: relative;
@@ -1937,7 +1932,6 @@
 }
 
 .event-calendar-container .tooltip-container .info-icon {
-    margin-left: .25rem;
     display: inline-block;
     margin: 0 .125rem;
     vertical-align: middle;
@@ -1960,13 +1954,12 @@
   visibility: hidden;
   text-align: center;
   border-radius: 0.375rem;
-  padding: 0.3125rem;
   position: absolute;
   z-index: 1;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
   background-color: var(--white);
-  box-shadow: 0 0.0625rem 0.125rem 0 rgba(60, 64, 67, .3), 0 0.125rem 0.375rem 0.125rem rgba(60, 64, 67, .15);
+  box-shadow: 0 0.0625rem 0.125rem 0 rgba(60 64 67 / 30%), 0 0.125rem 0.375rem 0.125rem rgba(60 64 67 / 15%);
   color: var(--black);
   min-width: 13.75rem;
   padding: .625rem;
@@ -2010,7 +2003,6 @@
 
 .event-calendar-container .tooltip .impact-info ul {
     list-style: none;
-    margin-bottom: 0 !important;
     background: none !important;
     max-width: max-content;
     padding: .5rem;
@@ -2018,7 +2010,7 @@
     border: none !important;
     padding-left: 0.5rem !important;
     height: auto !important;
-    margin: 0;
+    margin: 0 !important;
 }
 
 .event-calendar-container .tooltip .impact-info ul li {
@@ -2032,7 +2024,6 @@
     margin-bottom: .25rem !important;
     text-align: left !important;
     background: none !important;
-    width: auto !important;
     text-transform: none !important;
     width: auto !important;
     padding: 0 !important;
