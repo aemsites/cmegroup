@@ -6,7 +6,8 @@
 .table table {
   width: 100%;
   max-width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: var(--body-font-size-xs);
 }
 
@@ -22,7 +23,7 @@
   }
 }
 
-.table table thead tr {
+.table table thead tr th {
   border-top: 2px solid #dadada;
   border-bottom: 2px solid #dadada;
 }
@@ -156,7 +157,7 @@
 .table table td {
   padding: 0.5em;
   text-align: left;
-  border: 1px solid #dadada;
+  border: 0.5px solid #dadada;
 }
 
 .table.no-header table tbody tr {
@@ -248,6 +249,7 @@
 
     .table.fixed-column-xs table th:first-child {
         left: 0;
+        position: sticky;
         z-index: 2;
     }
 
@@ -265,6 +267,7 @@
 
     .table.fixed-column-s table th:first-child {
         left: 0;
+        position: sticky;
         z-index: 2;
     }
 
@@ -282,6 +285,7 @@
 
     .table.fixed-column-m table th:first-child {
         left: 0;
+        position: sticky;
         z-index: 2;
     }
 
@@ -299,6 +303,7 @@
 
     .table.fixed-column-l table th:first-child {
         left: 0;
+        position: sticky;
         z-index: 2;
     }
 
@@ -315,6 +320,7 @@
 
 .table.fixed-column-xl table th:first-child {
     left: 0;
+    position: sticky;
     z-index: 2;
 }
 
