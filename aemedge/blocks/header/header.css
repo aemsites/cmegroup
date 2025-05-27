@@ -1095,6 +1095,7 @@ button.search-icon::before {
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container .promo-box-subnav {
         width: 33.3333%
     }
+    
     .nav-nav-item.primary.has-menu.is-open .nav-nav-item-menu#nav-menu-0 .item-menu-container .promo-box-subnav,
     .nav-nav-item.primary.has-menu.is-open .nav-nav-item-menu#nav-menu-1 .item-menu-container .promo-box-subnav {
         width: 41.6666%
