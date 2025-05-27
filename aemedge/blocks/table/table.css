@@ -224,3 +224,102 @@
     width: 100%;
   }
 }
+
+.table.fixed-row-header {
+    overflow: inherit;
+    width: 100%;
+}
+
+.table.fixed-row-header table {
+    position: relative;
+}
+
+.table.fixed-row-header table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    transition: top 0.3s ease;
+}
+
+@media (width <= 480px) {
+    .table.fixed-column-xs {
+        overflow: auto;
+    }
+
+    .table.fixed-column-xs table th:first-child {
+        left: 0;
+        z-index: 2;
+    }
+
+    .table.fixed-column-xs table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+    }
+}
+
+@media (width <= 768px) {
+    .table.fixed-column-s {
+        overflow: auto;
+    }
+
+    .table.fixed-column-s table th:first-child {
+        left: 0;
+        z-index: 2;
+    }
+
+    .table.fixed-column-s table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+    }
+}
+
+@media (width <= 992px) {
+    .table.fixed-column-m {
+        overflow: auto;
+    }
+
+    .table.fixed-column-m table th:first-child {
+        left: 0;
+        z-index: 2;
+    }
+
+    .table.fixed-column-m table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+    }
+}
+
+@media (width <= 1200px) {
+    .table.fixed-column-l {
+        overflow: auto;
+    }
+
+    .table.fixed-column-l table th:first-child {
+        left: 0;
+        z-index: 2;
+    }
+
+    .table.fixed-column-l table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+    }
+}
+
+.table.fixed-column-xl {
+    overflow: auto;
+}
+
+.table.fixed-column-xl table th:first-child {
+    left: 0;
+    z-index: 2;
+}
+
+.table.fixed-column-xl table tbody td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+}

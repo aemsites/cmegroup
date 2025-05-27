@@ -5,6 +5,8 @@
 import { getMetadata } from '../aem.js';
 import { getBrowserName, formatToCentralTime } from '../utils.js';
 import { getLegacyAlerts } from '../legacy-api.js';
+import { store } from '../store/store.js';
+import { addFloatingElement, updateFloatingElements } from '../actions/floatingElements.js';
 
 const CACHE_KEY = 'alerts_cache';
 const CACHE_DURATION = 15 * 60 * 1000;
@@ -230,12 +232,32 @@ export default async function initFloatingElements(doc, header) {
   window.addEventListener('scroll', () => {
     const scrollTop = window.pageYOffset || doc.documentElement.scrollTop;
     if (scrollTop > lastScrollTop) {
-      header.classList.add('hidden');
-    } else {
+      if (!header.classList.contains('hidden')) {
+        header.classList.add('hidden');
+      }
+    } else if (header.classList.contains('hidden')) {
       header.classList.remove('hidden');
     }
     lastScrollTop = scrollTop;
   });
+
+  const resizeObserver = new ResizeObserver(() => {
+    store.dispatch(updateFloatingElements());
+  });
+  resizeObserver.observe(header);
+  const mutationObserver = new MutationObserver(() => {
+    store.dispatch(updateFloatingElements());
+  });
+  mutationObserver.observe(header, {
+    attributes: true,
+  });
+
+  store.dispatch(addFloatingElement(header, (element) => (element.classList.contains('hidden') ? 0 : element.offsetHeight)));
+  Array.from(alerts).forEach((elem) => {
+    store.dispatch(addFloatingElement(elem));
+    resizeObserver.observe(elem);
+  });
+  store.dispatch(updateFloatingElements());
 
   return Promise.resolve();
 }
