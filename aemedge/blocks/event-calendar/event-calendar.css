@@ -317,6 +317,7 @@
     padding: .375rem .375rem .375rem .625rem;
     width: fill-available;
     width: -webkit-fill-available;
+    letter-spacing: normal;
 }
 
 .event-calendar-container .checkbox-dropdown ul li label:hover {
@@ -610,6 +611,7 @@
     border: 0 solid transparent;
     border-radius: 0;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .event-calendar-container .event-calendar-datepicker.datepicker-open {
@@ -636,8 +638,11 @@
     flex-direction: column;
     float: left;
     width: 100%;
-    max-width: 17.875rem;
     transform: translateY(-37.5rem);
+}
+
+.event-calendar-container .qs-datepicker-container.on-top {
+    top: -355px !important;
 }
 
 @media (width >=1200px) {
