@@ -414,6 +414,7 @@ function buildSlider(el, config, includeArrows = true, disableOnDesktop = false,
           prevBtn?.remove();
           nextBtn?.remove();
         } catch (err) {
+          // eslint-disable-next-line no-console
           console.log('Error destroying slider:', err);
         }
         gliderInstance = null;
