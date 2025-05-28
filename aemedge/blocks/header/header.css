@@ -860,6 +860,15 @@ button.search-icon::before {
     padding: .75rem 2rem;
 }
 
+.item-menu-container  {
+    padding-bottom: 3.125rem;
+}
+
+.nav-nav-item-menu {
+    overflow-y: auto;
+    max-height: calc(100vh - 6.25rem);
+}
+
 @media (width > 481px) {
     .main-home-link a,
     .nav-menu-container .nav-subnav .nav-subnav-item .nav-nav-item-submenu li a {
