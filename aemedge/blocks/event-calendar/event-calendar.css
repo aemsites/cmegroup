@@ -608,6 +608,7 @@
     border: 0 solid transparent;
     border-radius: 0;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .event-calendar-container .event-calendar-datepicker.datepicker-open {
@@ -634,7 +635,6 @@
     flex-direction: column;
     float: left;
     width: 100%;
-    max-width: 17.875rem;
     transform: translateY(-37.5rem);
 }
 
