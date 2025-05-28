@@ -48,12 +48,8 @@ class SyncStorage {
   }
 
   set(moduleId, status) {
-    const alreadyInData = this.data.find(
-      ({ educationElementId }) => educationElementId === moduleId,
-    );
-    if (!alreadyInData) {
-      this.data.push({ educationElementId: moduleId, status });
-    }
+    if (!this.data) this.data = [];
+    this.data.push({ educationElementId: moduleId, status });
     localStorage.setItem(SYNC_CACHE_KEY, JSON.stringify(this.data));
     return true;
   }
@@ -108,39 +104,21 @@ async function getStorageProgress(moduleId) {
 }
 
 /**
- * Course progress for current user
+ * Course/standalone progress for current user
  */
-export async function getCourseProgress(courseId) {
+export async function getProgress(moduleId, moduleType) {
   if (!loggedIn) {
-    return getStorageProgress(courseId);
+    return getStorageProgress(moduleId);
   }
-  const url = `${urlByEnvType()}/services/education-track/progress-for-course/${courseId}`;
+  const url = `${urlByEnvType()}/services/education-track/${
+    moduleType === 'lesson' ? 'progress-for-lesson' : 'progress-for-course'}/${moduleId}`;
   try {
     const response = await apiGetAbsolute(url);
     const data = getResponseData(response);
     return mapModule(data);
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.error('EducationService => getCourseProgress error:', e);
-    return [];
-  }
-}
-
-/**
- * Standalone progress for current user
- */
-export async function getLessonProgress(lessonId) {
-  if (!loggedIn) {
-    return getStorageProgress(lessonId);
-  }
-  const url = `${urlByEnvType()}/services/education-track/progress-for-lesson/${lessonId}`;
-  try {
-    const response = await apiGetAbsolute(url);
-    const data = getResponseData(response);
-    return mapModule(data);
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error('EducationService => getLessonProgress error:', e);
+    console.error('EducationService => getProgress error:', e);
     return [];
   }
 }

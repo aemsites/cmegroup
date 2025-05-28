@@ -158,7 +158,7 @@ async function init(main, courseData) {
 
 export default async function createCourseNav(main) {
   const template = getMetadata('template');
-  if (template.toLowerCase() !== 'course' && template.toLowerCase() !== 'lesson') return;
+  if (!['course', 'lesson'].includes(template.toLowerCase())) return;
 
   //  courseData change event
   store.subscribe(({ courseData }) => courseData, (courseData) => {

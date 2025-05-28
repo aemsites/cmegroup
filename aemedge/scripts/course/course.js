@@ -6,7 +6,7 @@ import {
   i18n,
 } from '../utils.js';
 import { getMetadata } from '../aem.js';
-import { getCourseProgress, getLessonProgress, postLesson } from '../services/EducationTrackService.js';
+import { getProgress, postLesson } from '../services/EducationTrackService.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
 const LESSONS_BASE_PATH = '/education/lessons/';
@@ -18,13 +18,6 @@ const CACHE_EXPIRATION_PROD = 0; // 15 * 60 * 1000; // 15 minutes in millisecond
 const CACHE_EXPIRATION_STAGE = 0; // 30 * 1000; // 30 seconds in milliseconds
 
 const isLessonStandalone = (template) => template.toLowerCase() === 'lesson-standalone';
-const getQueryIndexUrl = () => {
-  let { origin } = window.location;
-  if (window.location.hostname === 'localhost' || window.location.hostname === 'beta.cmegroup.com') {
-    origin = 'https://main--www--cmegroup.aem.page';
-  }
-  return `${origin}${COURSES_INDEX_PATH}`;
-};
 
 const getCachedCourseData = (coursePath) => {
   const cachedData = localStorage.getItem(CACHE_KEY);
@@ -99,7 +92,7 @@ export async function getCourseData() {
     }
 
     // Get entries from query-index for course content
-    const entries = await ffetch(getQueryIndexUrl())
+    const entries = await ffetch(COURSES_INDEX_PATH)
       .filter((entry) => TEMPLATES.includes(entry.template.toLowerCase())
         && (entry.path === coursePath
           || entry.path.startsWith(`${coursePath}/`)))
@@ -108,7 +101,7 @@ export async function getCourseData() {
     // If the page is a lesson standalone, return the first entry
     // ideally there should be only one entry in this case
     if (isLessonStandalone(template)) {
-      const lessonProgress = await getLessonProgress(entries[0]?.moduleId);
+      const lessonProgress = await getProgress(entries[0]?.moduleId, 'lesson');
       Object.assign(courseData, entries[0], lessonProgress);
       addCourseDataToCache(coursePath, courseData);
       return courseData;
@@ -133,7 +126,7 @@ export async function getCourseData() {
     });
 
     //  course progress for current user
-    const courseProgress = await getCourseProgress(entries[0]?.moduleId);
+    const courseProgress = await getProgress(entries[0]?.moduleId, 'course');
     const { lessons: lessonsProgress, ...currentCourseProgress } = courseProgress || {};
 
     entries.forEach((entry) => {
@@ -242,7 +235,7 @@ export async function createCourseBaseTemplate(courseData) {
       const chapter = courseData.chapters.find(
         (ch) => window.location.pathname.startsWith(ch.path),
       );
-      if (chapter && chapter.lessons.length > 1) {
+      if (chapter?.lessons.length > 1) {
         for (let i = 0; i < chapter.lessons.length; i += 1) {
           const lesson = chapter.lessons[i];
           if (window.location.pathname.startsWith(lesson.path)) {
