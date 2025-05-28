@@ -316,6 +316,7 @@
     padding: .375rem .375rem .375rem .625rem;
     width: fill-available;
     width: -webkit-fill-available;
+    letter-spacing: normal;
 }
 
 .event-calendar-container .checkbox-dropdown ul li label:hover {
