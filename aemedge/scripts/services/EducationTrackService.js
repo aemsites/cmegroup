@@ -2,7 +2,6 @@ import {
   apiGetAbsolute,
   apiPostAbsolute,
   getResponseData,
-  DataCacheUtil,
   isEmpty,
 } from '../utils/index.js';
 import { urlByEnvType } from '../utils.js';
@@ -19,7 +18,7 @@ class SyncStorage {
   syncInProgress;
 
   constructor() {
-    this.data = window.LocalStorageUtil?.get(SYNC_CACHE_KEY, true) || [];
+    this.data = JSON.parse(localStorage.getItem(SYNC_CACHE_KEY));
     this.syncInProgress = null;
     this.loggedIn = false;
     this.init();
@@ -44,7 +43,7 @@ class SyncStorage {
       await postProgress(progress);
       resolvePromise();
       this.data = [];
-      window.LocalStorageUtil?.remove(SYNC_CACHE_KEY);
+      localStorage.removeItem(SYNC_CACHE_KEY);
     }
   }
 
@@ -55,7 +54,7 @@ class SyncStorage {
     if (!alreadyInData) {
       this.data.push({ educationElementId: moduleId, status });
     }
-    window.LocalStorageUtil?.set(SYNC_CACHE_KEY, this.data);
+    localStorage.setItem(SYNC_CACHE_KEY, JSON.stringify(this.data));
     return true;
   }
 
@@ -64,9 +63,7 @@ class SyncStorage {
   }
 }
 
-//  courses/lessons user progress cache
-const progressCache = new DataCacheUtil();
-//  sync storage progress (not logged users)
+//  sync storage progress (non logged-in users)
 const syncStorage = new SyncStorage();
 
 const mapModule = (data) => (
@@ -146,35 +143,6 @@ export async function getLessonProgress(lessonId) {
     console.error('EducationService => getLessonProgress error:', e);
     return [];
   }
-}
-
-/**
- * All the user progress
- */
-async function getUserProgressApi() {
-  if (!loggedIn) {
-    return getStorageProgress();
-  }
-  const url = `${urlByEnvType()}/services/education-track/progress-for-user`;
-  try {
-    const response = await apiGetAbsolute(url);
-    const data = getResponseData(response);
-    return [
-      ...data.courses.map((course) => mapModule(course)),
-      ...data.lessons.map((lesson) => mapModule(lesson)),
-    ];
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error('EducationService => getProgressApi error:', e);
-    return [];
-  }
-}
-
-export async function getUserProgress() {
-  return progressCache.getData(
-    'userProgress',
-    getUserProgressApi,
-  );
 }
 
 /**
