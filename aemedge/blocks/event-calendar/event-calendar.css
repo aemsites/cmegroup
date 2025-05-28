@@ -41,6 +41,7 @@
 
 .event-calendar-container .filter-section-container .filters-block button.toggle-button {
     width: 100%;
+    display: block;
 }
 
 @media (width >=1200px) {
@@ -392,6 +393,7 @@
 
 .event-calendar-container .filters-inputs-container.is-open .btn-container button {
     width: 45%;
+    display: block;
 }
 
 .event-calendar-container .filters-inputs-container.is-open .btn-container button.secondary {
@@ -558,21 +560,27 @@
 .event-calendar-container .date-filter-container {
     display: flex;
     align-items: center;
-    border-top: .0625rem solid var(--gray3);
+    border-top: 0;
     padding: .9375rem 0;
+}
+
+@media (width >=1200px) {
+    .event-calendar-container .date-filter-container {
+        border-top: .0625rem solid var(--gray3);
+    }
 }
 
 .event-calendar-container .event-calendar-datepicker-container {
     width: 100%;
-    padding-right: 0.9375rem;
+    padding-right: 0.75rem;
 }
 
 @media (width >=1200px) {
     .event-calendar-container .event-calendar-datepicker-container {
         width: 25%;
+        padding-right: 0;
     }
 }
-
 
 .event-calendar-container .event-calendar-datepicker-container::after {
     font-family: var(--cme-group-icons);
@@ -582,12 +590,10 @@
     top: 50%;
     transform: translateY(-50%);
     z-index: 1;
-    speak: none;
     font-style: normal;
     font-weight: 400;
     line-height: 1;
     text-transform: none;
-    -webkit-font-smoothing: antialiased;
     font-variant: normal;
 }
 
@@ -631,12 +637,12 @@
     float: left;
     width: 100%;
     max-width: 17.875rem;
-    transform: translateY(-600px);
+    transform: translateY(-37.5rem);
 }
 
 @media (width >=1200px) {
     .event-calendar-container .qs-datepicker-container {
-        transform:none
+        transform: none;
     }
 }
 
@@ -955,6 +961,7 @@
     text-align: center;
     text-transform: capitalize;
     width: 100%;
+    display: block;
 }
 
 .event-calendar-container .datepicker-today-btn:hover {
@@ -1146,7 +1153,7 @@
     .event-calendar-container .result-list-table-section .lateral-days-list {
         display: block;
         width: 25%;
-        padding-right: 1.25rem;
+        padding-right: 0.625rem;
     }
 }
 
@@ -1165,11 +1172,15 @@
     width: 100%;
 }
 
+.event-calendar-container .result-list-table-section .lateral-days-list ul li:last-child {
+    margin-bottom: 0;
+}
+
 .event-calendar-container .result-list-table-section .lateral-days-list ul li.active-date {
     background-color: var(--blue1);
     border-left: .3125rem solid var(--blue5);
     border-right: 0;
-    width: calc(100% + .625rem);
+    width: calc(100% + 0.625rem);
 }
 
 .event-calendar-container .result-list-table-section .lateral-days-list ul li.active-date a {
@@ -1246,4 +1257,841 @@
     font-family: var(--cme-group-icons);
     font-variant: normal;
     margin-left: 1.25rem;
+}
+
+/* right panel */
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container {
+    order: 1;
+    width: 100%;
+    background-color: transparent;
+    border: 0;
+    border-left: 0;
+    padding: 0;
+}
+
+@media (width >=1200px) {
+    .event-calendar-container .result-list-table-section .event-calendar-table-container {
+       width: 75%;
+       background-color: var(--blue1);
+       border: 0.0625rem solid var(--gray3);
+       border-left: .3125rem solid var(--blue5);
+       padding: 1.5625rem 1.875rem;
+       padding-right: 0;
+    }
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper {
+    box-shadow: 0 .25rem 0 var(--blue1);
+    position: sticky;
+    top: 5rem;
+    background-color: var(--blue2);
+    margin-bottom: .3125rem;
+    padding: .625rem;
+    text-align: center;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper p {
+    color: var(--white);
+    font-family: var(--averta);
+    font-weight: 500;
+    font-size: .6875rem;
+    line-height: .875rem;
+    margin: 0;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span {
+    color: var(--citron);
+    font-family: var(--cme-group-icons);
+    height: 1rem;
+    padding-right: .625rem;
+    position: relative;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-transform: none;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span::before {
+    content: var(--icon-calendar-regular);
+}
+
+@media (width >=1200px) {
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper {
+        flex: 0 0 auto;
+        width: 66.6667%;
+        margin-bottom: 1.25rem;
+        box-shadow: none;
+        position: relative;
+        background-color: transparent;
+        padding: 0;
+        text-align: left;
+        top: 0;
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper p {
+        margin: 0;
+        color: var(--gray4);
+        font-family: var(--averta);
+        font-size: .8125rem;
+        letter-spacing: .0625rem;
+        line-height: .875rem;
+        text-transform: uppercase;
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span {
+        color: var(--white);
+        font-weight: 600;
+        font-family: var(--averta);
+        padding-right: 0;
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span::before {
+        content: '';
+    }
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead {
+    background-color: var(--blue1);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding-right: 1.5rem;
+    margin-right: 1rem;
+    display: none;
+}
+
+@media (width >=1200px) {
+  .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead {
+        display: block;
+    }  
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul {
+    align-items: center;
+    background-color: var(--blue1);
+    border-top: .0625rem solid var(--gray3);
+    display: flex;
+    height: 2.5rem;
+    list-style: none;
+    margin-bottom: .3125rem;
+    padding-left: 0;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li {
+    align-items: center;
+    background-color: var(--blue1);
+    color: var(--gray4);
+    display: flex;
+    font-family: var(--averta);
+    font-size: .6875rem;
+    font-weight: 400;
+    justify-content: center;
+    letter-spacing: .0625rem;
+    line-height: .875rem;
+    padding: .375rem .6875rem;
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 0;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:first-child,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:nth-child(2),
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:nth-child(4),
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:nth-child(5),
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:nth-child(6) {
+    width: 10%;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:first-child {
+    padding-left: 1rem;
+    text-align: left;
+    justify-content: left;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:nth-child(3) {
+    justify-content: left;
+    padding-left: 0;
+    width: 35%;
+    align-items: center;
+    display: flex;
+    text-align: left;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:nth-child(7) {
+    width: 15%;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:last-child {
+    padding-right: 1.25rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody {
+    max-height: none;
+    overflow: auto;
+    padding-right: 0;
+    margin-right: 0;
+}
+
+@media (width >=1200px) {
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody {
+        max-height: 39.375rem;
+        overflow: hidden auto;
+        padding-right: .875rem;
+        margin-right: 1rem;
+        scrollbar-color: rgba(255 255 255 / 15%) transparent;
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody.showing-days-14 {
+        max-height: 56.25rem;
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody.showing-days-30 {
+        max-height: 112.5rem;
+    }
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .no-results {
+    color: var(--gray3);
+    font-family: var(--averta);
+    font-size: .8125rem;
+    letter-spacing: .0625rem;
+    line-height: 1.3125rem;
+    padding: .9375rem;
+    text-align: center;
+    text-transform: uppercase;  
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .no-results p {
+    color: var(--white);
+    margin: 0;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .no-results p span {
+    color: var(--white);
+    font-weight: 600;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .no-results p span.calendar-icon::before {
+    color: var(--gray3);
+    font-family: var(--cme-group-icons);
+    content: var(--icon-calendar-regular);
+    height: 1rem;
+    padding-right: 1rem;
+    position: relative;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-transform: none;
+}
+
+/* mobile accordion */
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-accordion-card-header:not(.not-expandable)::after {
+    margin-top: .625rem;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile {
+  padding: .375rem;
+  width: calc(100% - 2.25rem);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile:hover {    
+    cursor: auto;
+    background-color: var(--blue2);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile .mobile-first-row {
+    align-items: flex-start;
+    color: var(--white);
+    display: flex;
+    font-size: .75rem;
+    line-height: 1.3125rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile .mobile-first-row .event-details {
+    align-items: center;
+    display: flex;
+    flex-grow: 1;
+    justify-content: space-between;
+    overflow: hidden;
+    padding-left: .1875rem;
+    white-space: nowrap;  
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile .mobile-first-row .event-details .event-name {
+    margin-right: .625rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile .mobile-first-row .event-details .label {
+    font-size: .6875rem;
+    line-height: .875rem;
+    margin: 0 1.5rem;
+    padding: .125rem;
+    background-color: var(--blue1);
+    border-radius: .125rem;
+    color: var(--gray4);
+    text-transform: uppercase;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile .mobile-second-row ul {
+    padding-top: .25rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile .mobile-second-row ul li {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    width: 25%;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile .mobile-second-row ul li :first-child {
+    font-size: .6875rem;
+    line-height: 1rem;
+    text-transform: uppercase;
+    color: var(--gray4);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile .mobile-second-row ul li :last-child {    
+    font-size: .8125rem;
+    line-height: 1rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile .mobile-second-row ul li.country :last-child{
+    color: var(--white);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile .mobile-second-row ul li.country .flag-icon {
+    margin: .1875rem 0;
+    padding-right: 0;
+    width: 1rem;
+    display: flex;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .collapse .event-accordion-card-body {    
+    padding: 1rem .375rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .collapse .event-accordion-card-body .expandable-content.mobile .main-content {
+    flex-direction: column;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .collapse .event-accordion-card-body .expandable-content.mobile .main-content .highlight {
+    font-size: .625rem;
+    line-height: .8125rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .collapse .event-accordion-card-body .expandable-content.mobile .main-content .tags-section .bold {
+    color: var(--white);
+    font-size: .625rem;
+    line-height: .8125rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .collapse .event-accordion-card-body .expandable-content.mobile .main-content .more {
+    align-self: flex-end;
+    margin-right: 1.5rem;
+}
+
+/* desktop accordion */
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header {
+    background-color: var(--blue2);
+    border: .0625rem solid var(--gray3);
+    margin-bottom: .3125rem;
+    padding: 0;
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    text-align: left;
+    width: 100%;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header:not(.not-expandable)::after {
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-transform: none;
+    font-family: var(--cme-group-icons);
+    font-variant: normal; 
+    color: var(--blue5);
+    content: var(--icon-chevron-down);
+    padding-right: 1.25rem;
+    position: absolute;
+    right: 0;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header:not(.not-expandable).open {
+    border-bottom: 0;
+    margin-bottom: 0;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header:not(.not-expandable).open::after {
+    content: var(--icon-chevron-up);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container {
+    width: 100%;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul {
+    align-items: center;
+    padding-top: 0;
+    border: none;
+    display: flex;
+    list-style: none;
+    min-height: 2.5rem;
+    padding-left: 0;
+    margin: 0;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li {
+    font-family: var(--averta);
+    font-size: .6875rem;
+    line-height: 1.375rem;
+    padding: .375rem .6875rem;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container:hover {
+    cursor: pointer;
+    background-color: var(--blue-active);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:first-child,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(2),
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(4),
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(5),
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(6) {
+    width: 10%;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(7) {
+    width: 15%
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:first-child {
+    padding-left: 1rem;
+    text-align: left;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:last-child {
+    padding-right: 1.25rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li.country {
+    display: flex;
+    justify-content: center;
+    text-align: unset;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li.positive,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li .positive {
+    color: var(--green-positive);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li.negative,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li .negative {
+    color: var(--red2);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) {
+    align-items: center;
+    display: flex;
+    text-align: left;
+    width: 35%;
+    padding-left: 0;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a {
+    color: var(--white);
+    align-items: center;
+    display: flex;
+    flex-grow: 1;
+    max-width: max-content;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a:hover {
+    color: var(--blue5);
+    text-decoration: none;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a .icon{
+    align-self: center;
+    color: var(--blue5);
+    font-family: var(--cme-group-icons);
+    font-size: 80%;
+    height: 100%;
+    padding-left: .5rem;
+    position: relative;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-transform: none;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a .icon::before {
+    content: var(--icon-chevron-right);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a .label {
+    background-color: var(--blue1);
+    border-radius: .125rem;
+    color: var(--gray4);
+    font-size: .6875rem;
+    line-height: 1.25rem;
+    text-transform: uppercase;
+}
+
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a:hover .label {
+    color: var(--gray4);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container .impact {
+    border: 0.0625rem solid var(--green);
+    height: 1rem;
+    margin: 0 auto;
+    width: 4rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container .impact div {
+    height: 100%;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container .impact.low {
+    border-color: var(--citron);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container .impact.low div {
+    background-color: var(--citron);
+    width: 30%;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container .impact.medium {
+    border-color: var(--orange);
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container .impact.medium div {
+    background-color: var(--orange);
+    width: 50%;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container .impact.high div {
+    background-color: var(--green);
+    width: 80%;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .collapse:not(.show) {
+    display: none;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body {
+    background-color: var(--blue2);
+    border: .0625rem solid var(--gray3);
+    border-top: none;
+    margin-bottom: .3125rem;
+    padding: 1rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .highlight {
+    color: var(--gray4);
+    display: block;
+    font-size: .6875rem;
+    line-height: .875rem;
+    margin-bottom: .625rem;
+    text-transform: uppercase;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content {
+    display: flex;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .left-section {
+    flex-basis: 50%;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .left-section .text,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .text {
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--white);
+    font-size: .75rem;
+    line-height: .9375rem;
+    font-family: var(--averta);
+    font-weight: 400;
+    letter-spacing: .03em;
+    margin-top: 0;
+    margin-bottom: 1.875rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .left-section .more,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .more {
+    align-items: center;
+    display: flex;
+    margin-top: .375rem;  
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .left-section .more .icon,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .more .icon,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .left-section .more a,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .more a
+ {
+    color: var(--blue5);
+    font-size: .75rem;
+    height: auto;
+    width: auto;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .left-section .more a:hover,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .more a:hover{
+    text-decoration: none;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .left-section .more .icon::before,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .more .icon::before{
+    align-self: center;
+    color: var(--blue5);
+    font-family: var(--cme-group-icons);
+    font-size: 80%;
+    height: 100%;
+    padding-left: .5rem;
+    position: relative;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-transform: none;
+    content: var(--icon-arrow-right);
+    margin-right: 0.3125rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .right-section {
+    color: var(--white);
+    display: flex;
+    flex-basis: 50%;
+    flex-direction: column;
+    font-size: .75rem;
+    justify-content: space-between;
+    line-height: .9375rem;
+    padding-bottom: 1rem;
+    padding-left: 8.75rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .right-section .bold,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .bold {
+    font-weight: 700;
+    margin-right: .625rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .right-section .tags-section,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .tags-section {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .right-section .tags-section .bold,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .tags-section .bold {
+    padding-top: .25rem;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .right-section .tags-section .tag,
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .tags-section .tag {
+    background-color: var(--blue1);
+    border-radius: .125rem;
+    color: var(--gray4);
+    font-size: .6875rem;
+    line-height: 1.25rem;
+    margin-bottom: .5rem;
+    margin-right: .375rem;
+    padding: .125rem;
+    display: inline-block;
+}
+
+/* tooltip */
+
+.event-calendar-container .tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+.event-calendar-container .tooltip-container:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.event-calendar-container .tooltip-container .info-icon {
+    display: inline-block;
+    margin: 0 .125rem;
+    vertical-align: middle;
+}
+
+.event-calendar-container .tooltip-container .info-icon::before {
+    color: var(--blue5);
+    opacity: .6;
+    font-size: 0.875rem;
+    content: var(--icon-info-filled);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-transform: none;
+    font-family: var(--cme-group-icons);
+    font-variant: normal;
+}
+
+.event-calendar-container .tooltip {
+  visibility: hidden;
+  text-align: center;
+  border-radius: 0.375rem;
+  position: absolute;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  background-color: var(--white);
+  box-shadow: 0 0.0625rem 0.125rem 0 rgba(60 64 67 / 30%), 0 0.125rem 0.375rem 0.125rem rgba(60 64 67 / 15%);
+  color: var(--black);
+  min-width: 13.75rem;
+  padding: .625rem;
+  left: 100%;
+  bottom: -180%;
+}
+
+.event-calendar-container .tooltip.impact-tooltip {
+    min-width: 9.375rem;
+    bottom: -205%;
+}
+
+.event-calendar-container .tooltip::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0.5rem 0.5rem 0.5rem 0;
+  border-color: transparent var(--white) transparent transparent;
+  left: -0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.event-calendar-container .tooltip p {
+    color: var(--gray2);
+    font-family: var(--averta);
+    font-size: .75rem;
+    font-weight: 400;
+    line-height: 1rem;
+    margin-bottom: .9375rem;
+    text-align: left;
+    margin-top: 0;
+    text-transform: none;
+}
+
+.event-calendar-container .tooltip p:last-child {
+    margin-bottom: 0;
+}
+
+.event-calendar-container .tooltip .impact-info ul {
+    list-style: none;
+    background: none !important;
+    max-width: max-content;
+    padding: .5rem;
+    display: block !important;
+    border: none !important;
+    padding-left: 0.5rem !important;
+    height: auto !important;
+    margin: 0 !important;
+}
+
+.event-calendar-container .tooltip .impact-info ul li {
+    align-items: center !important;
+    color: var(--gray2) !important;
+    display: flex !important;
+    font-family: var(--averta) !important;
+    font-weight: 600 !important;
+    font-size: .75rem !important;
+    line-height: 1rem !important;
+    margin-bottom: .25rem !important;
+    text-align: left !important;
+    background: none !important;
+    text-transform: none !important;
+    width: auto !important;
+    padding: 0 !important;
+}
+
+.event-calendar-container .tooltip .impact-info .bullet {
+    background-color: var(--green);
+    border-radius: 50%;
+    display: inline-block;
+    height: 1rem;
+    margin-right: .625rem;
+    width: 1rem;
+}
+
+.event-calendar-container .tooltip .impact-info ul li:nth-child(2) .bullet {
+    background-color: var(--orange);
+}
+
+.event-calendar-container .tooltip .impact-info ul li:nth-child(3) .bullet {
+    background-color: var(--citron);
+}
+
+/* spinner */
+.spinner-in-event-calendar {
+    display: inline-block;
+    position: relative;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 2rem;
+    left: calc(50% - 3rem);
+}
+
+.spinner-in-event-calendar div {
+    box-sizing: border-box;
+    display: block;
+    position: absolute;
+    width: 2.1875rem;
+    height: 2.1875rem;
+    margin: 0.375rem;
+    border: 0.25rem solid var(--white);
+    border-radius: 50%;
+    animation: spinner-in-event-calendar 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    border-color: var(--white) transparent transparent;
+}
+
+.spinner-in-event-calendar div:nth-child(1) {
+    animation-delay: -0.45s;
+}
+
+.spinner-in-event-calendar div:nth-child(2) {
+    animation-delay: -0.3s;
+}
+
+.spinner-in-event-calendar div:nth-child(3) {
+    animation-delay: -0.15s;
+}
+
+@keyframes spinner-in-event-calendar {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
