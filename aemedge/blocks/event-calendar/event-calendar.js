@@ -1222,6 +1222,7 @@ function renderDatePicker() {
       openDatePickerMobileContainer();
     }
   });
+  inputDate.readOnly = true;
   inputDateContainer.append(inputDate);
   filtersDateContainer.append(inputDateContainer);
 
