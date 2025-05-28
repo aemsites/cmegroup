@@ -639,6 +639,10 @@
     transform: translateY(-37.5rem);
 }
 
+.event-calendar-container .qs-datepicker-container.on-top {
+    top: -355px !important;
+}
+
 @media (width >=1200px) {
     .event-calendar-container .qs-datepicker-container {
         transform: none;

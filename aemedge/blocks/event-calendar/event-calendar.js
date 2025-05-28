@@ -593,6 +593,24 @@ function renderInputs() {
   return filtersInputsContainer;
 }
 
+function getDatePickerVerticalPosition(inputElement) {
+  const inputRect = inputElement.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+  // Estimate datepicker height
+  const estimatedDatepickerHeight = 355;
+  // Calculate space below the input
+  const spaceBelow = viewportHeight - (inputRect.top + inputRect.height);
+  // Calculate space above the input
+  const spaceAbove = inputRect.top;
+
+  if (spaceBelow >= estimatedDatepickerHeight || spaceBelow > spaceAbove) {
+    inputElement.classList.remove('on-top');
+  } else if (spaceAbove >= estimatedDatepickerHeight) {
+    inputElement.classList.add('on-top');
+  }
+}
+
 function createTodayBtn(instance) {
   const todayButton = document.createElement('button');
   todayButton.classList.add('datepicker-today-btn');
@@ -658,6 +676,7 @@ function initDatePicker() {
           instance.calendar.appendChild(createTodayBtn(instance));
         }
       }
+      getDatePickerVerticalPosition(instance.calendarContainer);
     },
     onHide: (instance) => {
       instance.calendarContainer.classList.remove('open-mobile');
@@ -1371,6 +1390,17 @@ async function init(block, version) {
         filterExpander.remove();
       }
     }, 50);
+  });
+
+  let scrollTimeout;
+  window.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const datepickerOpen = document.querySelector('.qs-datepicker-container:not(.qs-hidden)');
+      if (datepickerOpen) {
+        getDatePickerVerticalPosition(datepickerOpen);
+      }
+    }, 500);
   });
 
   const filterSection = renderFilterSection();
