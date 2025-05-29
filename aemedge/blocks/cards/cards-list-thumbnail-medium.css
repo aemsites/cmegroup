@@ -33,6 +33,7 @@
     height: 2.8125rem;
     position: absolute;
     border-radius: 0;
+    display: block;
 }
 
 .cards.thumbnail-medium ul li .card-img-top img {
@@ -43,6 +44,7 @@
     border-radius: 0;
     aspect-ratio: auto;
     border: 0.0625rem solid var(--gray12);
+    display: block;
 }
   
 .cards.thumbnail-medium ul li .card-body {

@@ -170,6 +170,7 @@ h5 {
     text-transform: uppercase;
     font-size: 14px;
     line-height: 20px;
+    letter-spacing: .09em;
 }
 
 h6 {
