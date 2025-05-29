@@ -49,7 +49,7 @@ async function loadOneTrust() {
 function loadPage() {
   loadSitewidePopups();
   loadShareThis();
-  loadOneTrust();
+  // loadOneTrust();
 }
 
 loadPage();
