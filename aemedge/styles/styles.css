@@ -285,15 +285,13 @@ p {
     font-family: var(--body-font-family);
     font-weight: 400;
     margin-bottom: 15px;
-    font-size: var(--body-font-size-s);
-    line-height: 20px;
+    font-size: var(--body-font-size-m);
+    line-height: 24px;
+    letter-spacing: 0.48px;
 }
 
 @media(width >=481px) {
     p {
-        font-size: var(--body-font-size-m);
-        line-height: 24px;
-        letter-spacing: 0.48px;
         margin-bottom: 30px;
     }
 }
