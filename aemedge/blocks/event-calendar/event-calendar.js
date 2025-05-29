@@ -289,6 +289,14 @@ function handleInputSearch(e) {
   }
 }
 
+function isFilterExpandedNeeded() {
+  if (pillsInnerContainer.clientHeight > 168) {
+    filtersCurrentContainer.append(filterExpander);
+  } else {
+    filterExpander.remove();
+  }
+}
+
 function removePillHandler(pill) {
   if (pill !== 'clear-all') {
     // remove pill
@@ -337,6 +345,7 @@ function removePillHandler(pill) {
       }
     }
   }
+  isFilterExpandedNeeded();
   updateURLFilters(filtersArray);
   getLeftPanelDays();
   getEvents();
@@ -407,6 +416,7 @@ function renderCurrentPills(pillsArray) {
     filtersCurrentContainer.innerHTML = '';
   }
 
+  isFilterExpandedNeeded();
   decoratePills(pillsInnerContainer);
   updateURLFilters(pillsArray);
 
@@ -1384,11 +1394,7 @@ async function init(block, version) {
         }
       }
       prevWindowWidth = windowWidth;
-      if (pillsInnerContainer.clientHeight > 160) {
-        filtersCurrentContainer.append(filterExpander);
-      } else {
-        filterExpander.remove();
-      }
+      isFilterExpandedNeeded();
     }, 50);
   });
 
