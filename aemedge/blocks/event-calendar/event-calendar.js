@@ -289,6 +289,14 @@ function handleInputSearch(e) {
   }
 }
 
+function isFilterExpandedNeeded() {
+  if (pillsInnerContainer.clientHeight > 168) {
+    filtersCurrentContainer.append(filterExpander);
+  } else {
+    filterExpander.remove();
+  }
+}
+
 function removePillHandler(pill) {
   if (pill !== 'clear-all') {
     // remove pill
@@ -337,6 +345,7 @@ function removePillHandler(pill) {
       }
     }
   }
+  isFilterExpandedNeeded();
   updateURLFilters(filtersArray);
   getLeftPanelDays();
   getEvents();
@@ -407,6 +416,7 @@ function renderCurrentPills(pillsArray) {
     filtersCurrentContainer.innerHTML = '';
   }
 
+  isFilterExpandedNeeded();
   decoratePills(pillsInnerContainer);
   updateURLFilters(pillsArray);
 
@@ -593,6 +603,24 @@ function renderInputs() {
   return filtersInputsContainer;
 }
 
+function getDatePickerVerticalPosition(inputElement) {
+  const inputRect = inputElement.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+  // Estimate datepicker height
+  const estimatedDatepickerHeight = 355;
+  // Calculate space below the input
+  const spaceBelow = viewportHeight - (inputRect.top + inputRect.height);
+  // Calculate space above the input
+  const spaceAbove = inputRect.top;
+
+  if (spaceBelow >= estimatedDatepickerHeight || spaceBelow > spaceAbove) {
+    inputElement.classList.remove('on-top');
+  } else if (spaceAbove >= estimatedDatepickerHeight) {
+    inputElement.classList.add('on-top');
+  }
+}
+
 function createTodayBtn(instance) {
   const todayButton = document.createElement('button');
   todayButton.classList.add('datepicker-today-btn');
@@ -658,6 +686,7 @@ function initDatePicker() {
           instance.calendar.appendChild(createTodayBtn(instance));
         }
       }
+      getDatePickerVerticalPosition(instance.calendarContainer);
     },
     onHide: (instance) => {
       instance.calendarContainer.classList.remove('open-mobile');
@@ -1222,6 +1251,7 @@ function renderDatePicker() {
       openDatePickerMobileContainer();
     }
   });
+  inputDate.readOnly = true;
   inputDateContainer.append(inputDate);
   filtersDateContainer.append(inputDateContainer);
 
@@ -1364,12 +1394,19 @@ async function init(block, version) {
         }
       }
       prevWindowWidth = windowWidth;
-      if (pillsInnerContainer.clientHeight > 160) {
-        filtersCurrentContainer.append(filterExpander);
-      } else {
-        filterExpander.remove();
-      }
+      isFilterExpandedNeeded();
     }, 50);
+  });
+
+  let scrollTimeout;
+  window.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const datepickerOpen = document.querySelector('.qs-datepicker-container:not(.qs-hidden)');
+      if (datepickerOpen) {
+        getDatePickerVerticalPosition(datepickerOpen);
+      }
+    }, 500);
   });
 
   const filterSection = renderFilterSection();
