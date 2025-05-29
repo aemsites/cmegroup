@@ -352,6 +352,8 @@ button.search-icon::before {
 .nav-nav-item-menu {
     display: none;
     background-color: var(--blue2);
+    overflow-y: auto;
+    max-height: calc(100vh - 6.25rem);
 }
 
 .nav-nav-item.has-menu.is-open {
@@ -866,6 +868,10 @@ button.search-icon::before {
 
 .right-side button.nav-login {
     padding: .75rem 2rem;
+}
+
+.item-menu-container  {
+    padding-bottom: 3.125rem;
 }
 
 @media (width > 481px) {

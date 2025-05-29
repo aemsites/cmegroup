@@ -1,6 +1,10 @@
 import { readBlockConfig, loadScript } from '../../scripts/aem.js';
 import { createElement, i18n } from '../../scripts/utils.js';
-import { getEconomicReleaseFilters, postEconomicReleaseDates } from '../../scripts/services/ProductCalendarService.js';
+import {
+  getEconomicReleaseFilters,
+  postEconomicReleaseDates,
+  postEconomicReleaseEvents,
+} from '../../scripts/services/ProductCalendarService.js';
 import { URIUtil } from '../../scripts/utils/index.js';
 
 const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
@@ -11,12 +15,17 @@ const eventCalendarContainer = createElement('div', { class: 'event-calendar' })
 const filterSectionContainer = createElement('div', { class: 'filter-section-container' });
 const resultSectionContainer = createElement('div', { class: 'results-section-container' });
 const lateralDaysList = createElement('div', { class: 'lateral-days-list' });
+const calendarTableContainer = createElement('div', { class: 'event-calendar-table-container' });
 const resultListTableSection = createElement('div', { class: 'result-list-table-section' });
+const calendarResume = createElement('div', { class: 'event-calendar-resume-wrapper' });
+const eventCalendarTable = createElement('div', { class: 'event-calendar-table' });
+const eventCalendarTHead = createElement('div', { class: 'event-calendar-table-thead' });
+const eventCalendarTBody = createElement('div', { class: 'event-calendar-table-tbody' });
 const filtersSectionEventCalendar = createElement('div', { class: 'filters-section-event-calendar' });
 const filtersInputsMainContainer = createElement('div', { class: 'filters-block' });
 const filtersCurrentContainer = createElement('div', { class: 'current-filters' });
-const filterExpander = createElement('button', { class: 'filter-expander filter-collapsed' });
 const filtersDateContainer = createElement('div', { class: 'date-filter-container' });
+const filterExpander = createElement('button', { class: 'filter-expander filter-collapsed' });
 const filtersTitle = createElement('h3', { class: 'filters-title' });
 const filterSearchInputContainer = createElement('div', { class: 'input-search-container' });
 const filterSearchInput = createElement('input', { class: 'input-search' });
@@ -29,9 +38,18 @@ const cleanInput = createElement('button', {
 const pillsHeader = createElement('div', { class: 'current-pills-header' });
 const pillsWrapper = createElement('div', { class: 'current-pills-wrapper' });
 const pillsInnerContainer = createElement('div', { class: 'current-pills-inner-container' });
+const spinnerInEventCalendar = createElement('div', { class: 'lds-ring spinner-in-event-calendar' });
+spinnerInEventCalendar.innerHTML = `
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+`;
 let economicFilters;
 let leftPanelDays;
+let events;
 let leftPanelSelectedDay;
+let nthEvents;
 let filtersLabel;
 let currentPillsLabel;
 let clearAllLabel;
@@ -43,6 +61,17 @@ let prevMonthLabel;
 let nextMonthLabel;
 let daysLabel;
 let showingLabel;
+let timeLabel;
+let countryLabel;
+let eventLabel;
+let actualLabel;
+let previousLabel;
+let previousInfoLabel;
+let consensusLabel;
+let impactLabel;
+let highImpactLabel;
+let minimalImpactLabel;
+let lowImpactLabel;
 let searchValueVar = '';
 let timeoutId;
 const filtersArray = {};
@@ -90,6 +119,17 @@ async function initializeLabels() {
     nextMonthLabelVar,
     daysLabelVar,
     showingLabelVar,
+    timeLabelVar,
+    countryLabelVar,
+    eventLabelVar,
+    actualLabelVar,
+    previousLabelVar,
+    previousInfoLabelVar,
+    consensusLabelVar,
+    impactLabelVar,
+    highImpactLabelVar,
+    minimalImpactLabelVar,
+    lowImpactLabelVar,
   ] = await Promise.all([
     i18n('Filters'),
     i18n('Currently filtering by:'),
@@ -102,6 +142,17 @@ async function initializeLabels() {
     i18n('Next Month'),
     i18n('Days'),
     i18n('Showing:'),
+    i18n('Time'),
+    i18n('Country'),
+    i18n('Event'),
+    i18n('Actual'),
+    i18n('Previous'),
+    i18n('Asterisk indicates that the Actual value for the Previous period was revised from its originally published value.'),
+    i18n('Consensus'),
+    i18n('Impact'),
+    i18n('High Impact'),
+    i18n('Minimal Impact'),
+    i18n('Low Impact'),
   ]);
 
   filtersLabel = filtersLabelVar;
@@ -115,11 +166,21 @@ async function initializeLabels() {
   nextMonthLabel = nextMonthLabelVar;
   daysLabel = daysLabelVar;
   showingLabel = showingLabelVar;
+  timeLabel = timeLabelVar;
+  countryLabel = countryLabelVar;
+  eventLabel = eventLabelVar;
+  actualLabel = actualLabelVar;
+  previousLabel = previousLabelVar;
+  previousInfoLabel = previousInfoLabelVar;
+  consensusLabel = consensusLabelVar;
+  impactLabel = impactLabelVar;
+  highImpactLabel = highImpactLabelVar;
+  minimalImpactLabel = minimalImpactLabelVar;
+  lowImpactLabel = lowImpactLabelVar;
 }
 
 async function getLeftPanelDays() {
-  // eslint-disable-next-line no-undef
-  const date = dayjs(new Date(tradeDate)).format('YYYY-MM-DD');
+  const date = dayjs.utc(tradeDate).format('YYYY-MM-DD');
   const countries = filtersArray['input-country'].map((country) => country.id);
   const impacts = filtersArray['input-impact'].map((impact) => impact.id);
   const daysLimit = 30;
@@ -137,6 +198,33 @@ async function getLeftPanelDays() {
     const resultSection = renderResultSection();
     resultSectionContainer.append(resultSection);
     eventCalendarContainer.append(resultSectionContainer);
+  }
+}
+
+async function getEvents() {
+  // remove table here
+  eventCalendarTBody.innerHTML = '';
+  // add spinner here
+  eventCalendarTBody.append(spinnerInEventCalendar);
+
+  const date = dayjs.utc(leftPanelSelectedDay).format('YYYY-MM-DD');
+  const countries = filtersArray['input-country'].map((country) => country.id);
+  const impacts = filtersArray['input-impact'].map((impact) => impact.id);
+  const textSearch = searchValueVar;
+
+  const eventsService = await postEconomicReleaseEvents(
+    date,
+    countries,
+    impacts,
+    textSearch,
+  );
+
+  events = eventsService.events;
+
+  if (events) {
+    // eslint-disable-next-line no-use-before-define
+    const eventsSection = renderEventSection();
+    resultListTableSection.append(eventsSection);
   }
 }
 
@@ -178,6 +266,7 @@ function cleanInputSearch() {
   }
   // call service with variables here
   getLeftPanelDays();
+  getEvents();
 }
 
 function decorateCleanInputSearch() {
@@ -195,7 +284,16 @@ function handleInputSearch(e) {
     timeoutId = setTimeout(() => {
       // call service with variables here
       getLeftPanelDays();
+      getEvents();
     }, 400);
+  }
+}
+
+function isFilterExpandedNeeded() {
+  if (pillsInnerContainer.clientHeight > 168) {
+    filtersCurrentContainer.append(filterExpander);
+  } else {
+    filterExpander.remove();
   }
 }
 
@@ -247,8 +345,10 @@ function removePillHandler(pill) {
       }
     }
   }
+  isFilterExpandedNeeded();
   updateURLFilters(filtersArray);
   getLeftPanelDays();
+  getEvents();
 }
 
 function decoratePills(container) {
@@ -316,6 +416,7 @@ function renderCurrentPills(pillsArray) {
     filtersCurrentContainer.innerHTML = '';
   }
 
+  isFilterExpandedNeeded();
   decoratePills(pillsInnerContainer);
   updateURLFilters(pillsArray);
 
@@ -344,6 +445,7 @@ function filterPillsArrayHandler(listId, checkbox) {
   if (isDesktop) {
     renderCurrentPills(filtersArray);
     getLeftPanelDays();
+    getEvents();
   }
 }
 
@@ -446,6 +548,7 @@ function applyFilters() {
   closeFiltersInputsContainer();
   // call service with variables here
   getLeftPanelDays();
+  getEvents();
 }
 
 function renderInputs() {
@@ -500,29 +603,43 @@ function renderInputs() {
   return filtersInputsContainer;
 }
 
+function getDatePickerVerticalPosition(inputElement) {
+  const inputRect = inputElement.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+  // Estimate datepicker height
+  const estimatedDatepickerHeight = 355;
+  // Calculate space below the input
+  const spaceBelow = viewportHeight - (inputRect.top + inputRect.height);
+  // Calculate space above the input
+  const spaceAbove = inputRect.top;
+
+  if (spaceBelow >= estimatedDatepickerHeight || spaceBelow > spaceAbove) {
+    inputElement.classList.remove('on-top');
+  } else if (spaceAbove >= estimatedDatepickerHeight) {
+    inputElement.classList.add('on-top');
+  }
+}
+
 function createTodayBtn(instance) {
   const todayButton = document.createElement('button');
   todayButton.classList.add('datepicker-today-btn');
   todayButton.textContent = todayLabel;
   todayButton.addEventListener('click', () => {
-    // eslint-disable-next-line no-undef
-    tradeDate = dayjs().$d;
-    // eslint-disable-next-line no-undef
-    instance.setDate(dayjs().$d, true);
-
-    // eslint-disable-next-line no-undef
-    filtersArray.tradeDate = [{ id: dayjs(new Date()).format('YYYY-MM-DD') }];
+    tradeDate = dayjs.utc().$d;
+    instance.setDate(dayjs.utc().$d, true);
+    filtersArray.tradeDate = [{ id: dayjs.utc().format('YYYY-MM-DD') }];
     updateURLFilters(filtersArray);
     // service here
     leftPanelSelectedDay = tradeDate;
     getLeftPanelDays();
+    getEvents();
   });
 
   return todayButton;
 }
 
 function initDatePicker() {
-  // eslint-disable-next-line no-undef
   datePicker = datepicker(document.querySelector('input.event-calendar-datepicker'), {
     dateSelected: tradeDate,
     formatter: (input, date) => {
@@ -549,12 +666,12 @@ function initDatePicker() {
       } else {
         tradeDate = date;
       }
-      // eslint-disable-next-line no-undef
-      filtersArray.tradeDate = [{ id: dayjs(date).format('YYYY-MM-DD') }];
+      filtersArray.tradeDate = [{ id: dayjs.utc(date).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
       getLeftPanelDays();
+      getEvents();
     },
     onShow: (instance) => {
       instance.el.classList.add('datepicker-open');
@@ -569,6 +686,7 @@ function initDatePicker() {
           instance.calendar.appendChild(createTodayBtn(instance));
         }
       }
+      getDatePickerVerticalPosition(instance.calendarContainer);
     },
     onHide: (instance) => {
       instance.calendarContainer.classList.remove('open-mobile');
@@ -589,8 +707,7 @@ function initDatePicker() {
 }
 
 function changeMonth(dateString, monthsToAdd) {
-  // eslint-disable-next-line no-undef
-  const date = dayjs(dateString).$d;
+  const date = dayjs.utc(dateString).$d;
   const currentMonth = date.getMonth();
 
   date.setMonth(currentMonth + monthsToAdd);
@@ -611,22 +728,22 @@ function monthListener(cta, isNext) {
       tradeDate = changeMonth(tradeDate, 1);
       datePicker.setDate(tradeDate, true);
       // update url
-      // eslint-disable-next-line no-undef
-      filtersArray.tradeDate = [{ id: dayjs(tradeDate).format('YYYY-MM-DD') }];
+      filtersArray.tradeDate = [{ id: dayjs.utc(tradeDate).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
       getLeftPanelDays();
+      getEvents();
     } else {
       tradeDate = changeMonth(tradeDate, -1);
       datePicker.setDate(tradeDate, true);
       // update url
-      // eslint-disable-next-line no-undef
-      filtersArray.tradeDate = [{ id: dayjs(tradeDate).format('YYYY-MM-DD') }];
+      filtersArray.tradeDate = [{ id: dayjs.utc(tradeDate).format('YYYY-MM-DD') }];
       updateURLFilters(filtersArray);
       // service here
       leftPanelSelectedDay = tradeDate;
       getLeftPanelDays();
+      getEvents();
     }
   });
 }
@@ -661,9 +778,11 @@ function setupLateralDaysListeners(daysList) {
         innerActiveElem.classList.remove('active-date');
       }
       day.parentElement.classList.add('active-date');
-      // eslint-disable-next-line no-undef
-      leftPanelSelectedDay = dayjs(new Date(day.dataset.date)).format('YYYY-MM-DD');
+      leftPanelSelectedDay = dayjs.utc(day.dataset.date).format('YYYY-MM-DD');
+      nthEvents = day.dataset.nthEvents;
       // service here
+      // eslint-disable-next-line no-use-before-define
+      getEvents();
     });
   });
 }
@@ -672,16 +791,16 @@ function renderResultListSection(days) {
   const filteredDays = getResultDays(days);
   lateralDaysList.innerHTML = `
   <ul>
-    ${filteredDays.map(({ date, totalEventsCount }) => {
-    // eslint-disable-next-line no-undef
-    const isActiveDate = dayjs(new Date(leftPanelSelectedDay)).format('YYYY-MM-DD') === dayjs(new Date(date)).format('YYYY-MM-DD');
-    // eslint-disable-next-line no-undef
-    const dayName = dayjs(date).format('dddd');
-    // eslint-disable-next-line no-undef
-    const dayWithSuffix = dayjs(date).format('Do');
+    ${filteredDays.map(({ date, totalEventsCount }, index) => {
+    if (index === 0) {
+      nthEvents = totalEventsCount;
+    }
+    const isActiveDate = dayjs.utc(leftPanelSelectedDay).format('YYYY-MM-DD') === dayjs.utc(date).format('YYYY-MM-DD');
+    const dayName = dayjs.utc(date).format('dddd');
+    const dayWithSuffix = dayjs.utc(date).format('Do');
     const li = `
             <li class=${isActiveDate ? 'active-date' : ''}>
-              <a role="button" tabindex="0" data-date=${date}>
+              <a role="button" tabindex="0" data-date=${date} data-nth-events=${totalEventsCount}>
                 <span class="number-date">${dayWithSuffix}</span>
                 <span class="name-date">${dayName}</span>
                 <span class="events-date ${totalEventsCount === 0 ? 'no-events' : ''}">${totalEventsCount} Events</span>
@@ -692,16 +811,370 @@ function renderResultListSection(days) {
   }).join('')}
   </ul>`;
   setupLateralDaysListeners(lateralDaysList);
+  // eslint-disable-next-line no-use-before-define
+  renderCalendarResume();
   return lateralDaysList;
 }
 
 function renderResultSection() {
   if (leftPanelDays?.events?.length > 0) {
-    resultListTableSection.innerHTML = '';
+    lateralDaysList.innerHTML = '';
     resultListTableSection.append(renderResultListSection(leftPanelDays.events));
   }
 
   return resultListTableSection;
+}
+
+function valueInTable(value1, value2) {
+  const numValue1 = parseFloat(value1);
+  const numValue2 = parseFloat(value2);
+  if (value1 != null && value2 != null
+    && !Number.isNaN(numValue1) && !Number.isNaN(numValue2)) {
+    if (numValue1 > numValue2) {
+      return 'positive';
+    } if (numValue1 < numValue2) {
+      return 'negative';
+    }
+  }
+  return '';
+}
+
+function setupEventAccordionCardListeners(accordionCardListContainer) {
+  const accordionCardList = accordionCardListContainer.querySelectorAll('.event-accordion-card');
+  accordionCardList.forEach((accordionCard) => {
+    accordionCard.addEventListener('click', (event) => {
+      if (event.target.closest('a')) {
+        return;
+      }
+      const accordionCardHeader = accordionCard.querySelector('.event-accordion-card-header');
+      const accordionCardBody = accordionCard.querySelector('.collapse');
+      const isOpen = accordionCardHeader && accordionCardHeader.classList.contains('open');
+      accordionCardList.forEach((card) => {
+        const cardHeader = card.querySelector('.event-accordion-card-header');
+        const cardBody = card.querySelector('.collapse');
+        if (cardHeader) {
+          cardHeader.classList.remove('open');
+        }
+        if (cardBody) {
+          cardBody.classList.remove('show');
+        }
+      });
+
+      if (!isOpen) {
+        if (accordionCardHeader) {
+          accordionCardHeader.classList.add('open');
+        }
+        if (accordionCardBody) {
+          accordionCardBody.classList.add('show');
+        }
+      }
+    });
+  });
+}
+
+function renderDesktopAccordion(eventsToRender) {
+  eventCalendarTBody.innerHTML = `
+    ${eventsToRender.map(({
+    country,
+    date,
+    eventName,
+    eventValues,
+    impact,
+    nextReleaseDate,
+    tags,
+    text,
+    title,
+    url,
+  }, index) => {
+    const timeFormatted = `${dayjs.utc(date).format('hh:mm A [CT]')}` || '-';
+    const nextReleaseDateFormatted = `${dayjs.utc(nextReleaseDate).format('dddd DD MMM YYYY')}` || '-';
+    const {
+      actual,
+      consensus,
+      isConsensus,
+      isReport,
+      previous,
+    } = eventValues[0];
+    const actualResult = valueInTable(actual, previous);
+    const consensusResult = valueInTable(consensus, previous);
+    const isExpandable = !!text;
+    const div = `
+      <div class="event-accordion-card">
+        <div data-index=${index} class="event-accordion-card-header ${isExpandable ? '' : 'not-expandable'}">
+          <div class="event-container">
+            <ul>
+              <li class="time">${timeFormatted}</li>
+              <li class="country">
+                <div class="country-content">
+                <div class="flag-icon ${country.toLowerCase()}"></div>
+                <span>${country}</span>
+                </div>
+              </li>
+              <li>
+                <a href=${url} target="_self">
+                  <span class="event-name">${eventName || '-'}</span>
+                  <i class="icon"></i>
+                  ${(isReport || isConsensus) ? (
+    `<span class="label">
+                      ${isReport ? 'report' : 'consensus'}
+                    </span>`
+  ) : ''}
+                </a>
+              </li>
+              <li class=${actualResult}>${actual || '-'}</li>
+              <li>${previous || '-'}</li>
+              <li class=${consensusResult}>${consensus || '-'}</li>
+              <li>
+                <div class="impact ${impact.toLowerCase()}"><div>
+                <div></div>
+              </li>
+              <li></li>
+            </ul>
+          </div>
+        </div>
+        ${isExpandable ? (`
+        <div class="collapse">
+          <div class="event-accordion-card-body">
+            <div class="expandable-content">
+              <span class="highlight">${title}</span>
+              <div class="main-content">
+                <div class="left-section">
+                  <p class="text">${text}</p>
+                  <div class="more">
+                    <span class="icon"></span>
+                    <a href=${url}>Read more</a>
+                  </div>
+                </div>
+                <div class="right-section">
+                  <div class="tags-section">
+                    <span class="bold">Tags:</span>
+                    <div>
+                    ${tags.map((tagEl) => {
+      const tag = `<span class="tag">${tagEl}</span>`;
+      return tag;
+    }).join('')}
+                    </div>
+                  </div>
+                  <div>
+                    <span class="bold">Next release date:</span>${nextReleaseDateFormatted}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        `) : ''}
+      </div>`;
+    return div;
+  }).join('')}`;
+  setupEventAccordionCardListeners(eventCalendarTBody);
+}
+
+function renderMobileAccordion(eventsToRender) {
+  eventCalendarTBody.innerHTML = `
+    ${eventsToRender.map(({
+    country,
+    date,
+    eventName,
+    eventValues,
+    impact,
+    tags,
+    text,
+    title,
+    url,
+  }, index) => {
+    const timeFormatted = `${dayjs.utc(date).format('hh:mm A [CT] |')}` || '-';
+    const {
+      actual,
+      consensus,
+      isConsensus,
+      isReport,
+      previous,
+    } = eventValues[0];
+    const actualResult = valueInTable(actual, previous);
+    const consensusResult = valueInTable(consensus, previous);
+    const isExpandable = !!text;
+    const div = `
+      <div class="event-accordion-card mobile-accordion">
+        <div data-index=${index} class="event-accordion-card-header ${isExpandable ? '' : 'not-expandable'}">
+          <div class="event-container mobile">
+            <div class="mobile-first-row">
+              <div>
+                <span class="time">${timeFormatted}</span>
+              </div>
+              <div class="event-details">
+                <span class="event-name">${eventName || '-'}</span>
+                ${(isReport || isConsensus) ? (
+    `<span class="label">
+                      ${isReport ? 'report' : 'consensus'}
+                    </span>`
+  ) : ''}
+              </div>
+            </div>
+            <div class="mobile-second-row">
+              <ul>
+                <li class="country">
+                    <div class="country-content">
+                      <div class="flag-icon ${country.toLowerCase()}"></div>
+                      <span>${country}</span>
+                    </div>
+                </li>
+                <li class="act">
+                  <span>Act</span><span class=${actualResult}>${actual || '-'}</span>
+                </li>
+                <li class="prev">
+                  <span>Prev</span><span>${previous || '-'}</span>
+                </li>
+                <li>
+                  <span>Cons</span><span class=${consensusResult}>${consensus || '-'}</span>
+                </li>
+                <li class="impct"><span>Impact</span><span>
+                  <div class="impact ${impact.toLowerCase()}"><div></div></div>
+                </li>
+              </ul>
+            </div> 
+          </div>
+        </div>
+        ${isExpandable ? (`
+        <div class="collapse">
+          <div class="event-accordion-card-body">
+            <div class="expandable-content mobile">
+              <div class="main-content">
+                <span class="highlight">${title}</span>
+                <p class="text">${text}</p>
+                <div class="tags-section">
+                  <span class="bold">Tags:</span>
+                  <div>
+                    ${tags.map((tagEl) => {
+      const tag = `<span class="tag">${tagEl}</span>`;
+      return tag;
+    }).join('')}
+                  </div>
+                </div>
+                <div class="more">
+                  <span class="icon"></span>
+                  <a href=${url}>Read more</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        `) : ''}
+      </div>`;
+    return div;
+  }).join('')}`;
+  setupEventAccordionCardListeners(eventCalendarTBody);
+}
+
+function renderDesktopNoResults() {
+  const formateDateForNoResults = dayjs.utc(leftPanelSelectedDay).format('Do MMM YYYY');
+  eventCalendarTBody.innerHTML = `
+    <div class="no-results">
+      <p>There are
+      <span> no matching </span>
+      reports for
+      <span> "${formateDateForNoResults}"</span>
+      </p>
+      <p>See other dates or refilter results</p>
+    </div>
+  `;
+}
+
+function renderMobileNoResults() {
+  eventCalendarTBody.innerHTML = `
+    <div class="no-results">
+      <p>
+        <span class="calendar-icon"></span>
+        No Matching Events
+      </p>
+    </div>
+  `;
+}
+
+function renderEvents() {
+  // clear table body
+  eventCalendarTBody.innerHTML = '';
+  if (Array.isArray(events) && events.length > 0) {
+    if (isDesktop) {
+      renderDesktopAccordion(events);
+    } else {
+      renderMobileAccordion(events);
+    }
+  } else if (isDesktop) {
+    renderDesktopNoResults();
+  } else {
+    renderMobileNoResults();
+  }
+
+  eventCalendarTable.append(eventCalendarTBody);
+}
+
+function renderEventsTableHeader() {
+  eventCalendarTHead.innerHTML = `
+    <ul>
+      <li>${timeLabel}</li>
+      <li>${countryLabel}</li>
+      <li>${eventLabel}</li>
+      <li>${actualLabel}</li>
+      <li>
+        ${previousLabel}
+        <div class="tooltip-container">
+          <span class="info-icon"></span>
+          <div class="tooltip">
+            <p>
+              ${previousInfoLabel}
+            </p>
+          </div>
+        </div>
+      </li>
+      <li>${consensusLabel}</li>
+      <li>
+      ${impactLabel}
+      <div class="tooltip-container">
+        <span class="info-icon"></span>
+        <div class="tooltip impact-tooltip">
+          <div class="impact-info">
+            <ul>
+              <li><span class="bullet"></span>${highImpactLabel}</li>
+              <li><span class="bullet"></span>${minimalImpactLabel}</li>
+              <li><span class="bullet"></span>${lowImpactLabel}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      </li>
+      <li></li>
+    </ul>
+  `;
+  eventCalendarTable.append(eventCalendarTHead);
+  return eventCalendarTable;
+}
+
+function renderCalendarResume() {
+  if (isDesktop) {
+    const formateDateForResume = dayjs.utc(leftPanelSelectedDay).format('Do MMM YYYY');
+    calendarResume.innerHTML = `
+    <p>
+      Showing<span> '${nthEvents === '0' ? 'NO' : nthEvents}' </span>Matching Events for<span> "${formateDateForResume}"</span>
+    </p>
+    `;
+  } else {
+    calendarResume.innerHTML = `
+    <p>
+      <span class="calendar-icon"></span>
+      ${nthEvents} Matching Events
+    </p>
+    `;
+  }
+  return calendarResume;
+}
+
+function renderEventSection() {
+  calendarTableContainer.append(renderCalendarResume());
+  calendarTableContainer.append(renderEventsTableHeader());
+  renderEvents();
+
+  return calendarTableContainer;
 }
 
 function customDropdownListener(dropdown) {
@@ -728,11 +1201,19 @@ function customDropdownListener(dropdown) {
       showingDays = value;
       renderResultListSection(leftPanelDays.events);
 
+      eventCalendarTBody.classList.forEach((className) => {
+        if (className.startsWith('showing-days-')) {
+          eventCalendarTBody.classList.remove(className);
+        }
+      });
+
       listItems.forEach((li) => li.classList.remove('active'));
       item.classList.add('active');
 
       dropdownList.classList.remove('open');
       dropdownHeader.classList.remove('open');
+
+      eventCalendarTBody.classList.add(`showing-days-${showingDays}`);
     });
   });
 
@@ -770,6 +1251,7 @@ function renderDatePicker() {
       openDatePickerMobileContainer();
     }
   });
+  inputDate.readOnly = true;
   inputDateContainer.append(inputDate);
   filtersDateContainer.append(inputDateContainer);
 
@@ -842,14 +1324,8 @@ function initFilters() {
   const impactIds = getUrlFilterParam(params.attributeParam);
   filtersArray['input-impact'] = createFilterPillsArrayFromUrl('impact', impactIds);
   const date = getUrlFilterParam(params.tradeDateParam);
-  if (date.length > 0) {
-    // eslint-disable-next-line no-undef
-    tradeDate = dayjs(date).$d;
-    filtersArray.tradeDate = [{ id: date }];
-  } else {
-    // eslint-disable-next-line no-undef
-    filtersArray.tradeDate = [{ id: dayjs(tradeDate).format('YYYY-MM-DD') }];
-  }
+  tradeDate = dayjs.utc(date.length ? date : Date.now()).tz('America/Chicago', true).$d;
+  filtersArray.tradeDate = [{ id: dayjs.utc(tradeDate).format('YYYY-MM-DD') }];
 
   // render pills
   renderCurrentPills(filtersArray);
@@ -857,14 +1333,16 @@ function initFilters() {
   // service
   leftPanelSelectedDay = tradeDate;
   getLeftPanelDays();
+  getEvents();
 }
 
 async function init(block, version) {
-  loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js');
-  loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js');
-  loadScript('/aemedge/scripts/third-party/dayjs/utc.js');
-  loadScript('/aemedge/scripts/third-party/dayjs/timezone.js');
-  loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js');
+  /* eslint-disable no-undef */
+  dayjs.extend(dayjs_plugin_utc);
+  dayjs.extend(dayjs_plugin_timezone);
+  dayjs.tz.setDefault('America/Chicago');
+  dayjs.extend(dayjs_plugin_advancedFormat);
+  /* eslint-enable no-undef */
   await initializeLabels();
   economicFilters = await getEconomicReleaseFilters();
   initFilters();
@@ -883,27 +1361,52 @@ async function init(block, version) {
       const crossedBreakpointDown = (prevWindowWidth > 1200 && windowWidth <= 1199);
       const crossedBreakpointUp = (prevWindowWidth <= 1199 && windowWidth >= 1200);
       if (crossedBreakpointDown) {
+        calendarResume.innerHTML = '';
+        eventCalendarTBody.innerHTML = '';
+        eventCalendarTBody.append(spinnerInEventCalendar);
         isDesktop = window.innerWidth > 1200;
         datePicker.hide();
+        setTimeout(() => {
+          // 1.5 seconds delay for visual effect
+          renderCalendarResume();
+          renderEvents();
+        }, 1500);
       }
       if (crossedBreakpointUp) {
+        calendarResume.innerHTML = '';
+        calendarResume.append(spinnerInEventCalendar);
+        eventCalendarTBody.innerHTML = '';
+        eventCalendarTBody.append(spinnerInEventCalendar);
         isDesktop = window.innerWidth > 1200;
         renderCurrentPills(filtersArray);
+        setTimeout(() => {
+          // 1.5 seconds delay for visual effect
+          renderCalendarResume();
+          renderEvents();
+        }, 1500);
         const openInputsCurtain = document.querySelector('.inputs-curtain.is-open');
         if (openInputsCurtain) {
           closeFiltersInputsContainer();
           datePicker.hide();
           // call service with variables here
           getLeftPanelDays();
+          getEvents();
         }
       }
       prevWindowWidth = windowWidth;
-      if (pillsInnerContainer.clientHeight > 160) {
-        filtersCurrentContainer.append(filterExpander);
-      } else {
-        filterExpander.remove();
-      }
+      isFilterExpandedNeeded();
     }, 50);
+  });
+
+  let scrollTimeout;
+  window.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const datepickerOpen = document.querySelector('.qs-datepicker-container:not(.qs-hidden)');
+      if (datepickerOpen) {
+        getDatePickerVerticalPosition(datepickerOpen);
+      }
+    }, 500);
   });
 
   const filterSection = renderFilterSection();
@@ -913,12 +1416,6 @@ async function init(block, version) {
   block.append(eventCalendarContainer);
 
   renderPillsExpandBtn();
-  // eslint-disable-next-line no-undef
-  dayjs.extend(dayjs_plugin_utc);
-  // eslint-disable-next-line no-undef
-  dayjs.extend(dayjs_plugin_timezone);
-  // eslint-disable-next-line no-undef
-  dayjs.extend(dayjs_plugin_advancedFormat);
   initDatePicker();
 }
 
@@ -929,5 +1426,16 @@ export default async function decorate(block) {
   } = dataBlock;
 
   block.innerHTML = '';
+  // Array to hold promises for script loading
+  const scriptPromises = [
+    loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/utc.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/timezone.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js'),
+  ];
+
+  // Wait for all scripts to load
+  await Promise.all(scriptPromises);
   init(block, version);
 }
