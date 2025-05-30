@@ -48,13 +48,13 @@ const lessonCard = async (card, item) => {
 };
 
 const courseImageCard = async (card, item) => {
-  const image = img({ src: item.image });
+  const image = img({ src: item.image, alt: item.title });
   await courseCard(card, item);
   card.children[0]?.prepend(image);
 };
 
 const lessonImageCard = async (card, item) => {
-  const image = img({ src: item.image });
+  const image = img({ src: item.image, alt: item.title });
   await lessonCard(card, item);
   card.children[0]?.prepend(image);
 };
