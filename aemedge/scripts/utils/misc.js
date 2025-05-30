@@ -309,3 +309,33 @@ export function find(collection, predicate, fromIndex = 0) {
 
   return undefined;
 }
+
+export function escapeHtmlTags(str, exceptions) {
+  const regexPattern = '<\\/?[^>]+>';
+  const regex = new RegExp(regexPattern, 'g');
+  const tagStack = [];
+
+  return str?.replace(regex, (match) => {
+    const isClosingTag = match[1] === '/';
+    const currentMatch = match?.match(/<\/?(\w+)/);
+    const tagName = (currentMatch && currentMatch[1]) || '';
+
+    if (exceptions.length === 0) {
+      return '';
+    }
+
+    if (exceptions.includes(tagName)) {
+      if (!isClosingTag) {
+        tagStack.push(tagName);
+      } else if (
+        tagStack.length > 0
+        && tagStack[tagStack.length - 1] === tagName
+      ) {
+        tagStack.pop();
+      }
+      return match;
+    }
+
+    return '';
+  });
+}
