@@ -172,7 +172,7 @@
 .hero.event .economic-release-info a .icon {
     height: 0.5625rem;
     width: 0.5625rem;
-    margin-top: -10px;
+    margin-top: -0.625rem;
 }
 
 .hero.event .economic-release-info a .icon img {
@@ -221,8 +221,8 @@
     color: var(--gray3);
     font-family: var(--averta);
     font-weight: 700;
-    font-size: 16px;
-    line-height: 24px;
+    font-size: 1rem;
+    line-height: 1.5rem;
 }
 
 .hero.event .economic-release-data .economic-release-data-date-value {
