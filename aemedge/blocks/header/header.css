@@ -8,6 +8,7 @@
 .header.hidden {
     transform: translateY(-6.25rem);
     opacity: 0;
+    transition-delay: 0.5s;
 }
 
 body.scrolling-down .header {
