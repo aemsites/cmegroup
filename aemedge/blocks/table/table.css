@@ -6,7 +6,8 @@
 .table table {
   width: 100%;
   max-width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: var(--body-font-size-xs);
 }
 
@@ -22,7 +23,7 @@
   }
 }
 
-.table table thead tr {
+.table table thead tr th {
   border-top: 2px solid #dadada;
   border-bottom: 2px solid #dadada;
 }
@@ -156,7 +157,7 @@
 .table table td {
   padding: 0.5em;
   text-align: left;
-  border: 1px solid #dadada;
+  border: 0.5px solid #dadada;
 }
 
 .table.no-header table tbody tr {
@@ -223,4 +224,108 @@
     border-top: 1px solid #dadada;
     width: 100%;
   }
+}
+
+.table.fixed-row-header {
+    overflow: inherit;
+    width: 100%;
+}
+
+.table.fixed-row-header table {
+    position: relative;
+}
+
+.table.fixed-row-header table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    transition: top 0.3s ease;
+}
+
+@media (width <= 480px) {
+    .table.fixed-column-xs {
+        overflow: auto;
+    }
+
+    .table.fixed-column-xs table th:first-child {
+        left: 0;
+        position: sticky;
+        z-index: 2;
+    }
+
+    .table.fixed-column-xs table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+    }
+}
+
+@media (width <= 768px) {
+    .table.fixed-column-s {
+        overflow: auto;
+    }
+
+    .table.fixed-column-s table th:first-child {
+        left: 0;
+        position: sticky;
+        z-index: 2;
+    }
+
+    .table.fixed-column-s table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+    }
+}
+
+@media (width <= 992px) {
+    .table.fixed-column-m {
+        overflow: auto;
+    }
+
+    .table.fixed-column-m table th:first-child {
+        left: 0;
+        position: sticky;
+        z-index: 2;
+    }
+
+    .table.fixed-column-m table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+    }
+}
+
+@media (width <= 1200px) {
+    .table.fixed-column-l {
+        overflow: auto;
+    }
+
+    .table.fixed-column-l table th:first-child {
+        left: 0;
+        position: sticky;
+        z-index: 2;
+    }
+
+    .table.fixed-column-l table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+    }
+}
+
+.table.fixed-column-xl {
+    overflow: auto;
+}
+
+.table.fixed-column-xl table th:first-child {
+    left: 0;
+    position: sticky;
+    z-index: 2;
+}
+
+.table.fixed-column-xl table tbody td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
 }
