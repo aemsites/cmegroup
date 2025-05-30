@@ -25,6 +25,7 @@ const createOption = (value, labelText, type, className, filterId, index) => {
 
   wrapper.addEventListener('click', (e) => {
     if (e.target !== cb) {
+      e.preventDefault();
       cb.checked = !cb.checked;
       cb.dispatchEvent(new Event('change'));
     }
