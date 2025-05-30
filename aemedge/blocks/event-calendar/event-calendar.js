@@ -285,6 +285,8 @@ function handleInputSearch(e) {
       getLeftPanelDays();
       getEvents();
     }, 400);
+  } else if (filterSearchInputContainer.contains(cleanInput)) {
+    cleanInput.remove();
   }
 }
 
