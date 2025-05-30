@@ -79,6 +79,14 @@ header .nav {
     justify-content: space-between;
 }
 
+.mobile-right-side button{
+    justify-content: center;
+}
+
+.mobile-right-side-in-nav button{
+    justify-content: center;
+}
+
 button.nav-toggle,
 button.nav-close,
 button.search-icon {
@@ -344,6 +352,8 @@ button.search-icon::before {
 .nav-nav-item-menu {
     display: none;
     background-color: var(--blue2);
+    overflow-y: auto;
+    max-height: calc(100vh - 6.25rem);
 }
 
 .nav-nav-item.has-menu.is-open {
@@ -860,6 +870,10 @@ button.search-icon::before {
     padding: .75rem 2rem;
 }
 
+.item-menu-container  {
+    padding-bottom: 3.125rem;
+}
+
 @media (width > 481px) {
     .main-home-link a,
     .nav-menu-container .nav-subnav .nav-subnav-item .nav-nav-item-submenu li a {
@@ -984,8 +998,8 @@ button.search-icon::before {
     }
 
     .nav-nav-item.secondary.has-menu.is-open .nav-nav-item-menu {
-        left: 30%;
-        width: 70vw;
+        left: 25%;
+        width: auto;
     }
 
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container {
@@ -998,8 +1012,13 @@ button.search-icon::before {
     }
 
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container .item-menu-column {
-        width: 58.3333%;
+        width: 66.6666%;
         padding: 0;
+    }
+
+    .nav-nav-item.has-menu.primary.is-open .nav-nav-item-menu#nav-menu-0 .item-menu-container .item-menu-column,
+    .nav-nav-item.has-menu.primary.is-open .nav-nav-item-menu#nav-menu-1 .item-menu-container .item-menu-column {
+        width: 58.3333%;
     }
 
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container .main-home-link {
@@ -1080,7 +1099,12 @@ button.search-icon::before {
     }
 
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container .promo-box-subnav {
-        width: 41.6667%
+        width: 33.3333%
+    }
+    
+    .nav-nav-item.primary.has-menu.is-open .nav-nav-item-menu#nav-menu-0 .item-menu-container .promo-box-subnav,
+    .nav-nav-item.primary.has-menu.is-open .nav-nav-item-menu#nav-menu-1 .item-menu-container .promo-box-subnav {
+        width: 41.6666%
     }
 
     .nav-nav-item.has-menu.is-open .nav-nav-item-menu .item-menu-container .promo-box-subnav .section .layout {

@@ -1,3 +1,5 @@
+import { store } from '../../scripts/store/store.js';
+
 function buildCell(colspan = 1, rowspan = 1, header = false) {
   const cell = header ? document.createElement('th') : document.createElement('td');
   if (colspan > 1) cell.setAttribute('colspan', colspan);
@@ -105,7 +107,31 @@ function populateStyleMatrix(data, blockClassList, header = false) {
   return styleMatrix;
 }
 
+function moveHeadRows(block) {
+  const table = block.querySelector('table');
+  const thead = table.querySelector('thead');
+  if (!thead) {
+    return;
+  }
+  let tbody = table.querySelector('tbody');
+  if (!tbody) {
+    tbody = document.createElement('tbody');
+    table.appendChild(tbody);
+  }
+  const rows = Array.from(thead.querySelectorAll('tr'));
+  const firstRow = tbody.firstChild;
+  rows.forEach((row) => {
+    tbody.insertBefore(row, firstRow);
+  });
+  thead.remove();
+}
+
 export default async function decorate(block) {
+  const containsHeader = block.classList.contains('contains-header');
+  if (containsHeader) {
+    moveHeadRows(block);
+  }
+
   const data = block.querySelector('table tbody');
   const table = document.createElement('table');
   const thead = document.createElement('thead');
@@ -170,4 +196,13 @@ export default async function decorate(block) {
       }
     });
   }
+  store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
+    document.querySelectorAll('.table.fixed-row-header thead th').forEach((th) => {
+      if (getComputedStyle(th.closest('.table')).overflow === 'auto') {
+        th.style.top = 'auto';
+      } else {
+        th.style.top = `${height}px`;
+      }
+    });
+  });
 }
