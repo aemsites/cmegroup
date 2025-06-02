@@ -158,6 +158,8 @@
         line-height: 1.25rem;
         position: absolute;
         margin-bottom: 0;
+        letter-spacing: normal;
+        font-family: var(--averta);
     }
 }
 
@@ -170,7 +172,7 @@
 .hero.event .economic-release-info a .icon {
     height: 0.5625rem;
     width: 0.5625rem;
-    padding-right: 0.3125rem;
+    margin-top: -0.625rem;
 }
 
 .hero.event .economic-release-info a .icon img {
@@ -219,11 +221,12 @@
     color: var(--gray3);
     font-family: var(--averta);
     font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.5rem;
 }
 
 .hero.event .economic-release-data .economic-release-data-date-value {
     display: block;
-    font-family: var(--body-font-family);
     font-weight: 400;
 }
 

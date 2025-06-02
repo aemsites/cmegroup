@@ -41,6 +41,7 @@
 
 .event-calendar-container .filter-section-container .filters-block button.toggle-button {
     width: 100%;
+    display: block;
 }
 
 @media (width >=1200px) {
@@ -223,7 +224,7 @@
     display: inline-flex;
     flex-direction: column;
     padding: 0.0625rem;
-    justify-content: end;
+    justify-content: center;
     position: relative;
     font-family: var(--averta);
     font-size: .875rem;
@@ -267,7 +268,7 @@
 
 .event-calendar-container details.checkbox-dropdown[open] summary {
     margin-bottom: 0.125rem;
-    margin-top: 0.4375rem;
+    margin-top: 0.1875rem;
 }
 
 .event-calendar-container details.checkbox-dropdown[open] summary::after {
@@ -283,6 +284,7 @@
     max-height: 12.5rem;
     scrollbar-width: thin;
     scrollbar-color: var(--gray11) var(--white);
+    margin-top: 0.1875rem;
 }
 
 .event-calendar-container .checkbox-dropdown fieldset {
@@ -316,6 +318,7 @@
     padding: .375rem .375rem .375rem .625rem;
     width: fill-available;
     width: -webkit-fill-available;
+    letter-spacing: normal;
 }
 
 .event-calendar-container .checkbox-dropdown ul li label:hover {
@@ -392,6 +395,7 @@
 
 .event-calendar-container .filters-inputs-container.is-open .btn-container button {
     width: 45%;
+    display: block;
 }
 
 .event-calendar-container .filters-inputs-container.is-open .btn-container button.secondary {
@@ -608,6 +612,7 @@
     border: 0 solid transparent;
     border-radius: 0;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .event-calendar-container .event-calendar-datepicker.datepicker-open {
@@ -634,8 +639,11 @@
     flex-direction: column;
     float: left;
     width: 100%;
-    max-width: 17.875rem;
     transform: translateY(-37.5rem);
+}
+
+.event-calendar-container .qs-datepicker-container.on-top {
+    top: -355px !important;
 }
 
 @media (width >=1200px) {
@@ -1343,6 +1351,7 @@
         font-weight: 600;
         font-family: var(--averta);
         padding-right: 0;
+        text-transform: uppercase;
     }
 
     .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span::before {
@@ -1727,6 +1736,12 @@
     text-decoration: none;
 }
 
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a .event-name {
+    max-width: 9.375rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a .icon{
     align-self: center;
     color: var(--blue5);
@@ -1853,6 +1868,8 @@
  {
     color: var(--blue5);
     font-size: .75rem;
+    height: auto;
+    width: auto;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .left-section .more a:hover,
@@ -1875,6 +1892,7 @@
     line-height: 1;
     text-transform: none;
     content: var(--icon-arrow-right);
+    margin-right: 0.3125rem;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .right-section {

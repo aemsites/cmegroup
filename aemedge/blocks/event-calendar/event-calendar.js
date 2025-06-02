@@ -5,7 +5,7 @@ import {
   postEconomicReleaseDates,
   postEconomicReleaseEvents,
 } from '../../scripts/services/ProductCalendarService.js';
-import { URIUtil } from '../../scripts/utils/index.js';
+import { URIUtil, escapeHtmlTags } from '../../scripts/utils/index.js';
 
 const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
 const { body } = window.document;
@@ -273,12 +273,11 @@ function decorateCleanInputSearch() {
   cleanInput.addEventListener('click', async () => {
     cleanInputSearch();
   });
-  return cleanInput;
 }
 
 function handleInputSearch(e) {
   searchValueVar = e.target.value;
-  filterSearchInputContainer.append(decorateCleanInputSearch());
+  filterSearchInputContainer.append(cleanInput);
   if (searchValueVar !== '' && window.innerWidth >= 1200) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
@@ -286,6 +285,16 @@ function handleInputSearch(e) {
       getLeftPanelDays();
       getEvents();
     }, 400);
+  } else if (filterSearchInputContainer.contains(cleanInput)) {
+    cleanInput.remove();
+  }
+}
+
+function isFilterExpandedNeeded() {
+  if (pillsInnerContainer.clientHeight > 168) {
+    filtersCurrentContainer.append(filterExpander);
+  } else {
+    filterExpander.remove();
   }
 }
 
@@ -337,6 +346,7 @@ function removePillHandler(pill) {
       }
     }
   }
+  isFilterExpandedNeeded();
   updateURLFilters(filtersArray);
   getLeftPanelDays();
   getEvents();
@@ -407,6 +417,7 @@ function renderCurrentPills(pillsArray) {
     filtersCurrentContainer.innerHTML = '';
   }
 
+  isFilterExpandedNeeded();
   decoratePills(pillsInnerContainer);
   updateURLFilters(pillsArray);
 
@@ -575,6 +586,7 @@ function renderInputs() {
   const inputsFlexContainer = createElement('div', { class: 'inputs-flex-container' });
   filterSearchInput.placeholder = searchByEventLabel;
   filterSearchInputContainer.append(filterSearchInput);
+  decorateCleanInputSearch();
   inputsFlexContainer.append(filterSearchInputContainer);
 
   if (economicFilters && economicFilters.countries) {
@@ -591,6 +603,24 @@ function renderInputs() {
   filtersInputsContainer.append(filtersBtnContainer);
 
   return filtersInputsContainer;
+}
+
+function getDatePickerVerticalPosition(inputElement) {
+  const inputRect = inputElement.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+  // Estimate datepicker height
+  const estimatedDatepickerHeight = 355;
+  // Calculate space below the input
+  const spaceBelow = viewportHeight - (inputRect.top + inputRect.height);
+  // Calculate space above the input
+  const spaceAbove = inputRect.top;
+
+  if (spaceBelow >= estimatedDatepickerHeight || spaceBelow > spaceAbove) {
+    inputElement.classList.remove('on-top');
+  } else if (spaceAbove >= estimatedDatepickerHeight) {
+    inputElement.classList.add('on-top');
+  }
 }
 
 function createTodayBtn(instance) {
@@ -658,6 +688,7 @@ function initDatePicker() {
           instance.calendar.appendChild(createTodayBtn(instance));
         }
       }
+      getDatePickerVerticalPosition(instance.calendarContainer);
     },
     onHide: (instance) => {
       instance.calendarContainer.classList.remove('open-mobile');
@@ -910,7 +941,10 @@ function renderDesktopAccordion(eventsToRender) {
               <span class="highlight">${title}</span>
               <div class="main-content">
                 <div class="left-section">
-                  <p class="text">${text}</p>
+                  <p class="text">${escapeHtmlTags(text, ['br'])?.replace(
+      /<br\s*\/?>\s*(<br\s*\/?>)+/g,
+      '<br>',
+    )}</p>
                   <div class="more">
                     <span class="icon"></span>
                     <a href=${url}>Read more</a>
@@ -1012,7 +1046,10 @@ function renderMobileAccordion(eventsToRender) {
             <div class="expandable-content mobile">
               <div class="main-content">
                 <span class="highlight">${title}</span>
-                <p class="text">${text}</p>
+                <p class="text"><p class="text">${escapeHtmlTags(text, ['br'])?.replace(
+      /<br\s*\/?>\s*(<br\s*\/?>)+/g,
+      '<br>',
+    )}</p>
                 <div class="tags-section">
                   <span class="bold">Tags:</span>
                   <div>
@@ -1222,6 +1259,7 @@ function renderDatePicker() {
       openDatePickerMobileContainer();
     }
   });
+  inputDate.readOnly = true;
   inputDateContainer.append(inputDate);
   filtersDateContainer.append(inputDateContainer);
 
@@ -1364,12 +1402,19 @@ async function init(block, version) {
         }
       }
       prevWindowWidth = windowWidth;
-      if (pillsInnerContainer.clientHeight > 160) {
-        filtersCurrentContainer.append(filterExpander);
-      } else {
-        filterExpander.remove();
-      }
+      isFilterExpandedNeeded();
     }, 50);
+  });
+
+  let scrollTimeout;
+  window.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const datepickerOpen = document.querySelector('.qs-datepicker-container:not(.qs-hidden)');
+      if (datepickerOpen) {
+        getDatePickerVerticalPosition(datepickerOpen);
+      }
+    }, 500);
   });
 
   const filterSection = renderFilterSection();
