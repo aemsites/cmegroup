@@ -1,0 +1,44 @@
+.block.search .filter-bullets {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  background-color: var(--white);
+}
+
+.block.search .filter-bullets .filter-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-flow: row wrap;
+}
+
+.block.search .filter-bullets .filter-tags .filter-tag {
+  border: .0625rem solid var(--gray3);
+  border-radius: 1.875rem;
+  color: var(--gray3);
+  font-weight: normal;
+  background-color: var(--white);
+  font-size: .875rem;
+  height: max-content;
+  line-height: 1.25rem;
+  margin: .4375rem;
+  padding: .3125rem .9375rem;
+  white-space: nowrap;
+  text-transform: none;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.block.search .filter-bullets .filter-tags .filter-tag:hover {
+  border: .0625rem solid var(--blue4);
+  color: var(--blue4);
+}
+
+.block.search .filter-bullets .filter-tags .filter-tag::after {
+  color: var(--gray1);
+  font-size: 1.5625rem;
+  line-height: .875rem;
+  content: "×";
+}
