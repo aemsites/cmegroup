@@ -44,11 +44,17 @@
 
             <div class="config-section">
                 <h2>Path Selection</h2>
-                <div class="input-with-copy">
-                    <input type="text" id="path-input" class="form-control" placeholder="Enter path">
+                <div class="input-with-copy path-selection-container">
+                    <div class="path-multiselect-container">
+                        <div class="selected-paths"></div>
+                        <input type="text" id="path-input" class="form-control" placeholder="Type to search paths...">
+                        <div class="path-dropdown" style="display: none;">
+                            <div class="path-tree"></div>
+                        </div>
+                    </div>
                     <button class="copy-button" data-copy="path">
                         <span class="copy-icon">📋</span>
-                        <span class="copy-tooltip">Copy Path</span>
+                        <span class="copy-tooltip">Copy Paths</span>
                     </button>
                 </div>
             </div>

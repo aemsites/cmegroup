@@ -1,13 +1,22 @@
+import DA_SDK from 'https://da.live/nx/utils/sdk.js';
+import { DA_ORIGIN } from 'https://da.live/nx/public/utils/constants.js';
 import { getTaxonomy } from '../../../aemedge/scripts/taxonomy.js';
 
 class FilterConfig {
   constructor() {
-    // Wait for DOM to be loaded before initializing
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => this.initialize());
-    } else {
+    this.selectedPaths = new Set();
+    this.directoryStructure = {
+      type: 'folder',
+      children: {},
+    };
+    
+    // Initialize SDK
+    DA_SDK.then(({ context, token, actions }) => {
+      this.context = context;
+      this.token = token;
+      this.daFetch = actions.daFetch;
       this.initialize();
-    }
+    });
   }
 
   initialize() {
@@ -16,7 +25,12 @@ class FilterConfig {
     this.initializeTabs();
     this.initializeTagManager();
     this.initializeCopyButtons();
-    this.initializeTagger();
+    // this.initializeTagger();
+
+    // Load education directory structure
+    if (this.daFetch) {
+      this.updateDirectoryStructure('/education');
+    }
   }
 
   initializeTabs() {
@@ -88,8 +102,37 @@ class FilterConfig {
       checkbox.addEventListener('change', () => this.handleFormChange());
     });
 
+    // how i can add onclick listerner to template-option and from there call oncahnge of template-checkbox
+    this.templateOptions = document.querySelectorAll('.template-option');
+    this.templateOptions.forEach((option) => {
+      option.addEventListener('click', () => {
+        const checkbox = option.querySelector('.template-checkbox');
+        checkbox.checked = !checkbox.checked;
+        checkbox.dispatchEvent(new Event('change'));
+      });
+    });
+
     [this.pathInput, this.cardTypeSelect].forEach((element) => {
       element.addEventListener('change', () => this.handleFormChange());
+    });
+
+    // Initialize path selection
+    this.pathDropdown = document.querySelector('.path-dropdown');
+    this.pathTree = document.querySelector('.path-tree');
+    this.selectedPathsContainer = document.querySelector('.selected-paths');
+
+    // Build initial directory tree
+    this.renderDirectoryTree();
+
+    // Add event listeners for path selection
+    this.pathInput.addEventListener('input', () => this.handlePathSearch());
+    this.pathInput.addEventListener('focus', () => this.showPathDropdown());
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.path-multiselect-container')) {
+        this.hidePathDropdown();
+      }
     });
   }
 
@@ -125,7 +168,7 @@ class FilterConfig {
         break;
       }
       case 'path': {
-        textToCopy = this.pathInput?.value || '';
+        textToCopy = Array.from(this.selectedPaths).join(',');
         break;
       }
       case 'card': {
@@ -159,17 +202,22 @@ class FilterConfig {
     button.classList.add(className);
     tooltip.textContent = message;
     
+    // Store reference to avoid closure issues
+    const self = this;
     setTimeout(() => {
       button.classList.remove(className);
       tooltip.textContent = originalText;
+      self.handleFormChange();
     }, 2000);
   }
 
   logWarning(...args) {
+    this.lastWarning = args;
     console.warn(...args);
   }
 
   logError(...args) {
+    this.lastError = args;
     console.error(...args);
   }
 
@@ -177,7 +225,7 @@ class FilterConfig {
     // Get current values
     const config = {
       template: this.getSelectedTemplates(),
-      path: this.pathInput.value,
+      paths: Array.from(this.selectedPaths),
       cardType: this.cardTypeSelect.value,
       tags: Array.from(this.tags),
     };
@@ -193,7 +241,7 @@ class FilterConfig {
   getConfiguration() {
     return {
       template: this.getSelectedTemplates(),
-      path: this.pathInput.value,
+      paths: Array.from(this.selectedPaths),
       cardType: this.cardTypeSelect.value,
       tags: Array.from(this.tags),
     };
@@ -260,6 +308,7 @@ class FilterConfig {
   }
 
   buildHierarchicalMenu(taxonomy) {
+    this.currentTaxonomy = taxonomy;
     const menuItems = [];
 
     Object.entries(taxonomy).forEach(([type, category], catId) => {
@@ -368,6 +417,7 @@ class FilterConfig {
   }
 
   filterTags(e) {
+    this.lastSearchTerm = e.target.value;
     const searchTerm = e.target.value.toLowerCase().trim();
 
     if (!searchTerm) {
@@ -406,6 +456,258 @@ class FilterConfig {
       const hasVisiblePaths = category.querySelectorAll('.path:not(.filtered)').length > 0;
       category.style.display = hasVisiblePaths ? 'block' : 'none';
     });
+  }
+
+  renderDirectoryTree(searchTerm = '') {
+    if (!this.pathTree) {
+      this.pathTree = document.querySelector('.path-tree');
+      if (!this.pathTree) return;
+    }
+
+    // Render the tree HTML
+    this.pathTree.innerHTML = this.buildDirectoryTree(this.directoryStructure, searchTerm);
+    
+    // Add click handlers for directory items
+    this.pathTree.querySelectorAll('.path-tree-item').forEach((item) => {
+      const parentLi = item.closest('.directory-item');
+      if (!parentLi) return;
+
+      // Handle folder toggle click
+      const folderToggle = item.querySelector('.folder-toggle');
+      if (folderToggle) {
+        folderToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const ul = parentLi.querySelector('ul');
+          if (ul) {
+            const isExpanded = ul.style.display !== 'none';
+            ul.style.display = isExpanded ? 'none' : 'block';
+            folderToggle.textContent = isExpanded ? '▶' : '▼';
+            parentLi.classList.toggle('expanded', !isExpanded);
+          }
+        });
+      }
+
+      // Handle folder name click for selection
+      const itemName = item.querySelector('.item-name');
+      if (itemName) {
+        itemName.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const path = parentLi.dataset.path;
+          this.togglePathSelection(path);
+        });
+      }
+    });
+  }
+
+  /**
+   * Gets item icon based on type
+   * @param {string} type - Item type (file or folder)
+   * @returns {string} - Icon emoji to display
+   */
+  getItemIcon(type) {
+    return type === 'folder' ? '📁' : '📄';
+  }
+
+  buildDirectoryTree(structure, searchTerm = '', currentPath = '', level = 0) {
+    if (!structure || !structure.children) return '';
+    
+    let html = `<ul class="directory-list"${level > 0 ? ' style="display: none;"' : ''}>`;
+    
+    Object.entries(structure.children)
+      .filter(([_, item]) => item.type === 'folder') // Only show folders
+      .forEach(([name, item]) => {
+        const fullPath = currentPath ? `${currentPath}/${name}` : `/${name}`;
+        const isSelected = this.selectedPaths.has(fullPath);
+        // Check if folder has actual subfolders, not just empty children object
+        const hasSubfolders = item.children && 
+          Object.values(item.children).some(child => child.type === 'folder');
+        
+        // Check if item matches search term
+        if (searchTerm && !name.toLowerCase().includes(searchTerm.toLowerCase())) {
+          return;
+        }
+        
+        const indentClass = level > 0 ? 'indented' : '';
+        
+        html += `
+          <li class="directory-item ${isSelected ? 'selected' : ''} ${indentClass}" data-path="${fullPath}" data-type="folder">
+            <div class="path-tree-item directory-item-content">
+              <span class="item-icon">${hasSubfolders ? '📁' : '📂'}</span>
+              <span class="item-name" data-selectable="true">${this.highlightMatch(name, searchTerm)}</span>
+              ${isSelected ? '<span class="selected-indicator">✓</span>' : ''}
+              ${hasSubfolders ? '<span class="folder-toggle">▶</span>' : ''}
+            </div>
+        `;
+        
+        if (hasSubfolders) {
+          html += this.buildDirectoryTree(item, searchTerm, fullPath, level + 1);
+        }
+        
+        html += '</li>';
+      });
+    
+    html += '</ul>';
+    return html;
+  }
+
+  highlightMatch(text, searchTerm) {
+    if (!searchTerm) return text;
+    
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    return text.replace(regex, '<span class="highlight-match">$1</span>');
+  }
+
+  handlePathSearch() {
+    const searchTerm = this.pathInput.value.trim();
+    this.renderDirectoryTree(searchTerm);
+    this.showPathDropdown();
+  }
+
+  showPathDropdown() {
+    this.pathDropdown.style.display = 'block';
+  }
+
+  hidePathDropdown() {
+    this.pathDropdown.style.display = 'none';
+  }
+
+  togglePathSelection(path) {
+    if (this.selectedPaths.has(path)) {
+      this.selectedPaths.delete(path);
+    } else {
+      this.selectedPaths.add(path);
+    }
+    
+    this.updateSelectedPathsDisplay();
+    this.handleFormChange();
+  }
+
+  updateSelectedPathsDisplay() {
+    if (!this.selectedPathsContainer) return;
+    
+    this.selectedPathsContainer.innerHTML = '';
+    
+    if (this.selectedPaths.size === 0) {
+      this.selectedPathsContainer.innerHTML = '<div class="no-paths-selected">No paths selected</div>';
+      return;
+    }
+    
+    Array.from(this.selectedPaths).forEach(path => {
+      const pathElement = document.createElement('div');
+      pathElement.className = 'selected-path-item';
+      
+      const icon = this.getItemIcon(path.endsWith('/') ? 'folder' : 'file');
+      
+      pathElement.innerHTML = `
+        <span class="item-icon">${icon}</span>
+        <span class="path-text">${path}</span>
+        <button class="remove-path" onclick="window.filterConfig.togglePathSelection('${path}')" aria-label="Remove path">×</button>
+      `;
+      
+      this.selectedPathsContainer.appendChild(pathElement);
+    });
+  }
+
+  /**
+   * Gets direct children (files and folders) for a path
+   * @param {string} path - Path to get children for
+   * @returns {Promise<Object>} - Files and folders at the path
+   */
+  async getChildren(path) {
+    const files = [];
+    const folders = [];
+  
+    try {
+      const resp = await this.daFetch(`${DA_ORIGIN}/list${path}`);
+      if (resp.ok) {
+        const json = await resp.json();
+        json.forEach((child) => {
+          if (child.ext) {
+            files.push(child);
+          } else {
+            folders.push(child.path);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error getting children:', error);
+    }
+    
+    return { files, folders };
+  }
+
+  /**
+   * Updates directory structure with actual children from the server
+   * @param {string} path - Path to update children for
+   */
+  async updateDirectoryStructure(path = '/education') {
+    try {
+      const basePath = `/${this.context.org}/${this.context.repo}`;
+      const fullPath = `${basePath}${path}`;
+      
+      const { files, folders } = await this.getChildren(fullPath);
+      
+      // Format files and folders for display
+      const filesArray = files
+        .map((file) => ({
+          type: 'file',
+          name: file.name,
+          path: file.path,
+        }))
+        .filter((file) => file.name !== 'index');
+      
+      const foldersArray = folders.map((folder) => ({
+        name: folder.split('/').pop(),
+        type: 'folder',
+        path: folder,
+        children: {},
+      }));
+
+      // Get the path parts excluding empty strings
+      const pathParts = path.split('/').filter(Boolean);
+      
+      // Initialize root structure if it doesn't exist
+      if (!this.directoryStructure) {
+        this.directoryStructure = {
+          type: 'folder',
+          children: {},
+        };
+      }
+
+      // Navigate to the correct node in the structure
+      let currentNode = this.directoryStructure;
+      
+      // Navigate through the path parts and create structure as needed
+      for (let i = 0; i < pathParts.length; i++) {
+        const part = pathParts[i];
+        if (!currentNode.children[part]) {
+          currentNode.children[part] = {
+            type: 'folder',
+            children: {},
+          };
+        }
+        currentNode = currentNode.children[part];
+      }
+
+      // Update current node with files and folders
+      [...filesArray, ...foldersArray].forEach((item) => {
+        currentNode.children[item.name] = {
+          type: item.type,
+          children: item.type === 'folder' ? {} : undefined,
+          path: item.path,
+        };
+      }); 
+
+      // Recursively update child folders
+      await Promise.all(foldersArray.map(folder => 
+        this.updateDirectoryStructure(`${path}/${folder.name}`)
+      ));
+
+      // Re-render the directory tree
+      this.renderDirectoryTree();
+    } catch (error) {
+      console.error('Error updating directory structure:', error);
+    }
   }
 }
 
