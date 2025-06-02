@@ -22,6 +22,8 @@ const SECTION_SELECTORS = [
   '.crpy-4',
 ];
 
+const EDS_DOMAIN = 'https://main--www--cmegroup.aem.page';
+
 /**
  * This function fetches the template from the document.
  * @param {Document} document - The document to search.
@@ -38,4 +40,5 @@ const fetchTemplate = (document) => {
 export {
   fetchTemplate,
   SECTION_SELECTORS,
+  EDS_DOMAIN,
 };
