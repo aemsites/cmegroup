@@ -36,6 +36,7 @@
     --green: #00e473;
     --green2: #01ff70;
     --green3: #197b00;
+    --green-positive: #2ae303;
     --pink: #ffe2e4;
     --yellow: #feffe8;
     --white: #fff;
@@ -49,4 +50,8 @@
     --navy1: #1f3655;
     --navy2: #354a66;
     --blue-active-state: #005c99;
+    --notification-success-background: #e5f1e3;
+    --notification-success-tick: #1f9a00;
+    --notification-fail-tick: #9f0026;
+    --orange: #ff912e;
 }

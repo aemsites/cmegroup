@@ -60,7 +60,7 @@
                 {{#values}}
                 <tr>
                   <td>{{valueName}}</td>
-                  {{#hasConsensus}}<td>{{prefix}}{{consensus}}{{suffix}}</td>{{/hasConsensus}}
+                  {{#hasConsensus}}<td>{{#consensus}}{{prefix}}{{consensus}}{{suffix}}{{/consensus}}</td>{{/hasConsensus}}
                   {{#hasConsensusRange}}
                     <td>
                       {{#consensusRangeFrom}}{{prefix}}{{consensusRangeFrom}}{{suffix}}{{/consensusRangeFrom}}
@@ -68,9 +68,9 @@
                       {{#consensusRangeTo}}{{prefix}}{{consensusRangeTo}}{{suffix}}{{/consensusRangeTo}}
                     </td>
                   {{/hasConsensusRange}}
-                  {{#hasActual}}<td>{{prefix}}{{actual}}{{suffix}}</td>{{/hasActual}}
-                  {{#hasPrevious}}<td>{{prefix}}{{previous}}{{suffix}}</td>{{/hasPrevious}}
-                  {{#hasRevised}}<td>{{prefix}}{{revised}}{{suffix}}</td>{{/hasRevised}}
+                  {{#hasActual}}<td>{{#actual}}{{prefix}}{{actual}}{{suffix}}{{/actual}}</td>{{/hasActual}}
+                  {{#hasPrevious}}<td>{{#previous}}{{prefix}}{{previous}}{{suffix}}{{/previous}}</td>{{/hasPrevious}}
+                  {{#hasRevised}}<td>{{#revised}}{{prefix}}{{revised}}{{suffix}}{{/revised}}</td>{{/hasRevised}}
                 </tr>
                 {{/values}}
               </tbody>
@@ -82,7 +82,7 @@
     {{/hasValues}}
     {{#reports}}
     <div>
-      <div class="table">
+      <div class="table contains-header">
         <div>
           <div>
             {{{report}}}
@@ -136,12 +136,9 @@
         </div>
       </div>
       <h5 id="upcoming-events">Upcoming Events</h5>
-      <div class="cards dynamic article">
+      <div class="cards dynamic upcoming-events">
         <div>
-          <div>endpoint</div>
-          <div>
-            https://www.cmegroup.com/content/cmegroup/en/misc/api/content-feeds-for-google-docs/education-home-page-follow-the-markets/jcr:content/main-content-section/section/section-elements/search_sort_filter_d.ssfajax.0.0.json
-          </div>
+          <div></div>
         </div>
       </div>
     </div>

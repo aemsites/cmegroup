@@ -1,0 +1,56 @@
+.cards.upcoming-events ul .glider-track {
+    column-gap: 1.1875rem;
+}
+
+@media (width >= 993px) {
+    .cards.upcoming-events ul .glider-track {
+        column-gap: 1.5rem;
+    }
+}
+
+.cards.upcoming-events ul .glider-track .glider-slide {
+    box-shadow: 0 .0625rem .125rem 0 rgb(60 64 67 / 30%);
+    margin: 0.125rem;
+    padding: 1.25rem;
+    height: 7.5rem !important;
+}
+
+.cards.upcoming-events ul .glider-track .glider-slide a:hover {
+    text-decoration: none;
+}
+
+.cards.upcoming-events ul .glider-track .glider-slide .card-body {
+    height: 7.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.cards.upcoming-events ul .glider-track .glider-slide .card-body .card-title {
+    margin-bottom: auto;
+}
+
+.cards.upcoming-events ul .glider-track .glider-slide .card-body .card-date {
+    margin-top: auto;
+    color: var(--gray3);
+    font-family: var(--averta);
+    font-size: .6875rem;
+    letter-spacing: .09rem;
+    line-height: .875rem;
+    text-transform: uppercase;
+}
+
+.cards.upcoming-events ul .glider-track .glider-slide .card-body .card-text {
+    margin: 0;
+    color: var(--blue2);
+    font-family: var(--averta);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: .03rem;
+    line-height: 1.5rem;
+    text-overflow: ellipsis;
+    line-clamp: 2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;  
+    overflow: hidden;
+}

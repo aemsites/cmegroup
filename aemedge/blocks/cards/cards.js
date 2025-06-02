@@ -7,23 +7,31 @@ import {
   formatDate,
   i18n,
   decodeHtmlEntities,
+  buildSlider,
+  urlByEnvType,
+  formatToCentralTime,
+  getUTCfromDateString,
 } from '../../scripts/utils.js';
 
 const QUERY_INDEX_ENDPOINT = '/query-index.json';
+const ECONOMIC_EVENTS_ENDPOINT = `${urlByEnvType()}/services/economic-release-events`;
 
 async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
   if (block.classList.contains('links')) {
+    const titleWrapper = block.querySelector('h6').closest('div');
     const cardTitle = document.createElement('h6');
     cardTitle.textContent = block.querySelector('h6').textContent;
-    block.querySelector('h6').parentElement.parentElement.remove();
+    titleWrapper.remove();
     const container = document.createElement('div');
     container.className = 'main-list-container';
     [...block.children].forEach((row) => {
+      const columns = row.children.length;
       [...row.children].forEach((div) => {
         div.className = 'cards-card-body';
+        div.style.setProperty('--cols', columns);
+        container.append(div);
       });
-      container.append(row);
     });
     cardsContainer.append(cardTitle);
     cardsContainer.append(container);
@@ -69,8 +77,8 @@ async function createStaticCards(block) {
       readLabel,
       watchLabel,
     ] = await Promise.all([
-      i18n('read'),
-      i18n('watch'),
+      i18n('Read'),
+      i18n('Watch'),
     ]);
     const ul = document.createElement('ul');
     [...block.children].forEach((row) => {
@@ -97,7 +105,7 @@ async function createStaticCards(block) {
       cardSubtitle.className = 'cards-subtitle';
       const cardTime = document.createElement('span');
       cardTime.className = 'cards-time';
-      cardTime.innerText = `${time} ${format === 'video' ? watchLabel : readLabel}`;
+      cardTime.innerText = `${parseTime(time)} ${format === 'video' ? watchLabel : readLabel}`;
       const cardDate = document.createElement('span');
       cardDate.className = 'cards-date';
       cardDate.innerText = date;
@@ -177,8 +185,8 @@ export async function createDynamicCardArticle({ content }) {
     readLabel,
     watchLabel,
   ] = await Promise.all([
-    i18n('read'),
-    i18n('watch'),
+    i18n('Read'),
+    i18n('Watch'),
   ]);
 
   const li = document.createElement('li');
@@ -200,11 +208,13 @@ export async function createDynamicCardArticle({ content }) {
 
   const cardTime = document.createElement('span');
   cardTime.className = 'cards-time';
-  cardTime.innerText = `${duration} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
+  cardTime.innerText = `${parseTime(duration)} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
 
   const cardDate = document.createElement('span');
   cardDate.className = 'cards-date';
-  cardDate.innerText = formatDate(date);
+  const utcDate = getUTCfromDateString(date);
+  const { day, month } = formatToCentralTime(utcDate, false, false, ['month', 'day']);
+  cardDate.innerText = `${day} ${month}`;
 
   const cardTitle = document.createElement('h3');
   cardTitle.innerText = title;
@@ -229,6 +239,20 @@ function createDynamicCardThumbnailMedium({ content }) {
   const titletag = createElement('div', { class: 'card-title' }, paragraph);
   const cardBody = createElement('div', { class: 'card-body' }, titletag);
   const link = createElement('a', { href: path }, cardImgTop, cardBody);
+  return createElement('li', null, link);
+}
+
+function createDynamicCardUpcomingEvent(content) {
+  const {
+    url,
+    date,
+    title,
+  } = content;
+  const paragraph = createElement('p', { class: 'card-text' }, decodeHtmlEntities(title));
+  const titletag = createElement('div', { class: 'card-title' }, paragraph);
+  const datetag = createElement('div', { class: 'card-date' }, formatDate(date, true));
+  const cardBody = createElement('div', { class: 'card-body' }, titletag, datetag);
+  const link = createElement('a', { href: url }, cardBody);
   return createElement('li', null, link);
 }
 
@@ -282,28 +306,126 @@ export async function fetchAndFilterDataArticle(endpoint) {
   }
 }
 
+function getCurrentDateFormatted() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+async function fetchAndFilterUpcomingEvent() {
+  try {
+    const opts = {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        date: getCurrentDateFormatted(),
+        size: 10,
+      }),
+    };
+    const response = await fetch(ECONOMIC_EVENTS_ENDPOINT, opts);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.events;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error loading data:', error);
+    return [];
+  }
+}
+
 async function createDynamicCards(block) {
   const config = readBlockConfig(block);
   const ul = createElement('ul');
   let filteredData;
   let cardElements;
+  let sliderConfig = null;
+  let disabledOnDesktop = false;
+  let inverse = false;
   if (block.classList.contains('course')) {
     const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
     filteredData = await fetchAndFilterDataCourse(tags);
+    sliderConfig = {
+      slidesToShow: 'auto',
+      slidesToScroll: 1,
+      scrollLock: false,
+      itemWidth: 270,
+      exactWidth: true,
+      draggable: true,
+      duration: 2,
+      responsive: [
+        {
+          breakpoint: 481,
+          settings: {
+            itemWidth: 434,
+          },
+        },
+      ],
+    };
+    inverse = true;
+    disabledOnDesktop = true;
     cardElements = filteredData.map(createDynamicCard);
   } else if (block.classList.contains('article')) {
     const { endpoint } = config;
     filteredData = await fetchAndFilterDataArticle(endpoint);
     cardElements = await Promise.all(filteredData.map(createDynamicCardArticle));
+    sliderConfig = {
+      slidesToShow: 'auto',
+      slidesToScroll: 1,
+      scrollLock: false,
+      itemWidth: 255,
+      exactWidth: true,
+      draggable: true,
+      duration: 2,
+      responsive: [
+        {
+          breakpoint: 481,
+          settings: {
+            itemWidth: 426,
+          },
+        },
+      ],
+    };
+    disabledOnDesktop = true;
   } else if (block.classList.contains('thumbnail-medium')) {
     const { endpoint } = config;
     filteredData = await fetchAndFilterDataArticle(endpoint);
     cardElements = await Promise.all(filteredData.map(createDynamicCardThumbnailMedium));
+  } else if (block.classList.contains('upcoming-events')) {
+    filteredData = await fetchAndFilterUpcomingEvent();
+    cardElements = await Promise.all(filteredData.map(createDynamicCardUpcomingEvent));
+    sliderConfig = {
+      slidesToShow: 'auto',
+      slidesToScroll: 1,
+      scrollLock: false,
+      itemWidth: 249,
+      exactWidth: true,
+      draggable: true,
+      duration: 2,
+      responsive: [
+        {
+          breakpoint: 993,
+          settings: {
+            itemWidth: 324,
+          },
+        },
+      ],
+    };
   } else {
     cardElements = [];
   }
   ul.append(...cardElements);
   const cardsContainer = createElement('div', null, ul);
+  block.appendChild(cardsContainer);
+  if (sliderConfig) {
+    buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
+  }
   return cardsContainer;
 }
 
