@@ -1,3 +1,4 @@
+/* eslint-disable */
 import DA_SDK from 'https://da.live/nx/utils/sdk.js';
 import { DA_ORIGIN } from 'https://da.live/nx/public/utils/constants.js';
 import { getTaxonomy } from '../../../aemedge/scripts/taxonomy.js';
@@ -210,16 +211,6 @@ class FilterConfig {
       tooltip.textContent = originalText;
       self.handleFormChange();
     }, 2000);
-  }
-
-  logWarning(...args) {
-    this.lastWarning = args;
-    console.warn(...args);
-  }
-
-  logError(...args) {
-    this.lastError = args;
-    console.error(...args);
   }
 
   handleFormChange() {
