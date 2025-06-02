@@ -16,12 +16,15 @@ import {
   threeColumnsArticleXS, generalColumns, generateEndColumns,
 } from './case-study-article.js';
 import { standardArticleInitialColumns } from './standard-article.js';
-import { fetchTemplate, SECTION_SELECTORS } from './utils.js';
+import { fetchTemplate, SECTION_SELECTORS, EDS_DOMAIN } from './utils.js';
 import { customReportElements } from './report.js';
-import { removeCourseSpecificItem } from './course-lesson.js';
+import {
+  removeCourseSpecificItem,
+  moduleOrder,
+  handleFragments,
+} from './course-lesson.js';
 
 const DOMAIN = 'https://www.cmegroup.com';
-const EDS_DOMAIN = 'https://main--www--cmegroup.aem.page';
 
 export const buildSectionMetadata = (cells) => WebImporter.Blocks.createBlock(document, {
   name: 'Section Metadata',
@@ -50,7 +53,8 @@ async function setMetadata(meta, document, url) {
       template: 'course',
     },
     'cme-group-standalone-lesson-template': {
-      template: 'standalone-lesson',
+      template: 'lesson',
+      subTemplate: 'standalone',
     },
     'cme-group-video-article-template': {
       template: 'article',
@@ -69,10 +73,17 @@ async function setMetadata(meta, document, url) {
       meta['Sub Template'] = templates[template].subTemplate;
     }
   }
+
   if (readTime) {
-    const time = readTime.textContent.split(' ')[0].trim().toLowerCase();
-    const type = readTime.textContent.split(' ')[1]?.trim().toLowerCase();
-    meta['Read Time'] = `${time} ${type}`;
+    // const time = readTime?.textContent?.trim().split(' ')[0].trim().toLowerCase();
+    // if (time.includes(':')) {
+    //   const [minutes, seconds] = time.split(':');
+    //   const totalSeconds = Number(minutes) * 60 + Number(seconds);
+    //   const nearestMinute = Math.round(totalSeconds / 60);
+    //   meta['Read Time'] = `${nearestMinute}`;
+    // } else {
+    //   meta['Read Time'] = `${time}`;
+    // }
     readTime.remove();
   }
 
@@ -118,11 +129,21 @@ async function setMetadata(meta, document, url) {
 
           meta['Primary Topic'] = arr.join(',');
         } else if (key === 'articleTime') {
-          const time = jsonData[key].split(':');
-          const minutes = Number(time[0]);
-          const seconds = Number(time[1]);
-          const nearestMinute = Math.round(minutes + seconds / 60);
-          meta['Read Time'] = `${nearestMinute} min`;
+          const readTimeTemp = jsonData[key];
+          const time = readTimeTemp?.trim().split(' ')[0].trim().toLowerCase();
+          if (time.includes(':')) {
+            const [minutes, seconds] = time.split(':');
+            const nearestMinute = Math.round(Number(minutes) + (Number(seconds) / 60));
+            meta['Read Time'] = `${nearestMinute}`;
+          } else {
+            meta['Read Time'] = `${time}`;
+          }
+        } else if (key === 'moduleId') {
+          meta['Module ID'] = jsonData[key];
+        } else if (key === 'hideCourseNavigation') {
+          meta['Hide Course Navigation'] = Boolean(jsonData[key]);
+        } else if (key === 'jcr:title' && (meta.Template === 'lesson' || meta.Template === 'course')) {
+          meta['Module Title'] = jsonData[key];
         }
       });
     } catch (error) {
@@ -484,35 +505,40 @@ const removeExtraSectionBreak = (document) => {
   }
 };
 
-const lightBoxGallery = (document) => {
+const lightBoxGallery = async (document) => {
   const components = document.querySelectorAll('.component');
   if (components?.length) {
-    components.forEach((lightBox) => {
+    for (let i = 0; i < components.length; i += 1) {
+      const lightBox = components[i];
       const attribute = lightBox.getAttribute('data-img-style');
       if (attribute === 'lightbox-gallery' || attribute === 'lightbox') {
         const cells = [['Lightbox']];
-        let imageSrc = lightBox.querySelector('img')?.src;
-        const figCaption = lightBox.querySelector('figcaption');
+        const dataPath = lightBox.getAttribute('data-path');
 
-        if (imageSrc) {
-          // remove host from src
-          const imgUrl = new URL(imageSrc);
-          imageSrc = imgUrl.pathname;
-          const anchor = document.createElement('a');
-          anchor.href = `https://www.cmegroup.com${imageSrc}`;
-          anchor.textContent = anchor.href;
+        if (dataPath) {
+          // eslint-disable-next-line no-await-in-loop
+          const data = await fetch(`${DOMAIN}${dataPath}.json`);
+          // eslint-disable-next-line no-await-in-loop
+          const dataJson = await data.json();
 
-          if (figCaption) {
-            cells.push([anchor], [figCaption.textContent]);
-          } else {
-            cells.push([anchor]);
+          if (dataJson?.fileReference) {
+            const imgSrc = dataJson.fileReference;
+            const figCaption = lightBox.querySelector('figcaption');
+            const anchor = document.createElement('a');
+            anchor.href = `https://www.cmegroup.com${imgSrc}`;
+            anchor.textContent = anchor.href;
+
+            if (figCaption) {
+              cells.push([anchor], [figCaption.textContent]);
+            } else {
+              cells.push([anchor]);
+            }
+            const table = WebImporter.DOMUtils.createTable(cells, document);
+            lightBox.replaceWith(table);
           }
-
-          const table = WebImporter.DOMUtils.createTable(cells, document);
-          lightBox.replaceWith(table);
         }
       }
-    });
+    }
   }
 };
 
@@ -583,9 +609,12 @@ const tableBlock = (document) => {
         tableText += ` (${arr.join(', ')})`;
       }
 
-      const cells = [[tableText]];
-      cells.push([table.innerHTML]);
-      const tempTable = WebImporter.DOMUtils.createTable(cells, document);
+      const tempTable = WebImporter.Blocks.createBlock(document, {
+        name: tableText,
+        cells: [],
+      });
+      const row = tempTable.insertRow(1);
+      row.insertCell(0).innerHTML = table.innerHTML;
       table.replaceWith(tempTable);
     });
   }
@@ -605,7 +634,25 @@ const convertImagesToLinks = (document) => {
   });
 };
 
-const customBlocks = async (document, main, meta) => {
+const correctLinks = (document) => {
+  const links = document.querySelectorAll('a');
+  links.forEach((link) => {
+    if (link.href) {
+      try {
+        if (link?.href.endsWith('.html')) {
+          const { pathname } = new URL(link.href);
+          if (pathname.startsWith('/education/')) {
+            link.href = link.href.replace('.html', '');
+          }
+        }
+      } catch (error) {
+        console.log(`Error correcting links: ${error}, ${link.href}`);
+      }
+    }
+  });
+};
+
+const customBlocks = async (document, main, meta, url) => {
   tableBlock(document);
   convertSectionsToMetadata(document, main);
   articleHeroBlock(document, meta);
@@ -615,25 +662,37 @@ const customBlocks = async (document, main, meta) => {
   quizBlock(document);
   faqBlock(document, meta);
   await accordionBlock(document);
-  lightBoxGallery(document);
+  await lightBoxGallery(document);
   if (meta['Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);
     generalColumns(document);
     generateEndColumns(document);
   } else if (meta['Sub Template'] === 'standard') {
     standardArticleInitialColumns(document);
-  } else if (['lesson', 'course', 'standalone-lesson'].includes(meta.Template)) {
-    removeCourseSpecificItem(document);
+  } else if (['lesson', 'course'].includes(meta.Template)) {
+    await removeCourseSpecificItem(document, main, url);
+    handleFragments(document);
   }
+  await moduleOrder(document, meta, url);
+  document.querySelector('.course-nav')?.remove();
+
   brightCoveVideo(document);
   figCaptionEmphasize(document);
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
   convertImagesToLinks(document);
+  correctLinks(document);
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
   //   form.remove();
   // });
+};
+
+const removeLinesEllipsis = (document) => {
+  const linesEllipsis = document.querySelectorAll('.LinesEllipsis-canvas');
+  linesEllipsis.forEach((line) => {
+    line.remove();
+  });
 };
 
 export default {
@@ -687,9 +746,11 @@ export default {
       '.education-language-selector',
       '.st-sticky-share-buttons',
       '.sitewide-marketing-popup',
-      '.course-nav',
+      // '.course-nav',
       '.top-info',
       '.slick-track',
+      '.w-sm-auto',
+      '.lateral-navigation',
     ]);
 
     const results = [];
@@ -697,11 +758,10 @@ export default {
 
     const meta = WebImporter.Blocks.getMetadata(document);
     await setMetadata(meta, document, url);
+    await customBlocks(document, main, meta, url);
 
     const mdb = WebImporter.Blocks.getMetadataBlock(document, meta);
     main.append(mdb);
-
-    await customBlocks(document, main, meta);
 
     let p = new URL(url).pathname;
     if (p.endsWith('/')) {
@@ -716,6 +776,7 @@ export default {
       .replace(/(^-|-$)/g, '');
 
     removeExtraSectionBreak(document);
+    removeLinesEllipsis(document);
 
     results.push({
       element: main,
