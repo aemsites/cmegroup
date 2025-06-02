@@ -523,12 +523,12 @@ select[multiple] {
 .selected-paths {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  padding: 4px;
-  min-height: 32px;
-  border: 1px solid #ccc;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  min-height: 2.5rem;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  margin-bottom: 8px;
+  background-color: white;
 }
 
 .selected-path-tag {
@@ -670,12 +670,12 @@ select[multiple] {
 .selected-paths {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.5rem;
+  gap: 0.75rem;
+  padding: 0.75rem;
   min-height: 2.5rem;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  background-color: var(--background-color);
+  background-color: white;
 }
 
 .no-paths-selected {
@@ -687,33 +687,37 @@ select[multiple] {
 .selected-path-item {
   display: flex;
   align-items: center;
-  background-color: var(--highlight-background-color);
-  padding: 0.25rem 0.5rem;
+  background-color: #e8f1ff;
+  padding: 0.5rem 0.75rem;
   border-radius: 4px;
-  gap: 0.5rem;
+  gap: 0.75rem;
   max-width: 100%;
+  position: relative;
+  margin-left: 1rem;
 }
 
 .selected-path-item .path-text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #333;
 }
 
 .selected-path-item .remove-path {
   background: none;
   border: none;
-  color: var(--text-color);
+  color: #0066cc;
   cursor: pointer;
   padding: 0 0.25rem;
   font-size: 1.2em;
   line-height: 1;
-  opacity: 0.7;
+  opacity: 0.8;
   transition: opacity 0.2s ease;
 }
 
 .selected-path-item .remove-path:hover {
   opacity: 1;
+  color: #004999;
 }
 
 /* Path Tree Container */

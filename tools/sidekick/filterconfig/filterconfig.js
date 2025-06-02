@@ -9,7 +9,7 @@ class FilterConfig {
       type: 'folder',
       children: {},
     };
-    
+
     // Initialize SDK
     DA_SDK.then(({ context, token, actions }) => {
       this.context = context;
@@ -102,7 +102,8 @@ class FilterConfig {
       checkbox.addEventListener('change', () => this.handleFormChange());
     });
 
-    // how i can add onclick listerner to template-option and from there call oncahnge of template-checkbox
+    // how i can add onclick listerner to template-option
+    // and from there call oncahnge of template-checkbox
     this.templateOptions = document.querySelectorAll('.template-option');
     this.templateOptions.forEach((option) => {
       option.addEventListener('click', () => {
@@ -526,9 +527,9 @@ class FilterConfig {
         if (searchTerm && !name.toLowerCase().includes(searchTerm.toLowerCase())) {
           return;
         }
-        
+
         const indentClass = level > 0 ? 'indented' : '';
-        
+
         html += `
           <li class="directory-item ${isSelected ? 'selected' : ''} ${indentClass}" data-path="${fullPath}" data-type="folder">
             <div class="path-tree-item directory-item-content">
@@ -538,14 +539,14 @@ class FilterConfig {
               ${hasSubfolders ? '<span class="folder-toggle">▶</span>' : ''}
             </div>
         `;
-        
+
         if (hasSubfolders) {
           html += this.buildDirectoryTree(item, searchTerm, fullPath, level + 1);
         }
-        
+
         html += '</li>';
       });
-    
+
     html += '</ul>';
     return html;
   }
@@ -644,9 +645,9 @@ class FilterConfig {
     try {
       const basePath = `/${this.context.org}/${this.context.repo}`;
       const fullPath = `${basePath}${path}`;
-      
+
       const { files, folders } = await this.getChildren(fullPath);
-      
+
       // Format files and folders for display
       const filesArray = files
         .map((file) => ({
@@ -655,7 +656,7 @@ class FilterConfig {
           path: file.path,
         }))
         .filter((file) => file.name !== 'index');
-      
+
       const foldersArray = folders.map((folder) => ({
         name: folder.split('/').pop(),
         type: 'folder',
