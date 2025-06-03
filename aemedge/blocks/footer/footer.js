@@ -37,11 +37,7 @@ function decorateCollapsibles(footerLinks) {
 function toggleLanguageSelector(e) {
   const button = e.target.closest('button');
   const expanded = button.getAttribute('aria-expanded');
-  if (expanded === 'true') {
-    button.setAttribute('aria-expanded', false);
-  } else {
-    button.setAttribute('aria-expanded', true);
-  }
+  button.setAttribute('aria-expanded', !(expanded === 'true'));
 }
 
 function togglePosition() {
