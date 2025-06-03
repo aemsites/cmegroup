@@ -340,7 +340,7 @@ async function fetchAndFilterUpcomingEvent() {
   }
 }
 
-async function createDynamicCards(block) {
+export async function createDynamicCards(block, numEntries = null) {
   const config = readBlockConfig(block);
   const ul = createElement('ul');
   let filteredData;
@@ -351,6 +351,12 @@ async function createDynamicCards(block) {
   if (block.classList.contains('course')) {
     const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
     filteredData = await fetchAndFilterDataCourse(tags);
+    // Sort by timestamp in descending order
+    filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // If numEntries is specified, slice the array to that length
+    if (numEntries) {
+      filteredData = filteredData.slice(0, numEntries);
+    }
     sliderConfig = {
       slidesToShow: 'auto',
       slidesToScroll: 1,

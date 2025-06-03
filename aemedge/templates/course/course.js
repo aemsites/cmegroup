@@ -1,4 +1,4 @@
-import { getCourseData, createCourseBaseTemplate } from '../../scripts/course/course.js';
+import { getCourseData, createCourseBaseTemplate, addRelatedCourses } from '../../scripts/course/course.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 
 async function addBeginCourseButton() {
@@ -27,4 +27,5 @@ async function addBeginCourseButton() {
 export default async function courseTemplate() {
   await createCourseBaseTemplate();
   await addBeginCourseButton();
+  await addRelatedCourses();
 }
