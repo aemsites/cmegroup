@@ -10,9 +10,9 @@ function loadShareThis() {
 }
 
 async function loadOneTrust() {
-  // if (getEnvType() !== 'prod') {
-  //   return Promise.resolve();
-  // }
+  if (getEnvType() !== 'prod') {
+    return Promise.resolve();
+  }
 
   const ONETRUST_CONFIG = {
     stubScript: {
@@ -49,7 +49,7 @@ async function loadOneTrust() {
 function loadPage() {
   loadSitewidePopups();
   loadShareThis();
-  loadOneTrust();
+  // loadOneTrust();
 }
 
 loadPage();
