@@ -4,6 +4,14 @@ import { loadScript, readBlockConfig } from '../../scripts/aem.js';
  * For more info about the video's options please read:
  * https://github.com/brightcove/player-loader
  * https://support.brightcove.com/
+ * Props:
+ * account ID,
+ * video ID,
+ * playlist ID,
+ * playlist location (bottom or right),
+ * aspect ratio,
+ * close caption,
+ * language
  */
 
 function calculateDataPlayerId(
@@ -88,20 +96,27 @@ function calculateStyles(aspectRatio, playlistLocation) {
   return 'aspect-ratio169';
 }
 
+function loadLanguage(videoPlayer, language) {
+  videoPlayer.on('loadedmetadata', () => {
+    const audioTracks = videoPlayer.audioTracks();
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < audioTracks.length; i++) {
+      const trackLanguage = audioTracks[i].language.substr(0, 2);
+      if (trackLanguage) {
+        if (trackLanguage === language) {
+          audioTracks[i].enabled = true;
+        }
+      }
+    }
+  });
+}
+
 function loadVideoLibrary(block, videoAccount, videoPlayer) {
   if (block.getAttribute('data-video-status') === 'loaded') {
     return;
   }
   loadScript(`https://players.brightcove.net/${videoAccount}/${videoPlayer}_default/index.min.js`);
-  block.querySelector('.brightcove-img-placeholder').style.display = 'none';
   block.setAttribute('data-video-status', 'loaded');
-}
-
-function clickHandler(block, videoAccount, videoPlayer) {
-  // eslint-disable-next-line func-names
-  return function () {
-    loadVideoLibrary(block, videoAccount, videoPlayer);
-  };
 }
 
 export default async function decorate(block) {
@@ -113,30 +128,23 @@ export default async function decorate(block) {
     playlistlocation: playlistLocation,
     aspectratio: aspectRatio,
     cc,
-    // language,
-    placeholderimg: placeholder,
+    language,
   } = dataBlock;
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
   const videoStyles = calculateStyles(aspectRatio, playlistLocation);
-  const placeholderImg = placeholder || '../../images/placeholder-img-video.jpg';
   block.innerHTML = `
   <div class='brightcove-player'>
-    <div class='brightcove-img-placeholder' 
-      style="background-image: url('${placeholderImg}');"
-    >
-      <a></a>
-    </div>
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
         <div class="${videoStyles} ${playlist ? 'vjs-playlist-player-container' : 'brightcove-video'}">
           <video-js
+            id="cmeVideo${videoId}"
             data-account="${accountId}"
             data-player="${dataPlayer}"
             data-embed="default"
             class="cmeBcVideo" 
             controls=""
-            autoplay 
             ${playlistId !== '' ? `data-playlist-id="${playlistId}"` : ''}
             ${playlistId !== '' && videoId ? `data-playlist-video-id="${videoId}"` : ''}
             ${playlistId === '' ? `data-video-id="${videoId}"` : ''}
@@ -150,6 +158,10 @@ export default async function decorate(block) {
   </div>
   `;
 
-  const anchor = block.querySelector('.brightcove-img-placeholder a');
-  anchor.addEventListener('click', clickHandler(block, accountId, dataPlayer));
+  loadVideoLibrary(block, accountId, dataPlayer);
+
+  const languageVideoPlayer = block.querySelector(`#cmeVideo${videoId}`);
+  if (language) {
+    loadLanguage(languageVideoPlayer, language);
+  }
 }
