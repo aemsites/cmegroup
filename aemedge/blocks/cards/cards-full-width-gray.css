@@ -12,7 +12,7 @@
 }
 
 .cards.full-width.background-gray li .cards-card-body {
-    padding: 1.25rem;
+    padding: 1.875rem;
     margin: 0;
 }
 
@@ -43,4 +43,8 @@
 .cards.full-width.background-gray li .cards-card-body p picture img{
     height: 1.875rem;
     width: 1.625rem;
+}
+
+.cards.full-width.background-gray li .cards-card-body a {
+    color: var(--blue4);
 }
