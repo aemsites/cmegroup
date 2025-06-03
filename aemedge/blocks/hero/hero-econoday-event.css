@@ -1,4 +1,4 @@
-.hero.event {
+.hero.econoday-event {
     display: flex;
     align-items: center;
     flex-flow: column wrap;
@@ -8,37 +8,37 @@
     box-sizing: border-box;
 }
 
-.hero.event .background-image {
+.hero.econoday-event .background-image {
     height: 6.25rem;
 }
 
-.hero.event .background-image p picture {
+.hero.econoday-event .background-image p picture {
     height: 6.25rem;
 }
 
 @media (width > 768px) {
-    .hero.event .background-image {
+    .hero.econoday-event .background-image {
         height: 11.5625rem;
     }
 
-    .hero.event .background-image p picture {
+    .hero.econoday-event .background-image p picture {
         height: 11.5625rem;
     }
 }
 
 @media (width > 1200px) {
-    .hero.event .background-image {
+    .hero.econoday-event .background-image {
         height: 7.5rem;
     }
 
-    .hero.event .background-image p picture {
+    .hero.econoday-event .background-image p picture {
         position: initial;
         display: block;
         height: 28.4375rem;
     }
 }
 
-.hero.event .background-image p {
+.hero.econoday-event .background-image p {
     text-align: center;
     margin: 0;
     position: absolute;
@@ -48,35 +48,35 @@
     width: 100%;
 }
 
-.hero.event .default-content-wrapper {
+.hero.econoday-event .default-content-wrapper {
     padding-inline: 2rem;
     width: calc(100% - 4rem);
 }
 
 @media (width > 768px) {
-    .hero.event .default-content-wrapper {
+    .hero.econoday-event .default-content-wrapper {
         padding-inline: 3.375rem;
         width: calc(100% - 6.75rem);
     }
 }
 
 @media (width > 992px) {
-    .hero.event .default-content-wrapper {
+    .hero.econoday-event .default-content-wrapper {
         padding-inline: 4.125rem;
         width: calc(100% - 8.25rem);
     }
 
-    .hero.event .default-content-wrapper h1 {
+    .hero.econoday-event .default-content-wrapper h1 {
         margin-bottom: 2.6875rem;
     }
 }
 
 @media (width > 1200px) {
-    .hero.event .background-image .shadow-wrapper {
+    .hero.econoday-event .background-image .shadow-wrapper {
         display: block;
     }
 
-    .hero.event .background-image .shadow-wrapper .content-area {
+    .hero.econoday-event .background-image .shadow-wrapper .content-area {
         width: calc(70.5% - 24.625rem);
         max-width: 45.0625rem;
         padding: 0 6.8125rem;
@@ -89,7 +89,7 @@
         position: relative;
     }
 
-    .hero.event .background-image .shadow-wrapper .shadow {
+    .hero.econoday-event .background-image .shadow-wrapper .shadow {
         box-shadow: 0 0.0625rem 0.125rem 0 rgb(60 64 67 / 30%), 0 0.125rem 0.375rem 0.125rem rgba(60 64 67 / 15%);
         height: 4.0625rem;
         width: calc(70.5% - 24.625rem);
@@ -100,7 +100,7 @@
         display: block;
     }
 
-    .hero.event .background-image .shadow-wrapper .fade {
+    .hero.econoday-event .background-image .shadow-wrapper .fade {
         background: linear-gradient(180deg, hsl(0deg 0% 100% / 0%), #fff);
         height: 4.0625rem;
         margin: -4.0625rem -.75rem 0;
@@ -113,7 +113,7 @@
         border-bottom: 10px solid white;
     }
 
-    .hero.event .default-content-wrapper {
+    .hero.econoday-event .default-content-wrapper {
         width: calc(70.5% - 24.625rem);
         max-width: 45.0625rem;
         background-color: var(--white);
@@ -121,7 +121,7 @@
     }
 }
 
-.hero.event .economic-release-info {
+.hero.econoday-event .economic-release-info {
     padding-top: 2.4375rem;
     margin-bottom: 1.3125rem;
     color: var(--gray3);
@@ -130,18 +130,18 @@
 }
 
 @media (width > 992px) {
-    .hero.event .economic-release-info {
+    .hero.econoday-event .economic-release-info {
         margin-bottom: 1.8125rem;
     }
 }
 
 @media (width > 1200px) {
-    .hero.event .economic-release-info {
+    .hero.econoday-event .economic-release-info {
         padding-top: 3.6875rem;
     }
 }
 
-.hero.event .economic-release-info a {
+.hero.econoday-event .economic-release-info a {
     color: var(--blue4);
     font-family: var(--body-font-family);
     font-weight: 400;
@@ -153,7 +153,7 @@
 }
 
 @media (width > 768px) {
-    .hero.event .economic-release-info a {
+    .hero.econoday-event .economic-release-info a {
         font-size: .875rem;
         line-height: 1.25rem;
         position: absolute;
@@ -163,27 +163,27 @@
     }
 }
 
-.hero.event .economic-release-info a:hover {
+.hero.econoday-event .economic-release-info a:hover {
     color: var(--blue5);
     cursor: pointer;
     text-decoration: none;
 }
 
-.hero.event .economic-release-info a .icon {
+.hero.econoday-event .economic-release-info a .icon {
     height: 0.5625rem;
     width: 0.5625rem;
     margin-top: -0.625rem;
 }
 
-.hero.event .economic-release-info a .icon img {
+.hero.econoday-event .economic-release-info a .icon img {
     filter: brightness(0) saturate(100%) invert(24%) sepia(93%) saturate(1704%) hue-rotate(182deg) brightness(97%) contrast(107%);
 }
 
-.hero.event .economic-release-info a:hover .icon img {
+.hero.econoday-event .economic-release-info a:hover .icon img {
     filter: brightness(0) saturate(100%) invert(66%) sepia(57%) saturate(1301%) hue-rotate(167deg) brightness(99%) contrast(108%);
 }
 
-.hero.event .economic-release-info .economic-release-featured-tag {
+.hero.econoday-event .economic-release-info .economic-release-featured-tag {
     flex: 0 0 auto;
     color: var(--blue4);
     letter-spacing: .0906rem;
@@ -191,16 +191,16 @@
 }
 
 @media (width > 768px) {
-    .hero.event .economic-release-info .economic-release-featured-tag {
+    .hero.econoday-event .economic-release-info .economic-release-featured-tag {
         text-align: center;
     }
 }
 
-.hero.event h1 {
+.hero.econoday-event h1 {
     color: var(--title-color);
 }
 
-.hero.event .economic-release-data {
+.hero.econoday-event .economic-release-data {
     display: flex;
     flex-wrap: wrap;
     color: var(--gray3);
@@ -212,12 +212,12 @@
 }
 
 @media (width > 768px) {
-    .hero.event .economic-release-data {
+    .hero.econoday-event .economic-release-data {
         margin-bottom: 1.875rem;
     }
 }
 
-.hero.event .economic-release-data .economic-release-data-date-wrapper {
+.hero.econoday-event .economic-release-data .economic-release-data-date-wrapper {
     color: var(--gray3);
     font-family: var(--averta);
     font-weight: 700;
@@ -225,13 +225,13 @@
     line-height: 1.5rem;
 }
 
-.hero.event .economic-release-data .economic-release-data-date-value {
+.hero.econoday-event .economic-release-data .economic-release-data-date-value {
     display: block;
     font-weight: 400;
 }
 
 @media (width > 992px) {
-    .hero.event .economic-release-data .economic-release-data-date-value {
+    .hero.econoday-event .economic-release-data .economic-release-data-date-value {
         display: inline;
     }
 }
