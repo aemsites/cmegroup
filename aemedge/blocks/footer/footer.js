@@ -37,23 +37,30 @@ function decorateCollapsibles(footerLinks) {
 function toggleLanguageSelector(e, dropdown) {
   const button = e.target.closest('button');
   const expanded = button.getAttribute('aria-expanded');
-  const buttonRect = button.getBoundingClientRect();
-  const dropdownHeight = dropdown.offsetHeight;
-  const spaceBelow = window.innerHeight - buttonRect.bottom;
-  const spaceAbove = buttonRect.top;
-  dropdown.style.setProperty('--height', `-${dropdownHeight}px`);
-  if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
-    dropdown.classList.add('open-up');
-    dropdown.classList.remove('open-down');
-  } else {
-    dropdown.classList.add('open-down');
-    dropdown.classList.remove('open-up');
-  }
   if (expanded === 'true') {
     button.setAttribute('aria-expanded', false);
   } else {
     button.setAttribute('aria-expanded', true);
   }
+}
+
+function togglePosition() {
+  const isDesktop = window.innerWidth > 993;
+  const button = document.querySelector('.language-selector-button');
+  const dropdown = document.querySelector('.language-selector-dropdown');
+  const isOpen = button.getAttribute('aria-expanded') === 'true';
+  const buttonRect = button.getBoundingClientRect();
+  const dropdownHeight = dropdown.offsetHeight;
+  const spaceBelow = window.innerHeight - buttonRect.bottom;
+  const spaceAbove = buttonRect.top;
+  const shouldOpenUp = spaceBelow < dropdownHeight && spaceAbove > dropdownHeight;
+  if (!button || !dropdown) return;
+  if (!isDesktop && isOpen) {
+    button.setAttribute('aria-expanded', false);
+  }
+  dropdown.style.setProperty('--height', `-${dropdownHeight}px`);
+  dropdown.classList.toggle('open-up', shouldOpenUp);
+  dropdown.classList.toggle('open-down', !shouldOpenUp);
 }
 
 function closeOnDocClick(e) {
@@ -96,6 +103,7 @@ function decorateLanguageSelector(footerLanguages) {
   button.id = 'language-selector-button';
   button.addEventListener('click', (event) => toggleLanguageSelector(event, dropdown));
   document.addEventListener('click', closeOnDocClick);
+  window.addEventListener('scroll', togglePosition);
 
   if (currentLang) {
     button.textContent = currentLang.innerText;
