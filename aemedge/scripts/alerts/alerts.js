@@ -207,7 +207,11 @@ export default async function initFloatingElements(doc, header) {
 
       const navMenus = doc.querySelectorAll('.nav-nav-item-menu');
       navMenus.forEach((menu) => {
-        menu.style.top = `${offsetTop}px`;
+        if (menu.closest('.nav-nav-item.has-menu.is-open')) {
+          menu.style.top = `${offsetTop}px`;
+        } else {
+          menu.style.top = '-312.5rem';
+        }
       });
       const menuOpen = doc.querySelector('.nav-curtain.is-open');
       if (menuOpen) {
