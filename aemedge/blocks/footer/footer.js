@@ -34,7 +34,7 @@ function decorateCollapsibles(footerLinks) {
 // Footer Links collapsible - End
 
 // Language Dropdown - Start
-function toggleLanguageSelector(e, dropdown) {
+function toggleLanguageSelector(e) {
   const button = e.target.closest('button');
   const expanded = button.getAttribute('aria-expanded');
   if (expanded === 'true') {
@@ -101,7 +101,7 @@ function decorateLanguageSelector(footerLanguages) {
     role: 'menu',
   }, languages);
   button.id = 'language-selector-button';
-  button.addEventListener('click', (event) => toggleLanguageSelector(event, dropdown));
+  button.addEventListener('click', toggleLanguageSelector);
   document.addEventListener('click', closeOnDocClick);
   window.addEventListener('scroll', togglePosition);
 
