@@ -888,7 +888,7 @@ function renderDesktopAccordion(eventsToRender) {
     title,
     url,
   }, index) => {
-    const timeFormatted = `${dayjs.utc(date).format('hh:mm A [CT]')}` || '-';
+    const timeFormatted = `${dayjs.utc(date).tz('America/Chicago').format('hh:mm A [CT]')}` || '-';
     const nextReleaseDateFormatted = `${dayjs.utc(nextReleaseDate).format('dddd DD MMM YYYY')}` || '-';
     const {
       actual,
@@ -988,7 +988,7 @@ function renderMobileAccordion(eventsToRender) {
     title,
     url,
   }, index) => {
-    const timeFormatted = `${dayjs.utc(date).format('hh:mm A [CT] |')}` || '-';
+    const timeFormatted = `${dayjs.utc(date).tz('America/Chicago').format('hh:mm A [CT] |')}` || '-';
     const {
       actual,
       consensus,
