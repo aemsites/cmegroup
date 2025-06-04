@@ -33,3 +33,7 @@
     position: relative !important;
     min-height: 354px;
 }
+
+.vjs-playlist-player-container .vjs-playlist-sidebar-horizontal {
+  position: absolute;
+}
