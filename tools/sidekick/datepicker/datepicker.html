@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Date Picker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="icon" href="data:,">
+    <script src="https://da.live/nx/utils/sdk.js" type="module"></script>
+    <script src="/tools/sidekick/datepicker/datepicker.js" type="module"></script>
+    <link rel="stylesheet" href="/tools/sidekick/datepicker/datepicker.css">
+  </head>
+  <body>
+    <div id="picker">
+      <label>
+        Date:
+        <input type="date" id="date-picker" required>
+      </label>
+      <label>
+        Time:
+        <input type="time" id="time-picker" required>
+      </label>
+      <div id="timezone-info" class="timezone-info"></div>
+      <div class="preview-row">
+        <strong>Preview:</strong>
+        <span id="preview"></span>
+      </div>
+      <button id="use" type="button" class="button">Insert</button>
+    </div>
+  </body>
+</html>
