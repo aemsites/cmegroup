@@ -35,6 +35,7 @@ const searchResults = async () => {
   showSpinner(document.querySelector('.results-wrapper'));
   const mockResults = await fetch('/aemedge/blocks/search/mock-results.json').then((res) => res.json());
 
+  // eslint-disable-next-line no-console
   console.log('Search Results Called', apiReq);
   // eslint-disable-next-line no-use-before-define
   filterAndRender(mockResults.results);
