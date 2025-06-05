@@ -91,11 +91,11 @@ const handleFragments = (document) => {
       const h4 = fragment.querySelector('h4');
       if (h4?.textContent.toLowerCase().includes('accredited course')) {
         if (fragment.textContent.includes('the CFA Institute')) {
-          const cells = [['Fragment'], [`${EDS_DOMAIN}/courses-lessons/accredited-courses/cfa`]];
+          const cells = [['Fragment'], [`${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/cfa`]];
           const table = WebImporter.DOMUtils.createTable(cells, document);
           fragment.replaceWith(table);
         } else if (fragment.textContent.includes('GARP continuing education')) {
-          const cells = [['Fragment'], [`${EDS_DOMAIN}/courses-lessons/accredited-courses/garp`]];
+          const cells = [['Fragment'], [`${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/garp`]];
           const table = WebImporter.DOMUtils.createTable(cells, document);
           fragment.replaceWith(table);
         }
@@ -104,7 +104,7 @@ const handleFragments = (document) => {
       // Check for feedback fragment
       const feedbackH4 = fragment.querySelector('h4#what-did-you-think-of-this-course');
       if (feedbackH4) {
-        const cells = [['Fragment'], [`${EDS_DOMAIN}/courses-lessons/feedback`]];
+        const cells = [['Fragment'], [`${EDS_DOMAIN}/fragments/courses-lessons/feedback`]];
         const table = WebImporter.DOMUtils.createTable(cells, document);
         fragment.replaceWith(table);
       }
@@ -118,6 +118,24 @@ const handleFragments = (document) => {
       }
     });
   }
+};
+
+const quizBlock = async () => {
+  // const quizItems = document.querySelectorAll('.quiz-item');
+  // console.log(111, quizItems);
+  // console.log(222, document.querySelector('.quiz'));
+
+  // // data-question
+
+  // if (quizItems) {
+
+  //   const cells = [['Quiz']];
+
+  //   quizItems.forEach((quizItem) => {
+  //     console.log(quizItem.getAttribute('data-question'));
+  //     console.log(quizItem.getAttribute('data-answers-items'));
+  //   });
+  // }
 };
 
 const moduleOrder = async (document, meta, url1) => {
@@ -181,4 +199,5 @@ export {
   removeCourseSpecificItem,
   handleFragments,
   moduleOrder,
+  quizBlock,
 };
