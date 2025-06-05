@@ -15,7 +15,7 @@
     position: relative;
 }
 
-@media (min-width: 769px) {
+@media (width >= 769px) {
     .cards.blue-box li .cards-card-body {
         padding: 1.875rem;
     }

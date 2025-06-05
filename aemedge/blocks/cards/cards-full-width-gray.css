@@ -16,7 +16,7 @@
     margin: 0;
 }
 
-@media (min-width: 769px) {
+@media (width >= 769px) {
     .cards.full-width.background-gray li .cards-card-body {
         padding: 1.875rem;
     }
