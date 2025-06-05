@@ -1,4 +1,6 @@
 import { createElement, i18n } from '../../scripts/utils.js';
+import { store } from '../../scripts/store/store.js';
+import { quizAnswered } from '../../scripts/actions/quiz.js';
 
 async function checkQuizCompletion(block, questions) {
   const answeredCorrectlyEls = block.querySelectorAll('.answered-correctly');
@@ -14,6 +16,9 @@ async function checkQuizCompletion(block, questions) {
     );
     block.insertBefore(completionMessage, block.firstChild);
     block.classList.add('complete');
+
+    //  quiz completion event
+    store.dispatch(quizAnswered(true));
   }
 }
 

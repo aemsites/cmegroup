@@ -246,9 +246,9 @@ function createDynamicCardUpcomingEvent(content) {
   const {
     url,
     date,
-    title,
+    eventName,
   } = content;
-  const paragraph = createElement('p', { class: 'card-text' }, decodeHtmlEntities(title));
+  const paragraph = createElement('p', { class: 'card-text' }, decodeHtmlEntities(eventName));
   const titletag = createElement('div', { class: 'card-title' }, paragraph);
   const datetag = createElement('div', { class: 'card-date' }, formatDate(date, true));
   const cardBody = createElement('div', { class: 'card-body' }, titletag, datetag);

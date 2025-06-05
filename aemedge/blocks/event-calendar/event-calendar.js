@@ -5,7 +5,7 @@ import {
   postEconomicReleaseDates,
   postEconomicReleaseEvents,
 } from '../../scripts/services/ProductCalendarService.js';
-import { URIUtil } from '../../scripts/utils/index.js';
+import { URIUtil, escapeHtmlTags } from '../../scripts/utils/index.js';
 
 const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
 const { body } = window.document;
@@ -273,12 +273,11 @@ function decorateCleanInputSearch() {
   cleanInput.addEventListener('click', async () => {
     cleanInputSearch();
   });
-  return cleanInput;
 }
 
 function handleInputSearch(e) {
   searchValueVar = e.target.value;
-  filterSearchInputContainer.append(decorateCleanInputSearch());
+  filterSearchInputContainer.append(cleanInput);
   if (searchValueVar !== '' && window.innerWidth >= 1200) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
@@ -286,6 +285,8 @@ function handleInputSearch(e) {
       getLeftPanelDays();
       getEvents();
     }, 400);
+  } else if (filterSearchInputContainer.contains(cleanInput)) {
+    cleanInput.remove();
   }
 }
 
@@ -585,6 +586,7 @@ function renderInputs() {
   const inputsFlexContainer = createElement('div', { class: 'inputs-flex-container' });
   filterSearchInput.placeholder = searchByEventLabel;
   filterSearchInputContainer.append(filterSearchInput);
+  decorateCleanInputSearch();
   inputsFlexContainer.append(filterSearchInputContainer);
 
   if (economicFilters && economicFilters.countries) {
@@ -886,7 +888,7 @@ function renderDesktopAccordion(eventsToRender) {
     title,
     url,
   }, index) => {
-    const timeFormatted = `${dayjs.utc(date).format('hh:mm A [CT]')}` || '-';
+    const timeFormatted = `${dayjs.utc(date).tz('America/Chicago').format('hh:mm A [CT]')}` || '-';
     const nextReleaseDateFormatted = `${dayjs.utc(nextReleaseDate).format('dddd DD MMM YYYY')}` || '-';
     const {
       actual,
@@ -939,7 +941,10 @@ function renderDesktopAccordion(eventsToRender) {
               <span class="highlight">${title}</span>
               <div class="main-content">
                 <div class="left-section">
-                  <p class="text">${text}</p>
+                  <p class="text">${escapeHtmlTags(text, ['br'])?.replace(
+      /<br\s*\/?>\s*(<br\s*\/?>)+/g,
+      '<br>',
+    )}</p>
                   <div class="more">
                     <span class="icon"></span>
                     <a href=${url}>Read more</a>
@@ -983,7 +988,7 @@ function renderMobileAccordion(eventsToRender) {
     title,
     url,
   }, index) => {
-    const timeFormatted = `${dayjs.utc(date).format('hh:mm A [CT] |')}` || '-';
+    const timeFormatted = `${dayjs.utc(date).tz('America/Chicago').format('hh:mm A [CT] |')}` || '-';
     const {
       actual,
       consensus,
@@ -1041,7 +1046,10 @@ function renderMobileAccordion(eventsToRender) {
             <div class="expandable-content mobile">
               <div class="main-content">
                 <span class="highlight">${title}</span>
-                <p class="text">${text}</p>
+                <p class="text"><p class="text">${escapeHtmlTags(text, ['br'])?.replace(
+      /<br\s*\/?>\s*(<br\s*\/?>)+/g,
+      '<br>',
+    )}</p>
                 <div class="tags-section">
                   <span class="bold">Tags:</span>
                   <div>

@@ -1351,6 +1351,7 @@
         font-weight: 600;
         font-family: var(--averta);
         padding-right: 0;
+        text-transform: uppercase;
     }
 
     .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span::before {
@@ -1733,6 +1734,12 @@
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a:hover {
     color: var(--blue5);
     text-decoration: none;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a .event-name {
+    max-width: 9.375rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a .icon{

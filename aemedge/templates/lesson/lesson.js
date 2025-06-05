@@ -1,5 +1,8 @@
-import { createCourseBaseTemplate, getCourseData } from '../../scripts/course/course.js';
+import { createCourseBaseTemplate, getCourseData, updateLessonStatus } from '../../scripts/course/course.js';
 import { createElement, i18n } from '../../scripts/utils.js';
+import { authentication } from '../../scripts/modules/Authentication.js';
+import { store } from '../../scripts/store/store.js';
+import { courseDataChange } from '../../scripts/actions/course.js';
 
 function flattenLessons(courseData) {
   const lessons = courseData.lessons || [];
@@ -92,13 +95,32 @@ async function addLateralNavigation(prevHref, nextHref) {
   main.appendChild(nav);
 }
 
-export default async function lessonTemplate() {
-  await createCourseBaseTemplate();
-
-  const courseData = await getCourseData();
+function initLateralNav(courseData) {
   const currentPath = window.location.pathname;
   const flatLessons = flattenLessons(courseData);
-
   const { prevHref, nextHref } = findNavigationLinks(currentPath, flatLessons);
   addLateralNavigation(prevHref, nextHref);
+}
+
+export default async function lessonTemplate() {
+  const { authenticationData } = authentication;
+  authenticationData.loginPromise.then(async () => {
+    const courseData = await getCourseData();
+    await createCourseBaseTemplate(courseData);
+    await initLateralNav(courseData);
+    if (!courseData.started) {
+      //  start current course
+      await updateLessonStatus(false);
+    }
+    //  dispatch courseData event
+    store.dispatch(courseDataChange(courseData));
+  });
+
+  //  quiz completion event subscriber
+  store.subscribe(({ quiz }) => quiz, async ({ isCorrect }) => {
+    if (isCorrect) {
+      const courseData = await updateLessonStatus(true);
+      store.dispatch(courseDataChange(courseData));
+    }
+  });
 }
