@@ -15,6 +15,12 @@
     position: relative;
 }
 
+@media (width >= 769px) {
+    .cards.blue-box li .cards-card-body {
+        padding: 1.875rem;
+    }
+}
+
 .cards.blue-box li .cards-card-body h5{
     color: var(--citron);
     margin: 0 0 0.625rem;
