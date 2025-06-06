@@ -277,16 +277,19 @@ function decorateCleanInputSearch() {
 
 function handleInputSearch(e) {
   searchValueVar = e.target.value;
-  filterSearchInputContainer.append(cleanInput);
-  if (searchValueVar !== '' && window.innerWidth >= 1200) {
+  if (!filterSearchInputContainer.contains(cleanInput) && searchValueVar !== '') {
+    filterSearchInputContainer.append(cleanInput);
+  }
+  if (window.innerWidth >= 1201) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
       // call service with variables here
       getLeftPanelDays();
       getEvents();
     }, 400);
-  } else if (filterSearchInputContainer.contains(cleanInput)) {
-    cleanInput.remove();
+    if (searchValueVar === '' && filterSearchInputContainer.contains(cleanInput)) {
+      cleanInput.remove();
+    }
   }
 }
 
