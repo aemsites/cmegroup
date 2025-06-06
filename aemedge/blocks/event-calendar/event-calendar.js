@@ -277,8 +277,10 @@ function decorateCleanInputSearch() {
 
 function handleInputSearch(e) {
   searchValueVar = e.target.value;
-  filterSearchInputContainer.append(cleanInput);
-  if (window.innerWidth >= 1200) {
+  if (!filterSearchInputContainer.contains(cleanInput) && searchValueVar !== '') {
+    filterSearchInputContainer.append(cleanInput);
+  }
+  if (window.innerWidth >= 1201) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
       // call service with variables here
