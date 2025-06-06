@@ -1,4 +1,4 @@
-import { loadScript, readBlockConfig } from '../../scripts/aem.js';
+import { readBlockConfig } from '../../scripts/aem.js';
 
 /*
  * For more info about the video's options please read:
@@ -97,10 +97,9 @@ function calculateStyles(aspectRatio, playlistLocation) {
 }
 
 function loadLanguage(videoPlayer, language) {
-  videoPlayer.on('loadedmetadata', () => {
+  if (videoPlayer) {
     const audioTracks = videoPlayer.audioTracks();
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < audioTracks.length; i++) {
+    for (let i = 0; i < audioTracks.length; i += 1) {
       const trackLanguage = audioTracks[i].language.substr(0, 2);
       if (trackLanguage) {
         if (trackLanguage === language) {
@@ -108,15 +107,30 @@ function loadLanguage(videoPlayer, language) {
         }
       }
     }
-  });
+  }
 }
 
-function loadVideoLibrary(block, videoAccount, videoPlayer) {
+function setPlayerReady(block, language, videoId) {
+  block.setAttribute('data-video-status', 'loaded');
+  if (language) {
+    const languageVideoPlayer = videojs(block.querySelector(`#cmeVideo${videoId}`));
+    setTimeout(() => {
+      loadLanguage(languageVideoPlayer, language);
+    }, 1000);
+  }
+}
+
+async function loadVideoLibrary(block, videoAccount, videoPlayer, language, videoId) {
   if (block.getAttribute('data-video-status') === 'loaded') {
     return;
   }
-  loadScript(`https://players.brightcove.net/${videoAccount}/${videoPlayer}_default/index.min.js`);
-  block.setAttribute('data-video-status', 'loaded');
+  const script = document.createElement('script');
+  script.src = `https://players.brightcove.net/${videoAccount}/${videoPlayer}_default/index.min.js`;
+  script.async = true;
+  document.head.appendChild(script);
+  script.onload = async () => {
+    await setPlayerReady(block, language, videoId);
+  };
 }
 
 export default async function decorate(block) {
@@ -158,10 +172,5 @@ export default async function decorate(block) {
   </div>
   `;
 
-  loadVideoLibrary(block, accountId, dataPlayer);
-
-  const languageVideoPlayer = block.querySelector(`#cmeVideo${videoId}`);
-  if (language) {
-    loadLanguage(languageVideoPlayer, language);
-  }
+  loadVideoLibrary(block, accountId, dataPlayer, language, videoId);
 }
