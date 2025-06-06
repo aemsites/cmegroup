@@ -101,10 +101,8 @@ function loadLanguage(videoPlayer, language) {
     const audioTracks = videoPlayer.audioTracks();
     for (let i = 0; i < audioTracks.length; i += 1) {
       const trackLanguage = audioTracks[i].language.substr(0, 2);
-      if (trackLanguage) {
-        if (trackLanguage === language) {
-          audioTracks[i].enabled = true;
-        }
+      if (trackLanguage && trackLanguage === language) {
+        audioTracks[i].enabled = true;
       }
     }
   }
