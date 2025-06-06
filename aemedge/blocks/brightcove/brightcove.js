@@ -114,9 +114,9 @@ function setPlayerReady(block, language, videoId) {
   block.setAttribute('data-video-status', 'loaded');
   if (language) {
     const languageVideoPlayer = videojs(block.querySelector(`#cmeVideo${videoId}`));
-    setTimeout(() => {
+    languageVideoPlayer.on('loadedmetadata', () => {
       loadLanguage(languageVideoPlayer, language);
-    }, 1000);
+    });
   }
 }
 
