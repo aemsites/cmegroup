@@ -384,7 +384,7 @@ function addLightboxStructure(strongParent, picture) {
   // Add magnify icon
   const magnifyIcon = document.createElement('span');
   magnifyIcon.className = 'magnify-icon default';
-  magnifyIcon.innerHTML = '\ue901'; // CMEGroup-Icons magnify/search icon
+  magnifyIcon.innerHTML = '\ue941'; // CMEGroup-Icons expand-secondary icon (diagonal arrow)
   button.appendChild(magnifyIcon);
 
   // Assemble the structure

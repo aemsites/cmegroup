@@ -17,16 +17,16 @@
         font-size: .75rem;
         height: 1.875rem;
         line-height: normal;
-        right: .625rem;
-        top: .625rem;
+        right: 1rem;
+        top: 1rem;
         width: 1.875rem;
     }
 }
 
 /**
  * Main magnify icon styling
- * Positioned absolutely in top-right corner of images
- * Uses CMEGroup-Icons font with search icon character
+ * Positioned absolutely with spacing from the corner of images
+ * Uses CMEGroup-Icons font with expand icon character
  */
 .component.image figure .magnify-icon {
     align-items: center;
@@ -38,8 +38,8 @@
     height: 2.5rem;
     justify-content: center;
     position: absolute;
-    right: 1.25rem;
-    top: 1.25rem;
+    right: 1.75rem;
+    top: 1.75rem;
     width: 2.5rem;
     speak: none; /* Accessibility: prevent screen readers from reading icon */
     font-style: normal;

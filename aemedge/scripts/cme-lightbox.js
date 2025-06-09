@@ -92,7 +92,7 @@ class CMELightbox {
 
   /**
      * Adds magnify icons to lightbox images that don't already have them
-     * Uses the CME Group icon font character \ue901 for consistency
+     * Uses the CME Group icon font character \ue941 for consistency
      * @public
      */
   addMagnifyIcons() {
@@ -103,7 +103,7 @@ class CMELightbox {
       if (!button.querySelector('.magnify-icon')) {
         const icon = document.createElement('span');
         icon.className = 'magnify-icon default';
-        icon.innerHTML = '\ue901'; // CMEGroup-Icons magnify/search icon
+        icon.innerHTML = '\ue941'; // CMEGroup-Icons expand-secondary icon (diagonal arrow)
         button.appendChild(icon);
       }
     });
