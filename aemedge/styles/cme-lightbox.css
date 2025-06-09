@@ -1,14 +1,13 @@
 /**
- * CME Lightbox - Vanilla CSS Implementation
+ * CME Lightbox - AEM Modal Integration CSS
  *
- * Clean, semantic CSS for lightbox functionality without dependencies.
- * Uses simple class names and minimal markup for optimal performance.
+ * CSS for lightbox functionality that integrates with the existing AEM modal system.
+ * Uses the native <dialog> element and existing modal CSS structure for consistency.
  *
  * Features:
- * - Semantic class names (.lightbox-image, .lightbox-modal, etc.)
+ * - Integration with AEM modal system
+ * - CME Group icon font integration for expand and close icons
  * - Responsive design with mobile-first approach
- * - CME Group icon font integration
- * - Smooth animations and transitions
  * - Accessibility-friendly styling
  */
 
@@ -29,8 +28,8 @@
 
 .lightbox-expand-icon {
     position: absolute;
-    top: 1.75rem; /* Positioned away from corner - 8px down */
-    right: 1.75rem; /* Positioned away from corner - 8px left */
+    top: 1.75rem; /* Positioned away from corner */
+    right: 1.75rem; /* Positioned away from corner */
     width: 2.5rem;
     height: 2.5rem;
     background: hsl(0deg 0% 100% / 55%);
@@ -56,8 +55,8 @@
 /* Mobile expand icon positioning */
 @media (width <= 992.98px) {
     .lightbox-expand-icon {
-        top: 1rem; /* Positioned away from corner - 6px down */
-        right: 1rem; /* Positioned away from corner - 6px left */
+        top: 1rem;
+        right: 1rem;
         width: 1.875rem;
         height: 1.875rem;
         font-size: .75rem;
@@ -65,108 +64,73 @@
 }
 
 /* ==========================================================================
-   Lightbox Modal Structure
+   Lightbox Modal Integration with AEM Modal System
    ========================================================================== */
 
-.lightbox-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 1055;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background-color: rgb(0 0 0 / 30%);
-    opacity: 0;
-    transition: opacity 0.15s linear;
-}
-
-.lightbox-modal-show {
-    opacity: 1;
-}
-
-.lightbox-dialog {
-    position: relative;
-    width: auto;
+/* Customize modal dialog for lightbox */
+.modal dialog.lightbox-modal {
+    width: fit-content;
+    height: fit-content;
     max-width: 90vw;
     max-height: 90vh;
-    margin: 1rem;
-    pointer-events: auto;
-}
-
-.lightbox-content {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: auto;
-    max-width: 90vw;
-    max-height: 90vh;
-    background-color: #fff;
-    background-clip: padding-box;
+    padding: 0.5rem;
     border: 1px solid rgb(0 0 0 / 20%);
     border-radius: 0.3rem;
-    box-shadow: 0 0.25rem 0.5rem rgb(0 0 0 / 50%);
-    outline: 0;
-    padding: 1rem; /* Minimal padding around image */
 }
 
-
-
-/* ==========================================================================
-   Lightbox Close Button
-   ========================================================================== */
-
-.lightbox-close {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    width: 2rem;
-    height: 2rem;
-    padding: 0.25em;
-    color: #000;
-    background: rgb(255 255 255 / 90%);
-    border: 0;
-    border-radius: 50%;
-    cursor: pointer;
-    font-family: var(--cme-group-icons);
-    font-size: 1rem;
-    font-style: normal;
-    font-variant: normal;
-    font-weight: 400;
-    line-height: 1;
-    text-transform: none;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    speak: none;
+/* Modal content styling for lightbox */
+.modal dialog.lightbox-modal .modal-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10;
-}
-
-.lightbox-close::before {
-    content: '\e90f'; /* CME Group close icon */
-}
-
-/* ==========================================================================
-   Lightbox Body
-   ========================================================================== */
-
-.lightbox-body {
-    position: relative;
-    flex: 1 1 auto;
     padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin-top: 0;
+    max-height: none;
+    overflow: visible;
+    width: fit-content;
+    height: fit-content;
 }
 
+/* Image display within the modal */
 .lightbox-image-display {
-    max-width: 80vw;
-    max-height: 70vh;
+    max-width: 85vw;
+    max-height: 85vh;
     width: auto;
     height: auto;
     object-fit: contain;
     border-radius: 0.25rem;
+    display: block;
+}
+
+/* Customize close button for lightbox */
+.modal dialog.lightbox-modal .close-button {
+    width: 2rem;
+    height: 2rem;
+    border: none !important;
+    border-radius: 0;
+    background: transparent !important;
+    color: #000;
+    font-size: 1.5rem;
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.modal dialog.lightbox-modal .close-button:focus,
+.modal dialog.lightbox-modal .close-button:active,
+.modal dialog.lightbox-modal .close-button:hover {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+.modal dialog.lightbox-modal .close-button::before {
+    content: '×';
+    font-family: inherit;
 }
 
 /* ==========================================================================
@@ -174,25 +138,21 @@
    ========================================================================== */
 
 @media (width <= 576px) {
-    .lightbox-dialog {
-        margin: 0.5rem;
+    .modal dialog.lightbox-modal {
+        padding: 0.25rem;
+        max-width: 95vw;
+        max-height: 85vh;
     }
 
-    .lightbox-content {
-        padding: 0.75rem;
-    }
-
-    .lightbox-close {
-        top: 0.25rem;
-        right: 0.25rem;
+    .modal dialog.lightbox-modal .close-button {
         width: 1.75rem;
         height: 1.75rem;
         font-size: 0.9rem;
     }
 
     .lightbox-image-display {
-        max-width: 85vw;
-        max-height: 60vh;
+        max-width: 90vw;
+        max-height: 75vh;
     }
 }
 
@@ -201,11 +161,7 @@
    ========================================================================== */
 
 @media (width >= 577px) and (width <= 992px) {
-    .lightbox-dialog {
-        margin: 0.75rem;
-    }
-
-    .lightbox-content {
-        padding: 1rem;
+    .modal dialog.lightbox-modal {
+        padding: 0.5rem;
     }
 }

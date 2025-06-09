@@ -1,9 +1,8 @@
 /**
- * CME Lightbox - Simplified Vanilla JS Implementation
+ * CME Lightbox - Integrated with AEM Modal System
  *
- * A lightweight lightbox component for image viewing with clean markup and minimal dependencies.
- * Uses simple CSS classes and data attributes for optimal performance and maintainability.
- *
+ * A lightweight lightbox component for image viewing that leverages the existing
+ * AEM modal system for consistent behavior and accessibility.
  *
  * @example
  * <img class="lightbox-image"
@@ -12,6 +11,9 @@
  *      data-lightbox-alt="Full size image description"
  *      alt="Thumbnail description">
  */
+
+import { createModal } from '../blocks/modal/modal.js';
+
 class CMELightbox {
   constructor() {
     this.currentModal = null;
@@ -19,17 +21,17 @@ class CMELightbox {
   }
 
   /**
-     * Initialize lightbox functionality
-     * Sets up event listeners and adds expand icons to lightbox images
-     */
+   * Initialize lightbox functionality
+   * Sets up event listeners and adds expand icons to lightbox images
+   */
   init() {
     this.bindEvents();
     this.addExpandIcons();
   }
 
   /**
-     * Bind click and keyboard events for lightbox functionality
-     */
+   * Bind click events for lightbox functionality
+   */
   bindEvents() {
     // Event delegation for lightbox triggers
     document.addEventListener('click', (e) => {
@@ -40,19 +42,12 @@ class CMELightbox {
         this.openLightbox(lightboxImage);
       }
     });
-
-    // Close modal on escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.currentModal) {
-        this.closeLightbox();
-      }
-    });
   }
 
   /**
-     * Add expand icons to lightbox images that don't have them
-     * Uses CME Group icon font for consistent styling
-     */
+   * Add expand icons to lightbox images that don't have them
+   * Uses CME Group icon font for consistent styling
+   */
   // eslint-disable-next-line class-methods-use-this
   addExpandIcons() {
     const lightboxImages = document.querySelectorAll('.lightbox-image');
@@ -79,123 +74,52 @@ class CMELightbox {
   }
 
   /**
-     * Open lightbox with the specified image
-     * @param {Element} img - The image element to display in lightbox
-     */
-  openLightbox(img) {
+   * Open lightbox with the specified image using the AEM modal system
+   * @param {Element} img - The image element to display in lightbox
+   */
+  async openLightbox(img) {
     if (!img) return;
 
     // Get image sources and alt text
     const fullSizeSrc = img.dataset.lightboxSrc || img.src;
     const altText = img.dataset.lightboxAlt || img.alt || '';
 
-    // Create and show modal
-    this.createModal(fullSizeSrc, altText);
-    this.showModal();
-  }
+    // Create image element for the modal
+    const imageElement = document.createElement('img');
+    imageElement.src = fullSizeSrc;
+    imageElement.alt = altText;
+    imageElement.className = 'lightbox-image-display';
+    imageElement.loading = 'lazy';
 
-  /**
-   * Create modal DOM structure with semantic HTML
-   * @param {string} imageSrc - Source URL of the image to display
-   * @param {string} imageAlt - Alternative text for the image
-   */
-  createModal(imageSrc, imageAlt) {
-    // Remove existing modal if any
-    this.closeLightbox();
+    // Use the existing modal system
+    const modal = await createModal([imageElement]);
 
-    // Create modal structure with semantic classes
-    const modal = document.createElement('div');
-    modal.className = 'lightbox-modal';
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('tabindex', '-1');
-    modal.setAttribute('aria-label', 'Image viewer');
-
-    modal.innerHTML = `
-            <div class="lightbox-dialog">
-                <div class="lightbox-content">
-                    <button type="button" class="lightbox-close" aria-label="Close image viewer"></button>
-                    <div class="lightbox-body">
-                        <img src="${imageSrc}" 
-                             alt="${imageAlt}"
-                             class="lightbox-image-display"
-                             loading="lazy">
-                    </div>
-                </div>
-            </div>
-        `;
-
+    // Store reference for cleanup
     this.currentModal = modal;
-    document.body.appendChild(modal);
 
-    // Add event handlers
-    this.bindModalEvents(modal);
+    // Customize the modal for lightbox use
+    this.customizeModalForLightbox(modal);
+
+    // Show the modal
+    modal.showModal();
   }
 
   /**
-     * Bind events for modal interaction
-     * @param {Element} modal - The modal element
-     */
-  bindModalEvents(modal) {
-    const closeBtn = modal.querySelector('.lightbox-close');
-    const dialog = modal.querySelector('.lightbox-dialog');
+   * Customize the modal for lightbox-specific styling and behavior
+   * @param {Object} modal - The modal object from createModal
+   */
+  // eslint-disable-next-line class-methods-use-this
+  customizeModalForLightbox(modal) {
+    const { block } = modal;
+    const dialog = block.querySelector('dialog');
 
-    // Close button click
-    if (closeBtn) {
-      closeBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.closeLightbox();
-      });
-    }
+    // Add lightbox-specific class for styling
+    dialog.classList.add('lightbox-modal');
 
-    // Close when clicking outside the dialog (on backdrop)
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        this.closeLightbox();
-      }
-    });
-
-    // Prevent closing when clicking inside dialog
-    if (dialog) {
-      dialog.addEventListener('click', (e) => {
-        e.stopPropagation();
-      });
-    }
-  }
-
-  /**
-     * Show the modal with smooth animation
-     */
-  showModal() {
-    if (!this.currentModal) return;
-
-    // Prevent body scroll
-    document.body.style.overflow = 'hidden';
-
-    // Show modal with fade-in animation
-    requestAnimationFrame(() => {
-      this.currentModal.style.display = 'flex';
-      requestAnimationFrame(() => {
-        this.currentModal.classList.add('lightbox-modal-show');
-      });
-    });
-  }
-
-  /**
-     * Close and remove the current lightbox modal
-     */
-  closeLightbox() {
-    if (!this.currentModal) return;
-
-    // Remove modal immediately
-    const modalToRemove = this.currentModal;
-    this.currentModal = null;
-
-    modalToRemove.remove();
-
-    // Restore body scroll
-    document.body.style.overflow = '';
+    // Add custom cleanup when modal closes
+    dialog.addEventListener('close', () => {
+      this.currentModal = null;
+    }, { once: true });
   }
 }
 
