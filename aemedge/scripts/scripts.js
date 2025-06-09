@@ -279,7 +279,7 @@ export function createOptimizedPicture(src, alt = '', eager = false, breakpoints
   return picture;
 }
 
-/*
+/**
   * Decorates external images with a picture element
   * @param {Element} ele The element
   * @private
@@ -316,6 +316,129 @@ function decorateExternalImages(ele) {
 }
 
 /**
+ * Initialize lightbox functionality for a specific element
+ */
+function initializeLightboxForElement() {
+  // Load lightbox CSS if not already loaded
+  if (!document.querySelector('link[href*="cme-lightbox.css"]')) {
+    loadCSS(`${window.hlx.codeBasePath}/styles/cme-lightbox.css`);
+  }
+
+  // Initialize lightbox JavaScript if not already loaded
+  if (!window.cmeModals) {
+    import(`${window.hlx.codeBasePath}/scripts/cme-lightbox.js`)
+      .then(() => {
+        console.log('Lightbox JS loaded and initialized');
+      })
+      .catch((error) => {
+        console.error('Failed to load lightbox JS:', error);
+      });
+  } else if (window.cmeModals.addMagnifyIcons) {
+    window.cmeModals.addMagnifyIcons();
+  }
+}
+
+/**
+ * Converts a picture element into a lightbox structure
+ * @param {Element} strongParent The strong element wrapping the picture
+ * @param {Element} picture The picture element to convert
+ */
+function addLightboxStructure(strongParent, picture) {
+  // Extract image information
+  const imgElement = picture.querySelector('img');
+  if (!imgElement) return;
+
+  const imageSrc = imgElement.src;
+  const imageAlt = imgElement.alt || '';
+
+  // Get high-res version by modifying URL parameters for larger width
+  const imageUrl = new URL(imageSrc);
+  imageUrl.searchParams.set('width', '2000');
+  const highResSrc = imageUrl.toString();
+
+  // Create the lightbox component structure
+  const lightboxComponent = document.createElement('div');
+  lightboxComponent.className = 'component react image loaded';
+  lightboxComponent.setAttribute('data-is-edit', 'false');
+  lightboxComponent.setAttribute('data-img-style', 'lightbox');
+  lightboxComponent.setAttribute('data-img-border', 'false');
+  lightboxComponent.setAttribute('data-img-src', highResSrc);
+  lightboxComponent.setAttribute('data-img-alt', imageAlt);
+  lightboxComponent.setAttribute('data-img-decorative', 'false');
+  lightboxComponent.setAttribute('data-img-zoom-icon', 'default');
+  lightboxComponent.setAttribute('data-slider', 'false');
+
+  // Create figure element
+  const figure = document.createElement('figure');
+  figure.setAttribute('role', 'group');
+
+  // Create clickable button
+  const button = document.createElement('a');
+  button.setAttribute('role', 'button');
+  button.setAttribute('tabindex', '0');
+
+  // Move the picture element into the button
+  const pictureClone = picture.cloneNode(true);
+  button.appendChild(pictureClone);
+
+  // Add magnify icon
+  const magnifyIcon = document.createElement('span');
+  magnifyIcon.className = 'magnify-icon default';
+  magnifyIcon.innerHTML = '\ue901'; // CMEGroup-Icons magnify/search icon
+  button.appendChild(magnifyIcon);
+
+  // Assemble the structure
+  figure.appendChild(button);
+  lightboxComponent.appendChild(figure);
+
+  // Replace the strong element with the new lightbox structure
+  strongParent.parentNode.replaceChild(lightboxComponent, strongParent);
+
+  // Initialize lightbox functionality for this new element
+  initializeLightboxForElement();
+}
+
+/**
+ * Decorates author bolded external images with lightbox functionality by converting those picture
+ * elements wrapped in <strong> tags into interactive lightbox components.
+ *
+ * Search for picture elements within the main content area and
+ * checks if they are wrapped in <strong> tags. When found, convert them
+ * into a complete lightbox component structure.
+ *
+ * @param {Element} main - The main content element to search for lightbox images
+ *
+ * @example
+ * // Before: Picture wrapped in strong tag
+ * // <strong><picture><img src="image.jpg" alt="Description"></picture></strong>
+ *
+ * // After: Complete lightbox component
+ * // <div class="component react image loaded" data-img-style="lightbox"
+ * //   data-img-src="image.jpg?width=2000">
+ * //   <figure role="group">
+ * //     <a role="button" tabindex="0">
+ * //       <picture><img src="image.jpg" alt="Description"></picture>
+ * //       <span class="magnify-icon default">🔍</span>
+ * //     </a>
+ * //   </figure>
+ * // </div>
+ *
+ * @see {@link addLightboxStructure} - Helper function that creates the lightbox structure
+ * @see {@link initializeLightboxForElement} - Helper function that loads lightbox functionality
+ */
+function decorateLightboxImages(main) {
+  // Find picture elements that might need to be lightboxed
+  const lightboxImages = main.querySelectorAll('picture');
+  lightboxImages.forEach((image) => {
+    // If any picture is wrapped in <strong> tags, then the picture should be lightboxed
+    const strongParent = image.closest('strong');
+    if (strongParent) {
+      addLightboxStructure(strongParent, image);
+    }
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -331,6 +454,7 @@ export function decorateMain(main) {
   decorateExternalLinks(main);
   // decorate external images
   decorateExternalImages(main);
+  decorateLightboxImages(main); // decorate-lightbox the bolded pictures of decorateExternalImages
 }
 
 /**

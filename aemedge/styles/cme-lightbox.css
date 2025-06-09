@@ -1,0 +1,360 @@
+/**
+ * CME Lightbox Styles
+ *
+ * - Magnify icon styling for lightbox triggers
+ * - Modal overlay and dialog styling
+ * - Close button styling with CME Group icon font
+ * - Responsive design for all screen sizes
+ * - Hover effects and transitions
+ */
+
+/**
+ * Mobile responsive magnify icon
+ * Smaller size and positioning for screens under 993px
+ */
+@media (width <= 992.98px) {
+    .component.image figure .magnify-icon {
+        font-size: .75rem;
+        height: 1.875rem;
+        line-height: normal;
+        right: .625rem;
+        top: .625rem;
+        width: 1.875rem;
+    }
+}
+
+/**
+ * Main magnify icon styling
+ * Positioned absolutely in top-right corner of images
+ * Uses CMEGroup-Icons font with search icon character
+ */
+.component.image figure .magnify-icon {
+    align-items: center;
+    background: hsl(0deg 0% 100% / 55%); /* Semi-transparent white background */
+    color: #006eb6; /* CME Group primary blue */
+    display: flex;
+    font-family: var(--cme-group-icons);
+    font-size: .875rem;
+    height: 2.5rem;
+    justify-content: center;
+    position: absolute;
+    right: 1.25rem;
+    top: 1.25rem;
+    width: 2.5rem;
+    speak: none; /* Accessibility: prevent screen readers from reading icon */
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-transform: none;
+    -webkit-font-smoothing: antialiased; /* Better icon rendering */
+    -moz-osx-font-smoothing: grayscale;
+    border-radius: 50%; /* Circular appearance */
+    transition: all 0.3s ease; /* Smooth hover transitions */
+    opacity: 0.8;
+}
+
+/**
+ * Magnify icon hover state
+ * Brightens background and increases opacity for better visibility
+ */
+.component.image figure .magnify-icon:hover {
+    background: hsl(0deg 0% 100% / 85%);
+    opacity: 1;
+    transform: scale(1.1); /* Slight scale effect on hover */
+}
+
+/**
+ * Button role styling for lightbox triggers
+ * Ensures proper cursor and layout for clickable image containers
+ */
+[role="button"] {
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+    line-height: 0; /* Prevents extra spacing around images */
+}
+
+/* ==========================================================================
+   LIGHTBOX TRIGGER STYLES
+
+   Styles for images that have lightbox functionality enabled.
+   Includes hover effects and magnify icon positioning.
+   ========================================================================== */
+
+/**
+ * Lightbox-enabled image container
+ * Sets up relative positioning for absolute-positioned magnify icon
+ */
+.component.image[data-img-style="lightbox"] figure {
+    position: relative;
+    overflow: hidden; /* Prevents image scaling from breaking layout */
+}
+
+/**
+ * Lightbox trigger hover effects
+ * Shows magnify icon and scales image slightly on hover
+ */
+.component.image[data-img-style="lightbox"] figure:hover .magnify-icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.component.image[data-img-style="lightbox"] figure:hover img {
+    transform: scale(1.05); /* Subtle zoom effect on image hover */
+    transition: transform 0.3s ease;
+}
+
+/* ==========================================================================
+   MODAL OVERLAY STYLES
+
+   Full-screen overlay that contains the lightbox modal.
+   Includes backdrop, positioning, and z-index management.
+   ========================================================================== */
+
+/**
+ * Main modal overlay
+ * Full-screen fixed positioning with semi-transparent backdrop
+ */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1055; /* Above most page content but below certain UI elements */
+    display: none; /* Hidden by default, shown via JavaScript */
+    width: 100%;
+    height: 100%;
+    overflow: hidden auto;
+    outline: 0;
+    background-color: rgb(0 0 0 / 30%); /* Light grey backdrop */
+}
+
+/**
+ * Modal fade transition states
+ * Smooth opacity transitions for modal show/hide
+ */
+.modal.fade {
+    transition: opacity 0.15s linear;
+    opacity: 0;
+}
+
+.modal.fade.show {
+    opacity: 1;
+}
+
+/* ==========================================================================
+   MODAL DIALOG STYLES
+
+   Container and content styling for the modal dialog box.
+   Includes sizing, positioning, and responsive behavior.
+   ========================================================================== */
+
+/**
+ * Modal dialog container
+ * Centers the modal content and sets maximum dimensions
+ */
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 0.5rem;
+    pointer-events: none; /* Allows clicking through to backdrop */
+    max-width: 90vw; /* Responsive width with viewport units */
+    max-height: 90vh; /* Responsive height with viewport units */
+}
+
+/**
+ * Centered modal dialog
+ * Uses flexbox for perfect vertical and horizontal centering
+ */
+.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 1rem); /* Account for margin */
+}
+
+/**
+ * Modal content container
+ * The actual modal box with styling and constraints
+ */
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    max-width: 90vw;
+    max-height: 90vh;
+    pointer-events: auto; /* Re-enable pointer events for content */
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgb(0 0 0 / 20%);
+    border-radius: 0.3rem; /* Subtle rounded corners */
+    outline: 0;
+    box-shadow: 0 0.25rem 0.5rem rgb(0 0 0 / 50%); /* Drop shadow for depth */
+}
+
+/* ==========================================================================
+   MODAL BODY & IMAGE CONTAINER STYLES
+
+   Styling for the modal body that contains the image and zoom functionality.
+   Includes flexbox layout for centering and responsive image sizing.
+   ========================================================================== */
+
+/**
+ * Modal body container
+ * Centers content and provides base padding
+ */
+.modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/**
+ * Pinch-to-zoom container
+ * Prepared for future touch gesture support
+ */
+.pinch-to-zoom-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/**
+ * Zoom area container
+ * Handles image transformations and provides smooth transitions
+ */
+.pinch-to-zoom-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    will-change: transform; /* Optimize for transform animations */
+    transform-origin: center center;
+    transition: transform 0.3s cubic-bezier(0.1, 0.57, 0.1, 1); /* Smooth easing */
+    perspective: 1000px; /* 3D transform context */
+}
+
+/**
+ * Modal image styling
+ * Responsive sizing with viewport-based constraints
+ */
+.pinch-to-zoom-area img {
+    max-width: 80vw; /* Responsive width with margin for UI */
+    max-height: 70vh; /* Responsive height with margin for UI */
+    width: auto;
+    height: auto;
+    display: block;
+}
+
+/* ==========================================================================
+   IMAGE MODAL SPECIFIC STYLES
+
+   Specialized styling for image-type modals, including padding adjustments
+   and close button positioning to ensure proper spacing around images.
+   ========================================================================== */
+
+/**
+ * Image modal content wrapper
+ * Adds padding to ensure close button doesn't overlap image
+ */
+.image-modal .modal-content {
+    width: auto;
+    height: auto;
+    padding: 3rem 2rem 2rem; /* Extra top padding for close button */
+}
+
+/**
+ * Image modal body
+ * Provides padding around the image for better visual separation
+ */
+.image-modal .modal-body {
+    padding: 1rem;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+
+   Mobile-specific adjustments for smaller screens.
+   Reduces padding and adjusts sizing for better mobile experience.
+   ========================================================================== */
+
+/**
+ * Mobile responsive adjustments for screens 576px and below
+ */
+@media (width <= 576px) {
+    .modal-dialog {
+        margin: 0.25rem;
+        max-width: calc(100vw - 0.5rem);
+    }
+
+
+
+    /* Reduced padding for mobile screens */
+    .image-modal .modal-content {
+        padding: 2.5rem 1rem 1rem;
+    }
+
+    .image-modal .modal-body {
+        padding: 0.5rem;
+    }
+}
+
+/* ==========================================================================
+   CLOSE BUTTON STYLES
+
+   CME Group branded close button using the icon font.
+   Includes hover effects, proper positioning, and accessibility features.
+   ========================================================================== */
+
+/**
+ * Modal close icon button
+ * Uses CMEGroup-Icons font with circular background for visibility
+ * Positioned absolutely in top-right corner of modal
+ */
+.modal .icon-menu-close {
+    color: #5a6874; /* CME Group grey */
+    font-family: var(--cme-group-icons);
+    font-size: 1.125rem;
+    padding: 0.9375rem;
+    position: absolute;
+    right: 0.5rem; /* Slight inset from edge */
+    top: 0.5rem; /* Slight inset from edge */
+    cursor: pointer;
+    speak: none; /* Accessibility: prevent screen readers from reading icon */
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-transform: none;
+    -webkit-font-smoothing: antialiased; /* Better icon rendering */
+    -moz-osx-font-smoothing: grayscale;
+    z-index: 1070; /* Above modal content */
+    background: rgb(255 255 255 / 90%); /* Semi-transparent white background */
+    border-radius: 50%; /* Circular button */
+    width: 2.5rem; /* Fixed dimensions for consistent appearance */
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/**
+ * Close icon content
+ * Uses CSS custom property for the close icon character
+ */
+.modal .icon-menu-close::after {
+    content: var(--icon-menu-close); /* CME Group close icon: \e90f */
+}
+
+/**
+ * Close button hover state
+ * Changes to CME Group blue for better user feedback
+ */
+.modal .icon-menu-close:hover {
+    color: #3cc8ff; /* CME Group light blue */
+    text-decoration: none;
+}
