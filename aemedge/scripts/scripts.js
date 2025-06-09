@@ -328,7 +328,7 @@ function initializeLightboxForElement() {
   if (!window.cmeModals) {
     import(`${window.hlx.codeBasePath}/scripts/cme-lightbox.js`)
       .then(() => {
-        console.log('Lightbox JS loaded and initialized');
+        // Lightbox JS loaded successfully
       })
       .catch((error) => {
         console.error('Failed to load lightbox JS:', error);

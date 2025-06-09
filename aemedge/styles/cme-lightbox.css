@@ -55,16 +55,6 @@
 }
 
 /**
- * Magnify icon hover state
- * Brightens background and increases opacity for better visibility
- */
-.component.image figure .magnify-icon:hover {
-    background: hsl(0deg 0% 100% / 85%);
-    opacity: 1;
-    transform: scale(1.1); /* Slight scale effect on hover */
-}
-
-/**
  * Button role styling for lightbox triggers
  * Ensures proper cursor and layout for clickable image containers
  */
@@ -91,19 +81,7 @@
     overflow: hidden; /* Prevents image scaling from breaking layout */
 }
 
-/**
- * Lightbox trigger hover effects
- * Shows magnify icon and scales image slightly on hover
- */
-.component.image[data-img-style="lightbox"] figure:hover .magnify-icon {
-    opacity: 1;
-    transform: scale(1.1);
-}
 
-.component.image[data-img-style="lightbox"] figure:hover img {
-    transform: scale(1.05); /* Subtle zoom effect on image hover */
-    transition: transform 0.3s ease;
-}
 
 /* ==========================================================================
    MODAL OVERLAY STYLES
@@ -291,8 +269,6 @@
         max-width: calc(100vw - 0.5rem);
     }
 
-
-
     /* Reduced padding for mobile screens */
     .image-modal .modal-content {
         padding: 2.5rem 1rem 1rem;
@@ -348,13 +324,4 @@
  */
 .modal .icon-menu-close::after {
     content: var(--icon-menu-close); /* CME Group close icon: \e90f */
-}
-
-/**
- * Close button hover state
- * Changes to CME Group blue for better user feedback
- */
-.modal .icon-menu-close:hover {
-    color: #3cc8ff; /* CME Group light blue */
-    text-decoration: none;
 }
