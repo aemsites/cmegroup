@@ -1,72 +1,43 @@
 /**
- * CME Lightbox Component
+ * CME Lightbox - Simplified Vanilla JS Implementation
  *
- * A custom lightbox implementation for CME Group that provides modal image viewing
- * with zoom capabilities. Works with the CME Group design system and icon fonts.
+ * A lightweight lightbox component for image viewing with clean markup and minimal dependencies.
+ * Uses simple CSS classes and data attributes for optimal performance and maintainability.
  *
- * Features:
- * - Modal image display with backdrop
- * - CME Group branded close and magnify icons
- * - Keyboard navigation (Escape to close)
- * - Click outside to close
- * - Responsive design
- * - Event delegation for dynamic content
  *
- * Usage:
- * The lightbox automatically initializes and detects images with the following structure:
- *
- * <div class="component image" data-img-style="lightbox">
- *   <figure>
- *     <a role="button">
- *       <picture>
- *         <img src="image.jpg" alt="Description">
- *       </picture>
- *       <span class="magnify-icon default">🔍</span>
- *     </a>
- *   </figure>
- * </div>
- *
- * The lightbox will automatically add magnify icons to images that don't have them
- * and handle all click events for opening/closing modals.
- *
- * @author CME Group
- * @version 1.0.0
+ * @example
+ * <img class="lightbox-image"
+ *      src="thumb.jpg"
+ *      data-lightbox-src="fullsize.jpg"
+ *      data-lightbox-alt="Full size image description"
+ *      alt="Thumbnail description">
  */
 class CMELightbox {
-  /**
-     * Creates a new CME Lightbox instance
-     * @constructor
-     */
   constructor() {
-    /** @type {HTMLElement|null} The currently active modal element */
     this.currentModal = null;
     this.init();
   }
 
   /**
-     * Initializes the lightbox by setting up event listeners and adding missing icons
-     * @private
+     * Initialize lightbox functionality
+     * Sets up event listeners and adds expand icons to lightbox images
      */
   init() {
-    // Find all lightbox trigger images
     this.bindEvents();
-    // Add magnify icons to images that don't have them
-    this.addMagnifyIcons();
+    this.addExpandIcons();
   }
 
   /**
-     * Sets up event delegation for lightbox triggers and keyboard navigation
-     * Uses event delegation to handle dynamically added content
-     * @private
+     * Bind click and keyboard events for lightbox functionality
      */
   bindEvents() {
     // Event delegation for lightbox triggers
     document.addEventListener('click', (e) => {
-      const trigger = e.target.closest('[role="button"]');
-      if (trigger && this.isLightboxImage(trigger)) {
+      const lightboxImage = e.target.closest('.lightbox-image');
+      if (lightboxImage) {
         e.preventDefault();
         e.stopPropagation();
-        this.openLightbox(trigger);
+        this.openLightbox(lightboxImage);
       }
     });
 
@@ -79,87 +50,76 @@ class CMELightbox {
   }
 
   /**
-     * Checks if an element is a lightbox-enabled image
-     * @param {HTMLElement} element - The element to check
-     * @returns {boolean} True if the element is a lightbox image
-     * @private
+     * Add expand icons to lightbox images that don't have them
+     * Uses CME Group icon font for consistent styling
      */
-  isLightboxImage(element) {
-    // Check if this is a lightbox image by looking for the parent component
-    const component = element.closest('.component.image[data-img-style="lightbox"]');
-    return component !== null;
-  }
+  // eslint-disable-next-line class-methods-use-this
+  addExpandIcons() {
+    const lightboxImages = document.querySelectorAll('.lightbox-image');
 
-  /**
-     * Adds magnify icons to lightbox images that don't already have them
-     * Uses the CME Group icon font character \ue941 for consistency
-     * @public
-     */
-  addMagnifyIcons() {
-    // Add magnify icons to images that don't have them
-    const lightboxImages = document.querySelectorAll('.component.image[data-img-style="lightbox"] [role="button"]');
+    lightboxImages.forEach((img) => {
+      // Find the lightbox container (should be the wrapper div)
+      const container = img.closest('.lightbox-container');
+      if (!container) return;
 
-    lightboxImages.forEach((button) => {
-      if (!button.querySelector('.magnify-icon')) {
-        const icon = document.createElement('span');
-        icon.className = 'magnify-icon default';
-        icon.innerHTML = '\ue941'; // CMEGroup-Icons expand-secondary icon (diagonal arrow)
-        button.appendChild(icon);
+      // Skip if container already has an expand icon
+      if (container.querySelector('.lightbox-expand-icon')) {
+        return;
       }
+
+      // Create expand icon
+      const icon = document.createElement('span');
+      icon.className = 'lightbox-expand-icon';
+      icon.innerHTML = '\ue941'; // CME Group diagonal expand icon
+      icon.setAttribute('aria-hidden', 'true');
+
+      // Add icon to the container (which has position: relative)
+      container.appendChild(icon);
     });
   }
 
   /**
-     * Opens the lightbox modal for a specific image
-     * @param {HTMLElement} trigger - The clicked trigger element containing the image
-     * @public
+     * Open lightbox with the specified image
+     * @param {Element} img - The image element to display in lightbox
      */
-  openLightbox(trigger) {
-    // Get image info
-    const img = trigger.querySelector('img');
-    const component = trigger.closest('.component.image');
+  openLightbox(img) {
+    if (!img) return;
 
-    if (!img || !component) return;
-
-    // Get high-res image source from data attribute or use current src
-    const highResSrc = component.dataset.imgSrc || img.src;
-    const alt = img.alt || '';
+    // Get image sources and alt text
+    const fullSizeSrc = img.dataset.lightboxSrc || img.src;
+    const altText = img.dataset.lightboxAlt || img.alt || '';
 
     // Create and show modal
-    this.createModal(highResSrc, alt);
+    this.createModal(fullSizeSrc, altText);
     this.showModal();
   }
 
   /**
-     * Creates the modal DOM structure with image and close button
-     * @param {string} imageSrc - The image source URL (preferably high resolution)
-     * @param {string} imageAlt - The image alt text for accessibility
-     * @private
-     */
+   * Create modal DOM structure with semantic HTML
+   * @param {string} imageSrc - Source URL of the image to display
+   * @param {string} imageAlt - Alternative text for the image
+   */
   createModal(imageSrc, imageAlt) {
     // Remove existing modal if any
     this.closeLightbox();
 
-    // Create modal structure
+    // Create modal structure with semantic classes
     const modal = document.createElement('div');
-    modal.className = 'modal fade lightbox-modal';
+    modal.className = 'lightbox-modal';
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('tabindex', '-1');
+    modal.setAttribute('aria-label', 'Image viewer');
 
-    // Modal HTML structure with CME Group styling
     modal.innerHTML = `
-            <div class="modal-dialog universal-modal image-modal modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <span class="icon-menu-close" aria-label="Close"></span>
-                    <div class="modal-body">
-                        <div class="pinch-to-zoom-container">
-                            <div class="pinch-to-zoom-area">
-                                <img src="${imageSrc}" 
-                                     alt="${imageAlt}"
-                                     loading="lazy">
-                            </div>
-                        </div>
+            <div class="lightbox-dialog">
+                <div class="lightbox-content">
+                    <button type="button" class="lightbox-close" aria-label="Close image viewer"></button>
+                    <div class="lightbox-body">
+                        <img src="${imageSrc}" 
+                             alt="${imageAlt}"
+                             class="lightbox-image-display"
+                             loading="lazy">
                     </div>
                 </div>
             </div>
@@ -168,10 +128,19 @@ class CMELightbox {
     this.currentModal = modal;
     document.body.appendChild(modal);
 
-    // Add click handlers AFTER adding to DOM
-    const closeBtn = modal.querySelector('.icon-menu-close');
+    // Add event handlers
+    this.bindModalEvents(modal);
+  }
 
-    // Close button click handler
+  /**
+     * Bind events for modal interaction
+     * @param {Element} modal - The modal element
+     */
+  bindModalEvents(modal) {
+    const closeBtn = modal.querySelector('.lightbox-close');
+    const dialog = modal.querySelector('.lightbox-dialog');
+
+    // Close button click
     if (closeBtn) {
       closeBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -180,26 +149,23 @@ class CMELightbox {
       });
     }
 
-    // Close when clicking outside the modal content (on backdrop)
+    // Close when clicking outside the dialog (on backdrop)
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         this.closeLightbox();
       }
     });
 
-    // Prevent closing when clicking inside modal content
-    const modalContent = modal.querySelector('.modal-content');
-    if (modalContent) {
-      modalContent.addEventListener('click', (e) => {
+    // Prevent closing when clicking inside dialog
+    if (dialog) {
+      dialog.addEventListener('click', (e) => {
         e.stopPropagation();
       });
     }
   }
 
   /**
-     * Shows the modal with fade-in animation
-     * Prevents body scrolling while modal is open
-     * @private
+     * Show the modal with smooth animation
      */
   showModal() {
     if (!this.currentModal) return;
@@ -207,24 +173,22 @@ class CMELightbox {
     // Prevent body scroll
     document.body.style.overflow = 'hidden';
 
-    // Show modal with animation
+    // Show modal with fade-in animation
     requestAnimationFrame(() => {
-      this.currentModal.style.display = 'block';
+      this.currentModal.style.display = 'flex';
       requestAnimationFrame(() => {
-        this.currentModal.classList.add('show');
+        this.currentModal.classList.add('lightbox-modal-show');
       });
     });
   }
 
   /**
-     * Closes the current lightbox modal and cleans up
-     * Restores body scrolling and removes modal from DOM
-     * @public
+     * Close and remove the current lightbox modal
      */
   closeLightbox() {
     if (!this.currentModal) return;
 
-    // Remove modal immediately - same as escape key behavior
+    // Remove modal immediately
     const modalToRemove = this.currentModal;
     this.currentModal = null;
 
@@ -235,14 +199,11 @@ class CMELightbox {
   }
 }
 
-// Initialize lightbox when DOM is ready - SINGLE INITIALIZATION
-// This ensures the lightbox is ready to handle images loaded dynamically
+// Initialize lightbox when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    /** @type {CMELightbox} Global lightbox instance */
     window.cmeModals = new CMELightbox();
   });
 } else {
-  /** @type {CMELightbox} Global lightbox instance */
   window.cmeModals = new CMELightbox();
 }

@@ -316,7 +316,7 @@ function decorateExternalImages(ele) {
 }
 
 /**
- * Initialize lightbox functionality for a specific element
+ * Initialize lightbox functionality for the page
  */
 function initializeLightboxForElement() {
   // Load lightbox CSS if not already loaded
@@ -333,13 +333,13 @@ function initializeLightboxForElement() {
       .catch((error) => {
         console.error('Failed to load lightbox JS:', error);
       });
-  } else if (window.cmeModals.addMagnifyIcons) {
-    window.cmeModals.addMagnifyIcons();
+  } else if (window.cmeModals.addExpandIcons) {
+    window.cmeModals.addExpandIcons();
   }
 }
 
 /**
- * Converts a picture element into a lightbox structure
+ * Converts a picture element into a simplified lightbox structure
  * @param {Element} strongParent The strong element wrapping the picture
  * @param {Element} picture The picture element to convert
  */
@@ -356,43 +356,25 @@ function addLightboxStructure(strongParent, picture) {
   imageUrl.searchParams.set('width', '2000');
   const highResSrc = imageUrl.toString();
 
-  // Create the lightbox component structure
-  const lightboxComponent = document.createElement('div');
-  lightboxComponent.className = 'component react image loaded';
-  lightboxComponent.setAttribute('data-is-edit', 'false');
-  lightboxComponent.setAttribute('data-img-style', 'lightbox');
-  lightboxComponent.setAttribute('data-img-border', 'false');
-  lightboxComponent.setAttribute('data-img-src', highResSrc);
-  lightboxComponent.setAttribute('data-img-alt', imageAlt);
-  lightboxComponent.setAttribute('data-img-decorative', 'false');
-  lightboxComponent.setAttribute('data-img-zoom-icon', 'default');
-  lightboxComponent.setAttribute('data-slider', 'false');
+  // Create clean wrapper div
+  const wrapper = document.createElement('div');
+  wrapper.className = 'lightbox-container';
 
-  // Create figure element
-  const figure = document.createElement('figure');
-  figure.setAttribute('role', 'group');
-
-  // Create clickable button
-  const button = document.createElement('a');
-  button.setAttribute('role', 'button');
-  button.setAttribute('tabindex', '0');
-
-  // Move the picture element into the button
+  // Clone the picture and modify the img to be lightbox-enabled
   const pictureClone = picture.cloneNode(true);
-  button.appendChild(pictureClone);
+  const imgClone = pictureClone.querySelector('img');
 
-  // Add magnify icon
-  const magnifyIcon = document.createElement('span');
-  magnifyIcon.className = 'magnify-icon default';
-  magnifyIcon.innerHTML = '\ue941'; // CMEGroup-Icons expand-secondary icon (diagonal arrow)
-  button.appendChild(magnifyIcon);
+  if (imgClone) {
+    imgClone.className = 'lightbox-image';
+    imgClone.setAttribute('data-lightbox-src', highResSrc);
+    imgClone.setAttribute('data-lightbox-alt', imageAlt);
+  }
 
-  // Assemble the structure
-  figure.appendChild(button);
-  lightboxComponent.appendChild(figure);
+  // Add the picture to wrapper
+  wrapper.appendChild(pictureClone);
 
-  // Replace the strong element with the new lightbox structure
-  strongParent.parentNode.replaceChild(lightboxComponent, strongParent);
+  // Replace the strong element with the clean wrapper
+  strongParent.parentNode.replaceChild(wrapper, strongParent);
 
   // Initialize lightbox functionality for this new element
   initializeLightboxForElement();
@@ -400,11 +382,11 @@ function addLightboxStructure(strongParent, picture) {
 
 /**
  * Decorates author bolded external images with lightbox functionality by converting those picture
- * elements wrapped in <strong> tags into interactive lightbox components.
+ * elements wrapped in <strong> tags into simple, clean lightbox-enabled images.
  *
- * Search for picture elements within the main content area and
- * checks if they are wrapped in <strong> tags. When found, convert them
- * into a complete lightbox component structure.
+ * Searches for picture elements within the main content area and checks if they are wrapped
+ * in <strong> tags. When found, converts them into a clean lightbox structure using semantic
+ * classes and minimal markup for optimal performance.
  *
  * @param {Element} main - The main content element to search for lightbox images
  *
@@ -412,15 +394,15 @@ function addLightboxStructure(strongParent, picture) {
  * // Before: Picture wrapped in strong tag
  * // <strong><picture><img src="image.jpg" alt="Description"></picture></strong>
  *
- * // After: Complete lightbox component
- * // <div class="component react image loaded" data-img-style="lightbox"
- * //   data-img-src="image.jpg?width=2000">
- * //   <figure role="group">
- * //     <a role="button" tabindex="0">
- * //       <picture><img src="image.jpg" alt="Description"></picture>
- * //       <span class="magnify-icon default">🔍</span>
- * //     </a>
- * //   </figure>
+ * // After: Clean lightbox structure
+ * // <div class="lightbox-container">
+ * //   <picture>
+ * //     <img class="lightbox-image"
+ * //          src="image.jpg"
+ * //          data-lightbox-src="image.jpg?width=2000"
+ * //          data-lightbox-alt="Description"
+ * //          alt="Description">
+ * //   </picture>
  * // </div>
  *
  * @see {@link addLightboxStructure} - Helper function that creates the lightbox structure
