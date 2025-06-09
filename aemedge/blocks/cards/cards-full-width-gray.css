@@ -12,11 +12,17 @@
 }
 
 .cards.full-width.background-gray li .cards-card-body {
-    padding: 1.875rem;
+    padding: 1.25rem;
     margin: 0;
 }
 
-.cards.full-width.background-gray li .cards-card-body h4{
+@media (width >= 769px) {
+    .cards.full-width.background-gray li .cards-card-body {
+        padding: 1.875rem;
+    }
+}
+
+.cards.full-width.background-gray li .cards-card-body h4 {
     display: inline-block;
     font-size: 1.25rem;
     line-height: 1.625rem;
@@ -30,17 +36,17 @@
     margin: 1.25rem 0 1.875rem;
 }
 
-.cards.full-width.background-gray li .cards-card-body p:has(picture){
+.cards.full-width.background-gray li .cards-card-body p:has(picture) {
     display: inline-block;
     margin: 0;
     vertical-align: middle;
 }
 
-.cards.full-width.background-gray li .cards-card-body p picture{
+.cards.full-width.background-gray li .cards-card-body p picture {
     display: flex;
 }
 
-.cards.full-width.background-gray li .cards-card-body p picture img{
+.cards.full-width.background-gray li .cards-card-body p picture img {
     height: 1.875rem;
     width: 1.625rem;
 }
