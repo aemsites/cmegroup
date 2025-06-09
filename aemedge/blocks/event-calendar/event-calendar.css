@@ -1306,6 +1306,14 @@
     margin: 0;
 }
 
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper p.mobile-view {
+    display: block;
+}
+
+.event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper p.desktop-view {
+    display: none;
+}
+
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span {
     color: var(--citron);
     font-family: var(--cme-group-icons);
@@ -1344,6 +1352,14 @@
         letter-spacing: .0625rem;
         line-height: .875rem;
         text-transform: uppercase;
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper p.desktop-view {
+        display: block;
+    }
+
+    .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper p.mobile-view {
+        display: none;
     }
 
     .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper span {
@@ -1692,8 +1708,6 @@
     padding-left: 1rem;
     text-align: left;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:last-child {
@@ -1704,6 +1718,7 @@
     display: flex;
     justify-content: center;
     text-align: unset;
+    white-space: nowrap;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li.positive,
