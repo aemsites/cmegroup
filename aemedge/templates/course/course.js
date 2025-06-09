@@ -26,10 +26,6 @@ async function addBeginCourseButton(courseData) {
 }
 
 export default async function courseTemplate() {
-  await createCourseBaseTemplate();
-  await addBeginCourseButton();
-  await addRelatedCourses();
-
   const { authenticationData } = authentication;
   authenticationData.loginPromise.then(async () => {
     const courseData = await getCourseData();
@@ -38,4 +34,6 @@ export default async function courseTemplate() {
     //  dispatch courseData event
     store.dispatch(courseDataChange(courseData));
   });
+
+  await addRelatedCourses();
 }
