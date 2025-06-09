@@ -5,7 +5,7 @@ import {
   postEconomicReleaseDates,
   postEconomicReleaseEvents,
 } from '../../scripts/services/ProductCalendarService.js';
-import { URIUtil, escapeHtmlTags } from '../../scripts/utils/index.js';
+import { URIUtil, escapeHtmlTags, parseCurrencyValue } from '../../scripts/utils/index.js';
 
 const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
 const { body } = window.document;
@@ -831,13 +831,15 @@ function renderResultSection() {
 }
 
 function valueInTable(value1, value2) {
-  const numValue1 = parseFloat(value1);
-  const numValue2 = parseFloat(value2);
+  const numValue1 = parseCurrencyValue(value1);
+  const numValue2 = parseCurrencyValue(value2);
+
   if (value1 != null && value2 != null
     && !Number.isNaN(numValue1) && !Number.isNaN(numValue2)) {
     if (numValue1 > numValue2) {
       return 'positive';
-    } if (numValue1 < numValue2) {
+    }
+    if (numValue1 < numValue2) {
       return 'negative';
     }
   }
@@ -1162,21 +1164,16 @@ function renderEventsTableHeader() {
 }
 
 function renderCalendarResume() {
-  if (isDesktop) {
-    const formateDateForResume = dayjs.utc(leftPanelSelectedDay).format('Do MMM YYYY');
-    calendarResume.innerHTML = `
-    <p>
-      Showing<span> '${nthEvents === '0' ? 'NO' : nthEvents}' </span>Matching Events for<span> "${formateDateForResume}"</span>
-    </p>
-    `;
-  } else {
-    calendarResume.innerHTML = `
-    <p>
-      <span class="calendar-icon"></span>
-      ${nthEvents} Matching Events
-    </p>
-    `;
-  }
+  const formateDateForResume = dayjs.utc(leftPanelSelectedDay).format('Do MMM YYYY');
+  calendarResume.innerHTML = `
+  <p class="desktop-view">
+    Showing<span> '${nthEvents === '0' ? 'NO' : nthEvents}' </span>Matching Events for<span> "${formateDateForResume}"</span>
+  </p>
+  <p class="mobile-view">
+    <span class="calendar-icon"></span>
+    ${nthEvents} Matching Events
+  </p>
+  `;
   return calendarResume;
 }
 
@@ -1372,27 +1369,22 @@ async function init(block, version) {
       const crossedBreakpointDown = (prevWindowWidth > 1200 && windowWidth <= 1199);
       const crossedBreakpointUp = (prevWindowWidth <= 1199 && windowWidth >= 1200);
       if (crossedBreakpointDown) {
-        calendarResume.innerHTML = '';
         eventCalendarTBody.innerHTML = '';
         eventCalendarTBody.append(spinnerInEventCalendar);
-        isDesktop = window.innerWidth > 1200;
+        isDesktop = window.innerWidth >= 1201;
         datePicker.hide();
         setTimeout(() => {
           // 1.5 seconds delay for visual effect
-          renderCalendarResume();
           renderEvents();
         }, 1500);
       }
       if (crossedBreakpointUp) {
-        calendarResume.innerHTML = '';
-        calendarResume.append(spinnerInEventCalendar);
         eventCalendarTBody.innerHTML = '';
         eventCalendarTBody.append(spinnerInEventCalendar);
-        isDesktop = window.innerWidth > 1200;
+        isDesktop = window.innerWidth >= 1201;
         renderCurrentPills(filtersArray);
         setTimeout(() => {
           // 1.5 seconds delay for visual effect
-          renderCalendarResume();
           renderEvents();
         }, 1500);
         const openInputsCurtain = document.querySelector('.inputs-curtain.is-open');
