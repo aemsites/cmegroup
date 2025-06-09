@@ -1,5 +1,5 @@
 import { readBlockConfig } from '../../scripts/aem.js';
-
+import { setTracking } from '../../scripts/utils/index.js';
 /*
  * For more info about the video's options please read:
  * https://github.com/brightcove/player-loader
@@ -13,6 +13,8 @@ import { readBlockConfig } from '../../scripts/aem.js';
  * close caption,
  * language
  */
+
+const fireTracking = setTracking('event', 'media', 'BrightcoveVideo');
 
 function calculateDataPlayerId(
   aspectRatio,
@@ -110,11 +112,127 @@ function loadLanguage(videoPlayer, language) {
 
 function setPlayerReady(block, language, videoId) {
   block.setAttribute('data-video-status', 'loaded');
+  const languageVideoPlayer = videojs(block.querySelector(`#cmeVideo${videoId}`));
   if (language) {
-    const languageVideoPlayer = videojs(block.querySelector(`#cmeVideo${videoId}`));
     languageVideoPlayer.on('loadedmetadata', () => {
       loadLanguage(languageVideoPlayer, language);
     });
+  }
+  languageVideoPlayer.on('loadstart', () => document.dispatchEvent(new CustomEvent('videojsloaded')));
+  languageVideoPlayer.on('loadeddata', () => {
+    const { name: videoName } = languageVideoPlayer.mediainfo;
+    const percentsAlreadyTracked = [];
+
+    if (window.ga) {
+      window.ga();
+    }
+    fireTracking(`Video "${videoName}" - loaded`, 'loadeddata');
+
+    // GMT - Events to Track
+    let timeUpdateTimeout;
+    languageVideoPlayer.on(
+      'timeupdate',
+      () => {
+        clearTimeout(timeUpdateTimeout);
+        timeUpdateTimeout = setTimeout(() => {
+          const myMediaDuration = Math.ceil(languageVideoPlayer.duration());
+          const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+          const myPercentage = Math.ceil((myPosition / myMediaDuration) * 100);
+          if (!(myPercentage % 10) && percentsAlreadyTracked.indexOf(myPercentage) < 0) {
+            fireTracking(
+              `Video "${videoName}" - Percents played ${myPercentage}%`,
+              'percentsPlayed',
+              myPercentage,
+            );
+            percentsAlreadyTracked.push(myPercentage);
+          }
+        }, 120);
+      },
+    );
+    languageVideoPlayer.on('firstplay', () => {
+      fireTracking(`Video "${videoName}" - Start`, 'start');
+    });
+    languageVideoPlayer.on('ended', () => {
+      fireTracking(`Video "${videoName}" - End`, 'end');
+    });
+    languageVideoPlayer.on('seeked', () => {
+      const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+      fireTracking(
+        `Video "${videoName}" - Seek end at ${myPosition}`,
+        'seek',
+        myPosition,
+      );
+    });
+    languageVideoPlayer.on('play', () => {
+      const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+      fireTracking(
+        `Video "${videoName}" - Play from ${myPosition}`,
+        'play',
+        myPosition,
+      );
+    });
+    languageVideoPlayer.on('pause', () => {
+      const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+      fireTracking(
+        `Video "${videoName}" - Paused at ${myPosition}`,
+        'pause',
+        myPosition,
+      );
+    });
+    languageVideoPlayer.on('resize', () => {
+      const videoSize = `${languageVideoPlayer.videoWidth()}*${languageVideoPlayer.videoHeight()}`;
+      fireTracking(
+        `Video "${videoName}" - Resize - ${videoSize}`,
+        'resize',
+        videoSize,
+      );
+    });
+
+    let volumeChangeTimeout;
+    languageVideoPlayer.on(
+      'volumechange',
+      () => {
+        clearTimeout(volumeChangeTimeout);
+        volumeChangeTimeout = setTimeout(() => {
+          const volume = `${languageVideoPlayer.muted() ? 0 : Math.ceil(languageVideoPlayer.volume() * 100)}%`;
+          fireTracking(
+            `Video "${videoName}" - Volume - ${volume}`,
+            'volumechange',
+            volume,
+          );
+        }, 120);
+      },
+    );
+    languageVideoPlayer.on('error', () => {
+      const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+      fireTracking(
+        `Video "${videoName}" - Error at ${myPosition}`,
+        'error',
+        myPosition,
+      );
+    });
+    languageVideoPlayer.on('fullscreenchange', () => {
+      const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+      fireTracking(
+        `Video "${videoName}" - ${
+          languageVideoPlayer.isFullscreen() ? 'Enter' : 'Exit'
+        } fullscreen at ${myPosition}`,
+        'fullscreen',
+        myPosition,
+      );
+    });
+    // GMT - Events to Track
+  });
+
+  if (videojs.browser.TOUCH_ENABLED) {
+    const container = document.getElementById(`cmeVideoContainer${videoId}`);
+    if (container) {
+      const element = container.getElementsByClassName('vjs-playlist')[0];
+      if (element) {
+        element.classList.remove('vjs-native');
+        element.classList.add('vjs-mouse');
+      }
+    }
   }
 }
 
@@ -149,7 +267,10 @@ export default async function decorate(block) {
   <div class='brightcove-player'>
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
-        <div class="${videoStyles} ${playlist ? 'vjs-playlist-player-container' : 'brightcove-video'}">
+        <div
+          id="cmeVideoContainer${videoId}"
+          class="${videoStyles} ${playlist ? 'vjs-playlist-player-container' : 'brightcove-video'}"
+        >
           <video-js
             id="cmeVideo${videoId}"
             data-account="${accountId}"
