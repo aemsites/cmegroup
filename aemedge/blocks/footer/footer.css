@@ -72,7 +72,7 @@ footer .footer .footer-languages .language-selector-dropdown {
     z-index: 1000;
 
     @media (width >= 481px) {
-        inset: 0.1875rem 0px auto auto;
+        inset: 0.1875rem 0 auto auto;
     }
 
     @media (width >= 1201px) {
