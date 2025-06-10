@@ -120,22 +120,28 @@ const handleFragments = (document) => {
   }
 };
 
-const quizBlock = async () => {
-  // const quizItems = document.querySelectorAll('.quiz-item');
-  // console.log(111, quizItems);
-  // console.log(222, document.querySelector('.quiz'));
+const quizBlock = (document) => {
+  const quizzes = document.querySelectorAll('.quiz-item');
 
-  // // data-question
+  if (quizzes?.length) {
+    const cells = [['Quiz']];
+    quizzes.forEach((quiz) => {
+      const questionText = quiz.getAttribute('data-question');
+      const questionTextWithoutQuotes = questionText.replace(/^['"]|['"]$/g, '').trim();
+      const answersItems = quiz.getAttribute('data-answers-items') ? JSON.parse(quiz.getAttribute('data-answers-items')) : [];
 
-  // if (quizItems) {
+      cells.push([questionTextWithoutQuotes, answersItems[0].answerOpt,
+        answersItems[0].correctAnswer || '', answersItems[0].answerSnip || '']);
 
-  //   const cells = [['Quiz']];
+      for (let i = 1; i < answersItems.length; i += 1) {
+        const answer = answersItems[i];
+        cells.push(['', answer.answerOpt, answer.correctAnswer || '', answer.answerSnip || '']);
+      }
+    });
 
-  //   quizItems.forEach((quizItem) => {
-  //     console.log(quizItem.getAttribute('data-question'));
-  //     console.log(quizItem.getAttribute('data-answers-items'));
-  //   });
-  // }
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    document.querySelector('.quiz')?.replaceWith(table);
+  }
 };
 
 const moduleOrder = async (document, meta, url1) => {

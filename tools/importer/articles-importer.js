@@ -685,9 +685,8 @@ const customBlocks = async (document, main, meta, url) => {
   dividerBlock(document);
   promoBlock(document);
   authorBioBlock(document);
-  await quizBlock(document);
+  quizBlock(document);
   tagsCloudBlock(document);
-  // quizBlock(document);
   faqBlock(document, meta);
   await accordionBlock(document);
   await lightBoxGallery(document);
@@ -776,7 +775,7 @@ export default {
       '.sitewide-marketing-popup',
       // '.course-nav',
       '.top-info',
-      '.slick-track',
+      // '.slick-track',
       '.w-sm-auto',
       '.lateral-navigation',
     ]);
