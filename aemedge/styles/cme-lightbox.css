@@ -34,7 +34,7 @@
     height: 2.5rem;
     background: hsl(0deg 0% 100% / 55%);
     color: #006eb6;
-    border-radius: 50%;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
