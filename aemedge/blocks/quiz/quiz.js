@@ -7,16 +7,6 @@ async function checkQuizCompletion(block, questions) {
   const allAnsweredCorrectly = answeredCorrectlyEls.length === questions.length;
 
   if (allAnsweredCorrectly && !block.querySelector('.message')) {
-    const [quizLabel] = await Promise.all([i18n('Lesson complete')]);
-    const completionMessage = createElement(
-      'div',
-      { class: 'message' },
-      createElement('div', { class: 'message-label' }, createElement('i', { class: 'icon' })),
-      createElement('div', { class: 'message-text' }, quizLabel),
-    );
-    block.insertBefore(completionMessage, block.firstChild);
-    block.classList.add('complete');
-
     //  quiz completion event
     store.dispatch(quizAnswered(true));
   }
@@ -175,6 +165,30 @@ async function addNavigation(questions, block, wrapper) {
   block.appendChild(nav);
 }
 
+async function markQuizCompleted(block, questionsMeta) {
+  const [quizLabel] = await Promise.all([i18n('Lesson complete')]);
+  const completionMessage = createElement(
+    'div',
+    { class: 'message' },
+    createElement('div', { class: 'message-label' }, createElement('i', { class: 'icon' })),
+    createElement('div', { class: 'message-text' }, quizLabel),
+  );
+  block.insertBefore(completionMessage, block.firstChild);
+  block.classList.add('complete');
+
+  if (block.querySelectorAll('.answered-correctly').length) return;
+  //  classes for already completed quizzes
+  const questions = block.querySelectorAll('.options-wrapper');
+  questions.forEach((question, index) => {
+    const answers = question.querySelectorAll('.option-item');
+    answers.forEach((answer, answerIndex) => {
+      const { correct } = questionsMeta[index].answers[answerIndex];
+      const contentAnswer = answer.querySelector('.option-content-answer');
+      contentAnswer.classList.add('pressed', correct ? 'correct' : 'disabled');
+    });
+  });
+}
+
 export default async function decorate(block) {
   const rows = Array.from(block.querySelectorAll(':scope > div'));
   const questions = buildQuestions(rows);
@@ -187,4 +201,11 @@ export default async function decorate(block) {
   }
 
   block.classList.add('showed');
+
+  //  quiz completion event subscriber
+  store.subscribe(({ quiz }) => quiz, async ({ isCorrect }) => {
+    if (isCorrect) {
+      markQuizCompleted(block, questions);
+    }
+  });
 }
