@@ -684,6 +684,13 @@ const removeLinesEllipsis = (document) => {
   });
 };
 
+const removeVisuallyHidden = (document) => {
+  const visuallyHidden = document.querySelectorAll('.visually-hidden');
+  visuallyHidden.forEach((hidden) => {
+    hidden.remove();
+  });
+};
+
 export default {
   /**
      * Apply DOM operations to the provided document and return
@@ -737,7 +744,6 @@ export default {
       '.sitewide-marketing-popup',
       // '.course-nav',
       '.top-info',
-      // '.slick-track',
       '.w-sm-auto',
       '.lateral-navigation',
     ]);
@@ -766,6 +772,7 @@ export default {
 
     removeExtraSectionBreak(document);
     removeLinesEllipsis(document);
+    removeVisuallyHidden(document);
 
     results.push({
       element: main,
