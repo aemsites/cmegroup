@@ -18,5 +18,6 @@ module.exports = {
   globals: {
     dayjs: 'readonly',
     datepicker: 'readonly',
+    videojs: 'readonly',
   },
 };
