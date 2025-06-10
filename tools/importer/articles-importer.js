@@ -377,44 +377,6 @@ const figCaptionEmphasize = (document) => {
   }
 };
 
-// const quizBlock1 = (document) => {
-//   const quizzes = document.querySelectorAll('.quiz');
-//   if (quizzes) {
-//     quizzes.forEach((quiz) => {
-//       const cells = [['Quiz']];
-//       const questionText = quiz.querySelector('.question-text');
-//       if (questionText) {
-//         cells.push(['Question', questionText.innerText]);
-//       }
-//       cells.push(['Options']);
-
-//       const options = quiz.querySelectorAll('.option-item');
-//       options.forEach((option) => {
-//         const optionText = option.querySelector('.option-text');
-//         if (optionText) {
-//           cells.push([optionText.innerText]);
-//         }
-//       });
-
-//       const answersItems = quiz.querySelector('.quiz-item')?.getAttribute('data-answers-items');
-//       if (answersItems) {
-//         const answersItemsJson = JSON.parse(answersItems);
-//         answersItemsJson.forEach((answer, index) => {
-//           if (answer.correctAnswer) {
-//             cells.push(['Correct Answer', index + 1]);
-//             if (answer.answerSnip) {
-//               cells.push(['Answer Text', answer.answerSnip]);
-//             }
-//           }
-//         });
-//       }
-
-//       const table = WebImporter.DOMUtils.createTable(cells, document);
-//       quiz.replaceWith(table);
-//     });
-//   }
-// };
-
 const faqBlock = (document, meta) => {
   if (meta['Sub Template'] === 'faqs') {
     const components = document.querySelectorAll('.component');
