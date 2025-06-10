@@ -1,5 +1,3 @@
-/* global WebImporter */
-/* eslint-disable no-console, class-methods-use-this */
 import { EDS_DOMAIN, fetchTemplate, SECTION_SELECTORS } from './utils.js';
 
 const templateData = {};
