@@ -1,13 +1,11 @@
-let dataLayer;
-
 export function fireGTMTracking(trackingType, trackingParameters) {
-  if (typeof dataLayer !== 'undefined') {
+  if (typeof window.dataLayer !== 'undefined') {
     const {
       event, eventCategory, eventAction, eventLabel, eventValue,
     } = trackingParameters;
     switch (trackingType) {
       case 'event':
-        dataLayer.push({
+        window.dataLayer.push({
           event,
           eventCategory,
           eventAction,
@@ -16,12 +14,12 @@ export function fireGTMTracking(trackingType, trackingParameters) {
         });
         break;
       case 'page':
-        dataLayer.push({
+        window.dataLayer.push({
           PageInformation: event,
         });
         break;
       case 'custom':
-        dataLayer.push({
+        window.dataLayer.push({
           ...trackingParameters,
         });
         break;

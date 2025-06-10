@@ -14,7 +14,7 @@ import { setTracking } from '../../scripts/utils/index.js';
  * language
  */
 
-const fireTracking = setTracking('event', 'media', 'BrightcoveVideo');
+const fireTracking = setTracking('custom', 'media', 'BrightcoveVideo');
 
 function calculateDataPlayerId(
   aspectRatio,
@@ -118,7 +118,7 @@ function setPlayerReady(block, language, videoId) {
       loadLanguage(languageVideoPlayer, language);
     });
   }
-  languageVideoPlayer.on('loadstart', () => document.dispatchEvent(new CustomEvent('videojsloaded')));
+  languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
   languageVideoPlayer.on('loadeddata', () => {
     const { name: videoName } = languageVideoPlayer.mediainfo;
     const percentsAlreadyTracked = [];
