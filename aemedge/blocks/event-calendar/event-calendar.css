@@ -1289,7 +1289,6 @@
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-resume-wrapper {
     box-shadow: 0 .25rem 0 var(--blue1);
-    position: sticky;
     top: 5rem;
     background-color: var(--blue2);
     margin-bottom: .3125rem;
