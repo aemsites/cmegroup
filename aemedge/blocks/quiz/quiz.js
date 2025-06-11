@@ -180,6 +180,7 @@ async function markQuizCompleted(block, questionsMeta) {
   //  classes for already completed quizzes
   const questions = block.querySelectorAll('.options-wrapper');
   questions.forEach((question, index) => {
+    question.parentElement?.classList.add('answered-correctly');
     const answers = question.querySelectorAll('.option-item');
     answers.forEach((answer, answerIndex) => {
       const { correct } = questionsMeta[index].answers[answerIndex];
