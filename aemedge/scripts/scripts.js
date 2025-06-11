@@ -65,11 +65,21 @@ function decorateSections(main) {
             .filter((style) => style)
             .map((style) => toClassName(style.trim()));
           styles.forEach((style) => section.classList.add(style));
-        } else if (key === 'layout') {
-          const columnWidths = meta.layout
+        } else if (key.startsWith('layout')) {
+          const applicableViews = key.split('layout-')[1];
+          const columnWidths = meta[key]
             .split('-')
             .filter((width) => width)
-            .map((width) => toClassName(`w-${width.trim()}`));
+            .map((width) => {
+              if (applicableViews) {
+                // Create responsive classes like w-sm-50, w-md-30
+                return toClassName(`w-${applicableViews}-${width.trim()}`);
+              } else {
+                // Default class without view prefix
+                return toClassName(`w-${width.trim()}`);
+              }
+            });
+
           columnWidths.forEach((columnWidth) => {
             const column = document.createElement('div');
             column.classList.add(columnWidth);

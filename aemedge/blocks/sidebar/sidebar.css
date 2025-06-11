@@ -1,0 +1,154 @@
+.sidebar {
+  background-color: var(--white);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 60%;
+}
+
+.sidebar-wrapper:has(.sidebar.empty) {
+  height: 0;
+}
+
+.sidebar .sidebar-header {
+  margin-bottom: 0;
+}
+
+.sidebar .sidebar-description {
+  margin: 0;
+}
+
+.sidebar .sidebar-description p {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.sidebar.description-bold .sidebar-description p {
+  font-weight: 600;
+}
+
+.sidebar .sidebar-footer {
+  margin: 0;
+}
+
+.sidebar .sidebar-footer p {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--gray3);
+  margin: 0;
+}
+
+.sidebar.footer-bold .sidebar-footer p {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.sidebar .sidebar-cta {
+  margin: 0;
+}
+
+.sidebar .sidebar-cta p {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: var(--text-color);
+  margin: 0;
+  text-align: center;
+}
+
+.sidebar .sidebar-cta .button-container {
+  margin: 0;
+}
+
+.sidebar .sidebar-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 65%;
+  min-width: fit-content;
+  white-space: nowrap;
+}
+
+.sidebar .sidebar-cta .icon {
+  margin-bottom: 0.25rem;
+  flex-shrink: 0;
+}
+
+.sidebar .sidebar-cta .icon img {
+  width: 1rem;
+  height: 1rem;
+  filter: var(--white-filter);
+  flex-shrink: 0;
+}
+
+.sidebar .sidebar-cta a {
+  flex-shrink: 0;
+}
+
+.sidebar .sidebar-cta:hover .icon img {
+  filter: var(--black-filter);
+}
+
+/* Responsive design */
+@media (width >= 768px) {
+  .sidebar {
+    padding: 2rem;
+  }
+  
+  .sidebar .sidebar-description p {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  
+  .sidebar .sidebar-footer p {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .sidebar .sidebar-cta {
+    width: 65%;
+  }
+}
+
+/* Sidebar variations */
+.sidebar.left-sidebar {
+  background-color: var(--gray6);
+  border-left: 4px solid var(--blue4);
+}
+
+.sidebar.right-sidebar {
+  background-color: var(--blue6);
+  border: 1px solid var(--blue5);
+}
+
+.sidebar.right-sidebar .sidebar-header p {
+  color: var(--blue2);
+  font-weight: 600;
+}
+
+.sidebar.quote {
+  background-color: var(--gray6);
+  border-left: 4px solid var(--green);
+  font-style: italic;
+}
+
+.sidebar.quote .sidebar-description p {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-style: italic;
+}
+
+.sidebar.quote .sidebar-footer p {
+  font-weight: 600;
+  font-style: normal;
+  text-align: right;
+  margin-top: 1rem;
+}
+
+.sidebar.quote .sidebar-footer p::before {
+  content: "— ";
+}

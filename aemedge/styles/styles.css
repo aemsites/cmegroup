@@ -669,7 +669,44 @@ main .section .layout > div {
     main .section .layout .w-90 {
         width: 90%;
     }
+}
 
+@media (width > 1200px) {
+  main .section .layout .w-lg-10 {
+    width: 10%;
+  }
+
+  main .section .layout .w-lg-20 {
+    width: 20%;
+  }
+
+  main .section .layout .w-lg-30 {
+    width: 30%;
+  }
+
+  main .section .layout .w-lg-40 {
+    width: 40%;
+  }
+
+  main .section .layout .w-lg-50 {
+    width: 50%;
+  }
+
+  main .section .layout .w-lg-60 {
+    width: 60%;
+  }
+
+  main .section .layout .w-lg-70 {
+    width: 70%;
+  }
+
+  main .section .layout .w-lg-80 {
+    width: 80%;
+  }
+
+  main .section .layout .w-lg-90 {
+    width: 90%;
+  }
 }
 
 /* Loading overlay animation */
