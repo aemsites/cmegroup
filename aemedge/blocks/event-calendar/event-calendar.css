@@ -1424,6 +1424,8 @@
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:nth-child(5),
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:nth-child(6) {
     width: 10%;
+    max-width: 10%;
+    overflow: hidden;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:first-child {
@@ -1439,10 +1441,14 @@
     align-items: center;
     display: flex;
     text-align: left;
+    max-width: 35%;
+    overflow: hidden;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:nth-child(7) {
     width: 15%;
+    max-width: 15%;
+    overflow: hidden;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-thead ul li:last-child {
@@ -1460,7 +1466,7 @@
     .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody {
         max-height: 39.375rem;
         overflow: hidden auto;
-        padding-right: .875rem;
+        padding-right: 0.0063rem;
         margin-right: 1rem;
         scrollbar-color: rgba(255 255 255 / 15%) transparent;
     }
@@ -1697,10 +1703,14 @@
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(5),
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(6) {
     width: 10%;
+    max-width: 10%;
+    overflow: hidden;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(7) {
-    width: 15%
+    width: 15%;
+    max-width: 15%;
+    overflow: hidden;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:first-child {
@@ -1736,6 +1746,8 @@
     text-align: left;
     width: 35%;
     padding-left: 0;
+    max-width: 35%;
+    overflow: hidden;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-header .event-container ul li:nth-child(3) a {
