@@ -255,7 +255,7 @@ export async function createCourseBaseTemplate(courseData) {
   courseHeading.before(header);
 }
 
-function getCurrentLesson(courseData) {
+export function getCurrentLesson(courseData) {
   const currentPath = window.location.pathname;
   const lessons = [
     ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
