@@ -179,7 +179,7 @@ const moduleOrder = async (document, meta, url1) => {
           ul.appendChild(li);
         });
 
-        meta['Sub Modules Order'] = ul;
+        meta['Modules Order'] = ul;
       }
     }
   } catch (error) {
