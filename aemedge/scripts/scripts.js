@@ -316,108 +316,76 @@ function decorateExternalImages(ele) {
 }
 
 /**
- * Initialize lightbox functionality for the page
+ * Creates and manages a simple lightbox for images
  */
-function initializeLightboxForElement() {
-  // Load lightbox CSS if not already loaded
-  if (!document.querySelector('link[href*="cme-lightbox.css"]')) {
-    loadCSS(`${window.hlx.codeBasePath}/styles/cme-lightbox.css`);
-  }
+async function createSimpleLightbox() {
+  const images = document.querySelectorAll('img[data-lightbox]');
+  
+  images.forEach((img) => {
+    img.addEventListener('click', async (e) => {
+      e.preventDefault();
+      
+      // Dynamic import to avoid dependency cycle
+      const { createModal } = await import('../blocks/modal/modal.js');
+      
+      const imageElement = document.createElement('img');
+      imageElement.src = img.dataset.lightbox;
+      imageElement.alt = img.alt || '';
+      imageElement.className = 'lightbox-image-display';
 
-  // Initialize lightbox JavaScript if not already loaded
-  if (!window.cmeModals) {
-    import(`${window.hlx.codeBasePath}/scripts/cme-lightbox.js`)
-      .then(() => {
-        // Lightbox JS loaded successfully
-      })
-      .catch((error) => {
-        console.error('Failed to load lightbox JS:', error);
-      });
-  } else if (window.cmeModals.addExpandIcons) {
-    window.cmeModals.addExpandIcons();
-  }
+      try {
+        const modal = await createModal([imageElement]);
+        const dialog = modal.block.querySelector('dialog');
+        if (dialog) {
+          dialog.classList.add('lightbox-modal');
+          modal.showModal();
+        }
+      } catch (error) {
+        console.error('Failed to create lightbox modal:', error);
+      }
+    });
+  });
 }
 
 /**
- * Converts a picture element into a simplified lightbox structure
- * @param {Element} strongParent The strong element wrapping the picture
- * @param {Element} picture The picture element to convert
- */
-function addLightboxStructure(strongParent, picture) {
-  // Extract image information
-  const imgElement = picture.querySelector('img');
-  if (!imgElement) return;
-
-  const imageSrc = imgElement.src;
-  const imageAlt = imgElement.alt || '';
-
-  // Get high-res version by modifying URL parameters for larger width
-  const imageUrl = new URL(imageSrc);
-  imageUrl.searchParams.set('width', '2000');
-  const highResSrc = imageUrl.toString();
-
-  // Create clean wrapper div
-  const wrapper = document.createElement('div');
-  wrapper.className = 'lightbox-container';
-
-  // Clone the picture and modify the img to be lightbox-enabled
-  const pictureClone = picture.cloneNode(true);
-  const imgClone = pictureClone.querySelector('img');
-
-  if (imgClone) {
-    imgClone.className = 'lightbox-image';
-    imgClone.setAttribute('data-lightbox-src', highResSrc);
-    imgClone.setAttribute('data-lightbox-alt', imageAlt);
-  }
-
-  // Add the picture to wrapper
-  wrapper.appendChild(pictureClone);
-
-  // Replace the strong element with the clean wrapper
-  strongParent.parentNode.replaceChild(wrapper, strongParent);
-
-  // Initialize lightbox functionality for this new element
-  initializeLightboxForElement();
-}
-
-/**
- * Decorates author bolded external images with lightbox functionality by converting those picture
- * elements wrapped in <strong> tags into simple, clean lightbox-enabled images.
- *
- * Searches for picture elements within the main content area and checks if they are wrapped
- * in <strong> tags. When found, converts them into a clean lightbox structure using semantic
- * classes and minimal markup for optimal performance.
- *
- * @param {Element} main - The main content element to search for lightbox images
- *
- * @example
- * // Before: Picture wrapped in strong tag
- * // <strong><picture><img src="image.jpg" alt="Description"></picture></strong>
- *
- * // After: Clean lightbox structure
- * // <div class="lightbox-container">
- * //   <picture>
- * //     <img class="lightbox-image"
- * //          src="image.jpg"
- * //          data-lightbox-src="image.jpg?width=2000"
- * //          data-lightbox-alt="Description"
- * //          alt="Description">
- * //   </picture>
- * // </div>
- *
- * @see {@link addLightboxStructure} - Helper function that creates the lightbox structure
- * @see {@link initializeLightboxForElement} - Helper function that loads lightbox functionality
+ * Decorates images with lightbox functionality
+ * @param {Element} main The main element
  */
 function decorateLightboxImages(main) {
-  // Find picture elements that might need to be lightboxed
-  const lightboxImages = main.querySelectorAll('picture');
-  lightboxImages.forEach((image) => {
-    // If any picture is wrapped in <strong> tags, then the picture should be lightboxed
-    const strongParent = image.closest('strong');
-    if (strongParent) {
-      addLightboxStructure(strongParent, image);
-    }
+  const pictures = main.querySelectorAll('picture');
+
+  pictures.forEach((picture) => {
+    // Only process pictures that are wrapped in <strong> tags
+    const strongParent = picture.closest('strong');
+    if (!strongParent) return;
+
+    const img = picture.querySelector('img');
+    if (!img) return;
+
+    const source = picture.querySelector('source') || img;
+    const srcset = source.getAttribute('srcset') || source.getAttribute('src');
+    if (!srcset) return;
+
+    const imageUrl = srcset.split(',')[0].split(' ')[0];
+
+    // Create lightbox structure
+    const wrapper = document.createElement('div');
+    wrapper.className = 'lightbox-container';
+
+    img.setAttribute('data-lightbox', imageUrl);
+    img.classList.add('lightbox-image');
+
+    const icon = document.createElement('span');
+    icon.className = 'lightbox-expand-icon';
+    icon.setAttribute('aria-hidden', 'true');
+
+    // Wrap the picture element
+    picture.parentNode.insertBefore(wrapper, picture);
+    wrapper.appendChild(picture);
+    wrapper.appendChild(icon);
   });
+
+  createSimpleLightbox();
 }
 
 /**
