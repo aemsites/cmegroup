@@ -15,6 +15,10 @@
     height: 7.5rem !important;
 }
 
+.cards.upcoming-events ul .glider-track .glider-slide:hover {
+    box-shadow: 0 .125rem .1875rem 0 rgba(60,64,67,.3)
+}
+
 .cards.upcoming-events ul .glider-track .glider-slide a:hover {
     text-decoration: none;
 }
