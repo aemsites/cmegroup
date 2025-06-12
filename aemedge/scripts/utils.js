@@ -188,10 +188,14 @@ async function getPageTags() {
  * Adds a horizontal divider line at the end of an element
  * @param {HTMLElement} element - The element to add the divider line to
  */
-function addDividerLine(element) {
+function addDividerLine(element, before = false) {
   const hr = createElement('hr');
   const divider = createElement('div', { class: 'block-divider-line' }, hr);
-  element.appendChild(divider);
+  if (before) {
+    element.insertBefore(divider, element.firstChild);
+  } else {
+    element.appendChild(divider);
+  }
 }
 
 /**

@@ -26,3 +26,26 @@ html {
     padding-inline: .9375rem;
   }
 }
+
+/* View-based full-width overrides for article template */
+/* These override the article-specific layout constraints */
+
+@media (width > 992px) {
+    main > .section.full-width-lg > div {
+        padding-inline: 0;
+    }
+}
+
+@media (width > 1200px) {
+    main > .section.full-width-xl > div {
+        width: 100%;
+        padding-inline: 0;
+    }
+}
+
+@media (width > 1400px) {
+    main > .section.full-width-xxl > div {
+        width: 100%;
+        padding-inline: 0;
+    }
+}

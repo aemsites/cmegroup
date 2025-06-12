@@ -74,10 +74,9 @@ function decorateSections(main) {
               if (applicableViews) {
                 // Create responsive classes like w-sm-50, w-md-30
                 return toClassName(`w-${applicableViews}-${width.trim()}`);
-              } else {
-                // Default class without view prefix
-                return toClassName(`w-${width.trim()}`);
               }
+              // Default class without view prefix
+              return toClassName(`w-${width.trim()}`);
             });
 
           columnWidths.forEach((columnWidth) => {
