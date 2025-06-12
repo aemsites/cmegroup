@@ -320,14 +320,15 @@ function decorateExternalImages(ele) {
  */
 async function createSimpleLightbox() {
   const images = document.querySelectorAll('img[data-lightbox]');
-  
+
   images.forEach((img) => {
     img.addEventListener('click', async (e) => {
       e.preventDefault();
-      
+
       // Dynamic import to avoid dependency cycle
+      // eslint-disable-next-line import/no-cycle
       const { createModal } = await import('../blocks/modal/modal.js');
-      
+
       const imageElement = document.createElement('img');
       imageElement.src = img.dataset.lightbox;
       imageElement.alt = img.alt || '';
@@ -341,7 +342,7 @@ async function createSimpleLightbox() {
           modal.showModal();
         }
       } catch (error) {
-        console.error('Failed to create lightbox modal:', error);
+        // Lightbox modal creation failed, continue without lightbox functionality
       }
     });
   });
