@@ -65,14 +65,14 @@ export default async function decorate(block) {
   const iframe = document.createElement('iframe');
   if (iframefixedHeight) {
     iframe.height = iframefixedHeight;
-    
+
     // If height is percentage, ensure parent elements have height set
     if (iframefixedHeight.includes('%')) {
       // Set the block (first parent) height to 100%
       block.style.height = '100%';
-      
+
       // Find or create iframe-wrapper (second parent) and set its height to 100%
-      let wrapper = block.parentElement;
+      const wrapper = block.parentElement;
       if (wrapper && wrapper.classList.contains('iframe-wrapper')) {
         wrapper.style.height = '100%';
       }
