@@ -4,9 +4,15 @@
 import ffetch from './ffetch.js';
 
 const QUERY_INDEX_ENDPOINT = '/query-index.json';
+const COURSES_INDEX_ENDPOINT = '/courses-index.json';
 
 function hasValue(value) {
   return value !== null && value !== undefined && value !== '' && !Number.isNaN(value);
+}
+
+async function fetchCoursesIndex() {
+  const response = await ffetch(COURSES_INDEX_ENDPOINT).all();
+  return response;
 }
 
 /**
@@ -80,4 +86,5 @@ async function fetchAndFilterDataIndex(searchConfig) {
 
 export {
   fetchAndFilterDataIndex,
+  fetchCoursesIndex,
 };
