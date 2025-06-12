@@ -25,12 +25,12 @@ async function loadOneTrust() {
     if (!window.OneTrust) {
       throw new Error('OneTrust failed to initialize');
     }
-    return Promise.resolve();
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('OneTrust loading failed:', error);
-    return Promise.resolve();
   }
+  
+  return Promise.resolve();
 }
 
 function loadPage() {
