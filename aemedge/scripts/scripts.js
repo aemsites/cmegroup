@@ -407,6 +407,31 @@ async function loadEager(doc) {
   }
 }
 
+async function loadOneTrust() {
+  const ONETRUST_CONFIG = {
+    stubScript: {
+      url: 'https://cdn.cookielaw.org/scripttemplates/otSDKStub.js',
+      options: {
+        type: 'text/javascript',
+        charset: 'UTF-8',
+        'data-domain-script': 'f42915b0-68e5-491a-a7f7-1db0d962ddff',
+      },
+    },
+  };
+
+  try {
+    await loadScript(ONETRUST_CONFIG.stubScript.url, ONETRUST_CONFIG.stubScript.options);
+    if (!window.OneTrust) {
+      throw new Error('OneTrust failed to initialize');
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('OneTrust loading failed:', error);
+  }
+
+  return Promise.resolve();
+}
+
 /**
  * Loads everything that doesn't need to be delayed.
  * @param {Element} doc The container element
@@ -415,6 +440,8 @@ async function loadLazy(doc) {
   import('./dataLayerImport.js');
   dataLayer.handleLoad();
   autolinkModals(doc);
+
+  loadOneTrust();
 
   const main = doc.querySelector('main');
   await loadSections(main);
