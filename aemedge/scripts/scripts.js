@@ -442,7 +442,7 @@ async function loadLazy(doc) {
   dataLayer.handleLoad();
   autolinkModals(doc);
 
-  loadOneTrust();
+  // loadOneTrust();
 
   const main = doc.querySelector('main');
   await loadSections(main);
