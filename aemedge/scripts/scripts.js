@@ -15,6 +15,7 @@ import {
   toClassName,
   getMetadata,
   buildBlock,
+  loadScript,
 } from './aem.js';
 import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
