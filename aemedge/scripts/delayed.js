@@ -29,7 +29,7 @@ async function loadOneTrust() {
     // eslint-disable-next-line no-console
     console.error('OneTrust loading failed:', error);
   }
-  
+
   return Promise.resolve();
 }
 
