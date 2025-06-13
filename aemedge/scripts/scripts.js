@@ -325,7 +325,6 @@ async function createSimpleLightbox() {
     img.addEventListener('click', async (e) => {
       e.preventDefault();
 
-      // Dynamic import to avoid dependency cycle
       // eslint-disable-next-line import/no-cycle
       const { createModal } = await import('../blocks/modal/modal.js');
 
