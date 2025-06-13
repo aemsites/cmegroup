@@ -189,7 +189,6 @@ export default async function initFloatingElements(doc, header) {
     console.error('fail to load alerts:', error);
   }
 
-  let lastScrollTop = 0;
   const main = doc.querySelector('main');
   const alerts = doc.querySelectorAll('.alert-item');
 
@@ -232,18 +231,6 @@ export default async function initFloatingElements(doc, header) {
 
     updatePositions();
   }
-
-  window.addEventListener('scroll', () => {
-    const scrollTop = window.pageYOffset || doc.documentElement.scrollTop;
-    if (scrollTop > lastScrollTop) {
-      if (!header.classList.contains('hidden')) {
-        header.classList.add('hidden');
-      }
-    } else if (header.classList.contains('hidden')) {
-      header.classList.remove('hidden');
-    }
-    lastScrollTop = scrollTop;
-  });
 
   const resizeObserver = new ResizeObserver(() => {
     store.dispatch(updateFloatingElements());

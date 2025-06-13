@@ -17,12 +17,22 @@ async function loadTabContent(fragmentPath) {
   }
 }
 
+async function getLogoSVG() {
+  const answer = await fetch('/aemedge/icons/cme-logo.svg');
+  const svgContent = await answer.text();
+  const logoContainer = createElement('div', { class: 'logo' });
+  if (logoContainer) {
+    logoContainer.innerHTML = svgContent;
+  }
+  return logoContainer;
+}
+
 class Nav {
   constructor(body, el) {
     this.el = el;
     this.body = body;
     this.env = {};
-    this.desktop = window.matchMedia('(min-width: 1200px)');
+    this.desktop = window.matchMedia('(min-width: 75rem)');
     this.login = this.body.querySelector('.login');
     this.login.classList.remove('header');
     this.login.classList.add('menu');
@@ -73,12 +83,19 @@ class Nav {
 
   init = async () => {
     await this.initializeLabels();
+    this.checkPage();
+    const cmeLogo = await getLogoSVG();
+    const header = document.querySelector('.header.block');
+    const isHomePage = header?.classList.contains('home');
+    let previousScrollPosition = window.scrollY;
+    let scrollTimeout;
+    let prevWindowWidth = window.innerWidth;
+    let resizeTimeout;
 
-    const brand = this.decorateBrand();
-    if (brand) {
-      const fauxBrand = brand.cloneNode(true);
+    if (cmeLogo) {
+      const fauxBrand = cmeLogo.cloneNode(true);
       this.fauxNavbar.append(fauxBrand);
-      this.nav.append(brand);
+      this.nav.append(cmeLogo);
     }
 
     const mobileToggle = this.decorateToggle(this.nav);
@@ -127,14 +144,45 @@ class Nav {
     this.el.append(this.searchCurtain);
     this.el.append(this.searchDrawer);
 
-    let prevWindowWidth = window.innerWidth;
-    let resizeTimeout;
+    const baseLogo = document.querySelectorAll('.logo');
+    let logoContainer;
+
+    function updateLogoReferences() {
+      const isDesktop = window.matchMedia('(min-width: 993px)').matches;
+      logoContainer = baseLogo[isDesktop ? 1 : 0];
+    }
+
+    updateLogoReferences();
+
+    function updateHeaderState() {
+      const currentScrollPosition = window.scrollY;
+      const scrollingDown = currentScrollPosition > previousScrollPosition;
+      if (scrollingDown) {
+        if (isHomePage) {
+          header.classList.remove('transparent');
+          logoContainer.classList.remove('logo-white');
+        } else if (!header.classList.contains('hidden')) {
+          document.body.classList.add('scrolling-down');
+          header.classList.add('hidden');
+        }
+      } else if (!isHomePage && header.classList.contains('hidden')) {
+        document.body.classList.remove('scrolling-down');
+        header.classList.remove('hidden');
+      } else if (isHomePage) {
+        header.classList.toggle('transparent', currentScrollPosition === 0);
+        logoContainer.classList.toggle('logo-white', currentScrollPosition === 0);
+      }
+      previousScrollPosition = currentScrollPosition;
+    }
+
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         const windowWidth = window.innerWidth;
         const crossedBreakpointDown = (prevWindowWidth > 993 && windowWidth <= 992);
         const crossedBreakpointUp = (prevWindowWidth <= 992 && windowWidth > 993);
+        updateLogoReferences();
+        updateHeaderState();
         if (crossedBreakpointDown) {
           const openMenu = document.querySelector('.has-menu.is-open');
           if (openMenu) {
@@ -151,19 +199,14 @@ class Nav {
       }, 250);
     });
 
-    let previousScrollPosition = window.scrollY;
-    let scrollTimeout;
+    if (isHomePage && previousScrollPosition === 0) {
+      header.classList.add('transparent');
+      logoContainer.classList.add('logo-white');
+    }
+
     window.addEventListener('scroll', () => {
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        const currentScrollPosition = window.scrollY;
-        if (currentScrollPosition > previousScrollPosition) {
-          document.body.classList.add('scrolling-down');
-        } else {
-          document.body.classList.remove('scrolling-down');
-        }
-        previousScrollPosition = currentScrollPosition;
-      }, 100);
+      scrollTimeout = setTimeout(updateHeaderState, 100);
     });
 
     this.el.querySelectorAll('a').forEach((a) => {
@@ -326,13 +369,13 @@ class Nav {
     return curtain;
   };
 
-  decorateBrand = () => {
-    const brandBlock = this.body.querySelector('.logo');
-    if (!brandBlock) return null;
-    let brand = brandBlock.querySelector('a');
-    if (!brand) brand = brandBlock.querySelector('picture');
-    brand.classList.add('logo');
-    return brand;
+  // eslint-disable-next-line class-methods-use-this
+  checkPage = () => {
+    const navStyleMeta = getMetadata('nav-style');
+    if (navStyleMeta === 'home') {
+      const navTest = document.querySelector('.header.block');
+      navTest.classList.add(navStyleMeta);
+    }
   };
 
   decorateMainNav = async () => {
