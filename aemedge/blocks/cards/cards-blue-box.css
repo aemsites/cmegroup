@@ -44,6 +44,7 @@
     font-size: 1rem;
     font-weight: 600;
     display: inline-block;
+    color: var(--blue5);
 }
 
 .cards.blue-box li .cards-card-body .button-container a::before {
