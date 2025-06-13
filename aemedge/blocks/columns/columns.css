@@ -35,7 +35,7 @@
   display: block;
 }
 
-@media (min-width: 769px) {
+@media (width >= 769px) {
   .columns > div {
     flex-direction: unset;
     gap: var(--columns-gap);
@@ -58,7 +58,7 @@
   }
 }
 
-@media (min-width: 1201px) {
+@media (width >= 1201px) {
   main > .section > div:has(.columns.article) {
     max-width: 100%;
     width: unset;
@@ -80,7 +80,7 @@
     flex: auto;
 }
 
-@media (min-width: 481px) {
+@media (width >= 481px) {
     .columns {
         margin-top: 0.9375rem;
     }
@@ -96,7 +96,7 @@
     }
 }
 
-@media (min-width: 769px) {
+@media (width >= 769px) {
     .columns.last-column-right > div > div:last-child {
         text-align: right;
 
