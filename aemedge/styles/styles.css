@@ -487,6 +487,16 @@ button.secondary.disabled {
     border-color: var(--gray4);
 }
 
+a {
+    &.button {
+        & .icon {
+            & img {
+                filter: brightness(0) saturate(100%) invert(26%) sepia(88%) saturate(1596%) hue-rotate(182deg) brightness(97%) contrast(102%);
+            }
+        }
+    }
+}
+
 /* sections */
 main>.section {
     margin-bottom: 1.875rem;

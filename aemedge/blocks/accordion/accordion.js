@@ -1,4 +1,6 @@
-import { createDynamicCard, fetchAndFilterDataCourse } from '../cards/cards.js';
+import { createDynamicCard } from '../cards/cards.js';
+import { fetchCoursesIndex } from '../../scripts/indexing.js';
+
 import {
   createElement,
   buildSlider,
@@ -43,6 +45,18 @@ function createAccordionItem(title, content) {
   return details;
 }
 
+// Helper function to manually filter data by tags
+const filterDataByTags = (data, searchTags) => {
+  if (!searchTags?.length) return data;
+
+  return data.filter((item) => {
+    const itemTags = item.tags?.map((tag) => tag.replace(/\\"/g, '"').replace(/'/g, '"').toLowerCase()) || [];
+
+    // eslint-disable-next-line max-len
+    return searchTags.every((searchTag) => itemTags.some((itemTag) => itemTag.includes(searchTag.toLowerCase())));
+  });
+};
+
 async function decorateCardsAccordion(block) {
   try {
     const rows = [...block.children];
@@ -75,15 +89,16 @@ async function decorateCardsAccordion(block) {
       accordionData.push({ title: currentTitle, tags: currentTags });
     }
 
-    // Fetch all data concurrently
-    const accordions = await Promise.all(
-      accordionData.map(async ({ title, tags }) => {
-        const filteredData = await fetchAndFilterDataCourse(tags);
-        const cards = filteredData.map(createDynamicCard);
-        const cardsBlock = createCardsBlock(cards);
-        return createAccordionItem(title, cardsBlock);
-      }),
-    );
+    // Fetch all course data once
+    const allCourseData = await fetchCoursesIndex();
+
+    // Create accordions with filtered data
+    const accordions = accordionData.map(({ title, tags }) => {
+      const filteredData = filterDataByTags(allCourseData, tags);
+      const cards = filteredData.map(createDynamicCard);
+      const cardsBlock = createCardsBlock(cards);
+      return createAccordionItem(title, cardsBlock);
+    });
 
     // Replace content with accordions
     block.textContent = '';
