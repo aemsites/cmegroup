@@ -347,7 +347,7 @@ export function parseCurrencyValue(valueString) {
   }
 
   // Remove currency symbols, commas, and whitespace
-  let cleanedValue = valueString.replace(/[€$,\s]/g, '');
+  let cleanedValue = valueString.replace(/US\$|NZ\$|HK\$|A\$|C\$|CHF|[€£¥$,\s]/g, '');
 
   // Handle magnitude suffixes (B for Billion, M for Million, K for Thousand)
   let multiplier = 1;
