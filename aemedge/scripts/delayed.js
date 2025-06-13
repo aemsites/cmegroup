@@ -11,7 +11,6 @@ function loadShareThis() {
 function loadPage() {
   loadSitewidePopups();
   loadShareThis();
-  // loadOneTrust();
 }
 
 loadPage();
