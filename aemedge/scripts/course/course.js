@@ -77,7 +77,7 @@ export async function getCourseData() {
     const relevantPath = currentPath.split(basePath)[1];
     const preBasePath = (currentPath.split(basePath)[0] === '' || currentPath.split(basePath)[0] === '/') ? '' : currentPath.split(basePath)[0];
 
-    const course = (template !== 'lesson-standalone') ? relevantPath.split('/')[0] : '';
+    const course = (template !== 'lesson-standalone') ? relevantPath.split('/')[0] : relevantPath;
     if (template !== 'lesson-standalone' && !course) {
       throw new Error('No course found in the path');
     }
@@ -268,7 +268,7 @@ export function getCurrentLesson(courseData) {
  */
 export async function updateLessonStatus(isCompleted) {
   const courseData = await getCourseData();
-  const currentLesson = getCurrentLesson(courseData);
+  const currentLesson = courseData.isLessonStandalone ? courseData : getCurrentLesson(courseData);
   if (!currentLesson || !currentLesson.moduleId) {
     // eslint-disable-next-line no-console
     console.error('Error getting lesson ID');
@@ -278,17 +278,19 @@ export async function updateLessonStatus(isCompleted) {
   if (updatedCourse) {
     const { lessons: lessonsProgress, ...courseProgress } = updatedCourse;
     Object.assign(courseData, courseProgress);
-    const lessons = [
-      ...courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || [],
-      ...courseData.lessons];
-    lessonsProgress.forEach((lessonProgress) => {
-      const lesson = lessons?.find(
-        ({ moduleId }) => moduleId === lessonProgress.moduleId,
-      );
-      if (lesson) {
-        Object.assign(lesson, lessonProgress);
-      }
-    });
+    if (!courseData.isLessonStandalone) {
+      const lessons = [
+        ...courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || [],
+        ...courseData.lessons];
+      lessonsProgress.forEach((lessonProgress) => {
+        const lesson = lessons?.find(
+          ({ moduleId }) => moduleId === lessonProgress.moduleId,
+        );
+        if (lesson) {
+          Object.assign(lesson, lessonProgress);
+        }
+      });
+    }
   }
   //  updates cache
   addCourseDataToCache(courseData.path, courseData);
