@@ -682,6 +682,10 @@ main .section .layout > div {
 
 }
 
+main .section.divider > div {
+    border-bottom: 0.0625rem solid var(--gray4);
+}
+
 /* Loading overlay animation */
 @keyframes loading {
   0% {

@@ -74,6 +74,42 @@ async function decorateArticlePageHero(block) {
 }
 
 /**
+ * Event hero section
+ */
+async function decorateEventPageHero(block) {
+  // Static section
+  const contentArea = createElement('span', { class: 'content-area' });
+  const shadow = createElement('span', { class: 'shadow' });
+  const fade = createElement('span', { class: 'fade' });
+  const shadowWrapper = createElement('span', { class: 'shadow-wrapper' }, contentArea, shadow, fade);
+  const picture = block.querySelector('picture');
+  picture.closest('div').classList.add('background-image');
+  picture.closest('p').append(shadowWrapper);
+
+  const eventLabel = createElement('div', { class: 'event-label' });
+  const topInfo = createElement('div', { class: 'top-info' }, eventLabel);
+  const h1 = block.querySelector('h1');
+  const dateWrapper = createElement('div', { class: 'event-property-wrapper' });
+  const lastInfo = createElement('div', { class: 'event-data' }, dateWrapper);
+  const contentWrapper = createElement('div', { class: 'default-content-wrapper' }, topInfo, h1, lastInfo);
+  block.append(contentWrapper);
+
+  // Dynamic section
+  const date = getMetadata('date');
+  const [
+    eventLabelText,
+    dateLabel,
+  ] = await Promise.all([
+    i18n('Event'),
+    i18n('Date'),
+  ]);
+  eventLabel.textContent = eventLabelText;
+  const dateTag = createElement('div', { class: 'event-property-value' }, formatToCentralTime(date));
+  dateWrapper.textContent = `${dateLabel}: `;
+  dateWrapper.append(dateTag);
+}
+
+/**
  * Econoday Event hero section
  */
 async function decorateEconodayEventPageHero(block) {
@@ -129,6 +165,8 @@ export default async function decorate(block) {
     await decorateArticlePageHero(block);
   } else if (classList.contains('econoday-event')) {
     decorateEconodayEventPageHero(block);
+  } else if (classList.contains('event')) {
+    decorateEventPageHero(block);
   } else {
     decorateGenericHero(block);
   }
