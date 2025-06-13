@@ -22,6 +22,7 @@ import {
   removeCourseSpecificItem,
   moduleOrder,
   handleFragments,
+  quizBlock,
 } from './course-lesson.js';
 
 const DOMAIN = 'https://www.cmegroup.com';
@@ -376,44 +377,6 @@ const figCaptionEmphasize = (document) => {
   }
 };
 
-const quizBlock = (document) => {
-  const quizzes = document.querySelectorAll('.quiz');
-  if (quizzes) {
-    quizzes.forEach((quiz) => {
-      const cells = [['Quiz']];
-      const questionText = quiz.querySelector('.question-text');
-      if (questionText) {
-        cells.push(['Question', questionText.innerText]);
-      }
-      cells.push(['Options']);
-
-      const options = quiz.querySelectorAll('.option-item');
-      options.forEach((option) => {
-        const optionText = option.querySelector('.option-text');
-        if (optionText) {
-          cells.push([optionText.innerText]);
-        }
-      });
-
-      const answersItems = quiz.querySelector('.quiz-item')?.getAttribute('data-answers-items');
-      if (answersItems) {
-        const answersItemsJson = JSON.parse(answersItems);
-        answersItemsJson.forEach((answer, index) => {
-          if (answer.correctAnswer) {
-            cells.push(['Correct Answer', index + 1]);
-            if (answer.answerSnip) {
-              cells.push(['Answer Text', answer.answerSnip]);
-            }
-          }
-        });
-      }
-
-      const table = WebImporter.DOMUtils.createTable(cells, document);
-      quiz.replaceWith(table);
-    });
-  }
-};
-
 const faqBlock = (document, meta) => {
   if (meta['Sub Template'] === 'faqs') {
     const components = document.querySelectorAll('.component');
@@ -545,7 +508,17 @@ const lightBoxGallery = async (document) => {
 const brightCoveVideo = (document) => {
   const videos = document.querySelectorAll('.brightcove-video');
   if (videos?.length) {
-    videos.forEach((video) => {
+    for (let i = 0; i < videos.length; i += 1) {
+      const video = videos[i];
+      const grandParent = video.parentElement?.parentElement;
+      if ((grandParent && (grandParent.style.display === 'none'
+        || window.getComputedStyle(grandParent).display === 'none'
+        || grandParent.classList.contains('hidePersonalized')
+      )) || video.parentElement?.closest('.brightcove-video')) {
+        video.remove();
+        // eslint-disable-next-line no-continue
+        continue;
+      }
       const accountId = video.getAttribute('data-account-id');
       const playlistLocation = video.getAttribute('data-playlist-location');
       const videoId = video.getAttribute('data-video-id');
@@ -572,7 +545,7 @@ const brightCoveVideo = (document) => {
 
       const table = WebImporter.DOMUtils.createTable(cells, document);
       video.replaceWith(table);
-    });
+    }
   }
 };
 
@@ -622,11 +595,17 @@ const tableBlock = (document) => {
 
 const convertImagesToLinks = (document) => {
   const images = document.querySelectorAll('img');
+
   images.forEach((image) => {
     const div = document.createElement('div');
-    const imgUrl = image.getAttribute('src');
+    let imgUrl = image.getAttribute('src');
+    // check if imgUrl is absolute vs relative
+    if (imgUrl.startsWith('/')) {
+      imgUrl = `${DOMAIN}${imgUrl}`;
+    }
+
     const anchor = document.createElement('a');
-    anchor.href = `${DOMAIN}${imgUrl}`;
+    anchor.href = imgUrl;
     anchor.textContent = `${anchor.href}`;
     div.appendChild(anchor);
     div.appendChild(document.createElement('br'));
@@ -652,6 +631,15 @@ const correctLinks = (document) => {
   });
 };
 
+const tagsCloudBlock = (document) => {
+  const tagsCloud = document.querySelector('.tag-cloud');
+  if (tagsCloud) {
+    const cells = [['Tags Cloud']];
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    tagsCloud.replaceWith(table);
+  }
+};
+
 const customBlocks = async (document, main, meta, url) => {
   tableBlock(document);
   convertSectionsToMetadata(document, main);
@@ -660,6 +648,7 @@ const customBlocks = async (document, main, meta, url) => {
   promoBlock(document);
   authorBioBlock(document);
   quizBlock(document);
+  tagsCloudBlock(document);
   faqBlock(document, meta);
   await accordionBlock(document);
   await lightBoxGallery(document);
@@ -692,6 +681,13 @@ const removeLinesEllipsis = (document) => {
   const linesEllipsis = document.querySelectorAll('.LinesEllipsis-canvas');
   linesEllipsis.forEach((line) => {
     line.remove();
+  });
+};
+
+const removeVisuallyHidden = (document) => {
+  const visuallyHidden = document.querySelectorAll('.visually-hidden');
+  visuallyHidden.forEach((hidden) => {
+    hidden.remove();
   });
 };
 
@@ -748,7 +744,6 @@ export default {
       '.sitewide-marketing-popup',
       // '.course-nav',
       '.top-info',
-      '.slick-track',
       '.w-sm-auto',
       '.lateral-navigation',
     ]);
@@ -777,6 +772,7 @@ export default {
 
     removeExtraSectionBreak(document);
     removeLinesEllipsis(document);
+    removeVisuallyHidden(document);
 
     results.push({
       element: main,
