@@ -141,25 +141,16 @@ export async function getCourseData() {
         const lessonProgress = lessonsProgress?.find(
           ({ moduleId }) => moduleId === entry.moduleId,
         );
-        if (courseData.hasChapters) {
-          // Split into multiple lines to reduce line length
-          const chapterObj = courseData.chapters.find((ch) => entry.path.startsWith(`${ch.path}/`));
-          if (chapterObj) {
-            chapterObj?.lessons.push({
-              ...entry,
-              // Split into multiple lines to reduce line length
-              pathSuffix: entry.path.split(chapterObj.path)[1].substring(1),
-              ...lessonProgress,
-            });
-          } else {
-            // Handling case when lesson is not part of any chapter
-            courseData.lessons.push({
-              ...entry,
-              pathSuffix: entry.path.split(coursePath)[1].substring(1),
-              ...lessonProgress,
-            });
-          }
+        const chapter = courseData.chapters.find((ch) => entry.path.startsWith(`${ch.path}/`));
+        if (chapter) {
+          chapter.lessons.push({
+            ...entry,
+            // Split into multiple lines to reduce line length
+            pathSuffix: entry.path.split(chapter.path)[1].substring(1),
+            ...lessonProgress,
+          });
         } else {
+          // Handling case when lesson is not part of any chapter
           courseData.lessons.push({
             ...entry,
             pathSuffix: entry.path.split(coursePath)[1].substring(1),
@@ -203,7 +194,7 @@ export async function getCourseData() {
  */
 export async function createCourseBaseTemplate(courseData) {
   const main = document.querySelector('main');
-  const courseHeading = main.querySelector('h1');
+  const courseHeading = main.querySelector('.section').firstChild;
   const header = createElement('div', { class: 'course-header' });
 
   // Get metadata values
@@ -252,7 +243,7 @@ export async function createCourseBaseTemplate(courseData) {
   const language = createElement('div', { class: 'metadata language' }, currentLanguage);
   header.appendChild(language);
 
-  courseHeading.before(header);
+  courseHeading?.before(header);
 }
 
 export function getCurrentLesson(courseData) {
