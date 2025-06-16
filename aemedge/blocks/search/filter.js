@@ -14,9 +14,20 @@ import { searchResults } from './search-results/search-results.js';
 const createOption = (value, labelText, type, className, filterId, index) => {
   const id = `${type === 'dropdown' ? 'option' : 'item'}-${filterId}-${index}`;
   const wrapper = div({ class: `${type}-option`, id });
+
+  // Check if this option is already applied
+  const isApplied = searchConfig.appliedFilters.some(
+    (appliedFilter) => appliedFilter.value === value,
+  );
+
   const cb = input({
     type: 'checkbox', class: className, value, id: `${id}-input`,
   });
+
+  if (isApplied) {
+    cb.checked = true;
+  }
+
   const lbl = label({ class: `${type}-label`, for: `${id}-input` }, labelText);
 
   cb.addEventListener('change', async ({ target }) => {
@@ -147,7 +158,6 @@ const createCheckbox = (options, labelText, order, filterId) => {
 };
 
 const createMobileFilterSection = async (filter, filterId, type) => {
-  console.log(1111, filter, filterId, type);
   const section = div({ class: 'mobile-filter-section', id: filterId });
   const header = div({ class: 'mobile-filter-section-header' });
   const sectionTitle = div({ class: 'mobile-filter-section-title' }, filter.name.toUpperCase());
@@ -155,67 +165,132 @@ const createMobileFilterSection = async (filter, filterId, type) => {
   header.append(sectionTitle, toggle);
 
   const content = div({ class: 'mobile-filter-section-content' });
-  const taxonomy = await getTaxonomy('tags');
-  const resultMap = new Map();
-  const excluded = new Set();
 
-  // Handle star options (similar to existing dropdown logic)
-  filter.values.forEach((opt) => {
-    if (opt.endsWith('--star')) excluded.add(opt.replace('--star', ''));
-    excluded.add(opt);
-  });
+  // Handle different filter types
+  if (type === 'checkbox') {
+    // Simple checkbox handling - no taxonomy resolution needed
+    const sorted = sortOptions(filter.values, null, filter.order);
+    
+    sorted.forEach((value, i) => {
+      const id = `item-${filterId}-${i}`;
+      const optionWrapper = div({ class: 'checkbox-option', id });
 
-  filter.values.forEach((opt) => {
-    const resolved = resolveTaxonomyPath(opt, taxonomy);
-    if (!resolved) return;
+      // Check if this option is already applied
+      const isApplied = searchConfig.appliedFilters.some(
+        (appliedFilter) => appliedFilter.value === value,
+      );
 
-    const { node, isStar } = resolved;
-    if (!resultMap.has(opt)) resultMap.set(opt, { path: opt, title: node.title || opt });
-
-    if (isStar) {
-      const subOptions = recursiveOptionsGet(node, [], excluded);
-      subOptions.forEach((o) => {
-        if (!resultMap.has(o.path)) resultMap.set(o.path, { path: o.path, title: o.label });
+      const checkbox = input({
+        type: 'checkbox',
+        class: 'checkbox-input',
+        value,
+        id: `${id}-input`,
       });
-    }
-  });
 
-  const sorted = sortOptions([...resultMap.values()], 'title', filter.order);
+      if (isApplied) {
+        checkbox.checked = true;
+      }
 
-  sorted.forEach(({ path, title: optionTitle }, i) => {
-    const id = `${type === 'dropdown' ? 'option' : 'item'}-${filterId}-${i}`;
-    const optionWrapper = div({ class: `${type}-option`, id });
-    const checkbox = input({
-      type: 'checkbox',
-      class: 'dropdown-option-checkbox',
-      value: path,
-      id: `${id}-input`,
+      const labelEl = document.createElement('label');
+      labelEl.setAttribute('for', `${id}-input`);
+      labelEl.className = 'checkbox-label';
+      labelEl.textContent = value;
+
+      // Add event listener for checkbox changes
+      checkbox.addEventListener('change', async ({ target }) => {
+        if (target.checked) {
+          addAppliedFilter(filterId, value, value);
+        } else {
+          removeAppliedFilter(filterId, value, value);
+        }
+      });
+
+      optionWrapper.addEventListener('click', (e) => {
+        if (e.target !== checkbox) {
+          e.preventDefault();
+          checkbox.checked = !checkbox.checked;
+          checkbox.dispatchEvent(new Event('change'));
+        }
+      });
+
+      optionWrapper.append(checkbox, labelEl);
+      content.appendChild(optionWrapper);
     });
-    const labelEl = document.createElement('label');
-    labelEl.setAttribute('for', `${id}-input`);
-    labelEl.className = `${type}-label`;
-    labelEl.textContent = optionTitle;
+  } else {
+    // Dropdown handling with taxonomy resolution (existing code)
+    const taxonomy = await getTaxonomy('tags');
+    const resultMap = new Map();
+    const excluded = new Set();
 
-    // Add event listener for checkbox changes
-    checkbox.addEventListener('change', async ({ target }) => {
-      if (target.checked) {
-        addAppliedFilter(filterId, path, optionTitle);
-      } else {
-        removeAppliedFilter(filterId, path, optionTitle);
+    // Handle star options (similar to existing dropdown logic)
+    filter.values.forEach((opt) => {
+      if (opt.endsWith('--star')) excluded.add(opt.replace('--star', ''));
+      excluded.add(opt);
+    });
+
+    filter.values.forEach((opt) => {
+      const resolved = resolveTaxonomyPath(opt, taxonomy);
+      if (!resolved) return;
+
+      const { node, isStar } = resolved;
+      if (!resultMap.has(opt)) resultMap.set(opt, { path: opt, title: node.title || opt });
+
+      if (isStar) {
+        const subOptions = recursiveOptionsGet(node, [], excluded);
+        subOptions.forEach((o) => {
+          if (!resultMap.has(o.path)) resultMap.set(o.path, { path: o.path, title: o.label });
+        });
       }
     });
 
-    optionWrapper.addEventListener('click', (e) => {
-      if (e.target !== checkbox) {
-        e.preventDefault();
-        checkbox.checked = !checkbox.checked;
-        checkbox.dispatchEvent(new Event('change'));
-      }
-    });
+    const sorted = sortOptions([...resultMap.values()], 'title', filter.order);
 
-    optionWrapper.append(checkbox, labelEl);
-    content.appendChild(optionWrapper);
-  });
+    sorted.forEach(({ path, title: optionTitle }, i) => {
+      const id = `option-${filterId}-${i}`;
+      const optionWrapper = div({ class: 'dropdown-option', id });
+
+      // Check if this option is already applied
+      const isApplied = searchConfig.appliedFilters.some(
+        (appliedFilter) => appliedFilter.value === path,
+      );
+
+      const checkbox = input({
+        type: 'checkbox',
+        class: 'dropdown-option-checkbox',
+        value: path,
+        id: `${id}-input`,
+      });
+
+      if (isApplied) {
+        checkbox.checked = true;
+      }
+
+      const labelEl = document.createElement('label');
+      labelEl.setAttribute('for', `${id}-input`);
+      labelEl.className = 'dropdown-label';
+      labelEl.textContent = optionTitle;
+
+      // Add event listener for checkbox changes
+      checkbox.addEventListener('change', async ({ target }) => {
+        if (target.checked) {
+          addAppliedFilter(filterId, path, optionTitle);
+        } else {
+          removeAppliedFilter(filterId, path, optionTitle);
+        }
+      });
+
+      optionWrapper.addEventListener('click', (e) => {
+        if (e.target !== checkbox) {
+          e.preventDefault();
+          checkbox.checked = !checkbox.checked;
+          checkbox.dispatchEvent(new Event('change'));
+        }
+      });
+
+      optionWrapper.append(checkbox, labelEl);
+      content.appendChild(optionWrapper);
+    });
+  }
 
   // Toggle functionality
   header.addEventListener('click', (e) => {
@@ -266,8 +341,10 @@ const createMobileFilterOverlay = async () => {
   const sections = await Promise.all(
     searchConfig.filters.map((filter, i) => {
       const id = `${filter.type}-${i}`;
-      // console.log(filter, id);
       return createMobileFilterSection(filter, id, filter.type);
+      // return filter.type === 'dropdown'
+      //   ? createDropdown(filter.values, filter.name, filter.order, id)
+      //   : Promise.resolve(createCheckbox(filter.values, filter.name, filter.order, id));
     }),
   );
 
