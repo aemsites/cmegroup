@@ -1,10 +1,20 @@
-import { loadScript, readBlockConfig } from '../../scripts/aem.js';
-
+import { readBlockConfig } from '../../scripts/aem.js';
+import { setTracking } from '../../scripts/utils/index.js';
 /*
  * For more info about the video's options please read:
  * https://github.com/brightcove/player-loader
  * https://support.brightcove.com/
+ * Props:
+ * account ID,
+ * video ID,
+ * playlist ID,
+ * playlist location (bottom or right),
+ * aspect ratio,
+ * close caption,
+ * language
  */
+
+const fireTracking = setTracking('custom', 'media', 'BrightcoveVideo');
 
 function calculateDataPlayerId(
   aspectRatio,
@@ -88,19 +98,154 @@ function calculateStyles(aspectRatio, playlistLocation) {
   return 'aspect-ratio169';
 }
 
-function loadVideoLibrary(block, videoAccount, videoPlayer) {
+function loadLanguage(videoPlayer, language) {
+  if (videoPlayer) {
+    const audioTracks = videoPlayer.audioTracks();
+    for (let i = 0; i < audioTracks.length; i += 1) {
+      const trackLanguage = audioTracks[i].language.substr(0, 2);
+      if (trackLanguage && trackLanguage === language) {
+        audioTracks[i].enabled = true;
+      }
+    }
+  }
+}
+
+function setPlayerReady(block, language, videoId) {
+  block.setAttribute('data-video-status', 'loaded');
+  const languageVideoPlayer = videojs(block.querySelector(`#cmeVideo${videoId}`));
+  if (language) {
+    languageVideoPlayer.on('loadedmetadata', () => {
+      loadLanguage(languageVideoPlayer, language);
+    });
+  }
+  languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
+  languageVideoPlayer.on('loadeddata', () => {
+    const { name: videoName } = languageVideoPlayer.mediainfo;
+    const percentsAlreadyTracked = [];
+
+    if (window.ga) {
+      window.ga();
+    }
+    fireTracking(`Video "${videoName}" - loaded`, 'loadeddata');
+
+    // GMT - Events to Track
+    let timeUpdateTimeout;
+    languageVideoPlayer.on(
+      'timeupdate',
+      () => {
+        clearTimeout(timeUpdateTimeout);
+        timeUpdateTimeout = setTimeout(() => {
+          const myMediaDuration = Math.ceil(languageVideoPlayer.duration());
+          const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+          const myPercentage = Math.ceil((myPosition / myMediaDuration) * 100);
+          if (!(myPercentage % 10) && percentsAlreadyTracked.indexOf(myPercentage) < 0) {
+            fireTracking(
+              `Video "${videoName}" - Percents played ${myPercentage}%`,
+              'percentsPlayed',
+              myPercentage,
+            );
+            percentsAlreadyTracked.push(myPercentage);
+          }
+        }, 120);
+      },
+    );
+    languageVideoPlayer.on('firstplay', () => {
+      fireTracking(`Video "${videoName}" - Start`, 'start');
+    });
+    languageVideoPlayer.on('ended', () => {
+      fireTracking(`Video "${videoName}" - End`, 'end');
+    });
+    languageVideoPlayer.on('seeked', () => {
+      const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+      fireTracking(
+        `Video "${videoName}" - Seek end at ${myPosition}`,
+        'seek',
+        myPosition,
+      );
+    });
+    languageVideoPlayer.on('play', () => {
+      const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+      fireTracking(
+        `Video "${videoName}" - Play from ${myPosition}`,
+        'play',
+        myPosition,
+      );
+    });
+    languageVideoPlayer.on('pause', () => {
+      const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+      fireTracking(
+        `Video "${videoName}" - Paused at ${myPosition}`,
+        'pause',
+        myPosition,
+      );
+    });
+    languageVideoPlayer.on('resize', () => {
+      const videoSize = `${languageVideoPlayer.videoWidth()}*${languageVideoPlayer.videoHeight()}`;
+      fireTracking(
+        `Video "${videoName}" - Resize - ${videoSize}`,
+        'resize',
+        videoSize,
+      );
+    });
+
+    let volumeChangeTimeout;
+    languageVideoPlayer.on(
+      'volumechange',
+      () => {
+        clearTimeout(volumeChangeTimeout);
+        volumeChangeTimeout = setTimeout(() => {
+          const volume = `${languageVideoPlayer.muted() ? 0 : Math.ceil(languageVideoPlayer.volume() * 100)}%`;
+          fireTracking(
+            `Video "${videoName}" - Volume - ${volume}`,
+            'volumechange',
+            volume,
+          );
+        }, 120);
+      },
+    );
+    languageVideoPlayer.on('error', () => {
+      const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+      fireTracking(
+        `Video "${videoName}" - Error at ${myPosition}`,
+        'error',
+        myPosition,
+      );
+    });
+    languageVideoPlayer.on('fullscreenchange', () => {
+      const myPosition = Math.ceil(languageVideoPlayer.currentTime());
+      fireTracking(
+        `Video "${videoName}" - ${
+          languageVideoPlayer.isFullscreen() ? 'Enter' : 'Exit'
+        } fullscreen at ${myPosition}`,
+        'fullscreen',
+        myPosition,
+      );
+    });
+    // GMT - Events to Track
+  });
+
+  if (videojs.browser.TOUCH_ENABLED) {
+    const container = document.getElementById(`cmeVideoContainer${videoId}`);
+    if (container) {
+      const element = container.getElementsByClassName('vjs-playlist')[0];
+      if (element) {
+        element.classList.remove('vjs-native');
+        element.classList.add('vjs-mouse');
+      }
+    }
+  }
+}
+
+async function loadVideoLibrary(block, videoAccount, videoPlayer, language, videoId) {
   if (block.getAttribute('data-video-status') === 'loaded') {
     return;
   }
-  loadScript(`https://players.brightcove.net/${videoAccount}/${videoPlayer}_default/index.min.js`);
-  block.querySelector('.brightcove-img-placeholder').style.display = 'none';
-  block.setAttribute('data-video-status', 'loaded');
-}
-
-function clickHandler(block, videoAccount, videoPlayer) {
-  // eslint-disable-next-line func-names
-  return function () {
-    loadVideoLibrary(block, videoAccount, videoPlayer);
+  const script = document.createElement('script');
+  script.src = `https://players.brightcove.net/${videoAccount}/${videoPlayer}_default/index.min.js`;
+  script.async = true;
+  document.head.appendChild(script);
+  script.onload = async () => {
+    await setPlayerReady(block, language, videoId);
   };
 }
 
@@ -113,30 +258,26 @@ export default async function decorate(block) {
     playlistlocation: playlistLocation,
     aspectratio: aspectRatio,
     cc,
-    // language,
-    placeholderimg: placeholder,
+    language,
   } = dataBlock;
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
   const videoStyles = calculateStyles(aspectRatio, playlistLocation);
-  const placeholderImg = placeholder || '../../images/placeholder-img-video.jpg';
   block.innerHTML = `
   <div class='brightcove-player'>
-    <div class='brightcove-img-placeholder' 
-      style="background-image: url('${placeholderImg}');"
-    >
-      <a></a>
-    </div>
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
-        <div class="${videoStyles} ${playlist ? 'vjs-playlist-player-container' : 'brightcove-video'}">
+        <div
+          id="cmeVideoContainer${videoId}"
+          class="${videoStyles} ${playlist ? 'vjs-playlist-player-container' : 'brightcove-video'}"
+        >
           <video-js
+            id="cmeVideo${videoId}"
             data-account="${accountId}"
             data-player="${dataPlayer}"
             data-embed="default"
             class="cmeBcVideo" 
             controls=""
-            autoplay 
             ${playlistId !== '' ? `data-playlist-id="${playlistId}"` : ''}
             ${playlistId !== '' && videoId ? `data-playlist-video-id="${videoId}"` : ''}
             ${playlistId === '' ? `data-video-id="${videoId}"` : ''}
@@ -150,6 +291,5 @@ export default async function decorate(block) {
   </div>
   `;
 
-  const anchor = block.querySelector('.brightcove-img-placeholder a');
-  anchor.addEventListener('click', clickHandler(block, accountId, dataPlayer));
+  loadVideoLibrary(block, accountId, dataPlayer, language, videoId);
 }

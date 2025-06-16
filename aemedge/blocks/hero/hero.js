@@ -74,9 +74,9 @@ async function decorateArticlePageHero(block) {
 }
 
 /**
- * Event hero section
+ * Econoday Event hero section
  */
-async function decorateEventPageHero(block) {
+async function decorateEconodayEventPageHero(block) {
   // Static section
   const contentArea = createElement('span', { class: 'content-area' });
   const shadow = createElement('span', { class: 'shadow' });
@@ -127,8 +127,8 @@ export default async function decorate(block) {
   const { classList } = block;
   if (classList.contains('article')) {
     await decorateArticlePageHero(block);
-  } else if (classList.contains('event')) {
-    decorateEventPageHero(block);
+  } else if (classList.contains('econoday-event')) {
+    decorateEconodayEventPageHero(block);
   } else {
     decorateGenericHero(block);
   }

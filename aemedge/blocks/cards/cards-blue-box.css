@@ -10,9 +10,15 @@
 }
 
 .cards.blue-box li .cards-card-body {
-    padding: 1.875rem;
+    padding: 1.25rem;
     margin: 0;
     position: relative;
+}
+
+@media (width >= 769px) {
+    .cards.blue-box li .cards-card-body {
+        padding: 1.875rem;
+    }
 }
 
 .cards.blue-box li .cards-card-body h5{
@@ -38,6 +44,7 @@
     font-size: 1rem;
     font-weight: 600;
     display: inline-block;
+    color: var(--blue5);
 }
 
 .cards.blue-box li .cards-card-body .button-container a::before {

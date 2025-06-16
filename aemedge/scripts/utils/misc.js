@@ -339,3 +339,36 @@ export function escapeHtmlTags(str, exceptions) {
     return '';
   });
 }
+
+export function parseCurrencyValue(valueString) {
+  // If it's not a string, parseFloat would likely fail or give unexpected results
+  if (typeof valueString !== 'string') {
+    return parseFloat(valueString); // Let parseFloat handle actual numbers or null/undefined
+  }
+
+  // Remove currency symbols, commas, and whitespace
+  let cleanedValue = valueString.replace(/US\$|NZ\$|HK\$|A\$|C\$|CHF|[€£¥$,\s]/g, '');
+
+  // Handle magnitude suffixes (B for Billion, M for Million, K for Thousand)
+  let multiplier = 1;
+  if (cleanedValue.endsWith('B')) {
+    multiplier = 1_000_000_000; // Billion
+    cleanedValue = cleanedValue.slice(0, -1); // Remove 'B'
+  } else if (cleanedValue.endsWith('M')) {
+    multiplier = 1_000_000; // Million
+    cleanedValue = cleanedValue.slice(0, -1); // Remove 'M'
+  } else if (cleanedValue.endsWith('K')) {
+    multiplier = 1_000; // Thousand
+    cleanedValue = cleanedValue.slice(0, -1); // Remove 'K'
+  }
+
+  // Parse the numeric part
+  const numValue = parseFloat(cleanedValue);
+
+  // Apply the multiplier if parsing was successful
+  if (!Number.isNaN(numValue)) {
+    return numValue * multiplier;
+  }
+  // Return NaN if the numeric part couldn't be parsed
+  return NaN;
+}
