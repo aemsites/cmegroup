@@ -207,6 +207,7 @@
   padding: 1.25rem 1.5rem;
   cursor: pointer;
   background-color: var(--gray5);
+  text-align: left;
 }
 
 .course-nav .collapsible-button.chapter .title {
