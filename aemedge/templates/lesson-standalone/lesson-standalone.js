@@ -1,6 +1,4 @@
-import {
-  createCourseBaseTemplate, getCourseData, updateLessonStatus, getCurrentLesson,
-} from '../../scripts/course/course.js';
+import { createCourseBaseTemplate, getCourseData, updateLessonStatus } from '../../scripts/course/course.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
@@ -11,13 +9,12 @@ export default function lessonStandaloneTemplate() {
   authenticationData.loginPromise.then(async () => {
     const courseData = await getCourseData();
     await createCourseBaseTemplate(courseData);
-    const lesson = getCurrentLesson(courseData);
-    if (lesson?.completed) {
+    if (courseData?.completed) {
       store.dispatch(quizAnswered(true));
     }
     //  quiz completion event subscriber
     store.subscribe(({ quiz }) => quiz, async ({ isCorrect }) => {
-      if (isCorrect && !lesson.completed) {
+      if (isCorrect && !courseData.completed) {
         const updatedCourse = await updateLessonStatus(true);
         store.dispatch(courseDataChange(updatedCourse));
       }

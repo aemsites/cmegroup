@@ -325,7 +325,6 @@ async function fetchAndFilterUpcomingEconodayEvent() {
 
 export async function createDynamicCards(block, numEntries = null) {
   const config = readBlockConfig(block);
-  const ul = createElement('ul');
   let filteredData;
   let cardElements;
   let sliderConfig = null;
@@ -403,6 +402,7 @@ export async function createDynamicCards(block, numEntries = null) {
       filteredData = await fetchAndFilterDataIndex(indexConfig);
       filteredData.forEach((obj) => {
         obj.eventName = obj.title;
+        obj.url = obj.path;
       });
     }
     if (filteredData.length > 0) {
@@ -428,13 +428,18 @@ export async function createDynamicCards(block, numEntries = null) {
   } else {
     cardElements = [];
   }
-  ul.append(...cardElements);
-  const cardsContainer = createElement('div', null, ul);
-  block.appendChild(cardsContainer);
-  if (sliderConfig) {
-    buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
+  if (cardElements && cardElements.length) {
+    const ul = createElement('ul', null, ...cardElements);
+    const cardsContainer = createElement('div', null, ul);
+    block.appendChild(cardsContainer);
+    if (sliderConfig) {
+      buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
+    }
+    return cardsContainer;
   }
-  return cardsContainer;
+  const noResultsLabel = createElement('h4', null, 'No results found');
+  const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
+  return noResults;
 }
 
 export default async function decorate(block) {
