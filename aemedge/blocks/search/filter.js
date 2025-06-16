@@ -11,6 +11,22 @@ import { addAppliedFilter, clearAllFilters, removeAppliedFilter } from './search
 import { updateFilteringByUI } from './filter-bullets/filter-bullets.js';
 import { searchResults } from './search-results/search-results.js';
 
+const syncDesktopToMobile = (desktopCheckbox, value, filterId) => {
+  // Find corresponding mobile checkbox by value and filterId
+  const mobileCheckbox = document.querySelector(`.mobile-filter-section#${filterId} input[value="${value}"]`);
+  if (mobileCheckbox && mobileCheckbox !== desktopCheckbox) {
+    mobileCheckbox.checked = desktopCheckbox.checked;
+  }
+};
+
+const syncMobileToDesktop = (mobileCheckbox, value, filterId) => {
+  // Find corresponding desktop checkbox by value and filterId
+  const desktopCheckbox = document.querySelector(`#${filterId} input[value="${value}"]`);
+  if (desktopCheckbox && desktopCheckbox !== mobileCheckbox) {
+    desktopCheckbox.checked = mobileCheckbox.checked;
+  }
+};
+
 const createOption = (value, labelText, type, className, filterId, index) => {
   const id = `${type === 'dropdown' ? 'option' : 'item'}-${filterId}-${index}`;
   const wrapper = div({ class: `${type}-option`, id });
@@ -31,6 +47,9 @@ const createOption = (value, labelText, type, className, filterId, index) => {
   const lbl = label({ class: `${type}-label`, for: `${id}-input` }, labelText);
 
   cb.addEventListener('change', async ({ target }) => {
+    // Sync with mobile counterpart
+    syncDesktopToMobile(target, value, filterId);
+
     if (target.checked) {
       addAppliedFilter(filterId, value, labelText);
     } else {
@@ -170,7 +189,7 @@ const createMobileFilterSection = async (filter, filterId, type) => {
   if (type === 'checkbox') {
     // Simple checkbox handling - no taxonomy resolution needed
     const sorted = sortOptions(filter.values, null, filter.order);
-    
+
     sorted.forEach((value, i) => {
       const id = `item-${filterId}-${i}`;
       const optionWrapper = div({ class: 'checkbox-option', id });
@@ -198,6 +217,9 @@ const createMobileFilterSection = async (filter, filterId, type) => {
 
       // Add event listener for checkbox changes
       checkbox.addEventListener('change', async ({ target }) => {
+        // Sync with desktop counterpart
+        syncMobileToDesktop(target, value, filterId);
+
         if (target.checked) {
           addAppliedFilter(filterId, value, value);
         } else {
@@ -272,6 +294,9 @@ const createMobileFilterSection = async (filter, filterId, type) => {
 
       // Add event listener for checkbox changes
       checkbox.addEventListener('change', async ({ target }) => {
+        // Sync with desktop counterpart
+        syncMobileToDesktop(target, path, filterId);
+
         if (target.checked) {
           addAppliedFilter(filterId, path, optionTitle);
         } else {
