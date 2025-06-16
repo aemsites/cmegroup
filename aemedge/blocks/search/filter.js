@@ -1,8 +1,13 @@
-import { div, input, label } from '../../scripts/dom-helpers.js';
+import {
+  div,
+  input,
+  label,
+  button,
+} from '../../scripts/dom-helpers.js';
 import { getTaxonomy } from '../../scripts/taxonomy.js';
 import searchConfig from './search-config.js';
 import { i18n } from '../../scripts/utils.js';
-import { addAppliedFilter, removeAppliedFilter } from './search-utils.js';
+import { addAppliedFilter, clearAllFilters, removeAppliedFilter } from './search-utils.js';
 import { updateFilteringByUI } from './filter-bullets/filter-bullets.js';
 import { searchResults } from './search-results/search-results.js';
 
@@ -141,12 +146,45 @@ const createCheckbox = (options, labelText, order, filterId) => {
   return wrapper;
 };
 
+const createMobileFilterOverlay = async () => {
+  const overlay = div({ class: 'mobile-filter-overlay' });
+
+  const header = div({ class: 'mobile-filter-header' });
+  const title = div({ class: 'mobile-filter-title' }, await i18n('Filter By'));
+  const closeBtn = button({ class: 'mobile-filter-close' });
+  header.append(title, closeBtn);
+  return overlay;
+};
+
 const createFilters = async () => {
   const wrapper = div({ class: 'filters-wrapper' });
   wrapper.append(div({ class: 'filters-wrapper-title' }, await i18n('Filters')));
 
   const container = div({ class: 'filters' });
   wrapper.append(container);
+
+  const mobileFilterButtons = div({ class: 'mobile-filter-buttons' });
+
+  // Add mobile filter button
+  const mobileFilterBtn = button({ class: 'mobile-filter-button primary' }, await i18n('Filters'));
+  const mobileResetBtn = button({ class: 'mobile-reset-button secondary' }, await i18n('Reset'));
+  mobileFilterButtons.append(mobileResetBtn, mobileFilterBtn);
+
+  mobileResetBtn.onclick = async (e) => {
+    e.preventDefault();
+    clearAllFilters();
+    await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
+  };
+
+  // Create and append mobile filter overlay
+  const mobileFilterOverlay = await createMobileFilterOverlay();
+  wrapper.append(mobileFilterButtons, mobileFilterOverlay);
+
+  // Handle mobile filter button click
+  mobileFilterBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    mobileFilterOverlay.classList.add('visible');
+  });
 
   const controls = await Promise.all(
     searchConfig.filters.map((filter, i) => {
