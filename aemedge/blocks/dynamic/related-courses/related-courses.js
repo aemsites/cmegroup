@@ -1,5 +1,4 @@
 import { createElement } from '../../../scripts/utils.js';
-import { createDynamicCards } from '../../cards/cards.js';
 
 export default async function createRelatedCourses(main) {
   const blockContainer = createElement('div', { class: 'section cards-container full-width' });
@@ -9,6 +8,8 @@ export default async function createRelatedCourses(main) {
   const block = createElement('div', { class: 'block course dynamic cards' });
   blockWrapper.appendChild(block);
 
+  // Dynamic import for createDynamicCards
+  const { createDynamicCards } = await import('../../cards/cards.js');
   const cards = await createDynamicCards(block, 3);
   const header = createElement('div', {
     style: 'display: flex; justify-content: space-between; align-items: flex-start;',
