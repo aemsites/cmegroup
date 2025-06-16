@@ -6,10 +6,12 @@
 
 import {
   decorateMain,
+  loadTemplate,
 } from '../../scripts/scripts.js';
 
 import {
   loadSections,
+  getMetadata,
 } from '../../scripts/aem.js';
 
 /**
@@ -53,8 +55,15 @@ export default async function decorate(block) {
   if (fragment) {
     const fragmentSection = fragment.querySelector(':scope .section');
     if (fragmentSection) {
-      block.closest('.section').classList.add(...fragmentSection.classList);
-      block.closest('.fragment').replaceWith(...fragment.childNodes);
+      const closestSection = block.closest('.section');
+      const sidebarType = Array.from(block.classList).some(className => className.startsWith('sidebar'));
+      if (sidebarType) {
+        const sidebarClass = Array.from(block.classList).filter(className => className.startsWith('sidebar'));
+        fragmentSection.classList.add(...sidebarClass);
+      } else {
+        closestSection?.classList.add(...fragmentSection.classList);
+      }
+      block.closest('.fragment')?.replaceWith(...fragment.childNodes);
     }
   }
 }

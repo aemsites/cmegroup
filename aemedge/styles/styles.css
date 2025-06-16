@@ -927,3 +927,24 @@ These styles override the container padding/max-width for specific breakpoints
         max-width: none;
     }
 }
+
+.section.sidebar-left,
+.section.sidebar-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+@media (width > 1200px) {
+  .section.sidebar-left,
+  .section.sidebar-right {
+    padding: 2rem;
+    width: 60%;
+  }
+
+  .section.sidebar-left {
+    padding-left: 6rem;
+    padding-right: 2.8125rem;
+  }
+}
