@@ -1,5 +1,4 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { addRelatedCourses } from '../../scripts/course/course.js';
 
 const isTabsRequired = (main) => main.querySelectorAll(':scope > .section.tabs').length > 0;
 const isCourseNavRequired = () => {
@@ -20,5 +19,5 @@ export default async function dynamicBlocks(main) {
     import('./course-nav/course-nav.js').then(({ default: createCourseNav }) => createCourseNav(main));
   }
 
-  addRelatedCourses(main);
+  import('./related-courses/related-courses.js').then(({ default: createRelatedCourses }) => createRelatedCourses(main));
 }
