@@ -364,12 +364,27 @@ const createMobileFilterOverlay = async () => {
   footer.appendChild(applyBtn);
 
   // Close button functionality
-  closeBtn.addEventListener('click', () => {
+  closeBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    // remove all other expansion false
+    const expandedSections = document.querySelectorAll('.mobile-filter-section.expanded');
+    expandedSections.forEach((x) => {
+      x.querySelector('.mobile-filter-section-toggle').setAttribute('aria-expanded', 'false');
+      x.querySelector('.mobile-filter-section-content').classList.remove('expanded');
+      x.classList.remove('expanded');
+    });
     overlay.classList.remove('visible');
   });
 
   // Apply button functionality
-  applyBtn.addEventListener('click', async () => {
+  applyBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const expandedSections = document.querySelectorAll('.mobile-filter-section.expanded');
+    expandedSections.forEach((x) => {
+      x.querySelector('.mobile-filter-section-toggle').setAttribute('aria-expanded', 'false');
+      x.querySelector('.mobile-filter-section-content').classList.remove('expanded');
+      x.classList.remove('expanded');
+    });
     overlay.classList.remove('visible');
     await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
   });
