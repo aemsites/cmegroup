@@ -256,8 +256,7 @@ export async function createCourseBaseTemplate(courseData) {
   courseHeading.before(header);
 }
 
-export async function addRelatedCourses() {
-  const main = document.querySelector('main');
+export async function addRelatedCourses(main) {
   const blockContainer = createElement('div', { class: 'section cards-container full-width' });
   const blockWrapper = createElement('div', { class: 'cards-wrapper' });
   blockContainer.appendChild(blockWrapper);

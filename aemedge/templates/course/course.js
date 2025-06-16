@@ -1,4 +1,4 @@
-import { getCourseData, createCourseBaseTemplate, addRelatedCourses } from '../../scripts/course/course.js';
+import { getCourseData, createCourseBaseTemplate } from '../../scripts/course/course.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
@@ -34,6 +34,4 @@ export default async function courseTemplate() {
     //  dispatch courseData event
     store.dispatch(courseDataChange(courseData));
   });
-
-  await addRelatedCourses();
 }
