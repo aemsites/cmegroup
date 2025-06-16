@@ -146,16 +146,176 @@ const createCheckbox = (options, labelText, order, filterId) => {
   return wrapper;
 };
 
+const createMobileFilterSection = async (filter, filterId, type) => {
+  console.log(1111, filter, filterId, type);
+  const section = div({ class: 'mobile-filter-section', id: filterId });
+  const header = div({ class: 'mobile-filter-section-header' });
+  const sectionTitle = div({ class: 'mobile-filter-section-title' }, filter.name.toUpperCase());
+  const toggle = button({ class: 'mobile-filter-section-toggle', 'aria-expanded': 'false' });
+  header.append(sectionTitle, toggle);
+
+  const content = div({ class: 'mobile-filter-section-content' });
+  const taxonomy = await getTaxonomy('tags');
+  const resultMap = new Map();
+  const excluded = new Set();
+
+  // Handle star options (similar to existing dropdown logic)
+  filter.values.forEach((opt) => {
+    if (opt.endsWith('--star')) excluded.add(opt.replace('--star', ''));
+    excluded.add(opt);
+  });
+
+  filter.values.forEach((opt) => {
+    const resolved = resolveTaxonomyPath(opt, taxonomy);
+    if (!resolved) return;
+
+    const { node, isStar } = resolved;
+    if (!resultMap.has(opt)) resultMap.set(opt, { path: opt, title: node.title || opt });
+
+    if (isStar) {
+      const subOptions = recursiveOptionsGet(node, [], excluded);
+      subOptions.forEach((o) => {
+        if (!resultMap.has(o.path)) resultMap.set(o.path, { path: o.path, title: o.label });
+      });
+    }
+  });
+
+  const sorted = sortOptions([...resultMap.values()], 'title', filter.order);
+
+  sorted.forEach(({ path, title: optionTitle }, i) => {
+    const id = `${type === 'dropdown' ? 'option' : 'item'}-${filterId}-${i}`;
+    const optionWrapper = div({ class: `${type}-option`, id });
+    const checkbox = input({
+      type: 'checkbox',
+      class: 'dropdown-option-checkbox',
+      value: path,
+      id: `${id}-input`,
+    });
+    const labelEl = document.createElement('label');
+    labelEl.setAttribute('for', `${id}-input`);
+    labelEl.className = `${type}-label`;
+    labelEl.textContent = optionTitle;
+
+    // Add event listener for checkbox changes
+    checkbox.addEventListener('change', async ({ target }) => {
+      if (target.checked) {
+        addAppliedFilter(filterId, path, optionTitle);
+      } else {
+        removeAppliedFilter(filterId, path, optionTitle);
+      }
+    });
+
+    optionWrapper.addEventListener('click', (e) => {
+      if (e.target !== checkbox) {
+        e.preventDefault();
+        checkbox.checked = !checkbox.checked;
+        checkbox.dispatchEvent(new Event('change'));
+      }
+    });
+
+    optionWrapper.append(checkbox, labelEl);
+    content.appendChild(optionWrapper);
+  });
+
+  // Toggle functionality
+  header.addEventListener('click', (e) => {
+    e.preventDefault();
+    // remove all other expansion false
+    const expandedSections = document.querySelectorAll('.mobile-filter-section.expanded');
+    expandedSections.forEach((x) => {
+      if (x.querySelector('.mobile-filter-section-header') !== header) {
+        x.querySelector('.mobile-filter-section-toggle').setAttribute('aria-expanded', 'false');
+        x.querySelector('.mobile-filter-section-content').classList.remove('expanded');
+        x.classList.remove('expanded');
+      }
+    });
+
+    const isExpanded = section.querySelector('.mobile-filter-section-toggle')?.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', !isExpanded);
+    content.classList.toggle('expanded', !isExpanded);
+    section.classList.toggle('expanded', !isExpanded);
+  });
+
+  section.append(header, content);
+  return section;
+};
+
+const updateMobileFilterCheckboxes = () => {
+  // Sync mobile checkboxes with applied filters
+  document.querySelectorAll('.mobile-filter-checkbox').forEach((checkbox) => {
+    const isApplied = searchConfig.appliedFilters.some(
+      (filter) => filter.value === checkbox.value,
+    );
+    checkbox.checked = isApplied;
+  });
+};
+
 const createMobileFilterOverlay = async () => {
   const overlay = div({ class: 'mobile-filter-overlay' });
 
+  // Header
   const header = div({ class: 'mobile-filter-header' });
-  const title = div({ class: 'mobile-filter-title' }, await i18n('Filter By'));
+  const title = div({ class: 'mobile-filter-title' }, 'FILTER BY');
   const closeBtn = button({ class: 'mobile-filter-close' });
-  header.append(title, closeBtn);
+  header.append(closeBtn);
+
+  // Content
+  const content = div({ class: 'mobile-filter-content' }, title);
+
+  // Create sections for each filter
+  const sections = await Promise.all(
+    searchConfig.filters.map((filter, i) => {
+      const id = `${filter.type}-${i}`;
+      // console.log(filter, id);
+      return createMobileFilterSection(filter, id, filter.type);
+    }),
+  );
+
+  sections.forEach((section) => content.appendChild(section));
+
+  // Footer with Apply button
+  const footer = div({ class: 'mobile-filter-footer' });
+  const applyBtn = button({ class: 'mobile-filter-apply' }, 'APPLY');
+  footer.appendChild(applyBtn);
+
+  // Close button functionality
+  closeBtn.addEventListener('click', () => {
+    overlay.classList.remove('visible');
+  });
+
+  // Apply button functionality
+  applyBtn.addEventListener('click', async () => {
+    overlay.classList.remove('visible');
+    await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
+  });
+
+  // Close on overlay background click
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.classList.remove('visible');
+    }
+  });
+
+  // Update checkboxes when overlay becomes visible
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        if (overlay.classList.contains('visible')) {
+          updateMobileFilterCheckboxes();
+        }
+      }
+    });
+  });
+  observer.observe(overlay, { attributes: true });
+
+  overlay.append(header, content, footer);
   return overlay;
 };
 
+/**
+ * Create desktop filters
+ * @returns
+ */
 const createFilters = async () => {
   const wrapper = div({ class: 'filters-wrapper' });
   wrapper.append(div({ class: 'filters-wrapper-title' }, await i18n('Filters')));
