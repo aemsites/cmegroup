@@ -11,51 +11,75 @@ import { addAppliedFilter, clearAllFilters, removeAppliedFilter } from './search
 import { updateFilteringByUI } from './filter-bullets/filter-bullets.js';
 import { searchResults } from './search-results/search-results.js';
 
-const syncDesktopToMobile = (desktopCheckbox, value, filterId) => {
-  // Find corresponding mobile checkbox by value and filterId
-  const mobileCheckbox = document.querySelector(`.mobile-filter-section#${filterId} input[value="${value}"]`);
-  if (mobileCheckbox && mobileCheckbox !== desktopCheckbox) {
-    mobileCheckbox.checked = desktopCheckbox.checked;
+/**
+ * Sync checkboxes
+ * @param {HTMLElement} sourceCheckbox
+ * @param {string} value
+ * @param {string} filterId
+ */
+const syncCheckboxes = (sourceCheckbox, value, filterId) => {
+  const isMobile = !!sourceCheckbox.closest('.mobile-filter-overlay');
+  const selector = isMobile
+    ? `#${filterId} input[value="${value}"]`
+    : `.mobile-filter-section#${filterId} input[value="${value}"]`;
+
+  const targetCheckbox = document.querySelector(selector);
+  if (targetCheckbox && targetCheckbox !== sourceCheckbox) {
+    targetCheckbox.checked = sourceCheckbox.checked;
   }
 };
 
-const syncMobileToDesktop = (mobileCheckbox, value, filterId) => {
-  // Find corresponding desktop checkbox by value and filterId
-  const desktopCheckbox = document.querySelector(`#${filterId} input[value="${value}"]`);
-  if (desktopCheckbox && desktopCheckbox !== mobileCheckbox) {
-    desktopCheckbox.checked = mobileCheckbox.checked;
-  }
-};
+/**
+ * Create filter option
+ * @param {Object} options
+ * @param {string} options.value
+ * @param {string} options.labelText
+ * @param {string} options.type
+ * @param {string} options.className
+ * @param {string} options.filterId
+ * @param {number} options.index
+ * @param {boolean} isMobile
+ * @returns {HTMLElement}
+ */
+const createFilterOption = (
+  {
+    value, labelText, type, className, filterId, index,
+  },
+  isMobile = false,
+) => {
+  const idPrefix = isMobile ? 'mobile-' : '';
+  const optionType = type === 'dropdown' ? 'option' : 'item';
+  const id = `${idPrefix}${optionType}-${filterId}-${index}`;
 
-const createOption = (value, labelText, type, className, filterId, index) => {
-  const id = `${type === 'dropdown' ? 'option' : 'item'}-${filterId}-${index}`;
-  const wrapper = div({ class: `${type}-option`, id });
+  const wrapperClass = type === 'dropdown' ? 'dropdown-option' : 'checkbox-option';
+  const wrapper = div({ class: wrapperClass, id });
 
-  // Check if this option is already applied
   const isApplied = searchConfig.appliedFilters.some(
     (appliedFilter) => appliedFilter.value === value,
   );
 
   const cb = input({
-    type: 'checkbox', class: className, value, id: `${id}-input`,
+    type: 'checkbox',
+    class: className,
+    value,
+    id: `${id}-input`,
   });
+  if (isApplied) cb.checked = true;
 
-  if (isApplied) {
-    cb.checked = true;
-  }
-
-  const lbl = label({ class: `${type}-label`, for: `${id}-input` }, labelText);
+  const lbl = label({ class: `${type === 'dropdown' ? 'dropdown-label' : 'checkbox-label'}`, for: `${id}-input` }, labelText);
 
   cb.addEventListener('change', async ({ target }) => {
-    // Sync with mobile counterpart
-    syncDesktopToMobile(target, value, filterId);
+    syncCheckboxes(target, value, filterId);
 
     if (target.checked) {
       addAppliedFilter(filterId, value, labelText);
     } else {
       removeAppliedFilter(filterId, value, labelText);
     }
-    await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
+
+    if (!isMobile) {
+      await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
+    }
   });
 
   wrapper.addEventListener('click', (e) => {
@@ -105,6 +129,14 @@ const resolveTaxonomyPath = (path, taxonomy) => {
   return { node: current, isStar };
 };
 
+/**
+ * Create dropdown
+ * @param {Array} options
+ * @param {string} labelText
+ * @param {string} order
+ * @param {string} filterId
+ * @returns {Promise<HTMLElement>}
+ */
 const createDropdown = async (options, labelText, order, filterId) => {
   const dropdown = div({ class: 'dropdown', id: filterId });
   const toggle = div({ class: 'dropdown-toggle' }, labelText);
@@ -135,7 +167,11 @@ const createDropdown = async (options, labelText, order, filterId) => {
 
   const sorted = sortOptions([...resultMap.values()], 'title', order);
   sorted
-    .forEach(({ path, title }, i) => menu.appendChild(createOption(path, title, 'dropdown', 'dropdown-option-checkbox', filterId, i)));
+    .forEach(({ path, title }, i) => menu.appendChild(
+      createFilterOption({
+        value: path, labelText: title, type: 'dropdown', className: 'dropdown-option-checkbox', filterId, index: i,
+      }),
+    ));
 
   toggle.addEventListener('click', () => {
     menu.classList.toggle('visible');
@@ -163,6 +199,14 @@ const createDropdown = async (options, labelText, order, filterId) => {
   return dropdown;
 };
 
+/**
+ * Create checkbox
+ * @param {Array} options
+ * @param {string} labelText
+ * @param {string} order
+ * @param {string} filterId
+ * @returns {HTMLElement}
+ */
 const createCheckbox = (options, labelText, order, filterId) => {
   const wrapper = div({ class: 'checkbox', id: filterId });
   wrapper.append(label({ class: 'checkbox-label' }, labelText));
@@ -171,11 +215,22 @@ const createCheckbox = (options, labelText, order, filterId) => {
   wrapper.append(container);
 
   sortOptions(options, null, order)
-    .forEach((opt, i) => container.appendChild(createOption(opt, opt, 'checkbox', 'checkbox-input', filterId, i)));
+    .forEach((opt, i) => container.appendChild(
+      createFilterOption({
+        value: opt, labelText: opt, type: 'checkbox', className: 'checkbox-input', filterId, index: i,
+      }),
+    ));
 
   return wrapper;
 };
 
+/**
+ * Create mobile filter section
+ * @param {Object} filter
+ * @param {string} filterId
+ * @param {string} type
+ * @returns {Promise<HTMLElement>}
+ */
 const createMobileFilterSection = async (filter, filterId, type) => {
   const section = div({ class: 'mobile-filter-section', id: filterId });
   const header = div({ class: 'mobile-filter-section-header' });
@@ -191,52 +246,14 @@ const createMobileFilterSection = async (filter, filterId, type) => {
     const sorted = sortOptions(filter.values, null, filter.order);
 
     sorted.forEach((value, i) => {
-      const id = `item-${filterId}-${i}`;
-      const optionWrapper = div({ class: 'checkbox-option', id });
-
-      // Check if this option is already applied
-      const isApplied = searchConfig.appliedFilters.some(
-        (appliedFilter) => appliedFilter.value === value,
-      );
-
-      const checkbox = input({
-        type: 'checkbox',
-        class: 'checkbox-input',
+      content.appendChild(createFilterOption({
         value,
-        id: `${id}-input`,
-      });
-
-      if (isApplied) {
-        checkbox.checked = true;
-      }
-
-      const labelEl = document.createElement('label');
-      labelEl.setAttribute('for', `${id}-input`);
-      labelEl.className = 'checkbox-label';
-      labelEl.textContent = value;
-
-      // Add event listener for checkbox changes
-      checkbox.addEventListener('change', async ({ target }) => {
-        // Sync with desktop counterpart
-        syncMobileToDesktop(target, value, filterId);
-
-        if (target.checked) {
-          addAppliedFilter(filterId, value, value);
-        } else {
-          removeAppliedFilter(filterId, value, value);
-        }
-      });
-
-      optionWrapper.addEventListener('click', (e) => {
-        if (e.target !== checkbox) {
-          e.preventDefault();
-          checkbox.checked = !checkbox.checked;
-          checkbox.dispatchEvent(new Event('change'));
-        }
-      });
-
-      optionWrapper.append(checkbox, labelEl);
-      content.appendChild(optionWrapper);
+        labelText: value,
+        type: 'checkbox',
+        className: 'checkbox-input',
+        filterId,
+        index: i,
+      }, true));
     });
   } else {
     // Dropdown handling with taxonomy resolution (existing code)
@@ -268,52 +285,14 @@ const createMobileFilterSection = async (filter, filterId, type) => {
     const sorted = sortOptions([...resultMap.values()], 'title', filter.order);
 
     sorted.forEach(({ path, title: optionTitle }, i) => {
-      const id = `option-${filterId}-${i}`;
-      const optionWrapper = div({ class: 'dropdown-option', id });
-
-      // Check if this option is already applied
-      const isApplied = searchConfig.appliedFilters.some(
-        (appliedFilter) => appliedFilter.value === path,
-      );
-
-      const checkbox = input({
-        type: 'checkbox',
-        class: 'dropdown-option-checkbox',
+      content.appendChild(createFilterOption({
         value: path,
-        id: `${id}-input`,
-      });
-
-      if (isApplied) {
-        checkbox.checked = true;
-      }
-
-      const labelEl = document.createElement('label');
-      labelEl.setAttribute('for', `${id}-input`);
-      labelEl.className = 'dropdown-label';
-      labelEl.textContent = optionTitle;
-
-      // Add event listener for checkbox changes
-      checkbox.addEventListener('change', async ({ target }) => {
-        // Sync with desktop counterpart
-        syncMobileToDesktop(target, path, filterId);
-
-        if (target.checked) {
-          addAppliedFilter(filterId, path, optionTitle);
-        } else {
-          removeAppliedFilter(filterId, path, optionTitle);
-        }
-      });
-
-      optionWrapper.addEventListener('click', (e) => {
-        if (e.target !== checkbox) {
-          e.preventDefault();
-          checkbox.checked = !checkbox.checked;
-          checkbox.dispatchEvent(new Event('change'));
-        }
-      });
-
-      optionWrapper.append(checkbox, labelEl);
-      content.appendChild(optionWrapper);
+        labelText: optionTitle,
+        type: 'dropdown',
+        className: 'dropdown-option-checkbox',
+        filterId,
+        index: i,
+      }, true));
     });
   }
 
@@ -340,6 +319,9 @@ const createMobileFilterSection = async (filter, filterId, type) => {
   return section;
 };
 
+/**
+ * Update mobile filter checkboxes
+ */
 const updateMobileFilterCheckboxes = () => {
   // Sync mobile checkboxes with applied filters
   document.querySelectorAll('.mobile-filter-checkbox').forEach((checkbox) => {
@@ -350,6 +332,10 @@ const updateMobileFilterCheckboxes = () => {
   });
 };
 
+/**
+ * Create mobile filter overlay
+ * @returns {Promise<HTMLElement>}
+ */
 const createMobileFilterOverlay = async () => {
   const overlay = div({ class: 'mobile-filter-overlay' });
 
@@ -367,9 +353,6 @@ const createMobileFilterOverlay = async () => {
     searchConfig.filters.map((filter, i) => {
       const id = `${filter.type}-${i}`;
       return createMobileFilterSection(filter, id, filter.type);
-      // return filter.type === 'dropdown'
-      //   ? createDropdown(filter.values, filter.name, filter.order, id)
-      //   : Promise.resolve(createCheckbox(filter.values, filter.name, filter.order, id));
     }),
   );
 
@@ -416,7 +399,7 @@ const createMobileFilterOverlay = async () => {
 
 /**
  * Create desktop filters
- * @returns
+ * @returns {Promise<HTMLElement>}
  */
 const createFilters = async () => {
   const wrapper = div({ class: 'filters-wrapper' });
@@ -461,6 +444,13 @@ const createFilters = async () => {
   return wrapper;
 };
 
+/**
+ * Manage filters
+ * @param {string} key
+ * @param {HTMLElement} block
+ * @param {number} index
+ * @returns {Promise<HTMLElement>}
+ */
 const manageFilters = async (key, block, index) => {
   let current = null;
 
@@ -488,6 +478,13 @@ const manageFilters = async (key, block, index) => {
   return tempFilters;
 };
 
+/**
+ * Template filtering
+ * @param {string} key
+ * @param {HTMLElement} block
+ * @param {number} index
+ * @returns {Promise<HTMLElement>}
+ */
 const templateFiltering = (key, block, index) => {
   for (let i = index; i < block.children.length; i += 1) {
     const child = block.children[i];

@@ -447,10 +447,6 @@
   border-bottom: 1px solid var(--gray4);
 }
 
-.block.search .mobile-filter-option:last-child {
-  /* border-bottom: none; */
-}
-
 .block.search .mobile-filter-checkbox {
   appearance: none;
   background-color: var(--white);
@@ -514,7 +510,7 @@
 }
 
 .block.search input.search-input::placeholder {
-  font-size: 1.25rem; /* Or your desired smaller size, e.g., 14px */
+  font-size: 1.25rem;
 }
 
 @media (width >= 768px) {
