@@ -33,7 +33,7 @@ export default function decorate(block) {
       case 'footer':
         processedContent.push(content);
         break;
-      case 'references':
+      case 'references': {
         const list = content.querySelector('ul') || content.querySelector('ol');
         if (list) {
           const references = createElement('ul', null, ...list.children);
@@ -43,6 +43,7 @@ export default function decorate(block) {
           processedContent.push(content);
         }
         break;
+      }
       case 'cta': {
         const a = content.querySelector('a.button');
         a.classList.remove('button');

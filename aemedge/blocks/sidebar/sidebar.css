@@ -127,8 +127,7 @@
     width: 60%;
   }
 
-  .sidebar.left,
-  .sidebar.right {
+  .sidebar.left {
     padding-left: 6rem;
     padding-right: 2.8125rem;
   }

@@ -6,12 +6,10 @@
 
 import {
   decorateMain,
-  loadTemplate,
 } from '../../scripts/scripts.js';
 
 import {
   loadSections,
-  getMetadata,
 } from '../../scripts/aem.js';
 
 /**
@@ -56,9 +54,9 @@ export default async function decorate(block) {
     const fragmentSection = fragment.querySelector(':scope .section');
     if (fragmentSection) {
       const closestSection = block.closest('.section');
-      const sidebarType = Array.from(block.classList).some(className => className.startsWith('sidebar'));
+      const sidebarType = Array.from(block.classList).some((className) => className.startsWith('sidebar'));
       if (sidebarType) {
-        const sidebarClass = Array.from(block.classList).filter(className => className.startsWith('sidebar'));
+        const sidebarClass = Array.from(block.classList).filter((className) => className.startsWith('sidebar'));
         fragmentSection.classList.add(...sidebarClass);
       } else {
         closestSection?.classList.add(...fragmentSection.classList);
