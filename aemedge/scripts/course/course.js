@@ -6,7 +6,6 @@ import {
   i18n,
 } from '../utils.js';
 import { getMetadata } from '../aem.js';
-import { createDynamicCards } from '../../blocks/cards/cards.js';
 import { getProgress, postLesson } from '../services/EducationTrackService.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
@@ -245,6 +244,14 @@ export async function createCourseBaseTemplate(courseData) {
   header.appendChild(language);
 
   courseHeading?.before(header);
+}
+
+export function getCurrentLesson(courseData) {
+  const currentPath = window.location.pathname;
+  const lessons = [
+    ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
+    ...courseData.lessons];
+  return lessons.find(({ path }) => currentPath === path);
 }
 
 /**

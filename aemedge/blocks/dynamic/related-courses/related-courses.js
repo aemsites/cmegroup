@@ -1,5 +1,5 @@
 import { createElement } from '../../../scripts/utils.js';
-import { createDynamicCards } from '../../../blocks/cards/cards.js';
+import { createDynamicCards } from '../../cards/cards.js';
 
 export default async function createRelatedCourses(main) {
   const blockContainer = createElement('div', { class: 'section cards-container full-width' });
