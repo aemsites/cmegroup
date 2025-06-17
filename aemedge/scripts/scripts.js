@@ -359,12 +359,12 @@ function decorateSidebars(main) {
     // Also, handles left sidebars empty edge case
     const leftContainer = document.createElement('div');
     leftContainer.className = 'sidebars-multi left';
-    if (leftSidebars.length == 0) {
-       // add a placeholder
-       const placeholder = document.createElement('div');
-       placeholder.className = 'sidebar-wrapper';
-       leftContainer.appendChild(placeholder);
-       section.prepend(leftContainer);
+    if (leftSidebars.length === 0) {
+      // add a placeholder
+      const placeholder = document.createElement('div');
+      placeholder.className = 'sidebar-wrapper';
+      leftContainer.appendChild(placeholder);
+      section.prepend(leftContainer);
     } else if (leftSidebars.length > 0) {
       // Insert the container before the first left sidebar
       section.insertBefore(leftContainer, leftSidebars[0]);
@@ -376,7 +376,7 @@ function decorateSidebars(main) {
 
     const rightContainer = document.createElement('div');
     rightContainer.className = 'sidebars-multi right';
-    if (rightSidebars.length == 0) {
+    if (rightSidebars.length === 0) {
       // add a placeholder
       const placeholder = document.createElement('div');
       placeholder.className = 'sidebar-wrapper';
