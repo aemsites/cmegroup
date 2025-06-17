@@ -1,7 +1,6 @@
 import { getMetadata, loadCSS } from '../../../scripts/aem.js';
-import { createElement, i18n } from '../../../scripts/utils.js';
+import { createElement, i18n, isFeatureToggled } from '../../../scripts/utils.js';
 import { store } from '../../../scripts/store/store.js';
-import {  isFeatureToggled } from '../../../scripts/utils.js';
 
 function getTotalLessonsCount(courseData) {
   return courseData.hasChapters
