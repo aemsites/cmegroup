@@ -476,6 +476,29 @@ function checkDomain(url) {
   return result;
 }
 
+/**
+ * Checks if a feature toggle is enabled via query parameter.
+ *
+ * @param {string} toggleName - The name of the toggle to check
+ * @param {string} expectedValue - The expected value (defaults to 'y')
+ * @returns {boolean} - True if the toggle is enabled, false otherwise
+ *
+ * @example
+ * // Check if course nav should be hidden
+ * if (isFeatureToggled('hideCourseNav')) {
+ *   // Hide course navigation
+ * }
+ *
+ * // Check for custom value
+ * if (isFeatureToggled('debugMode', 'true')) {
+ *   // Enable debug mode
+ * }
+ */
+function isFeatureToggled(toggleName, expectedValue = 'y') {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(toggleName) === expectedValue;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -496,4 +519,5 @@ export {
   buildSlider,
   getUTCfromDateString,
   generateRandomId,
+  isFeatureToggled,
 };
