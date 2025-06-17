@@ -1,10 +1,16 @@
 import { getMetadata } from '../../scripts/aem.js';
 
 const isTabsRequired = (main) => main.querySelectorAll(':scope > .section.tabs').length > 0;
-const isCourseOrLesson = () => {
+const isCourseNavRequired = () => {
   const template = getMetadata('template');
   if (!template) return false;
   return template.toLowerCase() === 'course' || template.toLowerCase() === 'lesson';
+};
+
+const isRelatedCoursesRequired = () => {
+  const template = getMetadata('template');
+  if (!template) return false;
+  return template.toLowerCase() === 'course';
 };
 
 /**
@@ -15,8 +21,11 @@ export default async function dynamicBlocks(main) {
   if (isTabsRequired(main)) {
     import('./tabs/tabs.js').then(({ default: createTabs }) => createTabs(main));
   }
-  if (isCourseOrLesson()) {
+  if (isCourseNavRequired()) {
     import('./course-nav/course-nav.js').then(({ default: createCourseNav }) => createCourseNav(main));
+  }
+
+  if (isRelatedCoursesRequired(main)) {
     import('./related-courses/related-courses.js').then(({ default: createRelatedCourses }) => createRelatedCourses(main));
   }
 }
