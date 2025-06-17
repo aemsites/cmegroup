@@ -871,3 +871,8 @@ body.loading::before {
 .bg-green {
     background-color: var(--green);
 }
+
+.highlighted-text {
+    font-weight: bold;
+    color: var(--blue2);
+  }

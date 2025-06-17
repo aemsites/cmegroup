@@ -336,9 +336,9 @@ function decorateExternalImages(ele) {
  * After:
  * <p>
  *   ...other text
- *   <b><span class="bg-green"><span class="blue2">
+ *   <code class="bg-green highlighted-text">
  *     PLACEHOLDER -> Text the content author highlighted here.
- *   </span></span></b>
+ *   </code>
  *   ... other text
  * </p>
  *
@@ -353,19 +353,12 @@ function decorateTextHighlights(main) {
     const highlightColor = sectionDiv ? sectionDiv.getAttribute('data-text-highlight') : null;
 
     if (highlightColor) {
-      const highlightedText = codeEl.textContent.trim();
-      const highlightBoldEl = document.createElement('b');
-      const highlightOutterSpanEl = document.createElement('span');
-      highlightOutterSpanEl.className = highlightColor;
-      const highlightSpanEl = document.createElement('span');
-      highlightSpanEl.className = 'blue2';
-      highlightSpanEl.textContent = highlightedText;
-      highlightOutterSpanEl.appendChild(highlightSpanEl);
-      highlightBoldEl.appendChild(highlightOutterSpanEl);
-      codeEl.replaceWith(highlightBoldEl);
+      codeEl.classList.add(highlightColor, 'highlighted-text');
     }
   });
 }
+
+
 
 /**
  * Decorates the main element.
