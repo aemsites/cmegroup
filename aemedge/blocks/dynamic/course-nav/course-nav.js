@@ -1,6 +1,7 @@
 import { getMetadata, loadCSS } from '../../../scripts/aem.js';
 import { createElement, i18n } from '../../../scripts/utils.js';
 import { store } from '../../../scripts/store/store.js';
+import {  isFeatureToggled } from '../../../scripts/utils.js';
 
 function getTotalLessonsCount(courseData) {
   return courseData.hasChapters
@@ -238,8 +239,12 @@ async function init(main, courseData) {
 }
 
 export default async function createCourseNav(main) {
+  // Disable if not an allowed template
   const template = getMetadata('template');
   if (!['course', 'lesson'].includes(template.toLowerCase())) return;
+
+  // Disable if hideCourseNav query parameter is set
+  if (isFeatureToggled('hideCourseNav')) return;
 
   //  courseData change event
   store.subscribe(({ courseData }) => courseData, (courseData) => {
