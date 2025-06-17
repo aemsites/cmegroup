@@ -356,9 +356,16 @@ function decorateSidebars(main) {
     }
 
     // Create containers for multiple sidebars of the same type if needed
-    if (leftSidebars.length > 0) {
-      const leftContainer = document.createElement('div');
-      leftContainer.className = 'sidebars-multi left';
+    // Also, handles left sidebars empty edge case
+    const leftContainer = document.createElement('div');
+    leftContainer.className = 'sidebars-multi left';
+    if (leftSidebars.length == 0) {
+       // add a placeholder
+       const placeholder = document.createElement('div');
+       placeholder.className = 'sidebar-wrapper';
+       leftContainer.appendChild(placeholder);
+       section.prepend(leftContainer);
+    } else if (leftSidebars.length > 0) {
       // Insert the container before the first left sidebar
       section.insertBefore(leftContainer, leftSidebars[0]);
       // Move all left sidebars into the container
@@ -367,9 +374,15 @@ function decorateSidebars(main) {
       });
     }
 
-    if (rightSidebars.length > 0) {
-      const rightContainer = document.createElement('div');
-      rightContainer.className = 'sidebars-multi right';
+    const rightContainer = document.createElement('div');
+    rightContainer.className = 'sidebars-multi right';
+    if (rightSidebars.length == 0) {
+      // add a placeholder
+      const placeholder = document.createElement('div');
+      placeholder.className = 'sidebar-wrapper';
+      rightContainer.appendChild(placeholder);
+      section.prepend(rightContainer);
+    } else if (rightSidebars.length > 0) {
       // Insert the container before the first right sidebar
       section.insertBefore(rightContainer, rightSidebars[0]);
       // Move all right sidebars into the container
