@@ -315,6 +315,79 @@ function decorateExternalImages(ele) {
   });
 }
 
+function decorateSidebars(main) {
+  const sections = main.querySelectorAll('.section');
+  sections.forEach((section) => {
+    const hasSidebar = section.querySelector('.sidebar');
+    if (!hasSidebar) return;
+    section.setAttribute('has-sidebar', 'true');
+
+    // Get all sidebars in this section
+    const sidebars = section.querySelectorAll('.sidebar');
+    console.log('Found sidebars in section:', sidebars.length);
+
+    // Group sidebars by type (left/right)
+    const leftSidebars = [];
+    const rightSidebars = [];
+    const contentElements = [];
+
+    // Categorize all direct children of the section
+    Array.from(section.children).forEach((child) => {
+        if (child.querySelector('.sidebar')) {
+            if (child.querySelector('.sidebar.left')) {
+                leftSidebars.push(child);
+            } else if (child.querySelector('.sidebar.right')) {
+                rightSidebars.push(child);
+            }
+        } else {
+            // This is content (not a sidebar)
+            contentElements.push(child);
+        }
+    });
+
+    // Create a content wrapper for all non-sidebar content
+    if (contentElements.length > 0) {
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'content-wrapper';
+        
+        console.log('Creating content wrapper for', contentElements.length, 'elements');
+        
+        // Insert the content wrapper before the first content element
+        section.insertBefore(contentWrapper, contentElements[0]);
+        
+        // Move all content elements into the wrapper
+        contentElements.forEach(element => {
+            contentWrapper.appendChild(element);
+        });
+    }
+
+    // Create containers for multiple sidebars of the same type if needed
+    if (leftSidebars.length > 0) {
+        const leftContainer = document.createElement('div');
+        leftContainer.className = 'sidebars-multi left';
+        console.log('Creating left sidebar container for', leftSidebars.length, 'sidebars');
+        // Insert the container before the first left sidebar
+        section.insertBefore(leftContainer, leftSidebars[0]);
+        // Move all left sidebars into the container
+        leftSidebars.forEach((sidebar) => {
+            leftContainer.appendChild(sidebar);
+        });
+    }
+
+    if (rightSidebars.length > 0) {
+        const rightContainer = document.createElement('div');
+        rightContainer.className = 'sidebars-multi right';
+        console.log('Creating right sidebar container for', rightSidebars.length, 'sidebars');
+        // Insert the container before the first right sidebar
+        section.insertBefore(rightContainer, rightSidebars[0]);
+        // Move all right sidebars into the container
+        rightSidebars.forEach((sidebar) => {
+            rightContainer.appendChild(sidebar);
+        });
+    }
+  });
+}
+
 /**
  * Decorates the main element.
  * @param {Element} main The main element
@@ -329,8 +402,8 @@ export function decorateMain(main) {
   decorateSections(main);
   decorateBlocks(main);
   decorateExternalLinks(main);
-  // decorate external images
   decorateExternalImages(main);
+  decorateSidebars(main);
 }
 
 /**

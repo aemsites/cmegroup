@@ -1,0 +1,125 @@
+/* Sidebar layout with high priority - 3 columns for desktop only (1200px+) */
+
+.sidebar a {
+  color: var(--blue4);
+  font-weight: 600;
+}
+
+.sidebar .block-divider-line hr {
+  margin-block: 1.25rem;
+}
+
+.sidebar .sidebar-header {
+  margin-bottom: 0.8rem;
+}
+
+.sidebar .references {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar .references li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+.sidebar .references li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.25rem;
+  width: 1rem;
+  height: 1rem;
+  background: url('../../icons/arrow-right.svg') center/contain no-repeat;
+  filter: var(--blue4-filter);
+}
+
+.sidebar .cta img {
+  filter: var(--white-filter);
+}
+
+.sidebar .cta:hover img {
+  filter: var(--black-filter);
+}
+
+/* Only apply sidebar styling on desktop screens 1200px and above */
+@media (width > 1200px) {
+  main > .section[has-sidebar='true'] {
+    --content-width: calc(54% - 13.625rem);
+    --content-padding-inline: .9375rem;
+    --sidebar-width: calc((100% - var(--content-width)) / 2);
+    
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+  }
+
+  main > .section[has-sidebar='true'] .sidebars-multi {
+    width: var(--sidebar-width) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    flex-shrink: 0 !important;
+  }
+
+  main > .section[has-sidebar='true'] .sidebars-multi.left {
+    order: 1 !important;
+  }
+
+   main > .section[has-sidebar='true'] .sidebars-multi.right {
+    order: 3 !important;
+  }
+
+  main > .section[has-sidebar='true'] .content-wrapper {
+    width: var(--content-width) !important;
+    order: 2 !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    padding-inline: var(--content-padding-inline);
+  }
+
+  main > .section[has-sidebar='true'] .sidebar,
+  main > .section[has-sidebar='true'] .sidebars-multi {
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  main > .section[has-sidebar='true'] .sidebar + .sidebar.left,
+  main > .section[has-sidebar='true'] .sidebar + .sidebar.right {
+    margin-top: 20px !important;
+  }
+
+  main > .section[has-sidebar='true'] .sidebars-multi {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+
+  main > .section[has-sidebar='true'] .sidebar {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  main > .section[has-sidebar='true'] .content-wrapper > * {
+    width: 100% !important;
+    margin-bottom: 20px !important;
+  }
+
+  main > .section[has-sidebar='true'] .content-wrapper > *:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  main > .section[has-sidebar='true'] .sidebar.left,
+  main > .section[has-sidebar='true'] .sidebar.right,
+  main > .section[has-sidebar='true'] .sidebars-multi {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+}

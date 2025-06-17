@@ -21,7 +21,7 @@ html {
 }
 
 @media (width > 1200px) {
-  main > .section:not(.full-width) > div {
+  main > .section:not(.full-width):not([has-sidebar='true']) > div {
     width: calc(54% - 13.625rem);
     padding-inline: .9375rem;
   }
