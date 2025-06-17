@@ -21,24 +21,24 @@ function decorateReferences(block) {
 function decorateCtas(block) {
   const ctas = block.querySelectorAll('a');
   ctas.forEach((cta) => {
-    const parentElement = cta.parentElement;
-    
+    const { parentElement } = cta;
+
     // Check if parent is a paragraph and contains the < > pattern
     if (parentElement && parentElement.tagName === 'P') {
       const parentText = parentElement.textContent.trim();
-      
+
       // Check if paragraph text starts with < and ends with >
       const hasValidPattern = parentText.startsWith('<') && parentText.endsWith('>');
-      
+
       if (hasValidPattern) {
         const button = createElement('button', { class: 'primary button cta' });
-        
+
         // Check if there's an icon (span.icon) before the link within the same paragraph
         const prevElement = cta.previousElementSibling;
-        const hasIcon = prevElement && 
-                       prevElement.tagName === 'SPAN' && 
-                       prevElement.classList.contains('icon');
-        
+        const hasIcon = prevElement
+                       && prevElement.tagName === 'SPAN'
+                       && prevElement.classList.contains('icon');
+
         if (hasIcon) {
           // Format: < icon link > - include icon in button
           button.append(prevElement.cloneNode(true), cta.cloneNode(true));
@@ -46,7 +46,7 @@ function decorateCtas(block) {
           // Format: < link > - just include link in button
           button.append(cta.cloneNode(true));
         }
-        
+
         // Replace the entire paragraph with the button
         parentElement.replaceWith(button);
       }
@@ -55,14 +55,14 @@ function decorateCtas(block) {
 }
 
 export default function decorate(block) {
-    if (block.classList.contains('divider-top')) {
-      addDividerLine(block, false);
-    }
-    if (block.classList.contains('divider-bottom')) {
-      addDividerLine(block, true);
-    }
+  if (block.classList.contains('divider-top')) {
+    addDividerLine(block, false);
+  }
+  if (block.classList.contains('divider-bottom')) {
+    addDividerLine(block, true);
+  }
 
-    decorateHeaders(block);
-    decorateReferences(block);
-    decorateCtas(block);
+  decorateHeaders(block);
+  decorateReferences(block);
+  decorateCtas(block);
 }
