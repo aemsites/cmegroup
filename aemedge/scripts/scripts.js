@@ -209,7 +209,7 @@ function isExternalImage(element) {
   return /https:\/\/www\.cmegroup\.com\/content\/dam\/|delivery-p\d+-e\d+\.adobeaemcloud\.com/.test(element.getAttribute('href'));
 }
 
- /**
+/**
   * Decorates external images with a picture element
   * @param {Element} ele The element
   * @private
