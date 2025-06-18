@@ -71,4 +71,8 @@ main > .section {
     width: calc(66.66667% - 98px);
     margin: auto;
   }
+
+  main > .section.full-width {
+    width: unset;
+  }
 }
