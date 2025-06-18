@@ -12,6 +12,12 @@
     }
 }
 
+@media (width < 480px) {
+    .event-calendar-wrapper {
+        padding: 0 0.9375rem !important;
+    }
+}
+
 /* curtain */
 
 .event-calendar-container .inputs-curtain.is-open {
@@ -531,7 +537,13 @@
 }
 
 .event-calendar-container .event-calendar .result-list-table-section {
-    margin: 0;
+    margin: 0 -0.625rem;
+}
+
+@media (width >=1200px) {
+    .event-calendar-container .event-calendar .result-list-table-section {
+        margin: 0;
+    }
 }
 
 .event-calendar-container .event-calendar .result-list-table-section .result-list-section {
@@ -574,13 +586,11 @@
 
 .event-calendar-container .event-calendar-datepicker-container {
     width: 100%;
-    padding-right: 0.75rem;
 }
 
 @media (width >=1200px) {
     .event-calendar-container .event-calendar-datepicker-container {
         width: 25%;
-        padding-right: 0;
     }
 }
 
@@ -602,7 +612,7 @@
 .event-calendar-container .event-calendar-datepicker {
     padding-left: 0.625rem;
     height: 2.25rem;
-    font-size: 0.875rem;
+    font-size: 0.6875rem;
     line-height: normal;
     background-color: var(--gray3);
     color: var(--white);
@@ -1541,6 +1551,7 @@
     display: flex;
     font-size: .75rem;
     line-height: 1.3125rem;
+    white-space: nowrap;
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card.mobile-accordion .event-container.mobile .mobile-first-row .event-details {
@@ -1882,7 +1893,14 @@
     font-weight: 400;
     letter-spacing: .03em;
     margin-top: 0;
-    margin-bottom: 1.875rem;
+    margin-bottom: 0.9375rem;
+}
+
+@media (width >=1200px) {
+  .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .left-section .text,
+  .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .text {
+        margin-bottom: 1.875rem;
+    }  
 }
 
 .event-calendar-container .result-list-table-section .event-calendar-table-container .event-calendar-table .event-calendar-table-tbody .event-accordion-card .event-accordion-card-body .main-content .left-section .more,

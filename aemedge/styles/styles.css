@@ -871,3 +871,8 @@ body.loading::before {
 .bg-green {
     background-color: var(--green);
 }
+
+/* share this z-index override */
+#st-2.st-right {
+    z-index: 0 !important;
+}
