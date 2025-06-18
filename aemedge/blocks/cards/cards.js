@@ -48,7 +48,7 @@ async function createStaticCards(block) {
   } else if (block.classList.contains('event')) {
     const backgroundUrl = block.querySelector('picture img').src;
     const title = block.querySelector('h3');
-    const text = block.querySelector('p');
+    const text = title.nextElementSibling;
     const btn = block.querySelector('.button-container');
     const mainContainer = title.parentElement;
     const titleContainer = document.createElement('div');
@@ -120,7 +120,7 @@ async function createStaticCards(block) {
       cardDate.className = 'cards-date';
       cardDate.innerText = date;
       const cardTitle = document.createElement('h3');
-      cardTitle.innerText = title;
+      cardTitle.innerHTML = title;
 
       mainContainer.append(cardTime);
       mainContainer.append(cardDate);
@@ -227,7 +227,7 @@ export async function createDynamicCardArticle({ content }) {
   cardDate.innerText = `${day} ${month}`;
 
   const cardTitle = document.createElement('h3');
-  cardTitle.innerText = title;
+  cardTitle.innerHTML = title;
 
   mainContainer.append(cardTime, cardDate, cardTitle);
   linkEl.append(imageContainer, mainContainer);
