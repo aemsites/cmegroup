@@ -20,7 +20,7 @@ import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
-import { checkDomain } from './utils.js';
+import { checkDomain, createElement } from './utils.js';
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
@@ -343,13 +343,8 @@ function decorateSidebars(main) {
 
     // Create a content wrapper for all non-sidebar content
     if (contentElements.length > 0) {
-      const contentWrapper = document.createElement('div');
-      contentWrapper.className = 'content-wrapper';
-
-      // Insert the content wrapper before the first content element
+      const contentWrapper = createElement('div', { class: 'content-wrapper' });
       section.insertBefore(contentWrapper, contentElements[0]);
-
-      // Move all content elements into the wrapper
       contentElements.forEach((element) => {
         contentWrapper.appendChild(element);
       });
@@ -357,35 +352,25 @@ function decorateSidebars(main) {
 
     // Create containers for multiple sidebars of the same type if needed
     // Also, handles left sidebars empty edge case
-    const leftContainer = document.createElement('div');
-    leftContainer.className = 'sidebars-multi left';
+    const leftContainer = createElement('div', { class: 'sidebars-multi left' });
     if (leftSidebars.length === 0) {
-      // add a placeholder
-      const placeholder = document.createElement('div');
-      placeholder.className = 'sidebar-wrapper';
+      const placeholder = createElement('div', { class: 'sidebar-wrapper' });
       leftContainer.appendChild(placeholder);
       section.prepend(leftContainer);
     } else if (leftSidebars.length > 0) {
-      // Insert the container before the first left sidebar
       section.insertBefore(leftContainer, leftSidebars[0]);
-      // Move all left sidebars into the container
       leftSidebars.forEach((sidebar) => {
         leftContainer.appendChild(sidebar);
       });
     }
 
-    const rightContainer = document.createElement('div');
-    rightContainer.className = 'sidebars-multi right';
+    const rightContainer = createElement('div', { class: 'sidebars-multi right' });
     if (rightSidebars.length === 0) {
-      // add a placeholder
-      const placeholder = document.createElement('div');
-      placeholder.className = 'sidebar-wrapper';
+      const placeholder = createElement('div', { class: 'sidebar-wrapper' });
       rightContainer.appendChild(placeholder);
       section.prepend(rightContainer);
     } else if (rightSidebars.length > 0) {
-      // Insert the container before the first right sidebar
       section.insertBefore(rightContainer, rightSidebars[0]);
-      // Move all right sidebars into the container
       rightSidebars.forEach((sidebar) => {
         rightContainer.appendChild(sidebar);
       });

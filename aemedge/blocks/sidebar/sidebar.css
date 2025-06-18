@@ -57,6 +57,10 @@
     width: 100%;
   }
 
+  main > .section[has-sidebar='true'] > div {
+    padding-inline: 4.125rem;
+  }
+
   main > .section[has-sidebar='true'] .sidebars-multi {
     width: var(--sidebar-width);
     display: flex;
