@@ -65,6 +65,9 @@ async function setMetadata(meta, document, url) {
       template: 'article',
       subTemplate: 'standard',
     },
+    basepage: {
+      template: 'chapter',
+    },
   };
 
   const template = fetchTemplate(document);
@@ -145,11 +148,18 @@ async function setMetadata(meta, document, url) {
           meta['Hide Course Navigation'] = Boolean(jsonData[key]);
         } else if (key === 'jcr:title' && (meta.Template === 'lesson' || meta.Template === 'course')) {
           meta['Module Title'] = jsonData[key];
+        } else if (key === 'isPremium') {
+          meta.isPremium = Boolean(jsonData[key]);
         }
       });
     } catch (error) {
       console.warn(`Failed to parse JSON: ${error.message}`);
     }
+  }
+
+  if (document.querySelector('.premium-label')) {
+    meta.isPremium = true;
+    document.querySelector('.premium-label').remove();
   }
 }
 
@@ -659,7 +669,7 @@ const customBlocks = async (document, main, meta, url) => {
   } else if (meta['Sub Template'] === 'standard') {
     standardArticleInitialColumns(document);
   } else if (['lesson', 'course'].includes(meta.Template)) {
-    await removeCourseSpecificItem(document, main, url);
+    await removeCourseSpecificItem(document, main, meta);
     handleFragments(document);
   }
   await moduleOrder(document, meta, url);
