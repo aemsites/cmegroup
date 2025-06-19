@@ -414,6 +414,8 @@ async function loadEager(doc) {
 async function loadLazy(doc) {
   // import('./dataLayerImport.js');
   // dataLayer.handleLoad();
+
+  
   autolinkModals(doc);
 
   const main = doc.querySelector('main');
