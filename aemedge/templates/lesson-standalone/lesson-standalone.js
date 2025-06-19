@@ -9,6 +9,10 @@ export default function lessonStandaloneTemplate() {
   authenticationData.loginPromise.then(async () => {
     const courseData = await getCourseData();
     await createCourseBaseTemplate(courseData);
+    if (!courseData.started) {
+      //  start lesson
+      await updateLessonStatus(false);
+    }
     if (courseData?.completed) {
       store.dispatch(quizAnswered(true));
     }
