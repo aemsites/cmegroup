@@ -19,7 +19,7 @@ import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
-import { checkDomain } from './utils.js';
+import { checkDomain, isFeatureToggled } from './utils.js';
 import createOptimizedPicture from './utils/picture.js';
 import { appendQueryParams } from './utils/uri.js';
 
@@ -427,8 +427,14 @@ async function loadLazy(doc) {
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
   if (hash && element) element.scrollIntoView();
 
-  loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
-  loadFooter(doc.querySelector('footer'));
+  // Add feature toggle checks for header and footer
+  if (!isFeatureToggled('hideHeader')) {
+    loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
+  }
+  if (!isFeatureToggled('hideFooter')) {
+    loadFooter(doc.querySelector('footer'));
+  }
+
   dynamicBlocks(main);
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
