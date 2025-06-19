@@ -2,23 +2,29 @@
     &.blue1-background {
         background-color: var(--blue1);
     }
+
     &.blue4-background {
         background-color: var(--blue4);
     }
+
     &.blue7-background {
         background-color: var(--blue7);
     }
+
     &.citron-background {
         background-color: var(--citron);
     }
+
     &.yellow-arrow .cards-body-container a::after {
         color: var(--citron);
     }
+
     & .cards-body-container {
         background-repeat: repeat;
         background-position: center bottom;
         background-size: cover;
         display: block;
+
         & a {
             height: 100%;
             padding: 1.875rem;
@@ -34,6 +40,7 @@
                 background-color: transparent;
                 white-space: inherit;
             }
+
             &::after {
                 font-family: var(--cme-group-icons);
                 content: var(--icon-arrow-right-thin);
@@ -54,6 +61,7 @@
                 }
             }
         }
+
         & h3 {
             font-family: var(--averta);
             color: var(--white);
@@ -69,12 +77,14 @@
                 font-size: 1.875rem;
                 line-height: 2.1875rem;
             }
+
             & em {
                 display: block;
                 color: var(--blue5);
                 font-style: normal;
             }
         }
+
         & p {
             font-family: var(--averta);
             font-size: 0.875rem;
@@ -90,6 +100,7 @@
                 display: block;
             }
         }
+
         & h3,
         & p {
             color: var(--black);
