@@ -111,11 +111,11 @@ export default async function lessonTemplate() {
     const courseData = await getCourseData();
     await createCourseBaseTemplate(courseData);
     await initLateralNav(courseData);
-    if (!courseData.started) {
-      //  start current course
+    const lesson = getCurrentLesson(courseData);
+    if (!lesson.started) {
+      //  start current lesson
       await updateLessonStatus(false);
     }
-    const lesson = getCurrentLesson(courseData);
     if (lesson?.completed) {
       store.dispatch(quizAnswered(true));
     }
