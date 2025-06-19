@@ -993,3 +993,7 @@ body.loading::before {
     color: var(--blue2);
 }
 
+/* share this z-index override */
+#st-2.st-right {
+    z-index: 0 !important;
+}
