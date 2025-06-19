@@ -989,3 +989,8 @@ body.loading::before {
   }
 }
 
+.highlighted-text {
+    font-weight: bold;
+    color: var(--blue2);
+}
+
