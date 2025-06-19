@@ -1,5 +1,6 @@
 import { sampleRUM, loadScript } from './aem.js';
 import loadSitewidePopups from './popups/popups.js';
+import { isFeatureToggled } from './utils.js';
 
 // Core Web Vitals RUM collection
 sampleRUM('cwv');
@@ -9,8 +10,13 @@ function loadShareThis() {
 }
 
 function loadPage() {
-  loadSitewidePopups();
-  loadShareThis();
+  if (!isFeatureToggled('hideEducationIframe')) {
+    loadSitewidePopups();
+  }
+
+  if (!isFeatureToggled('hideRightRail')) {
+    loadShareThis();
+  }
 }
 
 loadPage();
