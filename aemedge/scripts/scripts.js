@@ -1,7 +1,6 @@
 import {
   loadHeader,
   loadFooter,
-  createOptimizedPicture as libCreateOptimizedPicture,
   decorateButtons,
   decorateIcons,
   decorateBlock,
@@ -21,6 +20,8 @@ import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
 import { checkDomain } from './utils.js';
+import createOptimizedPicture from './utils/picture.js';
+import { appendQueryParams } from './utils/uri.js';
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
@@ -208,78 +209,7 @@ function isExternalImage(element) {
   return /https:\/\/www\.cmegroup\.com\/content\/dam\/|delivery-p\d+-e\d+\.adobeaemcloud\.com/.test(element.getAttribute('href'));
 }
 
-/*
-  * Appends query params to a URL
-  * @param {string} url The URL to append query params to
-  * @param {object} params The query params to append
-  * @returns {string} The URL with query params appended
-  * @private
-  * @example
-  * appendQueryParams('https://example.com', { foo: 'bar' });
-  * // returns 'https://example.com?foo=bar'
-*/
-function appendQueryParams(url, params) {
-  const { searchParams } = url;
-  params.forEach((value, key) => {
-    searchParams.set(key, value);
-  });
-  url.search = searchParams.toString();
-  return url.toString();
-}
-
 /**
- * Creates an optimized picture element for an image.
- * If the image is not an absolute URL, it will be passed to libCreateOptimizedPicture.
- * @param {string} src The image source URL
- * @param {string} alt The image alt text
- * @param {boolean} eager Whether to load the image eagerly
- * @param {object[]} breakpoints The breakpoints to use
- * @returns {Element} The picture element
- *
- */
-export function createOptimizedPicture(src, alt = '', eager = false, breakpoints = [{ media: '(min-width: 600px)', width: '2000' }, { width: '750' }]) {
-  const isAbsoluteUrl = /^https?:\/\//i.test(src);
-
-  // Fallback to createOptimizedPicture if src is not an absolute URL
-  if (!isAbsoluteUrl) return libCreateOptimizedPicture(src, alt, eager, breakpoints);
-
-  const url = new URL(src);
-  const picture = document.createElement('picture');
-  const { pathname } = url;
-  const ext = pathname.substring(pathname.lastIndexOf('.') + 1);
-
-  // webp
-  breakpoints.forEach((br) => {
-    const source = document.createElement('source');
-    if (br.media) source.setAttribute('media', br.media);
-    source.setAttribute('type', 'image/webp');
-    const searchParams = new URLSearchParams({ width: br.width, format: 'webply' });
-    source.setAttribute('srcset', appendQueryParams(url, searchParams));
-    picture.appendChild(source);
-  });
-
-  // fallback
-  breakpoints.forEach((br, i) => {
-    const searchParams = new URLSearchParams({ width: br.width, format: ext });
-
-    if (i < breakpoints.length - 1) {
-      const source = document.createElement('source');
-      if (br.media) source.setAttribute('media', br.media);
-      source.setAttribute('srcset', appendQueryParams(url, searchParams));
-      picture.appendChild(source);
-    } else {
-      const img = document.createElement('img');
-      img.setAttribute('loading', eager ? 'eager' : 'lazy');
-      img.setAttribute('alt', alt);
-      picture.appendChild(img);
-      img.setAttribute('src', appendQueryParams(url, searchParams));
-    }
-  });
-
-  return picture;
-}
-
-/*
   * Decorates external images with a picture element
   * @param {Element} ele The element
   * @private
@@ -316,6 +246,79 @@ function decorateExternalImages(ele) {
 }
 
 /**
+ * Creates and manages a simple lightbox for images
+ */
+async function createSimpleLightbox() {
+  const images = document.querySelectorAll('img[data-lightbox]');
+
+  images.forEach((img) => {
+    img.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      // eslint-disable-next-line import/no-cycle
+      const { createModal } = await import('../blocks/modal/modal.js');
+
+      const imageElement = document.createElement('img');
+      imageElement.src = img.dataset.lightbox;
+      imageElement.alt = img.alt || '';
+      imageElement.className = 'lightbox-image-display';
+
+      try {
+        const modal = await createModal([imageElement]);
+        const dialog = modal.block.querySelector('dialog');
+        if (dialog) {
+          dialog.classList.add('lightbox-modal');
+          modal.showModal();
+        }
+      } catch (error) {
+        // Lightbox modal creation failed, continue without lightbox functionality
+      }
+    });
+  });
+}
+
+/**
+ * Decorates images with lightbox functionality
+ * @param {Element} main The main element
+ */
+function decorateLightboxImages(main) {
+  const pictures = main.querySelectorAll('picture');
+
+  pictures.forEach((picture) => {
+    // Only process pictures that are wrapped in <strong> tags
+    const strongParent = picture.closest('strong');
+    if (!strongParent) return;
+
+    const img = picture.querySelector('img');
+    if (!img) return;
+
+    const source = picture.querySelector('source') || img;
+    const srcset = source.getAttribute('srcset') || source.getAttribute('src');
+    if (!srcset) return;
+
+    const imageUrl = srcset.split(',')[0].split(' ')[0];
+
+    // Create lightbox structure
+    const wrapper = document.createElement('div');
+    wrapper.className = 'lightbox-container';
+
+    img.setAttribute('data-lightbox', imageUrl);
+    img.classList.add('lightbox-image');
+
+    const icon = document.createElement('span');
+    icon.className = 'lightbox-expand-icon';
+    icon.setAttribute('aria-hidden', 'true');
+
+    // Wrap the picture element
+    picture.parentNode.insertBefore(wrapper, picture);
+    wrapper.appendChild(picture);
+    wrapper.appendChild(icon);
+  });
+
+  createSimpleLightbox();
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -331,6 +334,7 @@ export function decorateMain(main) {
   decorateExternalLinks(main);
   // decorate external images
   decorateExternalImages(main);
+  decorateLightboxImages(main); // decorate-lightbox the bolded pictures of decorateExternalImages
 }
 
 /**
