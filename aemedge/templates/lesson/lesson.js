@@ -1,6 +1,7 @@
 import {
   createCourseBaseTemplate, getCourseData, updateLessonStatus, getCurrentLesson,
 } from '../../scripts/course/course.js';
+import { addCourseCertificate } from '../../scripts/course/certificate.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
@@ -126,6 +127,16 @@ export default async function lessonTemplate() {
       if (isCorrect && !lesson?.completed) {
         const updatedCourse = await updateLessonStatus(true);
         store.dispatch(courseDataChange(updatedCourse));
+      }
+    });
+    store.subscribe(({ courseData: data }) => data, (updatedCourseData) => {
+      if (updatedCourseData?.completed) {
+        addCourseCertificate({
+          isLoggedIn: authenticationData?.isLoggedIn,
+          userName: authenticationData?.loginInfo?.userName,
+          lessonTitle: updatedCourseData?.title,
+          completedModule: updatedCourseData?.endDate,
+        });
       }
     });
   });
