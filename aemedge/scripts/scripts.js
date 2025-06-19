@@ -319,6 +319,49 @@ function decorateLightboxImages(main) {
 }
 
 /**
+ * Decorates author's text highlights in the main element.
+ * Author can select text to highlight via "inline code".
+ * Author can set the highlight color in the section metadata via "text-highlight" property.
+ *
+ * The highlight color is determined by the data-text-highlight attribute on the outer section div.
+ * <div class="section" data-section-status="loaded" data-text-highlight="bg-green" style="">
+ * If the attribute is not present no decoration will be applied.
+ *
+ * Before:
+ * <p>
+ *   ...other text
+ *   <code>
+ *     PLACEHOLDER -> Text the content author highlighted here.
+ *   </code>
+ *   ... other text
+ * </p>
+ *
+ * After:
+ * <p>
+ *   ...other text
+ *   <code class="bg-green highlighted-text">
+ *     PLACEHOLDER -> Text the content author highlighted here.
+ *   </code>
+ *   ... other text
+ * </p>
+ *
+ * @param {Element} main The main element
+ */
+function decorateTextHighlights(main) {
+  // Find <code> elements inside <p> elements within main
+  const codeElements = main.querySelectorAll('p code');
+  codeElements.forEach((codeEl) => {
+    // For each code element, find the closest section and its desired highlight color
+    const sectionDiv = codeEl.closest('.section');
+    const highlightColor = sectionDiv ? sectionDiv.getAttribute('data-text-highlight') : null;
+
+    if (highlightColor) {
+      codeEl.classList.add(highlightColor, 'highlighted-text');
+    }
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -335,6 +378,7 @@ export function decorateMain(main) {
   // decorate external images
   decorateExternalImages(main);
   decorateLightboxImages(main); // decorate-lightbox the bolded pictures of decorateExternalImages
+  decorateTextHighlights(main);
 }
 
 /**
