@@ -1051,7 +1051,7 @@ function renderMobileAccordion(eventsToRender) {
             <div class="expandable-content mobile">
               <div class="main-content">
                 <span class="highlight">${title}</span>
-                <p class="text"><p class="text">${escapeHtmlTags(text, ['br'])?.replace(
+                <p class="text">${escapeHtmlTags(text, ['br'])?.replace(
       /<br\s*\/?>\s*(<br\s*\/?>)+/g,
       '<br>',
     )}</p>
