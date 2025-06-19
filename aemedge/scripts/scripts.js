@@ -209,7 +209,7 @@ function isExternalImage(element) {
   return /https:\/\/www\.cmegroup\.com\/content\/dam\/|delivery-p\d+-e\d+\.adobeaemcloud\.com/.test(element.getAttribute('href'));
 }
 
-/*
+/**
   * Decorates external images with a picture element
   * @param {Element} ele The element
   * @private
@@ -246,6 +246,79 @@ function decorateExternalImages(ele) {
 }
 
 /**
+ * Creates and manages a simple lightbox for images
+ */
+async function createSimpleLightbox() {
+  const images = document.querySelectorAll('img[data-lightbox]');
+
+  images.forEach((img) => {
+    img.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      // eslint-disable-next-line import/no-cycle
+      const { createModal } = await import('../blocks/modal/modal.js');
+
+      const imageElement = document.createElement('img');
+      imageElement.src = img.dataset.lightbox;
+      imageElement.alt = img.alt || '';
+      imageElement.className = 'lightbox-image-display';
+
+      try {
+        const modal = await createModal([imageElement]);
+        const dialog = modal.block.querySelector('dialog');
+        if (dialog) {
+          dialog.classList.add('lightbox-modal');
+          modal.showModal();
+        }
+      } catch (error) {
+        // Lightbox modal creation failed, continue without lightbox functionality
+      }
+    });
+  });
+}
+
+/**
+ * Decorates images with lightbox functionality
+ * @param {Element} main The main element
+ */
+function decorateLightboxImages(main) {
+  const pictures = main.querySelectorAll('picture');
+
+  pictures.forEach((picture) => {
+    // Only process pictures that are wrapped in <strong> tags
+    const strongParent = picture.closest('strong');
+    if (!strongParent) return;
+
+    const img = picture.querySelector('img');
+    if (!img) return;
+
+    const source = picture.querySelector('source') || img;
+    const srcset = source.getAttribute('srcset') || source.getAttribute('src');
+    if (!srcset) return;
+
+    const imageUrl = srcset.split(',')[0].split(' ')[0];
+
+    // Create lightbox structure
+    const wrapper = document.createElement('div');
+    wrapper.className = 'lightbox-container';
+
+    img.setAttribute('data-lightbox', imageUrl);
+    img.classList.add('lightbox-image');
+
+    const icon = document.createElement('span');
+    icon.className = 'lightbox-expand-icon';
+    icon.setAttribute('aria-hidden', 'true');
+
+    // Wrap the picture element
+    picture.parentNode.insertBefore(wrapper, picture);
+    wrapper.appendChild(picture);
+    wrapper.appendChild(icon);
+  });
+
+  createSimpleLightbox();
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -261,6 +334,7 @@ export function decorateMain(main) {
   decorateExternalLinks(main);
   // decorate external images
   decorateExternalImages(main);
+  decorateLightboxImages(main); // decorate-lightbox the bolded pictures of decorateExternalImages
 }
 
 /**
