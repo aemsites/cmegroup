@@ -986,9 +986,11 @@ body.loading::before {
   .lightbox-image-display {
     max-width: 90vw;
     max-height: 75vh;
-  }}
+  }
+}
 
 .highlighted-text {
     font-weight: bold;
     color: var(--blue2);
-  }
+}
+
