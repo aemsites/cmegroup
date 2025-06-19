@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { readBlockConfig } from '../../scripts/aem.js';
-import { createOptimizedPicture } from '../../scripts/scripts.js';
+import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { fetchAndFilterDataIndex } from '../../scripts/indexing.js';
 import {
   createElement,
@@ -48,7 +48,7 @@ async function createStaticCards(block) {
   } else if (block.classList.contains('event')) {
     const backgroundUrl = block.querySelector('picture img').src;
     const title = block.querySelector('h3');
-    const text = block.querySelector('p');
+    const text = title.nextElementSibling;
     const btn = block.querySelector('.button-container');
     const mainContainer = title.parentElement;
     const titleContainer = document.createElement('div');
@@ -120,7 +120,7 @@ async function createStaticCards(block) {
       cardDate.className = 'cards-date';
       cardDate.innerText = date;
       const cardTitle = document.createElement('h3');
-      cardTitle.innerText = title;
+      cardTitle.innerHTML = title;
 
       mainContainer.append(cardTime);
       mainContainer.append(cardDate);
@@ -227,7 +227,7 @@ export async function createDynamicCardArticle({ content }) {
   cardDate.innerText = `${day} ${month}`;
 
   const cardTitle = document.createElement('h3');
-  cardTitle.innerText = title;
+  cardTitle.innerHTML = title;
 
   mainContainer.append(cardTime, cardDate, cardTitle);
   linkEl.append(imageContainer, mainContainer);
@@ -323,7 +323,7 @@ async function fetchAndFilterUpcomingEconodayEvent() {
   }
 }
 
-async function createDynamicCards(block) {
+export async function createDynamicCards(block, numEntries = null) {
   const config = readBlockConfig(block);
   let filteredData;
   let cardElements;
@@ -331,9 +331,17 @@ async function createDynamicCards(block) {
   let disabledOnDesktop = false;
   let inverse = false;
   if (block.classList.contains('course')) {
+    const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
     const indexConfig = buildIndexConfig(config);
     indexConfig.template = 'course';
+    indexConfig.tagsOr = tags;
     filteredData = await fetchAndFilterDataIndex(indexConfig);
+    // Sort by timestamp in descending order
+    filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // If numEntries is specified, slice the array to that length
+    if (numEntries) {
+      filteredData = filteredData.slice(0, numEntries);
+    }
     sliderConfig = {
       slidesToShow: 'auto',
       slidesToScroll: 1,

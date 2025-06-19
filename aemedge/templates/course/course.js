@@ -9,7 +9,7 @@ async function addBeginCourseButton(courseData) {
   const beginCourseLabel = await i18n('Begin Course');
   const beginCourseButton = createElement('a', { class: 'button primary', href: '#' }, beginCourseLabel);
   const buttonContainer = createElement('div', { class: 'button-container begin-course-button' }, beginCourseButton);
-  main.querySelector('.section:last-child > div')?.appendChild(buttonContainer);
+  main.querySelector('.section')?.lastChild.after(buttonContainer);
 
   if (courseData.hasChapters) {
     const firstChapter = courseData.chapters.length > 0 ? courseData.chapters[0] : null;
