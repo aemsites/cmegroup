@@ -48,7 +48,7 @@ const jsonMap = {
   '/education/courses/understanding-micro-futures-contracts-at-cme-group/micro-ag-futures.html': '/education/courses/understanding-micro-futures-contracts-at-cme-group/micro-ag-futures/micro-ag-futures-product-overview.html',
 };
 
-const removeCourseSpecificItem = async (document, main, meta) => {
+const removeCourseSpecificItem = async (document, main) => {
   const fragments = main.querySelectorAll('.xf-content-height');
   if (fragments?.length) {
     for (let i = 0; i < fragments.length; i += 1) {
@@ -69,7 +69,7 @@ const removeCourseSpecificItem = async (document, main, meta) => {
     }
   }
 
-  const loginSection = meta.isPremium ? document.querySelector('.blur-background .login-teaser') : null;
+  const loginSection = document.querySelector('.blur-background .login-teaser');
   if (loginSection) {
     loginSection.remove();
   }

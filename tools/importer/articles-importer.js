@@ -491,23 +491,26 @@ const lightBoxGallery = async (document) => {
         if (dataPath) {
           // eslint-disable-next-line no-await-in-loop
           const data = await fetch(`${DOMAIN}${dataPath}.json`);
-          // eslint-disable-next-line no-await-in-loop
-          const dataJson = await data.json();
 
-          if (dataJson?.fileReference) {
-            const imgSrc = dataJson.fileReference;
-            const figCaption = lightBox.querySelector('figcaption');
-            const anchor = document.createElement('a');
-            anchor.href = `https://www.cmegroup.com${imgSrc}`;
-            anchor.textContent = anchor.href;
+          if (data?.ok) {
+            // eslint-disable-next-line no-await-in-loop
+            const dataJson = await data.json();
 
-            if (figCaption) {
-              cells.push([anchor], [figCaption.textContent]);
-            } else {
-              cells.push([anchor]);
+            if (dataJson?.fileReference) {
+              const imgSrc = dataJson.fileReference;
+              const figCaption = lightBox.querySelector('figcaption');
+              const anchor = document.createElement('a');
+              anchor.href = `https://www.cmegroup.com${imgSrc}`;
+              anchor.textContent = anchor.href;
+
+              if (figCaption) {
+                cells.push([anchor], [figCaption.textContent]);
+              } else {
+                cells.push([anchor]);
+              }
+              const table = WebImporter.DOMUtils.createTable(cells, document);
+              lightBox.replaceWith(table);
             }
-            const table = WebImporter.DOMUtils.createTable(cells, document);
-            lightBox.replaceWith(table);
           }
         }
       }
@@ -587,15 +590,42 @@ const tableBlock = (document) => {
   if (tables?.length) {
     tables.forEach((table) => {
       let tableText = 'Table';
-      const arr = [];
-      if (arr.length) {
-        tableText += ` (${arr.join(', ')})`;
+      const innerTable = table.querySelector('table');
+      const tempArr = [];
+
+      if (!innerTable.querySelector('thead')) {
+        tempArr.push('no-header');
+      }
+
+      if (innerTable.querySelector('.collapsible')) {
+        tempArr.push('collapsible');
+      }
+
+      if (innerTable.querySelectorAll('tr').length) {
+        innerTable.querySelectorAll('tr').forEach((innerRow, index) => {
+          const rowClass = innerRow.classList;
+          ['tertiary-row', 'secondary-row', 'primary-row'].forEach((row) => {
+            if (rowClass.contains(row)) {
+              const tempRowName = row.replace('-row', '');
+              if (innerRow.closest('thead')) {
+                tempArr.push(`r${index + 1}-${tempRowName}-header`);
+              } else if (innerRow.closest('tbody')) {
+                tempArr.push(`r${index + 1}-${tempRowName}-group`);
+              }
+            }
+          });
+        });
+      }
+
+      if (tempArr.length) {
+        tableText += ` (${tempArr.join(', ')})`;
       }
 
       const tempTable = WebImporter.Blocks.createBlock(document, {
         name: tableText,
         cells: [],
       });
+
       const row = tempTable.insertRow(1);
       row.insertCell(0).innerHTML = table.innerHTML;
       table.replaceWith(tempTable);

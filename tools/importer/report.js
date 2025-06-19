@@ -780,6 +780,11 @@ const customReportElements = (document) => {
     report['table-classes'] = tableOccurences;
   }
 
+  const gatedContent = document.querySelector('.blur-background .login-teaser');
+  if (gatedContent) {
+    report['gated-content'] = true;
+  }
+
   return report;
 };
 
