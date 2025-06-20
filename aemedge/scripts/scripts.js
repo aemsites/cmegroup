@@ -19,7 +19,8 @@ import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
-import { checkDomain, isFeatureToggled } from './utils.js';
+import { checkDomain, createElement, isFeatureToggled } from './utils.js';
+
 import createOptimizedPicture from './utils/picture.js';
 import { appendQueryParams } from './utils/uri.js';
 
@@ -245,6 +246,69 @@ function decorateExternalImages(ele) {
   });
 }
 
+function decorateSidebars(main) {
+  const sections = main.querySelectorAll('.section');
+  sections.forEach((section) => {
+    const hasSidebar = section.querySelector('.sidebar');
+    if (!hasSidebar) return;
+    section.setAttribute('has-sidebar', 'true');
+
+    // Group sidebars by type (left/right)
+    const leftSidebars = [];
+    const rightSidebars = [];
+    const contentElements = [];
+
+    // Categorize all direct children of the section
+    Array.from(section.children).forEach((child) => {
+      if (child.querySelector('.sidebar')) {
+        if (child.querySelector('.sidebar.left')) {
+          leftSidebars.push(child);
+        } else if (child.querySelector('.sidebar.right')) {
+          rightSidebars.push(child);
+        }
+      } else {
+        // This is content (not a sidebar)
+        contentElements.push(child);
+      }
+    });
+
+    // Create a content wrapper for all non-sidebar content
+    if (contentElements.length > 0) {
+      const contentWrapper = createElement('div', { class: 'content-wrapper' });
+      section.insertBefore(contentWrapper, contentElements[0]);
+      contentElements.forEach((element) => {
+        contentWrapper.appendChild(element);
+      });
+    }
+
+    // Create containers for multiple sidebars of the same type if needed
+    // Also, handles left sidebars empty edge case
+    const leftContainer = createElement('div', { class: 'sidebars-multi left' });
+    if (leftSidebars.length === 0) {
+      const placeholder = createElement('div', { class: 'sidebar-wrapper' });
+      leftContainer.appendChild(placeholder);
+      section.prepend(leftContainer);
+    } else if (leftSidebars.length > 0) {
+      section.insertBefore(leftContainer, leftSidebars[0]);
+      leftSidebars.forEach((sidebar) => {
+        leftContainer.appendChild(sidebar);
+      });
+    }
+
+    const rightContainer = createElement('div', { class: 'sidebars-multi right' });
+    if (rightSidebars.length === 0) {
+      const placeholder = createElement('div', { class: 'sidebar-wrapper' });
+      rightContainer.appendChild(placeholder);
+      section.prepend(rightContainer);
+    } else if (rightSidebars.length > 0) {
+      section.insertBefore(rightContainer, rightSidebars[0]);
+      rightSidebars.forEach((sidebar) => {
+        rightContainer.appendChild(sidebar);
+      });
+    }
+  });
+}
+
 /**
  * Creates and manages a simple lightbox for images
  */
@@ -375,8 +439,8 @@ export function decorateMain(main) {
   decorateSections(main);
   decorateBlocks(main);
   decorateExternalLinks(main);
-  // decorate external images
   decorateExternalImages(main);
+  decorateSidebars(main);
   decorateLightboxImages(main); // decorate-lightbox the bolded pictures of decorateExternalImages
   decorateTextHighlights(main);
 }
