@@ -266,7 +266,7 @@ export async function updateLessonStatus(isCompleted) {
     return null;
   }
   const updatedCourse = await postLesson(courseData.moduleId, currentLesson.moduleId, isCompleted);
-  if (updatedCourse) {
+  if (updatedCourse && isCompleted) {
     const { lessons: lessonsProgress, ...courseProgress } = updatedCourse;
     Object.assign(courseData, courseProgress);
     if (!courseData.isLessonStandalone) {
@@ -282,6 +282,8 @@ export async function updateLessonStatus(isCompleted) {
         }
       });
     }
+  } else {
+    return courseData;
   }
   //  updates cache
   addCourseDataToCache(courseData.path, courseData);
