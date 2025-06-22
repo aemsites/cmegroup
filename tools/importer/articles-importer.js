@@ -23,6 +23,7 @@ import {
   moduleOrder,
   handleFragments,
   quizBlock,
+  coursesColumnsBlock,
 } from './course-lesson.js';
 
 const DOMAIN = 'https://www.cmegroup.com';
@@ -226,6 +227,59 @@ const convertSectionsToMetadata = (document) => {
       }
     }
   });
+};
+
+/**
+ * This function converts the sections to metadata.
+ * @param {Document} document - The document to search.
+ */
+const convertSectionToMetadata = (section, index, total, cells) => {
+  const style = [];
+
+  SECTION_SELECTORS.forEach((selector) => {
+    if (section.matches(selector)) {
+      style.push(selector.replace('.', '').replace('-', ' '));
+    }
+  });
+
+  if (style.length) {
+    const styles = ['Style', style.join(', ')];
+    const tempArr = [styles];
+
+    // read background-image from the style
+    const backgroundImg = imageFetch(section);
+    if (backgroundImg) {
+      const anchor = document.createElement('a');
+      anchor.href = backgroundImg;
+      anchor.textContent = anchor.href;
+      tempArr.push(['Background Image', anchor]);
+    }
+
+    tempArr.push(...cells);
+    const sectionMetadata = buildSectionMetadata(tempArr);
+
+    section.after(sectionMetadata);
+    if (index !== total - 1) {
+      sectionMetadata.after(blockSeparator().cloneNode(true));
+    }
+
+    if (index !== 0) {
+      section.before(blockSeparator().cloneNode(true));
+    }
+  } else {
+    const tempArr = [];
+    tempArr.push(...cells);
+    const sectionMetadata = buildSectionMetadata(tempArr);
+    section.after(sectionMetadata);
+
+    if (index !== total - 1) {
+      sectionMetadata.after(blockSeparator().cloneNode(true));
+    }
+
+    if (index !== 0) {
+      section.before(blockSeparator().cloneNode(true));
+    }
+  }
 };
 
 /**
@@ -485,7 +539,6 @@ const lightBoxGallery = async (document) => {
       const lightBox = components[i];
       const attribute = lightBox.getAttribute('data-img-style');
       if (attribute === 'lightbox-gallery' || attribute === 'lightbox') {
-        const cells = [['Lightbox']];
         const dataPath = lightBox.getAttribute('data-path');
 
         if (dataPath) {
@@ -498,18 +551,13 @@ const lightBoxGallery = async (document) => {
 
             if (dataJson?.fileReference) {
               const imgSrc = dataJson.fileReference;
-              const figCaption = lightBox.querySelector('figcaption');
               const anchor = document.createElement('a');
               anchor.href = `https://www.cmegroup.com${imgSrc}`;
               anchor.textContent = anchor.href;
 
-              if (figCaption) {
-                cells.push([anchor], [figCaption.textContent]);
-              } else {
-                cells.push([anchor]);
-              }
-              const table = WebImporter.DOMUtils.createTable(cells, document);
-              lightBox.replaceWith(table);
+              const tempStrong = document.createElement('strong');
+              tempStrong.appendChild(anchor);
+              lightBox.replaceWith(tempStrong);
             }
           }
         }
@@ -680,8 +728,39 @@ const tagsCloudBlock = (document) => {
   }
 };
 
+/**
+ * Color map to section metadata
+ * @param {*} document
+ */
+const colorMap = (document) => {
+  const spans = document.querySelectorAll('span');
+  const newSet = new Set();
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+
+  spans.forEach((span) => {
+    const classes = Array.from(span.classList);
+    const colorClasses = classes.filter((cls) => cls.startsWith('bg-'));
+
+    if (colorClasses.length) {
+      const tempCode = document.createElement('code');
+      tempCode.textContent = span.textContent;
+      const section = span.closest('.section');
+      const index = Array.from(sections).indexOf(section);
+      span.replaceWith(tempCode);
+
+      if (!newSet.has(index) && section) {
+        newSet.add(index);
+        convertSectionToMetadata(section, index, total, [['text-highlight', colorClasses[0]]]);
+      }
+    }
+  });
+};
+
 const customBlocks = async (document, main, meta, url) => {
+  convertImagesToLinks(document);
   tableBlock(document);
+  colorMap(document);
   convertSectionsToMetadata(document, main);
   articleHeroBlock(document, meta);
   dividerBlock(document);
@@ -701,6 +780,7 @@ const customBlocks = async (document, main, meta, url) => {
   } else if (['lesson', 'course'].includes(meta.Template)) {
     await removeCourseSpecificItem(document, main, meta);
     handleFragments(document);
+    coursesColumnsBlock(document);
   }
   await moduleOrder(document, meta, url);
   document.querySelector('.course-nav')?.remove();
@@ -709,7 +789,6 @@ const customBlocks = async (document, main, meta, url) => {
   figCaptionEmphasize(document);
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
-  convertImagesToLinks(document);
   correctLinks(document);
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {

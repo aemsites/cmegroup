@@ -90,6 +90,10 @@ const handleFragments = (document) => {
           const cells = [['Fragment'], [`${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/garp`]];
           const table = WebImporter.DOMUtils.createTable(cells, document);
           fragment.replaceWith(table);
+        } else {
+          const cells = [['Fragment'], [`${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/other`]];
+          const table = WebImporter.DOMUtils.createTable(cells, document);
+          fragment.replaceWith(table);
         }
       }
 
@@ -192,10 +196,30 @@ const moduleOrder = async (document, meta, url1) => {
   }
 };
 
+const coursesColumnsBlock = (document) => {
+  const rows = document.querySelectorAll('.row');
+  if (rows?.length) {
+    rows.forEach((row) => {
+      const columns = row.querySelectorAll('.col-md-6');
+      if (columns?.length === 2) {
+        const cells = [['Columns']];
+        const tempArr = [];
+        columns.forEach((column) => {
+          tempArr.push(column.innerHTML);
+        });
+        cells.push(tempArr);
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        row.replaceWith(table);
+      }
+    });
+  }
+};
+
 export {
   // eslint-disable-next-line import/prefer-default-export
   removeCourseSpecificItem,
   handleFragments,
   moduleOrder,
   quizBlock,
+  coursesColumnsBlock,
 };
