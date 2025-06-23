@@ -167,6 +167,7 @@ export async function addCourseCertificate({
   userName,
   lessonTitle,
   completedModule,
+  showModal,
 }) {
   const [
     viewCertificateLabel,
@@ -238,6 +239,7 @@ export async function addCourseCertificate({
         jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
       };
 
+      // eslint-disable-next-line no-undef
       html2pdf().set(opt).from(elementToPrint).save();
     });
   });
@@ -266,4 +268,8 @@ export async function addCourseCertificate({
   closeButton.addEventListener('click', () => toggleModal(false));
 
   courseHeading.insertAdjacentElement('afterend', button);
+
+  if (showModal) {
+    toggleModal(true);
+  }
 }
