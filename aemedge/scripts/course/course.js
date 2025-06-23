@@ -77,7 +77,7 @@ export async function getCourseData() {
     const relevantPath = currentPath.split(basePath)[1];
     const preBasePath = (currentPath.split(basePath)[0] === '' || currentPath.split(basePath)[0] === '/') ? '' : currentPath.split(basePath)[0];
 
-    const course = (template !== 'lesson-standalone') ? relevantPath.split('/')[0] : '';
+    const course = (template !== 'lesson-standalone') ? relevantPath.split('/')[0] : relevantPath;
     if (template !== 'lesson-standalone' && !course) {
       throw new Error('No course found in the path');
     }
@@ -141,25 +141,16 @@ export async function getCourseData() {
         const lessonProgress = lessonsProgress?.find(
           ({ moduleId }) => moduleId === entry.moduleId,
         );
-        if (courseData.hasChapters) {
-          // Split into multiple lines to reduce line length
-          const chapterObj = courseData.chapters.find((ch) => entry.path.startsWith(`${ch.path}/`));
-          if (chapterObj) {
-            chapterObj?.lessons.push({
-              ...entry,
-              // Split into multiple lines to reduce line length
-              pathSuffix: entry.path.split(chapterObj.path)[1].substring(1),
-              ...lessonProgress,
-            });
-          } else {
-            // Handling case when lesson is not part of any chapter
-            courseData.lessons.push({
-              ...entry,
-              pathSuffix: entry.path.split(coursePath)[1].substring(1),
-              ...lessonProgress,
-            });
-          }
+        const chapter = courseData.chapters.find((ch) => entry.path.startsWith(`${ch.path}/`));
+        if (chapter) {
+          chapter.lessons.push({
+            ...entry,
+            // Split into multiple lines to reduce line length
+            pathSuffix: entry.path.split(chapter.path)[1].substring(1),
+            ...lessonProgress,
+          });
         } else {
+          // Handling case when lesson is not part of any chapter
           courseData.lessons.push({
             ...entry,
             pathSuffix: entry.path.split(coursePath)[1].substring(1),
@@ -196,6 +187,54 @@ export async function getCourseData() {
   }
 }
 
+export function getOrderedLessons(courseData) {
+  const { modulesOrder } = courseData;
+
+  if (modulesOrder && typeof modulesOrder === 'string') {
+    const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
+
+    // Create array of items (chapters and lessons) to sort at root level
+    const rootItems = [
+      ...(courseData.chapters || []),
+      ...(courseData.lessons || []),
+    ];
+
+    // Sort chapters and lessons at root level based on modulesOrder
+    rootItems.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix || a.path)
+      - modulesOrderArray.indexOf(b.pathSuffix || b.path));
+
+    // Process the sorted items and collect lessons
+    const allLessons = [];
+
+    rootItems.forEach((item) => {
+      if (item.template && item.template.toLowerCase() === 'chapter') {
+        // Sort lessons within this chapter
+        const { lessons, modulesOrder: chModulesOrder } = item;
+        if (lessons && lessons.length > 0) {
+          if (chModulesOrder && typeof chModulesOrder === 'string') {
+            const chModulesOrderArray = chModulesOrder.split(',').map((chItem) => chItem.trim());
+            lessons.sort((a, b) => chModulesOrderArray.indexOf(a.pathSuffix || a.path)
+              - chModulesOrderArray.indexOf(b.pathSuffix || b.path));
+          }
+          // Add all lessons from this chapter to the result
+          allLessons.push(...lessons);
+        }
+      } else {
+        // This is a lesson at root level, add it directly
+        allLessons.push(item);
+      }
+    });
+
+    return allLessons;
+  }
+
+  // Fallback: if no modulesOrder, just return all lessons unsorted
+  return [
+    ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
+    ...(courseData.lessons || []),
+  ];
+}
+
 /**
  * Create the base template for a course page
  * It is common for different course templates: course & lesson
@@ -203,47 +242,44 @@ export async function getCourseData() {
  */
 export async function createCourseBaseTemplate(courseData) {
   const main = document.querySelector('main');
-  const courseHeading = main.querySelector('h1');
+  const courseHeading = main.querySelector('.section').firstChild;
   const header = createElement('div', { class: 'course-header' });
 
   // Get metadata values
   const readTime = getMetadata('read-time');
   const template = getMetadata('template');
 
-  const readTimeIcon = createElement('img', { src: '/aemedge/icons/timer.svg' });
-  const readTimeIconSpan = createElement('span', { class: 'icon icon-timer' }, readTimeIcon);
-  const readTimeElement = createElement('div', { class: 'metadata read-time' }, `${readTime}`);
   if (readTime) {
-    readTimeElement.prepend(readTimeIconSpan);
+    const readTimeIcon = createElement('img', { src: '/aemedge/icons/timer.svg' });
+    const readTimeIconSpan = createElement('span', { class: 'icon icon-timer' }, readTimeIcon);
+    const readTimeValue = createElement('span', { class: 'value' }, readTime);
+    const readTimeElement = createElement('div', { class: 'metadata read-time' }, readTimeIconSpan, readTimeValue);
+    header.appendChild(readTimeElement);
   }
-  header.appendChild(readTimeElement);
 
-  const [courseLabel, lessonLabel, ofLabel] = await Promise.all([
+  const [courseLabel, lessonLabel, ofLabel, premiumLabel] = await Promise.all([
     i18n('Course'),
     i18n('Lesson'),
     i18n('of'),
+    i18n('Premium'),
   ]);
 
   if (template.toLowerCase() === 'course') {
     const type = createElement('div', { class: 'metadata type' });
-    type.textContent = courseLabel;
+    const isPremium = getMetadata('ispremium');
+    if (isPremium) {
+      type.textContent = `${premiumLabel} ${courseLabel}`;
+    } else {
+      type.textContent = courseLabel;
+    }
     header.appendChild(type);
   } else if (template.toLowerCase() === 'lesson' || template.toLowerCase() === 'lesson-standalone') {
     const type = createElement('div', { class: 'metadata type' });
     type.textContent = lessonLabel;
-    if (courseData?.hasChapters) {
-      const chapter = courseData.chapters.find(
-        (ch) => window.location.pathname.startsWith(ch.path),
-      );
-      if (chapter?.lessons.length > 1) {
-        for (let i = 0; i < chapter.lessons.length; i += 1) {
-          const lesson = chapter.lessons[i];
-          if (window.location.pathname.startsWith(lesson.path)) {
-            type.textContent += ` ${i + 1} ${ofLabel} ${chapter.lessons.length}`;
-            break;
-          }
-        }
-      }
+    const lessons = getOrderedLessons(courseData);
+    const lessonIndex = lessons.findIndex(({ path }) => path === window.location.pathname);
+    if (lessonIndex !== -1) {
+      type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${lessons.length}`;
     }
     header.appendChild(type);
   }
@@ -252,7 +288,7 @@ export async function createCourseBaseTemplate(courseData) {
   const language = createElement('div', { class: 'metadata language' }, currentLanguage);
   header.appendChild(language);
 
-  courseHeading.before(header);
+  courseHeading?.before(header);
 }
 
 export function getCurrentLesson(courseData) {
@@ -268,27 +304,31 @@ export function getCurrentLesson(courseData) {
  */
 export async function updateLessonStatus(isCompleted) {
   const courseData = await getCourseData();
-  const currentLesson = getCurrentLesson(courseData);
+  const currentLesson = courseData.isLessonStandalone ? courseData : getCurrentLesson(courseData);
   if (!currentLesson || !currentLesson.moduleId) {
     // eslint-disable-next-line no-console
     console.error('Error getting lesson ID');
     return null;
   }
   const updatedCourse = await postLesson(courseData.moduleId, currentLesson.moduleId, isCompleted);
-  if (updatedCourse) {
+  if (updatedCourse && isCompleted) {
     const { lessons: lessonsProgress, ...courseProgress } = updatedCourse;
     Object.assign(courseData, courseProgress);
-    const lessons = [
-      ...courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || [],
-      ...courseData.lessons];
-    lessonsProgress.forEach((lessonProgress) => {
-      const lesson = lessons?.find(
-        ({ moduleId }) => moduleId === lessonProgress.moduleId,
-      );
-      if (lesson) {
-        Object.assign(lesson, lessonProgress);
-      }
-    });
+    if (!courseData.isLessonStandalone) {
+      const lessons = [
+        ...courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || [],
+        ...courseData.lessons];
+      lessonsProgress.forEach((lessonProgress) => {
+        const lesson = lessons?.find(
+          ({ moduleId }) => moduleId === lessonProgress.moduleId,
+        );
+        if (lesson) {
+          Object.assign(lesson, lessonProgress);
+        }
+      });
+    }
+  } else {
+    return courseData;
   }
   //  updates cache
   addCourseDataToCache(courseData.path, courseData);

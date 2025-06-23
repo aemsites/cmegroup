@@ -86,6 +86,95 @@ function createChapterElement(chapter, currentPath) {
   return chapterWrapper;
 }
 
+function getPathIdentifier(path) {
+  return path.split('/').pop();
+}
+
+function renderOrderedContent(courseData, currentPath, content) {
+  const { modulesOrder, lessons = [], chapters = [] } = courseData;
+
+  if (!modulesOrder) {
+    // Fallback to original behavior if no modulesOrder
+    if (lessons.length) {
+      const { ul } = createLessonsList(lessons, currentPath, true);
+      content.appendChild(ul);
+    }
+    if (chapters.length) {
+      chapters.forEach((chapter) => {
+        content.appendChild(createChapterElement(chapter, currentPath));
+      });
+    }
+    return;
+  }
+
+  // Parse modulesOrder and create ordered content
+  const orderItems = modulesOrder.split(',').map((item) => item.trim());
+  const lessonsMap = new Map();
+  const chaptersMap = new Map();
+
+  // Create maps for quick lookup
+  lessons.forEach((lesson) => {
+    const identifier = lesson.pathSuffix || getPathIdentifier(lesson.path);
+    lessonsMap.set(identifier, lesson);
+  });
+
+  chapters.forEach((chapter) => {
+    const identifier = getPathIdentifier(chapter.path);
+    chaptersMap.set(identifier, chapter);
+  });
+
+  // Track which items have been rendered
+  const renderedLessons = new Set();
+  const renderedChapters = new Set();
+
+  // Group consecutive lessons and render items in the specified order
+  let consecutiveLessons = [];
+
+  const flushLessons = () => {
+    if (consecutiveLessons.length > 0) {
+      const { ul } = createLessonsList(consecutiveLessons, currentPath, true);
+      content.appendChild(ul);
+      consecutiveLessons = [];
+    }
+  };
+
+  orderItems.forEach((identifier) => {
+    if (lessonsMap.has(identifier)) {
+      const lesson = lessonsMap.get(identifier);
+      consecutiveLessons.push(lesson);
+      renderedLessons.add(identifier);
+    } else if (chaptersMap.has(identifier)) {
+      // Flush any accumulated lessons before rendering chapter
+      flushLessons();
+      const chapter = chaptersMap.get(identifier);
+      content.appendChild(createChapterElement(chapter, currentPath));
+      renderedChapters.add(identifier);
+    }
+  });
+
+  // Flush any remaining consecutive lessons
+  flushLessons();
+
+  // Render any remaining lessons that weren't in modulesOrder
+  const remainingLessons = lessons.filter((lesson) => {
+    const identifier = lesson.pathSuffix || getPathIdentifier(lesson.path);
+    return !renderedLessons.has(identifier);
+  });
+
+  if (remainingLessons.length) {
+    const { ul } = createLessonsList(remainingLessons, currentPath, true);
+    content.appendChild(ul);
+  }
+
+  // Render any remaining chapters that weren't in modulesOrder
+  chapters.forEach((chapter) => {
+    const identifier = getPathIdentifier(chapter.path);
+    if (!renderedChapters.has(identifier)) {
+      content.appendChild(createChapterElement(chapter, currentPath));
+    }
+  });
+}
+
 async function init(main, courseData) {
   await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/course-nav/course-nav.css`);
   const currentPath = window.location.pathname;
@@ -101,7 +190,7 @@ async function init(main, courseData) {
   const titleContent = createElement('div', { class: 'course-nav-title-content' });
   // Title section
   const title = createElement('h2', { class: 'course-nav-title' });
-  title.textContent = courseData.title;
+  title.textContent = courseData.moduleTitle;
   const viewLessons = createElement('span', { class: 'course-nav-view-lessons' });
   const [viewLessonsLabel, lessonsCountLabel] = await Promise.all([
     i18n('View lessons'),
@@ -124,16 +213,8 @@ async function init(main, courseData) {
   // Create content
   const content = createElement('div', { class: 'course-nav-content' });
 
-  // Add chapters or lessons
-  if (courseData.lessons?.length) {
-    const { ul } = createLessonsList(courseData.lessons, currentPath, true);
-    content.appendChild(ul);
-  }
-  if (courseData.hasChapters) {
-    courseData.chapters.forEach((chapter) => {
-      content.appendChild(createChapterElement(chapter, currentPath));
-    });
-  }
+  // Render content based on modulesOrder or fallback to original behavior
+  renderOrderedContent(courseData, currentPath, content);
 
   nav.append(header, content);
   main.prepend(nav);

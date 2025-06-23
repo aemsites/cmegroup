@@ -74,7 +74,7 @@
   "definition": "The Unemployment Rate measures the number of unemployed as a percentage of the labor force. The unemployment rate is part of the Labour Force Survey which also includes employment data.",
   "charts": [
     {
-      "chart": "https://main--www--cmegroup.aem.live/aemedge/templates/event/mock/chart1.png"
+      "chart": "https://main--www--cmegroup.aem.live/aemedge/templates/econoday-event/mock/chart1.png"
     }
   ]
 }
