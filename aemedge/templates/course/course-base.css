@@ -91,7 +91,7 @@ main > .section {
     overflow: hidden;
 }
 
-.modal-dialog {
+.modal.block {
     display: flex;
     align-items: center;
     margin: 1.75rem auto;
@@ -109,21 +109,22 @@ main > .section {
     width: 100%;
 }
 
-.modal-open {
-    overflow: hidden;
-}
-
-.modal-dialog.certificate-modal {
+.modal.block.certificate-modal {
     max-width: 54.375rem;
 }
 
-.modal-dialog.certificate-modal .modal-header {
+.modal.block.certificate-modal .close-button {
+    margin-top: 0.625rem;
+    z-index: 1;
+}
+
+.modal.block.certificate-modal .modal-header {
     border: 0;
     padding: 0;
     margin-bottom: 0.75rem;
 }
 
-.modal-dialog.certificate-modal .modal-header .modal-title {
+.modal.block.certificate-modal .modal-header .modal-title {
     text-transform: none;
     font-family: var(--averta);
     font-weight: 600;
@@ -134,29 +135,30 @@ main > .section {
     padding-right: 2.5rem;
 }
 
-.modal-dialog.certificate-modal .modal-header .modal-title .print-pdf .icon {
+.modal.block.certificate-modal .modal-header .modal-title .print-pdf .icon {
     font-size: 0.75rem;
 }
 
-.modal-dialog.certificate-modal .modal-content {
+.modal.block.certificate-modal .modal-content {
     position: relative;
     background-color: var(--gray5);
     padding: 0.625rem;
+    margin-top: 0;
 }
 
 @media (width > 480px) {
-    .modal-dialog.certificate-modal .modal-header .modal-title {
+    .modal.block.certificate-modal .modal-header .modal-title {
         font-size: 1.125rem;
         line-height: 1.4375rem;
         padding-right: 0;
     }
 
-    .modal-dialog.certificate-modal .modal-content {
+    .modal.block.certificate-modal .modal-content {
         padding: 1.25rem 1.5625rem 1.5625rem;
     }
 }
 
-.modal-dialog.certificate-modal .icon::before {
+.modal.block.certificate-modal .icon::before {
     font-family: var(--cme-group-icons);
     font-style: normal;
     line-height: 1;
@@ -164,43 +166,22 @@ main > .section {
     margin-right: 0.25rem;
 }
 
-.modal-dialog.certificate-modal .icon-document-pdf::before {
+.modal.block.certificate-modal .icon-document-pdf::before {
     content: var(--icon-document-pdf);
     color: var(--blue4);
 }
 
-.modal-dialog.certificate-modal .icon-share::before {
+.modal.block.certificate-modal .icon-share::before {
     content: var(--icon-share);
     color: var(--blue4);
 }
 
-.modal-dialog.certificate-modal .btn-close {
-    cursor: pointer;
-    font-family: var(--cme-group-icons);
-    font-style: normal;
-    line-height: 1;
-    display: inline-block;
-    color: var(--gray3);
-    box-shadow: none;
-    position: absolute;
-    right: 0.625rem;
-    top: 0.75rem;
-    margin: 0;
-    padding: 0;
-    font-size: 0.9375rem;
-}
-
-.modal-dialog.certificate-modal .btn-close::before {
-    content: var(--icon-menu-close);
-    color: var(--gray3);
-}
-
-.modal-dialog .share-buttons-container {
+.modal.block .share-buttons-container {
     display: flex;
     gap: 8px;
 }
 
-.modal-dialog.certificate-modal .modal-header .modal-title .print-pdf {
+.modal.block.certificate-modal .modal-header .modal-title .print-pdf {
     cursor: pointer;
     color: var(--blue4);
     padding: 0;
@@ -212,41 +193,41 @@ main > .section {
     line-height: inherit;
 }
 
-.modal-dialog.certificate-modal .modal-header .modal-title .print-pdf:hover {
+.modal.block.certificate-modal .modal-header .modal-title .print-pdf:hover {
     text-decoration: underline !important;
     color: var(--blue4) !important;
 }
 
-.modal-dialog.certificate-modal .modal-body {
+.modal.block.certificate-modal .modal-body {
     background-color: var(--white);
     margin-bottom: 0;
 }
 
-.modal-dialog.certificate-modal .modal-buttons {
+.modal.block.certificate-modal .modal-buttons {
     display: grid;
 }
 
 @media (width > 678px) {
-    .modal-dialog.certificate-modal .modal-buttons {
+    .modal.block.certificate-modal .modal-buttons {
         display: flex;
         align-items: center;
         gap: 0.3125rem;
     }
 }
 
-.modal-dialog.certificate-modal .buttons-container {
+.modal.block.certificate-modal .buttons-container {
     display: flex;
     gap: 0.75rem;
 }
 
-.modal-dialog.certificate-modal .share-buttons {
+.modal.block.certificate-modal .share-buttons {
     display: flex;
     align-items: center;
     gap: 0.3125rem;
     margin-left: 0.9375rem;
 }
 
-.modal-dialog.certificate-modal .spinner-border {
+.modal.block.certificate-modal .spinner-border {
     margin-left: 0.9375rem;
 }
 
@@ -399,24 +380,4 @@ main > .section {
     .completion-certificate-container .container {
         width: auto;
     }
-}
-
-.modal-backdrop {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 1040;
-    background-color: #000;
-}
-
-.modal-backdrop.fade {
-    filter: alpha(opacity=0);
-    opacity: 0;
-}
-
-.modal-backdrop.show {
-    filter: alpha(opacity=50);
-    opacity: 0.5;
 }

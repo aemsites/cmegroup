@@ -3,6 +3,7 @@ import {
   i18n,
 } from '../utils.js';
 import { loadScript, getMetadata } from '../aem.js';
+import { createModal } from '../../blocks/modal/modal.js';
 
 function handleShareClick({ shareButton }) {
   const platforms = getMetadata('share-links').split(',');
@@ -39,16 +40,25 @@ function handleShareClick({ shareButton }) {
   });
 }
 
-function createCertificateModal({
-  modalTitleLabel,
-  certificateTitleLabel,
-  presentedToLabel,
-  downloadLabel,
-  shareLabel,
+async function createCertificateModal({
   lessonTitle,
   userName,
   completedModule,
 }) {
+  const [
+    modalTitleLabel,
+    certificateTitleLabel,
+    presentedToLabel,
+    downloadLabel,
+    shareLabel,
+  ] = await Promise.all([
+    i18n('Course Completion Certificate'),
+    i18n('Certificate of Course Completion'),
+    i18n('Presented to'),
+    i18n('Download'),
+    i18n('Share'),
+  ]);
+
   const shareButton = createElement(
     'button',
     {
@@ -63,138 +73,93 @@ function createCertificateModal({
     handleShareClick({ shareButton });
   });
 
-  const modal = createElement(
-    'div',
-    {
-      class: 'modal fade',
-      role: 'dialog',
-      tabindex: '-1',
-      style: 'display: none;',
-      'aria-modal': 'true',
-    },
+  const modalContent = [
     createElement(
       'div',
-      { class: 'modal-dialog universal-modal certificate-modal modal-dialog-centered', role: 'document' },
+      { class: 'modal-header' },
       createElement(
-        'div',
-        { class: 'modal-content' },
+        'h5',
+        { class: 'modal-title' },
         createElement(
           'div',
-          { class: 'modal-header' },
-          createElement(
-            'h5',
-            { class: 'modal-title' },
-            createElement(
-              'div',
-              { class: 'modal-buttons' },
-              modalTitleLabel,
-              ' | ',
-              createElement(
-                'div',
-                { class: 'buttons-container' },
-                createElement(
-                  'button',
-                  { class: 'print-pdf', type: 'button' },
-                  createElement('span', { class: 'icon icon-document-pdf pr-1' }),
-                  // createElement('img', {
-                  //   src: '/aemedge/icons/document-pdf.svg',
-                  //   alt: 'download',
-                  // }),
-                  downloadLabel,
-                ),
-                shareButton,
-              ),
-            ),
-          ),
-          createElement('button', { type: 'button', class: 'btn-close', 'aria-label': 'Close' }),
-        ),
-        createElement(
-          'div',
-          { class: 'modal-body' },
+          { class: 'modal-buttons' },
+          modalTitleLabel,
+          ' | ',
           createElement(
             'div',
-            { class: 'completion-certificate-container' },
+            { class: 'buttons-container' },
             createElement(
-              'div',
-              { class: 'completion-data' },
-              createElement(
-                'div',
-                { class: 'certificate-header' },
-                createElement('p', { class: 'eyebrow' }, 'Cme Group Institute'),
-                createElement('p', { class: 'divider' }),
-                createElement('p', { class: 'title' }, certificateTitleLabel),
-              ),
-              createElement(
-                'div',
-                { class: 'body' },
-                createElement('p', { class: 'course-title' }, lessonTitle),
-                createElement('p', { class: 'presented-to' }, presentedToLabel),
-                createElement('p', { class: 'user-name' }, userName),
-                createElement(
-                  'p',
-                  { class: 'date' },
-                  dayjs(completedModule).format('MMMM Do YYYY'),
-                ),
-              ),
-              createElement(
-                'div',
-                { class: 'footer' },
-                createElement('img', {
-                  class: 'logo',
-                  src: 'https://www.cmegroup.com//content/dam/cmegroup/images/cme-logo-new.png',
-                  alt: '',
-                }),
-              ),
+              'button',
+              { class: 'print-pdf', type: 'button' },
+              createElement('span', { class: 'icon icon-document-pdf pr-1' }),
+              // createElement('img', {
+              //   src: '/aemedge/icons/document-pdf.svg',
+              //   alt: 'download',
+              // }),
+              downloadLabel,
             ),
+            shareButton,
+          ),
+        ),
+      ),
+    ),
+    createElement(
+      'div',
+      { class: 'modal-body' },
+      createElement(
+        'div',
+        { class: 'completion-certificate-container' },
+        createElement(
+          'div',
+          { class: 'completion-data' },
+          createElement(
+            'div',
+            { class: 'certificate-header' },
+            createElement('p', { class: 'eyebrow' }, 'Cme Group Institute'),
+            createElement('p', { class: 'divider' }),
+            createElement('p', { class: 'title' }, certificateTitleLabel),
+          ),
+          createElement(
+            'div',
+            { class: 'body' },
+            createElement('p', { class: 'course-title' }, lessonTitle),
+            createElement('p', { class: 'presented-to' }, presentedToLabel),
+            createElement('p', { class: 'user-name' }, userName),
+            createElement(
+              'p',
+              { class: 'date' },
+              dayjs(completedModule).format('MMMM Do YYYY'),
+            ),
+          ),
+          createElement(
+            'div',
+            { class: 'footer' },
             createElement('img', {
-              class: 'certificate-image',
-              src: 'https://www.cmegroup.com//content/dam/cmegroup/images/certificate-graphic.png',
+              class: 'logo',
+              src: 'https://www.cmegroup.com//content/dam/cmegroup/images/cme-logo-new.png',
               alt: '',
             }),
           ),
         ),
-        createElement('div', { class: 'modal-footer' }),
+        createElement('img', {
+          class: 'certificate-image',
+          src: 'https://www.cmegroup.com//content/dam/cmegroup/images/certificate-graphic.png',
+          alt: '',
+        }),
       ),
     ),
-  );
+  ];
 
+  const modal = await createModal(modalContent);
+  modal.block.classList.add('certificate-modal');
   return modal;
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export async function addCourseCertificate({
-  isLoggedIn,
+async function openCertificateModal({
   userName,
   lessonTitle,
   completedModule,
-  showModal,
 }) {
-  const [
-    viewCertificateLabel,
-    modalTitleLabel,
-    certificateTitleLabel,
-    presentedToLabel,
-    downloadLabel,
-    shareLabel,
-  ] = await Promise.all([
-    i18n('View Certificate'),
-    i18n('Course Completion Certificate'),
-    i18n('Certificate of Course Completion'),
-    i18n('Presented to'),
-    i18n('Download'),
-    i18n('Share'),
-  ]);
-
-  // loadHtml2PdfScript();
-  const main = document.querySelector('main');
-  const courseHeading = main.querySelector('h1');
-
-  const button = createElement(
-    'button',
-    { class: 'button secondary view-certificate', type: 'button' },
-    viewCertificateLabel,
-  );
-
   const scriptPromises = [
     loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js'),
     loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js'),
@@ -206,30 +171,16 @@ export async function addCourseCertificate({
   // Wait for all scripts to load
   await Promise.all(scriptPromises);
 
-  const modal = createCertificateModal({
-    modalTitleLabel,
-    certificateTitleLabel,
-    presentedToLabel,
-    downloadLabel,
-    shareLabel,
+  const { block, showModal } = await createCertificateModal({
     lessonTitle,
     userName,
     completedModule,
   });
 
-  document.body.appendChild(modal);
-
-  const backdrop = createElement('div', {
-    class: 'modal-backdrop fade',
-    style: 'display: none;',
-  });
-
-  document.body.appendChild(backdrop);
-
-  const downloadBtn = modal.querySelectorAll('.print-pdf')[0];
+  const downloadBtn = block.querySelectorAll('.print-pdf')[0];
   downloadBtn.addEventListener('click', () => {
     loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js').then(() => {
-      const elementToPrint = modal.querySelector('.completion-certificate-container');
+      const elementToPrint = block.querySelector('.completion-certificate-container');
 
       const opt = {
         margin: 0,
@@ -244,32 +195,46 @@ export async function addCourseCertificate({
     });
   });
 
-  const toggleModal = (show) => {
+  showModal();
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export async function addCourseCertificate({
+  isLoggedIn,
+  userName,
+  lessonTitle,
+  completedModule,
+  showModal,
+}) {
+  const [
+    viewCertificateLabel,
+  ] = await Promise.all([
+    i18n('View Certificate'),
+  ]);
+  const main = document.querySelector('main');
+  const courseHeading = main.querySelector('h1');
+
+  const button = createElement(
+    'button',
+    { class: 'button secondary view-certificate', type: 'button' },
+    viewCertificateLabel,
+  );
+
+  const openModal = () => {
     if (!isLoggedIn) {
       return;
     }
-    if (show) {
-      modal.classList.add('show');
-      backdrop.classList.add('show');
-      modal.style.display = 'block';
-      backdrop.style.display = 'block';
-      document.body.classList.add('modal-open');
-    } else {
-      modal.classList.remove('show');
-      backdrop.classList.remove('show');
-      modal.style.display = 'none';
-      backdrop.style.display = 'none';
-      document.body.classList.remove('modal-open');
-    }
+    openCertificateModal({
+      userName,
+      lessonTitle,
+      completedModule,
+    });
   };
 
-  const closeButton = modal.querySelector('.btn-close');
-  button.addEventListener('click', () => toggleModal(true));
-  closeButton.addEventListener('click', () => toggleModal(false));
-
+  button.addEventListener('click', () => openModal());
   courseHeading.insertAdjacentElement('afterend', button);
 
   if (showModal) {
-    toggleModal(true);
+    openModal();
   }
 }
