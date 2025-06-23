@@ -881,6 +881,22 @@ const colorMap = (document) => {
   });
 };
 
+const oneClickSubToFragment = (document) => {
+  const oneClickSub = document.querySelectorAll('.one-click-subscription-form');
+  if (oneClickSub?.length) {
+    oneClickSub.forEach((form) => {
+      // const cells = [['One Click Sub']];
+      // const table = WebImporter.DOMUtils.createTable(cells, document);
+      // const tempDiv = document.createElement('div');
+      // const anchor = document.createElement('a');
+      // anchor.href = `${EDS_DOMAIN}/fragments/one-click-subscription-form`;
+      // anchor.textContent = anchor.href;
+      // tempDiv.appendChild(anchor);
+      form.remove(); // todo again revisit
+    });
+  }
+};
+
 const customBlocks = async (document, main, meta, url) => {
   convertImagesToLinks(document);
   mapRowsToSection(document);
@@ -897,6 +913,7 @@ const customBlocks = async (document, main, meta, url) => {
   sideBarBlocks(document);
   dividerBlock(document);
   colorMap(document);
+  oneClickSubToFragment(document);
 
   if (meta['Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);
