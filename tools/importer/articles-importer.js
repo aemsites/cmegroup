@@ -80,15 +80,6 @@ async function setMetadata(meta, document, url) {
   }
 
   if (readTime) {
-    // const time = readTime?.textContent?.trim().split(' ')[0].trim().toLowerCase();
-    // if (time.includes(':')) {
-    //   const [minutes, seconds] = time.split(':');
-    //   const totalSeconds = Number(minutes) * 60 + Number(seconds);
-    //   const nearestMinute = Math.round(totalSeconds / 60);
-    //   meta['Read Time'] = `${nearestMinute}`;
-    // } else {
-    //   meta['Read Time'] = `${time}`;
-    // }
     readTime.remove();
   }
 
@@ -188,6 +179,22 @@ const imageFetch = (ele) => {
   return null;
 };
 
+const getDeepestLastChild = (el) => {
+  while (el?.lastElementChild) {
+    // eslint-disable-next-line no-param-reassign
+    el = el.lastElementChild;
+  }
+  return el;
+};
+
+const getDeepestFirstChild = (el) => {
+  while (el?.firstElementChild) {
+    // eslint-disable-next-line no-param-reassign
+    el = el.firstElementChild;
+  }
+  return el;
+};
+
 /**
  * This function converts the sections to metadata.
  * @param {Document} document - The document to search.
@@ -220,10 +227,44 @@ const convertSectionsToMetadata = (document) => {
       const sectionMetadata = buildSectionMetadata(tempArr);
       section.after(sectionMetadata);
       if (index !== sections.length - 1) {
-        sectionMetadata.after(blockSeparator().cloneNode(true));
+        const nextSibling = sectionMetadata.nextElementSibling;
+        const deepest = getDeepestFirstChild(nextSibling);
+        if (deepest?.textContent.trim() !== '---') {
+          sectionMetadata.after(blockSeparator().cloneNode(true));
+        }
       }
       if (index !== 0) {
-        section.before(blockSeparator().cloneNode(true));
+        const prevSibling = section.previousElementSibling;
+        const deepest = getDeepestLastChild(prevSibling);
+        if (deepest?.textContent.trim() !== '---') {
+          section.before(blockSeparator().cloneNode(true));
+        }
+      }
+    }
+  });
+};
+
+const mapRowsToSection = (document) => {
+  const rows = document.querySelectorAll('.row');
+  rows.forEach((row) => {
+    const leftColumn = row.querySelector('.cme-article-left-column');
+    const rightColumn = row.querySelector('.cme-article-right-column');
+
+    if ((leftColumn?.textContent && leftColumn?.textContent.trim() !== '') || (rightColumn?.textContent && rightColumn?.textContent.trim() !== '')) {
+      const separator = blockSeparator().cloneNode(true);
+
+      const prevSibling = row.previousElementSibling;
+      const deepest = getDeepestLastChild(prevSibling);
+
+      if (deepest?.textContent.trim() !== '---') {
+        row.before(separator);
+      }
+
+      const nextSibling = row.nextElementSibling;
+      const deepestNext = getDeepestFirstChild(nextSibling);
+
+      if (deepestNext?.textContent.trim() !== '---') {
+        row.after(blockSeparator().cloneNode(true));
       }
     }
   });
@@ -640,6 +681,12 @@ const tableBlock = (document) => {
       let tableText = 'Table';
       const innerTable = table.querySelector('table');
       const tempArr = [];
+      const trs = innerTable.querySelectorAll('tr');
+      trs.forEach((tr) => {
+        if (!tr.textContent || tr.textContent.trim() === '') {
+          tr.remove();
+        }
+      });
 
       if (!innerTable.querySelector('thead') && !innerTable.querySelector('th')) {
         tempArr.push('no-header');
@@ -710,7 +757,6 @@ const convertImagesToLinks = (document) => {
 };
 
 /**
- * TODO piyush Discuss this with anuj
  * @param {*} document
  * @param {*} type
  */
@@ -718,10 +764,7 @@ const sidebarBlock = (document, type = 'left') => {
   const sidebars = document.querySelectorAll(`.section .row .cme-article-${type}-column`);
 
   if (sidebars?.length) {
-    const firstSidebar = sidebars[0];
-    const tableArr = [];
-
-    sidebars.forEach((sidebar, index) => {
+    sidebars.forEach((sidebar) => {
       if (sidebar.textContent && sidebar.textContent.trim() !== '') {
         const dividers = sidebar.querySelectorAll('.divider.line');
         let topDivider = false;
@@ -770,18 +813,10 @@ const sidebarBlock = (document, type = 'left') => {
         const cells = [[textContent]];
         cells.push([sidebar.innerHTML]);
         const table = WebImporter.DOMUtils.createTable(cells, document);
-        tableArr.push(table);
 
-        if (index !== 0) {
-          sidebar.remove();
-        }
+        sidebar.replaceWith(table);
       }
     });
-
-    const tempDiv = document.createElement('div');
-    tempDiv.append(...tableArr);
-
-    firstSidebar.replaceWith(tempDiv);
   }
 };
 
@@ -824,7 +859,7 @@ const tagsCloudBlock = (document) => {
 const colorMap = (document) => {
   const spans = document.querySelectorAll('span');
   const newSet = new Set();
-  const sections = document.querySelectorAll('.section');
+  const sections = document.querySelectorAll('.row');
   const total = sections.length;
 
   spans.forEach((span) => {
@@ -834,7 +869,7 @@ const colorMap = (document) => {
     if (colorClasses.length) {
       const tempCode = document.createElement('code');
       tempCode.textContent = span.textContent;
-      const section = span.closest('.section');
+      const section = span.closest('.row');
       const index = Array.from(sections).indexOf(section);
       span.replaceWith(tempCode);
 
@@ -848,8 +883,8 @@ const colorMap = (document) => {
 
 const customBlocks = async (document, main, meta, url) => {
   convertImagesToLinks(document);
+  mapRowsToSection(document);
   tableBlock(document);
-  colorMap(document);
   convertSectionsToMetadata(document, main);
   articleHeroBlock(document, meta);
   promoBlock(document);
@@ -861,6 +896,7 @@ const customBlocks = async (document, main, meta, url) => {
   await lightBoxGallery(document);
   sideBarBlocks(document);
   dividerBlock(document);
+  colorMap(document);
 
   if (meta['Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);
@@ -881,6 +917,7 @@ const customBlocks = async (document, main, meta, url) => {
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
   correctLinks(document);
+  // colorMap(document);
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
   //   form.remove();
