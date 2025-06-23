@@ -641,7 +641,7 @@ const tableBlock = (document) => {
       const innerTable = table.querySelector('table');
       const tempArr = [];
 
-      if (!innerTable.querySelector('thead')) {
+      if (!innerTable.querySelector('thead') && !innerTable.querySelector('th')) {
         tempArr.push('no-header');
       }
 
