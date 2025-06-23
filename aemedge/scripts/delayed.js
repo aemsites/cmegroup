@@ -14,7 +14,7 @@ function loadPage() {
     loadSitewidePopups();
   }
 
-  if (!isFeatureToggled('hideRightRail')) {
+  if (!isFeatureToggled('hideAddThisExt')) {
     loadShareThis();
   }
 }

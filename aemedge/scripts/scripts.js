@@ -264,7 +264,11 @@ function decorateSidebars(main) {
         if (child.querySelector('.sidebar.left')) {
           leftSidebars.push(child);
         } else if (child.querySelector('.sidebar.right')) {
-          rightSidebars.push(child);
+          if (!isFeatureToggled('hideRightRail')) {
+            rightSidebars.push(child);
+          } else {
+            child.remove();
+          }
         }
       } else {
         // This is content (not a sidebar)
