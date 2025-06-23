@@ -695,7 +695,15 @@ const convertImagesToLinks = (document) => {
     const anchor = document.createElement('a');
     anchor.href = imgUrl;
     anchor.textContent = `${anchor.href}`;
-    div.appendChild(anchor);
+
+    const dataImgStyle = image.getAttribute('data-img-style');
+    if (dataImgStyle === 'lightbox-gallery' || dataImgStyle === 'lightbox') {
+      const tempStrong = document.createElement('strong');
+      tempStrong.appendChild(anchor);
+      div.appendChild(tempStrong);
+    } else {
+      div.appendChild(anchor);
+    }
     div.appendChild(document.createElement('br'));
     image.replaceWith(div);
   });
@@ -731,7 +739,9 @@ const sidebarBlock = (document, type = 'left') => {
         } else if (dividers.length > 1) {
           const firstDiv = sidebar.querySelector(':scope>div:first-child');
           if (firstDiv.classList.contains('title')) {
-            firstDiv.appendChild(blockSeparator());
+            const h5 = document.createElement('h5');
+            h5.textContent = '---';
+            firstDiv.appendChild(h5);
             bottomDivider = true;
           } else {
             topDivider = true;
