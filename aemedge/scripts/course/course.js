@@ -266,7 +266,7 @@ export async function createCourseBaseTemplate(courseData) {
 
   if (template.toLowerCase() === 'course') {
     const type = createElement('div', { class: 'metadata type' });
-    const isPremium = getMetadata('isPremium');
+    const isPremium = getMetadata('ispremium');
     if (isPremium) {
       type.textContent = `${premiumLabel} ${courseLabel}`;
     } else {
