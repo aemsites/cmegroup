@@ -281,7 +281,8 @@ export default async function decorate(block) {
             ${playlistId !== '' ? `data-playlist-id="${playlistId}"` : ''}
             ${playlistId !== '' && videoId ? `data-playlist-video-id="${videoId}"` : ''}
             ${playlistId === '' ? `data-video-id="${videoId}"` : ''}
-            data-application-id="true">
+            data-application-id="true"
+            preload="auto">
           </video-js>
           ${playlistId !== '' && playlistLocation === 'R' ? '<div class="vjs-playlist"></div>' : ''}
         </div>
