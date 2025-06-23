@@ -92,10 +92,6 @@ async function createCertificateModal({
               'button',
               { class: 'print-pdf', type: 'button' },
               createElement('span', { class: 'icon icon-document-pdf pr-1' }),
-              // createElement('img', {
-              //   src: '/aemedge/icons/document-pdf.svg',
-              //   alt: 'download',
-              // }),
               downloadLabel,
             ),
             shareButton,
@@ -178,21 +174,53 @@ async function openCertificateModal({
   });
 
   const downloadBtn = block.querySelectorAll('.print-pdf')[0];
-  downloadBtn.addEventListener('click', () => {
-    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js').then(() => {
-      const elementToPrint = block.querySelector('.completion-certificate-container');
 
-      const opt = {
-        margin: 0,
-        filename: 'certificate.pdf',
-        image: { type: 'png', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-      };
+  downloadBtn.addEventListener('click', async () => {
+    const scriptPdfPromises = [
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+    ];
 
-      // eslint-disable-next-line no-undef
-      html2pdf().set(opt).from(elementToPrint).save();
+    await Promise.all(scriptPdfPromises);
+
+    const originalElement = block.querySelector('.completion-certificate-container');
+
+    const clone = originalElement.cloneNode(true);
+    clone.classList.add('force-print-style');
+
+    const hiddenWrapper = document.createElement('div');
+    hiddenWrapper.classList.add('hidden-wrapper');
+    hiddenWrapper.appendChild(clone);
+    document.body.appendChild(hiddenWrapper);
+
+    // eslint-disable-next-line no-undef
+    const canvas = await html2canvas(clone, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
     });
+
+    const imgData = canvas.toDataURL('image/png');
+
+    const { jsPDF } = window.jspdf;
+    // eslint-disable-next-line new-cap
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'a4',
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
+
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth * ratio, imgHeight * ratio);
+    pdf.save('certificate.pdf');
+
+    hiddenWrapper.remove();
   });
 
   showModal();
