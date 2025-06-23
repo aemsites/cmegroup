@@ -129,6 +129,7 @@ export default async function lessonTemplate() {
         store.dispatch(courseDataChange(updatedCourse));
       }
     });
+    //  courseData change event
     store.subscribe(({ courseData: course }) => course, (course) => {
       if (course?.completed) {
         const { isLoggedIn, loginInfo } = authenticationData;

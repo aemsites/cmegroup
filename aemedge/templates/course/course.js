@@ -3,6 +3,7 @@ import { createElement, i18n } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
+import { addCourseCertificate } from '../../scripts/course/certificate.js';
 
 async function addBeginCourseButton(courseData) {
   const main = document.querySelector('main');
@@ -30,7 +31,17 @@ export default async function courseTemplate() {
   authenticationData.loginPromise.then(async () => {
     const courseData = await getCourseData();
     await createCourseBaseTemplate(courseData);
-    await addBeginCourseButton(courseData);
+    if (courseData.completed) {
+      const { isLoggedIn, loginInfo } = authenticationData;
+      await addCourseCertificate({
+        isLoggedIn,
+        userName: loginInfo?.userName,
+        lessonTitle: courseData?.title,
+        completedModule: courseData?.endDate,
+      });
+    } else {
+      await addBeginCourseButton(courseData);
+    }
     //  dispatch courseData event
     store.dispatch(courseDataChange(courseData));
   });
