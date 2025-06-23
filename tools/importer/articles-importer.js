@@ -682,11 +682,11 @@ const tableBlock = (document) => {
 };
 
 const convertImagesToLinks = (document) => {
-  const images = document.querySelectorAll('img');
+  const images = document.querySelectorAll('.component.image');
 
   images.forEach((image) => {
     const div = document.createElement('div');
-    let imgUrl = image.getAttribute('src');
+    let imgUrl = image.getAttribute('data-img-src');
     // check if imgUrl is absolute vs relative
     if (imgUrl.startsWith('/')) {
       imgUrl = `${DOMAIN}${imgUrl}`;
@@ -699,6 +699,85 @@ const convertImagesToLinks = (document) => {
     div.appendChild(document.createElement('br'));
     image.replaceWith(div);
   });
+};
+
+/**
+ * TODO piyush Discuss this with anuj
+ * @param {*} document
+ * @param {*} type
+ */
+const sidebarBlock = (document, type = 'left') => {
+  const sidebars = document.querySelectorAll(`.section .row .cme-article-${type}-column`);
+
+  if (sidebars?.length) {
+    const firstSidebar = sidebars[0];
+    const tableArr = [];
+
+    sidebars.forEach((sidebar, index) => {
+      if (sidebar.textContent && sidebar.textContent.trim() !== '') {
+        const dividers = sidebar.querySelectorAll('.divider.line');
+        let topDivider = false;
+        let bottomDivider = false;
+
+        if (dividers.length === 1) {
+          const firstDiv = sidebar.querySelector(':scope>div:first-child');
+          const lastDiv = sidebar.querySelector(':scope>div:last-child');
+
+          if (lastDiv.classList.contains('divider')) {
+            bottomDivider = true;
+          } else if (!firstDiv?.classList.contains('title')) {
+            topDivider = true;
+          }
+        } else if (dividers.length > 1) {
+          const firstDiv = sidebar.querySelector(':scope>div:first-child');
+          if (firstDiv.classList.contains('title')) {
+            firstDiv.appendChild(blockSeparator());
+            bottomDivider = true;
+          } else {
+            topDivider = true;
+            bottomDivider = true;
+          }
+        }
+
+        dividers.forEach((divider) => {
+          divider.remove();
+        });
+
+        let textContent = 'Sidebar';
+        const tempArr = [type];
+
+        if (topDivider) {
+          tempArr.push('divider-top');
+        }
+
+        if (bottomDivider) {
+          tempArr.push('divider-bottom');
+        }
+        if (tempArr.length) {
+          textContent += ` (${tempArr.join(', ')})`;
+        }
+
+        const cells = [[textContent]];
+        cells.push([sidebar.innerHTML]);
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        tableArr.push(table);
+
+        if (index !== 0) {
+          sidebar.remove();
+        }
+      }
+    });
+
+    const tempDiv = document.createElement('div');
+    tempDiv.append(...tableArr);
+
+    firstSidebar.replaceWith(tempDiv);
+  }
+};
+
+const sideBarBlocks = (document) => {
+  sidebarBlock(document, 'left');
+  sidebarBlock(document, 'right');
 };
 
 const correctLinks = (document) => {
@@ -763,7 +842,6 @@ const customBlocks = async (document, main, meta, url) => {
   colorMap(document);
   convertSectionsToMetadata(document, main);
   articleHeroBlock(document, meta);
-  dividerBlock(document);
   promoBlock(document);
   authorBioBlock(document);
   quizBlock(document);
@@ -771,6 +849,9 @@ const customBlocks = async (document, main, meta, url) => {
   faqBlock(document, meta);
   await accordionBlock(document);
   await lightBoxGallery(document);
+  sideBarBlocks(document);
+  dividerBlock(document);
+
   if (meta['Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);
     generalColumns(document);
