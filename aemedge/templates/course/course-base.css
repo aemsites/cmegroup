@@ -32,6 +32,9 @@ main > .section > div {
 
 .course-header .metadata.read-time {
   text-align: left;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .course-header .metadata.type {

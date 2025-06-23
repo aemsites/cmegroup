@@ -249,13 +249,13 @@ export async function createCourseBaseTemplate(courseData) {
   const readTime = getMetadata('read-time');
   const template = getMetadata('template');
 
-  const readTimeIcon = createElement('img', { src: '/aemedge/icons/timer.svg' });
-  const readTimeIconSpan = createElement('span', { class: 'icon icon-timer' }, readTimeIcon);
-  const readTimeElement = createElement('div', { class: 'metadata read-time' }, `${readTime}`);
   if (readTime) {
-    readTimeElement.prepend(readTimeIconSpan);
+    const readTimeIcon = createElement('img', { src: '/aemedge/icons/timer.svg' });
+    const readTimeIconSpan = createElement('span', { class: 'icon icon-timer' }, readTimeIcon);
+    const readTimeValue = createElement('span', { class: 'value' }, readTime);
+    const readTimeElement = createElement('div', { class: 'metadata read-time' }, readTimeIconSpan, readTimeValue);
+    header.appendChild(readTimeElement);
   }
-  header.appendChild(readTimeElement);
 
   const [courseLabel, lessonLabel, ofLabel, premiumLabel] = await Promise.all([
     i18n('Course'),

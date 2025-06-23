@@ -319,6 +319,11 @@
     top: 6rem;
     width: calc(16.66667% + 49px);
   }
+
+  main:has(#alerts-container) .course-nav {
+    --alert-container-height: 3.125rem;
+    top: calc(6rem + var(--alert-container-height));
+  }
 }
 
 @media (width > 1200px) {
