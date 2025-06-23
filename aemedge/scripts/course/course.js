@@ -187,6 +187,54 @@ export async function getCourseData() {
   }
 }
 
+export function getOrderedLessons(courseData) {
+  const { modulesOrder } = courseData;
+
+  if (modulesOrder && typeof modulesOrder === 'string') {
+    const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
+
+    // Create array of items (chapters and lessons) to sort at root level
+    const rootItems = [
+      ...(courseData.chapters || []),
+      ...(courseData.lessons || []),
+    ];
+
+    // Sort chapters and lessons at root level based on modulesOrder
+    rootItems.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix || a.path)
+      - modulesOrderArray.indexOf(b.pathSuffix || b.path));
+
+    // Process the sorted items and collect lessons
+    const allLessons = [];
+
+    rootItems.forEach((item) => {
+      if (item.template && item.template.toLowerCase() === 'chapter') {
+        // Sort lessons within this chapter
+        const { lessons, modulesOrder: chModulesOrder } = item;
+        if (lessons && lessons.length > 0) {
+          if (chModulesOrder && typeof chModulesOrder === 'string') {
+            const chModulesOrderArray = chModulesOrder.split(',').map((chItem) => chItem.trim());
+            lessons.sort((a, b) => chModulesOrderArray.indexOf(a.pathSuffix || a.path)
+              - chModulesOrderArray.indexOf(b.pathSuffix || b.path));
+          }
+          // Add all lessons from this chapter to the result
+          allLessons.push(...lessons);
+        }
+      } else {
+        // This is a lesson at root level, add it directly
+        allLessons.push(item);
+      }
+    });
+
+    return allLessons;
+  }
+
+  // Fallback: if no modulesOrder, just return all lessons unsorted
+  return [
+    ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
+    ...(courseData.lessons || []),
+  ];
+}
+
 /**
  * Create the base template for a course page
  * It is common for different course templates: course & lesson
@@ -209,32 +257,29 @@ export async function createCourseBaseTemplate(courseData) {
   }
   header.appendChild(readTimeElement);
 
-  const [courseLabel, lessonLabel, ofLabel] = await Promise.all([
+  const [courseLabel, lessonLabel, ofLabel, premiumLabel] = await Promise.all([
     i18n('Course'),
     i18n('Lesson'),
     i18n('of'),
+    i18n('Premium'),
   ]);
 
   if (template.toLowerCase() === 'course') {
     const type = createElement('div', { class: 'metadata type' });
-    type.textContent = courseLabel;
+    const isPremium = getMetadata('isPremium');
+    if (isPremium) {
+      type.textContent = `${premiumLabel} ${courseLabel}`;
+    } else {
+      type.textContent = courseLabel;
+    }
     header.appendChild(type);
   } else if (template.toLowerCase() === 'lesson' || template.toLowerCase() === 'lesson-standalone') {
     const type = createElement('div', { class: 'metadata type' });
     type.textContent = lessonLabel;
-    if (courseData?.hasChapters) {
-      const chapter = courseData.chapters.find(
-        (ch) => window.location.pathname.startsWith(ch.path),
-      );
-      if (chapter?.lessons.length > 1) {
-        for (let i = 0; i < chapter.lessons.length; i += 1) {
-          const lesson = chapter.lessons[i];
-          if (window.location.pathname.startsWith(lesson.path)) {
-            type.textContent += ` ${i + 1} ${ofLabel} ${chapter.lessons.length}`;
-            break;
-          }
-        }
-      }
+    const lessons = getOrderedLessons(courseData);
+    const lessonIndex = lessons.findIndex(({ path }) => path === window.location.pathname);
+    if (lessonIndex !== -1) {
+      type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${lessons.length}`;
     }
     header.appendChild(type);
   }

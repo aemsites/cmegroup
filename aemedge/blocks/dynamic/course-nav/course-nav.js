@@ -190,7 +190,7 @@ async function init(main, courseData) {
   const titleContent = createElement('div', { class: 'course-nav-title-content' });
   // Title section
   const title = createElement('h2', { class: 'course-nav-title' });
-  title.textContent = courseData.title;
+  title.textContent = courseData.moduleTitle;
   const viewLessons = createElement('span', { class: 'course-nav-view-lessons' });
   const [viewLessonsLabel, lessonsCountLabel] = await Promise.all([
     i18n('View lessons'),

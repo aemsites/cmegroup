@@ -6,6 +6,12 @@ main > .section {
   padding-inline: 24px;
   padding-top: 3.75rem;
   width: 100%;
+  box-sizing: border-box;
+}
+
+main > .section > div {
+  padding-inline: unset !important;
+  width: 100% !important;
 }
 
 /* Course header styling */
@@ -74,5 +80,14 @@ main > .section {
 
   main > .section.full-width {
     width: unset;
+  }
+}
+
+@media (width > 1200px) {
+  main > .section {
+    padding-inline: unset;
+    padding-left: calc(8.33333% - 12.16667px);
+    padding-right: calc(8.33333% - 12.16667px);
+    width: calc(66.66667% - 127.33333px);
   }
 }
