@@ -119,9 +119,15 @@
     <div>
       <p>
         <strong>
-          <picture>
-            <img loading="lazy" alt="" src="{{chart}}">
-          </picture>
+          <div class="lightbox-container">
+            <picture>
+              <img loading="lazy" alt="{{chart}}"
+                src="{{chart}}"
+                data-lightbox="{{chart}}"
+                class="lightbox-image">
+            </picture>
+            <span class="lightbox-expand-icon" aria-hidden="true"></span>
+          </div>
         </strong>
       </p>
     </div>
