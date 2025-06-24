@@ -8,12 +8,8 @@ import {
 import { getMetadata } from '../aem.js';
 import { getProgress, postLesson } from '../services/EducationTrackService.js';
 
-const COURSES_BASE_PATH = window.location.hostname.includes('beta.cmegroup.com')
-  ? '/qa/education/courses/'
-  : '/education/courses/';
-const LESSONS_BASE_PATH = window.location.hostname.includes('beta.cmegroup.com')
-  ? '/qa/education/lessons/'
-  : '/education/lessons/';
+const COURSES_BASE_PATH = '/education/courses/';
+const LESSONS_BASE_PATH = '/education/lessons/';
 const COURSES_INDEX_PATH = '/courses-index.json';
 const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone'];
 const CACHE_KEY = 'course_data';
