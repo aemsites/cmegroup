@@ -1,4 +1,4 @@
-import { getMetadata } from '../../scripts/aem.js';
+import { getMetadata, loadScript } from '../../scripts/aem.js';
 import {
   createElement,
   getArticleRelatedMetadata,
@@ -90,23 +90,54 @@ async function decorateEventPageHero(block) {
   const topInfo = createElement('div', { class: 'top-info' }, eventLabel);
   const h1 = block.querySelector('h1');
   const dateWrapper = createElement('div', { class: 'event-property-wrapper' });
-  const lastInfo = createElement('div', { class: 'event-data' }, dateWrapper);
+  const locationWrapper = createElement('div', { class: 'event-property-wrapper' });
+  const timeWrapper = createElement('div', { class: 'event-property-wrapper' });
+  const sponsoringWrapper = createElement('div', { class: 'event-property-wrapper' });
+  const lastInfo = createElement('div', { class: 'event-data' }, dateWrapper, locationWrapper, timeWrapper, sponsoringWrapper);
   const contentWrapper = createElement('div', { class: 'default-content-wrapper' }, topInfo, h1, lastInfo);
   block.append(contentWrapper);
 
   // Dynamic section
   const date = getMetadata('date');
+  const location = getMetadata('location');
+  const sponsoring = getMetadata('sponsoring');
   const [
     eventLabelText,
     dateLabel,
+    locationLabel,
+    timeLabel,
+    sponsoringLabel,
   ] = await Promise.all([
     i18n('Event'),
     i18n('Date'),
+    i18n('Location'),
+    i18n('Time'),
+    i18n('Sponsoring Firm'),
+    loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/utc.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/timezone.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js'),
   ]);
+  /* eslint-disable no-undef */
+  dayjs.extend(dayjs_plugin_utc);
+  dayjs.extend(dayjs_plugin_timezone);
+  dayjs.tz.setDefault('America/Chicago');
+  dayjs.extend(dayjs_plugin_advancedFormat);
+  /* eslint-enable no-undef */
+  const cdtDate = dayjs.utc(date).tz('America/Chicago');
   eventLabel.textContent = eventLabelText;
-  const dateTag = createElement('div', { class: 'event-property-value' }, formatToCentralTime(date));
+  const dateTag = createElement('div', { class: 'event-property-value' }, cdtDate.format('dddd DD MMM YYYY'));
   dateWrapper.textContent = `${dateLabel}: `;
   dateWrapper.append(dateTag);
+  const locationTag = createElement('div', { class: 'event-property-value' }, location);
+  locationWrapper.textContent = `${locationLabel}: `;
+  locationWrapper.append(locationTag);
+  const timeTag = createElement('div', { class: 'event-property-value' }, cdtDate.format('hh:mm A [CDT]'));
+  timeWrapper.textContent = `${timeLabel}: `;
+  timeWrapper.append(timeTag);
+  const sponsoringTag = createElement('div', { class: 'event-property-value' }, sponsoring);
+  sponsoringWrapper.textContent = `${sponsoringLabel}: `;
+  sponsoringWrapper.append(sponsoringTag);
 }
 
 /**
