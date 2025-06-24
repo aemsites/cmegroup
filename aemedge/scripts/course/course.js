@@ -69,9 +69,9 @@ export async function getCourseData() {
       lessons: [],
     };
 
-    let basePath = window.location.hostname.includes('beta.cmegroup.com') ? `/qa/${COURSES_BASE_PATH}` : COURSES_BASE_PATH;
+    let basePath = window.location.hostname.includes('beta.cmegroup.com') ? `/qa${COURSES_BASE_PATH}` : COURSES_BASE_PATH;
     if (isLessonStandalone(template) && currentPath.includes('lessons')) {
-      basePath = window.location.hostname.includes('beta.cmegroup.com') ? `/qa/${LESSONS_BASE_PATH}` : LESSONS_BASE_PATH;
+      basePath = window.location.hostname.includes('beta.cmegroup.com') ? `/qa${LESSONS_BASE_PATH}` : LESSONS_BASE_PATH;
     }
 
     const relevantPath = currentPath.split(basePath)[1];
