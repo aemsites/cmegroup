@@ -112,7 +112,7 @@ function loadLanguage(videoPlayer, language) {
 
 function setPlayerReady(block, language, videoId) {
   block.setAttribute('data-video-status', 'loaded');
-  const languageVideoPlayer = videojs(block.querySelector(`#cmeVideo${videoId}`));
+  const languageVideoPlayer = videojs(document.getElementById(`cmeVideo${videoId}`));
   if (language) {
     languageVideoPlayer.on('loadedmetadata', () => {
       loadLanguage(languageVideoPlayer, language);
@@ -120,8 +120,8 @@ function setPlayerReady(block, language, videoId) {
   }
   languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
   languageVideoPlayer.on('loadeddata', () => {
-    block.querySelector(`#cmeVideo${videoId}`).classList.remove('video-hidden');
-    block.querySelector(`#cmeVideo${videoId}`).closest('.brightcove-player').querySelector('.brightcove-img-placeholder').remove();
+    document.getElementById(`cmeVideo${videoId}`).classList.remove('video-hidden');
+    document.getElementById(`cmeVideo${videoId}`).closest('.brightcove-player').querySelector('.brightcove-img-placeholder').remove();
     const { name: videoName } = languageVideoPlayer.mediainfo;
     const percentsAlreadyTracked = [];
 
