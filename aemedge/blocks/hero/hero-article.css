@@ -17,7 +17,7 @@
   align-items: center;
   justify-content: center;
   padding-top: 2rem;
-  padding-bottom: 3.875rem;
+  padding-bottom: 2rem;
   
   --centered-title-width: 90%;
 }
@@ -31,6 +31,9 @@
 .hero.article h1 {
   text-align: center;
   width: var(--centered-title-width);
+  font-size: 1.5rem;
+  letter-spacing: 0.01rem;
+  margin-bottom: 0;
 }
 
 .hero.article.faq h1 {
@@ -97,6 +100,10 @@
   text-transform: uppercase;
 }
 
+.hero.article.faq .row > .article-featured-tag {
+  justify-content: flex-start;
+}
+
 .hero.article .row > *:first-child {
   justify-content: flex-start;
 }
@@ -107,12 +114,18 @@
 
 .hero.article .row .article-time {
   text-transform: uppercase;
+  text-align: left;
 }
 
 .hero.article .row .icon {
   width: 0.9375rem;
   height: 0.9375rem;
   color: var(--blue5);
+}
+
+.hero.article .row .icon-bookmark-outlined {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .hero.article .row .bookmark {
@@ -139,9 +152,30 @@
   color: var(--gray3);
 }
 
+.hero.article .save-text {
+  display: none;
+}
+
+@media (width > 480px) {
+  .hero.article h1 {
+    font-size: 2.625rem;
+    letter-spacing: .0125rem;
+    line-height: 3.375rem;
+  }
+
+  .hero.article .row .icon-bookmark-outlined {
+    width: 0.9375rem;
+    height: 0.9375rem;
+  }
+
+  .hero.article .save-text {
+    display: block;
+  }
+}
+
 @media (width > 500px) {
   .hero.article {
-    --centered-title-width: 55%;
+    --centered-title-width: 57%;
   }
 }
 
