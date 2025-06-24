@@ -8,12 +8,8 @@ import {
 import { getMetadata } from '../aem.js';
 import { getProgress, postLesson } from '../services/EducationTrackService.js';
 
-const COURSES_BASE_PATH = window.location.hostname.includes('beta.cmegroup.com')
-  ? '/qa/education/courses/'
-  : '/education/courses/';
-const LESSONS_BASE_PATH = window.location.hostname.includes('beta.cmegroup.com')
-  ? '/qa/education/lessons/'
-  : '/education/lessons/';
+const COURSES_BASE_PATH = '/education/courses/';
+const LESSONS_BASE_PATH = '/education/lessons/';
 const COURSES_INDEX_PATH = '/courses-index.json';
 const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone'];
 const CACHE_KEY = 'course_data';
@@ -73,9 +69,9 @@ export async function getCourseData() {
       lessons: [],
     };
 
-    let basePath = COURSES_BASE_PATH;
+    let basePath = window.location.hostname.includes('beta.cmegroup.com') ? `/qa/${COURSES_BASE_PATH}` : COURSES_BASE_PATH;
     if (isLessonStandalone(template) && currentPath.includes('lessons')) {
-      basePath = LESSONS_BASE_PATH;
+      basePath = window.location.hostname.includes('beta.cmegroup.com') ? `/qa/${LESSONS_BASE_PATH}` : LESSONS_BASE_PATH;
     }
 
     const relevantPath = currentPath.split(basePath)[1];
