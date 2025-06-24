@@ -160,9 +160,8 @@ async function setMetadata(meta, document, url) {
  * @returns {HTMLElement} - The block separator.
  */
 export const blockSeparator = () => {
-  const p = document.createElement('p');
-  p.innerText = '---';
-  return p;
+  const hr = document.createElement('hr');
+  return hr;
 };
 
 /**
