@@ -207,7 +207,7 @@ function isExternalImage(element) {
   // if the element is not an anchor, it's not an external image
   if (element.tagName !== 'A') return false;
   // IMPLICIT via CME Group Delivery URLs or OOTB DMOpenAPI Delivery URLs
-  return /https:\/\/www\.cmegroup\.com\/content\/dam\/|delivery-p\d+-e\d+\.adobeaemcloud\.com/.test(element.getAttribute('href'));
+  return /\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/.test(element.getAttribute('href'));
 }
 
 /**
@@ -221,7 +221,7 @@ function decorateExternalImages(ele) {
   const extImages = ele.querySelectorAll('a');
   extImages.forEach((extImage) => {
     if (isExternalImage(extImage)) {
-      const extImageSrc = extImage.getAttribute('href');
+      const extImageSrc = extImage.href;
       const extTitle = extImage.getAttribute('title');
       const extPicture = createOptimizedPicture(extImageSrc, extTitle);
 
