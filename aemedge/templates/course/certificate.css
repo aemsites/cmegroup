@@ -1,12 +1,54 @@
 .view-certificate {
-    cursor: pointer;
+  cursor: pointer;
 }
 
-.certificate-modal {
-    max-width: 54.375rem;
-}
+.modal.certificate-modal {
+  max-width: 54.375rem;
 
-.modal.certificate-modal .modal-content {
+  & .close-button {
+    margin-top: 0.625rem;
+    z-index: 1;
+  }
+
+  & .modal-header {
+    border: 0;
+    padding: 0;
+    margin-bottom: 0.75rem;
+
+    & .modal-title {
+      text-transform: none;
+      font-family: var(--averta);
+      font-weight: 600;
+      font-size: 0.875rem;
+      line-height: 1.125rem;
+      letter-spacing: 0;
+      color: var(--gray3);
+      padding-right: 2.5rem;
+
+      & .print-pdf {
+        cursor: pointer;
+        color: var(--blue4);
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+        text-transform: none;
+        font-size: inherit;
+        font-weight: inherit;
+        line-height: inherit;
+
+        &:hover {
+          text-decoration: underline !important;
+          color: var(--blue4) !important;
+        }
+
+        & .icon {
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+
+  & .modal-content {
     border-radius: 0.3rem;
     pointer-events: all;
     width: 100%;
@@ -14,269 +56,224 @@
     background-color: var(--gray5);
     padding: 1.25rem 1.5625rem 1.5625rem;
     margin-top: 0;
-}
+    max-height: none;
+  }
 
-.certificate-modal .close-button {
-    margin-top: 0.625rem;
-    z-index: 1;
-}
-
-.certificate-modal .modal-header {
-    border: 0;
-    padding: 0;
-    margin-bottom: 0.75rem;
-}
-
-.certificate-modal .modal-header .modal-title {
-    text-transform: none;
-    font-family: var(--averta);
-    font-weight: 600;
-    font-size: 0.875rem;
-    line-height: 1.125rem;
-    letter-spacing: 0;
-    color: var(--gray3);
-    padding-right: 2.5rem;
-}
-
-.certificate-modal .modal-header .modal-title .print-pdf .icon {
-    font-size: 0.75rem;
-}
-
-@media (width > 480px) {
-    .certificate-modal .modal-header .modal-title {
-        font-size: 1.125rem;
-        line-height: 1.4375rem;
-        padding-right: 0;
+  & .icon {
+    &::before {
+      font-family: var(--cme-group-icons);
+      font-style: normal;
+      line-height: 1;
+      display: inline-block;
+      margin-right: 0.25rem;
     }
 
-    .certificate-modal .modal-content {
-        padding: 1.25rem 1.5625rem 1.5625rem;
+    &.icon-document-pdf::before {
+      content: var(--icon-document-pdf);
+      color: var(--blue4);
     }
-}
 
-.certificate-modal .icon::before {
-    font-family: var(--cme-group-icons);
-    font-style: normal;
-    line-height: 1;
-    display: inline-block;
-    margin-right: 0.25rem;
-}
+    &.icon-share::before {
+      content: var(--icon-share);
+      color: var(--blue4);
+    }
+  }
 
-.certificate-modal .icon-document-pdf::before {
-    content: var(--icon-document-pdf);
-    color: var(--blue4);
-}
-
-.certificate-modal .icon-share::before {
-    content: var(--icon-share);
-    color: var(--blue4);
-}
-
-.modal.block .share-buttons-container {
-    display: flex;
-    gap: 8px;
-}
-
-.certificate-modal .modal-header .modal-title .print-pdf {
-    cursor: pointer;
-    color: var(--blue4);
-    padding: 0;
-    border: 0;
-    box-shadow: none;
-    text-transform: none;
-    font-size: inherit;
-    font-weight: inherit;
-    line-height: inherit;
-}
-
-.certificate-modal .modal-header .modal-title .print-pdf:hover {
-    text-decoration: underline !important;
-    color: var(--blue4) !important;
-}
-
-.certificate-modal .modal-body {
+  & .modal-body {
     background-color: var(--white);
     margin-bottom: 0;
-}
+  }
 
-.certificate-modal .modal-buttons {
+  & .modal-buttons {
     display: grid;
-}
+  }
 
-@media (width > 678px) {
-    .certificate-modal .modal-buttons {
-        display: flex;
-        align-items: center;
-        gap: 0.3125rem;
-    }
-}
-
-.certificate-modal .buttons-container {
+  & .buttons-container {
     display: flex;
     gap: 0.75rem;
-}
+  }
 
-.certificate-modal .share-buttons {
+  & .share-buttons {
     display: flex;
     align-items: center;
     gap: 0.3125rem;
     margin-left: 0.9375rem;
+  }
+
+  & .spinner-border {
+    margin-left: 0.9375rem;
+  }
+
+  @media (width >= 481px) {
+    & .modal-header .modal-title {
+      font-size: 1.125rem;
+      line-height: 1.4375rem;
+      padding-right: 0;
+    }
+
+    & .modal-content {
+      padding: 1.25rem 1.5625rem 1.5625rem;
+    }
+  }
+
+  @media (width >= 679px) {
+    & .modal-buttons {
+      display: flex;
+      align-items: center;
+      gap: 0.3125rem;
+    }
+  }
 }
 
-.certificate-modal .spinner-border {
-    margin-left: 0.9375rem;
+.modal.block {
+  & .share-buttons-container {
+    display: flex;
+    gap: 0.5rem;
+  }
 }
 
 .completion-certificate-container {
-    display: inline-flex;
-    width: 100%;
-    padding: 0;
-}
+  display: inline-flex;
+  width: 100%;
+  padding: 0;
 
-.completion-certificate-container .completion-data {
+  & .completion-data {
     font-family: var(--averta);
     font-weight: 400;
     padding: 2rem 0.9375rem 2.4375rem;
     width: 100%;
-}
 
-@media (width > 480px) {
-    .completion-certificate-container .completion-data {
-        padding: 5.3125rem 1.25rem 3.25rem 5.1875rem;
+    & .certificate-header {
+      & .eyebrow {
+        font-family: var(--averta);
+        font-weight: 600;
+        font-size: 0.75rem;
+        line-height: 0.9375rem;
+        letter-spacing: 0;
+        color: var(--blue2);
+        text-transform: uppercase;
+        margin-bottom: 0.875rem;
+      }
+
+      & .divider {
+        border: 0.125rem solid var(--citron);
+        width: 2.875rem;
+        margin-bottom: 1.0625rem;
+      }
+
+      & .title {
+        color: var(--completion-certificate-title);
+        font-size: 1.25rem;
+        line-height: 1.5625rem;
+        margin-bottom: 0;
+      }
     }
-}
 
-.completion-certificate-container .completion-data .certificate-header .eyebrow {
-    font-family: var(--averta);
-    font-weight: 600;
-    font-size: 0.75rem;
-    line-height: 0.9375rem;
-    letter-spacing: 0;
-    color: var(--blue2);
-    text-transform: uppercase;
-    margin-bottom: 0.875rem;
-}
+    & .body {
+      & .course-title {
+        font-family: var(--averta);
+        font-weight: 600;
+        color: var(--gray2);
+        font-size: 0.9375rem;
+        line-height: 1.1875rem;
+        text-transform: uppercase;
+        margin: 1rem 0;
+      }
 
-.completion-certificate-container .completion-data .certificate-header .divider {
-    border: 0.125rem solid var(--citron);
-    width: 2.875rem;
-    margin-bottom: 1.0625rem;
-}
-
-@media (width > 480px) {
-    .completion-certificate-container .completion-data .certificate-header .divider {
+      & .presented-to {
+        font-family: var(--averta);
+        font-weight: 600;
+        color: var(--blue2);
+        font-size: 0.75rem;
+        line-height: 0.9375rem;
         margin-bottom: 1.5625rem;
+      }
+
+      & .user-name {
+        color: var(--gray2);
+        font-size: 1.875rem;
+        letter-spacing: 0;
+        line-height: 2.3125rem;
+        margin-bottom: 2.1875rem;
+      }
+
+      & .date {
+        font-family: var(--averta);
+        font-weight: 600;
+        color: var(--gray1);
+        font-size: 0.6875rem;
+        letter-spacing: 0;
+        line-height: 0.875rem;
+        margin-bottom: 1.375rem;
+      }
     }
-}
 
-.completion-certificate-container .completion-data .certificate-header .title {
-    color: var(--completion-certificate-title);
-    font-size: 1.25rem;
-    line-height: 1.5625rem;
-    margin-bottom: 0;
-}
+    & .footer {
+      & .logo {
+        width: 6.6875rem;
+        height: 1.0625rem;
+      }
+    }
+  }
 
-@media (width > 480px) {
-    .completion-certificate-container .completion-data .certificate-header .title {
+  & .certificate-image {
+    display: none;
+  }
+
+  @media (width >= 481px) {
+    & .completion-data {
+      padding: 5.3125rem 1.25rem 3.25rem 5.1875rem;
+
+      & .certificate-header .divider {
+        margin-bottom: 1.5625rem;
+      }
+
+      & .certificate-header .title {
         font-size: 1.8125rem;
         line-height: 2.1875rem;
-    }
-}
+      }
 
-.completion-certificate-container .completion-data .body .course-title {
-    font-family: var(--averta);
-    font-weight: 600;
-    color: var(--gray2);
-    font-size: 0.9375rem;
-    line-height: 1.1875rem;
-    text-transform: uppercase;
-    margin: 1rem 0;
-}
-
-@media (width > 480px) {
-    .completion-certificate-container .completion-data .body .course-title {
+      & .body .course-title {
         font-size: 1.1875rem;
         line-height: 1.5rem;
         margin: 1.125rem 0;
-    }
-}
+      }
 
-.completion-certificate-container .completion-data .body .presented-to {
-    font-family: var(--averta);
-    font-weight: 600;
-    color: var(--blue2);
-    font-size: 0.75rem;
-    line-height: 0.9375rem;
-    margin-bottom: 1.5625rem;
-}
-
-@media (width > 480px) {
-    .completion-certificate-container .completion-data .body .presented-to {
+      & .body .presented-to {
         margin-bottom: 3.4375rem;
-    }
-}
+      }
 
-.completion-certificate-container .completion-data .body .user-name {
-    color: var(--gray2);
-    font-size: 1.875rem;
-    letter-spacing: 0;
-    line-height: 2.3125rem;
-    margin-bottom: 2.1875rem;
-}
-
-@media (width > 480px) {
-    .completion-certificate-container .completion-data .body .user-name {
+      & .body .user-name {
         font-size: 2.8125rem;
         line-height: 3.5rem;
         margin-bottom: 4.875rem;
-    }
-}
+      }
 
-.completion-certificate-container .completion-data .body .date {
-    font-family: var(--averta);
-    font-weight: 600;
-    color: var(--gray1);
-    font-size: 0.6875rem;
-    letter-spacing: 0;
-    line-height: 0.875rem;
-    margin-bottom: 1.375rem;
-}
-
-@media (width > 480px) {
-    .completion-certificate-container .completion-data .body .date {
+      & .body .date {
         margin-bottom: 2.9375rem;
+      }
     }
-}
 
-.completion-certificate-container .completion-data .footer .logo {
-    width: 6.6875rem;
-    height: 1.0625rem;
-}
-
-.completion-certificate-container .certificate-image {
-    display: none;
-}
-
-@media (width > 480px) {
-    .completion-certificate-container .certificate-image {
-        display: inline-block;
+    & .certificate-image {
+      display: inline-block;
     }
-}
-
-.force-print-style .certificate-image {
-    display: inline-block;
-    margin-right: 5.3125rem;
+  }
 }
 
 .force-print-style {
-    margin-top: 3125rem;
-}
+  margin-top: 3125rem;
 
-.force-print-style .container {
+  & .certificate-image {
+    display: inline-block;
+    margin-right: 5.3125rem;
+  }
+
+  & .container {
     width: auto;
+  }
 }
 
 .hidden-wrapper {
-    position: absolute;
-    left: -100%;
+  position: absolute;
+  left: -100%;
 }

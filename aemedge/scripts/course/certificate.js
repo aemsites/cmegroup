@@ -98,14 +98,14 @@ async function createCertificateModal({
           { class: 'footer' },
           createElement('img', {
             class: 'logo',
-            src: 'https://www.cmegroup.com//content/dam/cmegroup/images/cme-logo-new.png',
+            src: `${urlByEnvType()}/content/dam/cmegroup/images/cme-logo-new.png`,
             alt: '',
           }),
         ),
       ),
       createElement('img', {
         class: 'certificate-image',
-        src: 'https://www.cmegroup.com//content/dam/cmegroup/images/certificate-graphic.png',
+        src: `${urlByEnvType()}/content/dam/cmegroup/images/certificate-graphic.png`,
         alt: '',
       }),
     ),
