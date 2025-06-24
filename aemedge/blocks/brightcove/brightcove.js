@@ -121,6 +121,7 @@ function setPlayerReady(block, language, videoId) {
   languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
   languageVideoPlayer.on('loadeddata', () => {
     block.querySelector(`#cmeVideo${videoId}`).classList.remove('video-hidden');
+    block.querySelector(`#cmeVideo${videoId}`).closest('.brightcove-player').querySelector('.brightcove-img-placeholder').remove();
     const { name: videoName } = languageVideoPlayer.mediainfo;
     const percentsAlreadyTracked = [];
 
@@ -264,8 +265,16 @@ export default async function decorate(block) {
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
   const videoStyles = calculateStyles(aspectRatio, playlistLocation);
+  const placeholderImg = '../../aemedge/images/placeholder-img-video.jpg';
   block.innerHTML = `
   <div class='brightcove-player'>
+    <div
+      class='brightcove-img-placeholder'
+      loading="lazy"
+      alt="placeholder image video"
+      style="background-image: url('${placeholderImg}');"
+    >
+    </div>
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
         <div
