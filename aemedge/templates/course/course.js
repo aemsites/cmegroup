@@ -36,6 +36,7 @@ export default async function courseTemplate() {
       await addCourseCertificate({
         isLoggedIn,
         userName: loginInfo?.userName,
+        moduleId: courseData?.moduleId,
         lessonTitle: courseData?.title,
         completedModule: courseData?.endDate,
       });

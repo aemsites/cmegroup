@@ -136,6 +136,7 @@ export default async function lessonTemplate() {
         addCourseCertificate({
           isLoggedIn,
           userName: loginInfo?.userName,
+          moduleId: course?.moduleId,
           lessonTitle: course?.title,
           completedModule: course?.endDate,
           // the modal is opened automatically when the user completes the lesson
