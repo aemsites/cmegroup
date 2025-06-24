@@ -67,8 +67,10 @@
 
 .table.data table tbody tr td:not([class$="-header"]) {
   text-align: right;
-  font-family: Roboto-Mono;
+  font-family: var(--roboto-mono-font-family);
   font-size: 16px;
+  color: #25323c;
+  padding: 18px 20px;
 }
 
 .table.data table tbody tr td[class$="-header"] {

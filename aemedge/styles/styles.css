@@ -29,6 +29,7 @@
     /* fonts */
     --body-font-family: var(--averta), arial, sans-serif;
     --heading-font-family: var(--averta), arial, sans-serif;
+    --roboto-mono-font-family: roboto-mono, monospace;
 
     /* body sizes */
     --body-font-size-m: 16px;
