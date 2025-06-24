@@ -934,7 +934,6 @@ const customBlocks = async (document, main, meta, url) => {
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
   correctLinks(document);
-  // colorMap(document);
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
   //   form.remove();
