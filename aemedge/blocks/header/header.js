@@ -41,23 +41,23 @@ class Nav {
     this.searchDrawer = createElement('div', { class: 'search-drawer' });
     this.searchDrawerCloseBtn = createElement('button', { class: 'search-drawer-close' });
     this.nav = createElement('nav', { class: 'nav' });
-    this.rightSide = createElement('div', { class: 'right-side' });
+    this.desktopRightSide = createElement('div', { class: 'desktop-right-side' });
     this.mobileRightSide = createElement('div', { class: 'mobile-right-side' });
     this.searchBtn = this.decorateSearchNav();
     this.searchBtnMobile = this.decorateSearchNav();
     this.searchBtnMobileInNav = this.decorateSearchNav();
     this.navLoginBtn = createElement('button', { class: 'nav-login secondary' });
-    this.fauxNavbar = createElement('div', { class: 'nav-faux-navbar' });
+    this.mobileNavbar = createElement('div', { class: 'mobile-navbar' });
     this.wrapper = createElement('div', { class: 'nav-wrapper' }, this.nav);
-    this.userBtnDesktopContainer = createElement('div', { class: 'nav-nav-item has-menu user-btn-desktop-container' });
+    this.userBtnDesktopContainer = createElement('div', { class: 'navigation-item has-menu user-btn-desktop-container' });
     this.welcomeMessageDesktop = createElement('p');
     this.innerContentDesktop = '';
     this.innerContentMobile = '';
-    this.innerContainerDesktop = createElement('div', { class: 'nav-nav-item-menu' });
+    this.innerContainerDesktop = createElement('div', { class: 'test-menu' });
     this.navLogoutBtn = createElement('button', { class: 'nav-logout secondary' });
-    this.navItemMobile = createElement('li', { class: 'nav-nav-item has-menu' });
+    this.navItemMobile = createElement('li', { class: 'navigation-item has-menu' });
     this.navItemMobileAnchor = createElement('a');
-    this.innerContainerMobile = createElement('div', { class: 'nav-nav-item-menu' });
+    this.innerContainerMobile = createElement('div', { class: 'test-menu' });
     this.navLogoutBtnMobile = createElement('button', { class: 'nav-logout secondary' });
     this.loggedIn = false;
     this.loginInfo = {};
@@ -94,7 +94,7 @@ class Nav {
 
     if (cmeLogo) {
       const fauxBrand = cmeLogo.cloneNode(true);
-      this.fauxNavbar.append(fauxBrand);
+      this.mobileNavbar.append(fauxBrand);
       this.nav.append(cmeLogo);
     }
 
@@ -104,7 +104,7 @@ class Nav {
 
     this.mobileRightSide.append(this.searchBtnMobile);
     this.mobileRightSide.append(mobileToggle);
-    this.fauxNavbar.append(this.mobileRightSide);
+    this.mobileNavbar.append(this.mobileRightSide);
     const mobileRightSideInNav = createElement('div', { class: 'mobile-right-side-in-nav' });
     mobileRightSideInNav.append(this.searchBtnMobileInNav);
     mobileRightSideInNav.append(mobileCloseNav);
@@ -115,11 +115,11 @@ class Nav {
       this.nav.append(mainNav);
     }
 
-    this.rightSide.append(this.searchBtn);
+    this.desktopRightSide.append(this.searchBtn);
 
     const userBtn = await this.buildLoginDesktopNav();
     if (userBtn) {
-      this.rightSide.append(userBtn);
+      this.desktopRightSide.append(userBtn);
     }
 
     this.navLoginBtn.innerHTML = this.loginLabel;
@@ -127,9 +127,9 @@ class Nav {
       authStatus.login();
     });
     this.logBtnToRightSide();
-    this.wrapper.append(this.rightSide);
+    this.wrapper.append(this.desktopRightSide);
 
-    this.el.append(this.curtain, this.fauxNavbar);
+    this.el.append(this.curtain, this.mobileNavbar);
     this.el.append(this.curtain, this.wrapper);
 
     this.searchCurtain.addEventListener('click', async () => {
@@ -241,8 +241,8 @@ class Nav {
 
   logBtnToRightSide = () => {
     if (!this.loggedIn) {
-      this.rightSide.append(this.navLoginBtn);
-    } else if (this.rightSide.contains(this.navLoginBtn)) {
+      this.desktopRightSide.append(this.navLoginBtn);
+    } else if (this.desktopRightSide.contains(this.navLoginBtn)) {
       this.navLoginBtn.remove();
     }
   };
@@ -379,7 +379,7 @@ class Nav {
   };
 
   decorateMainNav = async () => {
-    const mainNav = createElement('ul', { class: 'nav-main-nav' });
+    const mainNav = createElement('ul', { class: 'navigation' });
     const primaryLinks = this.body.querySelectorAll('.primary h2 > a');
     const secondaryLinks = this.body.querySelectorAll('.secondary h2 > a');
 
@@ -399,7 +399,7 @@ class Nav {
       elementToRemove.remove();
     }
     const logContainer = createElement('div', { class: 'menu login' });
-    const logContainerInner = createElement('div');
+    const logContainerInner = createElement('div', { class: 'login-container' });
     const accountContainer = createElement('div', { class: 'account-container' });
     const ul = createElement('ul');
     const logLi = createElement('li');
@@ -450,7 +450,7 @@ class Nav {
       e.stopPropagation();
       this.toggleMenu(this.userBtnDesktopContainer);
     });
-    this.userBtnDesktopContainer.classList.add('login-desktop-nav');
+    // this.userBtnDesktopContainer.classList.add('login-desktop-nav');
     this.navLogoutBtn.innerHTML = this.logoutLabel;
     this.navLogoutBtn.addEventListener('click', async () => {
       authStatus.logout();
@@ -499,6 +499,7 @@ class Nav {
     this.logMobileGreeting();
     this.navItemMobileAnchor.href = '#';
     this.navItemMobileAnchor.setAttribute('role', 'button');
+    this.navItemMobileAnchor.classList.add('login-section-link');
     this.navItemMobileAnchor.setAttribute('aria-expanded', false);
     this.navItemMobileAnchor.setAttribute('aria-controls', 'login-nav-menu-0');
     this.navItemMobileAnchor.addEventListener('focus', () => {
@@ -528,13 +529,14 @@ class Nav {
     const promises = [];
     // eslint-disable-next-line no-restricted-syntax
     for (const [idx, navLink] of navLinks.entries()) {
-      const navItem = createElement('li', { class: 'nav-nav-item' });
+      const navItem = createElement('li', { class: 'navigation-item' });
       const navItemMenuContainer = navLink.closest('div');
       const mainHomeContainer = navItemMenuContainer.nextElementSibling;
       const menu = mainHomeContainer.parentElement.nextElementSibling;
       navItemMenuContainer.querySelector('h2').remove();
       navItem.appendChild(navLink);
       navItem.classList.add(menuType);
+      navLink.classList.add('section-link');
       if (menu.childElementCount > 0) {
         const id = `nav-menu-${idx}`;
         menu.id = id;
@@ -587,10 +589,12 @@ class Nav {
             groupMap.set(groupName, createElement('div', { class: `nav-subnav-item-group-${groupName}` }));
             subNav.appendChild(groupMap.get(groupName));
           }
-          groupMap.get(groupName).classList.add(`col-${totalCol}`);
+          groupMap.get(groupName).classList.add('sub-section');
+          groupMap.get(groupName).style.setProperty('--cols', totalCol);
           groupMap.get(groupName).appendChild(subNavItem);
         } else {
-          subNavItem.classList.add(`col-${totalCol}`);
+          subNavItem.classList.add('sub-section');
+          subNavItem.style.setProperty('--cols', totalCol);
           subNav.appendChild(subNavItem);
         }
       }
@@ -634,7 +638,7 @@ class Nav {
   };
 
   decorateMenu = async (navItem, navLink, menu, menuHomeLink) => {
-    menu.className = 'nav-nav-item-menu';
+    menu.className = 'test-menu';
     const menuPromo = menu.querySelector('div > a[href*="/fragment"]');
     const container = createElement('div', { class: 'nav-menu-container' });
     const subNav = createElement('ul', { class: 'nav-subnav' });
@@ -670,7 +674,7 @@ class Nav {
   };
 
   decorateSubMenu = (subNavItem, subNavLink, subMenu) => {
-    subMenu.className = 'nav-nav-item-submenu';
+    subMenu.className = 'test-submenu';
     subNavLink.addEventListener('focus', () => {
       window.addEventListener('keydown', this.toggleOnSpace);
     });
