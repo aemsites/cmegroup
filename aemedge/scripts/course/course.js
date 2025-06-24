@@ -69,9 +69,9 @@ export async function getCourseData() {
       lessons: [],
     };
 
-    let basePath = window.location.hostname.includes('beta.cmegroup.com') ? `/qa${COURSES_BASE_PATH}` : COURSES_BASE_PATH;
+    let basePath = COURSES_BASE_PATH;
     if (isLessonStandalone(template) && currentPath.includes('lessons')) {
-      basePath = window.location.hostname.includes('beta.cmegroup.com') ? `/qa${LESSONS_BASE_PATH}` : LESSONS_BASE_PATH;
+      basePath = LESSONS_BASE_PATH;
     }
 
     const relevantPath = currentPath.split(basePath)[1];
@@ -83,7 +83,7 @@ export async function getCourseData() {
     }
 
     // build the full course path or lesson path in case of standalone lesson
-    const coursePath = (template !== 'lesson-standalone') ? `${preBasePath}${COURSES_BASE_PATH}${course}` : `${preBasePath}${LESSONS_BASE_PATH}${course}`;
+    const coursePath = ((template !== 'lesson-standalone') ? `${preBasePath}${COURSES_BASE_PATH}${course}` : `${preBasePath}${LESSONS_BASE_PATH}${course}`).replace(/\.html$/, '').replace(/^\/qa/, '');
 
     // Check if we have cached data for this course
     const cachedData = getCachedCourseData(coursePath);
@@ -254,6 +254,9 @@ export async function createCourseBaseTemplate(courseData) {
     const readTimeIconSpan = createElement('span', { class: 'icon icon-timer' }, readTimeIcon);
     const readTimeValue = createElement('span', { class: 'value' }, readTime);
     const readTimeElement = createElement('div', { class: 'metadata read-time' }, readTimeIconSpan, readTimeValue);
+    header.appendChild(readTimeElement);
+  } else {  // if no read time, add empty div
+    const readTimeElement = createElement('div', { class: 'metadata read-time' });
     header.appendChild(readTimeElement);
   }
 
