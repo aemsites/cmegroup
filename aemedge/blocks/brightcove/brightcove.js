@@ -120,6 +120,7 @@ function setPlayerReady(block, language, videoId) {
   }
   languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
   languageVideoPlayer.on('loadeddata', () => {
+    block.querySelector(`#cmeVideo${videoId}`).classList.remove('video-hidden');
     const { name: videoName } = languageVideoPlayer.mediainfo;
     const percentsAlreadyTracked = [];
 
@@ -276,7 +277,7 @@ export default async function decorate(block) {
             data-account="${accountId}"
             data-player="${dataPlayer}"
             data-embed="default"
-            class="cmeBcVideo" 
+            class="cmeBcVideo video-hidden" 
             controls=""
             ${playlistId !== '' ? `data-playlist-id="${playlistId}"` : ''}
             ${playlistId !== '' && videoId ? `data-playlist-video-id="${videoId}"` : ''}
