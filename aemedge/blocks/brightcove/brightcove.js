@@ -265,14 +265,10 @@ export default async function decorate(block) {
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
   const videoStyles = calculateStyles(aspectRatio, playlistLocation);
-  const placeholderImg = '../../aemedge/images/placeholder-img-video.jpg';
   block.innerHTML = `
   <div class='brightcove-player'>
     <div
       class='brightcove-img-placeholder'
-      loading="lazy"
-      alt="placeholder image video"
-      style="background-image: url('${placeholderImg}');"
     >
     </div>
     <div class='brightcove-video'>
