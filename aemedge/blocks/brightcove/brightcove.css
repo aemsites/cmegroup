@@ -25,13 +25,13 @@
 }
 
 .brightcove-video {
-  margin-bottom: 30px;
+  margin-bottom: 1.875rem;
 }
 
 .video-js {
     display: inline-block;
     position: relative !important;
-    min-height: 354px;
+    min-height: 22.125rem;
 }
 
 .vjs-playlist-player-container .vjs-playlist-sidebar-horizontal {

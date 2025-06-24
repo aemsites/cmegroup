@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Configuration</title>
+    <link rel="stylesheet" href="filterconfig.css">
+</head>
+<body>
+    <div class="tabs-container">
+        <div class="tabs">
+            <button class="tab-button active" data-tab="config-tab">Configuration</button>
+            <!-- <button class="tab-button" data-tab="tagger-tab">Tagger</button> -->
+        </div>
+
+        <div class="tab-content active" id="config-tab">
+            <div class="config-section">
+                <h2>Template Selection</h2>
+                <div class="input-with-copy">
+                    <div class="template-select-container">
+                        <div class="template-option">
+                            <input type="checkbox" id="template-articles" value="articles" class="template-checkbox">
+                            <label for="template-articles">Articles</label>
+                        </div>
+                        <div class="template-option">
+                            <input type="checkbox" id="template-course" value="course" class="template-checkbox">
+                            <label for="template-course">Course</label>
+                        </div>
+                        <div class="template-option">
+                            <input type="checkbox" id="template-lesson" value="lesson" class="template-checkbox">
+                            <label for="template-lesson">Lesson</label>
+                        </div>
+                        <div class="template-option">
+                            <input type="checkbox" id="template-standalone" value="standalone-lesson" class="template-checkbox">
+                            <label for="template-standalone">Standalone Lesson</label>
+                        </div>
+                    </div>
+                    <button class="copy-button" data-copy="template">
+                        <span class="copy-icon">📋</span>
+                        <span class="copy-tooltip">Copy Templates</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h2>Path Selection</h2>
+                <div class="input-with-copy path-selection-container">
+                    <div class="path-multiselect-container">
+                        <div class="selected-paths"></div>
+                        <input type="text" id="path-input" class="form-control" placeholder="Type to search paths...">
+                        <div class="path-dropdown" style="display: none;">
+                            <div class="path-tree"></div>
+                        </div>
+                    </div>
+                    <button class="copy-button" data-copy="path">
+                        <span class="copy-icon">📋</span>
+                        <span class="copy-tooltip">Copy Paths</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h2>Card Type Selection</h2>
+                <div class="input-with-copy">
+                    <select id="card-type-select" class="form-control">
+                        <option value="">Select card type</option>
+                        <option value="course-card">Course Card</option>
+                        <option value="lesson-card">Lesson Card</option>
+                        <option value="default-card">Default Card</option>
+                        <option value="course-card-image">Course Card with Image</option>
+                        <option value="lesson-card-image">Lesson Card with Image</option>
+                    </select>
+                    <button class="copy-button" data-copy="card">
+                        <span class="copy-icon">📋</span>
+                        <span class="copy-tooltip">Copy Card Type</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- <div class="tab-content" id="tagger-tab">
+            <div class="intro">
+                <p>Once you click on a tag, it will populate at the bottom of this window.
+                When you have picked all the tags, click "Insert" to add them to your document.</p>
+            </div>
+            <div class="filter">
+                <input 
+                    type="text" 
+                    id="tag-search" 
+                    placeholder="Type to filter tags..." 
+                    autocomplete="off"
+                    class="tags-search"
+                    role="searchbox"
+                    aria-label="Search tags"
+                />
+            </div>
+            <div id="tag-selected" class="hidden">
+                <div class="selected-header">Currently Selected Tags</div>
+                <div class="selected-tags"></div>
+                <div class="button-group">
+                    <button class="copy">Copy</button>
+                    <button class="clear">Clear</button>
+                </div>
+            </div>
+            <div id="tag-results">
+            </div>
+            <textarea id="tag-copybuffer" class="offscreen"></textarea>
+        </div> -->
+    </div>
+    <script src="filterconfig.js" type="module"></script>
+</body>
+</html>

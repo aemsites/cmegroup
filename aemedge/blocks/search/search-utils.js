@@ -101,18 +101,21 @@ const populateFromURL = () => {
 
     filters.forEach((filterValue) => {
       // Find the corresponding checkbox
-      const checkbox = document.querySelector(`.dropdown-option-checkbox[value$="/${filterValue}"],
+      const checkboxboxes = document.querySelectorAll(`.dropdown-option-checkbox[value$="/${filterValue}"],
         .dropdown-option-checkbox[value="${filterValue}"], .checkbox-input[value$="/${filterValue}"],
         .checkbox-input[value="${filterValue}"]`);
-      if (checkbox) {
-        checkbox.checked = true;
-        // Add to applied filters
-        const filterId = checkbox.closest('.dropdown')?.id || checkbox.closest('.checkbox')?.id || '';
-        const labelContent = checkbox.closest('.dropdown')?.querySelector('.dropdown-option-label')?.textContent
-          || checkbox.nextElementSibling?.textContent;
-        if (filterId) {
-          addAppliedFilter(filterId, checkbox.value, labelContent);
-        }
+
+      if (checkboxboxes?.length) {
+        checkboxboxes.forEach((checkbox) => {
+          checkbox.checked = true;
+          // Add to applied filters
+          const filterId = checkbox.closest('.dropdown')?.id || checkbox.closest('.checkbox')?.id || '';
+          const labelContent = checkbox.closest('.dropdown')?.querySelector('.dropdown-option-label')?.textContent
+            || checkbox.nextElementSibling?.textContent;
+          if (filterId) {
+            addAppliedFilter(filterId, checkbox.value, labelContent);
+          }
+        });
       }
     });
   }

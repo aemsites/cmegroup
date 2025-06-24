@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 import { readBlockConfig } from '../../scripts/aem.js';
-import { createOptimizedPicture } from '../../scripts/scripts.js';
+import createOptimizedPicture from '../../scripts/utils/picture.js';
+import { fetchAndFilterDataIndex } from '../../scripts/indexing.js';
 import {
   createElement,
   parseTime,
@@ -13,8 +14,17 @@ import {
   getUTCfromDateString,
 } from '../../scripts/utils.js';
 
-const QUERY_INDEX_ENDPOINT = '/query-index.json';
 const ECONOMIC_EVENTS_ENDPOINT = `${urlByEnvType()}/services/economic-release-events`;
+
+function buildIndexConfig(config) {
+  return {
+    template: config.template,
+    tagsAnd: config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [],
+    tagsOr: config['optional-tags'] ? config['optional-tags'].split(',').map((tag) => tag.trim().toLowerCase()) : [],
+    relativeDateFrom: config['relative-date-from'], // Number in days
+    relativeDateTo: config['relative-date-to'], // Number in days
+  };
+}
 
 async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
@@ -38,7 +48,7 @@ async function createStaticCards(block) {
   } else if (block.classList.contains('event')) {
     const backgroundUrl = block.querySelector('picture img').src;
     const title = block.querySelector('h3');
-    const text = block.querySelector('p');
+    const text = title.nextElementSibling;
     const btn = block.querySelector('.button-container');
     const mainContainer = title.parentElement;
     const titleContainer = document.createElement('div');
@@ -110,7 +120,7 @@ async function createStaticCards(block) {
       cardDate.className = 'cards-date';
       cardDate.innerText = date;
       const cardTitle = document.createElement('h3');
-      cardTitle.innerText = title;
+      cardTitle.innerHTML = title;
 
       mainContainer.append(cardTime);
       mainContainer.append(cardDate);
@@ -217,7 +227,7 @@ export async function createDynamicCardArticle({ content }) {
   cardDate.innerText = `${day} ${month}`;
 
   const cardTitle = document.createElement('h3');
-  cardTitle.innerText = title;
+  cardTitle.innerHTML = title;
 
   mainContainer.append(cardTime, cardDate, cardTitle);
   linkEl.append(imageContainer, mainContainer);
@@ -257,41 +267,14 @@ function createDynamicCardUpcomingEvent(content) {
 }
 
 export async function fetchAndFilterDataCourse(searchTags = []) {
-  try {
-    const response = await fetch(QUERY_INDEX_ENDPOINT);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const { data } = await response.json();
-
-    const filtered = data.filter((item) => {
-      const templateMatch = item.template?.toLowerCase() === 'course';
-
-      if (!searchTags.length) return templateMatch;
-
-      let itemTags = [];
-      try {
-        if (item.tags?.length > 0) {
-          const tagsString = item.tags.map((tag) => tag.replace(/\\"/g, '"').replace(/'/g, '"'));
-          itemTags = tagsString.map((tag) => tag.toLowerCase());
-        }
-      } catch (e) {
-        return false;
-      }
-
-      const tagMatch = searchTags.every((searchTag) => itemTags.some((itemTag) => itemTag.includes(searchTag)));
-      return templateMatch && tagMatch;
-    });
-
-    return filtered;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error loading data:', error);
-    return [];
-  }
+  const data = await fetchAndFilterDataIndex({
+    template: 'course',
+    tagsAnd: searchTags,
+  });
+  return data;
 }
 
-export async function fetchAndFilterDataArticle(endpoint) {
+export async function fetchAndFilterDataLegacyEndpoint(endpoint) {
   try {
     const response = await fetch(endpoint);
     if (!response.ok) {
@@ -314,7 +297,7 @@ function getCurrentDateFormatted() {
   return `${year}-${month}-${day}`;
 }
 
-async function fetchAndFilterUpcomingEvent() {
+async function fetchAndFilterUpcomingEconodayEvent() {
   try {
     const opts = {
       method: 'POST',
@@ -340,9 +323,8 @@ async function fetchAndFilterUpcomingEvent() {
   }
 }
 
-async function createDynamicCards(block) {
+export async function createDynamicCards(block, numEntries = null) {
   const config = readBlockConfig(block);
-  const ul = createElement('ul');
   let filteredData;
   let cardElements;
   let sliderConfig = null;
@@ -350,7 +332,16 @@ async function createDynamicCards(block) {
   let inverse = false;
   if (block.classList.contains('course')) {
     const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
-    filteredData = await fetchAndFilterDataCourse(tags);
+    const indexConfig = buildIndexConfig(config);
+    indexConfig.template = 'course';
+    indexConfig.tagsOr = tags;
+    filteredData = await fetchAndFilterDataIndex(indexConfig);
+    // Sort by timestamp in descending order
+    filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // If numEntries is specified, slice the array to that length
+    if (numEntries) {
+      filteredData = filteredData.slice(0, numEntries);
+    }
     sliderConfig = {
       slidesToShow: 'auto',
       slidesToScroll: 1,
@@ -373,7 +364,7 @@ async function createDynamicCards(block) {
     cardElements = filteredData.map(createDynamicCard);
   } else if (block.classList.contains('article')) {
     const { endpoint } = config;
-    filteredData = await fetchAndFilterDataArticle(endpoint);
+    filteredData = await fetchAndFilterDataLegacyEndpoint(endpoint);
     cardElements = await Promise.all(filteredData.map(createDynamicCardArticle));
     sliderConfig = {
       slidesToShow: 'auto',
@@ -395,38 +386,60 @@ async function createDynamicCards(block) {
     disabledOnDesktop = true;
   } else if (block.classList.contains('thumbnail-medium')) {
     const { endpoint } = config;
-    filteredData = await fetchAndFilterDataArticle(endpoint);
+    filteredData = await fetchAndFilterDataLegacyEndpoint(endpoint);
     cardElements = await Promise.all(filteredData.map(createDynamicCardThumbnailMedium));
   } else if (block.classList.contains('upcoming-events')) {
-    filteredData = await fetchAndFilterUpcomingEvent();
-    cardElements = await Promise.all(filteredData.map(createDynamicCardUpcomingEvent));
-    sliderConfig = {
-      slidesToShow: 'auto',
-      slidesToScroll: 1,
-      scrollLock: false,
-      itemWidth: 249,
-      exactWidth: true,
-      draggable: true,
-      duration: 2,
-      responsive: [
-        {
-          breakpoint: 993,
-          settings: {
-            itemWidth: 324,
+    if (block.classList.contains('econoday-events')) {
+      filteredData = await fetchAndFilterUpcomingEconodayEvent();
+    } else {
+      const indexConfig = buildIndexConfig(config);
+      indexConfig.template = 'event';
+      indexConfig.relativeDateFrom = 0;
+      indexConfig.relativeDateTo = 365;
+      indexConfig.orderBy = 'date';
+      indexConfig.sortDirection = 'asc';
+      indexConfig.limit = 10;
+      filteredData = await fetchAndFilterDataIndex(indexConfig);
+      filteredData.forEach((obj) => {
+        obj.eventName = obj.title;
+        obj.url = obj.path;
+      });
+    }
+    if (filteredData.length > 0) {
+      cardElements = filteredData.map(createDynamicCardUpcomingEvent);
+      sliderConfig = {
+        slidesToShow: 'auto',
+        slidesToScroll: 1,
+        scrollLock: false,
+        itemWidth: 249,
+        exactWidth: true,
+        draggable: true,
+        duration: 2,
+        responsive: [
+          {
+            breakpoint: 993,
+            settings: {
+              itemWidth: 324,
+            },
           },
-        },
-      ],
-    };
+        ],
+      };
+    }
   } else {
     cardElements = [];
   }
-  ul.append(...cardElements);
-  const cardsContainer = createElement('div', null, ul);
-  block.appendChild(cardsContainer);
-  if (sliderConfig) {
-    buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
+  if (cardElements && cardElements.length) {
+    const ul = createElement('ul', null, ...cardElements);
+    const cardsContainer = createElement('div', null, ul);
+    block.appendChild(cardsContainer);
+    if (sliderConfig) {
+      buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
+    }
+    return cardsContainer;
   }
-  return cardsContainer;
+  const noResultsLabel = createElement('h4', null, 'No results found');
+  const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
+  return noResults;
 }
 
 export default async function decorate(block) {

@@ -90,3 +90,20 @@
     opacity: 1;
   }
 }
+
+.cards .glider::-webkit-scrollbar {
+    opacity: 0;
+    height: 0
+}
+
+.cards .no-results {
+  border: 1px solid #112b4a;
+  color: #112b4a;
+  font-size: 2.125rem;
+  margin: .9375rem auto;
+  text-align: center;
+
+  & h4 {
+    padding: 1.25rem;
+  }
+}
