@@ -160,9 +160,8 @@ async function setMetadata(meta, document, url) {
  * @returns {HTMLElement} - The block separator.
  */
 export const blockSeparator = () => {
-  const p = document.createElement('p');
-  p.innerText = '---';
-  return p;
+  const hr = document.createElement('hr');
+  return hr;
 };
 
 /**
@@ -229,14 +228,14 @@ const convertSectionsToMetadata = (document) => {
       if (index !== sections.length - 1) {
         const nextSibling = sectionMetadata.nextElementSibling;
         const deepest = getDeepestFirstChild(nextSibling);
-        if (deepest?.textContent.trim() !== '---') {
+        if (deepest?.tagName !== 'HR') {
           sectionMetadata.after(blockSeparator().cloneNode(true));
         }
       }
       if (index !== 0) {
         const prevSibling = section.previousElementSibling;
         const deepest = getDeepestLastChild(prevSibling);
-        if (deepest?.textContent.trim() !== '---') {
+        if (deepest?.tagName !== 'HR') {
           section.before(blockSeparator().cloneNode(true));
         }
       }
@@ -256,14 +255,14 @@ const mapRowsToSection = (document) => {
       const prevSibling = row.previousElementSibling;
       const deepest = getDeepestLastChild(prevSibling);
 
-      if (deepest?.textContent.trim() !== '---') {
+      if (deepest?.tagName !== 'HR') {
         row.before(separator);
       }
 
       const nextSibling = row.nextElementSibling;
       const deepestNext = getDeepestFirstChild(nextSibling);
 
-      if (deepestNext?.textContent.trim() !== '---') {
+      if (deepestNext?.tagName !== 'HR') {
         row.after(blockSeparator().cloneNode(true));
       }
     }
@@ -561,12 +560,12 @@ const accordionBlock = async (document) => {
 };
 
 const removeExtraSectionBreak = (document) => {
-  const paragraphs = document.querySelectorAll('p');
+  const paragraphs = document.querySelectorAll('hr');
   for (let i = 0; i < paragraphs.length - 1; i += 1) {
     const currentP = paragraphs[i];
     const nextP = paragraphs[i + 1];
     if (currentP.nextElementSibling === nextP) {
-      if (currentP.textContent.trim() === '---' && nextP.textContent.trim() === '---') {
+      if (currentP.tagName === 'HR' && nextP.tagName === 'HR') {
         nextP.remove();
       }
     }
