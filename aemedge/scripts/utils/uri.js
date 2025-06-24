@@ -513,3 +513,22 @@ export class URIUtil {
     }
   }
 }
+
+/*
+  * Appends query params to a URL
+  * @param {string} url The URL to append query params to
+  * @param {object} params The query params to append
+  * @returns {string} The URL with query params appended
+  * @private
+  * @example
+  * appendQueryParams('https://example.com', { foo: 'bar' });
+  * // returns 'https://example.com?foo=bar'
+*/
+export function appendQueryParams(url, params) {
+  const { searchParams } = url;
+  params.forEach((value, key) => {
+    searchParams.set(key, value);
+  });
+  url.search = searchParams.toString();
+  return url.toString();
+}
