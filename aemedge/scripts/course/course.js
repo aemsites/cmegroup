@@ -8,12 +8,16 @@ import {
 import { getMetadata } from '../aem.js';
 import { getProgress, postLesson } from '../services/EducationTrackService.js';
 
-const COURSES_BASE_PATH = '/education/courses/';
-const LESSONS_BASE_PATH = '/education/lessons/';
+const COURSES_BASE_PATH = window.location.hostname.includes('beta.cmegroup.com')
+  ? '/qa/education/courses/'
+  : '/education/courses/';
+const LESSONS_BASE_PATH = window.location.hostname.includes('beta.cmegroup.com')
+  ? '/qa/education/lessons/'
+  : '/education/lessons/';
 const COURSES_INDEX_PATH = '/courses-index.json';
 const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone'];
 const CACHE_KEY = 'course_data';
-// TODO: Anuj, we need to review this cache timing again.
+// TODO: we need to review this cache timing again.
 const CACHE_EXPIRATION_PROD = 0; // 15 * 60 * 1000; // 15 minutes in milliseconds
 const CACHE_EXPIRATION_STAGE = 0; // 30 * 1000; // 30 seconds in milliseconds
 
