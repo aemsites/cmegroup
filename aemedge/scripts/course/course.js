@@ -255,7 +255,7 @@ export async function createCourseBaseTemplate(courseData) {
     const readTimeValue = createElement('span', { class: 'value' }, readTime);
     const readTimeElement = createElement('div', { class: 'metadata read-time' }, readTimeIconSpan, readTimeValue);
     header.appendChild(readTimeElement);
-  } else {  // if no read time, add empty div
+  } else { // if no read time, add empty div
     const readTimeElement = createElement('div', { class: 'metadata read-time' });
     header.appendChild(readTimeElement);
   }
