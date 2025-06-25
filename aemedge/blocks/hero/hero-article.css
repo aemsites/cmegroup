@@ -157,6 +157,10 @@
 }
 
 @media (width > 480px) {
+  .hero.article {
+    --centered-title-width: 57%;
+  }
+
   .hero.article h1 {
     font-size: 2.625rem;
     letter-spacing: .0125rem;
@@ -170,12 +174,6 @@
 
   .hero.article .save-text {
     display: block;
-  }
-}
-
-@media (width > 500px) {
-  .hero.article {
-    --centered-title-width: 57%;
   }
 }
 
