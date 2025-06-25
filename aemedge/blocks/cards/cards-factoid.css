@@ -1,0 +1,37 @@
+/* Factoid card styling - creates a centered dark blue box with white text */
+
+.cards.factoid ul {
+    display: block;
+    justify-content: space-between;
+}
+
+.cards.factoid li {
+    width: 70%;
+    background-color: #071b34;
+    margin: 0 auto 2rem;
+    display: flex;
+    align-items: center;
+}
+
+.cards.factoid li .cards-card-body {
+    width: 100%;
+    color: var(--white);
+    padding: 1.25rem;
+    margin: 0;
+}
+
+.cards.factoid li .cards-card-body p {
+    margin: 0;
+}
+
+@media (width >= 769px) {
+    .cards.factoid li .cards-card-body {
+        padding: 1.875rem;
+    }
+}
+
+@media (width >= 993px) {
+    .cards.factoid ul {
+        display: flex;
+    }
+}
