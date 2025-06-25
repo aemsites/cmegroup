@@ -1,6 +1,7 @@
 import {
   createCourseBaseTemplate, getCourseData, updateLessonStatus, getCurrentLesson,
 } from '../../scripts/course/course.js';
+import { addCourseCertificate } from '../../scripts/course/certificate.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
@@ -126,6 +127,21 @@ export default async function lessonTemplate() {
       if (isCorrect && !lesson?.completed) {
         const updatedCourse = await updateLessonStatus(true);
         store.dispatch(courseDataChange(updatedCourse));
+      }
+    });
+    //  courseData change event
+    store.subscribe(({ courseData: course }) => course, (course) => {
+      if (course?.completed) {
+        const { isLoggedIn, loginInfo } = authenticationData;
+        addCourseCertificate({
+          isLoggedIn,
+          userName: loginInfo?.userName,
+          moduleId: course?.moduleId,
+          lessonTitle: course?.title,
+          completedModule: course?.endDate,
+          // the modal is opened automatically when the user completes the lesson
+          showModal: isLoggedIn && !lesson?.completed,
+        });
       }
     });
   });

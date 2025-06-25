@@ -86,11 +86,3 @@ main > .section > div {
   }
 }
 
-@media (width > 1200px) {
-  main > .section {
-    padding-inline: unset;
-    padding-left: calc(8.33333% - 12.16667px);
-    padding-right: calc(8.33333% - 12.16667px);
-    width: calc(66.66667% - 127.33333px);
-  }
-}
