@@ -1,4 +1,8 @@
 body.modal-open {
+  position: fixed;
+  top: calc(var(--scroll-y, 0px) * -1);
+  left: 0;
+  width: 100%;
   overflow: hidden;
 }
 

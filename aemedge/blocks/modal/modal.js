@@ -43,6 +43,12 @@ export async function createModal(contentNodes) {
 
   dialog.addEventListener('close', () => {
     document.body.classList.remove('modal-open');
+    
+    // Restore scroll position
+    const scrollY = parseInt(document.documentElement.style.getPropertyValue('--scroll-y') || '0', 10);
+    document.documentElement.style.removeProperty('--scroll-y');
+    window.scrollTo(0, scrollY);
+    
     block.remove();
   });
 
@@ -52,6 +58,8 @@ export async function createModal(contentNodes) {
   return {
     block,
     showModal: () => {
+      const scrollY = window.scrollY;
+      document.documentElement.style.setProperty('--scroll-y', `${scrollY}px`);
       dialog.showModal();
       // reset scroll position
       setTimeout(() => { dialogContent.scrollTop = 0; }, 0);
