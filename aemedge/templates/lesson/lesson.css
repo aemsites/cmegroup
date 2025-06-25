@@ -1,4 +1,5 @@
 @import "../course/course-base.css";
+@import "../course/certificate.css";
 
 .lateral-navigation {
     background-color: var(--blue2);
