@@ -13,7 +13,7 @@ const LESSONS_BASE_PATH = '/education/lessons/';
 const COURSES_INDEX_PATH = '/courses-index.json';
 const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone'];
 const CACHE_KEY = 'course_data';
-// TODO: Anuj, we need to review this cache timing again.
+// TODO: we need to review this cache timing again.
 const CACHE_EXPIRATION_PROD = 0; // 15 * 60 * 1000; // 15 minutes in milliseconds
 const CACHE_EXPIRATION_STAGE = 0; // 30 * 1000; // 30 seconds in milliseconds
 
@@ -83,7 +83,7 @@ export async function getCourseData() {
     }
 
     // build the full course path or lesson path in case of standalone lesson
-    const coursePath = (template !== 'lesson-standalone') ? `${preBasePath}${COURSES_BASE_PATH}${course}` : `${preBasePath}${LESSONS_BASE_PATH}${course}`;
+    const coursePath = ((template !== 'lesson-standalone') ? `${preBasePath}${COURSES_BASE_PATH}${course}` : `${preBasePath}${LESSONS_BASE_PATH}${course}`).replace(/\.html$/, '').replace(/^\/qa/, '');
 
     // Check if we have cached data for this course
     const cachedData = getCachedCourseData(coursePath);
@@ -254,6 +254,9 @@ export async function createCourseBaseTemplate(courseData) {
     const readTimeIconSpan = createElement('span', { class: 'icon icon-timer' }, readTimeIcon);
     const readTimeValue = createElement('span', { class: 'value' }, readTime);
     const readTimeElement = createElement('div', { class: 'metadata read-time' }, readTimeIconSpan, readTimeValue);
+    header.appendChild(readTimeElement);
+  } else { // if no read time, add empty div
+    const readTimeElement = createElement('div', { class: 'metadata read-time' });
     header.appendChild(readTimeElement);
   }
 
