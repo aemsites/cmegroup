@@ -6,6 +6,12 @@ main > .section {
   padding-inline: 24px;
   padding-top: 3.75rem;
   width: 100%;
+  box-sizing: border-box;
+}
+
+main > .section > div {
+  padding-inline: unset !important;
+  width: 100% !important;
 }
 
 /* Course header styling */
@@ -26,6 +32,9 @@ main > .section {
 
 .course-header .metadata.read-time {
   text-align: left;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .course-header .metadata.type {

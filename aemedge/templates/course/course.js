@@ -12,14 +12,14 @@ async function addBeginCourseButton(courseData) {
   const buttonContainer = createElement('div', { class: 'button-container begin-course-button' }, beginCourseButton);
   main.querySelector('.section')?.lastChild.after(buttonContainer);
 
-  if (courseData.hasChapters) {
-    const firstChapter = courseData.chapters.length > 0 ? courseData.chapters[0] : null;
-    const firstLesson = firstChapter?.lessons.length > 0 ? firstChapter.lessons[0] : null;
+  if (courseData.lessons.length > 0) {
+    const firstLesson = courseData.lessons.length > 0 ? courseData.lessons[0] : null;
     if (firstLesson) {
       beginCourseButton.href = firstLesson.path;
     }
-  } else {
-    const firstLesson = courseData.lessons.length > 0 ? courseData.lessons[0] : null;
+  } else if (courseData.hasChapters) {
+    const firstChapter = courseData.chapters.length > 0 ? courseData.chapters[0] : null;
+    const firstLesson = firstChapter?.lessons.length > 0 ? firstChapter.lessons[0] : null;
     if (firstLesson) {
       beginCourseButton.href = firstLesson.path;
     }
