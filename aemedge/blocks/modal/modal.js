@@ -30,6 +30,8 @@ export async function createModal(contentNodes) {
   decorateBlock(block);
   await loadBlock(block);
 
+  let savedScrollY = 0;
+
   // close on click outside the dialog
   dialog.addEventListener('click', (e) => {
     const {
@@ -42,12 +44,21 @@ export async function createModal(contentNodes) {
   });
 
   dialog.addEventListener('close', () => {
-    document.body.classList.remove('modal-open');
+    const originalScrollBehavior = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = 'auto';
 
-    // Restore scroll position
-    const scrollY = parseInt(document.documentElement.style.getPropertyValue('--scroll-y') || '0', 10);
+    document.body.classList.remove('modal-open');
     document.documentElement.style.removeProperty('--scroll-y');
-    window.scrollTo(0, scrollY);
+
+    document.scrollingElement.scrollTop = savedScrollY;
+
+    requestAnimationFrame(() => {
+      if (originalScrollBehavior) {
+        document.documentElement.style.scrollBehavior = originalScrollBehavior;
+      } else {
+        document.documentElement.style.removeProperty('scroll-behavior');
+      }
+    });
 
     block.remove();
   });
@@ -58,8 +69,8 @@ export async function createModal(contentNodes) {
   return {
     block,
     showModal: () => {
-      const { scrollY } = window;
-      document.documentElement.style.setProperty('--scroll-y', `${scrollY}px`);
+      savedScrollY = window.scrollY;
+      document.documentElement.style.setProperty('--scroll-y', `${savedScrollY}px`);
       dialog.showModal();
       // reset scroll position
       setTimeout(() => { dialogContent.scrollTop = 0; }, 0);
