@@ -66,6 +66,10 @@ async function setMetadata(meta, document, url) {
       template: 'article',
       subTemplate: 'standard',
     },
+    'cme-group-podcast-article-template': {
+      template: 'article',
+      subTemplate: 'podcast',
+    },
     basepage: {
       template: 'chapter',
     },
@@ -332,8 +336,10 @@ const articleHeroBlock = (document, meta) => {
     const bgImage = hero.style.backgroundImage;
     const imgUrl = bgImage.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
     let heroName = 'Hero (Article)';
-    if (meta['Sub Template'] === 'faqs' || meta['Sub Template'] === 'standard' || meta['Sub Template'] === 'video') {
-      heroName = 'Hero (Article, Overlapping)'; // TODO inform team about this block variant
+    if (meta['Sub Template'] === 'faqs') {
+      heroName = 'Hero (Article, faq)';
+    } else if (meta['Sub Template'] === 'standard' || meta['Sub Template'] === 'video' || meta['Sub Template'] === 'podcast') {
+      heroName = 'Hero (Article, Overlapping)'; // still pending
     }
     const cells = [[heroName]];
 
@@ -343,12 +349,17 @@ const articleHeroBlock = (document, meta) => {
     anchor.textContent = anchor.href;
 
     const h1 = document.createElement('h1');
-    h1.innerText = hero.querySelector('h1')?.innerText || '';
+    h1.innerText = hero.querySelector('h1')?.innerText || document.querySelector('h1')?.innerText || '';
 
     const div = document.createElement('div');
     div.appendChild(anchor);
     if (h1.innerText) {
       div.appendChild(h1);
+      if (hero.querySelector('h1')) {
+        hero.querySelector('h1').remove();
+      } else if (document.querySelector('h1')) {
+        document.querySelector('h1').remove();
+      }
     }
 
     tempData.push(div);
