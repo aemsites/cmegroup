@@ -440,9 +440,11 @@ const dividerBlock = (document) => {
 
   if (dividers?.length) {
     dividers.forEach((divider) => {
-      const cells = [['Divider']];
-      const table = WebImporter.DOMUtils.createTable(cells, document);
-      divider.replaceWith(table);
+      if (!divider.closest('table')) {
+        const cells = [['Divider']];
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        divider.replaceWith(table);
+      }
     });
   }
 };
@@ -734,27 +736,36 @@ const convertImagesToLinks = (document) => {
   const images = document.querySelectorAll('.component.image');
 
   images.forEach((image) => {
-    const div = document.createElement('div');
-    let imgUrl = image.getAttribute('data-img-src');
-    // check if imgUrl is absolute vs relative
-    if (imgUrl.startsWith('/')) {
-      imgUrl = `${DOMAIN}${imgUrl}`;
-    }
+    if (image.querySelector('img')) {
+      const div = document.createElement('div');
+      let imgUrl = image.getAttribute('data-img-src');
+      // check if imgUrl is absolute vs relative
+      if (imgUrl?.startsWith('/')) {
+        imgUrl = `${DOMAIN}${imgUrl}`;
+      }
 
-    const anchor = document.createElement('a');
-    anchor.href = imgUrl;
-    anchor.textContent = `${anchor.href}`;
+      const anchor = document.createElement('a');
+      anchor.href = imgUrl;
+      anchor.textContent = `${anchor.href}`;
 
-    const dataImgStyle = image.getAttribute('data-img-style');
-    if (dataImgStyle === 'lightbox-gallery' || dataImgStyle === 'lightbox') {
-      const tempStrong = document.createElement('strong');
-      tempStrong.appendChild(anchor);
-      div.appendChild(tempStrong);
-    } else {
-      div.appendChild(anchor);
+      const dataImgStyle = image.getAttribute('data-img-style');
+      const caption = image.querySelector('em');
+
+      if (dataImgStyle === 'lightbox-gallery' || dataImgStyle === 'lightbox') {
+        const tempStrong = document.createElement('strong');
+        tempStrong.appendChild(anchor);
+        div.appendChild(tempStrong);
+      } else {
+        div.appendChild(anchor);
+      }
+
+      div.appendChild(document.createElement('br'));
+      if (caption) {
+        div.appendChild(caption);
+      }
+
+      image.replaceWith(div);
     }
-    div.appendChild(document.createElement('br'));
-    image.replaceWith(div);
   });
 };
 
@@ -781,7 +792,10 @@ const sidebarBlock = (document, type = 'left') => {
           } else if (!firstDiv?.classList.contains('title')) {
             topDivider = true;
           }
-        } else if (dividers.length > 1) {
+          dividers.forEach((divider) => {
+            divider.remove();
+          });
+        } else if (dividers.length === 2) {
           const firstDiv = sidebar.querySelector(':scope>div:first-child');
           if (firstDiv.classList.contains('title')) {
             const h5 = document.createElement('h5');
@@ -792,11 +806,23 @@ const sidebarBlock = (document, type = 'left') => {
             topDivider = true;
             bottomDivider = true;
           }
-        }
+          dividers.forEach((divider) => {
+            divider.remove();
+          });
+        } else if (dividers.length > 1) {
+          topDivider = true;
+          bottomDivider = true;
 
-        dividers.forEach((divider) => {
-          divider.remove();
-        });
+          dividers.forEach((divider, index) => {
+            if (index === 0 || index === dividers.length - 1) {
+              divider.remove();
+            } else {
+              const tempP = document.createElement('p');
+              tempP.textContent = '---';
+              divider.replaceWith(tempP);
+            }
+          });
+        }
 
         let textContent = 'Sidebar';
         const tempArr = [type];
@@ -930,6 +956,7 @@ const oneClickSubToFragment = (document) => {
 };
 
 const customBlocks = async (document, main, meta, url) => {
+  figCaptionEmphasize(document);
   convertImagesToLinks(document);
   mapRowsToSection(document);
   tableBlock(document);
@@ -962,7 +989,6 @@ const customBlocks = async (document, main, meta, url) => {
   document.querySelector('.course-nav')?.remove();
 
   brightCoveVideo(document);
-  figCaptionEmphasize(document);
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
   correctLinks(document);
