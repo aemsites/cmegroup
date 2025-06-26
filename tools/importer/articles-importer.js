@@ -401,7 +401,10 @@ const promoBlock = (document) => {
 
       const cells = [[`CTA (Promo, ${theme})`]];
       if (link) {
-        cells.push(['URL', `${DOMAIN}${path}`]);
+        const tempAnchor = document.createElement('a');
+        tempAnchor.href = `${DOMAIN}${path}`;
+        tempAnchor.textContent = tempAnchor.href;
+        cells.push(['URL', tempAnchor]);
       }
       if (imgSrc) {
         const anchor = document.createElement('a');
@@ -829,10 +832,40 @@ const correctLinks = (document) => {
   links.forEach((link) => {
     if (link.href) {
       try {
-        if (link?.href.endsWith('.html')) {
-          const { pathname } = new URL(link.href);
-          if (pathname.startsWith('/education/')) {
-            link.href = link.href.replace('.html', '');
+        if (link?.href) {
+          const completeLink = new URL(link.href);
+          const { pathname } = completeLink;
+          const oldHref = link.href;
+
+          if (pathname?.endsWith('.html')) {
+            if (pathname.startsWith('/education/')) {
+              link.href = link.href.replace('.html', '');
+              if (link.href.startsWith('/')) {
+                link.href = `${EDS_DOMAIN}${link.href}`;
+              } else {
+                completeLink.hostname = EDS_DOMAIN.replace('https://', '');
+                completeLink.protocol = 'https';
+                completeLink.port = '';
+                link.href = completeLink.toString();
+                link.href = link.href.replace('.html', '');
+              }
+            } else if (link.href.startsWith('/')) {
+              // relative path
+              link.href = `${DOMAIN}${link.href}`;
+            } else {
+              // absolute path domain changed
+              completeLink.hostname = DOMAIN.replace('https://', '');
+              completeLink.protocol = 'https';
+              completeLink.port = '';
+              if (link.href === link.textContent) {
+                link.textContent = completeLink.toString();
+              }
+              link.href = completeLink.toString();
+            }
+
+            if (link.textContent === oldHref) {
+              link.textContent = link.href;
+            }
           }
         }
       } catch (error) {
