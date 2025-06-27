@@ -424,6 +424,30 @@ function decorateTextHighlights(main) {
   });
 }
 
+function guardContent(main) {
+  let isLoggedIn = false;
+  const validateUrl = 'https://www.cmegroup.com/services/login/validate?isProtected&_t=1751026694359';
+  fetch(validateUrl)
+    .then(response => response.json())
+    .then(data => {
+      isLoggedIn = data.isLoggedIn;
+    })
+    .catch(error => {
+      isLoggedIn = false;
+    });
+
+  if (!isLoggedIn) {
+    const protectedBlocks = main.querySelectorAll('.block.protected');
+    protectedBlocks.forEach((protectedBlock) => {
+      if (protectedBlock.classList.contains('blur')) {
+        protectedBlock.classList.add('blur');
+      } else {
+        protectedBlock.style.display = 'none';
+      }
+    });
+  }
+}
+
 /**
  * Decorates the main element.
  * @param {Element} main The main element
@@ -442,6 +466,7 @@ export function decorateMain(main) {
   decorateSidebars(main);
   decorateLightboxImages(main); // decorate-lightbox the bolded pictures of decorateExternalImages
   decorateTextHighlights(main);
+  guardContent(main);
 }
 
 /**
