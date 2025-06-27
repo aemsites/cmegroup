@@ -13,6 +13,13 @@ body .header .nav-wrapper .nav-desktop-right {
     padding-right: 5.5rem;
   }
 
+  & .utilities {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.625rem;
+  }
+
   & .navigation-item {
     font-size: 1rem;
     text-transform: uppercase;
@@ -175,12 +182,21 @@ body .header .nav-wrapper .nav-desktop-right {
     &.btn-user-menu-toggle {
       border: none;
       padding: 0;
+      align-items: center;
+      display: inline-flex;
+      justify-content: center;
+      height: 2.5rem;
 
       &::before {
         font-family: var(--cme-group-icons);
         font-size: 1rem;
         font-weight: normal;
       }
+    }
+
+    &.btn-search,
+    &.user-menu {
+      width: 2.5rem;
     }
 
     &.btn-search::before {

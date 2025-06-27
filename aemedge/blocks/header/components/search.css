@@ -1,4 +1,4 @@
-.search-drawer {
+.search-panel {
     background: var(--gray2);
     bottom: 0;
     display: none;
@@ -23,7 +23,7 @@
         min-width: 46.875rem;
     }
 
-    & .search-drawer-close {
+    & .btn-search-panel-close {
         background: none;
         color: var(--white);
         cursor: pointer;

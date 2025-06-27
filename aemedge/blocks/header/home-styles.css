@@ -32,6 +32,14 @@ body .header {
           @media (width >= 993px) {
             background-color: transparent;
           }
+          & .site-header-logo {
+            & svg {
+              & > path {
+                fill: var(--white);
+              }
+            }
+          }
+
           & .navigation {
             & .navigation-item {
               &::before {

@@ -206,13 +206,13 @@ export default async function initFloatingElements(doc, header) {
 
       const navMenus = doc.querySelectorAll('.submenu');
       navMenus.forEach((menu) => {
-        if (menu.closest('.navigation-item.has-menu.is-open')) {
+        if (menu.closest('.is-open')) {
           menu.style.top = `${offsetTop}px`;
         } else {
           menu.style.top = '-312.5rem';
         }
       });
-      const menuOpen = doc.querySelector('.nav-curtain.is-open');
+      const menuOpen = doc.querySelector('.nav-overlay.is-open');
       if (menuOpen) {
         menuOpen.style.top = `${offsetTop}px`;
       }

@@ -170,8 +170,6 @@ body {
             & .submenu {
               background-color: var(--blue2);
               display: none;
-              /* max-height: calc(100vh - 6.25rem); */
-              /* overflow-y: auto; */
 
               & ul {
                 list-style: none;
@@ -532,9 +530,6 @@ body {
         }
 
         & .mobile-right-side-in-nav {
-          & .btn-search {
-            color: inherit;
-          }
           @media (width >= 993px) {
             display: none;
           }

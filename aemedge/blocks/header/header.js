@@ -38,11 +38,12 @@ class Nav {
     this.login.classList.add('menu');
     this.navOverlay = createElement('div', { class: 'nav-overlay' });
     this.searchOverlay = createElement('div', { class: 'search-overlay' });
-    this.searchDrawer = createElement('div', { class: 'search-drawer' });
-    this.searchDrawerCloseBtn = createElement('button', { class: 'search-drawer-close' });
+    this.searchDrawer = createElement('div', { class: 'search-panel' });
+    this.searchDrawerCloseBtn = createElement('button', { class: 'btn-search-panel-close' });
     this.nav = createElement('nav', { class: 'nav' });
-    this.desktopRightSide = createElement('div', { class: 'nav-desktop-right' });
+    this.navDesktopRight = createElement('div', { class: 'nav-desktop-right' });
     this.mobileRightSide = createElement('div', { class: 'site-header-right' });
+    this.utilities = createElement('div', { class: 'utilities' });
     this.searchBtn = this.decorateSearchNav();
     this.searchBtnMobile = this.decorateSearchNav();
     this.searchBtnMobileInNav = this.decorateSearchNav();
@@ -115,11 +116,12 @@ class Nav {
       this.nav.append(mainNav);
     }
 
-    this.desktopRightSide.append(this.searchBtn);
+    this.navDesktopRight.append(this.utilities);
+    this.utilities.append(this.searchBtn);
 
     const userBtn = await this.buildLoginDesktopNav();
     if (userBtn) {
-      this.desktopRightSide.append(userBtn);
+      this.utilities.append(userBtn);
     }
 
     this.navLoginBtn.innerHTML = this.loginLabel;
@@ -127,7 +129,7 @@ class Nav {
       authStatus.login();
     });
     this.logBtnToRightSide();
-    this.wrapper.append(this.desktopRightSide);
+    this.wrapper.append(this.navDesktopRight);
 
     this.el.append(this.navOverlay, this.mobileNavbar);
     this.el.append(this.navOverlay, this.wrapper);
@@ -184,7 +186,7 @@ class Nav {
         updateLogoReferences();
         updateHeaderState();
         if (crossedBreakpointDown) {
-          const openMenu = document.querySelector('.has-menu.is-open');
+          const openMenu = document.querySelector('.is-open');
           if (openMenu) {
             this.toggleMenu(openMenu);
           }
@@ -241,8 +243,8 @@ class Nav {
 
   logBtnToRightSide = () => {
     if (!this.loggedIn) {
-      this.desktopRightSide.append(this.navLoginBtn);
-    } else if (this.desktopRightSide.contains(this.navLoginBtn)) {
+      this.navDesktopRight.append(this.navLoginBtn);
+    } else if (this.navDesktopRight.contains(this.navLoginBtn)) {
       this.navLoginBtn.remove();
     }
   };
@@ -360,7 +362,7 @@ class Nav {
     const desktop = window.matchMedia('(min-width: 993px)');
     if (desktop.matches) {
       curtain.addEventListener('click', async () => {
-        this.toggleMenu(document.querySelector('.has-menu.is-open'));
+        this.toggleMenu(document.querySelector('.is-open'));
       });
     }
     curtain.addEventListener('click', async () => {
@@ -700,6 +702,7 @@ class Nav {
   openNav = (nav, onMediaChange) => {
     nav.parentElement.classList.add(IS_OPEN);
     nav.classList.add(IS_OPEN);
+    nav.classList.add(IS_OPEN);
     this.desktop.addEventListener('change', onMediaChange);
     this.navOverlay.classList.add(IS_OPEN);
   };
@@ -717,8 +720,12 @@ class Nav {
   toggleMenu = (el) => {
     const desktop = window.matchMedia('(min-width: 993px)');
     if (desktop.matches) {
-      const elSiblings = Array.from(el.parentNode.children);
-      elSiblings.forEach((sibling) => {
+      const leftElements = document.querySelector('.navigation');
+      const hijosLeft = Array.from(leftElements.children);
+      const rightElements = document.querySelector('.nav-desktop-right');
+      const hijos = Array.from(rightElements.children);
+      const combinados = [...hijosLeft, ...hijos];
+      combinados.forEach((sibling) => {
         if (sibling.classList.contains('is-open') && sibling !== el) {
           this.closeMenu(sibling);
         }
@@ -726,7 +733,7 @@ class Nav {
     }
     if (el && el.classList.contains('is-open')) {
       this.closeMenu(el);
-    } else {
+    } else if (!el.classList.contains('nav-overlay')) {
       this.openMenu(el);
     }
   };
@@ -737,16 +744,15 @@ class Nav {
     document.body.classList.remove('curtain-visible');
     document.removeEventListener('click', this.closeOnDocClick);
     window.removeEventListener('keydown', this.closeOnEscape);
-    const menuToggle = el.querySelector('[aria-expanded]');
+    const menuToggle = document.querySelector('[aria-expanded="true"]');
     menuToggle.setAttribute('aria-expanded', false);
+    menuToggle.parentElement.classList.remove(IS_OPEN);
   };
 
-  openMenu = (el, userIcon) => {
+  openMenu = (el) => {
     el.classList.add(IS_OPEN);
-    if (!userIcon) {
-      this.navOverlay.classList.add(IS_OPEN);
-      document.body.classList.add('curtain-visible');
-    }
+    this.navOverlay.classList.add(IS_OPEN);
+    document.body.classList.add('curtain-visible');
     const menuToggle = el.querySelector('[aria-expanded]');
     menuToggle.setAttribute('aria-expanded', true);
     document.addEventListener('click', this.closeOnDocClick);
@@ -763,7 +769,7 @@ class Nav {
 
   closeOnEscape = (e) => {
     if (e.code === 'Escape') {
-      this.toggleMenu(document.querySelector('.has-menu.is-open'));
+      this.toggleMenu(document.querySelector('.is-open'));
     }
   };
 
