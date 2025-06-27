@@ -121,7 +121,6 @@ function setPlayerReady(block, language, videoId) {
   languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
   languageVideoPlayer.on('loadeddata', () => {
     document.getElementById(`cmeVideo${videoId}`).classList.remove('video-hidden');
-    document.getElementById(`cmeVideo${videoId}`).closest('.brightcove-player').querySelector('.brightcove-img-placeholder').remove();
     const { name: videoName } = languageVideoPlayer.mediainfo;
     const percentsAlreadyTracked = [];
 
@@ -267,9 +266,6 @@ export default async function decorate(block) {
   const videoStyles = calculateStyles(aspectRatio, playlistLocation);
   block.innerHTML = `
   <div class='brightcove-player'>
-    <div
-      class='brightcove-img-placeholder'
-    >
     </div>
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
