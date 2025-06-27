@@ -20,7 +20,7 @@ async function loadTabContent(fragmentPath) {
 async function getLogoSVG() {
   const answer = await fetch('/aemedge/icons/cme-logo.svg');
   const svgContent = await answer.text();
-  const logoContainer = createElement('div', { class: 'logo' });
+  const logoContainer = createElement('div', { class: 'site-header-logo' });
   if (logoContainer) {
     logoContainer.innerHTML = svgContent;
   }
@@ -36,28 +36,28 @@ class Nav {
     this.login = this.body.querySelector('.login');
     this.login.classList.remove('header');
     this.login.classList.add('menu');
-    this.curtain = createElement('div', { class: 'nav-curtain' });
-    this.searchCurtain = createElement('div', { class: 'search-curtain' });
+    this.navOverlay = createElement('div', { class: 'nav-overlay' });
+    this.searchOverlay = createElement('div', { class: 'search-overlay' });
     this.searchDrawer = createElement('div', { class: 'search-drawer' });
     this.searchDrawerCloseBtn = createElement('button', { class: 'search-drawer-close' });
     this.nav = createElement('nav', { class: 'nav' });
-    this.desktopRightSide = createElement('div', { class: 'desktop-right-side' });
-    this.mobileRightSide = createElement('div', { class: 'mobile-right-side' });
+    this.desktopRightSide = createElement('div', { class: 'nav-desktop-right' });
+    this.mobileRightSide = createElement('div', { class: 'site-header-right' });
     this.searchBtn = this.decorateSearchNav();
     this.searchBtnMobile = this.decorateSearchNav();
     this.searchBtnMobileInNav = this.decorateSearchNav();
     this.navLoginBtn = createElement('button', { class: 'nav-login secondary' });
-    this.mobileNavbar = createElement('div', { class: 'mobile-navbar' });
+    this.mobileNavbar = createElement('div', { class: 'site-header-mobile-bar' });
     this.wrapper = createElement('div', { class: 'nav-wrapper' }, this.nav);
-    this.userBtnDesktopContainer = createElement('div', { class: 'navigation-item has-menu user-btn-desktop-container' });
+    this.userBtnDesktopContainer = createElement('div', { class: 'user-menu' });
     this.welcomeMessageDesktop = createElement('p');
     this.innerContentDesktop = '';
     this.innerContentMobile = '';
-    this.innerContainerDesktop = createElement('div', { class: 'test-menu' });
+    this.innerContainerDesktop = createElement('div', { class: 'submenu' });
     this.navLogoutBtn = createElement('button', { class: 'nav-logout secondary' });
     this.navItemMobile = createElement('li', { class: 'navigation-item has-menu' });
     this.navItemMobileAnchor = createElement('a');
-    this.innerContainerMobile = createElement('div', { class: 'test-menu' });
+    this.innerContainerMobile = createElement('div', { class: 'submenu' });
     this.navLogoutBtnMobile = createElement('button', { class: 'nav-logout secondary' });
     this.loggedIn = false;
     this.loginInfo = {};
@@ -100,7 +100,7 @@ class Nav {
 
     const mobileToggle = this.decorateToggle(this.nav);
     const mobileCloseNav = this.decorateCloseNav(this.nav);
-    this.curtain = this.decorateCurtain(this.nav);
+    this.navOverlay = this.decorateCurtain(this.nav);
 
     this.mobileRightSide.append(this.searchBtnMobile);
     this.mobileRightSide.append(mobileToggle);
@@ -129,10 +129,10 @@ class Nav {
     this.logBtnToRightSide();
     this.wrapper.append(this.desktopRightSide);
 
-    this.el.append(this.curtain, this.mobileNavbar);
-    this.el.append(this.curtain, this.wrapper);
+    this.el.append(this.navOverlay, this.mobileNavbar);
+    this.el.append(this.navOverlay, this.wrapper);
 
-    this.searchCurtain.addEventListener('click', async () => {
+    this.searchOverlay.addEventListener('click', async () => {
       this.closeSearchDrawer();
     });
 
@@ -141,10 +141,10 @@ class Nav {
     });
     this.searchDrawer.append(this.searchDrawerCloseBtn);
 
-    this.el.append(this.searchCurtain);
+    this.el.append(this.searchOverlay);
     this.el.append(this.searchDrawer);
 
-    const baseLogo = document.querySelectorAll('.logo');
+    const baseLogo = document.querySelectorAll('.site-header-logo');
     let logoContainer;
 
     function updateLogoReferences() {
@@ -317,7 +317,7 @@ class Nav {
 
   decorateToggle = (nav) => {
     const toggle = createElement('button', {
-      class: 'icon-toggle nav-toggle',
+      class: 'btn-menu-toggle',
       'aria-label': 'Navigation menu',
       'aria-expanded': false,
     });
@@ -325,7 +325,7 @@ class Nav {
       if (e.matches) {
         nav.parentElement.classList.remove(IS_OPEN);
         nav.classList.remove(IS_OPEN);
-        this.curtain.classList.remove(IS_OPEN);
+        this.navOverlay.classList.remove(IS_OPEN);
       }
     };
     toggle.addEventListener('click', async () => {
@@ -336,7 +336,7 @@ class Nav {
 
   decorateCloseNav = (nav) => {
     const closeNav = createElement('button', {
-      class: 'icon-close nav-close',
+      class: 'btn-menu-close icon-close',
       'aria-label': 'Navigation close menu',
       'aria-expanded': false,
     });
@@ -348,7 +348,7 @@ class Nav {
 
   // eslint-disable-next-line class-methods-use-this
   decorateSearchNav = () => {
-    const searchBtn = createElement('button', { class: 'search-icon' });
+    const searchBtn = createElement('button', { class: 'btn-search' });
     searchBtn.addEventListener('click', async () => {
       this.openSearchDrawer();
     });
@@ -356,7 +356,7 @@ class Nav {
   };
 
   decorateCurtain = (nav) => {
-    const curtain = createElement('div', { class: 'nav-curtain' });
+    const curtain = createElement('div', { class: 'nav-overlay' });
     const desktop = window.matchMedia('(min-width: 993px)');
     if (desktop.matches) {
       curtain.addEventListener('click', async () => {
@@ -435,7 +435,7 @@ class Nav {
   };
 
   buildLoginDesktopNav = async () => {
-    const loginUserBtn = createElement('button', { class: 'login-user-icon' });
+    const loginUserBtn = createElement('button', { class: 'btn-user-menu-toggle' });
     this.logDesktopGreeting();
     loginUserBtn.setAttribute('aria-expanded', false);
     loginUserBtn.setAttribute('aria-controls', 'login-nav-menu-0');
@@ -499,7 +499,7 @@ class Nav {
     this.logMobileGreeting();
     this.navItemMobileAnchor.href = '#';
     this.navItemMobileAnchor.setAttribute('role', 'button');
-    this.navItemMobileAnchor.classList.add('login-section-link');
+    this.navItemMobileAnchor.classList.add('login-navigation-link');
     this.navItemMobileAnchor.setAttribute('aria-expanded', false);
     this.navItemMobileAnchor.setAttribute('aria-controls', 'login-nav-menu-0');
     this.navItemMobileAnchor.addEventListener('focus', () => {
@@ -536,7 +536,7 @@ class Nav {
       navItemMenuContainer.querySelector('h2').remove();
       navItem.appendChild(navLink);
       navItem.classList.add(menuType);
-      navLink.classList.add('section-link');
+      navLink.classList.add('navigation-link');
       if (menu.childElementCount > 0) {
         const id = `nav-menu-${idx}`;
         menu.id = id;
@@ -544,7 +544,7 @@ class Nav {
         navLink.setAttribute('role', 'button');
         navLink.setAttribute('aria-expanded', false);
         navLink.setAttribute('aria-controls', id);
-        mainHomeContainer.classList.add('main-home-link');
+        mainHomeContainer.classList.add('submenu-home-link');
         promises.push(this.decorateMenu(navItem, navLink, menu, mainHomeContainer)
           .then((decoratedMenu) => {
             navItem.appendChild(decoratedMenu);
@@ -565,8 +565,8 @@ class Nav {
   buildSubNav = (menu, subNav, subNavLinks, subMenuType, totalCol) => {
     const groupMap = new Map();
     subNavLinks.forEach((subNavLink, idx) => {
-      const subNavItem = createElement('li', { class: 'nav-subnav-item' });
-      const subNavItemLink = createElement('a', { class: 'nav-subnav-item-link' });
+      const subNavItem = createElement('li', { class: 'submenu-item' });
+      const subNavItemLink = createElement('a', { class: 'submenu-link' });
       const subMenu = subNavLink.parentElement.nextElementSibling.getElementsByTagName('li')[0].getElementsByTagName('ul')[0];
       subNavItemLink.appendChild(subNavLink.cloneNode(true));
       subNavItem.appendChild(subNavItemLink);
@@ -586,7 +586,7 @@ class Nav {
         if (parentDiv && parentDiv.querySelector('ul + p em')) {
           const groupName = parentDiv.querySelector('ul + p em').textContent.trim();
           if (!groupMap.has(groupName)) {
-            groupMap.set(groupName, createElement('div', { class: `nav-subnav-item-group-${groupName}` }));
+            groupMap.set(groupName, createElement('div'));
             subNav.appendChild(groupMap.get(groupName));
           }
           groupMap.get(groupName).classList.add('sub-section');
@@ -618,7 +618,7 @@ class Nav {
 
   // eslint-disable-next-line class-methods-use-this
   decoratePromoBox = async (menuPromo) => {
-    const promoBox = createElement('div', { class: 'promo-box-subnav' });
+    const promoBox = createElement('div', { class: 'promo-box-column' });
     const fragmentPromises = [];
 
     if (menuPromo) {
@@ -638,23 +638,23 @@ class Nav {
   };
 
   decorateMenu = async (navItem, navLink, menu, menuHomeLink) => {
-    menu.className = 'test-menu';
+    menu.className = 'submenu';
     const menuPromo = menu.querySelector('div > a[href*="/fragment"]');
-    const container = createElement('div', { class: 'nav-menu-container' });
-    const subNav = createElement('ul', { class: 'nav-subnav' });
+    // const container = createElement('div', { class: 'submenu-content' });
+    const subNav = createElement('ul', { class: 'submenu-list' });
     const subMenuLi = menu.querySelectorAll('p em');
     const columnsNotPromo = menu.querySelectorAll('div:not(:has(> a))').length;
     if (subMenuLi.length > 0) {
       this.buildSubNav(menu, subNav, subMenuLi, 'sub-nav', columnsNotPromo);
     }
-    container.append(subNav);
+    // container.append(subNav);
     menu.innerHTML = '';
-    const desktopMenuContainer = createElement('div', { class: 'item-menu-container' });
-    const desktopMenuColumn = createElement('div', { class: 'item-menu-column' });
+    const desktopMenuContainer = createElement('div', { class: 'submenu-container' });
+    const desktopMenuColumn = createElement('div', { class: 'submenu-column' });
     menu.append(desktopMenuContainer);
     desktopMenuContainer.append(desktopMenuColumn);
     desktopMenuColumn.append(menuHomeLink);
-    desktopMenuColumn.append(container);
+    desktopMenuColumn.append(subNav);
 
     navLink.addEventListener('focus', () => {
       window.addEventListener('keydown', this.toggleOnSpace);
@@ -666,7 +666,7 @@ class Nav {
       e.preventDefault();
       e.stopPropagation();
       this.toggleMenu(navItem);
-      if (!desktopMenuContainer.querySelectorAll('.promo-box-subnav').length > 0) {
+      if (!desktopMenuContainer.querySelectorAll('.promo-box-column').length > 0) {
         this.getPromoBox(menuPromo, desktopMenuContainer);
       }
     });
@@ -701,7 +701,7 @@ class Nav {
     nav.parentElement.classList.add(IS_OPEN);
     nav.classList.add(IS_OPEN);
     this.desktop.addEventListener('change', onMediaChange);
-    this.curtain.classList.add(IS_OPEN);
+    this.navOverlay.classList.add(IS_OPEN);
   };
 
   closeNav = (nav) => {
@@ -709,7 +709,7 @@ class Nav {
     if (nav.classList.contains(IS_OPEN)) {
       nav.parentElement.classList.remove(IS_OPEN);
       nav.classList.remove(IS_OPEN);
-      this.curtain.classList.remove(IS_OPEN);
+      this.navOverlay.classList.remove(IS_OPEN);
     }
     allElOpen.forEach((element) => this.closeMenu(element));
   };
@@ -733,7 +733,7 @@ class Nav {
 
   closeMenu = (el) => {
     el.classList.remove(IS_OPEN);
-    this.curtain.classList.remove(IS_OPEN);
+    this.navOverlay.classList.remove(IS_OPEN);
     document.body.classList.remove('curtain-visible');
     document.removeEventListener('click', this.closeOnDocClick);
     window.removeEventListener('keydown', this.closeOnEscape);
@@ -744,7 +744,7 @@ class Nav {
   openMenu = (el, userIcon) => {
     el.classList.add(IS_OPEN);
     if (!userIcon) {
-      this.curtain.classList.add(IS_OPEN);
+      this.navOverlay.classList.add(IS_OPEN);
       document.body.classList.add('curtain-visible');
     }
     const menuToggle = el.querySelector('[aria-expanded]');
@@ -769,7 +769,7 @@ class Nav {
 
   openSearchDrawer = () => {
     document.body.classList.add('curtain-visible');
-    this.searchCurtain.classList.add(IS_OPEN);
+    this.searchOverlay.classList.add(IS_OPEN);
     this.searchDrawer.classList.add(IS_OPEN);
     const searchComponent = renderSearch();
     this.searchDrawer.append(searchComponent);
@@ -777,7 +777,7 @@ class Nav {
 
   closeSearchDrawer = () => {
     document.body.classList.remove('curtain-visible');
-    this.searchCurtain.classList.remove(IS_OPEN);
+    this.searchOverlay.classList.remove(IS_OPEN);
     this.searchDrawer.classList.remove(IS_OPEN);
   };
 }

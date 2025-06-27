@@ -204,7 +204,7 @@ export default async function initFloatingElements(doc, header) {
       header.style.top = `${visibleAlertsHeight - 1}px`;
       main.style.paddingTop = `${offsetTop}px`;
 
-      const navMenus = doc.querySelectorAll('.test-menu');
+      const navMenus = doc.querySelectorAll('.submenu');
       navMenus.forEach((menu) => {
         if (menu.closest('.navigation-item.has-menu.is-open')) {
           menu.style.top = `${offsetTop}px`;

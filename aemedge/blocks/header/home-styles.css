@@ -1,0 +1,52 @@
+body .header {
+  &.home {
+    .site-header-mobile-bar {
+      transition: 0.1s ease-in, top 0.7s, background-color 0.5s;
+    }
+    &.transparent {
+      @media (width >= 993px) {
+        background-color: rgba(58, 70, 79, 0.8);
+        box-shadow: 0 0.125rem 0.25rem 0 rgba(0, 0, 0, 0.2);
+      }
+
+      & .nav-desktop-right {
+        & button {
+          color: var(--white);
+        }
+      }
+
+      & .site-header-mobile-bar {
+        background-color: rgba(58, 70, 79, 0.8);
+        box-shadow: 0 0.125rem 0.25rem 0 rgba(0, 0, 0, 0.2);
+      }
+
+      & button.btn-menu-toggle,
+      & button.btn-menu-close,
+      & button.btn-search {
+        color: var(--gray6);
+      }
+      & .nav-wrapper {
+        & .nav {
+          background-color: rgba(58, 70, 79, 0.8);
+
+          @media (width >= 993px) {
+            background-color: transparent;
+          }
+          & .navigation {
+            & .navigation-item {
+              &::before {
+                color: var(--white);
+              }
+              & > a {
+                color: var(--white);
+                @media (width >= 993px) {
+                  background-color: transparent;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
