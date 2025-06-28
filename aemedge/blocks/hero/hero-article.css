@@ -1,4 +1,4 @@
-.hero-container .hero-wrapper:not(:has(.article)) {
+/* .hero-container .hero-wrapper:not(:has(.article)) {
   max-width: unset;
   padding: 0;
 }
@@ -197,4 +197,4 @@
     padding-inline: 5rem;
     padding-block: 4rem;
   }
-}
+} */

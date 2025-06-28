@@ -144,6 +144,7 @@ function i18n(key) {
  */
 async function getArticleRelatedMetadata() {
   const template = getMetadata('template');
+  const subTemplate = getMetadata('sub-template');
   const readTime = getMetadata('read-time');
   const author = getMetadata('author');
   const primaryTopic = getMetadata('primary-topic');
@@ -153,6 +154,7 @@ async function getArticleRelatedMetadata() {
 
   return {
     template,
+    subTemplate,
     readTime,
     author: authorTag.title,
     primaryTopic: primaryTopicTag.title,
