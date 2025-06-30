@@ -114,13 +114,5 @@
 
     &:last-child {
         width: 25%;
-
-        p {
-            text-align: right;
-
-            a {
-                padding: 0;
-            }
-        }
     }
 }
