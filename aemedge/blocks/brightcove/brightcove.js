@@ -299,5 +299,5 @@ export default async function decorate(block) {
   </div>
   `;
 
-  loadVideoLibrary(block, accountId, dataPlayer, language, videoId);
+  window.setTimeout(() => loadVideoLibrary(block, accountId, dataPlayer, language, videoId), 10000);
 }
