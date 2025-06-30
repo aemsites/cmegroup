@@ -620,26 +620,17 @@ function decorateBlock(block) {
 
   // customId
   let customIdValue = null;
-
-  // Iterate through the direct children of the 'block' element
   // eslint-disable-next-line no-restricted-syntax
   for (const childDiv of block.children) {
-    // Check if the child is a DIV element
     if (childDiv.tagName === 'DIV') {
-      // Within this DIV, find the first inner DIV that contains a <p> element
-      // with the text 'customId'.
       const keyDiv = childDiv.querySelector('div > p');
-
       if (keyDiv && keyDiv.textContent.trim() === 'customId') {
-        // If 'customId' is found, the value will be in the next sibling DIV
-        // within the current childDiv.
         const valueDiv = keyDiv.parentElement.nextElementSibling;
-
         if (valueDiv) {
           const pElement = valueDiv.querySelector('p');
           if (pElement) {
             customIdValue = pElement.textContent.trim();
-            break; // Exit the loop once customId is found
+            break;
           }
         }
       }
