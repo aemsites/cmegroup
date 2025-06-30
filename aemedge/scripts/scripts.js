@@ -22,6 +22,7 @@ import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.
 import { checkDomain, createElement } from './utils.js';
 import createOptimizedPicture from './utils/picture.js';
 import { appendQueryParams } from './utils/uri.js';
+import { getIsLoggedIn } from './services/AuthenticationService.js';
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
@@ -425,18 +426,7 @@ function decorateTextHighlights(main) {
 }
 
 function guardContent(main) {
-  let isLoggedIn = false;
-  const validateUrl = 'https://www.cmegroup.com/services/login/validate?isProtected&_t=1751026694359';
-  fetch(validateUrl)
-    .then(response => response.json())
-    .then(data => {
-      isLoggedIn = data.isLoggedIn;
-    })
-    .catch(error => {
-      isLoggedIn = false;
-    });
-
-  if (!isLoggedIn) {
+  if (!getIsLoggedIn()) {
     const protectedBlocks = main.querySelectorAll('.block.protected');
     protectedBlocks.forEach((protectedBlock) => {
       if (protectedBlock.classList.contains('blur')) {
