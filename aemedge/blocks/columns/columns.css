@@ -107,3 +107,12 @@
         }
     }
 }
+
+.columns.column-75-25 > div > div {
+    flex: auto;
+    width: 75%;
+
+    &:last-child {
+        width: 25%;
+    }
+}
