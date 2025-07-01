@@ -91,8 +91,8 @@ main > .section > div {
   max-width: 30.3125rem;
   max-height: 13.75rem;
 
-  .modal-content {
-    .modal-header {
+  & .modal-content {
+    & .modal-header {
       display: flex;
       align-items: center;
       justify-content: left;
@@ -100,7 +100,7 @@ main > .section > div {
       padding-bottom: 0.625rem;
       margin-bottom: 0.625rem;
 
-      .modal-title {
+      & .modal-title {
         font-family: var(--averta);
         font-weight: 600;
         text-transform: none;
@@ -112,7 +112,7 @@ main > .section > div {
       }
     }
         
-    .modal-body {
+    & .modal-body {
       font-family: var(--averta);
       font-weight: 400;
       font-size: 1rem;
@@ -122,8 +122,8 @@ main > .section > div {
       padding: 0;
       margin-bottom: 1.75rem;
 
-      .login-handler,
-      .registration-handler {
+      & .login-handler,
+      & .registration-handler {
         color: var(--blue4);
           &:hover {
             text-decoration: underline;
