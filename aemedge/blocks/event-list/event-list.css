@@ -1,6 +1,42 @@
 .event-list {
     display: block;
 
+    & .month-navigation {
+        padding: 1.375rem 0;
+        width: 100%;
+
+        @media (width >= 769px) {
+            width: 25%;
+        }
+    }
+
+    & .list-divider {
+        margin-top: 0.625rem;
+        margin-bottom: 2.3125rem;
+        display: flex;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+        gap: 1.875rem;
+
+        & .list-divider-line {
+            flex: 1;
+            border-top: 0.125rem solid var(--gray3);
+        }
+
+        .list-divider-text {
+            white-space: nowrap;
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.5rem;
+
+            @media (width >= 769px) {
+                font-size: 1.625rem;
+                line-height: 1.9375rem;
+            }
+        }
+    }
+
     & .card {
         display: flex;
         flex-flow: row nowrap;

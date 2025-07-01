@@ -1,0 +1,133 @@
+.month-selector-container {
+    width: 100%;
+    position: relative;
+
+    & .month-selector-button {
+        padding: 0.5rem;
+        height: 2.25rem;
+        font-size: 0.875rem;
+        line-height: normal;
+        background-color: var(--gray3);
+        color: var(--white);
+        font-family: var(--averta);
+        font-weight: 400;
+        border-radius: 0;
+        width: 100%;
+        box-sizing: border-box;
+        position: relative;
+        cursor: pointer;
+
+        & .icon {
+            margin-left: auto;
+            height: 1.125rem;
+            width: 1.125rem;
+
+            & img {
+                filter: var(--blue5-filter);
+            }
+        }
+
+        &[aria-expanded="true"] {
+            border: 1px solid var(--blue5);
+
+            & + .month-selector-dropdown {
+                visibility: visible;
+            }
+        }
+
+        &[aria-expanded="false"] + .month-selector-dropdown {
+            visibility: hidden;
+        }
+    }
+
+    & .month-selector-dropdown {
+        background-color: var(--gray3);
+        color: var(--white);
+        border: 0;
+        margin: 0 !important;
+        padding: 0.75rem 1.375rem 1.375rem 1.375rem;
+        position: absolute;
+        inset: 0.1875rem auto auto 0;
+        transform: translate3d(0, 2.0625rem, 0);
+        overflow: auto;
+        width: calc(100% - 2.75rem);
+        z-index: 1000;
+
+        @media (width >= 481px) {
+            inset: 0.1875rem 0 auto auto;
+        }
+
+        @media (width >= 1201px) {
+            inset: 0.1875rem auto auto 0;
+        }
+
+        &.open-up {
+            top: calc(var(--height) - 2.0625rem);
+        }
+
+        & .month-selector-year-wrapper {
+            color: var(--white);
+            display: flex;
+            position: relative;
+            align-items: center;
+            margin-bottom: 1.6875rem;
+
+            & .year-content {
+                font-weight: 700;
+                margin: 0 auto;
+                padding-top: 6px;
+            }
+
+            & .icon {
+                width: 0.5406rem;
+                height: 1rem;
+
+                & img {
+                    width: 0.5406rem;
+                    height: 1rem;
+                    filter: var(--blue5-filter);
+                }
+            }
+        }
+
+        & .month-selector-months-wrapper {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(4, auto);
+            align-content: space-between;
+            height: 10.625rem;
+
+            & .month-selector-month {
+                cursor: pointer;
+                font-weight: 400;
+                font-size: 0.875rem;
+                letter-spacing: 0.0313rem;
+                line-height: 1.0625rem;
+
+                &.month-selected {
+                    border: 1px solid var(--blue5);
+                }
+            }
+
+            & > div:nth-child(3n+2) {
+                text-align: center;
+            }
+
+            & > div:nth-child(3n) {
+                text-align: right;
+            }
+
+            & > div:nth-child(-n+3) {
+                align-self: start;
+            }
+
+            & > div:nth-child(n+10) {
+                align-self: end;
+            }
+
+            & > div:nth-child(n+4):nth-child(-n+9) {
+                align-self: center;
+            }
+        }
+    }
+}
