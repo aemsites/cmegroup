@@ -186,14 +186,15 @@ function toCamelCase(name) {
  * @returns {object} The block config
  */
 // eslint-disable-next-line import/prefer-default-export
-function readBlockConfig(block) {
+function readBlockConfig(block, keysToCamelCase = false) {
   const config = {};
   block.querySelectorAll(':scope > div').forEach((row) => {
     if (row.children) {
       const cols = [...row.children];
       if (cols[1]) {
         const col = cols[1];
-        const name = toClassName(cols[0].textContent);
+        const name = keysToCamelCase
+          ? toCamelCase(cols[0].textContent) : toClassName(cols[0].textContent);
         let value = '';
         if (col.querySelector('a')) {
           const as = [...col.querySelectorAll('a')];
