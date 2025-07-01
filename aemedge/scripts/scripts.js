@@ -25,12 +25,44 @@ import createOptimizedPicture from './utils/picture.js';
 import { appendQueryParams } from './utils/uri.js';
 
 /**
+ * if present add custom ID to blocks in a container element. (Override from aem.js)
+ * @param {Element} main The container element
+ */
+function customIdToBlocks(block) {
+  // customId
+  let customIdValue = null;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const childDiv of block.children) {
+    if (childDiv.tagName === 'DIV') {
+      const keyDiv = childDiv.querySelector('div > p');
+      if (keyDiv && keyDiv.textContent.trim() === 'customId') {
+        const valueDiv = keyDiv.parentElement.nextElementSibling;
+        if (valueDiv) {
+          const pElement = valueDiv.querySelector('p');
+          if (pElement) {
+            customIdValue = pElement.textContent.trim();
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if (customIdValue) {
+    block.setAttribute('id', customIdValue);
+  }
+}
+
+/**
  * Decorates all blocks in a container element. (Override from aem.js)
  * @param {Element} main The container element
  */
 function decorateBlocks(main) {
-  main.querySelectorAll('div.section > div:not(.layout) > div').forEach(decorateBlock);
-  main.querySelectorAll('div.section > div.layout > div > div > div').forEach(decorateBlock);
+  const elementsToDecorate = main.querySelectorAll(
+    'div.section > div:not(.layout) > div, div.section > div.layout > div > div > div',
+  );
+  elementsToDecorate.forEach(decorateBlock);
+  elementsToDecorate.forEach(customIdToBlocks);
 }
 
 /**
