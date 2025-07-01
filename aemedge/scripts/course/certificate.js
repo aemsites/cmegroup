@@ -306,16 +306,18 @@ export async function addCourseCertificate({
     viewCertificateLabel,
   );
 
-  const openModal = () => {
+  const openModal = async () => {
     if (!isLoggedIn) {
-      return;
+      const { openAuthModal } = await import('./auth-modal.js');
+      openAuthModal();
+    } else {
+      openCertificateModal({
+        userName,
+        moduleId,
+        lessonTitle,
+        completedModule,
+      });
     }
-    openCertificateModal({
-      userName,
-      moduleId,
-      lessonTitle,
-      completedModule,
-    });
   };
 
   button.addEventListener('click', () => openModal());

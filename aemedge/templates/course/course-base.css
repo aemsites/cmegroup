@@ -86,3 +86,50 @@ main > .section > div {
   }
 }
 
+/* Course Auth Prompt Styling */
+.modal.course-auth-modal dialog {
+  max-width: 30.3125rem;
+  max-height: 13.75rem;
+
+  .modal-content {
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: left;
+      border-bottom: 0.125rem solid var(--blue4);
+      padding-bottom: 0.625rem;
+      margin-bottom: 0.625rem;
+
+      .modal-title {
+        font-family: var(--averta);
+        font-weight: 600;
+        text-transform: none;
+        font-size: 1.25rem;
+        line-height: 1.625rem;
+        color: var(--blue2);
+        letter-spacing: normal;
+        margin-left: 0.5625rem;
+      }
+    }
+        
+    .modal-body {
+      font-family: var(--averta);
+      font-weight: 400;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      color: var(--gray3);
+      letter-spacing: normal;
+      padding: 0;
+      margin-bottom: 1.75rem;
+
+      .login-handler,
+      .registration-handler {
+        color: var(--blue4);
+          &:hover {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+      }
+    }
+  }
+}

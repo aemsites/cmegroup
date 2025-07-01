@@ -67,7 +67,7 @@ const mapModule = (data) => (
     moduleId: data.educationElementId,
     completed: data.status === 'COMPLETED',
     started: !!data.startDate,
-    progressPercentage: data.completionPercentage,
+    progressPercentage: data.completionPercentage || 0,
     endDate: data.endDate,
     lessons: data.lessons?.map(({ educationElementId, status, startDate }) => ({
       moduleId: educationElementId,
@@ -75,6 +75,7 @@ const mapModule = (data) => (
       started: !!startDate,
     })),
     completedLessons: data.lessons?.filter(({ status }) => status === 'COMPLETED').length,
+    totalLessons: data.lessons?.length || 0,
   }
 );
 
