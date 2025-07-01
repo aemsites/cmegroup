@@ -617,29 +617,6 @@ function decorateBlock(block) {
     const section = block.closest('.section');
     if (section) section.classList.add(`${shortBlockName}-container`);
   }
-
-  // customId
-  let customIdValue = null;
-  // eslint-disable-next-line no-restricted-syntax
-  for (const childDiv of block.children) {
-    if (childDiv.tagName === 'DIV') {
-      const keyDiv = childDiv.querySelector('div > p');
-      if (keyDiv && keyDiv.textContent.trim() === 'customId') {
-        const valueDiv = keyDiv.parentElement.nextElementSibling;
-        if (valueDiv) {
-          const pElement = valueDiv.querySelector('p');
-          if (pElement) {
-            customIdValue = pElement.textContent.trim();
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  if (customIdValue) {
-    block.setAttribute('id', customIdValue);
-  }
 }
 
 /**
