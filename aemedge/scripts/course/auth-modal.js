@@ -57,15 +57,15 @@ store.subscribe(({ courseData }) => courseData, (courseData) => {
     return;
   }
   const authShowedKey = `authShowedCount_${courseData.moduleId}`;
-  const authShowed = Number(localStorage.getItem(authShowedKey));
+  const authShowedCount = Number(localStorage.getItem(authShowedKey));
 
-  //  first lesson completed
-  if (courseData.completedLessons === 1 && authShowed < 1) {
+  //  first lesson completed or standalone lesson
+  if ((courseData.completedLessons === 1 || courseData.isLessonStandalone) && authShowedCount < 1) {
     openAuthModal();
     localStorage.setItem(authShowedKey, 1);
   //  course at 50%
   } else if (courseData.completedLessons === Math.round(courseData.totalLessons / 2)
-    && authShowed < 50) {
+      && authShowedCount < 50) {
     openAuthModal();
     localStorage.setItem(authShowedKey, 50);
   } else {
@@ -75,7 +75,7 @@ store.subscribe(({ courseData }) => courseData, (courseData) => {
       const currentPath = window.location.pathname;
       const lessons = [
         ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
-        ...courseData.lessons];
+        ...courseData.lessons || []];
       const lessonIndex = lessons.findIndex(({ path }) => currentPath === path);
       //  finding for a previous lesson that wasn't completed
       if (lessons.slice(0, lessonIndex).some(({ completed }) => !completed)) {

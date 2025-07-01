@@ -91,7 +91,19 @@ main > .section > div {
   max-width: 30.3125rem;
   max-height: 13.75rem;
 
+  & .close-button {
+    padding-left: 0.625rem;
+    padding-top: 0.625rem;
+
+    &:focus-visible {
+        outline: none;
+    }
+  }
+
   & .modal-content {
+    margin-top: 0;
+    padding: 1.875rem 2.5rem 2.5rem 2.5rem;
+
     & .modal-header {
       display: flex;
       align-items: center;
@@ -109,6 +121,7 @@ main > .section > div {
         color: var(--blue2);
         letter-spacing: normal;
         margin-left: 0.5625rem;
+        margin-bottom: 0;
       }
     }
         
