@@ -41,7 +41,7 @@ async function createAuthModal() {
   modalBody.appendChild(document.createTextNode(` ${saveProgressText}.`));
 
   const modal = await createModal([modalHeader, modalBody]);
-  modal.block.classList.add('course-auth-modal');
+  modal.block?.classList.add('course-auth-modal');
   return modal;
 }
 
@@ -51,26 +51,26 @@ export async function openAuthModal() {
   showModal();
 }
 
-//  courseData change events
+//  subscriber to show auth modal on courseData changes
 store.subscribe(({ courseData }) => courseData, (courseData) => {
   if (!courseData) {
     return;
   }
-  const loginShowedKey = `loginCountShowed_${courseData.moduleId}`;
-  const loginShowed = Number(localStorage.getItem(loginShowedKey));
+  const authShowedKey = `authShowedCount_${courseData.moduleId}`;
+  const authShowed = Number(localStorage.getItem(authShowedKey));
 
   //  first lesson completed
-  if (courseData.completedLessons === 1 && loginShowed < 1) {
+  if (courseData.completedLessons === 1 && authShowed < 1) {
     openAuthModal();
-    localStorage.setItem(loginShowedKey, 1);
+    localStorage.setItem(authShowedKey, 1);
   //  course at 50%
   } else if (courseData.completedLessons === Math.round(courseData.totalLessons / 2)
-    && loginShowed < 50) {
+    && authShowed < 50) {
     openAuthModal();
-    localStorage.setItem(loginShowedKey, 50);
+    localStorage.setItem(authShowedKey, 50);
   } else {
     //  open a lesson not chronologically
-    const alreadyShowed = localStorage.getItem(`loginAlreadyShowed_${courseData.moduleId}`);
+    const alreadyShowed = localStorage.getItem(`authAlreadyShowed_${courseData.moduleId}`);
     if (!alreadyShowed) {
       const currentPath = window.location.pathname;
       const lessons = [
@@ -80,7 +80,7 @@ store.subscribe(({ courseData }) => courseData, (courseData) => {
       //  finding for a previous lesson that wasn't completed
       if (lessons.slice(0, lessonIndex).some(({ completed }) => !completed)) {
         openAuthModal();
-        localStorage.setItem(`loginAlreadyShowed_${courseData.moduleId}`, true);
+        localStorage.setItem(`authAlreadyShowed_${courseData.moduleId}`, true);
       }
     }
   }
