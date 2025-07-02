@@ -356,7 +356,9 @@ export default async function decorate(block) {
             data-account="${accountId}"
             data-player="${dataPlayer}"
             data-embed="default"
-            class="cmeBcVideo video-hidden" 
+            class="cmeBcVideo video-hidden
+            ${playlistId !== '' && playlistLocation === 'B' ? 'playlist-bottom' : ''}
+            " 
             controls=""
             ${playlistId !== '' ? `data-playlist-id="${playlistId}"` : ''}
             ${playlistId !== '' && videoId ? `data-playlist-video-id="${videoId}"` : ''}
