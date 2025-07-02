@@ -1,4 +1,4 @@
-import { readBlockConfig } from '../../scripts/aem.js';
+import { readBlockConfig } from '../../scripts/scripts.js';
 import { generateRandomId } from '../../scripts/utils.js';
 
 function loadPodcast(block, id, url) {
