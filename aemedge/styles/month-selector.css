@@ -45,7 +45,7 @@
         color: var(--white);
         border: 0;
         margin: 0 !important;
-        padding: 0.75rem 1.375rem 1.375rem 1.375rem;
+        padding: 0.75rem 1.375rem 1.375rem;
         position: absolute;
         inset: 0.1875rem auto auto 0;
         transform: translate3d(0, 2.0625rem, 0);
