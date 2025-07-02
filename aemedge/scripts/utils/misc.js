@@ -31,7 +31,7 @@ export function isEmpty(value) {
   return true; // Default to true for other types (e.g., functions)
 }
 
-export async function axiosGet(url, absoluteUrl, config = {}) {
+export async function axiosGet(url, config = {}, absoluteUrl = false) {
   const { params = {}, headers = {} } = config;
   let urlObj;
   if (absoluteUrl) {
@@ -80,7 +80,7 @@ export async function axiosGet(url, absoluteUrl, config = {}) {
   }
 }
 
-export async function axiosPost(url, data, absoluteUrl, config = {}) {
+export async function axiosPost(url, data, config = {}, absoluteUrl = false) {
   const { headers = {}, params = {} } = config;
   let urlObj;
   if (absoluteUrl) {

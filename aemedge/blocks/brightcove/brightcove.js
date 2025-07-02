@@ -1,5 +1,5 @@
-import { readBlockConfig } from '../../scripts/aem.js';
-import { setTracking } from '../../scripts/utils/index.js';
+import { readBlockConfig, getMetadata } from '../../scripts/aem.js';
+import { setTracking, apiGetAbsolute, LocalStorageUtil } from '../../scripts/utils/index.js';
 /*
  * For more info about the video's options please read:
  * https://github.com/brightcove/player-loader
@@ -14,6 +14,9 @@ import { setTracking } from '../../scripts/utils/index.js';
  * language
  */
 
+const BRIGHTCOVE_POSTER_CACHE_KEY = 'brightcovePosterCache';
+const BRIGHTCOVE_POSTER_CACHE_LIMIT = 10;
+const BRIGHTCOVE_SCRIPT_LOAD_DELAY = 3000;
 const fireTracking = setTracking('custom', 'media', 'BrightcoveVideo');
 
 function calculateDataPlayerId(
@@ -238,6 +241,70 @@ function setPlayerReady(block, language, videoId) {
   }
 }
 
+function getPosterCache() {
+  try {
+    return LocalStorageUtil.get(BRIGHTCOVE_POSTER_CACHE_KEY, true) ?? {};
+  } catch {
+    return {};
+  }
+}
+
+async function getBrightcovePoster(accountId, videoId) {
+  const policyKey = getMetadata('brightcove-policy-key');
+
+  if (!policyKey) {
+    return '';
+  }
+  const url = `https://edge.api.brightcove.com/playback/v1/accounts/${accountId}/videos/${videoId}`;
+
+  const response = await apiGetAbsolute(url, {}, {
+    Accept: `application/json;pk=${policyKey}`,
+  });
+
+  const { data } = response;
+
+  if (!data) {
+    return '';
+  }
+
+  return data.poster || data.images?.thumbnail?.src || null;
+}
+
+function updatePosterCache(videoId, posterUrl) {
+  const cache = getPosterCache();
+  const entries = Object.entries(cache);
+
+  if (entries.length >= BRIGHTCOVE_POSTER_CACHE_LIMIT) {
+    const oldestKey = entries[0][0];
+    delete cache[oldestKey];
+  }
+
+  cache[videoId] = {
+    posterUrl,
+    ts: Date.now(),
+  };
+
+  LocalStorageUtil.set(BRIGHTCOVE_POSTER_CACHE_KEY, cache);
+}
+
+async function getPosterWithCache(accountId, videoId) {
+  const cache = getPosterCache();
+
+  if (cache[videoId]) {
+    return cache[videoId].posterUrl;
+  }
+
+  const posterUrl = await getBrightcovePoster(accountId, videoId);
+
+  if (!posterUrl) {
+    return '';
+  }
+
+  updatePosterCache(videoId, posterUrl);
+
+  return posterUrl;
+}
+
 async function loadVideoLibrary(block, videoAccount, videoPlayer, language, videoId) {
   if (block.getAttribute('data-video-status') === 'loaded') {
     return;
@@ -262,14 +329,18 @@ export default async function decorate(block) {
     cc,
     language,
   } = dataBlock;
+
+  const videoPoster = await getPosterWithCache(accountId, videoId);
+
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
   const videoStyles = calculateStyles(aspectRatio, playlistLocation);
+
   block.innerHTML = `
   <div class='brightcove-player'>
     <div
-      class='brightcove-img-placeholder'
-    >
+      class="brightcove-img-placeholder"
+      style="background-image: url('${videoPoster}')">
     </div>
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
@@ -299,5 +370,7 @@ export default async function decorate(block) {
   </div>
   `;
 
-  window.setTimeout(() => loadVideoLibrary(block, accountId, dataPlayer, language, videoId), 10000);
+  window.setTimeout(() => {
+    loadVideoLibrary(block, accountId, dataPlayer, language, videoId);
+  }, BRIGHTCOVE_SCRIPT_LOAD_DELAY);
 }

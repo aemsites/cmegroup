@@ -30,7 +30,7 @@ export function apiGetAbsolute(
   const baseUrl = window.baseUrl || '';
   const data = { params, headers };
   // return axiosGet(baseUrl + makeProtectedUrl(url, withCache), true, data);
-  return axiosGet(baseUrl + url, true, data);
+  return axiosGet(baseUrl + url, data, true);
 }
 
 export function apiPost(
@@ -58,9 +58,9 @@ export function apiPostAbsolute(
   // return axiosPost(baseUrl + makeProtectedUrl(url, withCache), params, true, {
   //   headers,
   // });
-  return axiosPost(baseUrl + url, params, true, {
+  return axiosPost(baseUrl + url, params, {
     headers,
-  });
+  }, true);
 }
 
 export function getResponseData(
