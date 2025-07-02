@@ -372,3 +372,9 @@ export function parseCurrencyValue(valueString) {
   // Return NaN if the numeric part couldn't be parsed
   return NaN;
 }
+
+export function getRandomNumber(amount = 1) {
+  const crypto = window.crypto || window.msCrypto;
+  const values = crypto.getRandomValues(new Uint32Array(amount));
+  return amount > 1 ? values : values[0];
+}

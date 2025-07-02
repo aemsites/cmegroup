@@ -1,5 +1,6 @@
 import { readBlockConfig, getMetadata } from '../../scripts/aem.js';
 import { setTracking, apiGetAbsolute, LocalStorageUtil } from '../../scripts/utils/index.js';
+import { getRandomNumber } from '../../scripts/utils/index.js';
 /*
  * For more info about the video's options please read:
  * https://github.com/brightcove/player-loader
@@ -113,9 +114,9 @@ function loadLanguage(videoPlayer, language) {
   }
 }
 
-function setPlayerReady(block, language, videoId) {
+function setPlayerReady(block, language, videoId, randomNumber) {
   block.setAttribute('data-video-status', 'loaded');
-  const languageVideoPlayer = videojs(document.getElementById(`cmeVideo${videoId}`));
+  const languageVideoPlayer = videojs(document.getElementById(`cmeVideo${videoId}-${randomNumber}`));
   if (language) {
     languageVideoPlayer.on('loadedmetadata', () => {
       loadLanguage(languageVideoPlayer, language);
@@ -123,8 +124,9 @@ function setPlayerReady(block, language, videoId) {
   }
   languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
   languageVideoPlayer.on('loadeddata', () => {
-    document.getElementById(`cmeVideo${videoId}`).classList.remove('video-hidden');
-    document.getElementById(`cmeVideo${videoId}`).closest('.brightcove-player').querySelector('.brightcove-img-placeholder').remove();
+    document.getElementById(`cmeVideo${videoId}-${randomNumber}`).closest('.brightcove-player').querySelector('.brightcove-img-placeholder').remove();
+    document.getElementById(`cmeVideo${videoId}-${randomNumber}`).classList.remove('video-hidden');
+    document.getElementById(`cmeVideo${videoId}-${randomNumber}`).closest('.brightcove-player').querySelector('.vjs-playlist').classList.remove('video-hidden');
     const { name: videoName } = languageVideoPlayer.mediainfo;
     const percentsAlreadyTracked = [];
 
@@ -305,7 +307,7 @@ async function getPosterWithCache(accountId, videoId) {
   return posterUrl;
 }
 
-async function loadVideoLibrary(block, videoAccount, videoPlayer, language, videoId) {
+async function loadVideoLibrary(block, videoAccount, videoPlayer, language, videoId, randomNumber) {
   if (block.getAttribute('data-video-status') === 'loaded') {
     return;
   }
@@ -314,7 +316,7 @@ async function loadVideoLibrary(block, videoAccount, videoPlayer, language, vide
   script.async = true;
   document.head.appendChild(script);
   script.onload = async () => {
-    await setPlayerReady(block, language, videoId);
+    await setPlayerReady(block, language, videoId, randomNumber);
   };
 }
 
@@ -335,6 +337,7 @@ export default async function decorate(block) {
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
   const videoStyles = calculateStyles(aspectRatio, playlistLocation);
+  const randomNumber = getRandomNumber();
 
   block.innerHTML = `
   <div class='brightcove-player'>
@@ -345,11 +348,11 @@ export default async function decorate(block) {
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
         <div
-          id="cmeVideoContainer${videoId}"
+          id="cmeVideoContainer${videoId}-${randomNumber}"
           class="${videoStyles} ${playlist ? 'vjs-playlist-player-container' : 'brightcove-video'}"
         >
           <video-js
-            id="cmeVideo${videoId}"
+            id="cmeVideo${videoId}-${randomNumber}"
             data-account="${accountId}"
             data-player="${dataPlayer}"
             data-embed="default"
@@ -362,15 +365,15 @@ export default async function decorate(block) {
             preload="none"
             loading="lazy">
           </video-js>
-          ${playlistId !== '' && playlistLocation === 'R' ? '<div class="vjs-playlist"></div>' : ''}
+          ${playlistId !== '' && playlistLocation === 'R' ? '<div class="vjs-playlist video-hidden"></div>' : ''}
         </div>
-        ${playlistId !== '' && playlistLocation === 'B' ? '<div class="vjs-playlist"></div>' : ''}
+        ${playlistId !== '' && playlistLocation === 'B' ? '<div class="vjs-playlist video-hidden"></div>' : ''}
       </div>
     </div>
   </div>
   `;
 
   window.setTimeout(() => {
-    loadVideoLibrary(block, accountId, dataPlayer, language, videoId);
+    loadVideoLibrary(block, accountId, dataPlayer, language, videoId, randomNumber);
   }, BRIGHTCOVE_SCRIPT_LOAD_DELAY);
 }

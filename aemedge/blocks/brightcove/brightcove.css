@@ -38,6 +38,10 @@
     }
 }
 
+.vjs-playlist.video-hidden {
+    display: none;
+}
+
 .vjs-playlist-player-container .vjs-playlist-sidebar-horizontal {
   position: absolute;
 }
