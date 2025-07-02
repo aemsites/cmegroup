@@ -1,4 +1,4 @@
-import { readBlockConfig } from '../../scripts/aem.js';
+import { readBlockConfig } from '../../scripts/scripts.js';
 import { i18n, getPageTags, createElement } from '../../scripts/utils.js';
 import ffetch from '../../scripts/ffetch.js';
 

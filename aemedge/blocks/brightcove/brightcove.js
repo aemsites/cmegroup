@@ -1,4 +1,4 @@
-import { readBlockConfig } from '../../scripts/aem.js';
+import { readBlockConfig } from '../../scripts/scripts.js';
 import { setTracking } from '../../scripts/utils/index.js';
 /*
  * For more info about the video's options please read:

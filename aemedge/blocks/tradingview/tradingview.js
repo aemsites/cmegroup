@@ -1,4 +1,4 @@
-import { readBlockConfig } from '../../scripts/aem.js';
+import { readBlockConfig } from '../../scripts/scripts.js';
 import { createElement } from '../../scripts/utils.js';
 
 export default function decorate(block) {
