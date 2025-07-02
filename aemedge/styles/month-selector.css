@@ -81,6 +81,7 @@
             & .icon {
                 width: 0.5406rem;
                 height: 1rem;
+                cursor: pointer;
 
                 & img {
                     width: 0.5406rem;
@@ -98,14 +99,20 @@
             height: 10.625rem;
 
             & .month-selector-month {
-                cursor: pointer;
                 font-weight: 400;
                 font-size: 0.875rem;
                 letter-spacing: 0.0313rem;
                 line-height: 1.0625rem;
 
-                &.month-selected {
-                    border: 1px solid var(--blue5);
+                & span {
+                    padding: 4px 10px;
+                    margin-left: -10px;
+                    cursor: pointer;
+
+                    &.month-selected,
+                    &:hover {
+                        border: 1px solid var(--blue5);
+                    }
                 }
             }
 

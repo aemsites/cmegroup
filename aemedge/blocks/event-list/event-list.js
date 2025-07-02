@@ -59,7 +59,6 @@ async function createEventList() {
   indexConfig.limit = 10;
   const filteredData = await fetchAndFilterDataIndex(indexConfig);
   if (filteredData && filteredData.length) {
-    await setupLibs();
     let currentDate = null;
     const list = [];
     filteredData.forEach((item) => {
@@ -79,10 +78,12 @@ async function createEventList() {
 }
 
 function createNavigation() {
-  return createElement('div', { class: 'month-navigation' }, createMonthSelector());
+  const cdtDate = dayjs.utc(Date.now()).tz('America/Chicago');
+  return createElement('div', { class: 'month-navigation' }, createMonthSelector(cdtDate));
 }
 
 export default async function decorate(block) {
+  await setupLibs();
   block.append(createNavigation());
   const list = await createEventList();
   block.append(list);
