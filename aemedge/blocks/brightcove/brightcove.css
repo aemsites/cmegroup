@@ -92,7 +92,7 @@
     position: relative;
     width: 4rem;
     height: 4rem;
-    top: calc(177px - 2rem);
+    top: calc(50% - 2rem);
     left: calc(50% - 2rem);
 }
 
