@@ -126,7 +126,8 @@ function setPlayerReady(block, language, videoId, randomNumber) {
   languageVideoPlayer.on('loadeddata', () => {
     document.getElementById(`cmeVideo${videoId}-${randomNumber}`).closest('.brightcove-player').querySelector('.brightcove-img-placeholder').remove();
     document.getElementById(`cmeVideo${videoId}-${randomNumber}`).classList.remove('video-hidden');
-    document.getElementById(`cmeVideo${videoId}-${randomNumber}`).closest('.brightcove-player').querySelector('.vjs-playlist').classList.remove('video-hidden');
+    document.getElementById(`cmeVideo${videoId}-${randomNumber}`).closest('.brightcove-player').classList.remove('video-hidden');
+    document.getElementById(`cmeVideo${videoId}-${randomNumber}`).closest('.brightcove-player').querySelector('.vjs-playlist')?.classList.remove('video-hidden');
     const { name: videoName } = languageVideoPlayer.mediainfo;
     const percentsAlreadyTracked = [];
 
@@ -340,7 +341,7 @@ export default async function decorate(block) {
   const randomNumber = getRandomNumber();
 
   block.innerHTML = `
-  <div class='brightcove-player'>
+  <div class='brightcove-player video-hidden'>
     <div
       class="brightcove-img-placeholder"
       style="background-image: url('${videoPoster}')">
@@ -357,8 +358,7 @@ export default async function decorate(block) {
             data-player="${dataPlayer}"
             data-embed="default"
             class="cmeBcVideo video-hidden
-            ${playlistId !== '' && playlistLocation === 'B' ? 'playlist-bottom' : ''}
-            " 
+            ${playlistId !== '' && playlistLocation === 'B' ? 'playlist-bottom' : ''}" 
             controls=""
             ${playlistId !== '' ? `data-playlist-id="${playlistId}"` : ''}
             ${playlistId !== '' && videoId ? `data-playlist-video-id="${videoId}"` : ''}
@@ -369,7 +369,7 @@ export default async function decorate(block) {
           </video-js>
           ${playlistId !== '' && playlistLocation === 'R' ? '<div class="vjs-playlist video-hidden"></div>' : ''}
         </div>
-        ${playlistId !== '' && playlistLocation === 'B' ? '<div class="vjs-playlist video-hidden"></div>' : ''}
+        ${playlistId !== '' && playlistLocation === 'B' ? '<div class="vjs-playlist playlist-bottom video-hidden"></div>' : ''}
       </div>
     </div>
   </div>

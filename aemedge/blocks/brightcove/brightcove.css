@@ -2,7 +2,15 @@
   position: relative;
   display: block;
   max-width: 100%;
+
+  &.video-hidden {
+    & .brightcove-video,
+    .vjs-playlist-player-container{
+        display: none;
+    }
+  }
 }
+
 
 .brightcove-player video {
   position: absolute;
@@ -53,21 +61,21 @@
     position: relative;
 }
 
-.video-js.vjs-playlist-enabled:not(.playlist-bottom),
-.vjs-playlist.vjs-mouse.vjs-playlist-horizontal {
+.vjs-playlist.playlist-bottom.vjs-mouse.vjs-playlist-horizontal {
     width: 100%;
     float: none;
     position: relative;
 }
 
-@media (width > 768px) {
-    .video-js.vjs-playlist-enabled:not(.playlist-bottom),
-    .vjs-playlist.vjs-mouse.vjs-playlist-horizontal {
-        float: inherit;
-        position: inherit;
-    }
+.video-js.vjs-playlist-enabled, .vjs-playlist.vjs-mouse.vjs-playlist-horizontal{
+    position: static;
 }
 
+.video-js.vjs-playlist-enabled.playlist-bottom {
+    max-width: none;
+    width: 100%;
+    max-height: none;
+}
 
 .brightcove-img-placeholder {
     width: 100%;
