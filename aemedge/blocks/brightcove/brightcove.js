@@ -1,5 +1,10 @@
 import { readBlockConfig, getMetadata } from '../../scripts/aem.js';
-import { setTracking, apiGetAbsolute, LocalStorageUtil, getRandomNumber } from '../../scripts/utils/index.js';
+import {
+  setTracking,
+  apiGetAbsolute,
+  LocalStorageUtil,
+  getRandomNumber,
+} from '../../scripts/utils/index.js';
 /*
  * For more info about the video's options please read:
  * https://github.com/brightcove/player-loader
