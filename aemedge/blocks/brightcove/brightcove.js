@@ -130,7 +130,6 @@ function setPlayerReady(block, language, videoId, randomNumber) {
   languageVideoPlayer.on('loadeddata', () => {
     document.getElementById(`cmeVideo${videoId}-${randomNumber}`).closest('.brightcove-player').querySelector('.brightcove-img-placeholder').remove();
     document.getElementById(`cmeVideo${videoId}-${randomNumber}`).classList.remove('video-hidden');
-    document.getElementById(`cmeVideo${videoId}-${randomNumber}`).closest('.brightcove-player').classList.remove('video-hidden');
     document.getElementById(`cmeVideo${videoId}-${randomNumber}`).closest('.brightcove-player').querySelector('.vjs-playlist')?.classList.remove('video-hidden');
     const { name: videoName } = languageVideoPlayer.mediainfo;
     const percentsAlreadyTracked = [];
@@ -345,9 +344,9 @@ export default async function decorate(block) {
   const randomNumber = getRandomNumber();
 
   block.innerHTML = `
-  <div class='brightcove-player video-hidden'>
+  <div class='brightcove-player'>
     <div
-      class="brightcove-img-placeholder"
+      class="brightcove-img-placeholder ${playlistId !== '' && playlistLocation === 'R' ? 'playlist-right' : ''}"
       style="background-image: url('${videoPoster}')">
         <div class="lds-ring spinner-in-video">
           <div></div>
