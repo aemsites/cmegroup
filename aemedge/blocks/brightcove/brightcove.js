@@ -349,6 +349,12 @@ export default async function decorate(block) {
     <div
       class="brightcove-img-placeholder"
       style="background-image: url('${videoPoster}')">
+        <div class="lds-ring spinner-in-video">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
     </div>
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
