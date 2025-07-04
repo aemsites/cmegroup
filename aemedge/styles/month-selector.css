@@ -82,6 +82,8 @@
                 width: 0.5406rem;
                 height: 1rem;
                 cursor: pointer;
+                padding: 0.625rem;
+                margin: -0.625rem;
 
                 & img {
                     width: 0.5406rem;

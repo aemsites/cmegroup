@@ -1,6 +1,6 @@
 import { loadScript } from '../../scripts/aem.js';
 import { fetchAndFilterDataIndex } from '../../scripts/indexing.js';
-import { createElement } from '../../scripts/utils.js';
+import { createElement, i18n } from '../../scripts/utils.js';
 import createMonthSelector from '../../scripts/utils/monthSelector.js';
 
 async function setupLibs() {
@@ -18,7 +18,7 @@ async function setupLibs() {
   /* eslint-enable no-undef */
 }
 
-function createUpcomingEvent(content) {
+function createUpcomingEvent(content, timeZoneLabel) {
   const {
     path,
     location,
@@ -35,7 +35,7 @@ function createUpcomingEvent(content) {
   const webinar = createElement('img', { src: '/aemedge/icons/webinar.svg' });
   const spanWebinar = createElement('span', { class: 'icon icon-webinar' }, webinar);
   const locationtag = createElement('div', { class: 'card-location' }, spanWebinar, location);
-  const timeTag = createElement('div', { class: 'card-time' }, cdtDate.format('hh:mm A [CT]'));
+  const timeTag = createElement('div', { class: 'card-time' }, `${timeZoneLabel}: `, cdtDate.format('hh:mm a [CT]'));
   const cardBody = createElement('div', { class: 'card-body' }, dateTag, titletag, locationtag, timeTag);
   const imagetag = createElement('img', { src: image });
   const cardImage = createElement('div', { class: 'card-image' }, imagetag);
@@ -49,15 +49,23 @@ function createSeparator(date) {
   return createElement('div', { class: 'list-divider' }, line1, text, line2);
 }
 
-async function createEventList() {
+async function createEventList(year, month) {
+  const dateDiffMs = new Date(`${year}-${month}-01`) - Date.now();
+  const dateDiffDays = Math.ceil(dateDiffMs / (1000 * 60 * 60 * 24));
   const indexConfig = {};
   indexConfig.template = 'event';
-  indexConfig.relativeDateFrom = 0;
-  indexConfig.relativeDateTo = 365;
+  indexConfig.relativeDateFrom = dateDiffDays;
+  indexConfig.relativeDateTo = dateDiffDays + 365;
   indexConfig.orderBy = 'date';
   indexConfig.sortDirection = 'asc';
   indexConfig.limit = 10;
-  const filteredData = await fetchAndFilterDataIndex(indexConfig);
+  const [
+    filteredData,
+    timeZoneLabel,
+  ] = await Promise.all([
+    fetchAndFilterDataIndex(indexConfig),
+    i18n('TIME ZONE'),
+  ]);
   if (filteredData && filteredData.length) {
     let currentDate = null;
     const list = [];
@@ -70,21 +78,51 @@ async function createEventList() {
         currentDate = cdtDate;
         list.push(createSeparator(cdtDate));
       }
-      list.push(createUpcomingEvent(item));
+      list.push(createUpcomingEvent(item, timeZoneLabel));
     });
     return createElement('div', null, ...list);
   }
-  return null;
+  return createElement('div', null, 'No events to show');
 }
 
-function createNavigation() {
-  const cdtDate = dayjs.utc(Date.now()).tz('America/Chicago');
-  return createElement('div', { class: 'month-navigation' }, createMonthSelector(cdtDate));
+function createSpinner() {
+  const spinner = createElement('div', { class: 'spinner-event-list' });
+  spinner.innerHTML = `
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  `;
+  return spinner;
+}
+
+async function monthSelected(resultContainer, year, month) {
+  resultContainer.innerHTML = '';
+  resultContainer.append(createSpinner());
+  const list = await createEventList(year, month);
+  resultContainer.innerHTML = '';
+  resultContainer.append(list);
+}
+
+async function createNavigation(cdtDate, resultContainer) {
+  const chevronLeft = createElement('img', { src: '/aemedge/icons/chevron-left.svg' });
+  const spanChevronLeft = createElement('span', { class: 'icon icon-chevron-left' }, chevronLeft);
+  const spanPrevMonth = createElement('span', { class: 'month-navigation-button' }, spanChevronLeft, 'Prev Month');
+  const chevronRight = createElement('img', { src: '/aemedge/icons/chevron-right.svg' });
+  const spanChevronRight = createElement('span', { class: 'icon icon-chevron-right' }, chevronRight);
+  const spanNextMonth = createElement('span', { class: 'month-navigation-button' }, 'Next Month', spanChevronRight);
+  const prevNextMonth = createElement('div', { class: 'month-navigation-buttons' }, spanPrevMonth, spanNextMonth);
+  const monthSelector = await createMonthSelector(cdtDate, (year, month) => {
+    monthSelected(resultContainer, year, month);
+  }, spanPrevMonth, spanNextMonth);
+  return createElement('div', { class: 'month-navigation' }, monthSelector, prevNextMonth);
 }
 
 export default async function decorate(block) {
   await setupLibs();
-  block.append(createNavigation());
-  const list = await createEventList();
-  block.append(list);
+  const cdtDate = dayjs.utc(Date.now()).tz('America/Chicago');
+  const resultContainer = createElement('div', { class: 'result-container' });
+  block.append(await createNavigation(cdtDate, resultContainer));
+  block.append(resultContainer);
+  monthSelected(resultContainer, cdtDate.get('year'), cdtDate.get('month') + 1);
 }

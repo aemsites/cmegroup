@@ -1,5 +1,5 @@
 import { loadCSS } from '../aem.js';
-import { createElement } from '../utils.js';
+import { createElement, i18n } from '../utils.js';
 
 function toggleMonthSelector(e) {
   const button = e.target.closest('button');
@@ -50,21 +50,28 @@ function buildButton(data) {
   return button;
 }
 
-function buildMonthSelector(data, button) {
-  const months = [
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '0', 'data-month-name': 'January' }, 'Jan')),
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '1', 'data-month-name': 'February' }, 'Feb')),
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '2', 'data-month-name': 'March' }, 'Mar')),
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '3', 'data-month-name': 'April' }, 'Apr')),
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '4', 'data-month-name': 'May' }, 'May')),
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '5', 'data-month-name': 'June' }, 'Jun')),
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '6', 'data-month-name': 'July' }, 'Jul')),
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '7', 'data-month-name': 'August' }, 'Aug')),
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '8', 'data-month-name': 'September' }, 'Sep')),
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '9', 'data-month-name': 'October' }, 'Oct')),
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '10', 'data-month-name': 'November' }, 'Nov')),
-    createElement('div', { class: 'month-selector-month' }, createElement('span', { 'data-month': '11', 'data-month-name': 'December' }, 'Dec')),
+async function buildMonthSelector(data, button, callback, prevBtn, nextBtn) {
+  const monthNames = [
+    'January', 'Jan',
+    'February', 'Feb',
+    'March', 'Mar',
+    'April', 'Apr',
+    'May', 'May',
+    'June', 'Jun',
+    'July', 'Jul',
+    'August', 'Aug',
+    'September', 'Sep',
+    'October', 'Oct',
+    'November', 'Nov',
+    'December', 'Dec',
   ];
+  const monthLabels = await Promise.all(monthNames.map(i18n));
+  const months = Array.from({ length: 12 }, (_, i) => {
+    const fullName = monthLabels[i * 2];
+    const shortName = monthLabels[i * 2 + 1];
+    const span = createElement('span', { 'data-month': String(i), 'data-month-name': fullName }, shortName);
+    return createElement('div', { class: 'month-selector-month' }, span);
+  });
   months[data.currentMonth].children[0].classList.add('month-selected');
   months.forEach((month) => {
     month.children[0].addEventListener('click', (e) => {
@@ -78,9 +85,50 @@ function buildMonthSelector(data, button) {
       months[data.currentMonth].children[0].classList.add('month-selected');
       button.setAttribute('aria-expanded', false);
       button.querySelector('.selected-content').textContent = `${monthName} ${data.currentYear}`;
+      callback(data.currentYear, data.currentMonth + 1);
     });
   });
   const monthsWrapper = createElement('div', { class: 'month-selector-months-wrapper' }, months);
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (data.currentMonth === 0) {
+        data.currentMonth = 11;
+        data.selectedYear -= 1;
+        data.currentYear = data.selectedYear;
+      } else {
+        data.currentMonth -= 1;
+      }
+      const month = months[data.currentMonth].children[0];
+      const { monthName } = month.dataset;
+      data.monthName = monthName;
+      months.forEach((monthInternal) => {
+        monthInternal.children[0].classList.remove('month-selected');
+      });
+      month.classList.add('month-selected');
+      button.querySelector('.selected-content').textContent = `${monthName} ${data.currentYear}`;
+      callback(data.currentYear, data.currentMonth + 1);
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (data.currentMonth === 11) {
+        data.currentMonth = 0;
+        data.selectedYear += 1;
+        data.currentYear = data.selectedYear;
+      } else {
+        data.currentMonth += 1;
+      }
+      const month = months[data.currentMonth].children[0];
+      const { monthName } = month.dataset;
+      data.monthName = monthName;
+      months.forEach((monthInternal) => {
+        monthInternal.children[0].classList.remove('month-selected');
+      });
+      month.classList.add('month-selected');
+      button.querySelector('.selected-content').textContent = `${monthName} ${data.currentYear}`;
+      callback(data.currentYear, data.currentMonth + 1);
+    });
+  }
   return monthsWrapper;
 }
 
@@ -104,8 +152,8 @@ function buildYearSelector(data, changeYearCallback) {
   return yearWrapper;
 }
 
-function buildDropdown(data, button) {
-  const monthsWrapper = buildMonthSelector(data, button);
+async function buildDropdown(data, button, callback, prevBtn, nextBtn) {
+  const monthsWrapper = await buildMonthSelector(data, button, callback, prevBtn, nextBtn);
   const yearWrapper = buildYearSelector(data, () => {
     const months = monthsWrapper.querySelectorAll('.month-selector-month');
     months.forEach((monthInternal) => {
@@ -127,7 +175,7 @@ function buildDropdown(data, button) {
   return dropdown;
 }
 
-export default function createMonthSelector(initialDate) {
+export default async function createMonthSelector(initialDate, callback, prevBtn, nextBtn) {
   loadCSS('/aemedge/styles/month-selector.css');
   const data = {
     selectedYear: initialDate.get('year'),
@@ -136,6 +184,6 @@ export default function createMonthSelector(initialDate) {
     monthName: initialDate.format('MMMM'),
   };
   const button = buildButton(data);
-  const dropdown = buildDropdown(data, button);
+  const dropdown = await buildDropdown(data, button, callback, prevBtn, nextBtn);
   return createElement('div', { class: 'month-selector-container' }, button, dropdown);
 }
