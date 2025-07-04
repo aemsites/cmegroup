@@ -1,4 +1,4 @@
-import { readBlockConfig } from '../../scripts/scripts.js';
+import { readBlockConfig } from '../../scripts/utils.js';
 import { setTracking } from '../../scripts/utils/index.js';
 /*
  * For more info about the video's options please read:
