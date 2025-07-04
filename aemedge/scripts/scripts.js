@@ -18,7 +18,12 @@ import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
-import { checkDomain, createElement, isFeatureToggled, readBlockConfig } from './utils.js';
+import {
+  checkDomain,
+  createElement,
+  isFeatureToggled,
+  readBlockConfig,
+} from './utils.js';
 
 import createOptimizedPicture from './utils/picture.js';
 import { appendQueryParams } from './utils/uri.js';

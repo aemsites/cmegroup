@@ -1,5 +1,11 @@
 /* eslint-disable import/prefer-default-export */
-import { loadScript, loadCSS, getMetadata, toCamelCase, toClassName } from './aem.js';
+import {
+  loadScript,
+  loadCSS,
+  getMetadata,
+  toCamelCase,
+  toClassName,
+} from './aem.js';
 import ffetch from './ffetch.js';
 
 /**
