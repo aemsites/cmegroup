@@ -1165,6 +1165,7 @@
     line-height: .75rem;
     font-family: var(--averta);
     font-weight: 600;
+    text-transform: uppercase;
 }
 
 .event-calendar-container .date-filter-sub-container .date-filter-cta-container button:hover {

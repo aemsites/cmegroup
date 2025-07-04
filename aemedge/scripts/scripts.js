@@ -9,7 +9,6 @@ import {
   loadSection,
   loadSections,
   loadCSS,
-  readBlockConfig,
   toCamelCase,
   toClassName,
   getMetadata,
@@ -19,17 +18,55 @@ import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
-import { checkDomain, createElement } from './utils.js';
+import {
+  checkDomain,
+  createElement,
+  isFeatureToggled,
+  readBlockConfig,
+} from './utils.js';
+
 import createOptimizedPicture from './utils/picture.js';
 import { appendQueryParams } from './utils/uri.js';
+
+/**
+ * if present add custom ID to blocks in a container element. (Override from aem.js)
+ * @param {Element} main The container element
+ */
+function customIdToBlocks(block) {
+  // customId
+  let customIdValue = null;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const childDiv of block.children) {
+    if (childDiv.tagName === 'DIV') {
+      const keyDiv = childDiv.querySelector('div > p');
+      if (keyDiv && keyDiv.textContent.trim() === 'customId') {
+        const valueDiv = keyDiv.parentElement.nextElementSibling;
+        if (valueDiv) {
+          const pElement = valueDiv.querySelector('p');
+          if (pElement) {
+            customIdValue = pElement.textContent.trim();
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if (customIdValue) {
+    block.setAttribute('id', customIdValue);
+  }
+}
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
  * @param {Element} main The container element
  */
 function decorateBlocks(main) {
-  main.querySelectorAll('div.section > div:not(.layout) > div').forEach(decorateBlock);
-  main.querySelectorAll('div.section > div.layout > div > div > div').forEach(decorateBlock);
+  const elementsToDecorate = main.querySelectorAll(
+    'div.section > div:not(.layout) > div, div.section > div.layout > div > div > div',
+  );
+  elementsToDecorate.forEach(decorateBlock);
+  elementsToDecorate.forEach(customIdToBlocks);
 }
 
 /**
@@ -263,7 +300,11 @@ function decorateSidebars(main) {
         if (child.querySelector('.sidebar.left')) {
           leftSidebars.push(child);
         } else if (child.querySelector('.sidebar.right')) {
-          rightSidebars.push(child);
+          if (!isFeatureToggled('hideRightRail')) {
+            rightSidebars.push(child);
+          } else {
+            child.remove();
+          }
         }
       } else {
         // This is content (not a sidebar)
@@ -534,8 +575,14 @@ async function loadLazy(doc) {
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
   if (hash && element) element.scrollIntoView();
 
-  loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
-  loadFooter(doc.querySelector('footer'));
+  // Add feature toggle checks for header and footer
+  if (!isFeatureToggled('hideHeader')) {
+    loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
+  }
+  if (!isFeatureToggled('hideFooter')) {
+    loadFooter(doc.querySelector('footer'));
+  }
+
   dynamicBlocks(main);
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
