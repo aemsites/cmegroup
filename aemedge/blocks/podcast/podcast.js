@@ -1,5 +1,4 @@
-import { readBlockConfig } from '../../scripts/scripts.js';
-import { generateRandomId } from '../../scripts/utils.js';
+import { generateRandomId, readBlockConfig } from '../../scripts/utils.js';
 
 function loadPodcast(block, id, url) {
   if (block.getAttribute('data-podcast-status') === 'loaded' || !url) {
