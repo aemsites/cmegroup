@@ -348,7 +348,6 @@ export default async function decorate(block) {
     <div
       class="brightcove-img-placeholder ${playlistId !== '' && playlistLocation === 'R' ? 'playlist-right' : ''}"
       style="background-image: url('${videoPoster}')">
-        <div class="placeholder-play-btn"></div>
     </div>
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
