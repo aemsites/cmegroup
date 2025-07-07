@@ -22,6 +22,7 @@
   & .columns-img-col {
     & p {
       margin-bottom: 1.25rem;
+      
       @media (width >= 769px) {
         margin: 0;
       }
@@ -50,6 +51,7 @@
 
     &.button-container {
       margin: 0;
+      
       & a {
         align-items: baseline;
         font-weight: 600;
