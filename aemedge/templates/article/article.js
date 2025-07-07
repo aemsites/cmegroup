@@ -31,7 +31,6 @@ async function decorateArticleHero(main) {
     loading: 'lazy',
   });
 
-  
   const readIconSpan = readTime ? createElement('span', { class: `icon icon-${readIconName}` }, readIcon) : null;
   const readTimeText = readTime ? createElement('span', null, `${readTime} ${readIconLabel}`) : null;
   const articleTime = createElement('span', { class: 'article-time' }, readIconSpan, readTimeText);
@@ -61,10 +60,10 @@ async function decorateArticleHero(main) {
   const picture = firstSection.querySelector('picture');
   if (picture?.parentElement?.tagName === 'P') {
     const container = picture.parentElement.parentElement;
-      if (container) {
-        picture.parentElement.remove();
-        container.appendChild(picture);
-      }
+    if (container) {
+      picture.parentElement.remove();
+      container.appendChild(picture);
+    }
   }
   picture?.classList.add('hero-background');
 
