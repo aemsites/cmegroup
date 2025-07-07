@@ -1,0 +1,62 @@
+.columns.education {
+  background-color: var(--white);
+  margin-bottom: 1.25rem;
+  margin-top: 0;
+  padding: 1.875rem;
+
+  @media (width >= 769px) {
+    padding: 3.75rem;
+  }
+
+  @media (width >= 993px) {
+    margin-bottom: 1.875rem;
+  }
+
+  & > div {
+    @media (width >= 993px) {
+      align-items: center;
+      gap: 1.875rem;
+    }
+  }
+
+  & .columns-img-col {
+    & p {
+      margin-bottom: 1.25rem;
+      @media (width >= 769px) {
+        margin: 0;
+      }
+    }
+  }
+
+  & h2 {
+    letter-spacing: 0.02rem;
+
+    @media (width >= 481px) {
+      font-size: 2rem;
+      line-height: 2.625rem;
+    }
+  }
+
+  p {
+    font-size: 0.875rem;
+    letter-spacing: 0.03rem;
+    line-height: 1.25rem;
+    margin-top: 0;
+
+    @media (width >= 481px) {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
+
+    &.button-container {
+      margin: 0;
+      & a {
+        align-items: baseline;
+        font-weight: 600;
+        letter-spacing: normal;
+        line-height: 1.5rem;
+        padding: 0;
+      }
+    }
+  }
+}
