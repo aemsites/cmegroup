@@ -156,8 +156,8 @@ async function getArticleRelatedMetadata() {
     template,
     subTemplate,
     readTime,
-    author: authorTag.title,
-    primaryTopic: primaryTopicTag.title,
+    author: authorTag?.title,
+    primaryTopic: primaryTopicTag?.title,
     date,
   };
 }

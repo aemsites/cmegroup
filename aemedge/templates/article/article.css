@@ -2,22 +2,53 @@ html {
   scroll-behavior: smooth;
 }
 
-.article h5 {
-  color: #5a6874;
+.article.standard h5 {
+  color: var(--gray3);
 }
 
-main.article > .section:first-of-type picture,
-main.article > .section:first-of-type picture img {
+.article.standard .section:has(.hero-background) {
+  margin-bottom: 0;
+}
+
+.article:not(.case-study) > .section:first-of-type picture,
+.article:not(.case-study) > .section:first-of-type picture img {
   height: 11.5625rem;
   object-position: 0 0;
   object-fit: cover;
 }
 
+.article.case-study > .section:first-of-type {
+  height: auto;
+  position: relative;
+}
+
+.article.case-study .hero-background {
+  position: absolute;
+  top: 0;
+  left: 2rem;
+  right: 2rem;
+  width: calc(100% - 4rem);
+  height: 100%;
+  z-index: -1;
+}
+
+.article.case-study .hero-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
 .article .article-info {
   display: flex;
   flex-direction: column;
-  /* width: var(--centered-title-width); */
+  width: 100%;
   margin-bottom: 3.875rem;
+  padding-top: 39px;
+}
+
+.article.case-study .article-info {
+  width: 60%;
 }
 
 .article .row {
@@ -46,16 +77,38 @@ main.article > .section:first-of-type picture img {
   color: inherit;
 }
 
+.article.case-study .row > * {
+  color: var(--white);
+}
+
 .article .row > .article-featured-tag {
   text-transform: uppercase;
+  flex-basis: auto;
+  justify-content: center;
+  order: 0;
+  padding-top: 0;
+}
+
+.article .row > .bookmark {
+  order: 0;
+}
+
+.article.standard .row > .article-featured-tag {
   flex-basis: 100%;
   justify-content: flex-start;
   order: 2;
   padding-top: 20px;
 }
 
-.article .row > .bookmark {
+.article.standard .row > .bookmark {
   order: 1;
+}
+
+.article.case-study .row > .article-featured-tag {
+  flex-basis: 100%;
+  justify-content: center;
+  order: 2;
+  padding-top: 20px;
 }
 
 .article .row > *:last-child {
@@ -69,7 +122,7 @@ main.article > .section:first-of-type picture img {
 .article .row h1 {
   text-align: left;
   margin-bottom: 2.875rem;
-  color: #112b4a;
+  color: var(--blue2);
   flex-basis: 100%;
   width: 100%;
   order: -1;
@@ -83,10 +136,15 @@ main.article > .section:first-of-type picture img {
   text-transform: uppercase;
 }
 
+.article.standard .row .article-time {
+  color: var(--gray3);
+}
+
 .article .row .icon {
   width: 0.9375rem;
   height: 0.9375rem;
   color: var(--blue5);
+  margin-bottom: 0.1rem;
 }
 
 .article .row .bookmark {
@@ -113,6 +171,39 @@ main.article > .section:first-of-type picture img {
   color: var(--gray3);
 }
 
+.article.case-study .section.full-width {
+  padding-inline: 51px;
+}
+
+.article.case-study .article-info {
+  max-width: 60%;
+  margin: 0 auto;
+  text-align: center;
+  z-index: 1;
+  padding: 4rem 2rem;
+  position: relative;
+}
+
+.article.case-study .article-info .row > *:first-child {
+  justify-content: flex-start;
+}
+
+.article.case-study .article-info .row > *:last-child {
+  justify-content: flex-end;
+}
+
+.article.case-study .article-info .row h1 {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.article.case-study .article-info h1 {
+  color: var(--white);
+}
+
+main.article.case-study > .section:first-of-type {
+  height: fit-content;
+}
 
 @media (width > 480px) {
   main > .section:not(.full-width) > div {
@@ -129,15 +220,28 @@ main.article > .section:first-of-type picture img {
     padding-inline: 3.375rem;
   }
 
-  .article .row > .article-featured-tag {
+  .article.case-study .hero-background {
+    left: 3.1875rem;
+    right: 3.1875rem;
+    width: calc(100% - 6.375rem);
+  }
+
+  .article:not(.case-study) .row > .article-featured-tag {
     flex-basis: auto;
     justify-content: center;
     order: 0;
     padding-top: 0;
   }
 
-  .article .row > .bookmark {
+  .article:not(.case-study) .row > .bookmark {
     order: 0;
+  }
+
+  .article.case-study .row > .article-featured-tag {
+    flex-basis: auto;
+    justify-content: center;
+    order: 0;
+    padding-top: 0;
   }
 }
 
@@ -148,48 +252,35 @@ main.article > .section:first-of-type picture img {
 }
 
 @media (width > 1200px) {
+  main.article.standard > .section:not(.full-width) {
+    margin-top: -21.1875rem;
+  }
+
   main > .section:not(.full-width) {
-    margin-top: -26.1875rem;
     width: 58%;
-    padding-inline: 109px;
+    padding-inline: 6.8125rem;
     margin-inline: auto;
     --centered-title-width: 90%;
   }
 
   main > .section:not(.full-width) > div {
-    padding-top: 3.6875rem;
     padding-inline: 6.8125rem;
     position: relative;
     background-color: var(--white);
   }
 
-  main.article > .section:first-of-type picture,
-  main.article > .section:first-of-type picture img {
-    height: 28.4375rem;
+  .article.case-study .section.full-width {
+    padding-inline: 4.5625rem;
   }
 
-  main.article > .section:first-of-type::before {
-    content: '';
-    position: absolute;
-    bottom: -4.0625rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 58%;
-    height: 4.0625rem;
-    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .3), 0 2px 6px 2px rgba(60, 64, 67, .15);
-    display: block;
+  main.article:not(.case-study) > .section:first-of-type picture,
+  main.article:not(.case-study) > .section:first-of-type picture img {
+    height: 28.125rem;
+    object-fit: cover;
   }
 
-  main.article > .section:first-of-type::after {
-    content: '';
-    position: absolute;
-    bottom: -4.9375rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(58% + 1.5rem);
-    height: 4.9375rem;
-    background: linear-gradient(180deg, hsla(0, 0%, 100%, 0), #fff);
-    display: block;
+  main.article.case-study > .section:first-of-type {
+    min-height: 24.5625rem;
   }
 
   main.article > .section:first-of-type {
@@ -199,5 +290,31 @@ main.article > .section:first-of-type picture img {
   .article .row h1 {
     width: var(--centered-title-width);
   }
-  
+
+  main.article.case-study .hero-background {
+    left: 4.5625rem;
+    right: 4.5625rem;
+    width: calc(100% - 9.125rem);
+  }
+
+  .article .article-info {
+    padding-top: 59px;
+  }
+
+  .article.case-study .article-info {
+    padding: 3.8125rem 2rem;
+  }
+
+  main.article.standard > .section:first-of-type::after {
+    content: '';
+    position: absolute;
+    bottom: -3.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 57%;
+    height: 3.75rem;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 1.1);
+    z-index: -1;
+    pointer-events: none;
+  }
 }

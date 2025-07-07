@@ -12,6 +12,10 @@
   width: 100%;
 }
 
+.columns.article {
+  padding-inline: 1rem;
+}
+
 .columns.author-bio img {
     border-radius: 50%;
     display: block;

@@ -1,32 +1,39 @@
 import { createElement, i18n, getArticleRelatedMetadata } from '../../scripts/utils.js';
 
-export default async function articleTemplate() {
+async function decorateArticleHero(main) {
   const [
     {
       readTime, author, primaryTopic, date, subTemplate,
     },
     readLabel,
+    watchLabel,
     saveLabel,
     byLabel,
   ] = await Promise.all([
     getArticleRelatedMetadata(),
-    i18n('read'),
+    i18n('min read'),
+    i18n('min watch'),
     i18n('Save'),
     i18n('By'),
   ]);
 
-  const main = document.querySelector('main');
   main.classList.add('article', subTemplate);
+  if (subTemplate === 'faqs' || subTemplate === 'video') {
+    main.classList.add('standard');
+  }
 
   const h1 = main.querySelector('h1');
+  const readIconName = subTemplate === 'video' ? 'play' : 'list';
+  const readIconLabel = subTemplate === 'video' ? watchLabel : readLabel;
   const readIcon = createElement('img', {
-    src: '/aemedge/icons/list.svg',
+    src: `/aemedge/icons/${readIconName}.svg`,
     alt: 'Read Time',
     loading: 'lazy',
   });
 
-  const readIconSpan = readTime ? createElement('span', { class: 'icon icon-list' }, readIcon) : null;
-  const readTimeText = readTime ? createElement('span', null, `${readTime} ${readLabel}`) : null;
+  
+  const readIconSpan = readTime ? createElement('span', { class: `icon icon-${readIconName}` }, readIcon) : null;
+  const readTimeText = readTime ? createElement('span', null, `${readTime} ${readIconLabel}`) : null;
   const articleTime = createElement('span', { class: 'article-time' }, readIconSpan, readTimeText);
   const featuredTag = primaryTopic ? createElement('span', { class: 'article-featured-tag' }, primaryTopic) : null;
   const saveIconOutlined = createElement('img', {
@@ -50,9 +57,29 @@ export default async function articleTemplate() {
   const articleDate = date ? createElement('span', { class: 'article-date' }, date) : null;
   const row3 = createElement('div', { class: 'row' }, authors, articleDate);
 
+  const firstSection = main.querySelector('.section:first-of-type');
+  const picture = firstSection.querySelector('picture');
+  if (picture?.parentElement?.tagName === 'P') {
+    const container = picture.parentElement.parentElement;
+      if (container) {
+        picture.parentElement.remove();
+        container.appendChild(picture);
+      }
+  }
+  picture?.classList.add('hero-background');
+
   const articleInfo = createElement('div', { class: 'article-info' }, row1, row2, row3);
-  h1.before(articleInfo);
-  h1.remove();
+  if (subTemplate === 'case-study') {
+    firstSection.append(articleInfo);
+    h1.remove();
+  } else {
+    const secondSection = main.querySelector('.section:nth-of-type(2)');
+    const firstDivChildren = secondSection.querySelector('div:first-of-type').children;
+    const secondDiv = secondSection.querySelector('div:nth-of-type(2)');
+    secondDiv.append(...firstDivChildren, ...secondDiv.children);
+    secondDiv.querySelector('h1').replaceWith(articleInfo);
+    secondSection.querySelector('div:first-of-type').remove();
+  }
 
   const bookmark = main.querySelector('.bookmark');
   const saveIcons = bookmark.querySelectorAll('.icon');
@@ -65,4 +92,9 @@ export default async function articleTemplate() {
   bookmark.addEventListener('click', () => {
     // TODO: Add bookmark functionality
   });
+}
+
+export default async function articleTemplate() {
+  const main = document.querySelector('main');
+  await decorateArticleHero(main);
 }
