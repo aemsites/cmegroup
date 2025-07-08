@@ -16,7 +16,7 @@ function closeOnDocClick(e) {
 }
 
 function togglePosition() {
-  const isDesktop = window.innerWidth > 993;
+  const isDesktop = window.innerWidth >= 993;
   const button = document.querySelector('.month-selector-button');
   const dropdown = document.querySelector('.month-selector-dropdown');
   const isOpen = button.getAttribute('aria-expanded') === 'true';
