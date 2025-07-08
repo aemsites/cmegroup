@@ -1002,7 +1002,7 @@ body.loading::before {
     z-index: 0 !important;
 }
 
-/* columns gap */
+/* columns */
 .columns.gap-30 {
   & > div {
     @media (width >= 993px) {
