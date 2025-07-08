@@ -16,11 +16,15 @@
 
         @media (width >= 1201px) {
             height: 7.5rem;
+        }
 
-            & .shadow-wrapper {
+        & .shadow-wrapper {
+            @media (width >= 1201px) {
                 display: block;
-
-                & .content-area {
+            }
+        
+            & .content-area {
+                @media (width >= 1201px) {
                     width: calc(70.5% - 24.625rem);
                     max-width: 45.0625rem;
                     padding: 0 6.8125rem;
@@ -32,8 +36,10 @@
                     display: block;
                     position: relative;
                 }
+            }
 
-                & .shadow {
+            & .shadow {
+                @media (width >= 1201px) {
                     box-shadow: var(--gray8-shadow);
                     height: 4.0625rem;
                     width: calc(70.5% - 24.625rem);
@@ -43,8 +49,10 @@
                     margin-right: auto;
                     display: block;
                 }
+            }
 
-                & .fade {
+            & .fade {
+                @media (width >= 1201px) {
                     background: var(--fade-transparent-white);
                     height: 4.0625rem;
                     margin: -4.0625rem -.75rem 0;
@@ -129,7 +137,7 @@
                 padding-top: 3.6875rem;
             }
 
-            .event-label {
+            & .event-label {
                 flex: 0 0 auto;
                 color: var(--blue4);
                 letter-spacing: .0906rem;
