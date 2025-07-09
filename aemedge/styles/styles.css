@@ -1001,7 +1001,7 @@ body.loading::before {
     z-index: 0 !important;
 }
 
-.blur {
+main.blur {
     filter: blur(5px);
     pointer-events: none;
 }

@@ -23,6 +23,7 @@ import { checkDomain, createElement } from './utils.js';
 import createOptimizedPicture from './utils/picture.js';
 import { appendQueryParams } from './utils/uri.js';
 import { getIsLoggedIn } from './services/AuthenticationService.js';
+import { showProtectedModal } from '../blocks/modal/modal.js';
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
@@ -426,16 +427,53 @@ function decorateTextHighlights(main) {
 }
 
 function guardContent(main) {
-  if (!getIsLoggedIn()) {
-    const protectedBlocks = main.querySelectorAll('.block.protected');
-    protectedBlocks.forEach((protectedBlock) => {
-      if (protectedBlock.classList.contains('blur')) {
-        protectedBlock.classList.add('blur');
-      } else {
-        protectedBlock.style.display = 'none';
+  const isLoggedIn = false;
+  const visibility = getMetadata('visibility');
+  if (visibility && visibility.includes('protected') && !isLoggedIn) {
+    main.classList.add('blur');
+    showProtectedModal();
+    return;
+  }
+
+  const sections = main.querySelectorAll('.section');
+  sections.forEach((section) => {
+    // Get all blocks in this section
+    const blocks = Array.from(section.querySelectorAll('.block'));
+    // Group blocks by their data-block-name attribute
+    const blockGroups = {};
+    blocks.forEach((block) => {
+      const blockType = block.getAttribute('data-block-name');
+      if (!blockType) return;
+      if (!blockGroups[blockType]) blockGroups[blockType] = [];
+      blockGroups[blockType].push(block);
+    });
+
+    // Process each group
+    Object.values(blockGroups).forEach((group) => {
+      const protectedBlocks = group.filter((b) => b.classList.contains('protected'));
+      const publicBlocks = group.filter((b) => !b.classList.contains('protected'));
+      if (group.length === 2 && protectedBlocks.length === 1 && publicBlocks.length === 1) {
+        const protectedBlock = protectedBlocks[0];
+        const publicBlock = publicBlocks[0];
+        if (isLoggedIn) {
+          // Show protected, hide public
+          protectedBlock.style.display = '';
+          publicBlock.style.display = 'none';
+        } else {
+          // Show public, hide protected
+          protectedBlock.style.display = 'none';
+          publicBlock.style.display = '';
+        }
+      } else if (group.length === 1 && protectedBlocks.length === 1) {
+        const protectedBlock = protectedBlocks[0];
+        if (isLoggedIn) {
+          protectedBlock.style.display = '';
+        } else {
+          protectedBlock.classList.add('blur');
+        }
       }
     });
-  }
+  });
 }
 
 /**
