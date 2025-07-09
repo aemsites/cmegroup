@@ -1005,6 +1005,7 @@ body.loading::before {
 main.blur {
     filter: blur(5px);
     pointer-events: none;
+}
 
 /* general classes */
 .white-background {
