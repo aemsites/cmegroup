@@ -22,8 +22,6 @@ import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.
 import { checkDomain, createElement } from './utils.js';
 import createOptimizedPicture from './utils/picture.js';
 import { appendQueryParams } from './utils/uri.js';
-import { getIsLoggedIn } from './services/AuthenticationService.js';
-import { openModal } from '../blocks/modal/modal.js';
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
@@ -426,7 +424,7 @@ function decorateTextHighlights(main) {
   });
 }
 
-function guardContent(main) {
+async function guardContent(main) {
   // Only run if this is the main page's <main>
   if (main !== document.querySelector('main')) return;
 
@@ -434,6 +432,7 @@ function guardContent(main) {
   const visibility = getMetadata('visibility');
   if (visibility && visibility.includes('protected') && !isLoggedIn) {
     main.classList.add('blur');
+    const { openModal } = await import(`${window.hlx.codeBasePath}/blocks/modal/modal.js`);
     openModal('/fragments/login');
     return;
   }

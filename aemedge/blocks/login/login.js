@@ -15,4 +15,4 @@ export default function decorate(block) {
     divider.className = 'login-divider';
     paragraphs[0].after(divider);
   }
-} 
+}
