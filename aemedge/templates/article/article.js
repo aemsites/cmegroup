@@ -3,7 +3,7 @@ import { createElement, i18n, getArticleRelatedMetadata } from '../../scripts/ut
 async function decorateArticleHero(main) {
   const [
     {
-      readTime, author, primaryTopic, date, subTemplate,
+      readTime, author, primaryTopic, date, subTemplates,
     },
     readLabel,
     watchLabel,
@@ -17,14 +17,11 @@ async function decorateArticleHero(main) {
     i18n('By'),
   ]);
 
-  main.classList.add('article', subTemplate);
-  if (subTemplate === 'faqs' || subTemplate === 'video') {
-    main.classList.add('standard');
-  }
+  main.classList.add('article', ...subTemplates);
 
   const h1 = main.querySelector('h1');
-  const readIconName = subTemplate === 'video' ? 'play' : 'list';
-  const readIconLabel = subTemplate === 'video' ? watchLabel : readLabel;
+  const readIconName = subTemplates.includes('video') ? 'play' : 'list';
+  const readIconLabel = subTemplates.includes('video') ? watchLabel : readLabel;
   const readIcon = createElement('img', {
     src: `/aemedge/icons/${readIconName}.svg`,
     alt: 'Read Time',
@@ -68,7 +65,7 @@ async function decorateArticleHero(main) {
   picture?.classList.add('hero-background');
 
   const articleInfo = createElement('div', { class: 'article-info' }, row1, row2, row3);
-  if (subTemplate === 'case-study') {
+  if (subTemplates.includes('showcase')) {
     firstSection.append(articleInfo);
     h1.remove();
   } else {
