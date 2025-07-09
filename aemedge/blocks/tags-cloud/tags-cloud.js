@@ -1,5 +1,9 @@
-import { readBlockConfig } from '../../scripts/aem.js';
-import { i18n, getPageTags, createElement } from '../../scripts/utils.js';
+import {
+  i18n,
+  getPageTags,
+  createElement,
+  readBlockConfig,
+} from '../../scripts/utils.js';
 import ffetch from '../../scripts/ffetch.js';
 
 const defaultUrl = '/education/browse-all';

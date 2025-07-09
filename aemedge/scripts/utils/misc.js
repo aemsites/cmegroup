@@ -92,14 +92,11 @@ export async function axiosPost(url, data, absoluteUrl, config = {}) {
 
   const fetchOptions = {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
+    headers,
   };
 
   if (data) {
-    if (typeof data === 'object') {
+    if (typeof data === 'object' && !(data instanceof FormData || data instanceof Blob)) {
       fetchOptions.body = JSON.stringify(data);
     } else {
       fetchOptions.body = data;
