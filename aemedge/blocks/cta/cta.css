@@ -10,6 +10,10 @@
   margin-top: 3.75rem;
 }
 
+.cta.promo.primary {
+  background-color: var(--blue1);
+}
+
 .cta.promo a {
   position: relative;
   text-decoration: none;
@@ -55,6 +59,17 @@
   color: var(--green2);
 }
 
+.cta.promo.primary .title p {
+  color: var(--white);
+}
+
+/* Smaller font size for description when both promo and primary classes are present */
+.cta.promo.primary .description p {
+  margin-top: 1rem;
+  font-size: .875rem;
+  line-height: 1.875rem;
+}
+
 .cta.promo .footer {
   position: absolute;
   display: flex;
@@ -74,10 +89,17 @@
   padding-bottom: 1.2rem;
 }
 
-.cta.promo .footer .icon {
+.cta.promo.primary .footer::after {
+  font-family: var(--cme-group-icons);
+  content: var(--icon-arrow-right-thin);
+  font-size: 1.5rem; 
   position: absolute;
+  color: var(--blue1);
   background-color: var(--green);
   padding: 1rem;
   bottom: 0;
   right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
