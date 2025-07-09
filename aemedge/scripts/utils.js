@@ -1,5 +1,11 @@
 /* eslint-disable import/prefer-default-export */
-import { loadScript, loadCSS, getMetadata } from './aem.js';
+import {
+  loadScript,
+  loadCSS,
+  getMetadata,
+  toCamelCase,
+  toClassName,
+} from './aem.js';
 import ffetch from './ffetch.js';
 
 /**
@@ -480,6 +486,73 @@ function checkDomain(url) {
   return result;
 }
 
+/**
+ * Checks if a feature toggle is enabled via query parameter.
+ *
+ * @param {string} toggleName - The name of the toggle to check
+ * @param {string} expectedValue - The expected value (defaults to 'y')
+ * @returns {boolean} - True if the toggle is enabled, false otherwise
+ *
+ * @example
+ * // Check if course nav should be hidden
+ * if (isFeatureToggled('hideCourseNav')) {
+ *   // Hide course navigation
+ * }
+ *
+ * // Check for custom value
+ * if (isFeatureToggled('debugMode', 'true')) {
+ *   // Enable debug mode
+ * }
+ */
+function isFeatureToggled(toggleName, expectedValue = 'y') {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(toggleName) === expectedValue;
+}
+
+/**
+ * Extracts the config from a block.
+ * @param {Element} block The block element
+ * @returns {object} The block config
+ */
+function readBlockConfig(block, keysToCamelCase = false) {
+  const config = {};
+  block.querySelectorAll(':scope > div').forEach((row) => {
+    if (row.children) {
+      const cols = [...row.children];
+      if (cols[1]) {
+        const col = cols[1];
+        const name = keysToCamelCase
+          ? toCamelCase(cols[0].textContent) : toClassName(cols[0].textContent);
+        let value = '';
+        if (col.querySelector('a')) {
+          const as = [...col.querySelectorAll('a')];
+          if (as.length === 1) {
+            value = as[0].href;
+          } else {
+            value = as.map((a) => a.href);
+          }
+        } else if (col.querySelector('img')) {
+          const imgs = [...col.querySelectorAll('img')];
+          if (imgs.length === 1) {
+            value = imgs[0].src;
+          } else {
+            value = imgs.map((img) => img.src);
+          }
+        } else if (col.querySelector('p')) {
+          const ps = [...col.querySelectorAll('p')];
+          if (ps.length === 1) {
+            value = ps[0].textContent;
+          } else {
+            value = ps.map((p) => p.textContent);
+          }
+        } else value = row.children[1].textContent;
+        config[name] = value;
+      }
+    }
+  });
+  return config;
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -500,4 +573,6 @@ export {
   buildSlider,
   getUTCfromDateString,
   generateRandomId,
+  isFeatureToggled,
+  readBlockConfig,
 };

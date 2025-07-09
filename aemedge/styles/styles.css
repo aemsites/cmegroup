@@ -29,6 +29,7 @@
     /* fonts */
     --body-font-family: var(--averta), arial, sans-serif;
     --heading-font-family: var(--averta), arial, sans-serif;
+    --roboto-mono-font-family: roboto-mono, monospace;
 
     /* body sizes */
     --body-font-size-m: 16px;
@@ -1004,4 +1005,8 @@ body.loading::before {
 main.blur {
     filter: blur(5px);
     pointer-events: none;
+
+/* general classes */
+.white-background {
+    background-color: var(--white);
 }
