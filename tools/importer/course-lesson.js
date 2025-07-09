@@ -83,15 +83,24 @@ const handleFragments = (document) => {
       const h4 = fragment.querySelector('h4');
       if (h4?.textContent.toLowerCase().includes('accredited course')) {
         if (fragment.textContent.includes('the CFA Institute')) {
-          const cells = [['Fragment'], [`${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/cfa`]];
+          const anchor = document.createElement('a');
+          anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/cfa`;
+          anchor.textContent = anchor.href;
+          const cells = [['Fragment'], [anchor]];
           const table = WebImporter.DOMUtils.createTable(cells, document);
           fragment.replaceWith(table);
         } else if (fragment.textContent.includes('GARP continuing education')) {
-          const cells = [['Fragment'], [`${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/garp`]];
+          const anchor = document.createElement('a');
+          anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/garp`;
+          anchor.textContent = anchor.href;
+          const cells = [['Fragment'], [anchor]];
           const table = WebImporter.DOMUtils.createTable(cells, document);
           fragment.replaceWith(table);
         } else {
-          const cells = [['Fragment'], [`${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/other`]];
+          const anchor = document.createElement('a');
+          anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/other`;
+          anchor.textContent = anchor.href;
+          const cells = [['Fragment'], [anchor]];
           const table = WebImporter.DOMUtils.createTable(cells, document);
           fragment.replaceWith(table);
         }
@@ -100,7 +109,10 @@ const handleFragments = (document) => {
       // Check for feedback fragment
       const feedbackH4 = fragment.querySelector('h4#what-did-you-think-of-this-course');
       if (feedbackH4) {
-        const cells = [['Fragment'], [`${EDS_DOMAIN}/fragments/courses-lessons/feedback`]];
+        const anchor = document.createElement('a');
+        anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/feedback`;
+        anchor.textContent = anchor.href;
+        const cells = [['Fragment'], [anchor]];
         const table = WebImporter.DOMUtils.createTable(cells, document);
         fragment.replaceWith(table);
       }
@@ -108,7 +120,10 @@ const handleFragments = (document) => {
       // Check for extend your learning fragment
       const extendH4 = fragment.querySelector('h4#extend-your-learning');
       if (extendH4) {
-        const cells = [['Fragment'], [`${EDS_DOMAIN}/fragments/courses-lessons/extend-your-learning`]];
+        const anchor = document.createElement('a');
+        anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/extend-your-learning`;
+        anchor.textContent = anchor.href;
+        const cells = [['Fragment'], [anchor]];
         const table = WebImporter.DOMUtils.createTable(cells, document);
         fragment.replaceWith(table);
       }
@@ -126,6 +141,7 @@ const quizBlock = (document) => {
       const questionTextWithoutQuotes = questionText.replace(/^['"]|['"]$/g, '').trim();
       const answersItems = quiz.getAttribute('data-answers-items') ? JSON.parse(quiz.getAttribute('data-answers-items')) : [];
 
+      cells.push(['Questions', 'Options', 'Correct', 'Snippet']);
       cells.push([questionTextWithoutQuotes, answersItems[0].answerOpt,
         answersItems[0].correctAnswer || '', answersItems[0].answerSnip || '']);
 
@@ -138,6 +154,8 @@ const quizBlock = (document) => {
     const table = WebImporter.DOMUtils.createTable(cells, document);
     document.querySelector('.quiz')?.replaceWith(table);
   }
+
+  // Currently multiple quizzes are not present under /education so not handling those cases
 };
 
 const moduleOrder = async (document, meta, url1) => {

@@ -38,15 +38,15 @@ async function setMetadata(meta, document, url) {
   const templates = {
     'cme-group-case-study-article-template': {
       template: 'article',
-      subTemplate: 'case-study',
+      tempSubTemplate: 'case-study',
     },
     'cme-group-faqs-article-template': {
       template: 'article',
-      subTemplate: 'faqs',
+      tempSubTemplate: 'faqs',
     },
     'cme-group-showcase-article-template': {
       template: 'article',
-      subTemplate: 'showcase',
+      tempSubTemplate: 'showcase',
     },
     'cme-group-lesson-template': {
       template: 'lesson',
@@ -55,20 +55,19 @@ async function setMetadata(meta, document, url) {
       template: 'course',
     },
     'cme-group-standalone-lesson-template': {
-      template: 'lesson',
-      subTemplate: 'standalone',
+      template: 'lesson-standalone',
     },
     'cme-group-video-article-template': {
       template: 'article',
-      subTemplate: 'video',
+      tempSubTemplate: 'video',
     },
     'cme-group-standard-article-template': {
       template: 'article',
-      subTemplate: 'standard',
+      tempSubTemplate: 'standard',
     },
     'cme-group-podcast-article-template': {
       template: 'article',
-      subTemplate: 'podcast',
+      tempSubTemplate: 'podcast',
     },
     basepage: {
       template: 'chapter',
@@ -81,6 +80,10 @@ async function setMetadata(meta, document, url) {
     if (templates[template].subTemplate) {
       meta['Sub Template'] = templates[template].subTemplate;
     }
+
+    if (templates[template].tempSubTemplate) {
+      meta['Temp Sub Template'] = templates[template].tempSubTemplate;
+    }
   }
 
   if (readTime) {
@@ -92,6 +95,8 @@ async function setMetadata(meta, document, url) {
   const articleDate = document.querySelector('.article-date');
   if (articleDate?.textContent) {
     meta.Date = articleDate?.textContent?.trim();
+    const date = new Date(meta.Date);
+    meta.Date = date.toISOString();
     articleDate.remove();
   }
 
@@ -109,6 +114,15 @@ async function setMetadata(meta, document, url) {
   if (jsonResponse?.ok) {
     try {
       const jsonData = await jsonResponse.json();
+      if (!meta['Sub Template'] && meta.Template === 'article') {
+        const headerType = jsonData.headerType ? jsonData.headerType.split('-')[0] : '';
+        const mediaType = jsonData.mediaType ? jsonData.mediaType.split('-')[0] : '';
+
+        if (headerType && mediaType) {
+          meta['Sub Template'] = `${mediaType} ${headerType}`;
+        }
+      }
+
       Object.keys(jsonData).forEach((key) => {
         const arr = [];
         if (key === 'primaryAuthors') {
@@ -130,19 +144,14 @@ async function setMetadata(meta, document, url) {
           meta['Primary Topic'] = arr.join(',');
         } else if (key === 'articleTime') {
           const readTimeTemp = jsonData[key];
-          const time = readTimeTemp?.trim().split(' ')[0].trim().toLowerCase();
-          if (time.includes(':')) {
-            const [minutes, seconds] = time.split(':');
-            const nearestMinute = Math.round(Number(minutes) + (Number(seconds) / 60));
-            meta['Read Time'] = `${nearestMinute}`;
-          } else {
-            meta['Read Time'] = `${time}`;
+          if (readTimeTemp) {
+            meta['Read Time'] = readTimeTemp;
           }
         } else if (key === 'moduleId') {
           meta['Module ID'] = jsonData[key];
         } else if (key === 'hideCourseNavigation') {
           meta['Hide Course Navigation'] = Boolean(jsonData[key]);
-        } else if (key === 'jcr:title' && (meta.Template === 'lesson' || meta.Template === 'course' || meta.Template === 'chapter')) {
+        } else if (key === 'jcr:title' && (meta.Template === 'lesson' || meta.Template === 'course' || meta.Template === 'chapter' || meta.Template === 'lesson-standalone')) {
           meta['Module Title'] = jsonData[key];
         } else if (key === 'isPremium') {
           meta.isPremium = Boolean(jsonData[key]);
@@ -330,43 +339,19 @@ const convertSectionToMetadata = (section, index, total, cells) => {
  * This function creates a hero block for the article.
  * @param {Document} document - The document to search.
  */
-const articleHeroBlock = (document, meta) => {
+const articleHeroBlock = (document) => {
   const hero = document.querySelector('.article-header .article-background');
   if (hero) {
     const bgImage = hero.style.backgroundImage;
     const imgUrl = bgImage.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
-    let heroName = 'Hero (Article)';
-    if (meta['Sub Template'] === 'faqs') {
-      heroName = 'Hero (Article, faq)';
-    } else if (meta['Sub Template'] === 'standard' || meta['Sub Template'] === 'video' || meta['Sub Template'] === 'podcast') {
-      heroName = 'Hero (Article, Overlapping)'; // still pending
-    }
-    const cells = [[heroName]];
-
-    const tempData = [];
     const anchor = document.createElement('a');
     anchor.href = `https://www.cmegroup.com${imgUrl}`;
     anchor.textContent = anchor.href;
 
-    const h1 = document.createElement('h1');
-    h1.innerText = hero.querySelector('h1')?.innerText || document.querySelector('h1')?.innerText || '';
-
     const div = document.createElement('div');
     div.appendChild(anchor);
-    if (h1.innerText) {
-      div.appendChild(h1);
-      if (hero.querySelector('h1')) {
-        hero.querySelector('h1').remove();
-      } else if (document.querySelector('h1')) {
-        document.querySelector('h1').remove();
-      }
-    }
-
-    tempData.push(div);
-    cells.push(tempData);
-    const table = WebImporter.DOMUtils.createTable(cells, document);
     hero.after(buildSectionMetadata([['Style', 'Full Width']]), blockSeparator().cloneNode(true));
-    hero.replaceWith(table);
+    hero.replaceWith(anchor);
   }
 };
 
@@ -498,7 +483,7 @@ const figCaptionEmphasize = (document) => {
 };
 
 const faqBlock = (document, meta) => {
-  if (meta['Sub Template'] === 'faqs') {
+  if (meta['Temp Sub Template'] === 'faqs') {
     const components = document.querySelectorAll('.component');
     const cells = [['FAQ (Ordered)']];
     let componentIndex = 0;
@@ -985,13 +970,13 @@ const customBlocks = async (document, main, meta, url) => {
   colorMap(document);
   oneClickSubToFragment(document);
 
-  if (meta['Sub Template'] === 'case-study') {
+  if (meta['Temp Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);
     generalColumns(document);
     generateEndColumns(document);
-  } else if (meta['Sub Template'] === 'standard') {
+  } else if (meta['Temp Sub Template'] === 'standard') {
     standardArticleInitialColumns(document);
-  } else if (['lesson', 'course'].includes(meta.Template)) {
+  } else if (['lesson', 'course', 'lesson-standalone'].includes(meta.Template)) {
     await removeCourseSpecificItem(document, main, meta);
     handleFragments(document);
     coursesColumnsBlock(document);
@@ -1003,6 +988,7 @@ const customBlocks = async (document, main, meta, url) => {
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
   correctLinks(document);
+  delete meta['Temp Sub Template'];
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
   //   form.remove();
