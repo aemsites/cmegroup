@@ -97,3 +97,13 @@ body.modal-open {
 .modal dialog .section {
   padding: 0;
 }
+
+.modal dialog:has(.login) {
+  width: 500px;
+  height: 175px;
+}
+
+.modal dialog:has(.login) .modal-content {
+  margin: 0;
+  padding: 0;
+}

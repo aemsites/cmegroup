@@ -1,0 +1,38 @@
+.login {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px 20px 16px 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  width: 100%;
+  height: 100%;
+}
+
+.login-header {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #003366;
+  margin-bottom: 8px;
+}
+
+.login-body {
+  font-size: 0.98rem;
+  color: #555;
+}
+
+.login-body a {
+  color: #0074c2;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.login-divider {
+  width: 100%;
+  border: none;
+  border-top: 2px solid #0074c2;
+  margin: 6px 0 10px 0;
+} 
