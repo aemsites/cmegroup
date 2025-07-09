@@ -76,7 +76,7 @@ async function decorateArticleHero(main) {
     const firstDivChildren = secondSection.querySelector('div:first-of-type').children;
     const secondDiv = secondSection.querySelector('div:nth-of-type(2)');
     secondDiv.append(...firstDivChildren, ...secondDiv.children);
-    secondDiv.querySelector('h1').replaceWith(articleInfo);
+    secondDiv.querySelector('h1')?.replaceWith(articleInfo);
     secondSection.querySelector('div:first-of-type').remove();
   }
 
