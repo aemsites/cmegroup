@@ -94,10 +94,6 @@ body.modal-open {
   font-weight: 400;
 }
 
-.modal dialog .section {
-  padding: 0;
-}
-
 .modal dialog:has(.login) {
   width: 500px;
   height: 175px;
@@ -106,4 +102,12 @@ body.modal-open {
 .modal dialog:has(.login) .modal-content {
   margin: 0;
   padding: 0;
+}
+
+.modal dialog:has(.login) .modal-content .section {
+  margin-bottom: 0;
+}
+
+.modal dialog:has(.login) .close-button {
+  padding: 1rem;
 }

@@ -1007,6 +1007,10 @@ main.blur {
     pointer-events: none;
 }
 
+main.blur .modal * {
+    pointer-events: auto !important;
+}
+
 /* general classes */
 .white-background {
     background-color: var(--white);
