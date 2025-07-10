@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { readBlockConfig } from '../../scripts/aem.js';
+import { getMetadata, readBlockConfig } from '../../scripts/aem.js';
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { fetchAndFilterDataIndex } from '../../scripts/indexing.js';
 import {
@@ -325,16 +325,17 @@ async function fetchAndFilterUpcomingEconodayEvent() {
 
 export async function createDynamicCards(block, numEntries = null) {
   const config = readBlockConfig(block);
+  const tags = getMetadata('article:tag');
+  const tagsArray = tags ? tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
   let filteredData;
   let cardElements;
   let sliderConfig = null;
   let disabledOnDesktop = false;
   let inverse = false;
   if (block.classList.contains('course')) {
-    const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
     const indexConfig = buildIndexConfig(config);
     indexConfig.template = 'course';
-    indexConfig.tagsOr = tags;
+    indexConfig.tagsOr = tagsArray;
     filteredData = await fetchAndFilterDataIndex(indexConfig);
     // Sort by timestamp in descending order
     filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));

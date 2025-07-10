@@ -1,12 +1,16 @@
+import { buildBlock, decorateBlock, loadBlock } from '../../../scripts/aem.js';
 import { createElement } from '../../../scripts/utils.js';
 
 export default async function createRelatedCourses(main) {
-  const blockContainer = createElement('div', { class: 'section cards-container full-width' });
-  const blockWrapper = createElement('div', { class: 'cards-wrapper' });
-  blockContainer.appendChild(blockWrapper);
+  const container = createElement('div', { class: 'section full-width' });
+  const wrapper = createElement('div');
+  container.appendChild(wrapper);
 
-  const block = createElement('div', { class: 'block course dynamic cards' });
-  blockWrapper.appendChild(block);
+  const block = buildBlock('cards', '');
+  block.classList.add('course', 'dynamic');
+  wrapper.appendChild(block);
+  decorateBlock(block);
+  loadBlock(block);
 
   // Dynamic import for createDynamicCards
   const { createDynamicCards } = await import('../../cards/cards.js');
@@ -32,5 +36,5 @@ export default async function createRelatedCourses(main) {
     ul.style.gridTemplateColumns = 'repeat(3, 1fr)';
   }
 
-  main.appendChild(blockContainer);
+  main.appendChild(container);
 }
