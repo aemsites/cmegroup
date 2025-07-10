@@ -143,9 +143,9 @@ const quizBlock = (document) => {
       if (completeMessage) {
         cells.push(['Complete Message', completeMessage, '', '']);
       }
-      // if (inlineQuiz) {
+      if (inlineQuiz) {
         cells.push(['Do Not Mark Lesson As Completed', true, '', '']);
-      // }
+      }
       quizzes.forEach((quiz) => {
         const questionText = quiz.getAttribute('data-question');
         const questionTextWithoutQuotes = questionText.replace(/^['"]|['"]$/g, '').trim();
