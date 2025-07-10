@@ -98,9 +98,13 @@
         width: 100%;
         border: 1px solid var(--gray3);
         background-color: var(--blue1);
-        margin-bottom: 2.8125rem;
+        margin-bottom: 0.625rem;
         text-decoration: none;
         text-align: left;
+
+        @media (width >= 769px) {
+            margin-bottom: 2.8125rem;
+        }
 
         & .card-image {
             display: none;
@@ -177,6 +181,7 @@
                         width: 0.7488rem;
                         height: 1.375rem;
                         padding-left: 0.625rem;
+                        padding-top: 0.125rem;
                     }
 
                     & > img {
