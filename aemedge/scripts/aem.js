@@ -451,6 +451,19 @@ function decorateIcons(element, prefix = '') {
   const icons = [...element.querySelectorAll('span.icon')];
   icons.forEach((span) => {
     decorateIcon(span, prefix);
+
+    // Auto-apply accessibility for icon links
+    const parentLink = span.closest('a');
+    if (parentLink && !parentLink.hasAttribute('aria-label')) {
+      const iconClass = [...span.classList].find((c) => c.startsWith('icon-'));
+      if (iconClass) {
+        const platformName = iconClass.substring(5)
+          .split('-')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        parentLink.setAttribute('aria-label', `Visit ${platformName}`);
+      }
+    }
   });
 }
 
