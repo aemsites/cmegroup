@@ -12,6 +12,7 @@ import {
   urlByEnvType,
   formatToCentralTime,
   getUTCfromDateString,
+  readBlockConfig,
 } from '../../scripts/utils.js';
 
 const ECONOMIC_EVENTS_ENDPOINT = `${urlByEnvType()}/services/economic-release-events`;

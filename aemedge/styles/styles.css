@@ -1001,3 +1001,8 @@ body.loading::before {
 #st-2.st-right {
     z-index: 0 !important;
 }
+
+/* general classes */
+.white-background {
+    background-color: var(--white);
+}
