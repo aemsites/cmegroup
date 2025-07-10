@@ -132,28 +132,41 @@ const handleFragments = (document) => {
 };
 
 const quizBlock = (document) => {
-  const quizzes = document.querySelectorAll('.quiz-item');
+  const quizTopDivs = document.querySelectorAll('.quiz.multipaneleditor');
+  quizTopDivs.forEach((quizTopDiv) => {
+    const quizzes = quizTopDiv.querySelectorAll('.quiz-item');
+    const completeMessage = quizTopDiv.getAttribute('data-complete-msg');
+    const inlineQuiz = quizTopDiv.getAttribute('data-is-inline-quiz') === 'true';
 
-  if (quizzes?.length) {
-    const cells = [['Quiz']];
-    quizzes.forEach((quiz) => {
-      const questionText = quiz.getAttribute('data-question');
-      const questionTextWithoutQuotes = questionText.replace(/^['"]|['"]$/g, '').trim();
-      const answersItems = quiz.getAttribute('data-answers-items') ? JSON.parse(quiz.getAttribute('data-answers-items')) : [];
-
-      cells.push(['Questions', 'Options', 'Correct', 'Snippet']);
-      cells.push([questionTextWithoutQuotes, answersItems[0].answerOpt,
-        answersItems[0].correctAnswer || '', answersItems[0].answerSnip || '']);
-
-      for (let i = 1; i < answersItems.length; i += 1) {
-        const answer = answersItems[i];
-        cells.push(['', answer.answerOpt, answer.correctAnswer || '', answer.answerSnip || '']);
+    if (quizzes?.length) {
+      const cells = [['Quiz']];
+      if (completeMessage) {
+        cells.push(['Complete Message', completeMessage, '', '']);
       }
-    });
+      // if (inlineQuiz) {
+        cells.push(['Do Not Mark Lesson As Completed', true, '', '']);
+      // }
+      quizzes.forEach((quiz) => {
+        const questionText = quiz.getAttribute('data-question');
+        const questionTextWithoutQuotes = questionText.replace(/^['"]|['"]$/g, '').trim();
+        const answersItems = quiz.getAttribute('data-answers-items') ? JSON.parse(quiz.getAttribute('data-answers-items')) : [];
 
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-    document.querySelector('.quiz')?.replaceWith(table);
-  }
+        cells.push(['Questions', 'Options', 'Correct', 'Snippet']);
+        cells.push([questionTextWithoutQuotes, answersItems[0].answerOpt,
+          answersItems[0].correctAnswer || '', answersItems[0].answerSnip || '']);
+
+        for (let i = 1; i < answersItems.length; i += 1) {
+          const answer = answersItems[i];
+          cells.push(['', answer.answerOpt, answer.correctAnswer || '', answer.answerSnip || '']);
+        }
+      });
+
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      document.querySelector('.quiz')?.replaceWith(table);
+    }
+  });
+
+  
 
   // Currently multiple quizzes are not present under /education so not handling those cases
 };
