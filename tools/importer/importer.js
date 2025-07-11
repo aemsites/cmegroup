@@ -144,8 +144,21 @@ async function setMetadata(meta, document, url) {
           meta['Primary Topic'] = arr.join(',');
         } else if (key === 'articleTime') {
           const readTimeTemp = jsonData[key];
-          if (readTimeTemp) {
-            meta['Read Time'] = readTimeTemp;
+          const [minutes, seconds] = readTimeTemp.split(':');
+          const nearestMinute = Math.round(Number(minutes) + (Number(seconds) / 60));
+
+          const hours = Math.floor(nearestMinute / 60);
+          const remainingMinutes = nearestMinute % 60;
+
+          // if hours and minutes is less than 10 then it should be like 08:07
+          if (hours < 10 && remainingMinutes < 10) {
+            meta['Read Time'] = `0${hours}:0${remainingMinutes}`;
+          } else if (hours < 10) {
+            meta['Read Time'] = `0${hours}:${remainingMinutes}`;
+          } else if (remainingMinutes < 10) {
+            meta['Read Time'] = `${hours}:0${remainingMinutes}`;
+          } else {
+            meta['Read Time'] = `${hours}:${remainingMinutes}`;
           }
         } else if (key === 'moduleId') {
           meta['Module ID'] = jsonData[key];

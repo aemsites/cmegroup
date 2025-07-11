@@ -166,8 +166,6 @@ const quizBlock = (document) => {
     }
   });
 
-  
-
   // Currently multiple quizzes are not present under /education so not handling those cases
 };
 
