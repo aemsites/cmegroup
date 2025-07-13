@@ -71,7 +71,7 @@
 
 .brightcove-img-placeholder {
     width: 100%;
-    min-height: 22.125rem;
+    /* min-height: 22.125rem; */
     background-size: cover;
     display: inline-block;
     vertical-align: middle;
@@ -80,6 +80,17 @@
     position: absolute;
     top: 0;
     bottom: 0;
+    aspect-ratio: 16 / 9;
+    z-index: 1;
+
+    &:hover {
+        cursor: pointer;
+
+        & .placeholder-play-btn::before {
+            background-color: var(--brightcove-play);
+            opacity: 1;
+        }
+    }
 
     &.playlist-right {
         position: relative;
@@ -141,11 +152,11 @@
 
 /* fake play btn */
 .placeholder-play-btn::before {
-    background-color: var(--gray2);
+    background-color: var(--black);
     border-radius: 50%;
     height: 6rem;
     left: calc(50% - 3rem);
-    opacity: .8;
+    opacity: .45;
     top: calc(50% - 3rem);
     transition: all .2s ease-in-out;
     width: 6rem;
@@ -162,13 +173,4 @@
     top: calc(50% - 0.75rem);
     position: absolute;
     font-size: 1.75rem;
-}
-
-.placeholder-play-btn:hover {
-    cursor: pointer;
-}
-
-.placeholder-play-btn:hover::before {
-    background-color: var(--blue7);
-    opacity: 1;
 }

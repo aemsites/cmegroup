@@ -534,7 +534,7 @@ async function loadLazy(doc) {
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
   if (hash && element) element.scrollIntoView();
 
-  loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
+  // loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
   loadFooter(doc.querySelector('footer'));
   dynamicBlocks(main);
 
