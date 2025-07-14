@@ -1,6 +1,5 @@
 import { loadScript } from '../../scripts/aem.js';
-import { readBlockConfig } from '../../scripts/scripts.js';
-import { createElement, i18n } from '../../scripts/utils.js';
+import { createElement, i18n, readBlockConfig } from '../../scripts/utils.js';
 import {
   getEconomicReleaseFilters,
   postEconomicReleaseDates,
