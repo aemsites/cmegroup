@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-import { readBlockConfig } from '../../scripts/aem.js';
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { fetchAndFilterDataIndex } from '../../scripts/indexing.js';
 import {
@@ -12,6 +11,7 @@ import {
   urlByEnvType,
   formatToCentralTime,
   getUTCfromDateString,
+  readBlockConfig,
 } from '../../scripts/utils.js';
 
 const ECONOMIC_EVENTS_ENDPOINT = `${urlByEnvType()}/services/economic-release-events`;

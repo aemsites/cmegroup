@@ -31,7 +31,7 @@ export function isEmpty(value) {
   return true; // Default to true for other types (e.g., functions)
 }
 
-export async function axiosGet(url, absoluteUrl, config = {}) {
+export async function axiosGet(url, config = {}, absoluteUrl = false) {
   const { params = {}, headers = {} } = config;
   let urlObj;
   if (absoluteUrl) {
@@ -80,7 +80,7 @@ export async function axiosGet(url, absoluteUrl, config = {}) {
   }
 }
 
-export async function axiosPost(url, data, absoluteUrl, config = {}) {
+export async function axiosPost(url, data, config = {}, absoluteUrl = false) {
   const { headers = {}, params = {} } = config;
   let urlObj;
   if (absoluteUrl) {
@@ -92,14 +92,11 @@ export async function axiosPost(url, data, absoluteUrl, config = {}) {
 
   const fetchOptions = {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
+    headers,
   };
 
   if (data) {
-    if (typeof data === 'object') {
+    if (typeof data === 'object' && !(data instanceof FormData || data instanceof Blob)) {
       fetchOptions.body = JSON.stringify(data);
     } else {
       fetchOptions.body = data;
@@ -371,4 +368,10 @@ export function parseCurrencyValue(valueString) {
   }
   // Return NaN if the numeric part couldn't be parsed
   return NaN;
+}
+
+export function getRandomNumber(amount = 1) {
+  const crypto = window.crypto || window.msCrypto;
+  const values = crypto.getRandomValues(new Uint32Array(amount));
+  return amount > 1 ? values : values[0];
 }

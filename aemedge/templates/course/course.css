@@ -1,7 +1,9 @@
 @import './course-base.css';
+@import "./course/certificate.css";
 
 .begin-course-button {
   margin-top: 1rem;
   margin-bottom: 1rem;
   cursor: pointer;
+  text-transform: uppercase;
 }

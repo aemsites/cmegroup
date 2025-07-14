@@ -29,6 +29,7 @@
     /* fonts */
     --body-font-family: var(--averta), arial, sans-serif;
     --heading-font-family: var(--averta), arial, sans-serif;
+    --roboto-mono-font-family: roboto-mono, monospace;
 
     /* body sizes */
     --body-font-size-m: 16px;
@@ -69,6 +70,10 @@
     --container-padding-lg: 66px;
     --container-padding-xl: 88px;
     --container-padding-xxl: 88px;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -372,7 +377,6 @@ button {
     border-radius: 0.25rem;
     font-family: var(--averta);
     font-weight: 700;
-    font-size: 0.75rem;
     line-height: 0.75rem;
     letter-spacing: 0.0938rem;
     padding: 0.625rem 1.375rem;
@@ -679,6 +683,10 @@ main .section .layout > div {
         width: 90%;
     }
 
+}
+
+main .section.divider > div {
+    border-bottom: 0.0625rem solid var(--gray4);
 }
 
 /* Loading overlay animation */
@@ -996,4 +1004,9 @@ body.loading::before {
 /* share this z-index override */
 #st-2.st-right {
     z-index: 0 !important;
+}
+
+/* general classes */
+.white-background {
+    background-color: var(--white);
 }

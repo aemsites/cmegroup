@@ -45,10 +45,10 @@ const updateFilteringByUI = async (container, onChange) => {
   appliedFilters.forEach(({ filterId, value, labelContent }) => {
     const tag = button({ class: 'filter-tag' }, labelContent);
     tag.onclick = async () => {
-      const cb = document.querySelector(`#${filterId} input[value="${value}"]`);
-      if (cb) {
+      const cbs = document.querySelectorAll(`#${filterId} input[value="${value}"]`);
+      cbs.forEach((cb) => {
         cb.checked = false;
-      }
+      });
       removeAppliedFilter(filterId, value);
       await updateFilteringByUI(container, onChange);
     };

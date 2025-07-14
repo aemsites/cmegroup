@@ -7,6 +7,9 @@ import { quizAnswered } from '../../scripts/actions/quiz.js';
 export default function lessonStandaloneTemplate() {
   const { authenticationData } = authentication;
   authenticationData.loginPromise.then(async () => {
+    if (!authenticationData.isLoggedIn) {
+      await import('../../scripts/course/auth-modal.js');
+    }
     const courseData = await getCourseData();
     await createCourseBaseTemplate(courseData);
     if (!courseData.started) {

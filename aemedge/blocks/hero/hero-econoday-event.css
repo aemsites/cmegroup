@@ -16,7 +16,7 @@
     height: 6.25rem;
 }
 
-@media (width > 768px) {
+@media (width >= 769px) {
     .hero.econoday-event .background-image {
         height: 11.5625rem;
     }
@@ -26,7 +26,7 @@
     }
 }
 
-@media (width > 1200px) {
+@media (width >= 1201px) {
     .hero.econoday-event .background-image {
         height: 7.5rem;
     }
@@ -49,18 +49,25 @@
 }
 
 .hero.econoday-event .default-content-wrapper {
-    padding-inline: 2rem;
-    width: calc(100% - 4rem);
+    padding-inline: 1.5rem;
+    width: calc(100% - 3rem);
 }
 
-@media (width > 768px) {
+@media (width >= 481px) {
+    .hero.econoday-event .default-content-wrapper {
+        padding-inline: 2rem;
+        width: calc(100% - 4rem);
+    }
+}
+
+@media (width >= 769px) {
     .hero.econoday-event .default-content-wrapper {
         padding-inline: 3.375rem;
         width: calc(100% - 6.75rem);
     }
 }
 
-@media (width > 992px) {
+@media (width >= 993px) {
     .hero.econoday-event .default-content-wrapper {
         padding-inline: 4.125rem;
         width: calc(100% - 8.25rem);
@@ -71,7 +78,7 @@
     }
 }
 
-@media (width > 1200px) {
+@media (width >= 1201px) {
     .hero.econoday-event .background-image .shadow-wrapper {
         display: block;
     }
@@ -129,13 +136,13 @@
     line-height: 1.25rem;
 }
 
-@media (width > 992px) {
+@media (width >= 993px) {
     .hero.econoday-event .economic-release-info {
         margin-bottom: 1.8125rem;
     }
 }
 
-@media (width > 1200px) {
+@media (width >= 1201px) {
     .hero.econoday-event .economic-release-info {
         padding-top: 3.6875rem;
     }
@@ -152,7 +159,7 @@
     margin-bottom: 1.25rem;
 }
 
-@media (width > 768px) {
+@media (width >= 769px) {
     .hero.econoday-event .economic-release-info a {
         font-size: .875rem;
         line-height: 1.25rem;
@@ -172,7 +179,13 @@
 .hero.econoday-event .economic-release-info a .icon {
     height: 0.5625rem;
     width: 0.5625rem;
-    margin-top: -0.625rem;
+    margin-top: -0.5rem;
+}
+
+@media (width >= 769px) {
+    .hero.econoday-event .economic-release-info a .icon {
+        margin-top: -0.625rem;
+    }
 }
 
 .hero.econoday-event .economic-release-info a .icon img {
@@ -190,7 +203,7 @@
     text-transform: uppercase;
 }
 
-@media (width > 768px) {
+@media (width >= 769px) {
     .hero.econoday-event .economic-release-info .economic-release-featured-tag {
         text-align: center;
     }
@@ -211,7 +224,7 @@
     margin-bottom: 1.25rem;
 }
 
-@media (width > 768px) {
+@media (width >= 769px) {
     .hero.econoday-event .economic-release-data {
         margin-bottom: 1.875rem;
     }
@@ -230,7 +243,7 @@
     font-weight: 400;
 }
 
-@media (width > 992px) {
+@media (width >= 993px) {
     .hero.econoday-event .economic-release-data .economic-release-data-date-value {
         display: inline;
     }
