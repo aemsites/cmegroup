@@ -72,6 +72,10 @@
     --container-padding-xxl: 88px;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
     line-height: 1.5rem;
     letter-spacing: normal;
