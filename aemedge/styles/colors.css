@@ -28,6 +28,7 @@
     --gray6: #f1f5f7;
     --gray7: #3a464f;
     --gray8: #3c4043;
+    --gray8-shadow: 0 0.0625rem 0.125rem 0 rgb(60 64 67 / 30%), 0 0.125rem 0.375rem 0.125rem rgba(60 64 67 / 15%);
     --gray9: #b2b2b2;
     --gray10: #d5dbdF;
     --gray11: #e5e5e5;
@@ -54,5 +55,7 @@
     --notification-success-tick: #1f9a00;
     --notification-fail-tick: #9f0026;
     --orange: #ff912e;
+    --completion-certificate-title: #23a8ff;
+    --fade-transparent-white: linear-gradient(180deg, hsl(0deg 0% 100% / 0%), #fff);
     --brightcove-play: #0097e8;
 }

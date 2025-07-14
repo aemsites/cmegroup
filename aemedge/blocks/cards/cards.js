@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { readBlockConfig } from '../../scripts/aem.js';
+import { readBlockConfig } from '../../scripts/scripts.js';
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { fetchAndFilterDataIndex } from '../../scripts/indexing.js';
 import {

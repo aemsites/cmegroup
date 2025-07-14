@@ -65,6 +65,18 @@
   line-height: 18px;
 }
 
+.table.data table tbody tr td:not([class$="-header"]) {
+  text-align: right;
+  font-family: var(--roboto-mono-font-family);
+  font-size: 16px;
+  color: #25323c;
+  padding: 18px 20px;
+}
+
+.table.data table tbody tr td[class$="-header"] {
+  text-align: left;
+}
+
 .table table th p,
 .table table td p {
   margin: 0;
@@ -109,6 +121,7 @@
   font-size: var(--heading-font-size-xs);
   line-height: 14px;
   letter-spacing: 1.1px;
+  font-weight: 700;
   padding: 15px 20px;
   color: #c2cace;
   text-transform: uppercase;

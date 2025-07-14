@@ -9,7 +9,6 @@ import {
   loadSection,
   loadSections,
   loadCSS,
-  readBlockConfig,
   toCamelCase,
   toClassName,
   getMetadata,
@@ -19,17 +18,50 @@ import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
-import { checkDomain, createElement } from './utils.js';
+import { checkDomain, createElement, isFeatureToggled } from './utils.js';
+
 import createOptimizedPicture from './utils/picture.js';
 import { appendQueryParams } from './utils/uri.js';
+
+/**
+ * if present add custom ID to blocks in a container element. (Override from aem.js)
+ * @param {Element} main The container element
+ */
+function customIdToBlocks(block) {
+  // customId
+  let customIdValue = null;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const childDiv of block.children) {
+    if (childDiv.tagName === 'DIV') {
+      const keyDiv = childDiv.querySelector('div > p');
+      if (keyDiv && keyDiv.textContent.trim() === 'customId') {
+        const valueDiv = keyDiv.parentElement.nextElementSibling;
+        if (valueDiv) {
+          const pElement = valueDiv.querySelector('p');
+          if (pElement) {
+            customIdValue = pElement.textContent.trim();
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if (customIdValue) {
+    block.setAttribute('id', customIdValue);
+  }
+}
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
  * @param {Element} main The container element
  */
 function decorateBlocks(main) {
-  main.querySelectorAll('div.section > div:not(.layout) > div').forEach(decorateBlock);
-  main.querySelectorAll('div.section > div.layout > div > div > div').forEach(decorateBlock);
+  const elementsToDecorate = main.querySelectorAll(
+    'div.section > div:not(.layout) > div, div.section > div.layout > div > div > div',
+  );
+  elementsToDecorate.forEach(decorateBlock);
+  elementsToDecorate.forEach(customIdToBlocks);
 }
 
 /**
@@ -206,7 +238,7 @@ function isExternalImage(element) {
   // if the element is not an anchor, it's not an external image
   if (element.tagName !== 'A') return false;
   // IMPLICIT via CME Group Delivery URLs or OOTB DMOpenAPI Delivery URLs
-  return /https:\/\/www\.cmegroup\.com\/content\/dam\/|delivery-p\d+-e\d+\.adobeaemcloud\.com/.test(element.getAttribute('href'));
+  return /\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/.test(element.getAttribute('href'));
 }
 
 /**
@@ -220,7 +252,7 @@ function decorateExternalImages(ele) {
   const extImages = ele.querySelectorAll('a');
   extImages.forEach((extImage) => {
     if (isExternalImage(extImage)) {
-      const extImageSrc = extImage.getAttribute('href');
+      const extImageSrc = extImage.href;
       const extTitle = extImage.getAttribute('title');
       const extPicture = createOptimizedPicture(extImageSrc, extTitle);
 
@@ -263,7 +295,11 @@ function decorateSidebars(main) {
         if (child.querySelector('.sidebar.left')) {
           leftSidebars.push(child);
         } else if (child.querySelector('.sidebar.right')) {
-          rightSidebars.push(child);
+          if (!isFeatureToggled('hideRightRail')) {
+            rightSidebars.push(child);
+          } else {
+            child.remove();
+          }
         }
       } else {
         // This is content (not a sidebar)
@@ -491,6 +527,50 @@ export async function loadTemplate(doc, templateName) {
 }
 
 /**
+ * Extracts the config from a block.
+ * @param {Element} block The block element
+ * @returns {object} The block config
+ */
+export function readBlockConfig(block, keysToCamelCase = false) {
+  const config = {};
+  block.querySelectorAll(':scope > div').forEach((row) => {
+    if (row.children) {
+      const cols = [...row.children];
+      if (cols[1]) {
+        const col = cols[1];
+        const name = keysToCamelCase
+          ? toCamelCase(cols[0].textContent) : toClassName(cols[0].textContent);
+        let value = '';
+        if (col.querySelector('a')) {
+          const as = [...col.querySelectorAll('a')];
+          if (as.length === 1) {
+            value = as[0].href;
+          } else {
+            value = as.map((a) => a.href);
+          }
+        } else if (col.querySelector('img')) {
+          const imgs = [...col.querySelectorAll('img')];
+          if (imgs.length === 1) {
+            value = imgs[0].src;
+          } else {
+            value = imgs.map((img) => img.src);
+          }
+        } else if (col.querySelector('p')) {
+          const ps = [...col.querySelectorAll('p')];
+          if (ps.length === 1) {
+            value = ps[0].textContent;
+          } else {
+            value = ps.map((p) => p.textContent);
+          }
+        } else value = row.children[1].textContent;
+        config[name] = value;
+      }
+    }
+  });
+  return config;
+}
+
+/**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
  */
@@ -534,8 +614,14 @@ async function loadLazy(doc) {
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
   if (hash && element) element.scrollIntoView();
 
-  loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
-  loadFooter(doc.querySelector('footer'));
+  // Add feature toggle checks for header and footer
+  if (!isFeatureToggled('hideHeader')) {
+    loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
+  }
+  if (!isFeatureToggled('hideFooter')) {
+    loadFooter(doc.querySelector('footer'));
+  }
+
   dynamicBlocks(main);
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
