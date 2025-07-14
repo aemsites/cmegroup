@@ -21,18 +21,6 @@ export function apiGet(
   return axiosGet(baseUrl + url, data);
 }
 
-export function apiGetAbsolute(
-  url,
-  params = {},
-  headers = {},
-  // withCache = false,
-) {
-  const baseUrl = window.baseUrl || '';
-  const data = { params, headers };
-  // return axiosGet(baseUrl + makeProtectedUrl(url, withCache), true, data);
-  return axiosGet(baseUrl + url, data, true);
-}
-
 export function apiPost(
   url,
   params = {},
@@ -46,21 +34,6 @@ export function apiPost(
   return axiosPost(baseUrl + url, params, {
     headers,
   });
-}
-
-export function apiPostAbsolute(
-  url,
-  params = {},
-  headers = {},
-  // withCache = false,
-) {
-  const baseUrl = window.baseUrl || '';
-  // return axiosPost(baseUrl + makeProtectedUrl(url, withCache), params, true, {
-  //   headers,
-  // });
-  return axiosPost(baseUrl + url, params, {
-    headers,
-  }, true);
 }
 
 export function getResponseData(
