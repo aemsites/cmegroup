@@ -1,7 +1,7 @@
 import { readBlockConfig, getMetadata } from '../../scripts/aem.js';
 import {
   setTracking,
-  apiGetAbsolute,
+  apiGet,
   LocalStorageUtil,
   getRandomNumber,
 } from '../../scripts/utils/index.js';
@@ -270,7 +270,7 @@ async function getBrightcovePoster(accountId, videoId) {
   }
   const url = `https://edge.api.brightcove.com/playback/v1/accounts/${accountId}/videos/${videoId}`;
 
-  const response = await apiGetAbsolute(url, {}, {
+  const response = await apiGet(url, {}, {
     Accept: `application/json;pk=${policyKey}`,
   });
 
