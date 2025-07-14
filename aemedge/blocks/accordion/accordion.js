@@ -1,4 +1,4 @@
-import { createDynamicCard } from '../cards/cards.js';
+import { createDynamicCardCourse } from '../cards/cards.js';
 import { fetchCoursesIndex } from '../../scripts/indexing.js';
 
 import {
@@ -93,12 +93,12 @@ async function decorateCardsAccordion(block) {
     const allCourseData = await fetchCoursesIndex();
 
     // Create accordions with filtered data
-    const accordions = accordionData.map(({ title, tags }) => {
+    const accordions = await Promise.all(accordionData.map(async ({ title, tags }) => {
       const filteredData = filterDataByTags(allCourseData, tags);
-      const cards = filteredData.map(createDynamicCard);
+      const cards = await Promise.all(filteredData.map(createDynamicCardCourse));
       const cardsBlock = createCardsBlock(cards);
       return createAccordionItem(title, cardsBlock);
-    });
+    }));
 
     // Replace content with accordions
     block.textContent = '';

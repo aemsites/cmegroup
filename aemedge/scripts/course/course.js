@@ -4,6 +4,7 @@ import {
   getEnvType,
   getCurrentLangInWords,
   i18n,
+  parseTime,
 } from '../utils.js';
 import { getMetadata } from '../aem.js';
 import { getProgress, postLesson } from '../services/EducationTrackService.js';
@@ -249,23 +250,30 @@ export async function createCourseBaseTemplate(courseData) {
   const readTime = getMetadata('read-time');
   const template = getMetadata('template');
 
+  const [
+    courseLabel,
+    lessonLabel,
+    ofLabel,
+    premiumLabel,
+    readTimeParsed,
+  ] = await Promise.all([
+    i18n('Course'),
+    i18n('Lesson'),
+    i18n('of'),
+    i18n('Premium'),
+    parseTime(readTime),
+  ]);
+
   if (readTime) {
     const readTimeIcon = createElement('img', { src: '/aemedge/icons/timer.svg' });
     const readTimeIconSpan = createElement('span', { class: 'icon icon-timer' }, readTimeIcon);
-    const readTimeValue = createElement('span', { class: 'value' }, readTime);
+    const readTimeValue = createElement('span', { class: 'value' }, readTimeParsed);
     const readTimeElement = createElement('div', { class: 'metadata read-time' }, readTimeIconSpan, readTimeValue);
     header.appendChild(readTimeElement);
   } else { // if no read time, add empty div
     const readTimeElement = createElement('div', { class: 'metadata read-time' });
     header.appendChild(readTimeElement);
   }
-
-  const [courseLabel, lessonLabel, ofLabel, premiumLabel] = await Promise.all([
-    i18n('Course'),
-    i18n('Lesson'),
-    i18n('of'),
-    i18n('Premium'),
-  ]);
 
   if (template.toLowerCase() === 'course') {
     const type = createElement('div', { class: 'metadata type' });

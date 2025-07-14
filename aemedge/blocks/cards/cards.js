@@ -151,7 +151,7 @@ async function createStaticCards(block) {
   return cardsContainer;
 }
 
-export function createDynamicCard({
+export async function createDynamicCardCourse({
   image,
   title,
   description,
@@ -166,7 +166,7 @@ export function createDynamicCard({
   bodyWrapper.innerHTML = `
     <div class="card-subtitle">
     course
-    <span>${parseTime(readTime)}</span>
+    <span>${await parseTime(readTime)}</span>
     </div>
     <div class="cards-card-title">
       <h3>${title}</h3>
@@ -191,12 +191,33 @@ export async function createDynamicCardArticle({ content }) {
     date,
     title,
   } = dynamicProperties;
+  // Standardize data from on legacy service - start
+  let durationMin = '';
+  const [minStr, secStr] = duration.split(':');
+  const seconds = parseInt(secStr, 10);
+  let minutes = parseInt(minStr, 10);
+  if (minutes === 0) {
+    minutes = 1;
+  } else if (seconds > 30) {
+    minutes += 1;
+  }
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    durationMin = `${hours}:${mins}`;
+  } else {
+    durationMin = `00:${minutes}`;
+  }
+  // Standardize data from on legacy service - end
+
   const [
     readLabel,
     watchLabel,
+    durationStr,
   ] = await Promise.all([
     i18n('Read'),
     i18n('Watch'),
+    parseTime(durationMin),
   ]);
 
   const li = document.createElement('li');
@@ -218,7 +239,7 @@ export async function createDynamicCardArticle({ content }) {
 
   const cardTime = document.createElement('span');
   cardTime.className = 'cards-time';
-  cardTime.innerText = `${parseTime(duration)} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
+  cardTime.innerText = `${durationStr} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
 
   const cardDate = document.createElement('span');
   cardDate.className = 'cards-date';
@@ -361,7 +382,7 @@ export async function createDynamicCards(block, numEntries = null) {
     };
     inverse = true;
     disabledOnDesktop = true;
-    cardElements = filteredData.map(createDynamicCard);
+    cardElements = await Promise.all(filteredData.map(createDynamicCardCourse));
   } else if (block.classList.contains('article')) {
     const { endpoint } = config;
     filteredData = await fetchAndFilterDataLegacyEndpoint(endpoint);

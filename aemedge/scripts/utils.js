@@ -211,26 +211,24 @@ function generateRandomId() {
   return Math.random().toString(36).slice(-8);
 }
 
-function parseTime(time) {
+async function parseTime(time) {
   if (!time) {
     return '';
   }
-  const [minStr, secStr] = time.split(':');
-  const seconds = parseInt(secStr, 10);
-  let minutes = parseInt(minStr, 10);
-
-  if (minutes === 0) {
-    minutes = 1;
-  } else if (seconds > 30) {
-    minutes += 1;
+  const [
+    hrLabel,
+    minLabel,
+  ] = await Promise.all([
+    i18n('Hr'),
+    i18n('Min'),
+  ]);
+  const [hrStr, minStr] = time.split(':');
+  const minutes = parseInt(minStr, 10);
+  const hours = parseInt(hrStr, 10);
+  if (hours > 0) {
+    return `${hours} ${hrLabel}${minutes ? ` ${minutes} ${minLabel}` : ''}`;
   }
-
-  if (minutes >= 60) {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours} Hr${mins ? ` ${mins} Min` : ''}`;
-  }
-  return `${minutes} Min`;
+  return `${minutes} ${minLabel}`;
 }
 
 function formatDate(dateString, includeYear = false) {
