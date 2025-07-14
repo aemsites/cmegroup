@@ -71,6 +71,7 @@
 
 .brightcove-img-placeholder {
     width: 100%;
+
     /* min-height: 22.125rem; */
     background-size: cover;
     display: inline-block;
@@ -98,6 +99,7 @@
 }
 
 /* spinner */
+
 /*
 <div class="spinner-in-video">
     <div></div>
