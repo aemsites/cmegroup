@@ -50,7 +50,7 @@ function createSeparator(date) {
 }
 
 async function createEventList(year, month) {
-  const dateDiffMs = new Date(`${year}-${month}-01`) - Date.now();
+  const dateDiffMs = new Date(`${year}-${String(month).padStart(2, '0')}-01 00:00:00`) - Date.now();
   const dateDiffDays = Math.ceil(dateDiffMs / (1000 * 60 * 60 * 24));
   const indexConfig = {};
   indexConfig.template = 'event';
