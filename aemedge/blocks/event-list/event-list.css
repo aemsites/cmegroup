@@ -65,13 +65,18 @@
     }
 
     & .list-divider {
-        margin-top: 0.625rem;
-        margin-bottom: 2.3125rem;
+        margin-top: 1.25rem;
+        margin-bottom: 1.25rem;
         display: flex;
         align-items: center;
         text-align: center;
         width: 100%;
         gap: 1.875rem;
+
+        @media (width >= 769px) {
+            margin-top: 0.625rem;
+            margin-bottom: 2.3125rem;
+        }
 
         & .list-divider-line {
             flex: 1;
