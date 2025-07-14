@@ -2,7 +2,7 @@ body .header .nav-wrapper .nav-desktop-right {
   align-items: center;
   flex-wrap: wrap;
   justify-content: space-between;
-  padding-right: 1.5rem;
+  padding-right: 4.125rem;
   display: none;
 
   @media (width >= 993px) {
@@ -37,17 +37,16 @@ body .header .nav-wrapper .nav-desktop-right {
   }
 
   & .user-menu {
+    position: relative;
     &.is-open {
       & .submenu {
         display: flex;
-        position: fixed;
         top: 6.25rem;
         background-color: #112b4a;
         border: 0;
         border-radius: 0;
         left: 0;
         padding: 0;
-        width: 100vw;
         margin-top: 0;
         opacity: 1;
         transition-delay: 0s;
@@ -60,15 +59,32 @@ body .header .nav-wrapper .nav-desktop-right {
         border-right: 0.5625rem solid transparent;
         content: "";
         height: 0;
-        left: -15px;
+        left: 0.625rem;
         margin: 0 auto;
         opacity: 1;
         position: absolute;
         right: calc(50% - 0.3125rem);
-        top: 3rem;
+        top: 3.8125rem;
         transition-delay: 0s;
         visibility: visible;
         width: 0;
+      }
+
+      &.is-logged {
+        .submenu {
+          & .login {
+            & .login-container {
+              & .user-container {
+                &:last-child {
+                  margin-bottom: 2.5rem;
+                  &::after {
+                    content: unset;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
 
@@ -82,29 +98,73 @@ body .header .nav-wrapper .nav-desktop-right {
       transition: visibility 0.5s linear, margin-top 0.5s linear,
         opacity 0.5s linear;
 
-      @media (width>=993px) {
-        left: 70% !important;
-        max-width: 15.625rem !important;
+      @media (width >= 993px) {
+        left: -11.3125rem !important;
+        width: 15.625rem !important;
         transform: translateZ(0) !important;
-        width: 17.25rem !important;
         display: block !important;
         padding: 2.5rem 2.8125rem !important;
         min-height: auto !important;
         background-color: var(--gray1) !important;
+        box-sizing: border-box;
+        top: 4.375rem !important;
+      }
+
+      & p {
+        padding: 0 0 1.25rem;
+        font-family: var(--averta);
+        margin: 0 0 1.25rem;
+        color: var(--white);
+        background: none;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        line-height: 2rem;
+        letter-spacing: normal;
+        border-bottom: 0.0625rem solid rgba(255 255 255 / 30%);
+        text-transform: uppercase;
       }
 
       & .login {
         & .login-container {
           & div {
-            border-bottom: 0.0625rem solid rgba(255 255 255 / 30%);
-            padding: 1.25rem 0;
-
+            &::after {
+              content: "";
+              height: 0.0625rem;
+              background-color: var(--white);
+              opacity: 0.3;
+              display: block;
+              margin: 1.25rem 0;
+              width: 100%;
+            }
             &:last-child {
               border-bottom: none;
+              a::after {
+                margin-left: 0.3125rem;
+                content: var(--icon-arrow-right-thin);
+                font-family: var(--cme-group-icons);
+                color: var(--white);
+                font-size: 100%;
+                transform: rotate(-45deg);
+                display: inline-block;
+              }
             }
 
             &.links-container {
-              border-bottom: 0.0625rem solid rgba(255 255 255 / 30%);
+              &:last-child::after {
+                content: "";
+                height: 0.0625rem;
+                background-color: var(--white);
+                opacity: 0.3;
+                display: block;
+                margin: 1.25rem 0;
+                width: 100%;
+              }
+            }
+
+            & ul {
+              list-style: none;
+              padding: 0;
+              margin: 0;
             }
 
             & li {
@@ -162,6 +222,7 @@ body .header .nav-wrapper .nav-desktop-right {
       & .nav-logout {
         color: var(--white);
         width: 100%;
+        justify-content: center;
       }
     }
   }
@@ -197,6 +258,10 @@ body .header .nav-wrapper .nav-desktop-right {
     &.btn-search,
     &.user-menu {
       width: 2.5rem;
+    }
+
+    &.user-menu {
+      position: relative;
     }
 
     &.btn-search::before {

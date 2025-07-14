@@ -170,6 +170,16 @@ body {
             & .submenu {
               background-color: var(--blue2);
               display: none;
+              @media (width >= 993px) {
+                position: absolute;
+                opacity: 0;
+                display: flex;
+                margin-top: -1.5rem;
+                visibility: hidden;
+                top: -312.5rem;
+                transition: visibility 0.5s linear, margin-top 0.5s linear,
+                  opacity 0.5s linear;
+              }
 
               & ul {
                 list-style: none;
@@ -226,7 +236,7 @@ body {
                           font-weight: 600;
                           letter-spacing: normal;
                           line-height: normal;
-                          padding: 0 0 12px 25px;
+                          padding: 0 0 1rem 1.5625rem;
                           text-transform: capitalize;
                           justify-content: left;
                           display: flex;
@@ -236,6 +246,7 @@ body {
                             content: none;
                           }
                         }
+
                         &:last-child a {
                           padding-bottom: 0;
                         }
@@ -245,6 +256,29 @@ body {
                         border-bottom: 0.0625rem solid rgba(255 255 255 / 30%);
                         padding: 1.5625rem 0;
                         margin-bottom: 1.25rem;
+                      }
+
+                      &.user-container {
+                        border-bottom: 0.0625rem solid rgba(255 255 255 / 30%);
+                        padding: 1.25rem 0;
+
+                        &:first-of-type {
+                          padding-top: 0;
+                        }
+
+                        &:last-of-type {
+                          border: none;
+                          padding-bottom: 1.75rem;
+
+                          & ul li a::after {
+                            margin-left: 0.3125rem;
+                            content: var(--icon-arrow-right-thin);
+                            font-family: var(--cme-group-icons);
+                            color: var(--white);
+                            font-size: 100%;
+                            transform: rotate(-45deg);
+                          }
+                        }
                       }
 
                       &.account-container {
@@ -265,8 +299,9 @@ body {
 
                 & .nav-logout {
                   color: var(--white);
-                  margin-left: 1.875rem;
+                  margin-left: 1.5625rem;
                   width: 10rem;
+                  justify-content: center;
                 }
               }
             }
@@ -399,7 +434,7 @@ body {
               position: relative;
 
               & [aria-controls="nav-menu-0"]:before {
-                border-top: 1px solid #5a6874;
+                border-top: 0.0625rem solid #5a6874;
                 content: "";
                 display: block;
                 position: absolute;
@@ -574,7 +609,7 @@ body {
         }
 
         @media (width >= 993px) {
-          padding: 0 0 0 2.5rem;
+          padding: 0 0 0 4.125rem;
         }
       }
     }

@@ -18,7 +18,7 @@ body
         box-sizing: border-box;
       }
 
-      & .test-submenu {
+      & .submenu-content {
         margin-bottom: 1.125rem;
         border-bottom: 0.0625rem solid var(--gray4);
         padding-bottom: 1.5625rem;
@@ -123,7 +123,7 @@ body
           content: var(--icon-plus);
         }
         &.is-open {
-          & .test-submenu {
+          & .submenu-content {
             display: block;
           }
           & a.submenu-link::after {

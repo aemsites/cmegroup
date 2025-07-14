@@ -265,11 +265,19 @@ class Nav {
   logInnerContentDesktop = () => {
     this.innerContainerDesktop.replaceChildren();
 
-    if (!this.loggedIn) {
-      this.innerContentDesktop = this.createNoLoggedInItems(this.login?.cloneNode(true));
-    } else {
+    if (this.loggedIn) {
       this.innerContainerDesktop.appendChild(this.welcomeMessageDesktop);
       this.innerContentDesktop = this.login?.cloneNode(true);
+      const innerDiv = this.innerContentDesktop.querySelector('div');
+      innerDiv?.classList.add('login-container');
+      const targetDivs = innerDiv?.children;
+      if (targetDivs) {
+        Array.from(targetDivs.children).forEach((child) => {
+          child.classList.add('user-container');
+        });
+      }
+    } else {
+      this.innerContentDesktop = this.createNoLoggedInItems(this.login?.cloneNode(true));
     }
 
     this.innerContainerDesktop.appendChild(this.innerContentDesktop);
@@ -300,19 +308,27 @@ class Nav {
   logInnerContentMobile = () => {
     this.innerContainerMobile.replaceChildren();
 
-    if (!this.loggedIn) {
-      this.innerContentMobile = this.createNoLoggedInItems(this.login?.cloneNode(true), true);
-    } else {
+    if (this.loggedIn) {
       this.innerContentMobile = this.login?.cloneNode(true);
+      const innerDiv = this.innerContentMobile.querySelector('div');
+      innerDiv.classList.add('login-container');
+      const targetDivs = innerDiv.children;
+
+      Array.from(targetDivs.children).forEach((child) => {
+        child.classList.add('user-container');
+      });
+    } else {
+      this.innerContentMobile = this.createNoLoggedInItems(this.login?.cloneNode(true), true);
     }
 
     this.innerContainerMobile.appendChild(this.innerContentMobile);
   };
 
   logOutBtnToContMobile = () => {
+    const innerDiv = this.innerContentMobile.querySelector('div');
     if (this.loggedIn) {
-      this.innerContainerMobile.appendChild(this.navLogoutBtnMobile);
-    } else if (this.innerContainerMobile.contains(this.navLogoutBtnMobile)) {
+      innerDiv.appendChild(this.navLogoutBtnMobile);
+    } else if (innerDiv.contains(this.navLogoutBtnMobile)) {
       this.navLogoutBtnMobile.remove();
     }
   };
@@ -423,9 +439,9 @@ class Nav {
     });
     if (mobileVersion) {
       logLi.appendChild(logLink);
+      ul.appendChild(logLi);
     }
     regLi.appendChild(regLink);
-    ul.appendChild(logLi);
     ul.appendChild(regLi);
     accountContainer.appendChild(ul);
 
@@ -452,7 +468,6 @@ class Nav {
       e.stopPropagation();
       this.toggleMenu(this.userBtnDesktopContainer);
     });
-    // this.userBtnDesktopContainer.classList.add('login-desktop-nav');
     this.navLogoutBtn.innerHTML = this.logoutLabel;
     this.navLogoutBtn.addEventListener('click', async () => {
       authStatus.logout();
@@ -642,14 +657,12 @@ class Nav {
   decorateMenu = async (navItem, navLink, menu, menuHomeLink) => {
     menu.className = 'submenu';
     const menuPromo = menu.querySelector('div > a[href*="/fragment"]');
-    // const container = createElement('div', { class: 'submenu-content' });
     const subNav = createElement('ul', { class: 'submenu-list' });
     const subMenuLi = menu.querySelectorAll('p em');
     const columnsNotPromo = menu.querySelectorAll('div:not(:has(> a))').length;
     if (subMenuLi.length > 0) {
       this.buildSubNav(menu, subNav, subMenuLi, 'sub-nav', columnsNotPromo);
     }
-    // container.append(subNav);
     menu.innerHTML = '';
     const desktopMenuContainer = createElement('div', { class: 'submenu-container' });
     const desktopMenuColumn = createElement('div', { class: 'submenu-column' });
@@ -676,7 +689,7 @@ class Nav {
   };
 
   decorateSubMenu = (subNavItem, subNavLink, subMenu) => {
-    subMenu.className = 'test-submenu';
+    subMenu.className = 'submenu-content';
     subNavLink.addEventListener('focus', () => {
       window.addEventListener('keydown', this.toggleOnSpace);
     });
@@ -721,11 +734,10 @@ class Nav {
     const desktop = window.matchMedia('(min-width: 993px)');
     if (desktop.matches) {
       const leftElements = document.querySelector('.navigation');
-      const hijosLeft = Array.from(leftElements.children);
-      const rightElements = document.querySelector('.nav-desktop-right');
-      const hijos = Array.from(rightElements.children);
-      const combinados = [...hijosLeft, ...hijos];
-      combinados.forEach((sibling) => {
+      const childLeftElements = Array.from(leftElements.children);
+      const userMenu = document.querySelector('.user-menu');
+      const allElements = [...childLeftElements, ...(userMenu ? [userMenu] : [])];
+      allElements.forEach((sibling) => {
         if (sibling.classList.contains('is-open') && sibling !== el) {
           this.closeMenu(sibling);
         }
@@ -741,6 +753,7 @@ class Nav {
   closeMenu = (el) => {
     el.classList.remove(IS_OPEN);
     this.navOverlay.classList.remove(IS_OPEN);
+    this.navOverlay.style.backgroundColor = '';
     document.body.classList.remove('curtain-visible');
     document.removeEventListener('click', this.closeOnDocClick);
     window.removeEventListener('keydown', this.closeOnEscape);
@@ -751,6 +764,9 @@ class Nav {
 
   openMenu = (el) => {
     el.classList.add(IS_OPEN);
+    if (el.classList.contains('user-menu')) {
+      this.navOverlay.style.backgroundColor = 'transparent';
+    }
     this.navOverlay.classList.add(IS_OPEN);
     document.body.classList.add('curtain-visible');
     const menuToggle = el.querySelector('[aria-expanded]');
