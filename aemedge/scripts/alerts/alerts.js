@@ -236,11 +236,11 @@ export default async function initFloatingElements(doc, header) {
   window.addEventListener('scroll', () => {
     const scrollTop = window.pageYOffset || doc.documentElement.scrollTop;
     if (scrollTop > lastScrollTop) {
-      if (!header.classList.contains('hidden')) {
-        header.classList.add('hidden');
+      if (!document.body.classList.contains('scrolling-down')) {
+        document.body.classList.add('scrolling-down');
       }
-    } else if (header.classList.contains('hidden')) {
-      header.classList.remove('hidden');
+    } else if (document.body.classList.contains('scrolling-down')) {
+      document.body.classList.remove('scrolling-down');
     }
     lastScrollTop = scrollTop;
   });
