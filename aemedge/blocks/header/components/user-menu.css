@@ -42,7 +42,7 @@ body .header .nav-wrapper .nav-desktop-right {
       & .submenu {
         display: flex;
         top: 6.25rem;
-        background-color: #112b4a;
+        background-color: var(--blue2);
         border: 0;
         border-radius: 0;
         left: 0;
@@ -54,7 +54,7 @@ body .header .nav-wrapper .nav-desktop-right {
       }
 
       & > button::after {
-        border-bottom: 0.5625rem solid #112b4a;
+        border-bottom: 0.5625rem solid var(--blue2);
         border-left: 0.5625rem solid transparent;
         border-right: 0.5625rem solid transparent;
         content: "";
