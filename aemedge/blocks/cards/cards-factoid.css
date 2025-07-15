@@ -2,7 +2,7 @@
 
 .cards {
   &.factoid {
-    ul {
+    & ul {
       display: block;
       justify-content: space-between;
 
@@ -11,7 +11,7 @@
       }
     }
 
-    li {
+    & li {
       width: 83.3333%;
       margin-left: 8.3333%;
       margin-right: 0;
@@ -26,7 +26,7 @@
         margin-left: 16.6667%;
       }
 
-      .cards-card-body {
+      & .cards-card-body {
         width: 100%;
         color: var(--white);
         padding: 1.875rem; /* Padding on the content area */
@@ -40,7 +40,7 @@
           padding: 2.5rem; /* More padding on desktop */
         }
 
-        p {
+        & p {
           margin: 0;
           font-size: 1rem;
           line-height: 1.6;
