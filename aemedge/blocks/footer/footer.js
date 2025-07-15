@@ -22,11 +22,13 @@ function decorateCollapsibles(footerLinks) {
     const arrowDown = createElement('img', {
       class: 'arrow-down',
       src: '/aemedge/icons/chevron-down.svg',
+      alt: 'Arrow down',
     });
     button.append(arrowDown);
     const arrowUp = createElement('img', {
       class: 'arrow-up',
       src: '/aemedge/icons/chevron-up.svg',
+      alt: 'Arrow up',
     });
     button.append(arrowUp);
   });
@@ -103,7 +105,10 @@ function decorateLanguageSelector(footerLanguages) {
 
   if (currentLang) {
     button.textContent = currentLang.innerText;
-    const check = createElement('img', { src: '/aemedge/icons/check.svg' });
+    const check = createElement('img', {
+      src: '/aemedge/icons/check.svg',
+      alt: 'Current language',
+    });
     currentLang.prepend(check);
   }
   footerLanguages.append(button, dropdown);

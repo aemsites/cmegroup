@@ -31,14 +31,13 @@ export function isEmpty(value) {
   return true; // Default to true for other types (e.g., functions)
 }
 
-export async function axiosGet(url, config = {}, absoluteUrl = false) {
+function isAbsoluteUrl(url) {
+  return /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(url);
+}
+
+export async function axiosGet(url, config = {}) {
   const { params = {}, headers = {} } = config;
-  let urlObj;
-  if (absoluteUrl) {
-    urlObj = new URL(url);
-  } else {
-    urlObj = new URL(window.location.origin + url);
-  }
+  const urlObj = new URL((!isAbsoluteUrl(url) ? window.location.origin : '') + url);
   Object.keys(params).forEach((key) => urlObj.searchParams.append(key, params[key]));
 
   const fetchOptions = {
@@ -80,14 +79,9 @@ export async function axiosGet(url, config = {}, absoluteUrl = false) {
   }
 }
 
-export async function axiosPost(url, data, config = {}, absoluteUrl = false) {
+export async function axiosPost(url, data, config = {}) {
   const { headers = {}, params = {} } = config;
-  let urlObj;
-  if (absoluteUrl) {
-    urlObj = new URL(url);
-  } else {
-    urlObj = new URL(window.location.origin + url);
-  }
+  const urlObj = new URL((!isAbsoluteUrl(url) ? window.location.origin : '') + url);
   Object.keys(params).forEach((key) => urlObj.searchParams.append(key, params[key]));
 
   const fetchOptions = {

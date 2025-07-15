@@ -1,7 +1,7 @@
 import { readBlockConfig, getMetadata } from '../../scripts/aem.js';
 import {
   setTracking,
-  apiGetAbsolute,
+  apiGet,
   LocalStorageUtil,
   getRandomNumber,
 } from '../../scripts/utils/index.js';
@@ -270,7 +270,7 @@ async function getBrightcovePoster(accountId, videoId) {
   }
   const url = `https://edge.api.brightcove.com/playback/v1/accounts/${accountId}/videos/${videoId}`;
 
-  const response = await apiGetAbsolute(url, {}, {
+  const response = await apiGet(url, {}, {
     Accept: `application/json;pk=${policyKey}`,
   });
 
@@ -359,13 +359,13 @@ export default async function decorate(block) {
 
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
-  const videoStyles = calculateStyles(aspectRatio, playlistLocation);
+  const videoStyles = calculateStyles(aspectRatio, playlist);
   const randomNumber = getRandomNumber();
 
   block.innerHTML = `
   <div class='brightcove-player'>
     <div
-      class="brightcove-img-placeholder ${playlistId !== '' && playlistLocation === 'R' ? 'playlist-right' : ''}"
+      class="brightcove-img-placeholder ${videoStyles}"
       style="background-image: url('${videoPoster}')">
       <div class="placeholder-play-btn"></div>
     </div>
