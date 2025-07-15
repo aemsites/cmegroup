@@ -1,61 +1,55 @@
 /* Factoid card styling - creates a centered dark blue box with white text */
 
-.cards.factoid ul {
-    display: block;
-    justify-content: space-between;
-}
+.cards {
+  &.factoid {
+    ul {
+      display: block;
+      justify-content: space-between;
 
-@media (width >= 993px) {
-    .cards.factoid ul {
+      @media (width >= 993px) {
         display: flex;
+      }
     }
-}
 
-.cards.factoid li {
-    width: 83.3333%;
-    margin-left: 8.3333%;
-    margin-right: 0;
-    margin-bottom: 2rem;
-    background-color: var(--blue1);
-    display: flex;
-    align-items: center;
-}
+    li {
+      width: 83.3333%;
+      margin-left: 8.3333%;
+      margin-right: 0;
+      margin-bottom: 2rem;
+      background-color: var(--blue1);
+      display: flex;
+      align-items: center;
 
-@media (width >= 993px) {
-    .cards.factoid li {
+      @media (width >= 993px) {
         /* Wider on desktop */
         width: 66.6667%;
         margin-left: 16.6667%;
+      }
+
+      .cards-card-body {
+        width: 100%;
+        color: var(--white);
+        padding: 1.875rem; /* Padding on the content area */
+        margin: 0;
+
+        @media (width >= 769px) {
+          padding: 2rem; /* More padding on tablet */
+        }
+
+        @media (width >= 993px) {
+          padding: 2.5rem; /* More padding on desktop */
+        }
+
+        p {
+          margin: 0;
+          font-size: 1rem;
+          line-height: 1.6;
+
+          @media (width >= 993px) {
+            font-size: 1.125rem; /* Slightly larger text on desktop */
+          }
+        }
+      }
     }
-}
-
-.cards.factoid li .cards-card-body {
-    width: 100%;
-    color: var(--white);
-    padding: 1.875rem; /* Padding on the content area */
-    margin: 0;
-}
-
-@media (width >= 769px) {
-    .cards.factoid li .cards-card-body {
-        padding: 2rem; /* More padding on tablet */
-    }
-}
-
-@media (width >= 993px) {
-    .cards.factoid li .cards-card-body {
-        padding: 2.5rem; /* More padding on desktop */
-    }
-}
-
-.cards.factoid li .cards-card-body p {
-    margin: 0;
-    font-size: 1rem;
-    line-height: 1.6;
-}
-
-@media (width >= 993px) {
-    .cards.factoid li .cards-card-body p {
-        font-size: 1.125rem; /* Slightly larger text on desktop */
-    }
+  }
 }
