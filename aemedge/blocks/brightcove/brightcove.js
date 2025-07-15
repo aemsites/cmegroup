@@ -359,13 +359,13 @@ export default async function decorate(block) {
 
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
-  const videoStyles = calculateStyles(aspectRatio, playlistLocation);
+  const videoStyles = calculateStyles(aspectRatio, playlist);
   const randomNumber = getRandomNumber();
 
   block.innerHTML = `
   <div class='brightcove-player'>
     <div
-      class="brightcove-img-placeholder ${playlistId !== '' && playlistLocation === 'R' ? 'playlist-right' : ''}"
+      class="brightcove-img-placeholder ${videoStyles}"
       style="background-image: url('${videoPoster}')">
       <div class="placeholder-play-btn"></div>
     </div>

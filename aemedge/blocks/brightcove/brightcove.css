@@ -71,8 +71,6 @@
 
 .brightcove-img-placeholder {
     width: 100%;
-
-    /* min-height: 22.125rem; */
     background-size: cover;
     display: inline-block;
     vertical-align: middle;
@@ -81,7 +79,6 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    aspect-ratio: 16 / 9;
     z-index: 1;
 
     &:hover {
@@ -93,7 +90,16 @@
         }
     }
 
-    &.playlist-right {
+    &.aspect-ratio169 {
+        aspect-ratio: 16 / 9;
+    }
+
+    &.aspect-ratio43 {
+        aspect-ratio: 4 / 3;
+    }
+
+    &.playlist-right-sidekick {
+        min-height: 22.125rem;
         position: relative;
     }
 }
