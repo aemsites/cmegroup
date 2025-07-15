@@ -11,18 +11,18 @@
     &.primary {
       background-color: var(--blue1);
 
-      .title p {
+      & .title p {
         color: var(--white);
       }
 
       /* Smaller font size for description when both promo and primary classes are present */
-      .description p {
+      & .description p {
         margin-top: 1rem;
         font-size: .875rem;
         line-height: 1.875rem;
       }
 
-      .footer::after {
+      & .footer::after {
         font-family: var(--cme-group-icons);
         content: var(--icon-arrow-right-thin);
         font-size: 1.5rem; 
@@ -38,39 +38,39 @@
       }
     }
 
-    a {
+    & a {
       position: relative;
       text-decoration: none;
       padding: 1.875rem;
     }
 
-    picture {
+    & picture {
       position: absolute;
       z-index: 0;
       inset: 0;
     }
 
-    img {
+    & img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       object-position: left top;
     }
 
-    .content-wrapper {
+    & .content-wrapper {
       position: relative;
       padding-right: 1.875rem;
       padding-bottom: 3.875rem;
       z-index: 1;
     }
 
-    p {
+    & p {
       color: var(--white);
       margin: 0;
     }
 
-    .title p,
-    .description p {
+    & .title p,
+    & .description p {
       font-size: 1.875rem;
       font-family: var(--heading-font-family);
       line-height: 2.1875rem;
@@ -79,11 +79,11 @@
       letter-spacing: .03em;
     }
 
-    .title p {
+    & .title p {
       color: var(--green2);
     }
 
-    .footer {
+    & .footer {
       position: absolute;
       display: flex;
       gap: 2rem;
@@ -93,7 +93,7 @@
       bottom: 0;
       right: 0;
 
-      p {
+      & p {
         font-size: 1.25rem;
         font-weight: 700;
         text-transform: uppercase;
