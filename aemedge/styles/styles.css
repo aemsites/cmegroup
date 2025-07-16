@@ -72,6 +72,10 @@
     --container-padding-xxl: 88px;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
     line-height: 1.5rem;
     letter-spacing: normal;
@@ -262,6 +266,11 @@ blockquote {
     margin-bottom: 0.25em;
 }
 
+/* Remove margin-top from nested ul elements under li */
+li ul {
+    margin-top: 0;
+}
+
 code,
 pre {
     font-size: var(--body-font-size-s);
@@ -333,6 +342,7 @@ ol li,
 ul li {
     margin-bottom: 0.625rem;
 }
+
 
 /* HR Default Styles */
 hr {
