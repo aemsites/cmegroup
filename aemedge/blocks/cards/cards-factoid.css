@@ -21,7 +21,6 @@
       align-items: center;
 
       @media (width >= 993px) {
-        /* Wider on desktop */
         width: 66.6667%;
         margin-left: 16.6667%;
       }
@@ -29,15 +28,15 @@
       & .cards-card-body {
         width: 100%;
         color: var(--white);
-        padding: 1.875rem; /* Padding on the content area */
+        padding: 1.875rem;
         margin: 0;
 
         @media (width >= 769px) {
-          padding: 2rem; /* More padding on tablet */
+          padding: 2rem;
         }
 
         @media (width >= 993px) {
-          padding: 2.5rem; /* More padding on desktop */
+          padding: 2.5rem;
         }
 
         & p {
@@ -46,7 +45,7 @@
           line-height: 1.6;
 
           @media (width >= 993px) {
-            font-size: 1.125rem; /* Slightly larger text on desktop */
+            font-size: 1.125rem;
           }
         }
       }
