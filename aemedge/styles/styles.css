@@ -331,6 +331,13 @@ a:visited code {
     font-size: inherit;
 }
 
+a[target='_blank']::after {
+    font-family: var(--cme-group-icons);
+    content: var(--icon-positive);
+    color: var(--blue4);
+    font-size: .625rem;
+}
+
 /* ul */
 ol,
 ul {
