@@ -598,15 +598,31 @@ main .section.gray5-background {
     padding: 1.875rem 0;
 }
 
+main .section.light > div,
+main .section.highlight > div,
+main .section.gray5-background > div {
+    background-color: var(--gray5) !important;
+}
+
 main .section.blue3-background {
-    background-color: var(--blue3);
+    background-color: var(--blue3) !important;;
     padding: 1.875rem 0;
     color: var(--white);
 }
 
+main .section.blue3-background > div {
+    background-color: var(--blue3) !important;
+    color: var(--white);
+}
+
 main .section.blue2-background {
-    background-color: var(--blue2);
+    background-color: var(--blue2) !important;;
     padding: 1.875rem 0;
+    color: var(--white);
+}
+
+main .section.blue2-background > div {
+    background-color: var(--blue2) !important;
     color: var(--white);
 }
 
