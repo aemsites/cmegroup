@@ -72,6 +72,10 @@
     --container-padding-xxl: 88px;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
     line-height: 1.5rem;
     letter-spacing: normal;
@@ -262,6 +266,11 @@ blockquote {
     margin-bottom: 0.25em;
 }
 
+/* Remove margin-top from nested ul elements under li */
+li ul {
+    margin-top: 0;
+}
+
 code,
 pre {
     font-size: var(--body-font-size-s);
@@ -322,6 +331,13 @@ a:visited code {
     font-size: inherit;
 }
 
+a[target='_blank']::after {
+    font-family: var(--cme-group-icons);
+    content: var(--icon-positive);
+    color: var(--blue4);
+    font-size: .625rem;
+}
+
 /* ul */
 ol,
 ul {
@@ -333,6 +349,7 @@ ol li,
 ul li {
     margin-bottom: 0.625rem;
 }
+
 
 /* HR Default Styles */
 hr {
@@ -1007,4 +1024,9 @@ body.loading::before {
 /* share this z-index override */
 #st-2.st-right {
     z-index: 0 !important;
+}
+
+/* general classes */
+.white-background {
+    background-color: var(--white);
 }

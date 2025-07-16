@@ -29,7 +29,10 @@ class Nav {
     this.curtain = createElement('div', { class: 'nav-curtain' });
     this.searchCurtain = createElement('div', { class: 'search-curtain' });
     this.searchDrawer = createElement('div', { class: 'search-drawer' });
-    this.searchDrawerCloseBtn = createElement('button', { class: 'search-drawer-close' });
+    this.searchDrawerCloseBtn = createElement('button', {
+      class: 'search-drawer-close',
+      'aria-label': 'Close search',
+    });
     this.nav = createElement('nav', { class: 'nav' });
     this.rightSide = createElement('div', { class: 'right-side' });
     this.mobileRightSide = createElement('div', { class: 'mobile-right-side' });
@@ -305,7 +308,10 @@ class Nav {
 
   // eslint-disable-next-line class-methods-use-this
   decorateSearchNav = () => {
-    const searchBtn = createElement('button', { class: 'search-icon' });
+    const searchBtn = createElement('button', {
+      class: 'search-icon',
+      'aria-label': 'Open search',
+    });
     searchBtn.addEventListener('click', async () => {
       this.openSearchDrawer();
     });
@@ -332,6 +338,8 @@ class Nav {
     let brand = brandBlock.querySelector('a');
     if (!brand) brand = brandBlock.querySelector('picture');
     brand.classList.add('logo');
+    brand.setAttribute('aria-label', 'CME Group home page');
+
     return brand;
   };
 
@@ -392,7 +400,10 @@ class Nav {
   };
 
   buildLoginDesktopNav = async () => {
-    const loginUserBtn = createElement('button', { class: 'login-user-icon' });
+    const loginUserBtn = createElement('button', {
+      class: 'login-user-icon',
+      'aria-label': 'User account menu',
+    });
     this.logDesktopGreeting();
     loginUserBtn.setAttribute('aria-expanded', false);
     loginUserBtn.setAttribute('aria-controls', 'login-nav-menu-0');

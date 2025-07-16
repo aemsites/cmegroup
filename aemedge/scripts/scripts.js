@@ -153,6 +153,27 @@ async function loadFonts() {
   }
 }
 
+/**
+ * Applies accessibility enhancements to icon links (addition to decorateIcons from aem.js)
+ * @param {Element} element The element to enhance
+ */
+function enhanceIconAccessibility(element = document) {
+  const iconLinks = element.querySelectorAll('a span.icon');
+  iconLinks.forEach((span) => {
+    const parentLink = span.closest('a');
+    if (parentLink && !parentLink.hasAttribute('aria-label')) {
+      const iconClass = [...span.classList].find((c) => c.startsWith('icon-'));
+      if (iconClass) {
+        const platformName = iconClass.substring(5)
+          .split('-')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        parentLink.setAttribute('aria-label', `Visit ${platformName}`);
+      }
+    }
+  });
+}
+
 function autolinkModals(element) {
   element.addEventListener('click', async (e) => {
     const origin = e.target.closest('a');
@@ -474,6 +495,7 @@ export function decorateMain(main) {
   // hopefully forward compatible button decoration
   decorateButtons(main);
   decorateIcons(main);
+  enhanceIconAccessibility();
   buildAutoBlocks(main);
   buildFragmentBlocks(main);
   decorateSections(main);
@@ -577,14 +599,18 @@ async function loadLazy(doc) {
 
   // Add feature toggle checks for header and footer
   if (!isFeatureToggled('hideHeader')) {
-    loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
+    loadHeader(doc.querySelector('header')).then((header) => {
+      initFloatingElements(doc, header);
+      enhanceIconAccessibility(header);
+    });
   }
   if (!isFeatureToggled('hideFooter')) {
-    loadFooter(doc.querySelector('footer'));
+    loadFooter(doc.querySelector('footer')).then((footer) => {
+      enhanceIconAccessibility(footer);
+    });
   }
 
   dynamicBlocks(main);
-
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
   window.CookieUtil = CookieUtil;
