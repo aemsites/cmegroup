@@ -2,6 +2,10 @@
   --columns-gap: 3rem;
   --border-color: var(--gray4);
 
+  @media (width >= 481px) {
+    margin-top: 0.9375rem;
+  }
+
   &.gap-30 {
     & > div {
       @media (width >= 993px) {
@@ -9,118 +13,146 @@
       }
     }
   }
-}
 
-.columns > div {
-  display: flex;
-  flex-direction: column;
-}
+  & > div {
+    display: flex;
+    flex-direction: column;
 
-.columns img {
-  width: 100%;
-}
+    @media (width >= 769px) {
+      flex-direction: unset;
+      gap: var(--columns-gap);
+    }
 
-.columns.author-bio img {
-  border-radius: 50%;
-  display: block;
-  height: 5.3125rem;
-  margin-right: 0.625rem;
-  min-width: 5.3125rem;
-  width: 5.3125rem;
-  margin-top: 0.625rem;
-  margin-bottom: 0.9375rem;
-}
+    & > div {
+      order: 1;
 
-.columns > div > div {
-  order: 1;
-}
+      @media (width >= 769px) {
+        flex: 1;
+        order: unset;
+        position: relative;
+      }
+    }
 
-.columns > div > .columns-img-col {
-  order: 0;
-}
+    & > .columns-img-col {
+      order: 0;
 
-.columns > div > .columns-img-col img {
-  display: block;
-}
-
-@media (width >= 769px) {
-  .columns > div {
-    flex-direction: unset;
-    gap: var(--columns-gap);
+      & img {
+        display: block;
+      }
+    }
   }
 
-  .columns > div > div {
-    flex: 1;
-    order: unset;
-    position: relative;
+  & img {
+    width: 100%;
   }
 
-  .columns.article > div > div:not(:last-child) {
-    border-right: 0.0625rem solid var(--border-color);
-    padding-right: calc(var(--columns-gap) / 2);
-  }
+  &.author-bio {
+    & img {
+      border-radius: 50%;
+      display: block;
+      height: 5.3125rem;
+      margin-right: 0.625rem;
+      min-width: 5.3125rem;
+      width: 5.3125rem;
+      margin-top: 0.625rem;
+      margin-bottom: 0.9375rem;
 
-  .columns.article > div > div > *:first-child {
-    padding-top: 0;
-    margin-top: 0;
-  }
-}
+      @media (width >= 481px) {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+    }
 
-@media (width >= 1201px) {
-  main > .section > div:has(.columns.article) {
-    max-width: 100%;
-    width: unset;
-    padding-inline: 5.5rem;
-  }
-
-  .columns.article {
-    padding-left: 1.875rem;
-    padding-right: 1.875rem;
-  }
-}
-
-.columns.author-bio p {
-  margin-top: 0;
-  font-family: var(--averta);
-}
-
-.columns.author-bio > div > div {
-  flex: auto;
-}
-
-@media (width >= 481px) {
-  .columns {
-    margin-top: 0.9375rem;
-  }
-
-  .columns.author-bio img {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-
-  .columns.author-bio > div {
-    flex-direction: unset;
-    gap: 0;
-  }
-}
-
-@media (width >= 769px) {
-  .columns.last-column-right > div > div:last-child {
-    text-align: right;
-
-    & *:first-child {
+    & p {
       margin-top: 0;
-      padding-top: 0;
-      padding-right: 0;
+      font-family: var(--averta);
+    }
+
+    & > div {
+      @media (width >= 481px) {
+        flex-direction: unset;
+        gap: 0;
+      }
+
+      & > div {
+        flex: auto;
+      }
+    }
+  }
+
+  &.article {
+    @media (width >= 1201px) {
+      padding-left: 1.875rem;
+      padding-right: 1.875rem;
+    }
+
+    & > div > div:not(:last-child) {
+      @media (width >= 769px) {
+        border-right: 0.0625rem solid var(--border-color);
+        padding-right: calc(var(--columns-gap) / 2);
+      }
+    }
+
+    & > div > div > *:first-child {
+      @media (width >= 769px) {
+        padding-top: 0;
+        margin-top: 0;
+      }
+    }
+  }
+
+  &.last-column-right {
+    & > div > div:last-child {
+      @media (width >= 769px) {
+        text-align: right;
+
+        & *:first-child {
+          margin-top: 0;
+          padding-top: 0;
+          padding-right: 0;
+        }
+      }
+    }
+  }
+
+  &.column-75-25 {
+    &.flex-end {
+      & > div > div:last-child {
+        align-self: flex-end !important;
+      }
+    }
+
+    & > div > div {
+      flex: auto;
+      width: 75%;
+
+      &:last-child {
+        width: 100%;
+
+        @media (width >= 769px) {
+          width: 25%;
+        }
+
+        & p {  
+          margin-top: 0.8125rem !important;
+
+          & a {
+            padding: 0;
+          }
+        }
+
+        &.flex-end {
+          align-self: flex-end !important;
+        }
+      }
     }
   }
 }
 
-.columns.column-75-25 > div > div {
-  flex: auto;
-  width: 75%;
-
-  &:last-child {
-    width: 25%;
+main > .section > div:has(.columns.article) {
+  @media (width >= 1201px) {
+    max-width: 100%;
+    width: unset;
+    padding-inline: 5.5rem;
   }
 }

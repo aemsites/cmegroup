@@ -143,6 +143,7 @@ function i18n(key) {
  * Retrieves article-related metadata from the page
  * @returns {Object} Object containing article metadata
  * @property {string} template - The template type
+ * @property {string} subTemplates - The sub-templates
  * @property {string} readTime - Estimated reading time
  * @property {string} author - Article author
  * @property {string} tag - Article tag
@@ -150,6 +151,7 @@ function i18n(key) {
  */
 async function getArticleRelatedMetadata() {
   const template = getMetadata('template');
+  const subTemplates = getMetadata('sub-template')?.split(' ');
   const readTime = getMetadata('read-time');
   const author = getMetadata('author');
   const primaryTopic = getMetadata('primary-topic');
@@ -159,9 +161,10 @@ async function getArticleRelatedMetadata() {
 
   return {
     template,
+    subTemplates,
     readTime,
-    author: authorTag.title,
-    primaryTopic: primaryTopicTag.title,
+    author: authorTag?.title,
+    primaryTopic: primaryTopicTag?.title,
     date,
   };
 }

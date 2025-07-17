@@ -57,4 +57,6 @@
     --orange: #ff912e;
     --completion-certificate-title: #23a8ff;
     --fade-transparent-white: linear-gradient(180deg, hsl(0deg 0% 100% / 0%), #fff);
+    --brightcove-play: #0097e8;
+    --article-standard-shadow: 0 0.5rem 1rem 0 rgb(0 0 0 / 15%);
 }
