@@ -25,10 +25,8 @@ export default async function createRelatedCourses(main) {
 
   const tags = getMetadata('article:tag');
   const block = buildBlock('cards', [
-    ['optionalTags', tags],
+    ['optional-tags', tags],
     ['limit', '3'],
-    ['orderBy', 'lastModified'],
-    ['sortDirection', 'desc'],
   ]);
 
   block.classList.add('course', 'dynamic', 'related-courses');

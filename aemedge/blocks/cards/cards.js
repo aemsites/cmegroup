@@ -301,7 +301,6 @@ export async function createDynamicCards(block) {
     indexFilter.templates = ['course'];
     indexFilter.orderBy = 'lastModified';
     indexFilter.sortDirection = 'desc';
-    indexFilter.limit = 3;
     filteredData = await getIndexedContent(indexFilter);
     sliderConfig = {
       slidesToShow: 'auto',
