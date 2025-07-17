@@ -1,35 +1,37 @@
 import { buildBlock, decorateBlock, loadBlock } from '../../../scripts/aem.js';
 import { createElement } from '../../../scripts/utils.js';
 
-export default async function createRelatedCourses(main) {
-  const container = createElement('div', { class: 'section full-width' });
-  const wrapper = createElement('div');
-  container.appendChild(wrapper);
-
-  const block = buildBlock('cards', '');
-  block.classList.add('course', 'dynamic');
-  wrapper.appendChild(block);
-  decorateBlock(block);
-  loadBlock(block);
-
-  // Dynamic import for createDynamicCards
-  const { createDynamicCards } = await import('../../cards/cards.js');
-  const cards = await createDynamicCards(block, 3);
+function createHeader() {
   const header = createElement('div', {
-    style: 'display: flex; justify-content: space-between; align-items: flex-start;',
+    style: `display: flex;
+     justify-content: space-between;
+     align-items: flex-start;`
   });
 
   const h3 = createElement('h3', {}, 'Related Courses');
   header.appendChild(h3);
 
-  const link = createElement('a', { href: '/education/courses/' }, 'View Course Catalog');
-  header.appendChild(link);
+  const coursesLink = createElement('a', { href: '/education/courses/' }, 'View Course Catalog');
+  header.appendChild(coursesLink);
 
-  block.textContent = '';
-  block.append(header);
-  block.append(cards);
+  return header;
+}
 
-  // update ul style to 3 columns
+export default async function createRelatedCourses(main) {
+  const container = createElement('div', { class: 'section full-width' });
+  const wrapper = createElement('div');
+  container.appendChild(wrapper);
+
+  const header = createHeader();
+  wrapper.appendChild(header);
+
+  const block = buildBlock('cards', '');
+  block.classList.add('course', 'dynamic', 'related-courses');  
+  wrapper.appendChild(block);
+
+  decorateBlock(block);
+  await loadBlock(block);
+
   const ul = block.querySelector('ul');
   if (ul) {
     ul.style.display = 'grid';
