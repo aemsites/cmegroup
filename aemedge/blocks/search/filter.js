@@ -137,11 +137,10 @@ const resolveTaxonomyPath = (path, taxonomy) => {
  * @param {string} filterId
  * @returns {Promise<HTMLElement>}
  */
-const createDropdown = async (options, labelText, order, filterId) => {
+const createDropdown = async (options, labelText, order, filterId, taxonomy) => {
   const dropdown = div({ class: 'dropdown', id: filterId });
   const toggle = div({ class: 'dropdown-toggle' }, labelText);
   const menu = div({ class: 'dropdown-menu' });
-  const taxonomy = await getTaxonomy('tags');
   const resultMap = new Map();
   const excluded = new Set();
 
@@ -207,17 +206,26 @@ const createDropdown = async (options, labelText, order, filterId) => {
  * @param {string} filterId
  * @returns {HTMLElement}
  */
-const createCheckbox = (options, labelText, order, filterId) => {
+const createCheckbox = (options, labelText, order, filterId, taxonomy) => {
   const wrapper = div({ class: 'checkbox', id: filterId });
   wrapper.append(label({ class: 'checkbox-label' }, labelText));
+  const resultMap = new Map();
 
   const container = div({ class: 'checkbox-items' });
   wrapper.append(container);
 
-  sortOptions(options, null, order)
-    .forEach((opt, i) => container.appendChild(
+  options.forEach((opt) => {
+    const resolved = resolveTaxonomyPath(opt, taxonomy);
+    if (!resolved) return;
+
+    const { node } = resolved;
+    if (!resultMap.has(opt)) resultMap.set(opt, { path: opt, title: node.title || opt });
+  });
+
+  sortOptions([...resultMap.values()], 'title', order)
+    .forEach(({ path, title }, i) => container.appendChild(
       createFilterOption({
-        value: opt, labelText: opt, type: 'checkbox', className: 'checkbox-input', filterId, index: i,
+        value: path, labelText: title, type: 'checkbox', className: 'checkbox-input', filterId, index: i,
       }),
     ));
 
@@ -445,13 +453,14 @@ const createFilters = async () => {
     e.preventDefault();
     mobileFilterOverlay.classList.add('visible');
   });
+  const taxonomy = await getTaxonomy('tags');
 
   const controls = await Promise.all(
     searchConfig.filters.map((filter, i) => {
       const id = `${filter.type}-${i}`;
       return filter.type === 'dropdown'
-        ? createDropdown(filter.values, filter.name, filter.order, id)
-        : Promise.resolve(createCheckbox(filter.values, filter.name, filter.order, id));
+        ? createDropdown(filter.values, filter.name, filter.order, id, taxonomy)
+        : Promise.resolve(createCheckbox(filter.values, filter.name, filter.order, id, taxonomy));
     }),
   );
 
