@@ -62,11 +62,9 @@
 .vjs-playlist.vjs-playlist-horizontal {
     float: none;
     width: auto;
-}
 
-/* override library */
-@media (width >=860px) {
-    .vjs-playlist.vjs-playlist-horizontal {
+    /* override library breakpoint */
+    @media (width >=860px) {
         float: right;
         width: 35.97%;
     }
