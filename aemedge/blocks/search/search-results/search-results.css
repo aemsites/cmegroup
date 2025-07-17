@@ -17,7 +17,6 @@
 }
 
 .block.search .result-card img {
-  flex-basis: 20%;
   max-width: 313px;
   display: none;
 }
@@ -38,7 +37,6 @@
   font-weight: 700;
   margin-bottom: 1rem;
   line-height: 24px;
-  /* lin */
 }
 
 .block.search .result-card:hover .result-title::after {
@@ -62,13 +60,18 @@
 
 .block.search .result-card .result-desc {
   font-size: 14px;
-  /* height: 60px; */
   color: var(--gray3);
   margin-bottom: 1rem;
-  display: none;
   letter-spacing: 0;
   line-height: 20px;
   height: 40px;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: none;
 }
 
 .block.search .result-card .result-footer {
@@ -101,7 +104,6 @@
 
 .block.search .result-card .result-read-time {
   font-size: 12px;
-  content: "";
   color: var(--gray3);
   font-style: italic;
 }

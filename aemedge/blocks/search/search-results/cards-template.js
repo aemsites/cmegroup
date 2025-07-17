@@ -1,7 +1,7 @@
 import {
   a, div, h3, img, p, span,
 } from '../../../scripts/dom-helpers.js';
-import { i18n } from '../../../scripts/utils.js';
+import { i18n, parseTime } from '../../../scripts/utils.js';
 
 // Format date
 // eslint-disable-next-line arrow-body-style
@@ -43,8 +43,10 @@ const addImage = (card, item) => {
 // Article card
 const articleCard = async (card, item) => {
   const footer = div({ class: 'result-footer' }, formatDate(item.date));
+  const subTemplate = item.metadata?.['sub-template'];
+  const isVideo = subTemplate?.startsWith('video') || subTemplate?.startsWith('podcast');
   const readTime = item.readTime
-    ? span({ class: 'result-read-time' }, `${item.readTime} min read`)
+    ? span({ class: 'result-read-time' }, `${parseTime(item.readTime)} ${isVideo ? 'watch' : 'read'}`)
     : null;
 
   const anchor = buildBaseCard({

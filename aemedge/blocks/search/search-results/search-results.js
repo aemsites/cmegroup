@@ -6,8 +6,7 @@ import { updateFilteringByUI } from '../filter-bullets/filter-bullets.js';
 import { getCards } from './cards-template.js';
 import { i18n } from '../../../scripts/utils.js';
 import { clearAllFilters } from '../search-utils.js';
-
-const API_ENDPOINT = 'https://beta.cmegroup.com/services/query-index/search';
+import { getIndexedContent } from '../../../scripts/indexing.js';
 
 function showSpinner(container) {
   const spinner = div({ class: 'search-spinner' }, div({ class: 'spinner' }));
@@ -18,11 +17,9 @@ function showSpinner(container) {
 const buildSearchRequest = () => {
   const request = {
     page: searchConfig.pagination?.currentPage || 1,
-    size: searchConfig.pagination?.size || 10,
-    query: {
-      languages: ['en'], // currently hardcoding languages
-      fullText: searchConfig.searchInput || '',
-    },
+    limit: searchConfig.pagination?.size || 10,
+    fullText: searchConfig.searchInput || '',
+    languages: ['en'], // currently hardcoding languages
     getFacets: searchConfig.getFacets,
   };
 
@@ -37,23 +34,23 @@ const buildSearchRequest = () => {
   });
 
   if (Object.keys(mp).length > 0) {
-    request.query.tags = [];
+    request.customTagObj = [];
     Object.keys(mp).forEach((key) => {
-      request.query.tags.push({
+      request.customTagObj.push({
         or: mp[key],
       });
     });
   }
 
   if (searchConfig.template && Object.keys(searchConfig.template).length > 0) {
-    request.query.templates = Object.keys(searchConfig.template);
+    request.templates = Object.keys(searchConfig.template);
     Object.keys(searchConfig.template).forEach((template) => {
       if (searchConfig.template[template].paths?.length > 0) {
         searchConfig.template[template].paths.forEach((path) => {
-          if (request.query.basePaths) {
-            request.query.basePaths.push(path);
+          if (request.basePaths) {
+            request.basePaths.push(path);
           } else {
-            request.query.basePaths = [path];
+            request.basePaths = [path];
           }
         });
       }
@@ -61,10 +58,8 @@ const buildSearchRequest = () => {
   }
 
   if (searchConfig.sortOptions) {
-    // request.sort = {
-    //   field: searchConfig.sortOptions.value,
-    //   order: searchConfig.sortOptions.sortType,
-    // };
+    request.orderBy = searchConfig.sortOptions.value;
+    request.sortDirection = searchConfig.sortOptions.sortType;
   }
 
   return request;
@@ -73,23 +68,9 @@ const buildSearchRequest = () => {
 const searchResults = async () => {
   const apiReq = buildSearchRequest();
   showSpinner(document.querySelector('.results-wrapper'));
+  const results = await getIndexedContent(apiReq);
 
-  try {
-    const response = await fetch(API_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'user-agent': 'CME Group Helix', // todo temporary change
-      },
-      body: JSON.stringify(apiReq),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Search API returned ${response.status}: ${response.statusText}`);
-    }
-
-    const results = await response.json();
-
+  if (results && Object.keys(results).length > 0) {
     // Update pagination info from response
     if (results.pagination) {
       searchConfig.pagination = {
@@ -124,8 +105,7 @@ const searchResults = async () => {
 
     // eslint-disable-next-line no-use-before-define
     filterAndRender(results.data || []);
-  } catch (error) {
-    console.error('Search failed:', error);
+  } else {
     // eslint-disable-next-line no-use-before-define
     filterAndRender([]);
   }
