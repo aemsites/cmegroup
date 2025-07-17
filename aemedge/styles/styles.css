@@ -72,6 +72,10 @@
     --container-padding-xxl: 88px;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
     line-height: 1.5rem;
     letter-spacing: normal;
@@ -262,6 +266,11 @@ blockquote {
     margin-bottom: 0.25em;
 }
 
+/* Remove margin-top from nested ul elements under li */
+li ul {
+    margin-top: 0;
+}
+
 code,
 pre {
     font-size: var(--body-font-size-s);
@@ -290,6 +299,20 @@ p {
     font-size: var(--body-font-size-m);
     line-height: 1.5rem;
     letter-spacing: 0.03rem;
+
+    & a[target='_blank'] {
+        background-position: 0 100%;
+        background-repeat: repeat-x;
+        background-size: 200% 1px;
+        overflow: hidden;
+        transition: background-position 0.2s;
+        text-decoration: none !important;
+        background-image: linear-gradient(90deg, hsla(0deg 0% 100% / 0%) 50%, var(--blue4) 0deg);
+
+        &:hover {
+            background-position: -100% 100%;
+        }
+    }
 }
 
 @media(width >=481px) {
@@ -322,6 +345,15 @@ a:visited code {
     font-size: inherit;
 }
 
+a[target='_blank']::after {
+    font-family: var(--cme-group-icons);
+    content: var(--icon-positive);
+    color: var(--blue4);
+    font-size: .625rem;
+    padding-left: 5px;
+    position: relative;
+}
+
 /* ul */
 ol,
 ul {
@@ -333,6 +365,7 @@ ol li,
 ul li {
     margin-bottom: 0.625rem;
 }
+
 
 /* HR Default Styles */
 hr {
@@ -511,6 +544,13 @@ main>.section:first-of-type {
     margin-top: 0;
 }
 
+main > .section.full-width picture,
+main > .section.full-width picture img {
+  display: block;
+  width: 100%;
+  height: 28.4375rem;
+}
+
 main > .section:not(.full-width) > div,
 .container {
     margin-left: auto;
@@ -574,15 +614,31 @@ main .section.gray5-background {
     padding: 1.875rem 0;
 }
 
+main .section.light > div,
+main .section.highlight > div,
+main .section.gray5-background > div {
+    background-color: var(--gray5) !important;
+}
+
 main .section.blue3-background {
-    background-color: var(--blue3);
+    background-color: var(--blue3) !important;;
     padding: 1.875rem 0;
     color: var(--white);
 }
 
+main .section.blue3-background > div {
+    background-color: var(--blue3) !important;
+    color: var(--white);
+}
+
 main .section.blue2-background {
-    background-color: var(--blue2);
+    background-color: var(--blue2) !important;;
     padding: 1.875rem 0;
+    color: var(--white);
+}
+
+main .section.blue2-background > div {
+    background-color: var(--blue2) !important;
     color: var(--white);
 }
 

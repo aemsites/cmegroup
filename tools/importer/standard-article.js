@@ -9,7 +9,7 @@ const standardArticleInitialColumns = (document) => {
     const arr = [];
 
     const imgSrc = columns.querySelector('img')?.src;
-    if (imgSrc.indexOf('ribbon') !== -1) {
+    if (imgSrc?.indexOf('ribbon') !== -1) {
       [...columns.children].forEach((child, index) => {
         if (index === 0) {
           arr.push(':ribbon:');

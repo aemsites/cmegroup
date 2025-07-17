@@ -4,7 +4,7 @@ import {
   urlByEnvType,
 } from '../utils.js';
 import {
-  apiPostAbsolute,
+  apiPost,
   getResponseData,
 } from '../utils/index.js';
 import { loadScript, getMetadata } from '../aem.js';
@@ -167,7 +167,7 @@ async function handleDownloadClick(block) {
 async function getShareCertificateData(formData) {
   try {
     const url = `${urlByEnvType()}/services/course-certificate`;
-    const response = await apiPostAbsolute(url, formData);
+    const response = await apiPost(url, formData);
     return getResponseData(response, 'objectId');
   } catch (e) {
     // eslint-disable-next-line no-console

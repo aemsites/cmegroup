@@ -1,5 +1,5 @@
 import { loadScript } from '../../scripts/aem.js';
-import { fetchAndFilterDataIndex } from '../../scripts/indexing.js';
+import { getIndexedContent } from '../../scripts/indexing.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import createMonthSelector from '../../scripts/utils/monthSelector.js';
 
@@ -50,20 +50,20 @@ function createSeparator(date) {
 }
 
 async function createEventList(year, month) {
-  const dateDiffMs = new Date(`${year}-${month}-01`) - Date.now();
+  const dateDiffMs = new Date(`${year}-${String(month).padStart(2, '0')}-01 00:00:00`) - Date.now();
   const dateDiffDays = Math.ceil(dateDiffMs / (1000 * 60 * 60 * 24));
-  const indexConfig = {};
-  indexConfig.template = 'event';
-  indexConfig.relativeDateFrom = dateDiffDays;
-  indexConfig.relativeDateTo = dateDiffDays + 365;
-  indexConfig.orderBy = 'date';
-  indexConfig.sortDirection = 'asc';
-  indexConfig.limit = 10;
+  const indexFilter = {};
+  indexFilter.template = 'event';
+  indexFilter.relativeDateFrom = dateDiffDays;
+  indexFilter.relativeDateTo = dateDiffDays + 365;
+  indexFilter.orderBy = 'date';
+  indexFilter.sortDirection = 'asc';
+  indexFilter.limit = 10;
   const [
     filteredData,
     timeZoneLabel,
   ] = await Promise.all([
-    fetchAndFilterDataIndex(indexConfig),
+    getIndexedContent(indexFilter),
     i18n('TIME ZONE'),
   ]);
   if (filteredData && filteredData.length) {
