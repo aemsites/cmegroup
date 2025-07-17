@@ -1,17 +1,7 @@
 import {
   a, div, h3, img, p, span,
 } from '../../../scripts/dom-helpers.js';
-import { i18n, parseTime } from '../../../scripts/utils.js';
-
-// Format date
-// eslint-disable-next-line arrow-body-style
-const formatDate = (dateStr) => {
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
+import { formatDate, i18n, parseTime } from '../../../scripts/utils.js';
 
 // Build base card layout with optional header and additional children
 const buildBaseCard = ({
@@ -42,7 +32,7 @@ const addImage = (card, item) => {
 
 // Article card
 const articleCard = async (card, item) => {
-  const footer = div({ class: 'result-footer' }, formatDate(item.date));
+  const footer = div({ class: 'result-footer' }, formatDate(item.date, true));
   const subTemplate = item.metadata?.['sub-template'];
   const isVideo = subTemplate?.startsWith('video') || subTemplate?.startsWith('podcast');
   const readTime = item.readTime
