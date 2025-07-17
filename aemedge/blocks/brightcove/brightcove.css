@@ -59,6 +59,19 @@
     position: relative;
 }
 
+.vjs-playlist.vjs-playlist-horizontal {
+    float: none;
+    width: auto;
+}
+
+/* override library */
+@media (width >=860px) {
+    .vjs-playlist.vjs-playlist-horizontal {
+        float: right;
+        width: 35.97561%;
+    }
+}
+
 .video-js.vjs-playlist-enabled, .vjs-playlist.vjs-mouse.vjs-playlist-horizontal{
     position: static;
 }
