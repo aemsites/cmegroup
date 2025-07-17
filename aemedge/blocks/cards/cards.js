@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-import { getMetadata } from '../../scripts/aem.js';
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { fetchAndFilterDataIndex } from '../../scripts/indexing.js';
 
@@ -25,6 +24,9 @@ function buildIndexConfig(config) {
     tagsOr: config['optional-tags'] ? config['optional-tags'].split(',').map((tag) => tag.trim().toLowerCase()) : [],
     relativeDateFrom: config['relative-date-from'], // Number in days
     relativeDateTo: config['relative-date-to'], // Number in days
+    limit: config.limit,
+    orderBy: config.orderBy,
+    sortDirection: config.sortDirection,
   };
 }
 
@@ -335,24 +337,7 @@ export async function createDynamicCards(block) {
   if (block.classList.contains('course')) {
     const indexConfig = buildIndexConfig(config);
     indexConfig.template = 'course';
-
-    if (block.classList.contains('related-courses')) {
-      const tags = getMetadata('article:tag');
-      const tagsArray = tags ? tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
-      if (tagsArray.length > 0) {
-        indexConfig.tagsOr = tagsArray;
-      }
-    }
-
     filteredData = await fetchAndFilterDataIndex(indexConfig);
-
-    // Sort by timestamp in descending order
-    filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-    // If numEntries is specified, slice the array to that length
-    if (block.classList.contains('related-courses')) {
-      filteredData = filteredData.slice(0, 3);
-    }
 
     sliderConfig = {
       slidesToShow: 'auto',

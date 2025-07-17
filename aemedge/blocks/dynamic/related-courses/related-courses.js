@@ -1,19 +1,17 @@
-import { buildBlock, decorateBlock, loadBlock } from '../../../scripts/aem.js';
+import {
+  buildBlock,
+  decorateBlock,
+  loadBlock,
+  getMetadata,
+} from '../../../scripts/aem.js';
 import { createElement } from '../../../scripts/utils.js';
 
 function createHeader() {
-  const header = createElement('div', {
-    style: `display: flex;
-     justify-content: space-between;
-     align-items: flex-start;`,
-  });
-
+  const header = createElement('div', { class: 'cards-header' });
   const h3 = createElement('h3', {}, 'Related Courses');
   header.appendChild(h3);
-
   const coursesLink = createElement('a', { href: '/education/courses/' }, 'View Course Catalog');
   header.appendChild(coursesLink);
-
   return header;
 }
 
@@ -25,18 +23,20 @@ export default async function createRelatedCourses(main) {
   const header = createHeader();
   wrapper.appendChild(header);
 
-  const block = buildBlock('cards', '');
+  const tags = getMetadata('article:tag');
+  const block = buildBlock('cards', [
+    ['optionalTags', tags],
+    ['limit', '3'],
+    ['orderBy', 'lastModified'],
+    ['sortDirection', 'desc'],
+  ]);
+
   block.classList.add('course', 'dynamic', 'related-courses');
   wrapper.appendChild(block);
 
   decorateBlock(block);
   await loadBlock(block);
-
-  const ul = block.querySelector('ul');
-  if (ul) {
-    ul.style.display = 'grid';
-    ul.style.gridTemplateColumns = 'repeat(3, 1fr)';
-  }
+  block.prepend(header);
 
   main.appendChild(container);
 }
