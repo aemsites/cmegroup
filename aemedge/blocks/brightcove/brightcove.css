@@ -59,6 +59,17 @@
     position: relative;
 }
 
+.vjs-playlist.vjs-playlist-horizontal {
+    float: none;
+    width: auto;
+
+    /* override library breakpoint */
+    @media (width >=860px) {
+        float: right;
+        width: 35.97%;
+    }
+}
+
 .video-js.vjs-playlist-enabled, .vjs-playlist.vjs-mouse.vjs-playlist-horizontal{
     position: static;
 }
