@@ -336,19 +336,19 @@ export async function createDynamicCards(block) {
     const indexConfig = buildIndexConfig(config);
     indexConfig.template = 'course';
 
-    if(block.classList.contains('related-courses')) {
+    if (block.classList.contains('related-courses')) {
       const tags = getMetadata('article:tag');
       const tagsArray = tags ? tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
       if (tagsArray.length > 0) {
         indexConfig.tagsOr = tagsArray;
       }
     }
-    
+
     filteredData = await fetchAndFilterDataIndex(indexConfig);
 
     // Sort by timestamp in descending order
     filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
+
     // If numEntries is specified, slice the array to that length
     if (block.classList.contains('related-courses')) {
       filteredData = filteredData.slice(0, 3);

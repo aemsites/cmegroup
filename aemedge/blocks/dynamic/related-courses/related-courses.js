@@ -5,7 +5,7 @@ function createHeader() {
   const header = createElement('div', {
     style: `display: flex;
      justify-content: space-between;
-     align-items: flex-start;`
+     align-items: flex-start;`,
   });
 
   const h3 = createElement('h3', {}, 'Related Courses');
@@ -26,7 +26,7 @@ export default async function createRelatedCourses(main) {
   wrapper.appendChild(header);
 
   const block = buildBlock('cards', '');
-  block.classList.add('course', 'dynamic', 'related-courses');  
+  block.classList.add('course', 'dynamic', 'related-courses');
   wrapper.appendChild(block);
 
   decorateBlock(block);
