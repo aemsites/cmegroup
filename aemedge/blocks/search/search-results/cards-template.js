@@ -3,135 +3,110 @@ import {
 } from '../../../scripts/dom-helpers.js';
 import { i18n } from '../../../scripts/utils.js';
 
+// Format date
+// eslint-disable-next-line arrow-body-style
+const formatDate = (dateStr) => {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+// Build base card layout with optional header and additional children
+const buildBaseCard = ({
+  title, description, path, header = null, children = [],
+}) => {
+  const titleEl = h3({ class: 'result-title' }, title);
+  const descEl = p({ class: 'result-desc' }, description);
+  const anchor = a({ href: path });
+  const tempDiv = div({ class: 'result-item' });
+
+  if (header) tempDiv.appendChild(header);
+  tempDiv.appendChild(titleEl);
+  tempDiv.appendChild(descEl);
+  children.forEach((child) => tempDiv.appendChild(child));
+
+  anchor.appendChild(tempDiv);
+  return anchor;
+};
+
+// Add image to card if present
+const addImage = (card, item) => {
+  const imageUrl = item.metadata?.['og:image'];
+  if (imageUrl) {
+    const imageEl = img({ src: imageUrl, alt: item.title });
+    card.children[0]?.prepend(imageEl);
+  }
+};
+
+// Article card
 const articleCard = async (card, item) => {
-  const titleEl = h3({ class: 'result-title' }, item.title);
-  const descEl = p({ class: 'result-desc' }, item.description);
-  const formattedDate = new Date(item.date).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-  const date = div({ class: 'result-footer' }, formattedDate);
-  const anchor = a({ href: item.path });
-  const tempDiv = div({ class: 'result-item' });
+  const footer = div({ class: 'result-footer' }, formatDate(item.date));
+  const readTime = item.readTime
+    ? span({ class: 'result-read-time' }, `${item.readTime} min read`)
+    : null;
 
-  tempDiv.appendChild(titleEl);
-  tempDiv.appendChild(descEl);
-  if (item.readTime) {
-    const readTime = span({ class: 'result-read-time' }, `${item.readTime} min read`);
-    tempDiv.appendChild(readTime);
-  }
-  tempDiv.appendChild(date);
-  anchor.appendChild(tempDiv);
+  const anchor = buildBaseCard({
+    title: item.title,
+    description: item.description,
+    path: item.path,
+    children: readTime ? [readTime, footer] : [footer],
+  });
+
   card.appendChild(anchor);
 };
 
-const articleImageCard = async (card, item) => {
-  let image = null;
-  if (item.metadata['og:image']) {
-    image = img({ src: item.metadata['og:image'], alt: item.title });
-  }
-  await articleCard(card, item);
-  if (image) {
-    card.children[0]?.prepend(image);
-  }
+// Generic labeled card (course/lesson)
+const labeledCard = async (card, item, labelKey, footerText) => {
+  const label = await i18n(labelKey);
+  const header = div({ class: 'result-header' }, label);
+  const footer = div({ class: 'result-footer' }, footerText);
+
+  const anchor = buildBaseCard({
+    title: item.title,
+    description: item.description,
+    path: item.path,
+    header,
+    children: [footer],
+  });
+
+  card.appendChild(anchor);
 };
 
+// Course card
 const courseCard = async (card, item) => {
-  const [
-    courseLabel,
-    lessonsLabel,
-  ] = await Promise.all([
-    i18n('Course'),
-    i18n('Lessons'),
-  ]);
-  const header = div({ class: 'result-header' }, courseLabel);
-  const titleEl = h3({ class: 'result-title' }, item.title);
-  const descEl = p({ class: 'result-desc' }, item.description);
-  const numLesson = div({ class: 'result-footer' }, `${item.metadata?.lessons || 0} ${lessonsLabel}`);
-  const anchor = a({ href: item.path });
-  const tempDiv = div({ class: 'result-item' });
-
-  tempDiv.appendChild(header);
-  tempDiv.appendChild(titleEl);
-  tempDiv.appendChild(descEl);
-  tempDiv.appendChild(numLesson);
-  anchor.appendChild(tempDiv);
-  card.appendChild(anchor);
+  const lessonsLabel = await i18n('Lessons');
+  const lessonCount = `${item.metadata?.lessons || 0} ${lessonsLabel}`;
+  await labeledCard(card, item, 'Course', lessonCount);
 };
 
+// Lesson card
 const lessonCard = async (card, item) => {
-  const [
-    lessonLabel,
-  ] = await Promise.all([
-    i18n('Lesson'),
-  ]);
-  const header = div({ class: 'result-header' }, lessonLabel); // todo piyush add course name here
-  const titleEl = h3({ class: 'result-title' }, item.title);
-  const descEl = p({ class: 'result-desc' }, item.description);
-  const formattedDate = new Date(item.date).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-  const date = div({ class: 'result-footer' }, formattedDate);
-  const anchor = a({ href: item.path });
-  const tempDiv = div({ class: 'result-item' });
-
-  tempDiv.appendChild(header);
-  tempDiv.appendChild(titleEl);
-  tempDiv.appendChild(descEl);
-  tempDiv.appendChild(date);
-  anchor.appendChild(tempDiv);
-  card.appendChild(anchor);
+  await labeledCard(card, item, 'Lesson', formatDate(item.date));
 };
 
-const courseImageCard = async (card, item) => {
-  let image = null;
-  if (item.metadata['og:image']) {
-    image = img({ src: item.metadata['og:image'], alt: item.title });
-  }
-  await courseCard(card, item);
-  if (image) {
-    card.children[0]?.prepend(image);
-  }
+// Wrap a card type with optional image
+const imageCard = async (card, item, builderFn) => {
+  await builderFn(card, item);
+  addImage(card, item);
 };
 
-const lessonImageCard = async (card, item) => {
-  let image = null;
-  if (item.metadata['og:image']) {
-    image = img({ src: item.metadata['og:image'], alt: item.title }); // some default addition of img
-  }
-  await lessonCard(card, item);
-  if (image) {
-    card.children[0]?.prepend(image);
-  }
-};
-
+// Factory function
 const getCards = async (cardType, item) => {
   const card = div({ class: `result-card ${cardType}` });
-  switch (cardType) {
-    case 'course':
-      await courseCard(card, item);
-      break;
-    case 'lesson':
-      await lessonCard(card, item);
-      break;
-    case 'course-image':
-      await courseImageCard(card, item);
-      break;
-    case 'lesson-image':
-      await lessonImageCard(card, item);
-      break;
-    case 'article-image':
-      await articleImageCard(card, item);
-      break;
-    case 'article':
-      await articleCard(card, item);
-      break;
-    default:
-      break;
-  }
+
+  const cardMap = {
+    course: courseCard,
+    lesson: lessonCard,
+    'course-image': (c, i) => imageCard(c, i, courseCard),
+    'lesson-image': (c, i) => imageCard(c, i, lessonCard),
+    'article-image': (c, i) => imageCard(c, i, articleCard),
+    article: articleCard,
+  };
+
+  const cardFn = cardMap[cardType];
+  if (cardFn) await cardFn(card, item);
 
   return card;
 };
