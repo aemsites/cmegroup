@@ -74,6 +74,15 @@
     position: static;
 }
 
+.vjs-playlist-player-container .vjs-playlist-sidebar-horizontal {
+    position: relative;
+
+    /* override library breakpoint */
+    @media (width >=860px) {
+        position: absolute;
+    }
+}
+
 .video-js.vjs-playlist-enabled.playlist-bottom {
     max-width: none;
     width: 100%;
