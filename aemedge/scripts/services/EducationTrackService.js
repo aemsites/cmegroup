@@ -168,3 +168,22 @@ export async function postLesson(
   }
   return null;
 }
+
+/**
+ * History progress for current user
+ */
+export async function getUserProgress() {
+  // if (!loggedIn) {
+  //   return getStorageProgress(moduleId);
+  // }
+  const url = `${urlByEnvType()}/services/education-track/progress-for-user`;
+  try {
+    const response = await apiGet(url);
+    const data = getResponseData(response);
+    return data;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('EducationService => getUserProgress error:', e);
+    return [];
+  }
+}

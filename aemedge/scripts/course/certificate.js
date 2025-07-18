@@ -291,14 +291,13 @@ export async function addCourseCertificate({
   lessonTitle,
   completedModule,
   showModal,
+  container,
 }) {
   const [
     viewCertificateLabel,
   ] = await Promise.all([
     i18n('View Certificate'),
   ]);
-  const main = document.querySelector('main');
-  const courseHeading = main.querySelector('h1');
 
   const button = createElement(
     'button',
@@ -321,7 +320,13 @@ export async function addCourseCertificate({
   };
 
   button.addEventListener('click', () => openModal());
-  courseHeading.insertAdjacentElement('afterend', button);
+  if (container) {
+    container.appendChild(button);
+  } else {
+    const main = document.querySelector('main');
+    const courseHeading = main.querySelector('h1');
+    courseHeading.insertAdjacentElement('afterend', button);
+  }
 
   if (showModal) {
     openModal();
