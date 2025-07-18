@@ -46,7 +46,12 @@
 }
 
 .vjs-playlist-player-container .vjs-playlist-sidebar-horizontal {
-  position: absolute;
+    position: relative;
+
+    /* override library breakpoint */
+    @media (width >=860px) {
+        position: absolute;
+    }
 }
 
 .video-js.vjs-playlist-enabled:not(.playlist-bottom) {
@@ -72,15 +77,6 @@
 
 .video-js.vjs-playlist-enabled, .vjs-playlist.vjs-mouse.vjs-playlist-horizontal{
     position: static;
-}
-
-.vjs-playlist-player-container .vjs-playlist-sidebar-horizontal {
-    position: relative;
-
-    /* override library breakpoint */
-    @media (width >=860px) {
-        position: absolute;
-    }
 }
 
 .video-js.vjs-playlist-enabled.playlist-bottom {
