@@ -1,35 +1,37 @@
-import { createElement, i18n, getArticleRelatedMetadata } from '../../scripts/utils.js';
+import {
+  createElement,
+  i18n,
+  getArticleRelatedMetadata,
+  parseTime,
+  getReadTimeLabel,
+  getReadTimeIcon,
+} from '../../scripts/utils.js';
 
 async function decorateArticleHero(main) {
   const [
     {
       readTime, author, primaryTopic, date, subTemplates,
     },
-    readLabel,
-    watchLabel,
     saveLabel,
     byLabel,
   ] = await Promise.all([
     getArticleRelatedMetadata(),
-    i18n('min read'),
-    i18n('min watch'),
     i18n('Save'),
     i18n('By'),
+  ]);
+  const [
+    parsedTime,
+    readLabel,
+  ] = await Promise.all([
+    parseTime(readTime),
+    getReadTimeLabel(subTemplates),
   ]);
 
   main.classList.add('article', ...subTemplates);
 
   const h1 = main.querySelector('h1');
-  const readIconName = subTemplates.includes('video') ? 'play' : 'list';
-  const readIconLabel = subTemplates.includes('video') ? watchLabel : readLabel;
-  const readIcon = createElement('img', {
-    src: `/aemedge/icons/${readIconName}.svg`,
-    alt: 'Read Time',
-    loading: 'lazy',
-  });
-
-  const readIconSpan = readTime ? createElement('span', { class: `icon icon-${readIconName}` }, readIcon) : null;
-  const readTimeText = readTime ? createElement('span', null, `${readTime} ${readIconLabel}`) : null;
+  const readIconSpan = readTime ? getReadTimeIcon(subTemplates) : null;
+  const readTimeText = readTime ? createElement('span', null, `${parsedTime} ${readLabel}`) : null;
   const articleTime = createElement('span', { class: 'article-time' }, readIconSpan, readTimeText);
   const featuredTag = primaryTopic ? createElement('span', { class: 'article-featured-tag' }, primaryTopic) : null;
   const saveIconOutlined = createElement('img', {

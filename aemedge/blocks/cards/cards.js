@@ -4,6 +4,8 @@ import { fetchAndFilterDataIndex } from '../../scripts/indexing.js';
 import {
   createElement,
   parseTime,
+  getReadTimeLabel,
+  getReadTimeIcon,
   formatDate,
   i18n,
   decodeHtmlEntities,
@@ -13,6 +15,7 @@ import {
   getUTCfromDateString,
   readBlockConfig,
 } from '../../scripts/utils.js';
+import { convertReadTimeFormat, convertMediaTypeToSubtemplate } from '../../scripts/legacyContentMapping.js';
 
 const ECONOMIC_EVENTS_ENDPOINT = `${urlByEnvType()}/services/economic-release-events`;
 
@@ -191,39 +194,22 @@ export async function createDynamicCardArticle({ content }) {
     date,
     title,
   } = dynamicProperties;
-  // Standardize data from on legacy service - start
-  let durationMin = '';
-  const [minStr, secStr] = duration.split(':');
-  const seconds = parseInt(secStr, 10);
-  let minutes = parseInt(minStr, 10);
-  if (minutes === 0) {
-    minutes = 1;
-  } else if (seconds > 30) {
-    minutes += 1;
-  }
-  if (minutes >= 60) {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    durationMin = `${hours}:${mins}`;
-  } else {
-    durationMin = `00:${minutes}`;
-  }
-  // Standardize data from on legacy service - end
-
+  const durationMin = convertReadTimeFormat(duration);
+  const subTemplates = convertMediaTypeToSubtemplate(mediaType);
   const [
     readLabel,
-    watchLabel,
     durationStr,
   ] = await Promise.all([
-    i18n('Read'),
-    i18n('Watch'),
+    getReadTimeLabel(subTemplates),
     parseTime(durationMin),
   ]);
 
   const li = document.createElement('li');
   const linkEl = document.createElement('a');
   linkEl.href = path;
-  linkEl.classList.add(mediaType === 'video-webinar' ? 'video-card' : 'article-card');
+  if (subTemplates.includes('video')) {
+    linkEl.classList.add('video-card');
+  }
 
   const imageContainer = document.createElement('div');
   imageContainer.className = 'cards-image-container';
@@ -239,7 +225,8 @@ export async function createDynamicCardArticle({ content }) {
 
   const cardTime = document.createElement('span');
   cardTime.className = 'cards-time';
-  cardTime.innerText = `${durationStr} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
+  cardTime.innerText = `${durationStr} ${readLabel}`;
+  cardTime.prepend(getReadTimeIcon(subTemplates));
 
   const cardDate = document.createElement('span');
   cardDate.className = 'cards-date';

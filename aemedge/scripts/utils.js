@@ -234,6 +234,54 @@ async function parseTime(time) {
   return `${minutes} ${minLabel}`;
 }
 
+async function getReadTimeLabel(subtemplates) {
+  if (!subtemplates || subtemplates.lenght === 0) {
+    return '';
+  }
+  const [
+    readLabel,
+    watchLabel,
+    listenLabel,
+  ] = await Promise.all([
+    i18n('Read'),
+    i18n('Watch'),
+    i18n('Listen'),
+  ]);
+  if (subtemplates.includes('text')) {
+    return readLabel;
+  }
+  if (subtemplates.includes('video')) {
+    return watchLabel;
+  }
+  if (subtemplates.includes('podcast')) {
+    return listenLabel;
+  }
+  return '';
+}
+
+function getReadTimeIcon(subtemplates) {
+  if (!subtemplates || subtemplates.lenght === 0) {
+    return '';
+  }
+  let readIconName = '';
+  if (subtemplates.includes('text')) {
+    readIconName = 'list';
+  }
+  if (subtemplates.includes('video')) {
+    readIconName = 'play';
+  }
+  if (subtemplates.includes('podcast')) {
+    readIconName = 'audio';
+  }
+  const readIcon = createElement('img', {
+    src: `/aemedge/icons/${readIconName}.svg`,
+    alt: 'Read Time',
+    loading: 'lazy',
+  });
+  const readIconSpan = createElement('span', { class: `icon icon-${readIconName}` }, readIcon);
+  return readIconSpan;
+}
+
 function formatDate(dateString, includeYear = false) {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) {
@@ -559,6 +607,8 @@ export {
   getArticleRelatedMetadata,
   addDividerLine,
   parseTime,
+  getReadTimeLabel,
+  getReadTimeIcon,
   formatDate,
   getTag,
   i18n,
