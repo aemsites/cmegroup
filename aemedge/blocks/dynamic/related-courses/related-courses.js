@@ -31,10 +31,8 @@ export default async function createRelatedCourses(main) {
 
   block.classList.add('course', 'dynamic', 'related-courses');
   wrapper.appendChild(block);
-
   decorateBlock(block);
   await loadBlock(block);
-  block.prepend(header);
 
   main.appendChild(container);
 }

@@ -1,17 +1,17 @@
-.cards.related-courses .cards-header {
+.cards-wrapper .cards-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 10px;
-}
+    margin-bottom: 0.625rem;
 
-.cards.related-courses .cards-header h3 {
-    margin: 0;
-}
+    h3 {
+        margin: 0;
+    }
 
-.cards.related-courses .cards-header a {
-    color: #006eb6;
-    font-weight: 600;
+    a {
+        color: var(--blue4);
+        font-weight: 600;
+    }
 }
 
 .cards.related-courses ul {
@@ -24,17 +24,17 @@
     width: 100%;
 }
 
-@media (width >= 992px) {
+@media (width >= 993px) {
     .cards.related-courses .cards-card {
         min-height: 31.25rem !important;
-    }
 
-    .cards.related-courses .cards-card .cards-card-body {
-        top: 300px;
-    }
+        .cards-card-body {
+            top: 18.75rem;
+        }
 
-    .cards.related-courses .cards-card a:hover .cards-card-body {
-      min-height: 31.625rem;
-      top: 220px;
-  }
+        a:hover .cards-card-body {
+            min-height: 31.625rem;
+            top: 13.75rem;
+        }
+    }
 }
