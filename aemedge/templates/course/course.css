@@ -1,5 +1,5 @@
 @import './course-base.css';
-@import "./course/certificate.css";
+@import "./certificate.css";
 
 .begin-course-button {
   margin-top: 1rem;
