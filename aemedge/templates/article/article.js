@@ -1,37 +1,22 @@
-import { createElement, i18n, getArticleRelatedMetadata } from '../../scripts/utils.js';
+import { getMetadata } from '../../scripts/aem.js';
+import {
+  createElement,
+  i18n,
+  getArticleRelatedMetadata,
+  parseTime,
+  getReadTimeLabel,
+  getReadTimeIcon,
+} from '../../scripts/utils.js';
 
 async function decorateArticleHero(main) {
-  const [
-    {
-      readTime, author, primaryTopic, date, subTemplates,
-    },
-    readLabel,
-    watchLabel,
-    saveLabel,
-    byLabel,
-  ] = await Promise.all([
-    getArticleRelatedMetadata(),
-    i18n('min read'),
-    i18n('min watch'),
-    i18n('Save'),
-    i18n('By'),
-  ]);
-
+  const subTemplates = getMetadata('sub-template')?.split(' ');
+  const readTime = getMetadata('read-time');
   main.classList.add('article', ...subTemplates);
 
   const h1 = main.querySelector('h1');
-  const readIconName = subTemplates.includes('video') ? 'play' : 'list';
-  const readIconLabel = subTemplates.includes('video') ? watchLabel : readLabel;
-  const readIcon = createElement('img', {
-    src: `/aemedge/icons/${readIconName}.svg`,
-    alt: 'Read Time',
-    loading: 'lazy',
-  });
-
-  const readIconSpan = readTime ? createElement('span', { class: `icon icon-${readIconName}` }, readIcon) : null;
-  const readTimeText = readTime ? createElement('span', null, `${readTime} ${readIconLabel}`) : null;
-  const articleTime = createElement('span', { class: 'article-time' }, readIconSpan, readTimeText);
-  const featuredTag = primaryTopic ? createElement('span', { class: 'article-featured-tag' }, primaryTopic) : null;
+  const readIconSpan = readTime ? getReadTimeIcon(subTemplates) : null;
+  const articleTime = createElement('span', { class: 'article-time' }, readIconSpan);
+  const featuredTag = createElement('span', { class: 'article-featured-tag' });
   const saveIconOutlined = createElement('img', {
     src: '/aemedge/icons/bookmark-outlined.svg',
     alt: 'Bookmark Icon',
@@ -44,13 +29,12 @@ async function decorateArticleHero(main) {
     loading: 'lazy',
   });
   const saveIconFilledSpan = createElement('span', { class: 'icon icon-bookmark-filled' }, saveIconFilled);
-  const saveText = createElement('span', { class: 'save-text' }, saveLabel);
+  const saveText = createElement('span', { class: 'save-text' });
   const bookmarkButton = createElement('a', { class: 'bookmark' }, saveIconOutlinedSpan, saveIconFilledSpan, saveText);
   const row1 = createElement('div', { class: 'row' }, articleTime, featuredTag, bookmarkButton);
   const row2 = createElement('div', { class: 'row article-title' }, h1.cloneNode(true));
-  const authorText = `${byLabel} ${author}`;
-  const authors = author ? createElement('span', { class: 'authors' }, authorText) : null;
-  const articleDate = date ? createElement('span', { class: 'article-date' }, date) : null;
+  const authors = createElement('span', { class: 'authors' });
+  const articleDate = createElement('span', { class: 'article-date' });
   const row3 = createElement('div', { class: 'row' }, authors, articleDate);
 
   const firstSection = main.querySelector('.section:first-of-type');
@@ -88,9 +72,35 @@ async function decorateArticleHero(main) {
   bookmark.addEventListener('click', () => {
     // TODO: Add bookmark functionality
   });
+
+  // Dynamic Section
+  const [
+    {
+      author, primaryTopic, date,
+    },
+    saveLabel,
+    byLabel,
+  ] = await Promise.all([
+    getArticleRelatedMetadata(),
+    i18n('Save'),
+    i18n('By'),
+  ]);
+  const [
+    parsedTime,
+    readLabel,
+  ] = await Promise.all([
+    parseTime(readTime),
+    getReadTimeLabel(subTemplates),
+  ]);
+  const readTimeText = readTime ? createElement('span', null, `${parsedTime} ${readLabel}`) : null;
+  articleTime.append(readTimeText);
+  featuredTag.textContent = primaryTopic;
+  saveText.textContent = saveLabel;
+  authors.textContent = `${byLabel} ${author}`;
+  articleDate.textContent = date;
 }
 
-export default async function articleTemplate() {
+export default function articleTemplate() {
   const main = document.querySelector('main');
-  await decorateArticleHero(main);
+  decorateArticleHero(main);
 }
