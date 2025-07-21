@@ -1,83 +1,100 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-console */
 /* eslint-disable max-len */
-import ffetch from './ffetch.js';
+import { urlByEnvType } from './utils.js';
+import { apiPost, getResponseData } from './utils/index.js';
 
-const QUERY_INDEX_ENDPOINT = '/query-index.json';
-const COURSES_INDEX_ENDPOINT = '/courses-index.json';
+const QUERY_INDEX_ENDPOINT = '/services/query-index/search';
 
 function hasValue(value) {
   return value !== null && value !== undefined && value !== '' && !Number.isNaN(value);
 }
 
-async function fetchCoursesIndex() {
-  const response = await ffetch(COURSES_INDEX_ENDPOINT).all();
-  return response;
+/**
+ * Builds a search using the config from a block
+ */
+function buildIndexFilter(config) {
+  return {
+    basePaths: config.basePaths ? config.basePaths.split(',').map((path) => path.trim().toLowerCase()) : [],
+    templates: config.templates ? config.templates.split(',').map((template) => template.trim().toLowerCase()) : [],
+    tagsAnd: config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [],
+    tagsOr: config['optional-tags'] ? config['optional-tags'].split(',').map((tag) => tag.trim().toLowerCase()) : [],
+    tagsNot: config['excluded-tags'] ? config['excluded-tags'].split(',').map((tag) => tag.trim().toLowerCase()) : [],
+    relativeDateFrom: config['relative-date-from'], // Number in days
+    relativeDateTo: config['relative-date-to'], // Number in days
+    orderBy: config.orderBy,
+    sortDirection: config.sortDirection,
+    limit: config.limit,
+    page: 1,
+  };
 }
 
 /**
  * Search pages on the index.
  * example:
- * fetchAndFilterDataIndex({
- *   template: 'event',
+ * getIndexedContent({
+ *   basePaths: ['/education'],
+ *   templates: ['event'],
  *   tagsAnd: ['content-type/webinar', 'News-And-Events/classroom'], // The page must contain all tags in the array
  *   tagsOr: ['content-type/webinar', 'News-And-Events/classroom'], // The page must contain at least one of the tags in the array
+ *   tagsNot: ['content-type/webinar', 'News-And-Events/classroom'], // The page must not contain none of the tags in the array
  *   relativeDateFrom: 0, // Integer number of days from current date (allows negative numbers)
  *   relativeDateTo: 365, // Integer number of days from current date (allows negative numbers)
  *   orderBy: 'date', // The property to order by
  *   sortDirection: 'asc', // use asc or desc
  *   limit: 10, // Max quantity of results
+ *   page: 1, // Page num
  * });
  */
-async function fetchAndFilterDataIndex(searchConfig) {
+async function getIndexedContent(indexFilter) {
   try {
-    const response = await ffetch(QUERY_INDEX_ENDPOINT).all();
-    let dateFrom;
-    let dateTo;
-    if (hasValue(searchConfig.relativeDateFrom) && hasValue(searchConfig.relativeDateTo)) {
-      const today = new Date();
-      dateFrom = new Date(today);
-      dateFrom.setDate(today.getDate() + searchConfig.relativeDateFrom);
-      dateTo = new Date(today);
-      dateTo.setDate(today.getDate() + searchConfig.relativeDateTo);
+    const postData = {
+      page: indexFilter.page || 1,
+      size: indexFilter.limit || 10,
+      getFacets: false,
+      query: {},
+    };
+    if (indexFilter.basePaths && indexFilter.basePaths.length > 0) {
+      postData.query.basePaths = indexFilter.basePaths;
     }
-    let data = response.filter((item) => {
-      if (item.template && item.template.toLowerCase() !== searchConfig.template) return false;
-      if (searchConfig.tagsOr?.length > 0 || searchConfig.tagsAnd?.length > 0) {
-        let itemTags = [];
-        try {
-          if (item.tags?.length > 0) {
-            const tagsString = item.tags.map((tag) => tag.replace(/\\"/g, '"').replace(/'/g, '"'));
-            itemTags = tagsString.map((tag) => tag.toLowerCase());
-          }
-        } catch (e) {
-          return false;
-        }
-        if (searchConfig.tagsOr?.length > 0
-          && !searchConfig.tagsOr.some((searchTag) => itemTags.some((itemTag) => itemTag.includes(searchTag)))) {
-          return false;
-        }
-        if (searchConfig.tagsAnd?.length > 0
-          && !searchConfig.tagsAnd.every((searchTag) => itemTags.some((itemTag) => itemTag.includes(searchTag)))) {
-          return false;
-        }
-      }
-      if (dateFrom && dateTo) {
-        if (!item.date) return false;
-        const dateObj = new Date(item.date * 1000);
-        item.date = dateObj;
-        if (dateObj < dateFrom || dateTo < dateObj) return false;
-      }
-
-      return true;
-    });
-    if (searchConfig.orderBy && searchConfig.sortDirection) {
-      data = data.sort((a, b) => (searchConfig.sortDirection === 'asc' ? (a[searchConfig.orderBy] - b[searchConfig.orderBy]) : (b[searchConfig.orderBy] - a[searchConfig.orderBy])));
+    if (indexFilter.templates && indexFilter.templates.length > 0) {
+      postData.query.templates = indexFilter.templates;
     }
-    if (searchConfig.limit) {
-      data = data.slice(0, searchConfig.limit);
+    const tags = {};
+    tags.and = indexFilter.tagsAnd;
+    tags.or = indexFilter.tagsOr;
+    tags.not = indexFilter.tagsNot;
+    if ((tags.and && tags.and.length > 0)
+      || (tags.or && tags.or.length > 0)
+      || (tags.not && tags.not.length > 0)) {
+      postData.tags = tags;
     }
-    return data;
+    const dateRange = {};
+    if (hasValue(indexFilter.relativeDateFrom)) {
+      const dateFrom = new Date();
+      dateFrom.setDate(dateFrom.getDate() + indexFilter.relativeDateFrom);
+      dateFrom.setHours(0, 0, 0, 0);
+      dateRange.from = dateFrom.toISOString();
+    }
+    if (hasValue(indexFilter.relativeDateTo)) {
+      const dateTo = new Date();
+      dateTo.setDate(dateTo.getDate() + indexFilter.relativeDateTo);
+      dateTo.setHours(23, 59, 59, 0);
+      dateRange.to = dateTo.toISOString();
+    }
+    if (dateRange.from || dateRange.to) {
+      postData.dateRange = dateRange;
+    }
+    if (indexFilter.orderBy) {
+      postData.sort = {
+        field: indexFilter.orderBy,
+        order: indexFilter.sortDirection || 'desc',
+      };
+    }
+    const url = `${urlByEnvType()}${QUERY_INDEX_ENDPOINT}`;
+    const response = await apiPost(url, postData);
+    const responseData = getResponseData(response);
+    return responseData && responseData.data ? responseData.data : responseData;
   } catch (error) {
     console.error('Error loading data:', error);
     return [];
@@ -85,6 +102,6 @@ async function fetchAndFilterDataIndex(searchConfig) {
 }
 
 export {
-  fetchAndFilterDataIndex,
-  fetchCoursesIndex,
+  buildIndexFilter,
+  getIndexedContent,
 };

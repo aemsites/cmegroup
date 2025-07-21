@@ -299,6 +299,17 @@ const cardsComponentCheck = (document) => {
   return modifyMap(map, 'cards');
 };
 
+const oneClickSubDetect = (document) => {
+  const oneClickSub = document.querySelectorAll('.one-click-subscription-form');
+  const map = {};
+
+  if (oneClickSub?.length) {
+    map['one-click-subscription-form'] = true;
+  }
+
+  return modifyMap(map, 'one-click-subscription-form');
+};
+
 const detectColumns = (document) => {
   const rows = document.querySelectorAll('.row');
   const map = {};
@@ -778,6 +789,16 @@ const customReportElements = (document) => {
   const tableOccurences = fetchTable(document);
   if (tableOccurences) {
     report['table-classes'] = tableOccurences;
+  }
+
+  const gatedContent = document.querySelector('.blur-background .login-teaser');
+  if (gatedContent) {
+    report['gated-content'] = true;
+  }
+
+  const oneClickSub = oneClickSubDetect(document);
+  if (oneClickSub) {
+    report['one-click-subscription-form'] = oneClickSub;
   }
 
   return report;

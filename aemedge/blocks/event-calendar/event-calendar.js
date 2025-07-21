@@ -2,9 +2,9 @@ import { loadScript } from '../../scripts/aem.js';
 import { createElement, i18n, readBlockConfig } from '../../scripts/utils.js';
 import {
   getEconomicReleaseFilters,
-  postEconomicReleaseDates,
-  postEconomicReleaseEvents,
-} from '../../scripts/services/ProductCalendarService.js';
+  getEconomicReleaseDates,
+  getEconomicReleaseEvents,
+} from '../../scripts/services/EconomicReleaseService.js';
 import { URIUtil, escapeHtmlTags, parseCurrencyValue } from '../../scripts/utils/index.js';
 
 const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
@@ -186,7 +186,7 @@ async function getLeftPanelDays() {
   const daysLimit = 30;
   const textSearch = searchValueVar;
 
-  leftPanelDays = await postEconomicReleaseDates(
+  leftPanelDays = await getEconomicReleaseDates(
     date,
     countries,
     impacts,
@@ -212,14 +212,12 @@ async function getEvents() {
   const impacts = filtersArray['input-impact'].map((impact) => impact.id);
   const textSearch = searchValueVar;
 
-  const eventsService = await postEconomicReleaseEvents(
+  events = await getEconomicReleaseEvents(
     date,
     countries,
     impacts,
     textSearch,
   );
-
-  events = eventsService.events;
 
   if (events) {
     // eslint-disable-next-line no-use-before-define
