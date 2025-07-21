@@ -112,8 +112,8 @@
     }
 
     & .glider-track {
-      gap: 32px;
-      padding-left: 3px;
+      gap: 2rem;
+      padding-left: 0.1875rem;
     }
 
     & .glider-prev,
