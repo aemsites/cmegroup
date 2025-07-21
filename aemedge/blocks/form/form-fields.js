@@ -2,7 +2,7 @@ import { toClassName } from '../../scripts/aem.js';
 import { createElement } from '../../scripts/utils.js';
 
 function createFieldWrapper(fd) {
-  const fieldWrapper = document.createElement('div');
+  const fieldWrapper = createElement('div');
   if (fd.Style) fieldWrapper.className = fd.Style;
   if (fd.DefaultHide === 'true') {
     fieldWrapper.classList.add('hide');
@@ -39,7 +39,7 @@ function generateFieldId(fd, suffix = '') {
 }
 
 function createLabel(fd) {
-  const label = document.createElement('label');
+  const label = createElement('label');
   label.id = generateFieldId(fd, '-label');
   label.textContent = fd.Label || fd.Name;
   label.setAttribute('for', fd.Id);
@@ -47,7 +47,7 @@ function createLabel(fd) {
     label.dataset.required = true;
   } else if (fd.Mandatory?.toLowerCase() === 'false') {
     // adding optional text to the label
-    const optional = document.createElement('i');
+    const optional = createElement('i');
     optional.textContent = ' (Optional)';
     label.append(optional);
   }
@@ -90,7 +90,7 @@ const createHeading = (fd) => {
   const fieldWrapper = createFieldWrapper(fd);
 
   const level = fd.Style?.includes('sub-heading') ? 'h3' : (fd.Style || 'h2');
-  const heading = document.createElement(`${level}`);
+  const heading = createElement(`${level}`);
   heading.textContent = fd.Value || fd.Label;
   heading.id = fd.Id;
 
@@ -102,7 +102,7 @@ const createHeading = (fd) => {
 const createPlaintext = (fd) => {
   const fieldWrapper = createFieldWrapper(fd);
 
-  const text = document.createElement('p');
+  const text = createElement('p');
   text.innerHTML = fd.Value || fd.Label;
   text.id = fd.Id;
 
@@ -112,10 +112,10 @@ const createPlaintext = (fd) => {
 };
 
 const createSelect = async (fd) => {
-  const select = document.createElement('select');
+  const select = createElement('select');
   setCommonAttributes(select, fd);
   const addOption = ({ text, value }) => {
-    const option = document.createElement('option');
+    const option = createElement('option');
     option.text = text.trim();
     option.value = value.trim();
     if (option.value === fd.Value) {
@@ -167,9 +167,8 @@ const createConfirmation = (fd, form) => {
 };
 
 const createSubmit = (fd) => {
-  const button = document.createElement('button');
+  const button = createElement('button', { class: 'button' });
   button.textContent = fd.Label || fd.Name;
-  button.classList.add('button');
   button.type = 'submit';
 
   const fieldWrapper = createFieldWrapper(fd);
@@ -181,7 +180,7 @@ const createSubmit = (fd) => {
 };
 
 const createTextArea = (fd) => {
-  const field = document.createElement('textarea');
+  const field = createElement('textarea');
   setCommonAttributes(field, fd);
   if (fd.Rows) {
     field.setAttribute('rows', fd.Rows);
@@ -197,7 +196,7 @@ const createTextArea = (fd) => {
 };
 
 const createInput = (fd) => {
-  const field = document.createElement('input');
+  const field = createElement('input');
   field.type = fd.Type;
   setCommonAttributes(field, fd);
 
@@ -215,11 +214,11 @@ const createInput = (fd) => {
 };
 
 const createFieldset = (fd) => {
-  const field = document.createElement('fieldset');
+  const field = createElement('fieldset');
   setCommonAttributes(field, fd);
 
   if (fd.Label) {
-    const legend = document.createElement('legend');
+    const legend = createElement('legend');
     legend.textContent = fd.Label;
     field.append(legend);
   }
@@ -237,13 +236,11 @@ const createToggle = (fd) => {
   field.classList.add('toggle');
   fieldWrapper.classList.add('selection-wrapper');
 
-  const toggleSwitch = document.createElement('div');
-  toggleSwitch.classList.add('switch');
+  const toggleSwitch = createElement('div', { class: 'switch' });
   toggleSwitch.append(field);
   fieldWrapper.append(toggleSwitch);
 
-  const slider = document.createElement('span');
-  slider.classList.add('slider');
+  const slider = createElement('span', { class: 'slider' });
   toggleSwitch.append(slider);
   slider.addEventListener('click', () => {
     field.checked = !field.checked;
@@ -302,17 +299,6 @@ const createGoogleRecaptcha = (fd) => {
   return { field: label, fieldWrapper };
 };
 
-const createButton = (fd) => {
-  const button = document.createElement('button');
-  button.id = fd.Id;
-  button.textContent = fd.Label || fd.Name;
-  button.classList.add('button');
-
-  const fieldWrapper = createFieldWrapper(fd);
-  fieldWrapper.append(button);
-  return { field: button, fieldWrapper };
-};
-
 const FIELD_CREATOR_FUNCTIONS = {
   select: createSelect,
   heading: createHeading,
@@ -326,7 +312,6 @@ const FIELD_CREATOR_FUNCTIONS = {
   radio: createRadio,
   'feedback-smiley': createFeedbackSmiley,
   recaptcha: createGoogleRecaptcha,
-  button: createButton,
 };
 
 export default async function createField(fd, form) {

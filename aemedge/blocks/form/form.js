@@ -28,19 +28,17 @@ function createChoicesInstance(select) {
   select.choicesInstance = choicesInstance;
 }
 
-async function loadChoices(form, callback, ...args) {
+async function loadChoices(form) {
   if (!window.Choices) {
-    const script = document.createElement('script');
+    const script = createElement('script');
     script.src = '/aemedge/blocks/form/external/choices-js/choices.min.js';
     script.async = true;
     script.onload = async () => {
       form.querySelectorAll('select').forEach((select) => createChoicesInstance(select));
-      await callback(...args);
     };
     document.head.appendChild(script);
   } else {
     form.querySelectorAll('select').forEach((select) => createChoicesInstance(select));
-    await callback(...args);
   }
 }
 
@@ -266,7 +264,7 @@ async function decorateOneClickForm(form, formData, block) {
 }
 
 function decodeHtmlEntities(text) {
-  const textarea = document.createElement('textarea');
+  const textarea = createElement('textarea');
   textarea.innerHTML = text;
   return textarea.value;
 }
@@ -293,9 +291,7 @@ function addListenersForDefaultHideFields(form) {
 
 async function createForm(formData, block) {
   const json = await fetchForm(formData.source);
-
-  const form = document.createElement('form');
-  form.setAttribute('novalidate', '');
+  const form = createElement('form', { novalidate: '' });
 
   const fields = await Promise.all(json.data.map((fd) => createField(fd, form)));
   fields.forEach((field) => {
@@ -315,7 +311,8 @@ async function createForm(formData, block) {
     });
   });
 
-  await loadChoices(form, decorateContactUsForm, form, formData, block);
+  await loadChoices(form);
+  await decorateContactUsForm(form, formData, block);
   await decorateOneClickForm(form, formData, block);
   applyRichTextFormat(form, ['label', 'p']);
   addListenersForDefaultHideFields(form);
@@ -503,7 +500,7 @@ function getFormData(block) {
   const formId = formData.id;
   block.setAttribute('form-id', formId);
 
-  const formName = block.classList[1];
+  const formName = block.classList[block.classList.length > 1 ? 1 : 0];
   block.setAttribute('form-name', toStartCase(formName));
 
   const formHighValue = formData.high_value;
@@ -573,7 +570,7 @@ async function decorateForm(formData, block) {
       invalidFields.forEach((field) => {
         const wrapper = field.closest('.field-wrapper:not(.hide)');
         if (!wrapper.querySelector('.error-message')) {
-          const errorMsg = document.createElement('div');
+          const errorMsg = createElement('div', { class: 'error-message' });
           errorMsg.className = 'error-message';
           errorMsg.textContent = field.validationMessage || 'This field is required';
           wrapper.appendChild(errorMsg);
