@@ -1,4 +1,4 @@
-import { createDynamicCard } from '../cards/cards.js';
+import { createDynamicCardCourse } from '../cards/cards.js';
 import { getIndexedContent } from '../../scripts/indexing.js';
 
 import {
@@ -90,7 +90,7 @@ async function decorateCardsAccordion(block) {
         tagsAnd: tags,
       };
       const filteredData = await getIndexedContent(indexFilter);
-      const cards = filteredData.map(createDynamicCard);
+      const cards = await Promise.all(filteredData.map(createDynamicCardCourse));
       const cardsBlock = createCardsBlock(cards);
       wrapper.append(cardsBlock);
     });

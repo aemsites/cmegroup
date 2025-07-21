@@ -7,6 +7,8 @@ import {
 import {
   createElement,
   parseTime,
+  getReadTimeLabel,
+  getReadTimeIcon,
   formatDate,
   i18n,
   decodeHtmlEntities,
@@ -15,6 +17,7 @@ import {
   getUTCfromDateString,
   readBlockConfig,
 } from '../../scripts/utils.js';
+import { convertReadTimeFormat, convertMediaTypeToSubtemplate } from '../../scripts/legacyContentMapping.js';
 
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
@@ -145,7 +148,7 @@ async function createStaticCards(block) {
   block.append(cardsContainer);
 }
 
-export function createDynamicCard(contentData) {
+export async function createDynamicCardCourse(contentData) {
   const {
     metadata: { 'og:image': image },
     title,
@@ -161,7 +164,7 @@ export function createDynamicCard(contentData) {
   bodyWrapper.innerHTML = `
     <div class="card-subtitle">
     course
-    <span>${parseTime(readTime)}</span>
+    <span>${await parseTime(readTime)}</span>
     </div>
     <div class="cards-card-title">
       <h3>${title}</h3>
@@ -186,18 +189,22 @@ export async function createDynamicCardArticle({ content }) {
     date,
     title,
   } = dynamicProperties;
+  const durationMin = convertReadTimeFormat(duration);
+  const subTemplates = convertMediaTypeToSubtemplate(mediaType);
   const [
     readLabel,
-    watchLabel,
+    durationStr,
   ] = await Promise.all([
-    i18n('Read'),
-    i18n('Watch'),
+    getReadTimeLabel(subTemplates),
+    parseTime(durationMin),
   ]);
 
   const li = document.createElement('li');
   const linkEl = document.createElement('a');
   linkEl.href = path;
-  linkEl.classList.add(mediaType === 'video-webinar' ? 'video-card' : 'article-card');
+  if (subTemplates.includes('video')) {
+    linkEl.classList.add('video-card');
+  }
 
   const imageContainer = document.createElement('div');
   imageContainer.className = 'cards-image-container';
@@ -213,7 +220,8 @@ export async function createDynamicCardArticle({ content }) {
 
   const cardTime = document.createElement('span');
   cardTime.className = 'cards-time';
-  cardTime.innerText = `${parseTime(duration)} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
+  cardTime.innerText = `${durationStr} ${readLabel}`;
+  cardTime.prepend(getReadTimeIcon(subTemplates));
 
   const cardDate = document.createElement('span');
   cardDate.className = 'cards-date';
@@ -321,7 +329,7 @@ export async function createDynamicCards(block) {
     };
     inverse = true;
     disabledOnDesktop = true;
-    cardElements = filteredData.map(createDynamicCard);
+    cardElements = await Promise.all(filteredData.map(createDynamicCardCourse));
   } else if (block.classList.contains('article')) {
     const { endpoint } = config;
     filteredData = await fetchAndFilterDataLegacyEndpoint(endpoint);
