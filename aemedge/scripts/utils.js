@@ -556,6 +556,14 @@ function readBlockConfig(block, keysToCamelCase = false) {
   return config;
 }
 
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+function toStartCase(str) {
+  return str.split(/[\s-_]+/).map(capitalize).join(' ');
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
@@ -578,4 +586,5 @@ export {
   generateRandomId,
   isFeatureToggled,
   readBlockConfig,
+  toStartCase,
 };

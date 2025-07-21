@@ -1,7 +1,11 @@
 import createField from './form-fields.js';
-import { createElement } from '../../scripts/utils.js';
+import { createElement, toStartCase } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
 import { getUserInfo, postForm } from '../../scripts/api.js';
+import { authentication } from '../../scripts/modules/Authentication.js';
+import { URIUtil } from '../../scripts/utils/index.js';
+
+const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
 
 function getUrlPath(url) {
   try {
@@ -139,6 +143,55 @@ function applyRichTextFormat(container, selectors = ['label', 'p']) {
   });
 }
 
+async function createLoggedInFields(form, formData) {
+  const sheetData = await fetchForm(`${formData.source}?sheet=logged-in`);
+  const fields = await Promise.all(sheetData.data.map(async (field) => {
+    const fieldElement = await createField(field, form);
+    fieldElement.classList.add('logged-in');
+    if (fieldElement.dataset?.type === 'submit') {
+      form.dataset.action = fieldElement.dataset.action;
+    }
+    return fieldElement;
+  }));
+  if (fields.length > 0) {
+    form.prepend(...fields);
+    applyRichTextFormat(form, ['label', 'p']);
+  }
+  return fields;
+}
+
+function updateFieldsAfterSubmit(form, block) {
+  const formFields = form.querySelectorAll('.field-wrapper');
+  const blockFields = block?.children || [];
+  [...formFields, ...blockFields].forEach((field) => {
+    const { showAfterSubmit } = field.dataset;
+    if (showAfterSubmit) {
+      field.classList.toggle('hide', showAfterSubmit !== 'true');
+    }
+  });
+}
+
+function buildOneClickFormCookie(block, element) {
+  const { isLoggedIn } = authentication.authenticationData;
+  if (isLoggedIn) {
+    return;
+  }
+  const expires = new Date();
+  expires.setMinutes(expires.getMinutes() + 30);
+  window.CookieUtil?.set(
+    'oneClickFormCookie',
+    {
+      location: element.href,
+      formId: block.getAttribute('form-id'),
+    },
+    {
+      expires,
+    },
+  );
+  //  noActivationPrompt used in registration url
+  element.setAttribute('data-no-activation-prompt', 'true');
+}
+
 function populateUserInfoInContactUsForm(form, userInfo) {
   Object.entries(userInfo).forEach(([key, value]) => {
     const field = form.querySelector(`[name="${key}"]`);
@@ -154,24 +207,15 @@ async function decorateContactUsForm(form, formData, block) {
   if (!isContactUsVariant) return;
 
   form.classList.add('user-info');
-  const isLoggedIn = formData.mock === 'LoggedIn';
-  if (isLoggedIn) {
+  const loggedIn = formData.mock === 'LoggedIn';
+  if (loggedIn) {
     const userInfo = await getUserInfo();
     form.classList.remove('user-info');
     form.classList.add('collapsed-user-info');
 
-    const sheetData = await fetchForm(`${formData.source}?sheet=logged-in`);
-    const fields = await Promise.all(sheetData.data.map(async (field) => {
-      const fieldElement = await createField(field, form);
-      fieldElement.classList.add('logged-in');
-      return fieldElement;
-    }));
-
+    const fields = await createLoggedInFields(form, formData);
     if (fields.length > 0) {
-      form.prepend(...fields);
-      applyRichTextFormat(form, ['label', 'p']);
       const editAccountInformation = form.querySelector('a');
-
       if (editAccountInformation) {
         editAccountInformation.addEventListener('click', (e) => {
           e.preventDefault();
@@ -185,13 +229,49 @@ async function decorateContactUsForm(form, formData, block) {
   }
 }
 
+async function decorateOneClickForm(form, formData, block) {
+  if (!block.classList.contains('one-click')) return;
+
+  const subscriptionsData = await fetchForm(`${formData.source}?sheet=subscriptions`);
+  const subscriptions = await Promise.all(subscriptionsData.data.map(async (field) => field));
+  form.dataset.subscriptions = JSON.stringify(subscriptions);
+  let subscribed = false;
+
+  const { isLoggedIn } = authentication.authenticationData;
+  if (isLoggedIn) {
+    form.classList.add('logged-in');
+    await createLoggedInFields(form, formData);
+    const userInfo = window.LocalStorageUtil?.get('userInfo', true);
+    subscribed = subscriptions.every(
+      (subs) => userInfo[subs.Name] === (subs.Value === 'true'),
+    );
+    if (subscribed) {
+      const subscribedMsg = form.querySelector('#form-subscribedmessage');
+      subscribedMsg?.parentElement?.classList.toggle('hide', false);
+      updateFieldsAfterSubmit(form, block);
+    }
+  } else {
+    form.classList.add('logged-out');
+    const register = form.querySelector('#form-register');
+    register?.addEventListener('click', async (event) => {
+      buildOneClickFormCookie(block, event.target);
+      authentication.registration();
+    });
+    const login = form.querySelector('#form-login');
+    login?.addEventListener('click', async (event) => {
+      buildOneClickFormCookie(block, event.target);
+      authentication.login();
+    });
+  }
+}
+
 function decodeHtmlEntities(text) {
   const textarea = document.createElement('textarea');
   textarea.innerHTML = text;
   return textarea.value;
 }
 
-function addListnersForDefaultHideFields(form) {
+function addListenersForDefaultHideFields(form) {
   const fields = form.querySelectorAll('.field-wrapper');
   fields.forEach((field) => {
     if (field.dataset.visibleExpression) {
@@ -235,14 +315,15 @@ async function createForm(formData, block) {
     });
   });
 
-  loadChoices(form, decorateContactUsForm, form, formData, block);
+  await loadChoices(form, decorateContactUsForm, form, formData, block);
+  await decorateOneClickForm(form, formData, block);
   applyRichTextFormat(form, ['label', 'p']);
-  addListnersForDefaultHideFields(form);
+  addListenersForDefaultHideFields(form);
   return form;
 }
 
-function generatePayload(form, formId, formName) {
-  const payload = {};
+function generatePayload(form, formId, formName, formHighValue) {
+  let payload = {};
 
   [...form.elements].forEach((field) => {
     if (field.name && field.type !== 'submit' && !field.disabled) {
@@ -264,12 +345,47 @@ function generatePayload(form, formId, formName) {
   payload.Form_ID__c = formId;
   payload.Form_Type__c = formName;
   payload.Page_URL__c = window.location.href;
+  payload.Auto_Create_MQL__c = formHighValue ? 'Web - Hand Raise' : null;
+
+  if (form.dataset.subscriptions) {
+    const fieldsToUpdate = JSON.parse(form.dataset.subscriptions)
+      .map(({ Name, Value }) => `${Name}=${Value}`)
+      .join('&');
+    payload.Fields_to_Update__c = fieldsToUpdate;
+  }
+
+  let userData = [];
+  const { isLoggedIn } = authentication.authenticationData;
+  if (isLoggedIn) {
+    //  required user form fields
+    const userInfo = window.LocalStorageUtil?.get('userInfo', true);
+    userData = {
+      Email__c: payload.Email__c || userInfo.Email,
+      First_Name__c: payload.First_Name__c || userInfo.FirstName,
+      Last_Name__c: payload.Last_Name__c || userInfo.FirstName,
+      Country_Code__c: payload.Country_Code__c || userInfo.Country_Code__c,
+      Job_Role__c: payload.Job_Role__c || userInfo.Job_Role__c,
+      Company_Name__c: payload.Company_Name__c || userInfo.Company,
+      Company_Type__c: payload.Company_Type__c || userInfo.Segment__c,
+      Phone_Number__c: payload.Phone_Number__c || userInfo.Phone,
+    };
+    payload = { ...payload, ...userData };
+  }
+  if (!payload.Company_Name__c) {
+    payload.Company_Name__c = 'Unknown';
+  }
+  if (!payload.Email__c && uriUtil.hasQuery('email')) {
+    //  one-click SSO flow (registration with no activation prompt),
+    //  the email is appended in url when returns to the page
+    payload.Email__c = uriUtil.getQuery('email', '');
+  }
   return payload;
 }
 
 function updatePostSubmitUi(form, block) {
   const submitValue = form.querySelector('.field-wrapper:has(button[type="submit"])')?.dataset.submitMessage;
   if (submitValue) {
+    //  show temporally submit message
     const inputs = form.querySelectorAll('input, select, textarea');
     inputs.forEach((input) => {
       if (input.type === 'radio') {
@@ -284,13 +400,18 @@ function updatePostSubmitUi(form, block) {
       submitDiv.classList.add('hide');
     }, 5000);
   } else {
-    form.style.display = 'none';
-    if (form.classList.contains('logged-in')) {
-      const submitLoggedIn = block.querySelector('.post-submit.logged-in');
-      submitLoggedIn.classList.remove('hide');
+    const submitLoggedIn = block.querySelector('.post-submit.logged-in');
+    const submitLoggedOut = block.querySelector('.post-submit.logged-out');
+    if (submitLoggedIn && submitLoggedOut) {
+      //  hides the form and show fragments for logged-in/out status
+      form.style.display = 'none';
+      if (form.classList.contains('logged-in')) {
+        submitLoggedIn.classList.remove('hide');
+      } else {
+        submitLoggedOut.classList.remove('hide');
+      }
     } else {
-      const submitLoggedOut = block.querySelector('.post-submit.logged-out');
-      submitLoggedOut.classList.remove('hide');
+      updateFieldsAfterSubmit(form, block);
     }
   }
 }
@@ -319,7 +440,8 @@ async function handleSubmit(form, block) {
 
     const formName = block.getAttribute('form-name');
     const formId = block.getAttribute('form-id');
-    const payload = generatePayload(form, formId, formName);
+    const formHighValue = block.getAttribute('form-high-value') === 'true';
+    const payload = generatePayload(form, formId, formName, formHighValue);
     let config = {};
     if (hasRecaptchaIntegration(block)) {
       config = {
@@ -359,6 +481,7 @@ function decorateRecaptchaDisclaimer(block) {
     const label = disclaimer.querySelector('label');
     p.innerHTML = label.innerHTML;
     p.dataset.sitekey = label.dataset.sitekey;
+    p.dataset.showAfterSubmit = disclaimer.dataset.showAfterSubmit;
     block.appendChild(p);
     disclaimer.remove();
   }
@@ -380,11 +503,11 @@ function getFormData(block) {
   const formId = formData.id;
   block.setAttribute('form-id', formId);
 
-  const formName = formData.name;
-  block.setAttribute('form-name', formName);
+  const formName = block.classList[1];
+  block.setAttribute('form-name', toStartCase(formName));
 
-  const formClass = formName.toLowerCase().replaceAll(' ', '-');
-  block.classList.add(formClass);
+  const formHighValue = formData.high_value;
+  block.setAttribute('form-high-value', formHighValue);
 
   return formData;
 }
@@ -398,30 +521,37 @@ async function decoratePostSubmitUi(formData, block) {
     submitMsgDiv.innerHTML = submitMessage;
     block.append(submitMsgDiv);
   } else {
-    const submitLoggedIn = createElement('div', { class: 'post-submit logged-in hide' });
-    const submitLoggedOut = createElement('div', { class: 'post-submit logged-out hide' });
-    const loggedInFragment = await loadFragment(getUrlPath(formData.submit_logged_in));
-    const loggedOutFragment = await loadFragment(getUrlPath(formData.submit_logged_out));
-    submitLoggedIn.innerHTML = loggedInFragment.innerHTML;
-    submitLoggedOut.innerHTML = loggedOutFragment.innerHTML;
-    block.append(submitLoggedIn, submitLoggedOut);
+    if (formData.submit_logged_in) {
+      const submitLoggedIn = createElement('div', { class: 'post-submit logged-in hide' });
+      const loggedInFragment = await loadFragment(getUrlPath(formData.submit_logged_in));
+      submitLoggedIn.innerHTML = loggedInFragment.innerHTML;
+      block.append(submitLoggedIn);
+    }
+    if (formData.submit_logged_out) {
+      const submitLoggedOut = createElement('div', { class: 'post-submit logged-out hide' });
+      const loggedOutFragment = await loadFragment(getUrlPath(formData.submit_logged_out));
+      submitLoggedOut.innerHTML = loggedOutFragment.innerHTML;
+      block.append(submitLoggedOut);
+    }
   }
 }
 
-export default async function decorate(block) {
-  const formData = getFormData(block);
-  const formLink = formData.source;
-
-  if (!formLink) {
-    // eslint-disable-next-line no-console
-    console.error('No form link found');
-    return;
+async function checkOneClickFormCookie(form, block) {
+  //  auto submit if cookie is present for this form (login/registration flow)
+  const formId = block.getAttribute('form-id');
+  const oneClickCookie = window.CookieUtil?.get('oneClickFormCookie', true);
+  if (formId.toString() === oneClickCookie?.formId) {
+    await handleSubmit(form, block);
+    window.CookieUtil?.remove('oneClickFormCookie');
   }
+}
 
+async function decorateForm(formData, block) {
   const form = await createForm(formData, block);
   block.replaceChildren(form);
   decorateRecaptchaDisclaimer(block);
   await decoratePostSubmitUi(formData, block);
+  await checkOneClickFormCookie(form, block);
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -461,5 +591,21 @@ export default async function decorate(block) {
         firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
+  });
+}
+
+export default async function decorate(block) {
+  const formData = getFormData(block);
+  const formLink = formData.source;
+
+  if (!formLink) {
+    // eslint-disable-next-line no-console
+    console.error('No form link found');
+    return;
+  }
+
+  const { authenticationData } = authentication;
+  authenticationData.loginPromise.then(async () => {
+    decorateForm(formData, block);
   });
 }

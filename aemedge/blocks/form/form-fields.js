@@ -23,6 +23,9 @@ function createFieldWrapper(fd) {
   if (fd.Fieldset) {
     fieldWrapper.dataset.fieldset = fd.Fieldset;
   }
+  if (fd.ShowAfterSubmit) {
+    fieldWrapper.dataset.showAfterSubmit = fd.ShowAfterSubmit;
+  }
   return fieldWrapper;
 }
 
@@ -40,9 +43,9 @@ function createLabel(fd) {
   label.id = generateFieldId(fd, '-label');
   label.textContent = fd.Label || fd.Name;
   label.setAttribute('for', fd.Id);
-  if (fd.Mandatory.toLowerCase() === 'true' || fd.Mandatory.toLowerCase() === 'x') {
+  if (fd.Mandatory?.toLowerCase() === 'true' || fd.Mandatory?.toLowerCase() === 'x') {
     label.dataset.required = true;
-  } else if (fd.Mandatory.toLowerCase() === 'false') {
+  } else if (fd.Mandatory?.toLowerCase() === 'false') {
     // adding optional text to the label
     const optional = document.createElement('i');
     optional.textContent = ' (Optional)';
@@ -86,8 +89,8 @@ function setCommonAttributes(field, fd) {
 const createHeading = (fd) => {
   const fieldWrapper = createFieldWrapper(fd);
 
-  const level = fd.Style && fd.Style.includes('sub-heading') ? 3 : 2;
-  const heading = document.createElement(`h${level}`);
+  const level = fd.Style?.includes('sub-heading') ? 'h3' : (fd.Style || 'h2');
+  const heading = document.createElement(`${level}`);
   heading.textContent = fd.Value || fd.Label;
   heading.id = fd.Id;
 
@@ -100,7 +103,7 @@ const createPlaintext = (fd) => {
   const fieldWrapper = createFieldWrapper(fd);
 
   const text = document.createElement('p');
-  text.textContent = fd.Value || fd.Label;
+  text.innerHTML = fd.Value || fd.Label;
   text.id = fd.Id;
 
   fieldWrapper.append(text);
@@ -299,6 +302,17 @@ const createGoogleRecaptcha = (fd) => {
   return { field: label, fieldWrapper };
 };
 
+const createButton = (fd) => {
+  const button = document.createElement('button');
+  button.id = fd.Id;
+  button.textContent = fd.Label || fd.Name;
+  button.classList.add('button');
+
+  const fieldWrapper = createFieldWrapper(fd);
+  fieldWrapper.append(button);
+  return { field: button, fieldWrapper };
+};
+
 const FIELD_CREATOR_FUNCTIONS = {
   select: createSelect,
   heading: createHeading,
@@ -312,6 +326,7 @@ const FIELD_CREATOR_FUNCTIONS = {
   radio: createRadio,
   'feedback-smiley': createFeedbackSmiley,
   recaptcha: createGoogleRecaptcha,
+  button: createButton,
 };
 
 export default async function createField(fd, form) {

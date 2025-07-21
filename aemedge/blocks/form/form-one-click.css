@@ -1,0 +1,51 @@
+/* One Click Subscription Form specific styles */
+.form.one-click {
+  background-color: var(--citron);
+  color: var(--blue2);
+  padding: 1.875rem;
+
+  & form {
+    gap: unset;
+    width: unset;
+
+    &.logged-in {
+      .field-wrapper:not(.logged-in) {
+        display: none;
+      }
+    }
+
+    & .subscribed {
+      color: var(--blue2);
+      margin-bottom: 0;
+    }
+
+    & .rich-text {
+      margin-bottom: 0;
+
+      & p {
+        color: var(--blue2);
+        margin-bottom: 0;
+      }
+    }
+
+    & .privacy-text > * {
+      font-size: 0.75rem;
+      line-height: 1.125rem;
+      margin-top: 1.5rem !important;
+      margin-bottom: 0.625rem;
+    }
+  }
+
+  & .recaptcha-disclaimer {
+    color: inherit;
+    line-height: 1.125rem;
+
+    & a {
+      color: var(--blue4);
+
+      &:hover {
+        color: var(--blue3);
+      }
+    }
+  }
+}
