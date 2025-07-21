@@ -4,6 +4,11 @@
     margin-top: 3.75rem;
     display: flex;
     justify-content: space-between;
+    flex-direction: column;
+
+    @media (width >= 769px) {
+        flex-direction: row;
+    }
 
     & .results-text {
         font-family: var(--averta);
@@ -48,7 +53,6 @@
                 padding: 0;
 
                 & li {
-                    margin-right: 0.5rem;
                     display: inline-block;
                     border-right: 0.0625rem solid var(--gray3);
                     padding: 0;
@@ -66,7 +70,7 @@
                         color: var(--blue4);
                         text-transform: uppercase;
                         font-weight: 400;
-                        font-size: 0.875rem;
+                        font-size: 0.75rem;
                         line-height: 0.875rem;
                         border-color: transparent;
                         padding: 0 0.625rem;

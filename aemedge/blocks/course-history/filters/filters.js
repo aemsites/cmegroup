@@ -1,7 +1,7 @@
 import { createElement, i18n } from '../../../scripts/utils.js';
 
 // eslint-disable-next-line import/prefer-default-export
-export async function createFilters({ items, onFilterChange }) {
+export async function createFilters({ items, onFilterChange, initialFilterValue = 'all' }) {
   const [allLabel, inProgressLabel, completedLabel, viewLabel] = await Promise.all([
     i18n('All'),
     i18n('In Progress'),
@@ -12,23 +12,23 @@ export async function createFilters({ items, onFilterChange }) {
   const resultsText = createElement('div', { class: 'results-text' });
 
   const filterButtons = [
-    { label: allLabel, index: 0 },
-    { label: inProgressLabel, index: 1 },
-    { label: completedLabel, index: 2 },
+    { label: allLabel, value: 'all' },
+    { label: inProgressLabel, value: 'PROGRESS' },
+    { label: completedLabel, value: 'COMPLETED' },
   ];
 
   const ul = createElement(
     'ul',
     {},
-    ...filterButtons.map(({ label, index }) => createElement(
+    ...filterButtons.map(({ label, value }) => createElement(
       'li',
       {},
       createElement(
         'button',
         {
           type: 'button',
-          class: index === 0 ? 'selected' : '',
-          'data-index': index,
+          class: value === initialFilterValue ? 'selected' : '',
+          'data-value': value,
         },
         label,
       ),
@@ -37,21 +37,32 @@ export async function createFilters({ items, onFilterChange }) {
 
   ul.querySelectorAll('button').forEach((button) => {
     button.addEventListener('click', () => {
+      if (button.classList.contains('selected')) return;
+
       ul.querySelectorAll('button').forEach((btn) => btn.classList.remove('selected'));
       button.classList.add('selected');
 
-      const filterIndex = parseInt(button.dataset.index, 10);
+      const selectedValue = button.dataset.value;
       let filteredItems = [...items];
 
-      if (filterIndex === 1) {
-        filteredItems = items.filter(({ data }) => data.status === 'PROGRESS');
-      } else if (filterIndex === 2) {
-        filteredItems = items.filter(({ data }) => data.status === 'COMPLETED');
+      if (selectedValue !== 'all') {
+        filteredItems = items.filter(({ data }) => data.status === selectedValue);
       }
 
-      onFilterChange(filteredItems);
+      onFilterChange(filteredItems, selectedValue, true);
     });
   });
+
+  const initialButton = ul.querySelector(`button[data-value="${initialFilterValue}"]`);
+  if (initialButton) {
+    let filteredItems = [...items];
+    if (initialFilterValue === 'PROGRESS') {
+      filteredItems = items.filter(({ data }) => data.status === 'PROGRESS');
+    } else if (initialFilterValue === 'COMPLETED') {
+      filteredItems = items.filter(({ data }) => data.status === 'COMPLETED');
+    }
+    onFilterChange(filteredItems, initialFilterValue, false);
+  }
 
   const filtersSection = createElement(
     'div',
@@ -69,5 +80,5 @@ export async function createFilters({ items, onFilterChange }) {
     ),
   );
 
-  return { filtersSection, resultsText };
+  return { filtersSection, resultsText, ulElement: ul };
 }

@@ -1,3 +1,26 @@
 @import url("course-card/course-card.css");
 @import url("pagination/pagination.css");
 @import url("filters/filters.css");
+
+.no-results {
+    text-align: left;
+    padding: 0.9375rem 1.875rem;
+    background-color: var(--yellow);
+    min-height: 3.625rem;
+
+    & span {
+        font-family: var(--averta);
+        font-weight: 400;
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+        padding-right: 0.4375rem;
+
+        &.bold-error-text {
+            font-weight: 700;
+        }
+    }
+
+    & .link {
+        vertical-align: bottom;
+    }
+}

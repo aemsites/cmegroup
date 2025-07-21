@@ -63,7 +63,6 @@ export function createEducationCard(item, isLesson = false) {
     class: `progress-bar linear ${status === 'COMPLETED' ? 'completed' : ''}`,
   }, createElement('div', { class: 'progress', style: `width: ${progressPercent}%;` }));
 
-
   const descriptionElement = createElement(
     'span',
     { class: 'LinesEllipsis description' },
@@ -106,6 +105,7 @@ export function createEducationCard(item, isLesson = false) {
   const content = createElement(
     'div',
     { class: 'course-info' },
+    // TO DO: add mobile link
     createElement('div', {}, createElement('h2', {}, title), descriptionElement),
     details,
   );

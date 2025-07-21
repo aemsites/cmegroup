@@ -51,12 +51,15 @@
                 font-size: 1.625rem;
             }
 
-            & i {
-                position: relative;
-                padding-left: 0.25rem;
-                top: 0.125rem;
+            &::after {
+                content: var(--icon-chevron-right);
+                font-family: var(--cme-group-icons);
+                font-style: normal;
+                font-size: 0.75rem;
+                line-height: 1;
                 color: var(--blue5);
-                font-size: 1rem;
+                display: inline-block;
+                margin-left: 6px;
             }
         }
 
@@ -79,26 +82,31 @@
         }
 
         & .details {
-            text-align: left;
+            display: none;
 
-            & p {
-                margin-bottom: 0.625rem;
-                margin-top: 0;
+            @media (width >= 769px) {
+                display: block;
+                text-align: left;
 
-                & span {
-                    font-family: var(--averta);
-                    font-weight: 400;
-                    font-style: italic;
-                    font-size: 0.875rem;
-                    line-height: 1.25rem;
+                & p {
+                    margin-bottom: 0.625rem;
+                    margin-top: 0;
 
-                    &:first-child {
-                        color: var(--blue2);
-                        font-weight: 700;
-                        font-size: 0.6875rem;
-                        line-height: 0.875rem;
-                        letter-spacing: 0.09375rem;
-                        text-transform: uppercase;
+                    & span {
+                        font-family: var(--averta);
+                        font-weight: 400;
+                        font-style: italic;
+                        font-size: 0.875rem;
+                        line-height: 1.25rem;
+
+                        &:first-child {
+                            color: var(--blue2);
+                            font-weight: 700;
+                            font-size: 0.6875rem;
+                            line-height: 0.875rem;
+                            letter-spacing: 0.09375rem;
+                            text-transform: uppercase;
+                        }
                     }
                 }
             }
@@ -156,23 +164,28 @@
             }
 
             & .btn.expand-collapse {
-                background-color: unset;
-                box-shadow: none;
-                cursor: pointer;
+                display: none;
 
-                &::after {
-                    content: var(--icon-plus);
-                    font-family: var(--cme-group-icons);
-                    font-style: normal;
-                    font-size: 0.75rem;
-                    line-height: 1;
-                    color: var(--blue4);
+                @media (width >= 769px) {
                     display: inline-block;
-                }
-
-                &:active,
-                &:focus {
+                    background-color: unset;
                     box-shadow: none;
+                    cursor: pointer;
+
+                    &::after {
+                        content: var(--icon-plus);
+                        font-family: var(--cme-group-icons);
+                        font-style: normal;
+                        font-size: 0.75rem;
+                        line-height: 1;
+                        color: var(--blue4);
+                        display: inline-block;
+                    }
+
+                    &:active,
+                    &:focus {
+                        box-shadow: none;
+                    }
                 }
             }
         }
@@ -203,9 +216,14 @@
     }
 
     & .collapse {
-        overflow: hidden;
-        max-height: 0;
-        transition: max-height 0.6s ease;
+        display: none;
+
+        @media (width >= 769px) {
+            display: block;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.6s ease;
+        }
     }
 
     & .collapse.show {
@@ -254,6 +272,14 @@
     & .download-button.btn.secondary {
         & .icon {
             color: var(--gray3);
+        }
+    }
+
+    & .view-certificate {
+        display: none;
+
+        @media (width >= 769px) {
+            display: block;
         }
     }
 }

@@ -3,9 +3,20 @@ import { getUserProgress } from '../../scripts/services/EducationTrackService.js
 import { createEducationCard } from './course-card/course-card.js';
 import { createPagination } from './pagination/pagination.js';
 import { createFilters } from './filters/filters.js';
+import { URIUtil } from '../../scripts/utils/index.js';
+
+const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
 
 function sortItemsByUpdated(items) {
   return items.sort((a, b) => new Date(b.data.updated) - new Date(a.data.updated));
+}
+
+function createNoResultsElement(boldText, normalText, linkText) {
+  const boldSpan = createElement('span', { class: 'bold-error-text' }, boldText);
+  const normalSpan = createElement('span', {}, normalText);
+  const link = createElement('a', { href: '/education/courses.html' }, linkText);
+
+  return createElement('div', { class: 'no-results' }, boldSpan, normalSpan, link);
 }
 
 async function renderCards({
@@ -35,6 +46,13 @@ async function renderCards({
   );
 }
 
+function applyFilter(items, filterValue) {
+  if (filterValue === 'ALL' || !filterValue) {
+    return items;
+  }
+  return items.filter(({ data }) => data.status === filterValue);
+}
+
 async function setupPagination({
   container, items, pageSize, wrapper, resultsText,
 }) {
@@ -57,7 +75,12 @@ async function setupPagination({
 }
 
 export default async function decorate(block) {
-  const { numberOfCoursesToShowPerPage: pageSizeRaw } = readBlockConfig(block, true);
+  const {
+    numberOfCoursesToShowPerPage: pageSizeRaw,
+    noCoursesTextBold,
+    noCoursesTextNormal,
+    noCoursesLinkText,
+  } = readBlockConfig(block, true);
   const numberOfCoursesToShowPerPage = Number(pageSizeRaw) || 0;
 
   const userProgress = await getUserProgress();
@@ -66,18 +89,48 @@ export default async function decorate(block) {
     ...userProgress.courses.map((course) => ({ type: 'course', data: course })),
     ...userProgress.lessons.map((lesson) => ({ type: 'lesson', data: lesson })),
   ];
-
-  let filteredItems = sortItemsByUpdated([...items]);
-
   const wrapper = createElement('div', { class: 'course-history-wrapper' });
-  const paginationWrapper = createElement('div', { class: 'wrapper-paginator' });
 
+  if (items.length === 0) {
+    const [boldText, normalText, linkText] = await Promise.all([
+      i18n('You have no courses or lessons in progress.'),
+      i18n('To browse courses and lessons'),
+      i18n('click here'),
+    ]);
+
+    const noResultsEl = createNoResultsElement(
+      noCoursesTextBold || boldText,
+      noCoursesTextNormal || normalText,
+      noCoursesLinkText || linkText,
+    );
+    wrapper.appendChild(noResultsEl);
+    block.innerHTML = '';
+    block.appendChild(wrapper);
+    return;
+  }
+
+  const paginationWrapper = createElement('div', { class: 'wrapper-paginator' });
   let resultsText;
+
+  const initialViewValue = uriUtil.getHash('view') || 'all';
+
+  let filteredItems = sortItemsByUpdated(applyFilter([...items], initialViewValue));
 
   const { filtersSection, resultsText: newResultsText } = await createFilters({
     items,
-    onFilterChange: (newFiltered) => {
+    initialFilterValue: initialViewValue,
+    onFilterChange: (newFiltered, selectedValue, isUserAction) => {
       filteredItems = sortItemsByUpdated(newFiltered);
+      uriUtil.removeHash('pageNum');
+      if (isUserAction) {
+        if (selectedValue) {
+          uriUtil.addHash('view', selectedValue);
+        } else {
+          uriUtil.removeHash('view');
+        }
+        uriUtil.navigate(true);
+      }
+
       setupPagination({
         container: paginationWrapper,
         items: filteredItems,

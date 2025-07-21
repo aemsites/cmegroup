@@ -1,8 +1,14 @@
 import { createElement, i18n } from '../../../scripts/utils.js';
+import { URIUtil } from '../../../scripts/utils/index.js';
+
+const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
 
 // eslint-disable-next-line import/prefer-default-export
 export async function createPagination({
-  container, filteredItems, itemsPerPage, onPageChange,
+  container,
+  filteredItems,
+  itemsPerPage,
+  onPageChange,
 }) {
   const [
     firstLabel,
@@ -27,11 +33,16 @@ export async function createPagination({
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   let currentPage = 1;
 
-  const update = () => {
+  const update = (triggeredByUser = false) => {
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     const paginatedItems = filteredItems.slice(start, end);
-    onPageChange(paginatedItems, currentPage, filteredItems.length);
+
+    if (triggeredByUser) {
+      uriUtil.addHash('pageNum', currentPage.toString()).navigate(true);
+    }
+
+    onPageChange(paginatedItems, currentPage);
     // eslint-disable-next-line no-use-before-define
     render();
   };
@@ -40,102 +51,69 @@ export async function createPagination({
     const nav = createElement('nav', { 'aria-label': 'Page navigation' });
     const pagination = createElement('ul', { class: 'pagination' });
 
-    const firstBtn = createElement(
-      'li',
-      { class: `controls page-item ${currentPage === 1 ? 'disabled' : ''}` },
-      createElement(
-        'button',
-        { class: 'page-link', 'aria-label': firstLabel },
-        createElement('span', { 'aria-hidden': 'true' }, firstVisible),
-        createElement('span', { class: 'visually-hidden' }, firstLabel),
-      ),
-    );
-    firstBtn.querySelector('button').addEventListener('click', () => {
-      if (currentPage !== 1) {
-        currentPage = 1;
-        update();
-      }
-    });
-    pagination.appendChild(firstBtn);
+    const createBtn = (label, html, disabled, onClick) => {
+      const li = createElement(
+        'li',
+        { class: `controls page-item ${disabled ? 'disabled' : ''}` },
+        createElement(
+          'button',
+          { class: 'page-link', 'aria-label': label },
+          createElement('span', { 'aria-hidden': 'true' }, html),
+          createElement('span', { class: 'visually-hidden' }, label),
+        ),
+      );
+      if (!disabled) li.querySelector('button').addEventListener('click', onClick);
+      return li;
+    };
 
-    const prevBtn = createElement(
-      'li',
-      { class: `controls page-item ${currentPage === 1 ? 'disabled' : ''}` },
-      createElement(
-        'button',
-        { class: 'page-link', 'aria-label': previousLabel },
-        createElement('span', { 'aria-hidden': 'true' }, createElement('span', {}, prevVisible)),
-        createElement('span', { class: 'visually-hidden' }, previousLabel),
-      ),
-    );
-    prevBtn.querySelector('button').addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage -= 1;
-        update();
-      }
-    });
-    pagination.appendChild(prevBtn);
+    pagination.appendChild(createBtn(firstLabel, firstVisible, currentPage === 1, () => {
+      currentPage = 1;
+      update(true);
+    }));
+
+    pagination.appendChild(createBtn(previousLabel, prevVisible, currentPage === 1, () => {
+      currentPage -= 1;
+      update(true);
+    }));
 
     Array.from({ length: totalPages }).forEach((_, index) => {
       const page = index + 1;
-
       const li = createElement(
         'li',
         { class: `page-item ${page === currentPage ? 'disabled' : ''}` },
         createElement('a', { 'data-page': page, href: '#', class: 'page-link' }, `${page}`),
       );
-
       li.querySelector('a').addEventListener('click', (e) => {
         e.preventDefault();
         if (page !== currentPage) {
           currentPage = page;
-          update();
+          update(true);
         }
       });
-
       pagination.appendChild(li);
     });
 
-    const nextBtn = createElement(
-      'li',
-      { class: `controls page-item ${currentPage === totalPages ? 'disabled' : ''}` },
-      createElement(
-        'button',
-        { class: 'page-link', 'aria-label': nextLabel },
-        createElement('span', { 'aria-hidden': 'true' }, createElement('span', {}, nextVisible)),
-        createElement('span', { class: 'visually-hidden' }, nextLabel),
-      ),
-    );
-    nextBtn.querySelector('button').addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage += 1;
-        update();
-      }
-    });
-    pagination.appendChild(nextBtn);
+    pagination.appendChild(createBtn(nextLabel, nextVisible, currentPage === totalPages, () => {
+      currentPage += 1;
+      update(true);
+    }));
 
-    const lastBtn = createElement(
-      'li',
-      { class: `controls page-item ${currentPage === totalPages ? 'disabled' : ''}` },
-      createElement(
-        'button',
-        { class: 'page-link', 'aria-label': lastLabel },
-        createElement('span', { 'aria-hidden': 'true' }, lastVisible),
-        createElement('span', { class: 'visually-hidden' }, lastLabel),
-      ),
-    );
-    lastBtn.querySelector('button').addEventListener('click', () => {
-      if (currentPage !== totalPages) {
-        currentPage = totalPages;
-        update();
-      }
-    });
-    pagination.appendChild(lastBtn);
+    pagination.appendChild(createBtn(lastLabel, lastVisible, currentPage === totalPages, () => {
+      currentPage = totalPages;
+      update(true);
+    }));
 
+    nav.innerHTML = '';
     nav.appendChild(pagination);
     container.innerHTML = '';
     container.appendChild(nav);
   };
+
+  const hash = uriUtil.getHash();
+  const pageFromHash = parseInt(hash.pageNum, 10);
+  if (!Number.isNaN(pageFromHash) && pageFromHash >= 1 && pageFromHash <= totalPages) {
+    currentPage = pageFromHash;
+  }
 
   update();
 }
