@@ -215,7 +215,7 @@ function generateRandomId() {
 }
 
 async function parseTime(time) {
-  if (!time) {
+  if (!time || !/^[0-9]+:[0-9]+$/.test(time)) {
     return '';
   }
   const [
@@ -234,8 +234,8 @@ async function parseTime(time) {
   return `${minutes} ${minLabel}`;
 }
 
-async function getReadTimeLabel(subtemplates) {
-  if (!subtemplates || subtemplates.lenght === 0) {
+async function getReadTimeLabel(subTemplates) {
+  if (!subTemplates || subTemplates.length === 0) {
     return '';
   }
   const [
@@ -247,30 +247,30 @@ async function getReadTimeLabel(subtemplates) {
     i18n('Watch'),
     i18n('Listen'),
   ]);
-  if (subtemplates.includes('text')) {
+  if (subTemplates.includes('text')) {
     return readLabel;
   }
-  if (subtemplates.includes('video')) {
+  if (subTemplates.includes('video')) {
     return watchLabel;
   }
-  if (subtemplates.includes('podcast')) {
+  if (subTemplates.includes('podcast')) {
     return listenLabel;
   }
   return '';
 }
 
-function getReadTimeIcon(subtemplates) {
-  if (!subtemplates || subtemplates.lenght === 0) {
+function getReadTimeIcon(subTemplates) {
+  if (!subTemplates || subTemplates.length === 0) {
     return '';
   }
   let readIconName = '';
-  if (subtemplates.includes('text')) {
+  if (subTemplates.includes('text')) {
     readIconName = 'list';
   }
-  if (subtemplates.includes('video')) {
+  if (subTemplates.includes('video')) {
     readIconName = 'play';
   }
-  if (subtemplates.includes('podcast')) {
+  if (subTemplates.includes('podcast')) {
     readIconName = 'audio';
   }
   const readIcon = createElement('img', {
