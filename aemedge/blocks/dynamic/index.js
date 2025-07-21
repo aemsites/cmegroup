@@ -25,7 +25,7 @@ export default async function dynamicBlocks(main) {
     import('./course-nav/course-nav.js').then(({ default: createCourseNav }) => createCourseNav(main));
   }
 
-  if (isRelatedCoursesRequired(main)) {
+  if (isRelatedCoursesRequired()) {
     import('./related-courses/related-courses.js').then(({ default: createRelatedCourses }) => createRelatedCourses(main));
   }
 }

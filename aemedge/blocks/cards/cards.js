@@ -1,10 +1,9 @@
 /* eslint-disable max-len */
-import createOptimizedPicture from '../../scripts/utils/picture.js';
 import {
   buildIndexFilter,
   getIndexedContent,
 } from '../../scripts/indexing.js';
-import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
+
 import {
   createElement,
   parseTime,
@@ -19,6 +18,9 @@ import {
   readBlockConfig,
 } from '../../scripts/utils.js';
 import { convertReadTimeFormat, convertMediaTypeToSubtemplate } from '../../scripts/legacyContentMapping.js';
+
+import createOptimizedPicture from '../../scripts/utils/picture.js';
+import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
 
 async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
@@ -293,7 +295,7 @@ function createSpinner() {
   return spinner;
 }
 
-export async function createDynamicCards(block, numEntries = null) {
+export async function createDynamicCards(block) {
   const config = readBlockConfig(block);
   block.textContent = '';
   block.append(createSpinner());
@@ -305,11 +307,8 @@ export async function createDynamicCards(block, numEntries = null) {
   if (block.classList.contains('course')) {
     const indexFilter = buildIndexFilter(config);
     indexFilter.templates = ['course'];
-    indexFilter.orderBy = 'date';
+    indexFilter.orderBy = 'lastModified';
     indexFilter.sortDirection = 'desc';
-    if (numEntries) {
-      indexFilter.limit = numEntries;
-    }
     filteredData = await getIndexedContent(indexFilter);
     sliderConfig = {
       slidesToShow: 'auto',
