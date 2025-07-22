@@ -20,6 +20,12 @@ const urlUpdate = () => {
     url.hash = url.hash ? `${url.hash}&${searchParam}` : searchParam;
   }
 
+  // Handle pagination
+  if (searchConfig.pagination?.currentPage > 1) {
+    const pageParam = `pageNum=${searchConfig.pagination.currentPage}`;
+    url.hash = url.hash ? `${url.hash}&${pageParam}` : pageParam;
+  }
+
   // Update the URL
   window.history.pushState({}, '', url.toString());
 };
@@ -92,6 +98,17 @@ const populateFromURL = () => {
       searchInput.value = searchConfig.searchInput;
       toggleClearButton(true);
     }
+  }
+
+  // Handle pagination
+  const pageValue = hashParams.get('pageNum');
+  if (pageValue) {
+    const pageNum = parseInt(pageValue, 10);
+    if (!Number.isNaN(pageNum) && pageNum > 0) {
+      searchConfig.pagination.currentPage = pageNum;
+    }
+  } else {
+    searchConfig.pagination.currentPage = 1;
   }
 
   // Handle filters

@@ -1,5 +1,6 @@
 import { i18n } from '../../../scripts/utils.js';
 import searchConfig from '../search-config.js';
+import { urlUpdate } from '../search-utils.js';
 
 function createPaginationButton(text, page, onPageChange, isDisabled = false, isActive = false) {
   const button = document.createElement('button');
@@ -10,6 +11,7 @@ function createPaginationButton(text, page, onPageChange, isDisabled = false, is
     button.onclick = async () => {
       searchConfig.pagination.currentPage = page;
       await onPageChange(page);
+      urlUpdate();
       window.scrollTo(0, 0);
     };
   }
