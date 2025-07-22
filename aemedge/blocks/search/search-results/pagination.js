@@ -23,21 +23,12 @@ function createPaginationItem(text, page, onPageChange, isDisabled = false, isAc
   return li;
 }
 
-function getPageRange(currentPage, totalPages, isLargeScreen) {
-  const range = isLargeScreen ? 4 : 2; // Changed to 4 to match the design
-  let startPage = Math.max(1, currentPage - range);
-  let endPage = Math.min(totalPages, currentPage + range);
+function getPageRange(currentPage, totalPages) {
+  const range = window.matchMedia('(min-width: 993px)').matches ? 5 : 2;
 
-  // Adjust start if we're near the end
-  if (endPage - startPage < range * 2) {
-    if (currentPage > totalPages / 2) {
-      // Near the end, so we adjust start
-      startPage = Math.max(1, endPage - (range * 2));
-    } else {
-      // Near the start, so we adjust end
-      endPage = Math.min(totalPages, startPage + (range * 2));
-    }
-  }
+  // Calculate start and end pages with max range limit
+  const startPage = Math.max(1, Math.min(currentPage - range));
+  const endPage = Math.min(totalPages, Math.max(currentPage + range));
 
   return { startPage, endPage };
 }
@@ -65,7 +56,7 @@ export default async function renderPagination(container, onPageChange) {
   // Create page items
   const createPageItems = () => {
     const pageItems = [];
-    const { startPage, endPage } = getPageRange(currentPage, totalPages, true);
+    const { startPage, endPage } = getPageRange(currentPage, totalPages);
 
     // Add page items
     for (let i = startPage; i <= endPage; i += 1) {
@@ -100,4 +91,19 @@ export default async function renderPagination(container, onPageChange) {
 
   nav.appendChild(paginationList);
   container.appendChild(nav);
+
+  // Add resize listener to update pagination when screen size changes
+  const resizeObserver = new ResizeObserver(() => {
+    nav.innerHTML = '';
+    const newPaginationList = document.createElement('ul');
+    newPaginationList.className = 'pagination-list';
+    newPaginationList.appendChild(firstItem);
+    newPaginationList.appendChild(prevItem);
+    createPageItems().forEach((item) => newPaginationList.appendChild(item));
+    newPaginationList.appendChild(nextItem);
+    newPaginationList.appendChild(lastItem);
+    nav.appendChild(newPaginationList);
+  });
+
+  resizeObserver.observe(container);
 }

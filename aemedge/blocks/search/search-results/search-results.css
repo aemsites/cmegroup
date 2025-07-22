@@ -157,8 +157,6 @@
     display: block;
   }
 
- 
-
   .block.search .results-wrapper.columns-2 .results-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
