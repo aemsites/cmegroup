@@ -1,8 +1,13 @@
 .cards-wrapper .cards-header {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 0.625rem;
+
+    @media (width >= 769px) {
+        flex-direction: row;
+    }
 
     & h3 {
         margin: 0;
