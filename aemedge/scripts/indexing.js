@@ -51,7 +51,7 @@ async function getIndexedContent(indexFilter) {
     const postData = {
       page: indexFilter.page || 1,
       size: indexFilter.limit || 10,
-      getFacets: false,
+      getFacets: indexFilter.getFacets || false,
       query: {},
     };
     if (indexFilter.basePaths && indexFilter.basePaths.length > 0) {
@@ -59,6 +59,12 @@ async function getIndexedContent(indexFilter) {
     }
     if (indexFilter.templates && indexFilter.templates.length > 0) {
       postData.query.templates = indexFilter.templates;
+    }
+    if (indexFilter.fullText) {
+      postData.query.fullTextSearch = indexFilter.fullText;
+    }
+    if (indexFilter.languages && indexFilter.languages.length > 0) {
+      postData.query.languages = indexFilter.languages;
     }
     const tags = {};
     tags.and = indexFilter.tagsAnd;
@@ -68,6 +74,9 @@ async function getIndexedContent(indexFilter) {
       || (tags.or && tags.or.length > 0)
       || (tags.not && tags.not.length > 0)) {
       postData.tags = tags;
+    }
+    if (indexFilter.customTagObj && indexFilter.customTagObj.length > 0) {
+      postData.query.tags = indexFilter.customTagObj;
     }
     const dateRange = {};
     if (hasValue(indexFilter.relativeDateFrom)) {
@@ -94,9 +103,15 @@ async function getIndexedContent(indexFilter) {
     const url = `${urlByEnvType()}${QUERY_INDEX_ENDPOINT}`;
     const response = await apiPost(url, postData);
     const responseData = getResponseData(response);
+    if (indexFilter.getFacets) {
+      return responseData;
+    }
     return responseData && responseData.data ? responseData.data : responseData;
   } catch (error) {
     console.error('Error loading data:', error);
+    if (indexFilter.getFacets) {
+      return {};
+    }
     return [];
   }
 }
