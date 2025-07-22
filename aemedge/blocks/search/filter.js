@@ -239,7 +239,7 @@ const createCheckbox = (options, labelText, order, filterId, taxonomy) => {
  * @param {string} type
  * @returns {Promise<HTMLElement>}
  */
-const createMobileFilterSection = async (filter, filterId, type) => {
+const createMobileFilterSection = async (filter, filterId, type, taxonomy) => {
   const section = div({ class: 'mobile-filter-section', id: filterId });
   const header = div({ class: 'mobile-filter-section-header' });
   const sectionTitle = div({ class: 'mobile-filter-section-title' }, filter.name.toUpperCase());
@@ -250,13 +250,21 @@ const createMobileFilterSection = async (filter, filterId, type) => {
 
   // Handle different filter types
   if (type === 'checkbox') {
-    // Simple checkbox handling - no taxonomy resolution needed
-    const sorted = sortOptions(filter.values, null, filter.order);
+    const resultMap = new Map();
+    filter.values.forEach((opt) => {
+      const resolved = resolveTaxonomyPath(opt, taxonomy);
+      if (!resolved) return;
 
-    sorted.forEach((value, i) => {
+      const { node } = resolved;
+      if (!resultMap.has(opt)) resultMap.set(opt, { path: opt, title: node.title || opt });
+    });
+
+    const sorted = sortOptions([...resultMap.values()], 'title', filter.order);
+
+    sorted.forEach((x, i) => {
       content.appendChild(createFilterOption({
-        value,
-        labelText: value,
+        value: x.path,
+        labelText: x.title,
         type: 'checkbox',
         className: 'checkbox-input',
         filterId,
@@ -265,7 +273,6 @@ const createMobileFilterSection = async (filter, filterId, type) => {
     });
   } else {
     // Dropdown handling with taxonomy resolution (existing code)
-    const taxonomy = await getTaxonomy('tags');
     const resultMap = new Map();
     const excluded = new Set();
 
@@ -344,7 +351,7 @@ const updateMobileFilterCheckboxes = () => {
  * Create mobile filter overlay
  * @returns {Promise<HTMLElement>}
  */
-const createMobileFilterOverlay = async () => {
+const createMobileFilterOverlay = async (taxonomy) => {
   const overlay = div({ class: 'mobile-filter-overlay' });
 
   // Header
@@ -360,7 +367,7 @@ const createMobileFilterOverlay = async () => {
   const sections = await Promise.all(
     searchConfig.filters.map((filter, i) => {
       const id = `${filter.type}-${i}`;
-      return createMobileFilterSection(filter, id, filter.type);
+      return createMobileFilterSection(filter, id, filter.type, taxonomy);
     }),
   );
 
@@ -444,8 +451,10 @@ const createFilters = async () => {
     await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
   };
 
+  const taxonomy = await getTaxonomy('tags');
+
   // Create and append mobile filter overlay
-  const mobileFilterOverlay = await createMobileFilterOverlay();
+  const mobileFilterOverlay = await createMobileFilterOverlay(taxonomy);
   wrapper.append(mobileFilterButtons, mobileFilterOverlay);
 
   // Handle mobile filter button click
@@ -453,7 +462,6 @@ const createFilters = async () => {
     e.preventDefault();
     mobileFilterOverlay.classList.add('visible');
   });
-  const taxonomy = await getTaxonomy('tags');
 
   const controls = await Promise.all(
     searchConfig.filters.map((filter, i) => {
