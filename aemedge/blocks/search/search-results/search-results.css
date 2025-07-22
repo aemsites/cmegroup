@@ -164,6 +164,31 @@
   display: none;
 }
 
+.block.search .results-wrapper.columns-2 .result-card .icon {
+  color: var(--blue5);
+  display: flex;
+  flex-direction: row;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+.block.search .results-wrapper.columns-2 .result-card .icon p {
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 1;
+  color: var(--gray3);
+  font-size: 0.75rem;
+  text-align: start;
+  white-space: nowrap;
+}
+
+.block.search .results-wrapper.columns-2 .result-card .icon img {
+  display: block;
+  filter: invert(72%) sepia(27%) saturate(1035%) hue-rotate(165deg) brightness(102%) contrast(98%);
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

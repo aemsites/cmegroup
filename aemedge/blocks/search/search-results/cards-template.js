@@ -1,7 +1,9 @@
 import {
-  a, div, h3, img, p, span,
+  a, div, h3, img, p,
 } from '../../../scripts/dom-helpers.js';
-import { formatDate, i18n, parseTime } from '../../../scripts/utils.js';
+import {
+  formatDate, i18n, parseTime, getReadTimeLabel, getReadTimeIcon,
+} from '../../../scripts/utils.js';
 
 // Build base card layout with optional header and additional children
 const buildBaseCard = ({
@@ -33,18 +35,24 @@ const addImage = (card, item) => {
 // Article card
 const articleCard = async (card, item) => {
   const footer = div({ class: 'result-footer' }, item.date ? formatDate(item.date, true) : '');
-  const subTemplate = item.metadata?.['sub-template'];
-  const isVideo = subTemplate?.startsWith('video') || subTemplate?.startsWith('podcast');
-  const readTimeTemp = item.readTime ? await parseTime(item.readTime) : null;
-  const readTime = readTimeTemp
-    ? span({ class: `result-read-time ${isVideo ? 'video' : ''}` }, `${readTimeTemp} ${isVideo ? 'watch' : 'read'}`)
-    : null;
+  const subTemplates = item.metadata?.['sub-template']?.split(' ');
+
+  const [
+    parsedTime,
+    readLabel,
+  ] = await Promise.all([
+    parseTime(item.readTime),
+    getReadTimeLabel(subTemplates),
+  ]);
+
+  const readIconSpan = item.readTime ? getReadTimeIcon(subTemplates) : null;
+  readIconSpan.appendChild(p(`${parsedTime} ${readLabel?.toLowerCase()}`));
 
   const anchor = buildBaseCard({
     title: item.title,
     description: item.description,
     path: item.path,
-    children: readTime ? [readTime, footer] : [footer],
+    children: item.readTime ? [readIconSpan, footer] : [footer],
   });
 
   card.appendChild(anchor);
