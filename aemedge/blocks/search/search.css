@@ -1,6 +1,7 @@
 @import url("filter-bullets/filter-bullets.css");
 @import url("sort/sort.css");
 @import url("search-results/search-results.css");
+@import url("search-results/pagination.css");
 
 .block.search .search-bar-and-filters {
   background-color: var(--gray6);
