@@ -32,7 +32,7 @@ const addImage = (card, item) => {
 
 // Article card
 const articleCard = async (card, item) => {
-  const footer = div({ class: 'result-footer' }, formatDate(item.date, true));
+  const footer = div({ class: 'result-footer' }, item.date ? formatDate(item.date, true) : '');
   const subTemplate = item.metadata?.['sub-template'];
   const isVideo = subTemplate?.startsWith('video') || subTemplate?.startsWith('podcast');
   const readTimeTemp = item.readTime ? await parseTime(item.readTime) : null;
@@ -76,7 +76,7 @@ const courseCard = async (card, item) => {
 
 // Lesson card
 const lessonCard = async (card, item) => {
-  await labeledCard(card, item, 'Lesson', formatDate(item.date));
+  await labeledCard(card, item, `Lesson: ${item.metadata?.['module-title']}`, item.date ? formatDate(item.date) : '');
 };
 
 // Wrap a card type with optional image

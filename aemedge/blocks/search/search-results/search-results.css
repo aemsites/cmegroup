@@ -14,6 +14,7 @@
 
 .block.search .result-card .result-item {
   padding: 1rem;
+  min-height: 9.25rem;
 }
 
 .block.search .result-card img {
@@ -26,8 +27,10 @@
   color: var(--gray3);
   font-size: 12px;
   font-weight: 700;
-  margin-bottom: 0.5rem;
-  line-height: 0.875rem
+  margin-bottom: 1rem;
+  line-height: 0.875rem;
+  letter-spacing: 0.05em;
+  line-clamp: 1;
 }
 
 .block.search .result-card .result-title {
