@@ -23,7 +23,7 @@
 
             & .progress {
                 background-color: var(--blue5);
-                transition: width 6.2s ease 0s;
+                transition: width 0.2s ease 0s;
                 height: 0.3125rem;
                 border-radius: 0;
             }

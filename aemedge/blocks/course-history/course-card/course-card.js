@@ -5,7 +5,7 @@ import { authentication } from '../../../scripts/modules/Authentication.js';
 // eslint-disable-next-line import/prefer-default-export
 export function createEducationCard(item, isLesson = false) {
   const {
-    url, title, completionPercentage = 0, status, updated, description,
+    url, title, completed, updated, description,
   } = item;
 
   const lastLaunchedDate = new Date(updated).toLocaleDateString('en-US', {
@@ -26,7 +26,7 @@ export function createEducationCard(item, isLesson = false) {
 
   let launchBtn;
 
-  if (status === 'COMPLETED') {
+  if (completed) {
     const container = createElement('div');
     launchBtn = container;
 
@@ -40,6 +40,7 @@ export function createEducationCard(item, isLesson = false) {
         lessonTitle: item?.title,
         completedModule: item?.endDate,
         container,
+        isFromHistory: true,
       });
 
       if (typeof buttonContent === 'string') {
@@ -57,11 +58,9 @@ export function createEducationCard(item, isLesson = false) {
     );
   }
 
-  const progressPercent = (isLesson && status === 'COMPLETED') ? 100 : completionPercentage;
-
   const progressBar = createElement('div', {
-    class: `progress-bar linear ${status === 'COMPLETED' ? 'completed' : ''}`,
-  }, createElement('div', { class: 'progress', style: `width: ${progressPercent}%;` }));
+    class: `progress-bar linear ${completed ? 'completed' : ''}`,
+  }, createElement('div', { class: 'progress', style: 'width: 0' }));
 
   const descriptionElement = createElement(
     'span',
@@ -78,8 +77,8 @@ export function createEducationCard(item, isLesson = false) {
 
   let lessonsCompleted = 0;
   if (item.lessons) {
-    lessonsCompleted = item.lessons.filter((l) => l.status === 'COMPLETED').length;
-  } else if (item.status === 'COMPLETED') {
+    lessonsCompleted = item.lessons.filter((lesson) => lesson.completed).length;
+  } else if (item.completed) {
     lessonsCompleted = 1;
   }
 
@@ -124,12 +123,12 @@ export function createEducationCard(item, isLesson = false) {
           'div',
           { class: 'lesson-list-item' },
           createElement('i', {
-            class: `circle-mark${lesson.status === 'COMPLETED' ? ' completed' : ''}`,
+            class: `circle-mark${lesson.completed ? ' completed' : ''}`,
           }),
           createElement(
             'a',
             { class: 'btn link', href: lesson.url },
-            createElement('span', { class: 'text' }, lesson.educationElementId || 'Untitled Lesson'),
+            createElement('span', { class: 'text' }, lesson.title),
           ),
         )),
       ),

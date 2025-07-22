@@ -1,7 +1,5 @@
 .filters-section {
     padding-bottom: 1.25rem;
-    /* TO DELETE */
-    margin-top: 3.75rem;
     display: flex;
     justify-content: space-between;
     flex-direction: column;

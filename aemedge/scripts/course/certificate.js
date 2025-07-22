@@ -292,17 +292,20 @@ export async function addCourseCertificate({
   completedModule,
   showModal,
   container,
+  isFromHistory = false,
 }) {
   const [
     viewCertificateLabel,
+    downloadCertificateLabel,
   ] = await Promise.all([
     i18n('View Certificate'),
+    i18n('Download Certificate'),
   ]);
 
   const button = createElement(
     'button',
     { class: 'button secondary view-certificate', type: 'button' },
-    viewCertificateLabel,
+    isFromHistory ? downloadCertificateLabel : viewCertificateLabel,
   );
 
   const openModal = async () => {

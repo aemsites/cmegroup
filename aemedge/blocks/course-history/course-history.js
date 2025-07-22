@@ -32,6 +32,16 @@ async function renderCards({
     wrapper.appendChild(createEducationCard(data, type === 'lesson'));
   });
 
+  requestAnimationFrame(() => {
+    wrapper.querySelectorAll('.progress-bar .progress').forEach((bar, index) => {
+      const { data, type } = paginatedItems[index];
+      const progressPercentage = (type === 'lesson' && data.completed)
+        ? 100
+        : data.progressPercentage || 0;
+      bar.style.width = `${progressPercentage}%`;
+    });
+  });
+
   wrapper.querySelector('.wrapper-paginator')?.remove();
   wrapper.appendChild(paginationWrapper);
 
@@ -47,10 +57,13 @@ async function renderCards({
 }
 
 function applyFilter(items, filterValue) {
-  if (filterValue === 'ALL' || !filterValue) {
-    return items;
+  if (filterValue === 'COMPLETED') {
+    return items.filter(({ data }) => data.completed);
   }
-  return items.filter(({ data }) => data.status === filterValue);
+  if (filterValue === 'PROGRESS') {
+    return items.filter(({ data }) => !data.completed);
+  }
+  return items;
 }
 
 async function setupPagination({

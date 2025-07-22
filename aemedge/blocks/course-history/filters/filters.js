@@ -38,17 +38,15 @@ export async function createFilters({ items, onFilterChange, initialFilterValue 
   ul.querySelectorAll('button').forEach((button) => {
     button.addEventListener('click', () => {
       if (button.classList.contains('selected')) return;
-
       ul.querySelectorAll('button').forEach((btn) => btn.classList.remove('selected'));
       button.classList.add('selected');
-
       const selectedValue = button.dataset.value;
       let filteredItems = [...items];
-
-      if (selectedValue !== 'all') {
-        filteredItems = items.filter(({ data }) => data.status === selectedValue);
+      if (selectedValue === 'COMPLETED') {
+        filteredItems = items.filter(({ data }) => data.completed);
+      } else if (selectedValue === 'PROGRESS') {
+        filteredItems = items.filter(({ data }) => !data.completed);
       }
-
       onFilterChange(filteredItems, selectedValue, true);
     });
   });
@@ -57,9 +55,9 @@ export async function createFilters({ items, onFilterChange, initialFilterValue 
   if (initialButton) {
     let filteredItems = [...items];
     if (initialFilterValue === 'PROGRESS') {
-      filteredItems = items.filter(({ data }) => data.status === 'PROGRESS');
+      filteredItems = items.filter(({ data }) => data.completed);
     } else if (initialFilterValue === 'COMPLETED') {
-      filteredItems = items.filter(({ data }) => data.status === 'COMPLETED');
+      filteredItems = items.filter(({ data }) => !data.completed);
     }
     onFilterChange(filteredItems, initialFilterValue, false);
   }
