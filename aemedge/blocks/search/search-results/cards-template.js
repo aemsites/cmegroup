@@ -36,7 +36,7 @@ const articleCard = async (card, item) => {
   const subTemplate = item.metadata?.['sub-template'];
   const isVideo = subTemplate?.startsWith('video') || subTemplate?.startsWith('podcast');
   const readTime = item.readTime
-    ? span({ class: 'result-read-time' }, `${parseTime(item.readTime)} ${isVideo ? 'watch' : 'read'}`)
+    ? span({ class: `result-read-time ${isVideo ? 'video' : ''}` }, `${parseTime(item.readTime)} ${isVideo ? 'watch' : 'read'}`)
     : null;
 
   const anchor = buildBaseCard({

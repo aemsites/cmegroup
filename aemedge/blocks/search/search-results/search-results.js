@@ -7,6 +7,7 @@ import { getCards } from './cards-template.js';
 import { i18n } from '../../../scripts/utils.js';
 import { clearAllFilters } from '../search-utils.js';
 import { getIndexedContent } from '../../../scripts/indexing.js';
+import renderPagination from './pagination.js';
 
 function showSpinner(container) {
   const spinner = div({ class: 'search-spinner' }, div({ class: 'spinner' }));
@@ -150,11 +151,21 @@ async function filterAndRender(results) {
     return;
   }
 
+  // Create a container for the results cards
+  const resultsContainer = div({ class: 'results-container' });
   results.forEach(async (item) => {
     const cardType = searchConfig.template?.[item.template]?.cardType || '';
     const cardDetails = await getCards(cardType, item);
-    resultsWrapper.appendChild(cardDetails);
+    resultsContainer.appendChild(cardDetails);
   });
+  resultsWrapper.appendChild(resultsContainer);
+
+  // Render pagination if enabled
+  if (searchConfig.pagination?.show) {
+    await renderPagination(resultsWrapper, async () => {
+      await searchResults();
+    });
+  }
 }
 
 export {

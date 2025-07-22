@@ -5,11 +5,11 @@ const searchConfig = {
   filtersPosition: 'default',
   filtersShowNumbers: true,
   resultColumns: 1,
-  // pagination: {
-  //   show: true,
-  //   size: 10,
-  //   currentPage: 1
-  // },
+  pagination: {
+    show: true,
+    size: 10,
+    currentPage: 1,
+  },
   searchbar: true,
   getFacets: true,
   searchInput: '',
