@@ -61,7 +61,7 @@ async function getIndexedContent(indexFilter) {
       postData.query.templates = indexFilter.templates;
     }
     if (indexFilter.fullText) {
-      postData.query.fullText = indexFilter.fullText;
+      postData.query.fullTextSearch = indexFilter.fullText;
     }
     if (indexFilter.languages && indexFilter.languages.length > 0) {
       postData.query.languages = indexFilter.languages;
