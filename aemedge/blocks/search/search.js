@@ -114,7 +114,7 @@ export default async function decorate(block) {
       case 'pagination':
         searchConfig.pagination = {
           show: val === 'true',
-          num: Number(child.children[2]?.textContent.trim()),
+          size: Number(child.children[2]?.textContent.trim()),
         };
         break;
       case 'result-columns':

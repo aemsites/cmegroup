@@ -13,7 +13,7 @@ export async function getEconomicReleaseFilters() {
   }
 }
 
-export async function postEconomicReleaseDates(date, countries, impact, daysLimit, textSearch) {
+export async function getEconomicReleaseDates(date, countries, impact, daysLimit, textSearch) {
   const url = `${urlByEnvType()}/services/economic-release-dates`;
   try {
     const response = await apiPost(url, {
@@ -26,12 +26,12 @@ export async function postEconomicReleaseDates(date, countries, impact, daysLimi
     return getResponseData(response);
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.error('Calendar => postEconomicReleaseDates error:', e);
+    console.error('Calendar => getEconomicReleaseDates error:', e);
     return [];
   }
 }
 
-export async function postEconomicReleaseEvents(date, countries, impact, textSearch) {
+export async function getEconomicReleaseEvents(date, countries, impact, textSearch, size) {
   const url = `${urlByEnvType()}/services/economic-release-events`;
   try {
     const response = await apiPost(url, {
@@ -39,11 +39,12 @@ export async function postEconomicReleaseEvents(date, countries, impact, textSea
       countries,
       impact,
       textSearch,
+      size,
     });
-    return getResponseData(response);
+    return getResponseData(response).events;
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.error('Calendar => postEconomicReleaseEvents error:', e);
+    console.error('Calendar => getEconomicReleaseEvents error:', e);
     return [];
   }
 }

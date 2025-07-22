@@ -371,39 +371,8 @@ function decorateSidebars(main) {
 }
 
 /**
- * Creates and manages a simple lightbox for images
- */
-async function createSimpleLightbox() {
-  const images = document.querySelectorAll('img[data-lightbox]');
-
-  images.forEach((img) => {
-    img.addEventListener('click', async (e) => {
-      e.preventDefault();
-
-      // eslint-disable-next-line import/no-cycle
-      const { createModal } = await import('../blocks/modal/modal.js');
-
-      const imageElement = document.createElement('img');
-      imageElement.src = img.dataset.lightbox;
-      imageElement.alt = img.alt || '';
-      imageElement.className = 'lightbox-image-display';
-
-      try {
-        const modal = await createModal([imageElement]);
-        const dialog = modal.block.querySelector('dialog');
-        if (dialog) {
-          dialog.classList.add('lightbox-modal');
-          modal.showModal();
-        }
-      } catch (error) {
-        // Lightbox modal creation failed, continue without lightbox functionality
-      }
-    });
-  });
-}
-
-/**
- * Decorates images with lightbox functionality
+ * Decorates images with lightbox functionality.
+ * Add click handler directly lightboxed images to open the lightbox modal.
  * @param {Element} main The main element
  */
 function decorateLightboxImages(main) {
@@ -438,9 +407,36 @@ function decorateLightboxImages(main) {
     picture.parentNode.insertBefore(wrapper, picture);
     wrapper.appendChild(picture);
     wrapper.appendChild(icon);
-  });
 
-  createSimpleLightbox();
+    // Add click handler directly to image if not already done
+    if (!img.hasAttribute('data-lightbox-ready')) {
+      img.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        // eslint-disable-next-line import/no-cycle
+        const { createModal } = await import('../blocks/modal/modal.js');
+
+        const imageElement = document.createElement('img');
+        imageElement.src = img.dataset.lightbox;
+        imageElement.alt = img.alt || '';
+        imageElement.className = 'lightbox-image-display';
+
+        try {
+          const modal = await createModal([imageElement]);
+          const dialog = modal.block.querySelector('dialog');
+          if (dialog) {
+            dialog.classList.add('lightbox-modal');
+            modal.showModal();
+          }
+        } catch (error) {
+          // Lightbox modal creation failed, continue without lightbox functionality
+        }
+      });
+
+      // Add flag to help prevent multiple click handlers from being added
+      img.setAttribute('data-lightbox-ready', 'true');
+    }
+  });
 }
 
 /**

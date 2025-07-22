@@ -1,5 +1,5 @@
-import { createDynamicCard } from '../cards/cards.js';
-import { fetchCoursesIndex } from '../../scripts/indexing.js';
+import { createDynamicCardCourse } from '../cards/cards.js';
+import { getIndexedContent } from '../../scripts/indexing.js';
 
 import {
   createElement,
@@ -45,18 +45,6 @@ function createAccordionItem(title, content) {
   return details;
 }
 
-// Helper function to manually filter data by tags
-const filterDataByTags = (data, searchTags) => {
-  if (!searchTags?.length) return data;
-
-  return data.filter((item) => {
-    const itemTags = item.tags?.map((tag) => tag.replace(/\\"/g, '"').replace(/'/g, '"').toLowerCase()) || [];
-
-    // eslint-disable-next-line max-len
-    return searchTags.every((searchTag) => itemTags.some((itemTag) => itemTag.includes(searchTag.toLowerCase())));
-  });
-};
-
 async function decorateCardsAccordion(block) {
   try {
     const rows = [...block.children];
@@ -83,26 +71,29 @@ async function decorateCardsAccordion(block) {
         currentTags = [];
       }
     }
+    block.textContent = '';
 
     // Add the last section if it exists
     if (currentTitle && currentTags.length) {
       accordionData.push({ title: currentTitle, tags: currentTags });
     }
 
-    // Fetch all course data once
-    const allCourseData = await fetchCoursesIndex();
-
     // Create accordions with filtered data
-    const accordions = accordionData.map(({ title, tags }) => {
-      const filteredData = filterDataByTags(allCourseData, tags);
-      const cards = filteredData.map(createDynamicCard);
+    accordionData.forEach(async ({ title, tags }) => {
+      const wrapper = createElement('div');
+      const accordionItem = createAccordionItem(title, wrapper);
+      block.append(accordionItem);
+      const indexFilter = {
+        templates: ['course'],
+        orderBy: 'date',
+        sortDirection: 'desc',
+        tagsAnd: tags,
+      };
+      const filteredData = await getIndexedContent(indexFilter);
+      const cards = await Promise.all(filteredData.map(createDynamicCardCourse));
       const cardsBlock = createCardsBlock(cards);
-      return createAccordionItem(title, cardsBlock);
+      wrapper.append(cardsBlock);
     });
-
-    // Replace content with accordions
-    block.textContent = '';
-    block.append(...accordions);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error loading query index data:', error);
@@ -122,7 +113,7 @@ function decorateAccordion(block) {
 
 export default async function decorate(block) {
   if (block.classList.contains('cards')) {
-    await decorateCardsAccordion(block);
+    decorateCardsAccordion(block);
   } else {
     decorateAccordion(block);
   }

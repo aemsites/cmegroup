@@ -9,6 +9,11 @@ const updateFilteringByUI = async (container, onChange) => {
   container.innerHTML = '';
   const { appliedFilters, searchInput } = searchConfig;
 
+  // Reset page number when filters change
+  if (searchConfig.pagination) {
+    searchConfig.pagination.currentPage = 1;
+  }
+
   if (!appliedFilters.length && !searchInput) {
     onChange?.();
     urlUpdate();

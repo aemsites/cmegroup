@@ -1,36 +1,38 @@
+import {
+  buildBlock,
+  decorateBlock,
+  loadBlock,
+  getMetadata,
+} from '../../../scripts/aem.js';
 import { createElement } from '../../../scripts/utils.js';
 
-export default async function createRelatedCourses(main) {
-  const blockContainer = createElement('div', { class: 'section cards-container full-width' });
-  const blockWrapper = createElement('div', { class: 'cards-wrapper' });
-  blockContainer.appendChild(blockWrapper);
-
-  const block = createElement('div', { class: 'block course dynamic cards' });
-  blockWrapper.appendChild(block);
-
-  // Dynamic import for createDynamicCards
-  const { createDynamicCards } = await import('../../cards/cards.js');
-  const cards = await createDynamicCards(block, 3);
-  const header = createElement('div', {
-    style: 'display: flex; justify-content: space-between; align-items: flex-start;',
-  });
-
+function createHeader() {
+  const header = createElement('div', { class: 'cards-header' });
   const h3 = createElement('h3', {}, 'Related Courses');
   header.appendChild(h3);
+  const coursesLink = createElement('a', { href: '/education/courses/' }, 'View Course Catalog');
+  header.appendChild(coursesLink);
+  return header;
+}
 
-  const link = createElement('a', { href: '/education/courses/' }, 'View Course Catalog');
-  header.appendChild(link);
+export default async function createRelatedCourses(main) {
+  const container = createElement('div', { class: 'section full-width' });
+  const wrapper = createElement('div');
+  container.appendChild(wrapper);
 
-  block.textContent = '';
-  block.append(header);
-  block.append(cards);
+  const header = createHeader();
+  wrapper.appendChild(header);
 
-  // update ul style to 3 columns
-  const ul = block.querySelector('ul');
-  if (ul) {
-    ul.style.display = 'grid';
-    ul.style.gridTemplateColumns = 'repeat(3, 1fr)';
-  }
+  const tags = getMetadata('article:tag');
+  const block = buildBlock('cards', [
+    ['optional-tags', tags],
+    ['limit', '3'],
+  ]);
 
-  main.appendChild(blockContainer);
+  block.classList.add('course', 'dynamic', 'related-courses');
+  wrapper.appendChild(block);
+  decorateBlock(block);
+  await loadBlock(block);
+
+  main.appendChild(container);
 }
