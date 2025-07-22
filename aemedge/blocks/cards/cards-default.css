@@ -1,92 +1,189 @@
-.cards div > ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
-  grid-gap: 1.5rem;
+.cards {
+    & div {
+        & > ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
+            grid-gap: 1.5rem;
+
+            & > li {
+                border: 0.0625rem solid #dadada;
+                background-color: var(--background-color);
+
+                & img {
+                    width: 100%;
+                    aspect-ratio: 4 / 3;
+                    object-fit: cover;
+                }
+            }
+        }
+
+        & .cards-card-body {
+            margin: 1rem;
+        }
+
+        & .cards-card-image {
+            line-height: 0;
+        }
+    }
+
+    & .glider-prev {
+        left: 0;
+        height: 100%;
+        width: 4.0625rem;
+        top: 0;
+        box-shadow: none;
+
+        &:hover {
+            background: linear-gradient(90deg, #fff, hsl(0deg 0% 100% / 0%)) !important;
+
+            & img {
+                @media (width >= 769px) {
+                    opacity: 1;
+                }
+            }
+        }
+
+        &:active {
+            & img {
+                filter: brightness(0) saturate(100%) invert(72%) sepia(59%) saturate(2700%) hue-rotate(167deg) brightness(102%) contrast(101%);
+            }
+        }
+
+        &.disabled {
+            opacity: 0;
+        }
+
+        & img {
+            width: 1.6875rem;
+            filter: brightness(0) saturate(100%) invert(12%) sepia(27%) saturate(2740%) hue-rotate(184deg) brightness(97%) contrast(92%);
+
+            @media (width >= 769px) {
+                opacity: 0;
+            }
+        }
+
+        &.inverse {
+            &:hover {
+                background: linear-gradient(90deg, var(--blue2), rgb(17 43 74 / 0%)) !important;
+            }
+
+            & img {
+                filter: invert(1);
+            }
+        }
+    }
+
+    & .glider-next {
+        right: 0;
+        height: 100%;
+        width: 4.0625rem;
+        top: 0;
+        box-shadow: none;
+
+        &:hover {
+            background: linear-gradient(90deg, hsl(0deg 0% 100% / 0%), #fff) !important;
+
+            & img {
+                @media (width >= 769px) {
+                    opacity: 1;
+                }
+            }
+        }
+
+        &:active {
+            & img {
+                filter: brightness(0) saturate(100%) invert(72%) sepia(59%) saturate(2700%) hue-rotate(167deg) brightness(102%) contrast(101%);
+            }
+        }
+
+        &.disabled {
+            opacity: 0;
+        }
+
+        & img {
+            width: 1.6875rem;
+            filter: brightness(0) saturate(100%) invert(12%) sepia(27%) saturate(2740%) hue-rotate(184deg) brightness(97%) contrast(92%);
+
+            @media (width >= 769px) {
+                opacity: 0;
+            }
+        }
+
+        &.inverse {
+            &:hover {
+                background: linear-gradient(-90deg, var(--blue2), rgb(17 43 74 / 0%)) !important;
+            }
+
+            & img {
+                filter: invert(1);
+            }
+        }
+    }
+
+    & .glider::-webkit-scrollbar {
+        opacity: 0;
+        height: 0
+    }
+
+    & .no-results {
+        border: 1px solid #112b4a;
+        color: #112b4a;
+        font-size: 2.125rem;
+        margin: .9375rem auto;
+        text-align: center;
+
+        & h4 {
+            padding: 1.25rem;
+        }
+    }
+
+    &:has(.spinner-cards) {
+        text-align: center;
+    }
+
+    & .spinner-cards {
+        display: inline-block;
+        position: relative;
+        width: 4rem;
+        height: 4rem;
+        margin-bottom: 2rem;
+
+        & div {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 3.1875rem;
+            height: 3.1875rem;
+            margin: 0.375rem;
+            border: 0.25rem solid var(--gray3);
+            border-radius: 50%;
+            animation: spinner-cards 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: var(--gray3) transparent transparent;
+
+            &:nth-child(1) {
+                animation-delay: -0.45s;
+            }
+
+            &:nth-child(2) {
+                animation-delay: -0.3s;
+            }
+
+            &:nth-child(3) {
+                animation-delay: -0.15s;
+            }
+        }
+    }
 }
 
-.cards div > ul > li {
-  border: 0.0625rem solid #dadada;
-  background-color: var(--background-color);
-}
+@keyframes spinner-cards {
+    0% {
+        transform: rotate(0deg);
+    }
 
-.cards div .cards-card-body {
-  margin: 1rem;
-}
-
-.cards div .cards-card-image {
-  line-height: 0;
-}
-
-.cards div > ul > li img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-}
-
-.cards .glider-prev {
-  left: 0;
-  height: 100%;
-  width: 4.0625rem;
-  top: 0;
-  box-shadow: none;
-}
-
-.cards .glider-prev:hover {
-  background: linear-gradient(90deg, #fff, hsl(0deg 0% 100% / 0%)) !important;
-}
-
-.cards .glider-next {
-  right: 0;
-  height: 100%;
-  width: 4.0625rem;
-  top: 0;
-  box-shadow: none;
-}
-
-.cards .glider-next:hover {
-  background: linear-gradient(90deg, hsl(0deg 0% 100% / 0%), #fff) !important;
-}
-
-.cards .glider-prev.inverse:hover {
-  background: linear-gradient(90deg, var(--blue2), rgb(17 43 74 / 0%)) !important;
-}
-
-.cards .glider-next.inverse:hover {
-  background: linear-gradient(-90deg, var(--blue2), rgb(17 43 74 / 0%)) !important;
-}
-
-.cards .glider-prev.inverse img,
-.cards .glider-next.inverse img {
-  filter: invert(1);
-}
-
-.cards .glider-prev img,
-.cards .glider-next img {
-  width: 1.6875rem;
-  filter: brightness(0) saturate(100%) invert(12%) sepia(27%) saturate(2740%) hue-rotate(184deg) brightness(97%) contrast(92%);
-}
-
-.cards .glider-prev:active img,
-.cards .glider-next:active img {
-  filter: brightness(0) saturate(100%) invert(72%) sepia(59%) saturate(2700%) hue-rotate(167deg) brightness(102%) contrast(101%);
-}
-
-.cards .glider-prev.disabled,
-.cards .glider-next.disabled {
-  opacity: 0;
-}
-
-@media (width >= 769px) {
-  .cards .glider-prev img,
-  .cards .glider-next img {
-    opacity: 0;
-  }
-
-  .cards .glider-prev:hover img,
-  .cards .glider-next:hover img {
-    opacity: 1;
-  }
+    100% {
+        transform: rotate(360deg);
+    }
 }

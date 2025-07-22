@@ -48,38 +48,30 @@ const jsonMap = {
   '/education/courses/understanding-micro-futures-contracts-at-cme-group/micro-ag-futures.html': '/education/courses/understanding-micro-futures-contracts-at-cme-group/micro-ag-futures/micro-ag-futures-product-overview.html',
 };
 
-const removeCourseSpecificItem = async (document, main, url1) => {
+const removeCourseSpecificItem = async (document, main) => {
   const fragments = main.querySelectorAll('.xf-content-height');
   if (fragments?.length) {
     for (let i = 0; i < fragments.length; i += 1) {
       const fragment = fragments[i];
       if (fragment.querySelector('#related-courses')) {
-        try {
-          const match = url1.match(/\/education\/courses\/([^/]+)/);
-          if (!match) {
-            return;
-          }
-          const coursePath = match[1].replace('.html', '').split('?')[0];
-          const apiUrl = `https://www.cmegroup.com/content/cmegroup/en/education/courses/${coursePath}/jcr:content/main-content-section/section/section-elements/cards/section-elements/cards.json`;
-
-          const response = await fetch(apiUrl);
-          if (!response.ok) {
-            console.log('Failed to fetch cards data: ', response.statusText);
-            return;
-          }
-
-          const data = await response.json();
-          if (data?.requiredTags?.length) {
-            const tags = data?.requiredTags?.map((tag) => (tag.includes(':') ? tag.split(':')[1] : tag)).join(', ');
-            const cells = [['Cards'], ['tags', tags]];
-            const table = WebImporter.DOMUtils.createTable(cells, document);
-            fragment.replaceWith(table);
-          }
-        } catch (error) {
-          console.log('Error in getting cards data: ', error);
-        }
+        fragment.remove();
       }
     }
+  }
+
+  const cards = document.querySelectorAll('.slick-track');
+  if (cards?.length) {
+    for (let i = 0; i < cards.length; i += 1) {
+      const card = cards[i];
+      if (!card.querySelector('.quiz-item')) {
+        card.remove();
+      }
+    }
+  }
+
+  const loginSection = document.querySelector('.blur-background .login-teaser');
+  if (loginSection) {
+    loginSection.remove();
   }
 };
 
@@ -91,11 +83,24 @@ const handleFragments = (document) => {
       const h4 = fragment.querySelector('h4');
       if (h4?.textContent.toLowerCase().includes('accredited course')) {
         if (fragment.textContent.includes('the CFA Institute')) {
-          const cells = [['Fragment'], [`${EDS_DOMAIN}/courses-lessons/accredited-courses/cfa`]];
+          const anchor = document.createElement('a');
+          anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/cfa`;
+          anchor.textContent = anchor.href;
+          const cells = [['Fragment'], [anchor]];
           const table = WebImporter.DOMUtils.createTable(cells, document);
           fragment.replaceWith(table);
         } else if (fragment.textContent.includes('GARP continuing education')) {
-          const cells = [['Fragment'], [`${EDS_DOMAIN}/courses-lessons/accredited-courses/garp`]];
+          const anchor = document.createElement('a');
+          anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/garp`;
+          anchor.textContent = anchor.href;
+          const cells = [['Fragment'], [anchor]];
+          const table = WebImporter.DOMUtils.createTable(cells, document);
+          fragment.replaceWith(table);
+        } else {
+          const anchor = document.createElement('a');
+          anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/accredited-courses/other`;
+          anchor.textContent = anchor.href;
+          const cells = [['Fragment'], [anchor]];
           const table = WebImporter.DOMUtils.createTable(cells, document);
           fragment.replaceWith(table);
         }
@@ -104,7 +109,10 @@ const handleFragments = (document) => {
       // Check for feedback fragment
       const feedbackH4 = fragment.querySelector('h4#what-did-you-think-of-this-course');
       if (feedbackH4) {
-        const cells = [['Fragment'], [`${EDS_DOMAIN}/courses-lessons/feedback`]];
+        const anchor = document.createElement('a');
+        anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/feedback`;
+        anchor.textContent = anchor.href;
+        const cells = [['Fragment'], [anchor]];
         const table = WebImporter.DOMUtils.createTable(cells, document);
         fragment.replaceWith(table);
       }
@@ -112,12 +120,53 @@ const handleFragments = (document) => {
       // Check for extend your learning fragment
       const extendH4 = fragment.querySelector('h4#extend-your-learning');
       if (extendH4) {
-        const cells = [['Fragment'], [`${EDS_DOMAIN}/courses-lessons/extend-your-learning`]];
+        const anchor = document.createElement('a');
+        anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/extend-your-learning`;
+        anchor.textContent = anchor.href;
+        const cells = [['Fragment'], [anchor]];
         const table = WebImporter.DOMUtils.createTable(cells, document);
         fragment.replaceWith(table);
       }
     });
   }
+};
+
+const quizBlock = (document) => {
+  const quizTopDivs = document.querySelectorAll('.quiz.multipaneleditor');
+  quizTopDivs.forEach((quizTopDiv) => {
+    const quizzes = quizTopDiv.querySelectorAll('.quiz-item');
+    const completeMessage = quizTopDiv.getAttribute('data-complete-msg');
+    const inlineQuiz = quizTopDiv.getAttribute('data-is-inline-quiz') === 'true';
+
+    if (quizzes?.length) {
+      const cells = [['Quiz']];
+      if (completeMessage) {
+        cells.push(['Complete Message', completeMessage, '', '']);
+      }
+      if (inlineQuiz) {
+        cells.push(['Do Not Mark Lesson As Completed', true, '', '']);
+      }
+      quizzes.forEach((quiz) => {
+        const questionText = quiz.getAttribute('data-question');
+        const questionTextWithoutQuotes = questionText.replace(/^['"]|['"]$/g, '').trim();
+        const answersItems = quiz.getAttribute('data-answers-items') ? JSON.parse(quiz.getAttribute('data-answers-items')) : [];
+
+        cells.push(['Questions', 'Options', 'Correct', 'Snippet']);
+        cells.push([questionTextWithoutQuotes, answersItems[0].answerOpt,
+          answersItems[0].correctAnswer || '', answersItems[0].answerSnip || '']);
+
+        for (let i = 1; i < answersItems.length; i += 1) {
+          const answer = answersItems[i];
+          cells.push(['', answer.answerOpt, answer.correctAnswer || '', answer.answerSnip || '']);
+        }
+      });
+
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      document.querySelector('.quiz')?.replaceWith(table);
+    }
+  });
+
+  // Currently multiple quizzes are not present under /education so not handling those cases
 };
 
 const moduleOrder = async (document, meta, url1) => {
@@ -168,11 +217,30 @@ const moduleOrder = async (document, meta, url1) => {
           ul.appendChild(li);
         });
 
-        meta['Sub Modules Order'] = ul;
+        meta['Modules Order'] = ul;
       }
     }
   } catch (error) {
     console.log('Error in getting module order: ', error);
+  }
+};
+
+const coursesColumnsBlock = (document) => {
+  const rows = document.querySelectorAll('.row');
+  if (rows?.length) {
+    rows.forEach((row) => {
+      const columns = row.querySelectorAll('.col-md-6');
+      if (columns?.length === 2) {
+        const cells = [['Columns']];
+        const tempArr = [];
+        columns.forEach((column) => {
+          tempArr.push(column.innerHTML);
+        });
+        cells.push(tempArr);
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        row.replaceWith(table);
+      }
+    });
   }
 };
 
@@ -181,4 +249,6 @@ export {
   removeCourseSpecificItem,
   handleFragments,
   moduleOrder,
+  quizBlock,
+  coursesColumnsBlock,
 };

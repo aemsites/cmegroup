@@ -1,22 +1,12 @@
-import { createElement, i18n } from '../../scripts/utils.js';
+import { createElement, i18n, readBlockConfig } from '../../scripts/utils.js';
 import { store } from '../../scripts/store/store.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
 
-async function checkQuizCompletion(block, questions) {
+async function checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted) {
   const answeredCorrectlyEls = block.querySelectorAll('.answered-correctly');
   const allAnsweredCorrectly = answeredCorrectlyEls.length === questions.length;
 
-  if (allAnsweredCorrectly && !block.querySelector('.message')) {
-    const [quizLabel] = await Promise.all([i18n('Lesson complete')]);
-    const completionMessage = createElement(
-      'div',
-      { class: 'message' },
-      createElement('div', { class: 'message-label' }, createElement('i', { class: 'icon' })),
-      createElement('div', { class: 'message-text' }, quizLabel),
-    );
-    block.insertBefore(completionMessage, block.firstChild);
-    block.classList.add('complete');
-
+  if (allAnsweredCorrectly && !block.querySelector('.message') && doNotMarkLessonAsCompleted !== 'True') {
     //  quiz completion event
     store.dispatch(quizAnswered(true));
   }
@@ -61,7 +51,7 @@ function showQuestion(index, wrapper, prev, next, pag, total) {
   if (pag) pag.textContent = `${index + 1} OF ${total}`;
 }
 
-function renderQuestions(questions, block) {
+function renderQuestions(questions, block, doNotMarkLessonAsCompleted) {
   const wrapper = createElement('div', { class: 'questions-wrapper' });
 
   questions.forEach((q) => {
@@ -114,7 +104,7 @@ function renderQuestions(questions, block) {
           const snippetEl = messageContainer.querySelector('.snippet');
           snippetEl.textContent = snippet;
           messageContainer.classList.add('showed');
-          checkQuizCompletion(block, questions);
+          checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted);
         } else {
           const [incorrectLabel] = await Promise.all([i18n('Incorrect')]);
           optionButton.classList.add('incorrect');
@@ -175,16 +165,60 @@ async function addNavigation(questions, block, wrapper) {
   block.appendChild(nav);
 }
 
+async function markQuizCompleted(block, questionsMeta, completeMessage) {
+  const [quizLabel] = await Promise.all([i18n('Lesson complete')]);
+  const completionMessage = createElement(
+    'div',
+    { class: 'message' },
+    createElement('div', { class: 'message-label' }, createElement('i', { class: 'icon' })),
+    createElement('div', { class: 'message-text' }, completeMessage || quizLabel),
+  );
+  block.insertBefore(completionMessage, block.firstChild);
+  block.classList.add('complete');
+
+  if (block.querySelectorAll('.answered-correctly').length) return;
+  //  classes for already completed quizzes
+  const questions = block.querySelectorAll('.options-wrapper');
+  questions.forEach((question, index) => {
+    question.parentElement?.classList.add('answered-correctly');
+    const answers = question.querySelectorAll('.option-item');
+    answers.forEach((answer, answerIndex) => {
+      const { correct } = questionsMeta[index].answers[answerIndex];
+      const contentAnswer = answer.querySelector('.option-content-answer');
+      contentAnswer.classList.add('pressed', correct ? 'correct' : 'disabled');
+    });
+  });
+}
+
 export default async function decorate(block) {
+  const { doNotMarkLessonAsCompleted, completeMessage } = readBlockConfig(block, true);
   const rows = Array.from(block.querySelectorAll(':scope > div'));
-  const questions = buildQuestions(rows);
+  let startIndex = 0;
+  let i = 0;
+  while (i < rows.length) {
+    const firstCellText = rows[i].children[0]?.textContent?.trim();
+    if (firstCellText === 'Questions') {
+      startIndex = i + 1;
+      break;
+    }
+    i += 1;
+  }
+
+  const questions = buildQuestions(rows.slice(startIndex));
 
   block.innerHTML = '';
-  const wrapper = renderQuestions(questions, block);
+  const wrapper = renderQuestions(questions, block, doNotMarkLessonAsCompleted);
 
   if (questions.length > 1) {
     await addNavigation(questions, block, wrapper);
   }
 
   block.classList.add('showed');
+
+  //  quiz completion event subscriber
+  store.subscribe(({ quiz }) => quiz, async ({ isCorrect }) => {
+    if (isCorrect) {
+      markQuizCompleted(block, questions, completeMessage);
+    }
+  });
 }

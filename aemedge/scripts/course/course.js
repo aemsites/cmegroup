@@ -1,19 +1,19 @@
-import ffetch from '../ffetch.js';
 import {
   createElement,
   getEnvType,
   getCurrentLangInWords,
   i18n,
+  parseTime,
 } from '../utils.js';
 import { getMetadata } from '../aem.js';
+import { getIndexedContent } from '../indexing.js';
 import { getProgress, postLesson } from '../services/EducationTrackService.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
 const LESSONS_BASE_PATH = '/education/lessons/';
-const COURSES_INDEX_PATH = '/courses-index.json';
 const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone'];
 const CACHE_KEY = 'course_data';
-// TODO: Anuj, we need to review this cache timing again.
+// TODO: we need to review this cache timing again.
 const CACHE_EXPIRATION_PROD = 0; // 15 * 60 * 1000; // 15 minutes in milliseconds
 const CACHE_EXPIRATION_STAGE = 0; // 30 * 1000; // 30 seconds in milliseconds
 
@@ -77,13 +77,13 @@ export async function getCourseData() {
     const relevantPath = currentPath.split(basePath)[1];
     const preBasePath = (currentPath.split(basePath)[0] === '' || currentPath.split(basePath)[0] === '/') ? '' : currentPath.split(basePath)[0];
 
-    const course = (template !== 'lesson-standalone') ? relevantPath.split('/')[0] : '';
+    const course = (template !== 'lesson-standalone') ? relevantPath.split('/')[0] : relevantPath;
     if (template !== 'lesson-standalone' && !course) {
       throw new Error('No course found in the path');
     }
 
     // build the full course path or lesson path in case of standalone lesson
-    const coursePath = (template !== 'lesson-standalone') ? `${preBasePath}${COURSES_BASE_PATH}${course}` : `${preBasePath}${LESSONS_BASE_PATH}${course}`;
+    const coursePath = ((template !== 'lesson-standalone') ? `${preBasePath}${COURSES_BASE_PATH}${course}` : `${preBasePath}${LESSONS_BASE_PATH}${course}`).replace(/\.html$/, '').replace(/^\/qa/, '');
 
     // Check if we have cached data for this course
     const cachedData = getCachedCourseData(coursePath);
@@ -92,11 +92,20 @@ export async function getCourseData() {
     }
 
     // Get entries from query-index for course content
-    const entries = await ffetch(COURSES_INDEX_PATH)
-      .filter((entry) => TEMPLATES.includes(entry.template.toLowerCase())
-        && (entry.path === coursePath
-          || entry.path.startsWith(`${coursePath}/`)))
-      .all();
+    const indexFilter = {
+      basePaths: [coursePath],
+      templates: TEMPLATES,
+      limit: 1000,
+    };
+    const indexedContent = await getIndexedContent(indexFilter);
+    const entries = indexedContent.map((module) => ({
+      path: module.path,
+      title: module.title,
+      moduleTitle: module.metadata['module-title'],
+      template: module.template.toLowerCase(),
+      moduleId: module.metadata['module-id'],
+      modulesOrder: module.metadata['modules-order'],
+    }));
 
     // If the page is a lesson standalone, return the first entry
     // ideally there should be only one entry in this case
@@ -108,13 +117,13 @@ export async function getCourseData() {
     }
 
     // Determine if it course has chapters
-    courseData.hasChapters = entries.some((entry) => entry.template.toLowerCase() === 'chapter');
+    courseData.hasChapters = entries.some((entry) => entry.template === 'chapter');
 
     // Sort entries so that course comes first, then chapters, then lessons
     // This ensures chapters are processed before their lessons
     entries.sort((a, b) => {
-      const aType = a.template.toLowerCase();
-      const bType = b.template.toLowerCase();
+      const aType = a.template;
+      const bType = b.template;
 
       if (aType === 'course') return -1;
       if (bType === 'course') return 1;
@@ -130,36 +139,27 @@ export async function getCourseData() {
     const { lessons: lessonsProgress, ...currentCourseProgress } = courseProgress || {};
 
     entries.forEach((entry) => {
-      if (entry.template.toLowerCase() === 'course' || entry.template.toLowerCase() === 'lesson-standalone') {
+      if (entry.template === 'course' || entry.template === 'lesson-standalone') {
         Object.assign(courseData, entry, currentCourseProgress);
-      } else if (entry.template.toLowerCase() === 'chapter') {
+      } else if (entry.template === 'chapter') {
         courseData.chapters.push({
           ...entry,
           lessons: [],
         });
-      } else if (entry.template.toLowerCase() === 'lesson') {
+      } else if (entry.template === 'lesson') {
         const lessonProgress = lessonsProgress?.find(
           ({ moduleId }) => moduleId === entry.moduleId,
         );
-        if (courseData.hasChapters) {
-          // Split into multiple lines to reduce line length
-          const chapterObj = courseData.chapters.find((ch) => entry.path.startsWith(`${ch.path}/`));
-          if (chapterObj) {
-            chapterObj?.lessons.push({
-              ...entry,
-              // Split into multiple lines to reduce line length
-              pathSuffix: entry.path.split(chapterObj.path)[1].substring(1),
-              ...lessonProgress,
-            });
-          } else {
-            // Handling case when lesson is not part of any chapter
-            courseData.lessons.push({
-              ...entry,
-              pathSuffix: entry.path.split(coursePath)[1].substring(1),
-              ...lessonProgress,
-            });
-          }
+        const chapter = courseData.chapters.find((ch) => entry.path.startsWith(`${ch.path}/`));
+        if (chapter) {
+          chapter.lessons.push({
+            ...entry,
+            // Split into multiple lines to reduce line length
+            pathSuffix: entry.path.split(chapter.path)[1].substring(1),
+            ...lessonProgress,
+          });
         } else {
+          // Handling case when lesson is not part of any chapter
           courseData.lessons.push({
             ...entry,
             pathSuffix: entry.path.split(coursePath)[1].substring(1),
@@ -196,6 +196,54 @@ export async function getCourseData() {
   }
 }
 
+export function getOrderedLessons(courseData) {
+  const { modulesOrder } = courseData;
+
+  if (modulesOrder && typeof modulesOrder === 'string') {
+    const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
+
+    // Create array of items (chapters and lessons) to sort at root level
+    const rootItems = [
+      ...(courseData.chapters || []),
+      ...(courseData.lessons || []),
+    ];
+
+    // Sort chapters and lessons at root level based on modulesOrder
+    rootItems.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix || a.path)
+      - modulesOrderArray.indexOf(b.pathSuffix || b.path));
+
+    // Process the sorted items and collect lessons
+    const allLessons = [];
+
+    rootItems.forEach((item) => {
+      if (item.template && item.template.toLowerCase() === 'chapter') {
+        // Sort lessons within this chapter
+        const { lessons, modulesOrder: chModulesOrder } = item;
+        if (lessons && lessons.length > 0) {
+          if (chModulesOrder && typeof chModulesOrder === 'string') {
+            const chModulesOrderArray = chModulesOrder.split(',').map((chItem) => chItem.trim());
+            lessons.sort((a, b) => chModulesOrderArray.indexOf(a.pathSuffix || a.path)
+              - chModulesOrderArray.indexOf(b.pathSuffix || b.path));
+          }
+          // Add all lessons from this chapter to the result
+          allLessons.push(...lessons);
+        }
+      } else {
+        // This is a lesson at root level, add it directly
+        allLessons.push(item);
+      }
+    });
+
+    return allLessons;
+  }
+
+  // Fallback: if no modulesOrder, just return all lessons unsorted
+  return [
+    ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
+    ...(courseData.lessons || []),
+  ];
+}
+
 /**
  * Create the base template for a course page
  * It is common for different course templates: course & lesson
@@ -203,47 +251,54 @@ export async function getCourseData() {
  */
 export async function createCourseBaseTemplate(courseData) {
   const main = document.querySelector('main');
-  const courseHeading = main.querySelector('h1');
+  const courseHeading = main.querySelector('.section').firstChild;
   const header = createElement('div', { class: 'course-header' });
 
   // Get metadata values
   const readTime = getMetadata('read-time');
   const template = getMetadata('template');
 
-  const readTimeIcon = createElement('img', { src: '/aemedge/icons/timer.svg' });
-  const readTimeIconSpan = createElement('span', { class: 'icon icon-timer' }, readTimeIcon);
-  const readTimeElement = createElement('div', { class: 'metadata read-time' }, `${readTime}`);
-  if (readTime) {
-    readTimeElement.prepend(readTimeIconSpan);
-  }
-  header.appendChild(readTimeElement);
-
-  const [courseLabel, lessonLabel, ofLabel] = await Promise.all([
+  const [
+    courseLabel,
+    lessonLabel,
+    ofLabel,
+    premiumLabel,
+    readTimeParsed,
+  ] = await Promise.all([
     i18n('Course'),
     i18n('Lesson'),
     i18n('of'),
+    i18n('Premium'),
+    parseTime(readTime),
   ]);
+
+  if (readTime) {
+    const readTimeIcon = createElement('img', { src: '/aemedge/icons/timer.svg' });
+    const readTimeIconSpan = createElement('span', { class: 'icon icon-timer' }, readTimeIcon);
+    const readTimeValue = createElement('span', { class: 'value' }, readTimeParsed);
+    const readTimeElement = createElement('div', { class: 'metadata read-time' }, readTimeIconSpan, readTimeValue);
+    header.appendChild(readTimeElement);
+  } else { // if no read time, add empty div
+    const readTimeElement = createElement('div', { class: 'metadata read-time' });
+    header.appendChild(readTimeElement);
+  }
 
   if (template.toLowerCase() === 'course') {
     const type = createElement('div', { class: 'metadata type' });
-    type.textContent = courseLabel;
+    const isPremium = getMetadata('ispremium');
+    if (isPremium) {
+      type.textContent = `${premiumLabel} ${courseLabel}`;
+    } else {
+      type.textContent = courseLabel;
+    }
     header.appendChild(type);
   } else if (template.toLowerCase() === 'lesson' || template.toLowerCase() === 'lesson-standalone') {
     const type = createElement('div', { class: 'metadata type' });
     type.textContent = lessonLabel;
-    if (courseData?.hasChapters) {
-      const chapter = courseData.chapters.find(
-        (ch) => window.location.pathname.startsWith(ch.path),
-      );
-      if (chapter?.lessons.length > 1) {
-        for (let i = 0; i < chapter.lessons.length; i += 1) {
-          const lesson = chapter.lessons[i];
-          if (window.location.pathname.startsWith(lesson.path)) {
-            type.textContent += ` ${i + 1} ${ofLabel} ${chapter.lessons.length}`;
-            break;
-          }
-        }
-      }
+    const lessons = getOrderedLessons(courseData);
+    const lessonIndex = lessons.findIndex(({ path }) => path === window.location.pathname);
+    if (lessonIndex !== -1) {
+      type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${lessons.length}`;
     }
     header.appendChild(type);
   }
@@ -252,10 +307,10 @@ export async function createCourseBaseTemplate(courseData) {
   const language = createElement('div', { class: 'metadata language' }, currentLanguage);
   header.appendChild(language);
 
-  courseHeading.before(header);
+  courseHeading?.before(header);
 }
 
-function getCurrentLesson(courseData) {
+export function getCurrentLesson(courseData) {
   const currentPath = window.location.pathname;
   const lessons = [
     ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
@@ -268,27 +323,31 @@ function getCurrentLesson(courseData) {
  */
 export async function updateLessonStatus(isCompleted) {
   const courseData = await getCourseData();
-  const currentLesson = getCurrentLesson(courseData);
+  const currentLesson = courseData.isLessonStandalone ? courseData : getCurrentLesson(courseData);
   if (!currentLesson || !currentLesson.moduleId) {
     // eslint-disable-next-line no-console
     console.error('Error getting lesson ID');
     return null;
   }
   const updatedCourse = await postLesson(courseData.moduleId, currentLesson.moduleId, isCompleted);
-  if (updatedCourse) {
+  if (updatedCourse && isCompleted) {
     const { lessons: lessonsProgress, ...courseProgress } = updatedCourse;
     Object.assign(courseData, courseProgress);
-    const lessons = [
-      ...courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || [],
-      ...courseData.lessons];
-    lessonsProgress.forEach((lessonProgress) => {
-      const lesson = lessons?.find(
-        ({ moduleId }) => moduleId === lessonProgress.moduleId,
-      );
-      if (lesson) {
-        Object.assign(lesson, lessonProgress);
-      }
-    });
+    if (!courseData.isLessonStandalone) {
+      const lessons = [
+        ...courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || [],
+        ...courseData.lessons];
+      lessonsProgress.forEach((lessonProgress) => {
+        const lesson = lessons?.find(
+          ({ moduleId }) => moduleId === lessonProgress.moduleId,
+        );
+        if (lesson) {
+          Object.assign(lesson, lessonProgress);
+        }
+      });
+    }
+  } else {
+    return courseData;
   }
   //  updates cache
   addCourseDataToCache(courseData.path, courseData);

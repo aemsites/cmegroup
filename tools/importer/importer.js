@@ -22,6 +22,8 @@ import {
   removeCourseSpecificItem,
   moduleOrder,
   handleFragments,
+  quizBlock,
+  coursesColumnsBlock,
 } from './course-lesson.js';
 
 const DOMAIN = 'https://www.cmegroup.com';
@@ -36,15 +38,15 @@ async function setMetadata(meta, document, url) {
   const templates = {
     'cme-group-case-study-article-template': {
       template: 'article',
-      subTemplate: 'case-study',
+      tempSubTemplate: 'case-study',
     },
     'cme-group-faqs-article-template': {
       template: 'article',
-      subTemplate: 'faqs',
+      tempSubTemplate: 'faqs',
     },
     'cme-group-showcase-article-template': {
       template: 'article',
-      subTemplate: 'showcase',
+      tempSubTemplate: 'showcase',
     },
     'cme-group-lesson-template': {
       template: 'lesson',
@@ -53,16 +55,22 @@ async function setMetadata(meta, document, url) {
       template: 'course',
     },
     'cme-group-standalone-lesson-template': {
-      template: 'lesson',
-      subTemplate: 'standalone',
+      template: 'lesson-standalone',
     },
     'cme-group-video-article-template': {
       template: 'article',
-      subTemplate: 'video',
+      tempSubTemplate: 'video',
     },
     'cme-group-standard-article-template': {
       template: 'article',
-      subTemplate: 'standard',
+      tempSubTemplate: 'standard',
+    },
+    'cme-group-podcast-article-template': {
+      template: 'article',
+      tempSubTemplate: 'podcast',
+    },
+    basepage: {
+      template: 'chapter',
     },
   };
 
@@ -72,18 +80,13 @@ async function setMetadata(meta, document, url) {
     if (templates[template].subTemplate) {
       meta['Sub Template'] = templates[template].subTemplate;
     }
+
+    if (templates[template].tempSubTemplate) {
+      meta['Temp Sub Template'] = templates[template].tempSubTemplate;
+    }
   }
 
   if (readTime) {
-    // const time = readTime?.textContent?.trim().split(' ')[0].trim().toLowerCase();
-    // if (time.includes(':')) {
-    //   const [minutes, seconds] = time.split(':');
-    //   const totalSeconds = Number(minutes) * 60 + Number(seconds);
-    //   const nearestMinute = Math.round(totalSeconds / 60);
-    //   meta['Read Time'] = `${nearestMinute}`;
-    // } else {
-    //   meta['Read Time'] = `${time}`;
-    // }
     readTime.remove();
   }
 
@@ -92,6 +95,8 @@ async function setMetadata(meta, document, url) {
   const articleDate = document.querySelector('.article-date');
   if (articleDate?.textContent) {
     meta.Date = articleDate?.textContent?.trim();
+    const date = new Date(meta.Date);
+    meta.Date = date.toISOString();
     articleDate.remove();
   }
 
@@ -109,6 +114,15 @@ async function setMetadata(meta, document, url) {
   if (jsonResponse?.ok) {
     try {
       const jsonData = await jsonResponse.json();
+      if (!meta['Sub Template'] && meta.Template === 'article') {
+        const headerType = jsonData.headerType ? jsonData.headerType.split('-')[0] : '';
+        const mediaType = jsonData.mediaType ? jsonData.mediaType.split('-')[0] : '';
+
+        if (headerType && mediaType) {
+          meta['Sub Template'] = `${mediaType} ${headerType}`;
+        }
+      }
+
       Object.keys(jsonData).forEach((key) => {
         const arr = [];
         if (key === 'primaryAuthors') {
@@ -130,25 +144,40 @@ async function setMetadata(meta, document, url) {
           meta['Primary Topic'] = arr.join(',');
         } else if (key === 'articleTime') {
           const readTimeTemp = jsonData[key];
-          const time = readTimeTemp?.trim().split(' ')[0].trim().toLowerCase();
-          if (time.includes(':')) {
-            const [minutes, seconds] = time.split(':');
-            const nearestMinute = Math.round(Number(minutes) + (Number(seconds) / 60));
-            meta['Read Time'] = `${nearestMinute}`;
+          const [minutes, seconds] = readTimeTemp.split(':');
+          const nearestMinute = Math.round(Number(minutes) + (Number(seconds) / 60));
+
+          const hours = Math.floor(nearestMinute / 60);
+          const remainingMinutes = nearestMinute % 60;
+
+          // if hours and minutes is less than 10 then it should be like 08:07
+          if (hours < 10 && remainingMinutes < 10) {
+            meta['Read Time'] = `0${hours}:0${remainingMinutes}`;
+          } else if (hours < 10) {
+            meta['Read Time'] = `0${hours}:${remainingMinutes}`;
+          } else if (remainingMinutes < 10) {
+            meta['Read Time'] = `${hours}:0${remainingMinutes}`;
           } else {
-            meta['Read Time'] = `${time}`;
+            meta['Read Time'] = `${hours}:${remainingMinutes}`;
           }
         } else if (key === 'moduleId') {
           meta['Module ID'] = jsonData[key];
         } else if (key === 'hideCourseNavigation') {
           meta['Hide Course Navigation'] = Boolean(jsonData[key]);
-        } else if (key === 'jcr:title' && (meta.Template === 'lesson' || meta.Template === 'course')) {
+        } else if (key === 'jcr:title' && (meta.Template === 'lesson' || meta.Template === 'course' || meta.Template === 'chapter' || meta.Template === 'lesson-standalone')) {
           meta['Module Title'] = jsonData[key];
+        } else if (key === 'isPremium') {
+          meta.isPremium = Boolean(jsonData[key]);
         }
       });
     } catch (error) {
       console.warn(`Failed to parse JSON: ${error.message}`);
     }
+  }
+
+  if (document.querySelector('.premium-label')) {
+    meta.isPremium = true;
+    document.querySelector('.premium-label').remove();
   }
 }
 
@@ -157,9 +186,8 @@ async function setMetadata(meta, document, url) {
  * @returns {HTMLElement} - The block separator.
  */
 export const blockSeparator = () => {
-  const p = document.createElement('p');
-  p.innerText = '---';
-  return p;
+  const hr = document.createElement('hr');
+  return hr;
 };
 
 /**
@@ -174,6 +202,22 @@ const imageFetch = (ele) => {
     return `${DOMAIN}${imgUrl}`;
   }
   return null;
+};
+
+const getDeepestLastChild = (el) => {
+  while (el?.lastElementChild) {
+    // eslint-disable-next-line no-param-reassign
+    el = el.lastElementChild;
+  }
+  return el;
+};
+
+const getDeepestFirstChild = (el) => {
+  while (el?.firstElementChild) {
+    // eslint-disable-next-line no-param-reassign
+    el = el.firstElementChild;
+  }
+  return el;
 };
 
 /**
@@ -208,49 +252,119 @@ const convertSectionsToMetadata = (document) => {
       const sectionMetadata = buildSectionMetadata(tempArr);
       section.after(sectionMetadata);
       if (index !== sections.length - 1) {
-        sectionMetadata.after(blockSeparator().cloneNode(true));
+        const nextSibling = sectionMetadata.nextElementSibling;
+        const deepest = getDeepestFirstChild(nextSibling);
+        if (deepest?.tagName !== 'HR') {
+          sectionMetadata.after(blockSeparator().cloneNode(true));
+        }
       }
       if (index !== 0) {
-        section.before(blockSeparator().cloneNode(true));
+        const prevSibling = section.previousElementSibling;
+        const deepest = getDeepestLastChild(prevSibling);
+        if (deepest?.tagName !== 'HR') {
+          section.before(blockSeparator().cloneNode(true));
+        }
+      }
+    }
+  });
+};
+
+const mapRowsToSection = (document) => {
+  const rows = document.querySelectorAll('.row');
+  rows.forEach((row) => {
+    const leftColumn = row.querySelector('.cme-article-left-column');
+    const rightColumn = row.querySelector('.cme-article-right-column');
+
+    if ((leftColumn?.textContent && leftColumn?.textContent.trim() !== '') || (rightColumn?.textContent && rightColumn?.textContent.trim() !== '')) {
+      const separator = blockSeparator().cloneNode(true);
+
+      const prevSibling = row.previousElementSibling;
+      const deepest = getDeepestLastChild(prevSibling);
+
+      if (deepest?.tagName !== 'HR') {
+        row.before(separator);
+      }
+
+      const nextSibling = row.nextElementSibling;
+      const deepestNext = getDeepestFirstChild(nextSibling);
+
+      if (deepestNext?.tagName !== 'HR') {
+        row.after(blockSeparator().cloneNode(true));
       }
     }
   });
 };
 
 /**
+ * This function converts the sections to metadata.
+ * @param {Document} document - The document to search.
+ */
+const convertSectionToMetadata = (section, index, total, cells) => {
+  const style = [];
+
+  SECTION_SELECTORS.forEach((selector) => {
+    if (section.matches(selector)) {
+      style.push(selector.replace('.', '').replace('-', ' '));
+    }
+  });
+
+  if (style.length) {
+    const styles = ['Style', style.join(', ')];
+    const tempArr = [styles];
+
+    // read background-image from the style
+    const backgroundImg = imageFetch(section);
+    if (backgroundImg) {
+      const anchor = document.createElement('a');
+      anchor.href = backgroundImg;
+      anchor.textContent = anchor.href;
+      tempArr.push(['Background Image', anchor]);
+    }
+
+    tempArr.push(...cells);
+    const sectionMetadata = buildSectionMetadata(tempArr);
+
+    section.after(sectionMetadata);
+    if (index !== total - 1) {
+      sectionMetadata.after(blockSeparator().cloneNode(true));
+    }
+
+    if (index !== 0) {
+      section.before(blockSeparator().cloneNode(true));
+    }
+  } else {
+    const tempArr = [];
+    tempArr.push(...cells);
+    const sectionMetadata = buildSectionMetadata(tempArr);
+    section.after(sectionMetadata);
+
+    if (index !== total - 1) {
+      sectionMetadata.after(blockSeparator().cloneNode(true));
+    }
+
+    if (index !== 0) {
+      section.before(blockSeparator().cloneNode(true));
+    }
+  }
+};
+
+/**
  * This function creates a hero block for the article.
  * @param {Document} document - The document to search.
  */
-const articleHeroBlock = (document, meta) => {
+const articleHeroBlock = (document) => {
   const hero = document.querySelector('.article-header .article-background');
   if (hero) {
     const bgImage = hero.style.backgroundImage;
     const imgUrl = bgImage.split('url(')[1].split(')')[0].trim().replace(/['"]/g, '');
-    let heroName = 'Hero (Article)';
-    if (meta['Sub Template'] === 'faqs' || meta['Sub Template'] === 'standard' || meta['Sub Template'] === 'video') {
-      heroName = 'Hero (Article, Overlapping)'; // TODO inform team about this block variant
-    }
-    const cells = [[heroName]];
-
-    const tempData = [];
     const anchor = document.createElement('a');
     anchor.href = `https://www.cmegroup.com${imgUrl}`;
     anchor.textContent = anchor.href;
 
-    const h1 = document.createElement('h1');
-    h1.innerText = hero.querySelector('h1')?.innerText || '';
-
     const div = document.createElement('div');
     div.appendChild(anchor);
-    if (h1.innerText) {
-      div.appendChild(h1);
-    }
-
-    tempData.push(div);
-    cells.push(tempData);
-    const table = WebImporter.DOMUtils.createTable(cells, document);
     hero.after(buildSectionMetadata([['Style', 'Full Width']]), blockSeparator().cloneNode(true));
-    hero.replaceWith(table);
+    hero.replaceWith(anchor);
   }
 };
 
@@ -296,7 +410,10 @@ const promoBlock = (document) => {
 
       const cells = [[`CTA (Promo, ${theme})`]];
       if (link) {
-        cells.push(['URL', `${DOMAIN}${path}`]);
+        const tempAnchor = document.createElement('a');
+        tempAnchor.href = `${DOMAIN}${path}`;
+        tempAnchor.textContent = tempAnchor.href;
+        cells.push(['URL', tempAnchor]);
       }
       if (imgSrc) {
         const anchor = document.createElement('a');
@@ -332,9 +449,11 @@ const dividerBlock = (document) => {
 
   if (dividers?.length) {
     dividers.forEach((divider) => {
-      const cells = [['Divider']];
-      const table = WebImporter.DOMUtils.createTable(cells, document);
-      divider.replaceWith(table);
+      if (!divider.closest('table')) {
+        const cells = [['Divider']];
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        divider.replaceWith(table);
+      }
     });
   }
 };
@@ -376,46 +495,8 @@ const figCaptionEmphasize = (document) => {
   }
 };
 
-const quizBlock = (document) => {
-  const quizzes = document.querySelectorAll('.quiz');
-  if (quizzes) {
-    quizzes.forEach((quiz) => {
-      const cells = [['Quiz']];
-      const questionText = quiz.querySelector('.question-text');
-      if (questionText) {
-        cells.push(['Question', questionText.innerText]);
-      }
-      cells.push(['Options']);
-
-      const options = quiz.querySelectorAll('.option-item');
-      options.forEach((option) => {
-        const optionText = option.querySelector('.option-text');
-        if (optionText) {
-          cells.push([optionText.innerText]);
-        }
-      });
-
-      const answersItems = quiz.querySelector('.quiz-item')?.getAttribute('data-answers-items');
-      if (answersItems) {
-        const answersItemsJson = JSON.parse(answersItems);
-        answersItemsJson.forEach((answer, index) => {
-          if (answer.correctAnswer) {
-            cells.push(['Correct Answer', index + 1]);
-            if (answer.answerSnip) {
-              cells.push(['Answer Text', answer.answerSnip]);
-            }
-          }
-        });
-      }
-
-      const table = WebImporter.DOMUtils.createTable(cells, document);
-      quiz.replaceWith(table);
-    });
-  }
-};
-
 const faqBlock = (document, meta) => {
-  if (meta['Sub Template'] === 'faqs') {
+  if (meta['Temp Sub Template'] === 'faqs') {
     const components = document.querySelectorAll('.component');
     const cells = [['FAQ (Ordered)']];
     let componentIndex = 0;
@@ -493,12 +574,12 @@ const accordionBlock = async (document) => {
 };
 
 const removeExtraSectionBreak = (document) => {
-  const paragraphs = document.querySelectorAll('p');
+  const paragraphs = document.querySelectorAll('hr');
   for (let i = 0; i < paragraphs.length - 1; i += 1) {
     const currentP = paragraphs[i];
     const nextP = paragraphs[i + 1];
     if (currentP.nextElementSibling === nextP) {
-      if (currentP.textContent.trim() === '---' && nextP.textContent.trim() === '---') {
+      if (currentP.tagName === 'HR' && nextP.tagName === 'HR') {
         nextP.remove();
       }
     }
@@ -512,29 +593,26 @@ const lightBoxGallery = async (document) => {
       const lightBox = components[i];
       const attribute = lightBox.getAttribute('data-img-style');
       if (attribute === 'lightbox-gallery' || attribute === 'lightbox') {
-        const cells = [['Lightbox']];
         const dataPath = lightBox.getAttribute('data-path');
 
         if (dataPath) {
           // eslint-disable-next-line no-await-in-loop
           const data = await fetch(`${DOMAIN}${dataPath}.json`);
-          // eslint-disable-next-line no-await-in-loop
-          const dataJson = await data.json();
 
-          if (dataJson?.fileReference) {
-            const imgSrc = dataJson.fileReference;
-            const figCaption = lightBox.querySelector('figcaption');
-            const anchor = document.createElement('a');
-            anchor.href = `https://www.cmegroup.com${imgSrc}`;
-            anchor.textContent = anchor.href;
+          if (data?.ok) {
+            // eslint-disable-next-line no-await-in-loop
+            const dataJson = await data.json();
 
-            if (figCaption) {
-              cells.push([anchor], [figCaption.textContent]);
-            } else {
-              cells.push([anchor]);
+            if (dataJson?.fileReference) {
+              const imgSrc = dataJson.fileReference;
+              const anchor = document.createElement('a');
+              anchor.href = `https://www.cmegroup.com${imgSrc}`;
+              anchor.textContent = anchor.href;
+
+              const tempStrong = document.createElement('strong');
+              tempStrong.appendChild(anchor);
+              lightBox.replaceWith(tempStrong);
             }
-            const table = WebImporter.DOMUtils.createTable(cells, document);
-            lightBox.replaceWith(table);
           }
         }
       }
@@ -545,7 +623,17 @@ const lightBoxGallery = async (document) => {
 const brightCoveVideo = (document) => {
   const videos = document.querySelectorAll('.brightcove-video');
   if (videos?.length) {
-    videos.forEach((video) => {
+    for (let i = 0; i < videos.length; i += 1) {
+      const video = videos[i];
+      const grandParent = video.parentElement?.parentElement;
+      if ((grandParent && (grandParent.style.display === 'none'
+        || window.getComputedStyle(grandParent).display === 'none'
+        || grandParent.classList.contains('hidePersonalized')
+      )) || video.parentElement?.closest('.brightcove-video')) {
+        video.remove();
+        // eslint-disable-next-line no-continue
+        continue;
+      }
       const accountId = video.getAttribute('data-account-id');
       const playlistLocation = video.getAttribute('data-playlist-location');
       const videoId = video.getAttribute('data-video-id');
@@ -572,7 +660,7 @@ const brightCoveVideo = (document) => {
 
       const table = WebImporter.DOMUtils.createTable(cells, document);
       video.replaceWith(table);
-    });
+    }
   }
 };
 
@@ -604,15 +692,48 @@ const tableBlock = (document) => {
   if (tables?.length) {
     tables.forEach((table) => {
       let tableText = 'Table';
-      const arr = [];
-      if (arr.length) {
-        tableText += ` (${arr.join(', ')})`;
+      const innerTable = table.querySelector('table');
+      const tempArr = [];
+      const trs = innerTable.querySelectorAll('tr');
+      trs.forEach((tr) => {
+        if (!tr.textContent || tr.textContent.trim() === '') {
+          tr.remove();
+        }
+      });
+
+      if (!innerTable.querySelector('thead') && !innerTable.querySelector('th')) {
+        tempArr.push('no-header');
+      }
+
+      if (innerTable.querySelector('.collapsible')) {
+        tempArr.push('collapsible');
+      }
+
+      if (innerTable.querySelectorAll('tr').length) {
+        innerTable.querySelectorAll('tr').forEach((innerRow, index) => {
+          const rowClass = innerRow.classList;
+          ['tertiary-row', 'secondary-row', 'primary-row'].forEach((row) => {
+            if (rowClass.contains(row)) {
+              const tempRowName = row.replace('-row', '');
+              if (innerRow.closest('thead')) {
+                tempArr.push(`r${index + 1}-${tempRowName}-header`);
+              } else if (innerRow.closest('tbody')) {
+                tempArr.push(`r${index + 1}-${tempRowName}-group`);
+              }
+            }
+          });
+        });
+      }
+
+      if (tempArr.length) {
+        tableText += ` (${tempArr.join(', ')})`;
       }
 
       const tempTable = WebImporter.Blocks.createBlock(document, {
         name: tableText,
         cells: [],
       });
+
       const row = tempTable.insertRow(1);
       row.insertCell(0).innerHTML = table.innerHTML;
       table.replaceWith(tempTable);
@@ -621,17 +742,124 @@ const tableBlock = (document) => {
 };
 
 const convertImagesToLinks = (document) => {
-  const images = document.querySelectorAll('img');
+  const images = document.querySelectorAll('.component.image');
+
   images.forEach((image) => {
-    const div = document.createElement('div');
-    const imgUrl = image.getAttribute('src');
-    const anchor = document.createElement('a');
-    anchor.href = `${DOMAIN}${imgUrl}`;
-    anchor.textContent = `${anchor.href}`;
-    div.appendChild(anchor);
-    div.appendChild(document.createElement('br'));
-    image.replaceWith(div);
+    if (image.querySelector('img')) {
+      const div = document.createElement('div');
+      let imgUrl = image.getAttribute('data-img-src');
+      // check if imgUrl is absolute vs relative
+      if (imgUrl?.startsWith('/')) {
+        imgUrl = `${DOMAIN}${imgUrl}`;
+      }
+
+      const anchor = document.createElement('a');
+      anchor.href = imgUrl;
+      anchor.textContent = `${anchor.href}`;
+
+      const dataImgStyle = image.getAttribute('data-img-style');
+      const caption = image.querySelector('em');
+
+      if (dataImgStyle === 'lightbox-gallery' || dataImgStyle === 'lightbox') {
+        const tempStrong = document.createElement('strong');
+        tempStrong.appendChild(anchor);
+        div.appendChild(tempStrong);
+      } else {
+        div.appendChild(anchor);
+      }
+
+      div.appendChild(document.createElement('br'));
+      if (caption) {
+        div.appendChild(caption);
+      }
+
+      image.replaceWith(div);
+    }
   });
+};
+
+/**
+ * @param {*} document
+ * @param {*} type
+ */
+const sidebarBlock = (document, type = 'left') => {
+  const sidebars = document.querySelectorAll(`.section .row .cme-article-${type}-column`);
+
+  if (sidebars?.length) {
+    sidebars.forEach((sidebar) => {
+      if (sidebar.textContent && sidebar.textContent.trim() !== '') {
+        const dividers = sidebar.querySelectorAll('.divider.line');
+        let topDivider = false;
+        let bottomDivider = false;
+
+        if (dividers.length === 1) {
+          const firstDiv = sidebar.querySelector(':scope>div:first-child');
+          const lastDiv = sidebar.querySelector(':scope>div:last-child');
+
+          if (lastDiv.classList.contains('divider')) {
+            bottomDivider = true;
+          } else if (!firstDiv?.classList.contains('title')) {
+            topDivider = true;
+          }
+          dividers.forEach((divider) => {
+            divider.remove();
+          });
+        } else if (dividers.length === 2) {
+          const firstDiv = sidebar.querySelector(':scope>div:first-child');
+          if (firstDiv.classList.contains('title')) {
+            const h5 = document.createElement('h5');
+            h5.textContent = '---';
+            firstDiv.appendChild(h5);
+            bottomDivider = true;
+          } else {
+            topDivider = true;
+            bottomDivider = true;
+          }
+          dividers.forEach((divider) => {
+            divider.remove();
+          });
+        } else if (dividers.length > 1) {
+          topDivider = true;
+          bottomDivider = true;
+
+          dividers.forEach((divider, index) => {
+            if (index === 0 || index === dividers.length - 1) {
+              divider.remove();
+            } else {
+              const tempP = document.createElement('p');
+              tempP.textContent = '---';
+              divider.replaceWith(tempP);
+            }
+          });
+        }
+
+        let textContent = 'Sidebar';
+        const tempArr = [type];
+
+        if (topDivider) {
+          tempArr.push('divider-top');
+        }
+
+        if (bottomDivider) {
+          tempArr.push('divider-bottom');
+        }
+        if (tempArr.length) {
+          textContent += ` (${tempArr.join(', ')})`;
+        }
+
+        const cells = [[textContent]];
+        cells.push([sidebar.innerHTML]);
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+
+        sidebar.replaceWith(table);
+      }
+    });
+  }
+};
+
+const sideBarBlocks = (document) => {
+  sidebarBlock(document, 'left');
+  sidebarBlock(document, 'right');
 };
 
 const correctLinks = (document) => {
@@ -639,10 +867,40 @@ const correctLinks = (document) => {
   links.forEach((link) => {
     if (link.href) {
       try {
-        if (link?.href.endsWith('.html')) {
-          const { pathname } = new URL(link.href);
-          if (pathname.startsWith('/education/')) {
-            link.href = link.href.replace('.html', '');
+        if (link?.href) {
+          const completeLink = new URL(link.href);
+          const { pathname } = completeLink;
+          const oldHref = link.href;
+
+          if (pathname?.endsWith('.html')) {
+            if (pathname.startsWith('/education/')) {
+              link.href = link.href.replace('.html', '');
+              if (link.href.startsWith('/')) {
+                link.href = `${EDS_DOMAIN}${link.href}`;
+              } else {
+                completeLink.hostname = EDS_DOMAIN.replace('https://', '');
+                completeLink.protocol = 'https';
+                completeLink.port = '';
+                link.href = completeLink.toString();
+                link.href = link.href.replace('.html', '');
+              }
+            } else if (link.href.startsWith('/')) {
+              // relative path
+              link.href = `${DOMAIN}${link.href}`;
+            } else {
+              // absolute path domain changed
+              completeLink.hostname = DOMAIN.replace('https://', '');
+              completeLink.protocol = 'https';
+              completeLink.port = '';
+              if (link.href === link.textContent) {
+                link.textContent = completeLink.toString();
+              }
+              link.href = completeLink.toString();
+            }
+
+            if (link.textContent === oldHref) {
+              link.textContent = link.href;
+            }
           }
         }
       } catch (error) {
@@ -652,36 +910,98 @@ const correctLinks = (document) => {
   });
 };
 
+const tagsCloudBlock = (document) => {
+  const tagsCloud = document.querySelector('.tag-cloud');
+  if (tagsCloud) {
+    const cells = [['Tags Cloud']];
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    tagsCloud.replaceWith(table);
+  }
+};
+
+/**
+ * Color map to section metadata
+ * @param {*} document
+ */
+const colorMap = (document) => {
+  const spans = document.querySelectorAll('span');
+  const newSet = new Set();
+  const sections = document.querySelectorAll('.row');
+  const total = sections.length;
+
+  spans.forEach((span) => {
+    const classes = Array.from(span.classList);
+    const colorClasses = classes.filter((cls) => cls.startsWith('bg-'));
+
+    if (colorClasses.length) {
+      const tempCode = document.createElement('code');
+      tempCode.textContent = span.textContent;
+      const section = span.closest('.row');
+      const index = Array.from(sections).indexOf(section);
+      span.replaceWith(tempCode);
+
+      if (!newSet.has(index) && section) {
+        newSet.add(index);
+        convertSectionToMetadata(section, index, total, [['text-highlight', colorClasses[0]]]);
+      }
+    }
+  });
+};
+
+const oneClickSubToFragment = (document) => {
+  const oneClickSub = document.querySelectorAll('.one-click-subscription-form');
+  if (oneClickSub?.length) {
+    oneClickSub.forEach((form) => {
+      // const cells = [['One Click Sub']];
+      // const table = WebImporter.DOMUtils.createTable(cells, document);
+      // const tempDiv = document.createElement('div');
+      // const anchor = document.createElement('a');
+      // anchor.href = `${EDS_DOMAIN}/fragments/one-click-subscription-form`;
+      // anchor.textContent = anchor.href;
+      // tempDiv.appendChild(anchor);
+      form.remove(); // todo again revisit
+    });
+  }
+};
+
 const customBlocks = async (document, main, meta, url) => {
+  figCaptionEmphasize(document);
+  convertImagesToLinks(document);
+  mapRowsToSection(document);
   tableBlock(document);
   convertSectionsToMetadata(document, main);
   articleHeroBlock(document, meta);
-  dividerBlock(document);
   promoBlock(document);
   authorBioBlock(document);
   quizBlock(document);
+  tagsCloudBlock(document);
   faqBlock(document, meta);
   await accordionBlock(document);
   await lightBoxGallery(document);
-  if (meta['Sub Template'] === 'case-study') {
+  sideBarBlocks(document);
+  dividerBlock(document);
+  colorMap(document);
+  oneClickSubToFragment(document);
+
+  if (meta['Temp Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);
     generalColumns(document);
     generateEndColumns(document);
-  } else if (meta['Sub Template'] === 'standard') {
+  } else if (meta['Temp Sub Template'] === 'standard') {
     standardArticleInitialColumns(document);
-  } else if (['lesson', 'course'].includes(meta.Template)) {
-    await removeCourseSpecificItem(document, main, url);
+  } else if (['lesson', 'course', 'lesson-standalone'].includes(meta.Template)) {
+    await removeCourseSpecificItem(document, main, meta);
     handleFragments(document);
+    coursesColumnsBlock(document);
   }
   await moduleOrder(document, meta, url);
   document.querySelector('.course-nav')?.remove();
 
   brightCoveVideo(document);
-  figCaptionEmphasize(document);
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
-  convertImagesToLinks(document);
   correctLinks(document);
+  delete meta['Temp Sub Template'];
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
   //   form.remove();
@@ -692,6 +1012,13 @@ const removeLinesEllipsis = (document) => {
   const linesEllipsis = document.querySelectorAll('.LinesEllipsis-canvas');
   linesEllipsis.forEach((line) => {
     line.remove();
+  });
+};
+
+const removeVisuallyHidden = (document) => {
+  const visuallyHidden = document.querySelectorAll('.visually-hidden');
+  visuallyHidden.forEach((hidden) => {
+    hidden.remove();
   });
 };
 
@@ -748,7 +1075,6 @@ export default {
       '.sitewide-marketing-popup',
       // '.course-nav',
       '.top-info',
-      '.slick-track',
       '.w-sm-auto',
       '.lateral-navigation',
     ]);
@@ -777,6 +1103,7 @@ export default {
 
     removeExtraSectionBreak(document);
     removeLinesEllipsis(document);
+    removeVisuallyHidden(document);
 
     results.push({
       element: main,

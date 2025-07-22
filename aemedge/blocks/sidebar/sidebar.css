@@ -1,0 +1,103 @@
+.sidebar a {
+  color: var(--blue4);
+  font-weight: 600;
+}
+
+.sidebar .block-divider-line hr {
+  margin-block: 1.25rem;
+}
+
+.sidebar .sidebar-header {
+  margin-bottom: 0.8rem;
+}
+
+.sidebar .references {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar .references li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+.sidebar .references li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.25rem;
+  width: 1rem;
+  height: 1rem;
+  background: url('../../icons/arrow-right.svg') center/contain no-repeat;
+  filter: var(--blue4-filter);
+}
+
+.sidebar .cta img {
+  filter: var(--white-filter);
+}
+
+.sidebar .cta:hover img {
+  filter: var(--black-filter);
+}
+
+/* Only apply sidebar styling on desktop screens 1200px and above */
+@media (width > 1200px) {
+  main > .section[has-sidebar='true'] {
+    --content-width: calc(54% - 13.625rem);
+    --content-padding-inline: .9375rem;
+    --sidebar-width: calc((100% - var(--content-width)) / 2);
+    --multi-sidebar-gap: 1rem;
+    
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  main > .section[has-sidebar='true'] > div {
+    padding-inline: 4.125rem;
+  }
+
+  main > .section[has-sidebar='true'] .sidebars-multi {
+    width: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    gap: var(--multi-sidebar-gap);
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+
+  main > .section[has-sidebar='true'] .sidebars-multi.left {
+    order: 1;
+  }
+
+   main > .section[has-sidebar='true'] .sidebars-multi.right {
+    order: 3;
+  }
+
+  main > .section[has-sidebar='true'] .content-wrapper {
+    width: var(--content-width);
+    order: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-inline: var(--content-padding-inline);
+  }
+
+  main > .section[has-sidebar='true'] .sidebar {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  main > .section[has-sidebar='true'] .sidebar.left,
+  main > .section[has-sidebar='true'] .sidebar.right,
+  main > .section[has-sidebar='true'] .sidebars-multi {
+    position: relative;
+    z-index: 1;
+  }
+}

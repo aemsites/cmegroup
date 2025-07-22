@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-cycle
 import { loadFragment } from '../fragment/fragment.js';
 import {
   buildBlock, decorateBlock, loadBlock, loadCSS,
@@ -29,6 +30,8 @@ export async function createModal(contentNodes) {
   decorateBlock(block);
   await loadBlock(block);
 
+  let savedScrollY = 0;
+
   // close on click outside the dialog
   dialog.addEventListener('click', (e) => {
     const {
@@ -41,7 +44,22 @@ export async function createModal(contentNodes) {
   });
 
   dialog.addEventListener('close', () => {
+    const originalScrollBehavior = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = 'auto';
+
     document.body.classList.remove('modal-open');
+    document.documentElement.style.removeProperty('--scroll-y');
+
+    document.scrollingElement.scrollTop = savedScrollY;
+
+    requestAnimationFrame(() => {
+      if (originalScrollBehavior) {
+        document.documentElement.style.scrollBehavior = originalScrollBehavior;
+      } else {
+        document.documentElement.style.removeProperty('scroll-behavior');
+      }
+    });
+
     block.remove();
   });
 
@@ -51,6 +69,8 @@ export async function createModal(contentNodes) {
   return {
     block,
     showModal: () => {
+      savedScrollY = window.scrollY;
+      document.documentElement.style.setProperty('--scroll-y', `${savedScrollY}px`);
       dialog.showModal();
       // reset scroll position
       setTimeout(() => { dialogContent.scrollTop = 0; }, 0);

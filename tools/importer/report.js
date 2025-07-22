@@ -1,4 +1,4 @@
-import { fetchTemplate, SECTION_SELECTORS } from './utils.js';
+import { EDS_DOMAIN, fetchTemplate, SECTION_SELECTORS } from './utils.js';
 
 const templateData = {};
 const unique = true;
@@ -297,6 +297,17 @@ const cardsComponentCheck = (document) => {
   }
 
   return modifyMap(map, 'cards');
+};
+
+const oneClickSubDetect = (document) => {
+  const oneClickSub = document.querySelectorAll('.one-click-subscription-form');
+  const map = {};
+
+  if (oneClickSub?.length) {
+    map['one-click-subscription-form'] = true;
+  }
+
+  return modifyMap(map, 'one-click-subscription-form');
 };
 
 const detectColumns = (document) => {
@@ -615,6 +626,21 @@ const fetchTable = (document) => {
   return modifyMap(map, 'table');
 };
 
+const authorBioBlockDetection = (document) => {
+  const authorBio = document.querySelector('.author-bio');
+  if (authorBio) {
+    const authorTags = authorBio.getAttribute('data-author-tags');
+    const authorTag = authorTags ? JSON.parse(authorTags)[0] : '';
+
+    if (authorTag) {
+      const link = `${EDS_DOMAIN}/fragments/authors/${authorTag}`;
+      return link;
+    }
+  }
+
+  return null;
+};
+
 const customReportElements = (document) => {
   const report = {
     template: fetchTemplate(document),
@@ -632,6 +658,11 @@ const customReportElements = (document) => {
     iframes: iframeReport(document),
     fragments: xfContentHeight(document),
   };
+
+  const authorBioBlock = authorBioBlockDetection(document);
+  if (authorBioBlock) {
+    report['author-bio'] = authorBioBlock;
+  }
 
   const currentClassesMap = {
     accordion: {
@@ -722,7 +753,7 @@ const customReportElements = (document) => {
     }
   });
 
-  const classes = ['lds-ring', 'market-news', 'carousel', 'author-bio', 'tag-cloud', 'quiz', 'course-nav', 'lateral-navigation'];
+  const classes = ['lds-ring', 'market-news', 'carousel', 'tag-cloud', 'quiz', 'course-nav', 'lateral-navigation'];
   classes.forEach((className) => {
     const temp = classFinder(document, className);
     if (temp) {
@@ -758,6 +789,16 @@ const customReportElements = (document) => {
   const tableOccurences = fetchTable(document);
   if (tableOccurences) {
     report['table-classes'] = tableOccurences;
+  }
+
+  const gatedContent = document.querySelector('.blur-background .login-teaser');
+  if (gatedContent) {
+    report['gated-content'] = true;
+  }
+
+  const oneClickSub = oneClickSubDetect(document);
+  if (oneClickSub) {
+    report['one-click-subscription-form'] = oneClickSub;
   }
 
   return report;

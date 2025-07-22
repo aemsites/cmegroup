@@ -1,7 +1,6 @@
 import {
   loadHeader,
   loadFooter,
-  createOptimizedPicture as libCreateOptimizedPicture,
   decorateButtons,
   decorateIcons,
   decorateBlock,
@@ -10,7 +9,6 @@ import {
   loadSection,
   loadSections,
   loadCSS,
-  readBlockConfig,
   toCamelCase,
   toClassName,
   getMetadata,
@@ -20,15 +18,55 @@ import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
-import { checkDomain } from './utils.js';
+import {
+  checkDomain,
+  createElement,
+  isFeatureToggled,
+  readBlockConfig,
+} from './utils.js';
+
+import createOptimizedPicture from './utils/picture.js';
+import { appendQueryParams } from './utils/uri.js';
+
+/**
+ * if present add custom ID to blocks in a container element. (Override from aem.js)
+ * @param {Element} main The container element
+ */
+function customIdToBlocks(block) {
+  // customId
+  let customIdValue = null;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const childDiv of block.children) {
+    if (childDiv.tagName === 'DIV') {
+      const keyDiv = childDiv.querySelector('div > p');
+      if (keyDiv && keyDiv.textContent.trim() === 'customId') {
+        const valueDiv = keyDiv.parentElement.nextElementSibling;
+        if (valueDiv) {
+          const pElement = valueDiv.querySelector('p');
+          if (pElement) {
+            customIdValue = pElement.textContent.trim();
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if (customIdValue) {
+    block.setAttribute('id', customIdValue);
+  }
+}
 
 /**
  * Decorates all blocks in a container element. (Override from aem.js)
  * @param {Element} main The container element
  */
 function decorateBlocks(main) {
-  main.querySelectorAll('div.section > div:not(.layout) > div').forEach(decorateBlock);
-  main.querySelectorAll('div.section > div.layout > div > div > div').forEach(decorateBlock);
+  const elementsToDecorate = main.querySelectorAll(
+    'div.section > div:not(.layout) > div, div.section > div.layout > div > div > div',
+  );
+  elementsToDecorate.forEach(decorateBlock);
+  elementsToDecorate.forEach(customIdToBlocks);
 }
 
 /**
@@ -113,6 +151,27 @@ async function loadFonts() {
   } catch (e) {
     // do nothing
   }
+}
+
+/**
+ * Applies accessibility enhancements to icon links (addition to decorateIcons from aem.js)
+ * @param {Element} element The element to enhance
+ */
+function enhanceIconAccessibility(element = document) {
+  const iconLinks = element.querySelectorAll('a span.icon');
+  iconLinks.forEach((span) => {
+    const parentLink = span.closest('a');
+    if (parentLink && !parentLink.hasAttribute('aria-label')) {
+      const iconClass = [...span.classList].find((c) => c.startsWith('icon-'));
+      if (iconClass) {
+        const platformName = iconClass.substring(5)
+          .split('-')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        parentLink.setAttribute('aria-label', `Visit ${platformName}`);
+      }
+    }
+  });
 }
 
 function autolinkModals(element) {
@@ -205,81 +264,10 @@ function isExternalImage(element) {
   // if the element is not an anchor, it's not an external image
   if (element.tagName !== 'A') return false;
   // IMPLICIT via CME Group Delivery URLs or OOTB DMOpenAPI Delivery URLs
-  return /https:\/\/www\.cmegroup\.com\/content\/dam\/|delivery-p\d+-e\d+\.adobeaemcloud\.com/.test(element.getAttribute('href'));
-}
-
-/*
-  * Appends query params to a URL
-  * @param {string} url The URL to append query params to
-  * @param {object} params The query params to append
-  * @returns {string} The URL with query params appended
-  * @private
-  * @example
-  * appendQueryParams('https://example.com', { foo: 'bar' });
-  * // returns 'https://example.com?foo=bar'
-*/
-function appendQueryParams(url, params) {
-  const { searchParams } = url;
-  params.forEach((value, key) => {
-    searchParams.set(key, value);
-  });
-  url.search = searchParams.toString();
-  return url.toString();
+  return /\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/.test(element.getAttribute('href'));
 }
 
 /**
- * Creates an optimized picture element for an image.
- * If the image is not an absolute URL, it will be passed to libCreateOptimizedPicture.
- * @param {string} src The image source URL
- * @param {string} alt The image alt text
- * @param {boolean} eager Whether to load the image eagerly
- * @param {object[]} breakpoints The breakpoints to use
- * @returns {Element} The picture element
- *
- */
-export function createOptimizedPicture(src, alt = '', eager = false, breakpoints = [{ media: '(min-width: 600px)', width: '2000' }, { width: '750' }]) {
-  const isAbsoluteUrl = /^https?:\/\//i.test(src);
-
-  // Fallback to createOptimizedPicture if src is not an absolute URL
-  if (!isAbsoluteUrl) return libCreateOptimizedPicture(src, alt, eager, breakpoints);
-
-  const url = new URL(src);
-  const picture = document.createElement('picture');
-  const { pathname } = url;
-  const ext = pathname.substring(pathname.lastIndexOf('.') + 1);
-
-  // webp
-  breakpoints.forEach((br) => {
-    const source = document.createElement('source');
-    if (br.media) source.setAttribute('media', br.media);
-    source.setAttribute('type', 'image/webp');
-    const searchParams = new URLSearchParams({ width: br.width, format: 'webply' });
-    source.setAttribute('srcset', appendQueryParams(url, searchParams));
-    picture.appendChild(source);
-  });
-
-  // fallback
-  breakpoints.forEach((br, i) => {
-    const searchParams = new URLSearchParams({ width: br.width, format: ext });
-
-    if (i < breakpoints.length - 1) {
-      const source = document.createElement('source');
-      if (br.media) source.setAttribute('media', br.media);
-      source.setAttribute('srcset', appendQueryParams(url, searchParams));
-      picture.appendChild(source);
-    } else {
-      const img = document.createElement('img');
-      img.setAttribute('loading', eager ? 'eager' : 'lazy');
-      img.setAttribute('alt', alt);
-      picture.appendChild(img);
-      img.setAttribute('src', appendQueryParams(url, searchParams));
-    }
-  });
-
-  return picture;
-}
-
-/*
   * Decorates external images with a picture element
   * @param {Element} ele The element
   * @private
@@ -290,7 +278,7 @@ function decorateExternalImages(ele) {
   const extImages = ele.querySelectorAll('a');
   extImages.forEach((extImage) => {
     if (isExternalImage(extImage)) {
-      const extImageSrc = extImage.getAttribute('href');
+      const extImageSrc = extImage.href;
       const extTitle = extImage.getAttribute('title');
       const extPicture = createOptimizedPicture(extImageSrc, extTitle);
 
@@ -315,6 +303,185 @@ function decorateExternalImages(ele) {
   });
 }
 
+function decorateSidebars(main) {
+  const sections = main.querySelectorAll('.section');
+  sections.forEach((section) => {
+    const hasSidebar = section.querySelector('.sidebar');
+    if (!hasSidebar) return;
+    section.setAttribute('has-sidebar', 'true');
+
+    // Group sidebars by type (left/right)
+    const leftSidebars = [];
+    const rightSidebars = [];
+    const contentElements = [];
+
+    // Categorize all direct children of the section
+    Array.from(section.children).forEach((child) => {
+      if (child.querySelector('.sidebar')) {
+        if (child.querySelector('.sidebar.left')) {
+          leftSidebars.push(child);
+        } else if (child.querySelector('.sidebar.right')) {
+          if (!isFeatureToggled('hideRightRail')) {
+            rightSidebars.push(child);
+          } else {
+            child.remove();
+          }
+        }
+      } else {
+        // This is content (not a sidebar)
+        contentElements.push(child);
+      }
+    });
+
+    // Create a content wrapper for all non-sidebar content
+    if (contentElements.length > 0) {
+      const contentWrapper = createElement('div', { class: 'content-wrapper' });
+      section.insertBefore(contentWrapper, contentElements[0]);
+      contentElements.forEach((element) => {
+        contentWrapper.appendChild(element);
+      });
+    }
+
+    // Create containers for multiple sidebars of the same type if needed
+    // Also, handles left sidebars empty edge case
+    const leftContainer = createElement('div', { class: 'sidebars-multi left' });
+    if (leftSidebars.length === 0) {
+      const placeholder = createElement('div', { class: 'sidebar-wrapper' });
+      leftContainer.appendChild(placeholder);
+      section.prepend(leftContainer);
+    } else if (leftSidebars.length > 0) {
+      section.insertBefore(leftContainer, leftSidebars[0]);
+      leftSidebars.forEach((sidebar) => {
+        leftContainer.appendChild(sidebar);
+      });
+    }
+
+    const rightContainer = createElement('div', { class: 'sidebars-multi right' });
+    if (rightSidebars.length === 0) {
+      const placeholder = createElement('div', { class: 'sidebar-wrapper' });
+      rightContainer.appendChild(placeholder);
+      section.prepend(rightContainer);
+    } else if (rightSidebars.length > 0) {
+      section.insertBefore(rightContainer, rightSidebars[0]);
+      rightSidebars.forEach((sidebar) => {
+        rightContainer.appendChild(sidebar);
+      });
+    }
+  });
+}
+
+/**
+ * Decorates images with lightbox functionality.
+ * Add click handler directly lightboxed images to open the lightbox modal.
+ * @param {Element} main The main element
+ */
+function decorateLightboxImages(main) {
+  const pictures = main.querySelectorAll('picture');
+
+  pictures.forEach((picture) => {
+    // Only process pictures that are wrapped in <strong> tags
+    const strongParent = picture.closest('strong');
+    if (!strongParent) return;
+
+    const img = picture.querySelector('img');
+    if (!img) return;
+
+    const source = picture.querySelector('source') || img;
+    const srcset = source.getAttribute('srcset') || source.getAttribute('src');
+    if (!srcset) return;
+
+    const imageUrl = srcset.split(',')[0].split(' ')[0];
+
+    // Create lightbox structure
+    const wrapper = document.createElement('div');
+    wrapper.className = 'lightbox-container';
+
+    img.setAttribute('data-lightbox', imageUrl);
+    img.classList.add('lightbox-image');
+
+    const icon = document.createElement('span');
+    icon.className = 'lightbox-expand-icon';
+    icon.setAttribute('aria-hidden', 'true');
+
+    // Wrap the picture element
+    picture.parentNode.insertBefore(wrapper, picture);
+    wrapper.appendChild(picture);
+    wrapper.appendChild(icon);
+
+    // Add click handler directly to image if not already done
+    if (!img.hasAttribute('data-lightbox-ready')) {
+      img.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        // eslint-disable-next-line import/no-cycle
+        const { createModal } = await import('../blocks/modal/modal.js');
+
+        const imageElement = document.createElement('img');
+        imageElement.src = img.dataset.lightbox;
+        imageElement.alt = img.alt || '';
+        imageElement.className = 'lightbox-image-display';
+
+        try {
+          const modal = await createModal([imageElement]);
+          const dialog = modal.block.querySelector('dialog');
+          if (dialog) {
+            dialog.classList.add('lightbox-modal');
+            modal.showModal();
+          }
+        } catch (error) {
+          // Lightbox modal creation failed, continue without lightbox functionality
+        }
+      });
+
+      // Add flag to help prevent multiple click handlers from being added
+      img.setAttribute('data-lightbox-ready', 'true');
+    }
+  });
+}
+
+/**
+ * Decorates author's text highlights in the main element.
+ * Author can select text to highlight via "inline code".
+ * Author can set the highlight color in the section metadata via "text-highlight" property.
+ *
+ * The highlight color is determined by the data-text-highlight attribute on the outer section div.
+ * <div class="section" data-section-status="loaded" data-text-highlight="bg-green" style="">
+ * If the attribute is not present no decoration will be applied.
+ *
+ * Before:
+ * <p>
+ *   ...other text
+ *   <code>
+ *     PLACEHOLDER -> Text the content author highlighted here.
+ *   </code>
+ *   ... other text
+ * </p>
+ *
+ * After:
+ * <p>
+ *   ...other text
+ *   <code class="bg-green highlighted-text">
+ *     PLACEHOLDER -> Text the content author highlighted here.
+ *   </code>
+ *   ... other text
+ * </p>
+ *
+ * @param {Element} main The main element
+ */
+function decorateTextHighlights(main) {
+  // Find <code> elements inside <p> elements within main
+  const codeElements = main.querySelectorAll('p code');
+  codeElements.forEach((codeEl) => {
+    // For each code element, find the closest section and its desired highlight color
+    const sectionDiv = codeEl.closest('.section');
+    const highlightColor = sectionDiv ? sectionDiv.getAttribute('data-text-highlight') : null;
+
+    if (highlightColor) {
+      codeEl.classList.add(highlightColor, 'highlighted-text');
+    }
+  });
+}
+
 /**
  * Decorates the main element.
  * @param {Element} main The main element
@@ -324,13 +491,16 @@ export function decorateMain(main) {
   // hopefully forward compatible button decoration
   decorateButtons(main);
   decorateIcons(main);
+  enhanceIconAccessibility();
   buildAutoBlocks(main);
   buildFragmentBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
   decorateExternalLinks(main);
-  // decorate external images
   decorateExternalImages(main);
+  decorateSidebars(main);
+  decorateLightboxImages(main); // decorate-lightbox the bolded pictures of decorateExternalImages
+  decorateTextHighlights(main);
 }
 
 /**
@@ -423,10 +593,20 @@ async function loadLazy(doc) {
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
   if (hash && element) element.scrollIntoView();
 
-  loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
-  loadFooter(doc.querySelector('footer'));
-  dynamicBlocks(main);
+  // Add feature toggle checks for header and footer
+  if (!isFeatureToggled('hideHeader')) {
+    loadHeader(doc.querySelector('header')).then((header) => {
+      initFloatingElements(doc, header);
+      enhanceIconAccessibility(header);
+    });
+  }
+  if (!isFeatureToggled('hideFooter')) {
+    loadFooter(doc.querySelector('footer')).then((footer) => {
+      enhanceIconAccessibility(footer);
+    });
+  }
 
+  dynamicBlocks(main);
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
   window.CookieUtil = CookieUtil;

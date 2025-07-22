@@ -2,7 +2,7 @@ import { toClassName } from '../../scripts/aem.js';
 import { createElement } from '../../scripts/utils.js';
 
 function createFieldWrapper(fd) {
-  const fieldWrapper = document.createElement('div');
+  const fieldWrapper = createElement('div');
   if (fd.Style) fieldWrapper.className = fd.Style;
   if (fd.DefaultHide === 'true') {
     fieldWrapper.classList.add('hide');
@@ -23,6 +23,9 @@ function createFieldWrapper(fd) {
   if (fd.Fieldset) {
     fieldWrapper.dataset.fieldset = fd.Fieldset;
   }
+  if (fd.ShowAfterSubmit) {
+    fieldWrapper.dataset.showAfterSubmit = fd.ShowAfterSubmit;
+  }
   return fieldWrapper;
 }
 
@@ -36,15 +39,15 @@ function generateFieldId(fd, suffix = '') {
 }
 
 function createLabel(fd) {
-  const label = document.createElement('label');
+  const label = createElement('label');
   label.id = generateFieldId(fd, '-label');
   label.textContent = fd.Label || fd.Name;
   label.setAttribute('for', fd.Id);
-  if (fd.Mandatory.toLowerCase() === 'true' || fd.Mandatory.toLowerCase() === 'x') {
+  if (fd.Mandatory?.toLowerCase() === 'true' || fd.Mandatory?.toLowerCase() === 'x') {
     label.dataset.required = true;
-  } else if (fd.Mandatory.toLowerCase() === 'false') {
+  } else if (fd.Mandatory?.toLowerCase() === 'false') {
     // adding optional text to the label
-    const optional = document.createElement('i');
+    const optional = createElement('i');
     optional.textContent = ' (Optional)';
     label.append(optional);
   }
@@ -86,8 +89,8 @@ function setCommonAttributes(field, fd) {
 const createHeading = (fd) => {
   const fieldWrapper = createFieldWrapper(fd);
 
-  const level = fd.Style && fd.Style.includes('sub-heading') ? 3 : 2;
-  const heading = document.createElement(`h${level}`);
+  const level = fd.Style?.includes('sub-heading') ? 'h3' : (fd.Style || 'h2');
+  const heading = createElement(`${level}`);
   heading.textContent = fd.Value || fd.Label;
   heading.id = fd.Id;
 
@@ -99,8 +102,8 @@ const createHeading = (fd) => {
 const createPlaintext = (fd) => {
   const fieldWrapper = createFieldWrapper(fd);
 
-  const text = document.createElement('p');
-  text.textContent = fd.Value || fd.Label;
+  const text = createElement('p');
+  text.innerHTML = fd.Value || fd.Label;
   text.id = fd.Id;
 
   fieldWrapper.append(text);
@@ -109,10 +112,10 @@ const createPlaintext = (fd) => {
 };
 
 const createSelect = async (fd) => {
-  const select = document.createElement('select');
+  const select = createElement('select');
   setCommonAttributes(select, fd);
   const addOption = ({ text, value }) => {
-    const option = document.createElement('option');
+    const option = createElement('option');
     option.text = text.trim();
     option.value = value.trim();
     if (option.value === fd.Value) {
@@ -164,9 +167,8 @@ const createConfirmation = (fd, form) => {
 };
 
 const createSubmit = (fd) => {
-  const button = document.createElement('button');
+  const button = createElement('button', { class: 'button' });
   button.textContent = fd.Label || fd.Name;
-  button.classList.add('button');
   button.type = 'submit';
 
   const fieldWrapper = createFieldWrapper(fd);
@@ -178,7 +180,7 @@ const createSubmit = (fd) => {
 };
 
 const createTextArea = (fd) => {
-  const field = document.createElement('textarea');
+  const field = createElement('textarea');
   setCommonAttributes(field, fd);
   if (fd.Rows) {
     field.setAttribute('rows', fd.Rows);
@@ -194,7 +196,7 @@ const createTextArea = (fd) => {
 };
 
 const createInput = (fd) => {
-  const field = document.createElement('input');
+  const field = createElement('input');
   field.type = fd.Type;
   setCommonAttributes(field, fd);
 
@@ -212,11 +214,11 @@ const createInput = (fd) => {
 };
 
 const createFieldset = (fd) => {
-  const field = document.createElement('fieldset');
+  const field = createElement('fieldset');
   setCommonAttributes(field, fd);
 
   if (fd.Label) {
-    const legend = document.createElement('legend');
+    const legend = createElement('legend');
     legend.textContent = fd.Label;
     field.append(legend);
   }
@@ -234,13 +236,11 @@ const createToggle = (fd) => {
   field.classList.add('toggle');
   fieldWrapper.classList.add('selection-wrapper');
 
-  const toggleSwitch = document.createElement('div');
-  toggleSwitch.classList.add('switch');
+  const toggleSwitch = createElement('div', { class: 'switch' });
   toggleSwitch.append(field);
   fieldWrapper.append(toggleSwitch);
 
-  const slider = document.createElement('span');
-  slider.classList.add('slider');
+  const slider = createElement('span', { class: 'slider' });
   toggleSwitch.append(slider);
   slider.addEventListener('click', () => {
     field.checked = !field.checked;

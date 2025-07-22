@@ -1,11 +1,11 @@
-import { readBlockConfig, loadScript } from '../../scripts/aem.js';
-import { createElement, i18n } from '../../scripts/utils.js';
+import { loadScript } from '../../scripts/aem.js';
+import { createElement, i18n, readBlockConfig } from '../../scripts/utils.js';
 import {
   getEconomicReleaseFilters,
-  postEconomicReleaseDates,
-  postEconomicReleaseEvents,
-} from '../../scripts/services/ProductCalendarService.js';
-import { URIUtil, escapeHtmlTags } from '../../scripts/utils/index.js';
+  getEconomicReleaseDates,
+  getEconomicReleaseEvents,
+} from '../../scripts/services/EconomicReleaseService.js';
+import { URIUtil, escapeHtmlTags, parseCurrencyValue } from '../../scripts/utils/index.js';
 
 const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
 const { body } = window.document;
@@ -186,7 +186,7 @@ async function getLeftPanelDays() {
   const daysLimit = 30;
   const textSearch = searchValueVar;
 
-  leftPanelDays = await postEconomicReleaseDates(
+  leftPanelDays = await getEconomicReleaseDates(
     date,
     countries,
     impacts,
@@ -212,14 +212,12 @@ async function getEvents() {
   const impacts = filtersArray['input-impact'].map((impact) => impact.id);
   const textSearch = searchValueVar;
 
-  const eventsService = await postEconomicReleaseEvents(
+  events = await getEconomicReleaseEvents(
     date,
     countries,
     impacts,
     textSearch,
   );
-
-  events = eventsService.events;
 
   if (events) {
     // eslint-disable-next-line no-use-before-define
@@ -277,16 +275,19 @@ function decorateCleanInputSearch() {
 
 function handleInputSearch(e) {
   searchValueVar = e.target.value;
-  filterSearchInputContainer.append(cleanInput);
-  if (searchValueVar !== '' && window.innerWidth >= 1200) {
+  if (!filterSearchInputContainer.contains(cleanInput) && searchValueVar !== '') {
+    filterSearchInputContainer.append(cleanInput);
+  }
+  if (window.innerWidth >= 1201) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
       // call service with variables here
       getLeftPanelDays();
       getEvents();
     }, 400);
-  } else if (filterSearchInputContainer.contains(cleanInput)) {
-    cleanInput.remove();
+    if (searchValueVar === '' && filterSearchInputContainer.contains(cleanInput)) {
+      cleanInput.remove();
+    }
   }
 }
 
@@ -828,13 +829,15 @@ function renderResultSection() {
 }
 
 function valueInTable(value1, value2) {
-  const numValue1 = parseFloat(value1);
-  const numValue2 = parseFloat(value2);
+  const numValue1 = parseCurrencyValue(value1);
+  const numValue2 = parseCurrencyValue(value2);
+
   if (value1 != null && value2 != null
     && !Number.isNaN(numValue1) && !Number.isNaN(numValue2)) {
     if (numValue1 > numValue2) {
       return 'positive';
-    } if (numValue1 < numValue2) {
+    }
+    if (numValue1 < numValue2) {
       return 'negative';
     }
   }
@@ -1046,7 +1049,7 @@ function renderMobileAccordion(eventsToRender) {
             <div class="expandable-content mobile">
               <div class="main-content">
                 <span class="highlight">${title}</span>
-                <p class="text"><p class="text">${escapeHtmlTags(text, ['br'])?.replace(
+                <p class="text">${escapeHtmlTags(text, ['br'])?.replace(
       /<br\s*\/?>\s*(<br\s*\/?>)+/g,
       '<br>',
     )}</p>
@@ -1159,21 +1162,16 @@ function renderEventsTableHeader() {
 }
 
 function renderCalendarResume() {
-  if (isDesktop) {
-    const formateDateForResume = dayjs.utc(leftPanelSelectedDay).format('Do MMM YYYY');
-    calendarResume.innerHTML = `
-    <p>
-      Showing<span> '${nthEvents === '0' ? 'NO' : nthEvents}' </span>Matching Events for<span> "${formateDateForResume}"</span>
-    </p>
-    `;
-  } else {
-    calendarResume.innerHTML = `
-    <p>
-      <span class="calendar-icon"></span>
-      ${nthEvents} Matching Events
-    </p>
-    `;
-  }
+  const formateDateForResume = dayjs.utc(leftPanelSelectedDay).format('Do MMM YYYY');
+  calendarResume.innerHTML = `
+  <p class="desktop-view">
+    Showing<span> '${nthEvents === '0' ? 'NO' : nthEvents}' </span>Matching Events for<span> "${formateDateForResume}"</span>
+  </p>
+  <p class="mobile-view">
+    <span class="calendar-icon"></span>
+    ${nthEvents} Matching Events
+  </p>
+  `;
   return calendarResume;
 }
 
@@ -1369,27 +1367,22 @@ async function init(block, version) {
       const crossedBreakpointDown = (prevWindowWidth > 1200 && windowWidth <= 1199);
       const crossedBreakpointUp = (prevWindowWidth <= 1199 && windowWidth >= 1200);
       if (crossedBreakpointDown) {
-        calendarResume.innerHTML = '';
         eventCalendarTBody.innerHTML = '';
         eventCalendarTBody.append(spinnerInEventCalendar);
-        isDesktop = window.innerWidth > 1200;
+        isDesktop = window.innerWidth >= 1201;
         datePicker.hide();
         setTimeout(() => {
           // 1.5 seconds delay for visual effect
-          renderCalendarResume();
           renderEvents();
         }, 1500);
       }
       if (crossedBreakpointUp) {
-        calendarResume.innerHTML = '';
-        calendarResume.append(spinnerInEventCalendar);
         eventCalendarTBody.innerHTML = '';
         eventCalendarTBody.append(spinnerInEventCalendar);
-        isDesktop = window.innerWidth > 1200;
+        isDesktop = window.innerWidth >= 1201;
         renderCurrentPills(filtersArray);
         setTimeout(() => {
           // 1.5 seconds delay for visual effect
-          renderCalendarResume();
           renderEvents();
         }, 1500);
         const openInputsCurtain = document.querySelector('.inputs-curtain.is-open');

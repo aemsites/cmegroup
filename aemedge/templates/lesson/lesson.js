@@ -1,8 +1,12 @@
-import { createCourseBaseTemplate, getCourseData, updateLessonStatus } from '../../scripts/course/course.js';
+import {
+  createCourseBaseTemplate, getCourseData, updateLessonStatus, getCurrentLesson,
+} from '../../scripts/course/course.js';
+import { addCourseCertificate } from '../../scripts/course/certificate.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
+import { quizAnswered } from '../../scripts/actions/quiz.js';
 
 function flattenLessons(courseData) {
   const lessons = courseData.lessons || [];
@@ -105,22 +109,43 @@ function initLateralNav(courseData) {
 export default async function lessonTemplate() {
   const { authenticationData } = authentication;
   authenticationData.loginPromise.then(async () => {
+    const { isLoggedIn, loginInfo } = authenticationData;
+    if (!isLoggedIn) {
+      await import('../../scripts/course/auth-modal.js');
+    }
     const courseData = await getCourseData();
     await createCourseBaseTemplate(courseData);
     await initLateralNav(courseData);
-    if (!courseData.started) {
-      //  start current course
+    const lesson = getCurrentLesson(courseData);
+    if (!lesson.started) {
+      //  start current lesson
       await updateLessonStatus(false);
+    }
+    if (lesson?.completed) {
+      store.dispatch(quizAnswered(true));
     }
     //  dispatch courseData event
     store.dispatch(courseDataChange(courseData));
-  });
-
-  //  quiz completion event subscriber
-  store.subscribe(({ quiz }) => quiz, async ({ isCorrect }) => {
-    if (isCorrect) {
-      const courseData = await updateLessonStatus(true);
-      store.dispatch(courseDataChange(courseData));
-    }
+    //  quiz completion event subscriber
+    store.subscribe(({ quiz }) => quiz, async ({ isCorrect }) => {
+      if (isCorrect && !lesson?.completed) {
+        const updatedCourse = await updateLessonStatus(true);
+        store.dispatch(courseDataChange(updatedCourse));
+      }
+    });
+    //  courseData change event
+    store.subscribe(({ courseData: course }) => course, (course) => {
+      if (course?.completed) {
+        addCourseCertificate({
+          isLoggedIn,
+          userName: loginInfo?.userName,
+          moduleId: course?.moduleId,
+          lessonTitle: course?.title,
+          completedModule: course?.endDate,
+          // the modal is opened automatically when the user completes the lesson
+          showModal: !lesson?.completed,
+        });
+      }
+    });
   });
 }

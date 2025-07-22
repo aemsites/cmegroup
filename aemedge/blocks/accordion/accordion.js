@@ -1,4 +1,6 @@
-import { createDynamicCard, fetchAndFilterDataCourse } from '../cards/cards.js';
+import { createDynamicCardCourse } from '../cards/cards.js';
+import { getIndexedContent } from '../../scripts/indexing.js';
+
 import {
   createElement,
   buildSlider,
@@ -69,25 +71,29 @@ async function decorateCardsAccordion(block) {
         currentTags = [];
       }
     }
+    block.textContent = '';
 
     // Add the last section if it exists
     if (currentTitle && currentTags.length) {
       accordionData.push({ title: currentTitle, tags: currentTags });
     }
 
-    // Fetch all data concurrently
-    const accordions = await Promise.all(
-      accordionData.map(async ({ title, tags }) => {
-        const filteredData = await fetchAndFilterDataCourse(tags);
-        const cards = filteredData.map(createDynamicCard);
-        const cardsBlock = createCardsBlock(cards);
-        return createAccordionItem(title, cardsBlock);
-      }),
-    );
-
-    // Replace content with accordions
-    block.textContent = '';
-    block.append(...accordions);
+    // Create accordions with filtered data
+    accordionData.forEach(async ({ title, tags }) => {
+      const wrapper = createElement('div');
+      const accordionItem = createAccordionItem(title, wrapper);
+      block.append(accordionItem);
+      const indexFilter = {
+        templates: ['course'],
+        orderBy: 'date',
+        sortDirection: 'desc',
+        tagsAnd: tags,
+      };
+      const filteredData = await getIndexedContent(indexFilter);
+      const cards = await Promise.all(filteredData.map(createDynamicCardCourse));
+      const cardsBlock = createCardsBlock(cards);
+      wrapper.append(cardsBlock);
+    });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error loading query index data:', error);
@@ -107,7 +113,7 @@ function decorateAccordion(block) {
 
 export default async function decorate(block) {
   if (block.classList.contains('cards')) {
-    await decorateCardsAccordion(block);
+    decorateCardsAccordion(block);
   } else {
     decorateAccordion(block);
   }
