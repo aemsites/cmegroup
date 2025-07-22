@@ -6,6 +6,8 @@ import { updateFilteringByUI } from '../filter-bullets/filter-bullets.js';
 import { getCards } from './cards-template.js';
 import { i18n } from '../../../scripts/utils.js';
 import { clearAllFilters } from '../search-utils.js';
+import { getIndexedContent } from '../../../scripts/indexing.js';
+import renderPagination from './pagination.js';
 
 function showSpinner(container) {
   const spinner = div({ class: 'search-spinner' }, div({ class: 'spinner' }));
@@ -13,32 +15,101 @@ function showSpinner(container) {
   container.appendChild(spinner);
 }
 
-const searchResults = async () => {
-  const apiReq = {};
-  if (searchConfig.pagination?.show) {
-    apiReq.pagination = searchConfig.pagination.num;
-  }
-  if (searchConfig.sortOptions) {
-    apiReq.sort = searchConfig.sortOptions;
-  }
-  if (searchConfig.template) {
-    apiReq.template = searchConfig.template;
-  }
+const buildSearchRequest = () => {
+  const request = {
+    page: searchConfig.pagination?.currentPage || 1,
+    limit: searchConfig.pagination?.size || 10,
+    fullText: searchConfig.searchInput || '',
+    languages: ['en'], // currently hardcoding languages
+    getFacets: searchConfig.getFacets,
+  };
 
-  apiReq.filters = searchConfig.appliedFilters.map((filter) => {
-    if (filter.value.endsWith('--star')) {
-      return filter.value.replace('--star', '');
+  const mp = {};
+  searchConfig.appliedFilters.forEach((filter) => {
+    const value = filter.value.endsWith('--star') ? filter.value.replace('--star', '') : filter.value;
+    if (mp[filter.filterId]) {
+      mp[filter.filterId].push(value);
+    } else {
+      mp[filter.filterId] = [value];
     }
-    return filter.value;
   });
 
-  showSpinner(document.querySelector('.results-wrapper'));
-  const mockResults = await fetch('/aemedge/blocks/search/mock-results.json').then((res) => res.json());
+  if (Object.keys(mp).length > 0) {
+    request.customTagObj = [];
+    Object.keys(mp).forEach((key) => {
+      request.customTagObj.push({
+        or: mp[key],
+      });
+    });
+  }
 
-  // eslint-disable-next-line no-console
-  console.log('Search Results Called', apiReq);
-  // eslint-disable-next-line no-use-before-define
-  filterAndRender(mockResults.results);
+  if (searchConfig.template && Object.keys(searchConfig.template).length > 0) {
+    request.templates = Object.keys(searchConfig.template);
+    Object.keys(searchConfig.template).forEach((template) => {
+      if (searchConfig.template[template].paths?.length > 0) {
+        searchConfig.template[template].paths.forEach((path) => {
+          if (request.basePaths) {
+            request.basePaths.push(path);
+          } else {
+            request.basePaths = [path];
+          }
+        });
+      }
+    });
+  }
+
+  if (searchConfig.sortOptions) {
+    request.orderBy = searchConfig.sortOptions.value;
+    request.sortDirection = searchConfig.sortOptions.sortType;
+  }
+
+  return request;
+};
+
+const searchResults = async () => {
+  const apiReq = buildSearchRequest();
+  showSpinner(document.querySelector('.results-wrapper'));
+  const results = await getIndexedContent(apiReq);
+
+  if (results && Object.keys(results).length > 0) {
+    // Update pagination info from response
+    if (results.pagination) {
+      searchConfig.pagination = {
+        ...searchConfig.pagination,
+        total: results.pagination.total,
+        totalPages: results.pagination.totalPages,
+      };
+    }
+
+    if (results.facets) {
+      // Common function to update option counts
+      const updateOptionCount = (element) => {
+        const input = element.querySelector('input');
+        const label = element.querySelector('label');
+
+        if (!input || !label) return;
+
+        const facetValue = input.value;
+        const existingText = label.textContent;
+        const lastText = existingText?.match(/\(\d+\)$/);
+        const baseText = existingText.replace(lastText, '');
+        const matchingFacet = results.facets?.find((f) => f.tag === facetValue);
+        const count = matchingFacet ? matchingFacet.count : 0;
+
+        label.textContent = `${baseText} (${count})`;
+      };
+
+      // Update both dropdowns and checkboxes
+      document.querySelectorAll('.dropdown-option, .checkbox-option')
+        .forEach(updateOptionCount);
+    }
+
+    // eslint-disable-next-line no-use-before-define
+    filterAndRender(results.data || []);
+  } else {
+    // eslint-disable-next-line no-use-before-define
+    filterAndRender([]);
+  }
 };
 
 async function filterAndRender(results) {
@@ -48,17 +119,20 @@ async function filterAndRender(results) {
   const [
     resultsTitleText,
     resultsTitleText2,
+    resultsTitleText3,
     noResultsText,
     resetText,
   ] = await Promise.all([
     i18n('Showing'),
     i18n('Results'),
+    i18n('Result'),
     i18n('No results found. There are no results that meet your selection criteria.'),
     i18n('Reset filters'),
   ]);
 
   if (resultsTitle) {
-    resultsTitle.querySelector('h4').textContent = `${resultsTitleText} ${results.length} ${resultsTitleText2}`;
+    const total = searchConfig.pagination?.total || results.length;
+    resultsTitle.querySelector('h4').textContent = `${resultsTitleText} ${total} ${total === 1 ? resultsTitleText3 : resultsTitleText2}`;
   }
 
   resultsWrapper.innerHTML = '';
@@ -77,11 +151,21 @@ async function filterAndRender(results) {
     return;
   }
 
+  // Create a container for the results cards
+  const resultsContainer = div({ class: 'results-container' });
   results.forEach(async (item) => {
-    const cardType = searchConfig.template[item.template]?.cardType || '';
+    const cardType = searchConfig.template?.[item.template]?.cardType || '';
     const cardDetails = await getCards(cardType, item);
-    resultsWrapper.appendChild(cardDetails);
+    resultsContainer.appendChild(cardDetails);
   });
+  resultsWrapper.appendChild(resultsContainer);
+
+  // Render pagination if enabled
+  if (searchConfig.pagination?.show) {
+    await renderPagination(resultsWrapper, async () => {
+      await searchResults();
+    });
+  }
 }
 
 export {
