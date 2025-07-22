@@ -142,6 +142,24 @@ function decorateSections(main) {
 }
 
 /**
+ * Initialize parallax sections with background images from data attributes
+ * @param {Element} main The main container element
+ */
+function initParallaxSections(main) {
+  const parallaxSections = main.querySelectorAll('.section.parallax[data-background-image]:not([data-parallax-processed])');
+
+  parallaxSections.forEach((section) => {
+    const { backgroundImage } = section.dataset;
+    if (backgroundImage) {
+      section.style.backgroundImage = `url('${backgroundImage}')`;
+      // Clean up the data attribute and mark as processed
+      delete section.dataset.backgroundImage;
+      section.dataset.parallaxProcessed = 'true';
+    }
+  });
+}
+
+/**
  * load fonts.css and set a session storage flag
  */
 async function loadFonts() {
@@ -588,6 +606,7 @@ async function loadLazy(doc) {
 
   const main = doc.querySelector('main');
   await loadSections(main);
+  initParallaxSections(main);
 
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
