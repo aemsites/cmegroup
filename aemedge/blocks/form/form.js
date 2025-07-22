@@ -1,3 +1,4 @@
+import { decorateButtons } from '../../scripts/aem.js';
 import createField from './form-fields.js';
 import { createElement, toStartCase } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
@@ -245,7 +246,9 @@ async function decorateOneClickForm(form, formData, block) {
     );
     if (subscribed) {
       const subscribedMsg = form.querySelector('#form-subscribedmessage');
-      subscribedMsg?.parentElement?.classList.toggle('hide', false);
+      subscribedMsg?.parentElement.classList.toggle('hide', false);
+      const thanksMsg = form.querySelector('#form-thankyoumessage');
+      if (thanksMsg) { thanksMsg.parentElement.dataset.showAfterSubmit = false; }
       updateFieldsAfterSubmit(form, block);
     }
   } else {
@@ -261,6 +264,17 @@ async function decorateOneClickForm(form, formData, block) {
       authentication.login();
     });
   }
+}
+
+function createSpinner() {
+  const spinner = createElement('div', { class: 'spinner-forms' });
+  spinner.innerHTML = `
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  `;
+  return spinner;
 }
 
 function decodeHtmlEntities(text) {
@@ -421,14 +435,11 @@ async function handleSubmit(form, block) {
   if (form.getAttribute('data-submitting') === 'true') return;
 
   const submit = form.querySelector('button[type="submit"]');
+  const spinner = createSpinner();
   try {
     form.setAttribute('data-submitting', 'true');
     submit.disabled = true;
-    if (form.classList.contains('contact-us')) {
-      form.style.display = 'none';
-      block.querySelector('.recaptcha-disclaimer').style.display = 'none';
-      document.body.classList.add('loading');
-    }
+    block.append(spinner);
 
     const sitekey = block.querySelector('.recaptcha-disclaimer')?.dataset.sitekey;
     if (!sitekey) {
@@ -457,6 +468,10 @@ async function handleSubmit(form, block) {
       if (form.dataset.confirmation) {
         window.location.href = form.dataset.confirmation;
       }
+      if (payload.Fields_to_Update__c) {
+        //  user subscriptions updates
+        window.LocalStorageUtil?.remove('userInfo');
+      }
       updatePostSubmitUi(form, block);
     } else {
       throw new Error(response.error?.message);
@@ -465,15 +480,15 @@ async function handleSubmit(form, block) {
     // eslint-disable-next-line no-console
     console.error('Form submission error:', e);
   } finally {
+    spinner.remove();
     form.setAttribute('data-submitting', 'false');
     submit.disabled = false;
-    document.body.classList.remove('loading');
   }
 }
 
 function decorateRecaptchaDisclaimer(block) {
   const disclaimer = block.querySelector('.recaptcha-disclaimer');
-  if (disclaimer) {
+  if (disclaimer && !disclaimer.classList.contains('hide')) {
     const p = createElement('p', { class: 'recaptcha-disclaimer' });
     const label = disclaimer.querySelector('label');
     p.innerHTML = label.innerHTML;
@@ -549,6 +564,7 @@ async function decorateForm(formData, block) {
   decorateRecaptchaDisclaimer(block);
   await decoratePostSubmitUi(formData, block);
   await checkOneClickFormCookie(form, block);
+  decorateButtons(block);
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -601,6 +617,7 @@ export default async function decorate(block) {
     return;
   }
 
+  block.append(createSpinner());
   const { authenticationData } = authentication;
   authenticationData.loginPromise.then(async () => {
     decorateForm(formData, block);

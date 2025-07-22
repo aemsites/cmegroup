@@ -48,4 +48,12 @@
       }
     }
   }
+
+  & [data-submitting="true"] {
+    display: none;
+
+    ~ .recaptcha-disclaimer {
+        display: none;
+    }
+  }
 }
