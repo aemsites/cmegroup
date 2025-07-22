@@ -2,12 +2,15 @@ import {
   createElement,
   i18n,
   urlByEnvType,
+  setupDayjsLibs,
+  getCdtDate,
+  loadScript,
 } from '../utils.js';
 import {
   apiPost,
   getResponseData,
 } from '../utils/index.js';
-import { loadScript, getMetadata } from '../aem.js';
+import { getMetadata } from '../aem.js';
 import { createModal } from '../../blocks/modal/modal.js';
 
 async function createCertificateModal({
@@ -90,7 +93,7 @@ async function createCertificateModal({
           createElement(
             'p',
             { class: 'date' },
-            dayjs(completedModule).format('MMMM Do YYYY'),
+            getCdtDate(completedModule).format('MMMM Do YYYY'),
           ),
         ),
         createElement(
@@ -255,10 +258,7 @@ async function openCertificateModal({
 }) {
   const scriptPromises = [
     loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/utc.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/timezone.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js'),
+    setupDayjsLibs(),
   ];
 
   // Wait for all scripts to load
