@@ -157,13 +157,7 @@
     display: block;
   }
 
-  .pagination-pages.desktop {
-    display: flex;
-  }
-  
-  .pagination-pages.mobile {
-    display: none;
-  }
+ 
 
   .block.search .results-wrapper.columns-2 .results-container {
     display: grid;

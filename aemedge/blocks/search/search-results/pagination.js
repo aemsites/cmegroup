@@ -67,14 +67,6 @@ export default async function renderPagination(container, onPageChange) {
     const pageItems = [];
     const { startPage, endPage } = getPageRange(currentPage, totalPages, true);
 
-    // Add ellipsis at start if needed
-    if (startPage > 1) {
-      const ellipsisStart = document.createElement('li');
-      ellipsisStart.className = 'pagination-ellipsis';
-      ellipsisStart.textContent = '...';
-      pageItems.push(ellipsisStart);
-    }
-
     // Add page items
     for (let i = startPage; i <= endPage; i += 1) {
       const pageItem = createPaginationItem(
@@ -85,14 +77,6 @@ export default async function renderPagination(container, onPageChange) {
         i === currentPage,
       );
       pageItems.push(pageItem);
-    }
-
-    // Add ellipsis at end if needed
-    if (endPage < totalPages) {
-      const ellipsisEnd = document.createElement('li');
-      ellipsisEnd.className = 'pagination-ellipsis';
-      ellipsisEnd.textContent = '...';
-      pageItems.push(ellipsisEnd);
     }
 
     return pageItems;
