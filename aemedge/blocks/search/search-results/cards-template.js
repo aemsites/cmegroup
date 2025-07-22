@@ -57,7 +57,7 @@ const labeledCard = async (card, item, labelKey, footerText) => {
   const footer = div({ class: 'result-footer' }, footerText);
 
   const anchor = buildBaseCard({
-    title: item.title,
+    title: item['module-title'] || item.title,
     description: item.description,
     path: item.path,
     header,
@@ -76,7 +76,8 @@ const courseCard = async (card, item) => {
 
 // Lesson card
 const lessonCard = async (card, item) => {
-  await labeledCard(card, item, `Lesson: ${item.metadata?.['module-title']}`, item.date ? formatDate(item.date) : '');
+  // todo piyush add course name in place item.metadata?.['module-title']
+  await labeledCard(card, item, `Lesson ${item.metadata?.['module-title'] ? `: ${item.metadata?.['module-title']}` : ''}`, item.date ? formatDate(item.date) : '');
 };
 
 // Wrap a card type with optional image

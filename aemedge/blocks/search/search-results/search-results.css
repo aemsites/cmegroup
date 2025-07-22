@@ -113,6 +113,26 @@
   font-style: italic;
 }
 
+.block.search .result-card .result-read-time.video::before {
+  content: var(--icon-play);
+  font-family: var(--cme-group-icons);
+  line-height: 1;
+  font-size: 0.6rem;
+  margin-right: 0.3rem;
+  color: var(--blue5);
+  font-style: normal;
+}
+
+.block.search .result-card .result-read-time::before {
+  content: var(--icon-list);
+  font-family: var(--cme-group-icons);
+  line-height: 1;
+  font-size: 0.6rem;
+  margin-right: 0.3rem;
+  color: var(--blue5);
+  font-style: normal;
+}
+
 .block.search .results-wrapper.columns-1 {
   display: flex;
   flex-direction: column;
