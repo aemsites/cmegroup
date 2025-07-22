@@ -20,7 +20,7 @@ const urlUpdate = () => {
     url.hash = url.hash ? `${url.hash}&${searchParam}` : searchParam;
   }
 
-  // Handle pagination
+  // Handle pagination - only add if page number is greater than 1 and not being reset
   if (searchConfig.pagination?.currentPage > 1) {
     const pageParam = `pageNum=${searchConfig.pagination.currentPage}`;
     url.hash = url.hash ? `${url.hash}&${pageParam}` : pageParam;

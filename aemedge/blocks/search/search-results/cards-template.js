@@ -35,8 +35,9 @@ const articleCard = async (card, item) => {
   const footer = div({ class: 'result-footer' }, formatDate(item.date, true));
   const subTemplate = item.metadata?.['sub-template'];
   const isVideo = subTemplate?.startsWith('video') || subTemplate?.startsWith('podcast');
-  const readTime = item.readTime
-    ? span({ class: `result-read-time ${isVideo ? 'video' : ''}` }, `${parseTime(item.readTime)} ${isVideo ? 'watch' : 'read'}`)
+  const readTimeTemp = item.readTime ? await parseTime(item.readTime) : null;
+  const readTime = readTimeTemp
+    ? span({ class: `result-read-time ${isVideo ? 'video' : ''}` }, `${readTimeTemp} ${isVideo ? 'watch' : 'read'}`)
     : null;
 
   const anchor = buildBaseCard({
