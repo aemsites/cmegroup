@@ -143,3 +143,11 @@
 .form.contact-us .post-submit .section p {
   margin: 0;
 }
+
+.form.contact-us form[data-submitting="true"] {
+  display: none;
+
+  ~ .recaptcha-disclaimer {
+    display: none;
+  }
+}
