@@ -270,20 +270,24 @@ async function getBrightcovePoster(accountId, videoId) {
   }
   const url = `https://edge.api.brightcove.com/playback/v1/accounts/${accountId}/videos/${videoId}`;
 
-  const response = await fetch(url, {
-    headers: {
-      Accept: `application/json;pk=${policyKey}`,
-    },
-    priority: 'high',
-  });
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Accept: `application/json;pk=${policyKey}`,
+      },
+      priority: 'high',
+    });
 
-  const { data } = response;
+    const { poster, thumbnail } = await response.json();
 
-  if (!data) {
-    return '';
+    if (!poster || !thumbnail) {
+      return '';
+    }
+
+    return poster || thumbnail || '';
+  } catch (error) {
+    console.log('Unable to pull placeholder from Playback API');
   }
-
-  return data.poster || data.images?.thumbnail?.src || '';
 }
 
 function updatePosterCache(videoId, posterUrl) {
