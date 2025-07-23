@@ -286,8 +286,11 @@ async function getBrightcovePoster(accountId, videoId) {
 
     return poster || thumbnail || '';
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log('Unable to pull placeholder from Playback API');
   }
+
+  return '';
 }
 
 function updatePosterCache(videoId, posterUrl) {
