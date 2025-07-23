@@ -164,15 +164,27 @@
   font-style: italic;
 }
 
-.block.search .card-course .result-footer {
+.block.search .card-lesson-thumbnail .result-footer,
+.block.search .card-standalone-lesson-thumbnail .result-footer {
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+.block.search .card-course .result-footer,
+.block.search .card-course-thumbnail .result-footer {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
 }
 
 .block.search .card-standalone-lesson .icon-list p {
   font-style: italic;
 }
 
-.block.search .results-wrapper.columns-2 .result-card .icon {
+.block.search .results-wrapper .result-card .icon {
   color: var(--blue5);
   display: flex;
   flex-direction: row;
@@ -182,7 +194,7 @@
   width: 0.75rem;
 }
 
-.block.search .results-wrapper.columns-2 .result-card .icon p {
+.block.search .results-wrapper .result-card .icon-list p {
   margin-top: 0;
   margin-bottom: 0;
   line-height: 1;
@@ -192,9 +204,17 @@
   white-space: nowrap;
 }
 
-.block.search .results-wrapper.columns-2 .result-card .icon img {
+.block.search .results-wrapper .result-card .icon img {
   display: block;
   filter: invert(72%) sepia(27%) saturate(1035%) hue-rotate(165deg) brightness(102%) contrast(98%);
+}
+
+.block.search .card-article-thumbnail .icon-list p {
+  font-style: italic;
+}
+
+.block.search .card-article-thumbnail .result-footer {
+  font-style: italic;
 }
 
 @keyframes spin {

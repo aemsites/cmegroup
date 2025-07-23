@@ -55,6 +55,8 @@ const articleCard = async (card, item) => {
     readIconSpan.appendChild(p(`${parsedTime} ${readLabel?.toLowerCase()}`));
   }
 
+  // todo piyush get data from the taxonomy sheet
+
   const anchor = buildBaseCard({
     title: item.title,
     description: item.description,
@@ -142,6 +144,7 @@ const courseCard = async (card, item) => {
 
 // Lesson card
 const lessonCard = async (card, item) => {
+  item.date = '2025-07-23'; // todo piyush remove this
   // todo piyush add course name in place item.metadata?.['module-title']
   await labeledCardLesson(card, item, `Lesson ${item.metadata?.['module-title']
     ? `: ${item.metadata?.['module-title']}` : ''}`, item.date ? formatDate(item.date) : '');
@@ -167,12 +170,18 @@ const getCards = async (cardType, item) => {
     'card-standalone-lesson': (c, i) => standaloneLessonCard(c, i),
     'card-course-thumbnail': (c, i) => imageCard(c, i, courseCard),
     'card-lesson-thumbnail': (c, i) => imageCard(c, i, lessonCard),
-    'article-image': (c, i) => imageCard(c, i, articleCard),
+    'card-standalone-lesson-thumbnail': (c, i) => imageCard(c, i, lessonCard),
+    'card-article-thumbnail': (c, i) => imageCard(c, i, articleCard),
     article: articleCard,
+    default: (c, i) => imageCard(c, i, articleCard),
   };
 
   const cardFn = cardMap[cardType];
-  if (cardFn) await cardFn(card, item);
+  if (cardFn) {
+    await cardFn(card, item);
+  } else {
+    await cardFn(cardMap.default, item);
+  }
 
   return card;
 };
