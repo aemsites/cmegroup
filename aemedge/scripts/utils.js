@@ -313,17 +313,6 @@ function getReadTimeIcon(subTemplates) {
   return readIconSpan;
 }
 
-function formatDate(dateString, includeYear = false) {
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) {
-    return 'Invalid Date';
-  }
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = date.toLocaleString('en-US', { month: 'short' });
-  const year = includeYear ? ` ${date.getFullYear()}` : '';
-  return `${day} ${month}${year}`;
-}
-
 function getBrowserName() {
   const { userAgent } = navigator;
 
@@ -661,7 +650,6 @@ export {
   parseTime,
   getReadTimeLabel,
   getReadTimeIcon,
-  formatDate,
   getTag,
   i18n,
   getPageTags,
