@@ -168,6 +168,9 @@ async function setMetadata(meta, document, url) {
           meta['Module Title'] = jsonData[key];
         } else if (key === 'isPremium') {
           meta.isPremium = Boolean(jsonData[key]);
+        } else if (key === 'effectiveDate') {
+          const date = new Date(jsonData[key]);
+          meta.Date = date.toISOString();
         }
       });
     } catch (error) {
@@ -471,8 +474,10 @@ const authorBioBlock = (document) => {
     if (authorTag) {
       const link = `${EDS_DOMAIN}/fragments/authors/${authorTag}`;
 
-      const cells = [['Fragment']];
-      cells.push([link]);
+      const anchor = document.createElement('a');
+      anchor.href = link;
+      anchor.textContent = anchor.href;
+      const cells = [['Fragment'], [anchor]];
 
       const table = WebImporter.DOMUtils.createTable(cells, document);
       authorBio.replaceWith(table);
@@ -787,7 +792,7 @@ const sidebarBlock = (document, type = 'left') => {
 
   if (sidebars?.length) {
     sidebars.forEach((sidebar) => {
-      if (sidebar.textContent && sidebar.textContent.trim() !== '') {
+      if (sidebar.textContent && sidebar.textContent.trim() !== '' && !sidebar.textContent.trim().includes('.article-date')) {
         const dividers = sidebar.querySelectorAll('.divider.line');
         let topDivider = false;
         let bottomDivider = false;

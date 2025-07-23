@@ -641,6 +641,30 @@ const authorBioBlockDetection = (document) => {
   return null;
 };
 
+const gatedContentDetection = (document) => {
+  const json = {};
+  const contentToggle = document.querySelector('.content-toggle');
+  if (contentToggle) {
+    json['gated-content-toggle'] = true;
+    json['gated-content'] = true;
+  }
+
+  const gatedContent = document.querySelector('.login-teaser');
+  if (gatedContent) {
+    json['gated-content-login-teaser'] = true;
+    json['gated-content'] = true;
+  }
+
+  const oneClickSub = document.querySelector('.one-click-subscription-form');
+
+  if (oneClickSub) {
+    json['one-click-subscription-form'] = true;
+    json['gated-content'] = true;
+  }
+
+  return json;
+};
+
 const customReportElements = (document) => {
   const report = {
     template: fetchTemplate(document),
@@ -791,14 +815,11 @@ const customReportElements = (document) => {
     report['table-classes'] = tableOccurences;
   }
 
-  const gatedContent = document.querySelector('.blur-background .login-teaser');
-  if (gatedContent) {
-    report['gated-content'] = true;
-  }
-
-  const oneClickSub = oneClickSubDetect(document);
-  if (oneClickSub) {
-    report['one-click-subscription-form'] = oneClickSub;
+  const gatedContent = gatedContentDetection(document);
+  if (gatedContent && Object.keys(gatedContent).length > 0) {
+    Object.keys(gatedContent).forEach((key) => {
+      report[key] = gatedContent[key];
+    });
   }
 
   return report;
