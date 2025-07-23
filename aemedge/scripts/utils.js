@@ -347,41 +347,6 @@ function urlByEnvType() {
   return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
 }
 
-function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true, getParts = []) {
-  const utcDate = new Date(utcDateString);
-  const options = {
-    timeZone: 'America/Chicago',
-    year: 'numeric',
-    month: 'long',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  };
-  const formatter = new Intl.DateTimeFormat('en-US', options);
-  const parts = formatter.formatToParts(utcDate);
-  const day = parts.find((p) => p.type === 'day').value;
-  const month = parts.find((p) => p.type === 'month').value;
-  const year = parts.find((p) => p.type === 'year').value;
-  const hour = parts.find((p) => p.type === 'hour').value.padStart(2, '0');
-  const minute = parts.find((p) => p.type === 'minute').value.padStart(2, '0');
-  const second = parts.find((p) => p.type === 'second').value.padStart(2, '0');
-  const period = parts.find((p) => p.type === 'dayPeriod').value.toUpperCase();
-
-  if (getParts.length) {
-    return getParts.reduce((acc, cur) => {
-      acc[cur] = parts.find((p) => p.type === cur).value;
-      return acc;
-    }, {});
-  }
-
-  if (lastUpdatedFormat) {
-    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
-  }
-  return `${month} ${day}, ${year} ${hour}:${minute} ${period} ${showCT ? 'CT' : ''}`;
-}
-
 function isDateBefore(date1, date2) {
   let d1;
   let d2;
@@ -655,7 +620,6 @@ export {
   getPageTags,
   getBrowserName,
   getEnvType,
-  formatToCentralTime,
   isDateBefore,
   urlByEnvType,
   getCurrentLangInWords,
