@@ -43,19 +43,12 @@ const buildSearchRequest = () => {
     });
   }
 
+  if (searchConfig.basePaths) {
+    request.basePaths = searchConfig.basePaths;
+  }
+
   if (searchConfig.template && Object.keys(searchConfig.template).length > 0) {
     request.templates = Object.keys(searchConfig.template);
-    Object.keys(searchConfig.template).forEach((template) => {
-      if (searchConfig.template[template].paths?.length > 0) {
-        searchConfig.template[template].paths.forEach((path) => {
-          if (request.basePaths) {
-            request.basePaths.push(path);
-          } else {
-            request.basePaths = [path];
-          }
-        });
-      }
-    });
   }
 
   if (searchConfig.sortOptions) {

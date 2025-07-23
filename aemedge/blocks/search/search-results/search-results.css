@@ -160,8 +160,16 @@
   width: 100%;
 }
 
-.block.search .results-wrapper.columns-2 .result-card img {
-  display: none;
+.block.search .card-lesson .result-footer {
+  font-style: italic;
+}
+
+.block.search .card-course .result-footer {
+  font-weight: 700;
+}
+
+.block.search .card-standalone-lesson .icon-list p {
+  font-style: italic;
 }
 
 .block.search .results-wrapper.columns-2 .result-card .icon {

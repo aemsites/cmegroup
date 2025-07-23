@@ -108,7 +108,6 @@ const recursiveOptionsGet = (node, collected = [], excluded = new Set()) => {
       if (!excluded.has(key) && !excluded.has(value.path)) {
         collected.push({ value: key, label: value.title || key, path: value.path });
       }
-      recursiveOptionsGet(value, collected, excluded);
     }
   });
   return collected;
@@ -154,7 +153,9 @@ const createDropdown = async (options, labelText, order, filterId, taxonomy) => 
     if (!resolved) return;
 
     const { node, isStar } = resolved;
-    if (!resultMap.has(opt)) resultMap.set(opt, { path: opt, title: node.title || opt });
+    if (!resultMap.has(opt) && !isStar) {
+      resultMap.set(opt, { path: opt, title: node.title || opt });
+    }
 
     if (isStar) {
       const subOptions = recursiveOptionsGet(node, [], excluded);
@@ -523,13 +524,12 @@ const templateFiltering = (key, block, index) => {
     const header = child?.firstElementChild?.textContent.trim().toLowerCase();
     if (!header || header === key.toLowerCase()) {
       const templates = child?.children[1]?.textContent.trim().split(',');
-      const paths = child?.children[2]?.textContent.trim().split(',');
-      const cardType = child?.children[3]?.textContent.trim();
+      const cardType = child?.children[2]?.textContent.trim();
 
-      if (templates.length && paths.length && cardType) {
+      if (templates.length && cardType) {
         if (!searchConfig.template) searchConfig.template = {};
         templates.forEach((template) => {
-          searchConfig.template[template] = { template, paths, cardType };
+          searchConfig.template[template] = { template, cardType };
         });
       }
     } else {

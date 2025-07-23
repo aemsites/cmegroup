@@ -92,6 +92,7 @@ async function setMetadata(meta, document, url) {
 
   document.querySelector('.authors')?.remove();
 
+  // todo piyush effectiveDate first from the jcr content
   const articleDate = document.querySelector('.article-date');
   if (articleDate?.textContent) {
     meta.Date = articleDate?.textContent?.trim();
