@@ -1,6 +1,6 @@
 import {
-  apiGetAbsolute,
-  apiPostAbsolute,
+  apiGet,
+  apiPost,
   getResponseData,
   isEmpty,
 } from '../utils/index.js';
@@ -86,7 +86,7 @@ async function getStorageProgress(moduleId) {
   const url = `${urlByEnvType()}/services/education-track/public-progress`;
   try {
     const progress = syncStorage.get();
-    const response = await apiPostAbsolute(url, {
+    const response = await apiPost(url, {
       progress,
     });
     const data = getResponseData(response);
@@ -115,7 +115,7 @@ export async function getProgress(moduleId, moduleType) {
   const url = `${urlByEnvType()}/services/education-track/${
     moduleType === 'lesson' ? 'progress-for-lesson' : 'progress-for-course'}/${moduleId}`;
   try {
-    const response = await apiGetAbsolute(url);
+    const response = await apiGet(url);
     const data = getResponseData(response);
     return mapModule(data);
   } catch (e) {
@@ -133,7 +133,7 @@ async function postProgress(
 ) {
   try {
     const url = `${urlByEnvType()}/services/education-track/progress`;
-    const response = await apiPostAbsolute(url, {
+    const response = await apiPost(url, {
       progress,
     });
     return getResponseData(response) || {};

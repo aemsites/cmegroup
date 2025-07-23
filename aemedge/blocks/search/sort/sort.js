@@ -3,6 +3,7 @@ import {
 } from '../../../scripts/dom-helpers.js';
 import searchConfig from '../search-config.js';
 import { i18n } from '../../../scripts/utils.js';
+import { urlUpdate } from '../search-utils.js';
 
 const createDropdown = (options, labelText, onChange, dropdownId = 'sort-dropdown') => {
   const dropdown = div({ class: 'dropdown', id: dropdownId });
@@ -26,8 +27,14 @@ const createDropdown = (options, labelText, onChange, dropdownId = 'sort-dropdow
       optionText.classList.add('selected');
       dropdownToggle.textContent = opt.name;
       searchConfig.sortOptions = opt;
+      // Reset page number when sort changes
+      if (searchConfig.pagination) {
+        searchConfig.pagination.currentPage = 1;
+      }
       dropdownMenu.classList.remove('visible');
       dropdownToggle.classList.remove('visible');
+      // Update URL to reflect changes including page number reset
+      urlUpdate();
       await onChange?.(opt, index);
     });
 

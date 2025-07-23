@@ -35,11 +35,14 @@ class Nav {
     this.desktop = window.matchMedia('(min-width: 75rem)');
     this.login = this.body.querySelector('.login');
     this.login.classList.remove('header');
-    this.login.classList.add('menu');
+     this.login.classList.add('menu');
     this.navOverlay = createElement('div', { class: 'nav-overlay' });
     this.searchOverlay = createElement('div', { class: 'search-overlay' });
     this.searchDrawer = createElement('div', { class: 'search-panel' });
-    this.searchDrawerCloseBtn = createElement('button', { class: 'btn-search-panel-close' });
+    this.searchDrawerCloseBtn = createElement('button', {
+      class: 'btn-search-panel-close',
+      'aria-label': 'Close search',
+    });
     this.nav = createElement('nav', { class: 'nav' });
     this.navDesktopRight = createElement('div', { class: 'nav-desktop-right' });
     this.mobileRightSide = createElement('div', { class: 'site-header-right' });
@@ -366,7 +369,10 @@ class Nav {
 
   // eslint-disable-next-line class-methods-use-this
   decorateSearchNav = () => {
-    const searchBtn = createElement('button', { class: 'btn-search' });
+    const searchBtn = createElement('button', {
+      class: 'btn-search',
+      'aria-label': 'Open search',
+    });
     searchBtn.addEventListener('click', async () => {
       this.openSearchDrawer();
     });
@@ -387,7 +393,7 @@ class Nav {
     return curtain;
   };
 
-  // eslint-disable-next-line class-methods-use-this
+// eslint-disable-next-line class-methods-use-this
   checkPage = () => {
     const navStyleMeta = getMetadata('nav-style');
     if (navStyleMeta === 'home') {
@@ -453,7 +459,10 @@ class Nav {
   };
 
   buildLoginDesktopNav = async () => {
-    const loginUserBtn = createElement('button', { class: 'btn-user-menu-toggle' });
+    const loginUserBtn = createElement('button', {
+      class: 'btn-user-menu-toggle',
+      'aria-label': 'User account menu',
+    });
     this.logDesktopGreeting();
     loginUserBtn.setAttribute('aria-expanded', false);
     loginUserBtn.setAttribute('aria-controls', 'login-nav-menu-0');
