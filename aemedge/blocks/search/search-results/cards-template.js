@@ -1,6 +1,7 @@
 import {
   a, div, h3, img, p,
 } from '../../../scripts/dom-helpers.js';
+import { getTaxonomy } from '../../../scripts/taxonomy.js';
 import {
   formatDate, i18n, parseTime, getReadTimeLabel, getReadTimeIcon,
   createElement,
@@ -37,7 +38,19 @@ const addImage = (card, item) => {
   }
 };
 
-// Article card
+const resolveTaxonomyPath = (path, taxonomy) => {
+  const parts = path.split('/');
+  let current = taxonomy;
+
+  for (let i = 0; i < parts.length; i += 1) {
+    const key = parts[i];
+    if (!current[key]) return null;
+    current = current[key];
+  }
+
+  return { node: current };
+};
+
 const articleCard = async (card, item) => {
   const footer = div({ class: 'result-footer' }, item.date ? formatDate(item.date, true) : '');
   const subTemplates = item.metadata?.['sub-template']?.split(' ');
@@ -55,12 +68,19 @@ const articleCard = async (card, item) => {
     readIconSpan.appendChild(p(`${parsedTime} ${readLabel?.toLowerCase()}`));
   }
 
-  // todo piyush get data from the taxonomy sheet
+  const taxonomy = await getTaxonomy('tags');
+  let header = null;
+
+  if (item.metadata['primary-topic']) {
+    const resolved = resolveTaxonomyPath(item.metadata['primary-topic'], taxonomy);
+    header = div({ class: 'result-header' }, resolved.node.title);
+  }
 
   const anchor = buildBaseCard({
     title: item.title,
     description: item.description,
     path: item.path,
+    header,
     children: parsedTime ? [readIconSpan, footer] : [footer],
   });
 
@@ -144,7 +164,6 @@ const courseCard = async (card, item) => {
 
 // Lesson card
 const lessonCard = async (card, item) => {
-  item.date = '2025-07-23'; // todo piyush remove this
   // todo piyush add course name in place item.metadata?.['module-title']
   await labeledCardLesson(card, item, `Lesson ${item.metadata?.['module-title']
     ? `: ${item.metadata?.['module-title']}` : ''}`, item.date ? formatDate(item.date) : '');
