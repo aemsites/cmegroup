@@ -1,7 +1,6 @@
 import { readBlockConfig, getMetadata } from '../../scripts/aem.js';
 import {
   setTracking,
-  apiGet,
   LocalStorageUtil,
   getRandomNumber,
 } from '../../scripts/utils/index.js';
@@ -119,7 +118,7 @@ function loadLanguage(videoPlayer, language) {
 
 function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions) {
   block.setAttribute('data-video-status', 'loaded');
-  const languageVideoPlayer = videojs(document.getElementById(`cmeVideo${videoId}-${randomNumber}`));
+  const languageVideoPlayer = videojs(block.querySelector(`#cmeVideo${videoId}_${randomNumber}`));
   if (language) {
     languageVideoPlayer.on('loadedmetadata', () => {
       loadLanguage(languageVideoPlayer, language);
@@ -127,9 +126,10 @@ function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions)
   }
   languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
   languageVideoPlayer.on('loadeddata', () => {
-    document.getElementById(`cmeVideo${videoId}-${randomNumber}`).closest('.brightcove-player').querySelector('.brightcove-img-placeholder').remove();
-    document.getElementById(`cmeVideo${videoId}-${randomNumber}`).classList.remove('video-hidden');
-    document.getElementById(`cmeVideo${videoId}-${randomNumber}`).closest('.brightcove-player').querySelector('.vjs-playlist')?.classList.remove('video-hidden');
+    block.querySelector('.brightcove-placeholder')?.remove();
+    block.querySelector(`#cmeVideo${videoId}_${randomNumber}`).classList.remove('video-hidden');
+    block.querySelector('.vjs-playlist')?.classList.remove('video-hidden');
+    block.querySelector('.brightcove-player').classList.remove('loading');
     const { name: videoName } = languageVideoPlayer.mediainfo;
     const percentsAlreadyTracked = [];
 
@@ -243,7 +243,7 @@ function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions)
   }
 
   if (videojs.browser.TOUCH_ENABLED) {
-    const container = document.getElementById(`cmeVideoContainer${videoId}`);
+    const container = block.querySelector(`#cmeVideoContainer${videoId}_${randomNumber}`);
     if (container) {
       const element = container.getElementsByClassName('vjs-playlist')[0];
       if (element) {
@@ -270,17 +270,27 @@ async function getBrightcovePoster(accountId, videoId) {
   }
   const url = `https://edge.api.brightcove.com/playback/v1/accounts/${accountId}/videos/${videoId}`;
 
-  const response = await apiGet(url, {}, {
-    Accept: `application/json;pk=${policyKey}`,
-  });
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Accept: `application/json;pk=${policyKey}`,
+      },
+      priority: 'high',
+    });
 
-  const { data } = response;
+    const { poster, thumbnail } = await response.json();
 
-  if (!data) {
-    return '';
+    if (!poster || !thumbnail) {
+      return '';
+    }
+
+    return poster || thumbnail || '';
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('Unable to pull placeholder from Playback API');
   }
 
-  return data.poster || data.images?.thumbnail?.src || '';
+  return '';
 }
 
 function updatePosterCache(videoId, posterUrl) {
@@ -305,22 +315,18 @@ function changeQualityPosterUrl(posterUrl) {
   return posterUrl.replace(/\d*x\d*(\/match\/image)/g, (match, group1) => `${isDesktop ? '800x400' : '400x225'}${group1}`);
 }
 
-async function getPosterWithCache(accountId, videoId) {
+async function getPosterWithCache(block, accountId, videoId) {
   const cache = getPosterCache();
-
-  if (cache[videoId]) {
-    return changeQualityPosterUrl(cache[videoId].posterUrl);
-  }
-
-  const posterUrl = await getBrightcovePoster(accountId, videoId);
+  let posterUrl = cache[videoId]?.posterUrl || await getBrightcovePoster(accountId, videoId);
 
   if (!posterUrl) {
     return '';
   }
 
+  posterUrl = changeQualityPosterUrl(posterUrl);
   updatePosterCache(videoId, posterUrl);
 
-  return changeQualityPosterUrl(posterUrl);
+  return posterUrl;
 }
 
 async function loadVideoLibrary(
@@ -355,41 +361,44 @@ export default async function decorate(block) {
     cc,
     language,
   } = dataBlock;
-  const videoPoster = await getPosterWithCache(accountId, videoId);
-
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
   const videoStyles = calculateStyles(aspectRatio, playlist);
   const randomNumber = getRandomNumber();
 
+  const posterUrl = await getPosterWithCache(block, accountId, videoId);
+
   block.innerHTML = `
   <div class='brightcove-player'>
-    <div
-      class="brightcove-img-placeholder ${videoStyles}"
-      style="background-image: url('${videoPoster}')">
-      <div class="placeholder-play-btn"></div>
+    <div class="brightcove-placeholder">
+      <img class="brightcove-img-placeholder ${videoStyles}" src="${posterUrl}" fetchpriority="high" />
+      <div class="spinner-in-video">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
     </div>
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
         <div
-          id="cmeVideoContainer${videoId}-${randomNumber}"
-          class="${videoStyles} ${playlist ? 'vjs-playlist-player-container' : 'brightcove-video'}"
+          id="cmeVideoContainer${videoId}_${randomNumber}"
+          class="brightcove-player ${videoStyles} ${playlist ? 'vjs-playlist-player-container' : 'brightcove-video'}"
         >
-          <video-js
-            id="cmeVideo${videoId}-${randomNumber}"
+          <video
+            id="cmeVideo${videoId}_${randomNumber}"
             data-account="${accountId}"
             data-player="${dataPlayer}"
             data-embed="default"
-            class="cmeBcVideo video-hidden
-            ${playlistId !== '' && playlistLocation === 'B' ? 'playlist-bottom' : ''}" 
+            class="cmeBcVideo video-js video-hidden ${playlistId !== '' && playlistLocation === 'B' ? 'playlist-bottom' : ''}" 
             controls=""
             ${playlistId !== '' ? `data-playlist-id="${playlistId}"` : ''}
             ${playlistId !== '' && videoId ? `data-playlist-video-id="${videoId}"` : ''}
             ${playlistId === '' ? `data-video-id="${videoId}"` : ''}
             data-application-id="true"
-            preload="none"
+            preload="${block.classList.contains('preload') ? 'metadata' : 'none'}"
             loading="lazy">
-          </video-js>
+          </video>
           ${playlistId !== '' && playlistLocation === 'R' ? '<div class="vjs-playlist video-hidden"></div>' : ''}
         </div>
         ${playlistId !== '' && playlistLocation === 'B' ? '<div class="vjs-playlist playlist-bottom video-hidden"></div>' : ''}
@@ -398,10 +407,14 @@ export default async function decorate(block) {
   </div>
   `;
 
+  const player = block.querySelector('.brightcove-player');
+
   if (playlistId || block.classList.contains('live')) {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
+          player.classList.add('loading');
+
           loadVideoLibrary(block, accountId, dataPlayer, language, videoId, randomNumber, {
             mute: block.classList.contains('live'),
             play: block.classList.contains('live'),
@@ -413,7 +426,11 @@ export default async function decorate(block) {
 
     observer.observe(block);
   } else {
-    block.querySelector('.brightcove-img-placeholder').addEventListener('click', () => {
+    const placeholder = player.querySelector('.brightcove-placeholder');
+
+    placeholder.addEventListener('click', () => {
+      player.classList.add('loading');
+
       loadVideoLibrary(block, accountId, dataPlayer, language, videoId, randomNumber, {
         play: true,
       });
