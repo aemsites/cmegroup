@@ -35,7 +35,7 @@ class Nav {
     this.desktop = window.matchMedia('(min-width: 75rem)');
     this.login = this.body.querySelector('.login');
     this.login.classList.remove('header');
-     this.login.classList.add('menu');
+    this.login.classList.add('menu');
     this.navOverlay = createElement('div', { class: 'nav-overlay' });
     this.searchOverlay = createElement('div', { class: 'search-overlay' });
     this.searchDrawer = createElement('div', { class: 'search-panel' });
@@ -393,7 +393,7 @@ class Nav {
     return curtain;
   };
 
-// eslint-disable-next-line class-methods-use-this
+  // eslint-disable-next-line class-methods-use-this
   checkPage = () => {
     const navStyleMeta = getMetadata('nav-style');
     if (navStyleMeta === 'home') {
