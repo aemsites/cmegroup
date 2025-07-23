@@ -9,7 +9,7 @@
   flex: 1 1 340px;
   flex-direction: row;
   min-height: 150px;
-  max-height: 200px;
+  max-height: 220px;
 }
 
 .block.search .result-card .result-item {
