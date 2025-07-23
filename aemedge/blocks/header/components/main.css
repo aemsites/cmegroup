@@ -189,7 +189,7 @@ body {
             }
 
             &.login-nav {
-              @media (width>= 993px) {
+              @media (width >= 993px) {
                 display: none;
               }
 
@@ -352,7 +352,7 @@ body {
             }
 
             & .navigation-link {
-              @media (width>= 993px) {
+              @media (width >= 993px) {
                 color: var(--gray7);
                 background-color: var(--white);
                 padding: 0;
@@ -365,7 +365,7 @@ body {
 
             &.is-open {
               & .submenu-home-link {
-                @media (width>=993px) {
+                @media (width >=993px) {
                   display: block;
                   margin-top: 3.125rem;
                   margin-bottom: 0.9375rem;
@@ -374,7 +374,7 @@ body {
                   @media (width >= 481px) {
                     font-size: 1rem;
                   }
-                  @media (width>=993px) {
+                  @media (width >= 993px) {
                     padding: 0;
                     margin: 0;
                     display: inline-block;
@@ -481,7 +481,7 @@ body {
                 position: relative;
 
                 & > a {
-                  @media (width>=993px) {
+                  @media (width >= 993px) {
                     color: var(--blue5);
                     &::after {
                       border-bottom: 0.5625rem solid var(--blue2);
@@ -505,7 +505,7 @@ body {
                 & .submenu {
                   display: block;
 
-                  @media (width>=993px) {
+                  @media (width >= 993px) {
                     display: flex;
                     position: fixed;
                     top: 6.25rem;
@@ -522,7 +522,7 @@ body {
                   }
 
                   & .submenu-container {
-                    @media (width>=993px) {
+                    @media (width >= 993px) {
                       display: flex;
                       margin: 0 auto;
                       max-width: 100rem;
@@ -540,7 +540,7 @@ body {
                     & .submenu-column {
                       padding: 0 1.875rem 0;
 
-                      @media (width>=993px) {
+                      @media (width >= 993px) {
                         width: 66.6666%;
                         padding: 0;
                       }

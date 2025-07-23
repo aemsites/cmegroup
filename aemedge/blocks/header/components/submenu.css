@@ -8,7 +8,7 @@ body
   .submenu-container
   .submenu-column {
   & .submenu-list {
-    @media (width>=993px) {
+    @media (width >= 993px) {
       display: flex;
       margin: 0;
     }
@@ -122,10 +122,12 @@ body
         & a.submenu-link::after {
           content: var(--icon-plus);
         }
+
         &.is-open {
           & .submenu-content {
             display: block;
           }
+
           & a.submenu-link::after {
             content: var(--icon-minus);
           }
@@ -145,11 +147,13 @@ body
         font-weight: 700;
         cursor: auto;
       }
+
       &::after {
         @media (width >= 993px) {
           display: none;
         }
       }
+
       & em {
         @media (width >= 993px) {
           letter-spacing: 0.0938rem;
