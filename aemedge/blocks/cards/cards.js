@@ -22,6 +22,17 @@ import { convertReadTimeFormat, convertMediaTypeToSubtemplate } from '../../scri
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
 
+function createSpinner() {
+  const spinner = createElement('div', { class: 'spinner-cards' });
+  spinner.innerHTML = `
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  `;
+  return spinner;
+}
+
 async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
   if (block.classList.contains('links')) {
@@ -130,6 +141,75 @@ async function createStaticCards(block) {
     });
 
     cardsContainer.append(ul);
+  } else if (block.classList.contains('static-slider')) {
+    const cardElements = [];
+    let sliderConfig = null;
+    let disabledOnDesktop = false;
+    let inverse = false;
+
+    [...block.children].forEach((row) => {
+      const li = createElement('li');
+      const courseQty = row.querySelector('em');
+      const title = row.querySelector('h3');
+      const text = title.nextElementSibling;
+      const linkEl = createElement('a');
+      const linkSrc = row.querySelector('a').href;
+      linkEl.innerText = row.querySelector('a').innerText;
+      linkEl.href = linkSrc;
+
+      const mainContainer = createElement('div', { class: 'cards-body-container' });
+      const cardBody = createElement('div', { class: 'cards-body' });
+      const cardTitleContainer = createElement('div', { class: 'cards-title-container' });
+      const cardTextContainer = createElement('div', { class: 'cards-text-container' });
+
+      cardTitleContainer.append(courseQty);
+      cardTitleContainer.append(title);
+      cardTextContainer.append(text);
+      cardBody.append(cardTitleContainer);
+      cardBody.append(cardTextContainer);
+      cardBody.append(linkEl);
+      mainContainer.append(cardBody);
+      li.append(mainContainer);
+      cardElements.push(li);
+    });
+
+    block.textContent = '';
+    block.append(createSpinner());
+
+    sliderConfig = {
+      slidesToShow: 'auto',
+      slidesToScroll: 1,
+      scrollLock: false,
+      itemWidth: 270,
+      exactWidth: true,
+      draggable: true,
+      duration: 2,
+      responsive: [
+        {
+          breakpoint: 481,
+          settings: {
+            itemWidth: 434,
+          },
+        },
+      ],
+    };
+    inverse = true;
+    disabledOnDesktop = true;
+
+    if (cardElements && cardElements.length) {
+      const ul = createElement('ul', null, ...cardElements);
+      cardsContainer.append(ul);
+      block.textContent = '';
+      block.appendChild(cardsContainer);
+      if (sliderConfig) {
+        buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
+      }
+    } else {
+      const noResultsLabel = createElement('h4', null, 'No results found');
+      const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
+      block.textContent = '';
+      block.append(noResults);
+    }
   } else {
     const ul = document.createElement('ul');
     [...block.children].forEach((row) => {
@@ -282,17 +362,6 @@ async function fetchAndFilterDataLegacyEndpoint(endpoint) {
     console.error('Error loading data:', error);
     return [];
   }
-}
-
-function createSpinner() {
-  const spinner = createElement('div', { class: 'spinner-cards' });
-  spinner.innerHTML = `
-    <div></div>
-    <div></div>
-    <div></div>
-    <div></div>
-  `;
-  return spinner;
 }
 
 export async function createDynamicCards(block) {
