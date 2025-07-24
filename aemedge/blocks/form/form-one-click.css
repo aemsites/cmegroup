@@ -3,10 +3,15 @@
   background-color: var(--citron);
   color: var(--blue2);
   padding: 1.875rem;
+  width: 100%;
 
   & form {
     gap: unset;
     width: unset;
+
+    & a {
+      cursor: pointer;
+    }
 
     &.logged-in {
       .field-wrapper:not(.logged-in) {
@@ -20,7 +25,7 @@
     }
 
     & .rich-text {
-      margin-bottom: 0;
+      margin: 0;
 
       & p {
         color: var(--blue2);
@@ -36,17 +41,17 @@
     }
   }
 
+  & a:not(.button) {
+    color: var(--blue4);
+
+    &:hover {
+      color: var(--blue3);
+    }
+  }
+
   & .recaptcha-disclaimer {
     color: inherit;
     line-height: 1.125rem;
-
-    & a {
-      color: var(--blue4);
-
-      &:hover {
-        color: var(--blue3);
-      }
-    }
   }
 
   & [data-submitting="true"] {

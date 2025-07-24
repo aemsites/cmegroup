@@ -189,7 +189,6 @@ export default async function initFloatingElements(doc, header) {
     console.error('fail to load alerts:', error);
   }
 
-  let lastScrollTop = 0;
   const main = doc.querySelector('main');
   const alerts = doc.querySelectorAll('.alert-item');
 
@@ -205,15 +204,15 @@ export default async function initFloatingElements(doc, header) {
       header.style.top = `${visibleAlertsHeight - 1}px`;
       main.style.paddingTop = `${offsetTop}px`;
 
-      const navMenus = doc.querySelectorAll('.nav-nav-item-menu');
+      const navMenus = doc.querySelectorAll('.submenu');
       navMenus.forEach((menu) => {
-        if (menu.closest('.nav-nav-item.has-menu.is-open')) {
+        if (menu.closest('.is-open')) {
           menu.style.top = `${offsetTop}px`;
         } else {
           menu.style.top = '-312.5rem';
         }
       });
-      const menuOpen = doc.querySelector('.nav-curtain.is-open');
+      const menuOpen = doc.querySelector('.nav-overlay.is-open');
       if (menuOpen) {
         menuOpen.style.top = `${offsetTop}px`;
       }
@@ -232,18 +231,6 @@ export default async function initFloatingElements(doc, header) {
 
     updatePositions();
   }
-
-  window.addEventListener('scroll', () => {
-    const scrollTop = window.pageYOffset || doc.documentElement.scrollTop;
-    if (scrollTop > lastScrollTop) {
-      if (!header.classList.contains('hidden')) {
-        header.classList.add('hidden');
-      }
-    } else if (header.classList.contains('hidden')) {
-      header.classList.remove('hidden');
-    }
-    lastScrollTop = scrollTop;
-  });
 
   const resizeObserver = new ResizeObserver(() => {
     store.dispatch(updateFloatingElements());
