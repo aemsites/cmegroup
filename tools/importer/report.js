@@ -299,16 +299,16 @@ const cardsComponentCheck = (document) => {
   return modifyMap(map, 'cards');
 };
 
-const oneClickSubDetect = (document) => {
-  const oneClickSub = document.querySelectorAll('.one-click-subscription-form');
-  const map = {};
+// const oneClickSubDetect = (document) => {
+//   const oneClickSub = document.querySelectorAll('.one-click-subscription-form');
+//   const map = {};
 
-  if (oneClickSub?.length) {
-    map['one-click-subscription-form'] = true;
-  }
+//   if (oneClickSub?.length) {
+//     map['one-click-subscription-form'] = true;
+//   }
 
-  return modifyMap(map, 'one-click-subscription-form');
-};
+//   return modifyMap(map, 'one-click-subscription-form');
+// };
 
 const detectColumns = (document) => {
   const rows = document.querySelectorAll('.row');
