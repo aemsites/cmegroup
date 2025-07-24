@@ -1,30 +1,26 @@
 /* eslint-disable max-len */
-import { readBlockConfig } from '../../scripts/aem.js';
-import createOptimizedPicture from '../../scripts/utils/picture.js';
-import { fetchAndFilterDataIndex } from '../../scripts/indexing.js';
+import {
+  buildIndexFilter,
+  getIndexedContent,
+} from '../../scripts/indexing.js';
+
 import {
   createElement,
   parseTime,
+  getReadTimeLabel,
+  getReadTimeIcon,
   formatDate,
   i18n,
   decodeHtmlEntities,
   buildSlider,
-  urlByEnvType,
   formatToCentralTime,
   getUTCfromDateString,
+  readBlockConfig,
 } from '../../scripts/utils.js';
+import { convertReadTimeFormat, convertMediaTypeToSubtemplate } from '../../scripts/legacyContentMapping.js';
 
-const ECONOMIC_EVENTS_ENDPOINT = `${urlByEnvType()}/services/economic-release-events`;
-
-function buildIndexConfig(config) {
-  return {
-    template: config.template,
-    tagsAnd: config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [],
-    tagsOr: config['optional-tags'] ? config['optional-tags'].split(',').map((tag) => tag.trim().toLowerCase()) : [],
-    relativeDateFrom: config['relative-date-from'], // Number in days
-    relativeDateTo: config['relative-date-to'], // Number in days
-  };
-}
+import createOptimizedPicture from '../../scripts/utils/picture.js';
+import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
 
 async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
@@ -148,16 +144,18 @@ async function createStaticCards(block) {
     ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
     cardsContainer.append(ul);
   }
-  return cardsContainer;
+  block.textContent = '';
+  block.append(cardsContainer);
 }
 
-export function createDynamicCard({
-  image,
-  title,
-  description,
-  path,
-  'read-time': readTime,
-}) {
+export async function createDynamicCardCourse(contentData) {
+  const {
+    metadata: { 'og:image': image },
+    title,
+    description,
+    path,
+    readTime,
+  } = contentData;
   const imageWrapper = createElement('div', { class: 'cards-card-image' });
   const link = createElement('a', { href: path });
   imageWrapper.style.backgroundImage = `url('${image}')`;
@@ -166,7 +164,7 @@ export function createDynamicCard({
   bodyWrapper.innerHTML = `
     <div class="card-subtitle">
     course
-    <span>${parseTime(readTime)}</span>
+    <span>${await parseTime(readTime)}</span>
     </div>
     <div class="cards-card-title">
       <h3>${title}</h3>
@@ -191,18 +189,22 @@ export async function createDynamicCardArticle({ content }) {
     date,
     title,
   } = dynamicProperties;
+  const durationMin = convertReadTimeFormat(duration);
+  const subTemplates = convertMediaTypeToSubtemplate(mediaType);
   const [
     readLabel,
-    watchLabel,
+    durationStr,
   ] = await Promise.all([
-    i18n('Read'),
-    i18n('Watch'),
+    getReadTimeLabel(subTemplates),
+    parseTime(durationMin),
   ]);
 
   const li = document.createElement('li');
   const linkEl = document.createElement('a');
   linkEl.href = path;
-  linkEl.classList.add(mediaType === 'video-webinar' ? 'video-card' : 'article-card');
+  if (subTemplates.includes('video')) {
+    linkEl.classList.add('video-card');
+  }
 
   const imageContainer = document.createElement('div');
   imageContainer.className = 'cards-image-container';
@@ -218,7 +220,8 @@ export async function createDynamicCardArticle({ content }) {
 
   const cardTime = document.createElement('span');
   cardTime.className = 'cards-time';
-  cardTime.innerText = `${parseTime(duration)} ${mediaType === 'video-webinar' ? watchLabel : readLabel}`;
+  cardTime.innerText = `${durationStr} ${readLabel}`;
+  cardTime.prepend(getReadTimeIcon(subTemplates));
 
   const cardDate = document.createElement('span');
   cardDate.className = 'cards-date';
@@ -266,15 +269,7 @@ function createDynamicCardUpcomingEvent(content) {
   return createElement('li', null, link);
 }
 
-export async function fetchAndFilterDataCourse(searchTags = []) {
-  const data = await fetchAndFilterDataIndex({
-    template: 'course',
-    tagsAnd: searchTags,
-  });
-  return data;
-}
-
-export async function fetchAndFilterDataLegacyEndpoint(endpoint) {
+async function fetchAndFilterDataLegacyEndpoint(endpoint) {
   try {
     const response = await fetch(endpoint);
     if (!response.ok) {
@@ -289,59 +284,32 @@ export async function fetchAndFilterDataLegacyEndpoint(endpoint) {
   }
 }
 
-function getCurrentDateFormatted() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+function createSpinner() {
+  const spinner = createElement('div', { class: 'spinner-cards' });
+  spinner.innerHTML = `
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  `;
+  return spinner;
 }
 
-async function fetchAndFilterUpcomingEconodayEvent() {
-  try {
-    const opts = {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        date: getCurrentDateFormatted(),
-        size: 10,
-      }),
-    };
-    const response = await fetch(ECONOMIC_EVENTS_ENDPOINT, opts);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    return data.events;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error loading data:', error);
-    return [];
-  }
-}
-
-export async function createDynamicCards(block, numEntries = null) {
+export async function createDynamicCards(block) {
   const config = readBlockConfig(block);
+  block.textContent = '';
+  block.append(createSpinner());
   let filteredData;
   let cardElements;
   let sliderConfig = null;
   let disabledOnDesktop = false;
   let inverse = false;
   if (block.classList.contains('course')) {
-    const tags = config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [];
-    const indexConfig = buildIndexConfig(config);
-    indexConfig.template = 'course';
-    indexConfig.tagsOr = tags;
-    filteredData = await fetchAndFilterDataIndex(indexConfig);
-    // Sort by timestamp in descending order
-    filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    // If numEntries is specified, slice the array to that length
-    if (numEntries) {
-      filteredData = filteredData.slice(0, numEntries);
-    }
+    const indexFilter = buildIndexFilter(config);
+    indexFilter.templates = ['course'];
+    indexFilter.orderBy = 'lastModified';
+    indexFilter.sortDirection = 'desc';
+    filteredData = await getIndexedContent(indexFilter);
     sliderConfig = {
       slidesToShow: 'auto',
       slidesToScroll: 1,
@@ -361,7 +329,7 @@ export async function createDynamicCards(block, numEntries = null) {
     };
     inverse = true;
     disabledOnDesktop = true;
-    cardElements = filteredData.map(createDynamicCard);
+    cardElements = await Promise.all(filteredData.map(createDynamicCardCourse));
   } else if (block.classList.contains('article')) {
     const { endpoint } = config;
     filteredData = await fetchAndFilterDataLegacyEndpoint(endpoint);
@@ -390,16 +358,16 @@ export async function createDynamicCards(block, numEntries = null) {
     cardElements = await Promise.all(filteredData.map(createDynamicCardThumbnailMedium));
   } else if (block.classList.contains('upcoming-events')) {
     if (block.classList.contains('econoday-events')) {
-      filteredData = await fetchAndFilterUpcomingEconodayEvent();
+      filteredData = await getEconomicReleaseEvents(new Date().toISOString().slice(0, 10), null, null, null, 10);
     } else {
-      const indexConfig = buildIndexConfig(config);
-      indexConfig.template = 'event';
-      indexConfig.relativeDateFrom = 0;
-      indexConfig.relativeDateTo = 365;
-      indexConfig.orderBy = 'date';
-      indexConfig.sortDirection = 'asc';
-      indexConfig.limit = 10;
-      filteredData = await fetchAndFilterDataIndex(indexConfig);
+      const indexFilter = buildIndexFilter(config);
+      indexFilter.templates = ['event'];
+      indexFilter.relativeDateFrom = 0;
+      indexFilter.relativeDateTo = 365;
+      indexFilter.orderBy = 'date';
+      indexFilter.sortDirection = 'asc';
+      indexFilter.limit = 10;
+      filteredData = await getIndexedContent(indexFilter);
       filteredData.forEach((obj) => {
         obj.eventName = obj.title;
         obj.url = obj.path;
@@ -431,27 +399,23 @@ export async function createDynamicCards(block, numEntries = null) {
   if (cardElements && cardElements.length) {
     const ul = createElement('ul', null, ...cardElements);
     const cardsContainer = createElement('div', null, ul);
+    block.textContent = '';
     block.appendChild(cardsContainer);
     if (sliderConfig) {
       buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
     }
-    return cardsContainer;
+  } else {
+    const noResultsLabel = createElement('h4', null, 'No results found');
+    const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
+    block.textContent = '';
+    block.append(noResults);
   }
-  const noResultsLabel = createElement('h4', null, 'No results found');
-  const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
-  return noResults;
 }
 
 export default async function decorate(block) {
-  let cards = null;
   if (block.classList.contains('dynamic')) {
-    cards = await createDynamicCards(block);
+    createDynamicCards(block);
   } else {
-    cards = await createStaticCards(block);
-  }
-
-  if (cards) {
-    block.textContent = '';
-    block.append(cards);
+    createStaticCards(block);
   }
 }

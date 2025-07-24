@@ -1,5 +1,9 @@
-import { readBlockConfig } from '../../scripts/aem.js';
-import { i18n, getPageTags, createElement } from '../../scripts/utils.js';
+import {
+  i18n,
+  getPageTags,
+  createElement,
+  readBlockConfig,
+} from '../../scripts/utils.js';
 import ffetch from '../../scripts/ffetch.js';
 
 const defaultUrl = '/education/browse-all';
@@ -57,7 +61,11 @@ async function filterIncludedTags(tags) {
 /**
  * Build tags list
  */
-async function buildTagList(block, tagsLablel, tags, listPage) {
+async function buildTagList(block, listPage) {
+  const [tagsLablel, tags] = await Promise.all([
+    i18n('Tags'),
+    getPageTags(),
+  ]);
   if (!tags || tags.length === 0) return;
   const filteredTags = await filterIncludedTags(tags);
   if (!filteredTags || filteredTags.length === 0) return;
@@ -78,9 +86,5 @@ async function buildTagList(block, tagsLablel, tags, listPage) {
 export default async function decorate(block) {
   const config = readBlockConfig(block);
   block.textContent = '';
-  const [tagsLablel, tags] = await Promise.all([
-    i18n('Tags'),
-    getPageTags(),
-  ]);
-  buildTagList(block, tagsLablel, tags, config['list-page']);
+  buildTagList(block, config['list-page']);
 }

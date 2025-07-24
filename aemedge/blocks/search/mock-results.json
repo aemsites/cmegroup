@@ -1,29 +1,60 @@
 {
-  "results": [{
-    "type": "lesson",
-    "topic": "Introduction to Futures",
-    "assetClass": "Derivatives",
-    "product": "Futures",
-    "title": "Definition of a Futures Contract",
-    "description": "Learn more about the functions of a Futures contract, including the benefits of a standardized, exchange-traded contract.",
-    "date": "Jul 11, 2024",
-    "lessons": 0,
-    "template": "lesson",
-    "href": "www.google.com",
-    "image": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+  "pagination": {
+    "total": 250,
+    "count": 10,
+    "currentPage": 1,
+    "totalPages": 25
   },
-  {
-    "type": "course",
-    "topic": "Introduction to Futures",
-    "assetClass": "Derivatives",
-    "product": "Futures",
-    "title": "Introduction to Futures",
-    "description": "Learn about futures contracts, the role of a futures exchange, who participates in this market and how a futures trade works.",
-    "date": "Jul 11, 2024",
-    "lessons": 18,
-    "template": "article",
-    "href": "www.google.com",
-    "image": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
-  }],
-  "facet": []
+  "data": [
+    {
+      "path": "/content/us/en/sample1.html",
+      "template": "article",
+      "date": "2024-08-15T14:30:00Z",
+      "source": "helix",
+      "tags": ["shared:asset-class/interest-rates"],
+      "author": "Nicolás Pérez",
+      "title": "Understanding Interest Rates",
+      "description": "A primer on how interest rates work.",
+      "summary": "This document explains key concepts about interest rates.",
+      "keywords": ["interest", "rates", "economy"],
+      "language": "en",
+      "lastModified": "2024-08-16T10:15:00Z",
+      "readTime": 8,
+      "metadata": {
+        "type": "lesson",
+        "topic": "Introduction to Futures",
+        "assetClass": "Derivatives"
+      }
+    },
+    {
+      "path": "/content/us/en/sample2.html",
+      "template": "article",
+      "date": "2024-08-14T10:00:00Z",
+      "source": "helix",
+      "tags": ["shared:asset-class/interest-rates", "shared:topic/product-research"],
+      "author": "Sarah Johnson",
+      "title": "Interest Rate Futures Trading",
+      "description": "Learn about trading interest rate futures.",
+      "summary": "A comprehensive guide to trading interest rate futures.",
+      "keywords": ["futures", "trading", "interest rates"],
+      "language": "en",
+      "lastModified": "2024-08-15T08:30:00Z",
+      "readTime": 12,
+      "metadata": {
+        "type": "article",
+        "topic": "Advanced Trading",
+        "assetClass": "Derivatives"
+      }
+    }
+  ],
+  "facets": [
+    {
+      "tag": "shared:topic/product-research",
+      "count": 45
+    },
+    {
+      "tag": "shared:asset-class/interest-rates",
+      "count": 78
+    }
+  ]
 }

@@ -4,7 +4,7 @@ import {
   urlByEnvType,
 } from '../utils.js';
 import {
-  apiPostAbsolute,
+  apiPost,
   getResponseData,
 } from '../utils/index.js';
 import { loadScript, getMetadata } from '../aem.js';
@@ -167,7 +167,7 @@ async function handleDownloadClick(block) {
 async function getShareCertificateData(formData) {
   try {
     const url = `${urlByEnvType()}/services/course-certificate`;
-    const response = await apiPostAbsolute(url, formData);
+    const response = await apiPost(url, formData);
     return getResponseData(response, 'objectId');
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -291,35 +291,45 @@ export async function addCourseCertificate({
   lessonTitle,
   completedModule,
   showModal,
+  container,
+  isFromHistory = false,
 }) {
   const [
     viewCertificateLabel,
+    downloadCertificateLabel,
   ] = await Promise.all([
     i18n('View Certificate'),
+    i18n('Download Certificate'),
   ]);
-  const main = document.querySelector('main');
-  const courseHeading = main.querySelector('h1');
 
   const button = createElement(
     'button',
     { class: 'button secondary view-certificate', type: 'button' },
-    viewCertificateLabel,
+    isFromHistory ? downloadCertificateLabel : viewCertificateLabel,
   );
 
-  const openModal = () => {
+  const openModal = async () => {
     if (!isLoggedIn) {
-      return;
+      const { openAuthModal } = await import('./auth-modal.js');
+      openAuthModal();
+    } else {
+      openCertificateModal({
+        userName,
+        moduleId,
+        lessonTitle,
+        completedModule,
+      });
     }
-    openCertificateModal({
-      userName,
-      moduleId,
-      lessonTitle,
-      completedModule,
-    });
   };
 
   button.addEventListener('click', () => openModal());
-  courseHeading.insertAdjacentElement('afterend', button);
+  if (container) {
+    container.appendChild(button);
+  } else {
+    const main = document.querySelector('main');
+    const courseHeading = main.querySelector('h1');
+    courseHeading.insertAdjacentElement('afterend', button);
+  }
 
   if (showModal) {
     openModal();

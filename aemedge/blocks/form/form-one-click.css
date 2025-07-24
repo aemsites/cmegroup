@@ -1,0 +1,64 @@
+/* One Click Subscription Form specific styles */
+.form.one-click {
+  background-color: var(--citron);
+  color: var(--blue2);
+  padding: 1.875rem;
+  width: 100%;
+
+  & form {
+    gap: unset;
+    width: unset;
+
+    & a {
+      cursor: pointer;
+    }
+
+    &.logged-in {
+      .field-wrapper:not(.logged-in) {
+        display: none;
+      }
+    }
+
+    & .subscribed {
+      color: var(--blue2);
+      margin-bottom: 0;
+    }
+
+    & .rich-text {
+      margin: 0;
+
+      & p {
+        color: var(--blue2);
+        margin-bottom: 0;
+      }
+    }
+
+    & .privacy-text > * {
+      font-size: 0.75rem;
+      line-height: 1.125rem;
+      margin-top: 1.5rem !important;
+      margin-bottom: 0.625rem;
+    }
+  }
+
+  & a:not(.button) {
+    color: var(--blue4);
+
+    &:hover {
+      color: var(--blue3);
+    }
+  }
+
+  & .recaptcha-disclaimer {
+    color: inherit;
+    line-height: 1.125rem;
+  }
+
+  & [data-submitting="true"] {
+    display: none;
+
+    ~ .recaptcha-disclaimer {
+        display: none;
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import {
-  apiGetAbsolute,
-  apiPostAbsolute,
+  apiGet,
+  apiPost,
   getResponseData,
   isEmpty,
 } from '../utils/index.js';
@@ -65,16 +65,21 @@ const syncStorage = new SyncStorage();
 const mapModule = (data) => (
   {
     moduleId: data.educationElementId,
+    title: data.title,
+    description: data.description,
     completed: data.status === 'COMPLETED',
-    started: !!data.startDate,
-    progressPercentage: data.completionPercentage,
-    endDate: data.endDate,
-    lessons: data.lessons?.map(({ educationElementId, status, startDate }) => ({
-      moduleId: educationElementId,
-      completed: status === 'COMPLETED',
-      started: !!startDate,
+    progressPercentage: data.completionPercentage || 0,
+    lessons: data.lessons?.map((lesson) => ({
+      moduleId: lesson.educationElementId,
+      title: lesson.title,
+      completed: lesson.status === 'COMPLETED',
+      started: !!lesson.startDate,
     })),
     completedLessons: data.lessons?.filter(({ status }) => status === 'COMPLETED').length,
+    totalLessons: data.lessons?.length || 0,
+    started: !!data.startDate,
+    endDate: data.endDate,
+    updated: data.updated,
   }
 );
 
@@ -85,7 +90,7 @@ async function getStorageProgress(moduleId) {
   const url = `${urlByEnvType()}/services/education-track/public-progress`;
   try {
     const progress = syncStorage.get();
-    const response = await apiPostAbsolute(url, {
+    const response = await apiPost(url, {
       progress,
     });
     const data = getResponseData(response);
@@ -114,7 +119,7 @@ export async function getProgress(moduleId, moduleType) {
   const url = `${urlByEnvType()}/services/education-track/${
     moduleType === 'lesson' ? 'progress-for-lesson' : 'progress-for-course'}/${moduleId}`;
   try {
-    const response = await apiGetAbsolute(url);
+    const response = await apiGet(url);
     const data = getResponseData(response);
     return mapModule(data);
   } catch (e) {
@@ -132,7 +137,7 @@ async function postProgress(
 ) {
   try {
     const url = `${urlByEnvType()}/services/education-track/progress`;
-    const response = await apiPostAbsolute(url, {
+    const response = await apiPost(url, {
       progress,
     });
     return getResponseData(response) || {};
@@ -166,4 +171,25 @@ export async function postLesson(
     return module ? mapModule(module) : null;
   }
   return null;
+}
+
+/**
+ * History progress for current user
+ */
+export async function getUserProgress() {
+  const url = `${urlByEnvType()}/services/education-track/progress-for-user`;
+  try {
+    const response = await apiGet(url);
+    const data = getResponseData(response);
+    const mappedCourses = data.courses?.map(mapModule) || [];
+    const mappedLessons = data.lessons?.map(mapModule) || [];
+    return {
+      courses: mappedCourses,
+      lessons: mappedLessons,
+    };
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('EducationService => getUserProgress error:', e);
+    return [];
+  }
 }

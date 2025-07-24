@@ -1,5 +1,9 @@
-import { readBlockConfig } from '../../scripts/aem.js';
-import { setTracking } from '../../scripts/utils/index.js';
+import { readBlockConfig, getMetadata } from '../../scripts/aem.js';
+import {
+  setTracking,
+  LocalStorageUtil,
+  getRandomNumber,
+} from '../../scripts/utils/index.js';
 /*
  * For more info about the video's options please read:
  * https://github.com/brightcove/player-loader
@@ -14,6 +18,8 @@ import { setTracking } from '../../scripts/utils/index.js';
  * language
  */
 
+const BRIGHTCOVE_POSTER_CACHE_KEY = 'brightcovePosterCache';
+const BRIGHTCOVE_POSTER_CACHE_LIMIT = 10;
 const fireTracking = setTracking('custom', 'media', 'BrightcoveVideo');
 
 function calculateDataPlayerId(
@@ -110,9 +116,9 @@ function loadLanguage(videoPlayer, language) {
   }
 }
 
-function setPlayerReady(block, language, videoId) {
+function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions) {
   block.setAttribute('data-video-status', 'loaded');
-  const languageVideoPlayer = videojs(block.querySelector(`#cmeVideo${videoId}`));
+  const languageVideoPlayer = videojs(block.querySelector(`#cmeVideo${videoId}_${randomNumber}`));
   if (language) {
     languageVideoPlayer.on('loadedmetadata', () => {
       loadLanguage(languageVideoPlayer, language);
@@ -120,6 +126,10 @@ function setPlayerReady(block, language, videoId) {
   }
   languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
   languageVideoPlayer.on('loadeddata', () => {
+    block.querySelector('.brightcove-placeholder')?.remove();
+    block.querySelector(`#cmeVideo${videoId}_${randomNumber}`).classList.remove('video-hidden');
+    block.querySelector('.vjs-playlist')?.classList.remove('video-hidden');
+    block.querySelector('.brightcove-player').classList.remove('loading');
     const { name: videoName } = languageVideoPlayer.mediainfo;
     const percentsAlreadyTracked = [];
 
@@ -224,8 +234,16 @@ function setPlayerReady(block, language, videoId) {
     // GMT - Events to Track
   });
 
+  if (autoplayOptions.mute) {
+    languageVideoPlayer.volume(0);
+  }
+
+  if (autoplayOptions.play) {
+    languageVideoPlayer.play();
+  }
+
   if (videojs.browser.TOUCH_ENABLED) {
-    const container = document.getElementById(`cmeVideoContainer${videoId}`);
+    const container = block.querySelector(`#cmeVideoContainer${videoId}_${randomNumber}`);
     if (container) {
       const element = container.getElementsByClassName('vjs-playlist')[0];
       if (element) {
@@ -236,7 +254,90 @@ function setPlayerReady(block, language, videoId) {
   }
 }
 
-async function loadVideoLibrary(block, videoAccount, videoPlayer, language, videoId) {
+function getPosterCache() {
+  try {
+    return LocalStorageUtil.get(BRIGHTCOVE_POSTER_CACHE_KEY, true) ?? {};
+  } catch {
+    return {};
+  }
+}
+
+async function getBrightcovePoster(accountId, videoId) {
+  const policyKey = getMetadata('brightcove-policy-key');
+
+  if (!policyKey) {
+    return '';
+  }
+  const url = `https://edge.api.brightcove.com/playback/v1/accounts/${accountId}/videos/${videoId}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Accept: `application/json;pk=${policyKey}`,
+      },
+      priority: 'high',
+    });
+
+    const { poster, thumbnail } = await response.json();
+
+    if (!poster || !thumbnail) {
+      return '';
+    }
+
+    return poster || thumbnail || '';
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('Unable to pull placeholder from Playback API');
+  }
+
+  return '';
+}
+
+function updatePosterCache(videoId, posterUrl) {
+  const cache = getPosterCache();
+  const entries = Object.entries(cache);
+
+  if (entries.length >= BRIGHTCOVE_POSTER_CACHE_LIMIT) {
+    const oldestKey = entries[0][0];
+    delete cache[oldestKey];
+  }
+
+  cache[videoId] = {
+    posterUrl,
+    ts: Date.now(),
+  };
+
+  LocalStorageUtil.set(BRIGHTCOVE_POSTER_CACHE_KEY, cache);
+}
+
+function changeQualityPosterUrl(posterUrl) {
+  const isDesktop = window.innerWidth >= 1201;
+  return posterUrl.replace(/\d*x\d*(\/match\/image)/g, (match, group1) => `${isDesktop ? '800x400' : '400x225'}${group1}`);
+}
+
+async function getPosterWithCache(block, accountId, videoId) {
+  const cache = getPosterCache();
+  let posterUrl = cache[videoId]?.posterUrl || await getBrightcovePoster(accountId, videoId);
+
+  if (!posterUrl) {
+    return '';
+  }
+
+  posterUrl = changeQualityPosterUrl(posterUrl);
+  updatePosterCache(videoId, posterUrl);
+
+  return posterUrl;
+}
+
+async function loadVideoLibrary(
+  block,
+  videoAccount,
+  videoPlayer,
+  language,
+  videoId,
+  randomNumber,
+  autoplayOptions = {},
+) {
   if (block.getAttribute('data-video-status') === 'loaded') {
     return;
   }
@@ -245,7 +346,7 @@ async function loadVideoLibrary(block, videoAccount, videoPlayer, language, vide
   script.async = true;
   document.head.appendChild(script);
   script.onload = async () => {
-    await setPlayerReady(block, language, videoId);
+    await setPlayerReady(block, language, videoId, randomNumber, autoplayOptions);
   };
 }
 
@@ -262,34 +363,77 @@ export default async function decorate(block) {
   } = dataBlock;
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
-  const videoStyles = calculateStyles(aspectRatio, playlistLocation);
+  const videoStyles = calculateStyles(aspectRatio, playlist);
+  const randomNumber = getRandomNumber();
+
+  const posterUrl = await getPosterWithCache(block, accountId, videoId);
+
   block.innerHTML = `
   <div class='brightcove-player'>
+    <div class="brightcove-placeholder">
+      <img class="brightcove-img-placeholder ${videoStyles}" src="${posterUrl}" fetchpriority="high" />
+      <div class="spinner-in-video">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </div>
     <div class='brightcove-video'>
       <div class='brightcove-wrapper'>
         <div
-          id="cmeVideoContainer${videoId}"
-          class="${videoStyles} ${playlist ? 'vjs-playlist-player-container' : 'brightcove-video'}"
+          id="cmeVideoContainer${videoId}_${randomNumber}"
+          class="brightcove-player ${videoStyles} ${playlist ? 'vjs-playlist-player-container' : 'brightcove-video'}"
         >
-          <video-js
-            id="cmeVideo${videoId}"
+          <video
+            id="cmeVideo${videoId}_${randomNumber}"
             data-account="${accountId}"
             data-player="${dataPlayer}"
             data-embed="default"
-            class="cmeBcVideo" 
+            class="cmeBcVideo video-js video-hidden ${playlistId !== '' && playlistLocation === 'B' ? 'playlist-bottom' : ''}" 
             controls=""
             ${playlistId !== '' ? `data-playlist-id="${playlistId}"` : ''}
             ${playlistId !== '' && videoId ? `data-playlist-video-id="${videoId}"` : ''}
             ${playlistId === '' ? `data-video-id="${videoId}"` : ''}
-            data-application-id="true">
-          </video-js>
-          ${playlistId !== '' && playlistLocation === 'R' ? '<div class="vjs-playlist"></div>' : ''}
+            data-application-id="true"
+            preload="${block.classList.contains('preload') ? 'metadata' : 'none'}"
+            loading="lazy">
+          </video>
+          ${playlistId !== '' && playlistLocation === 'R' ? '<div class="vjs-playlist video-hidden"></div>' : ''}
         </div>
-        ${playlistId !== '' && playlistLocation === 'B' ? '<div class="vjs-playlist"></div>' : ''}
+        ${playlistId !== '' && playlistLocation === 'B' ? '<div class="vjs-playlist playlist-bottom video-hidden"></div>' : ''}
       </div>
     </div>
   </div>
   `;
 
-  loadVideoLibrary(block, accountId, dataPlayer, language, videoId);
+  const player = block.querySelector('.brightcove-player');
+
+  if (playlistId || block.classList.contains('live')) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          player.classList.add('loading');
+
+          loadVideoLibrary(block, accountId, dataPlayer, language, videoId, randomNumber, {
+            mute: block.classList.contains('live'),
+            play: block.classList.contains('live'),
+          });
+          observer.unobserve(block);
+        }
+      });
+    });
+
+    observer.observe(block);
+  } else {
+    const placeholder = player.querySelector('.brightcove-placeholder');
+
+    placeholder.addEventListener('click', () => {
+      player.classList.add('loading');
+
+      loadVideoLibrary(block, accountId, dataPlayer, language, videoId, randomNumber, {
+        play: true,
+      });
+    });
+  }
 }

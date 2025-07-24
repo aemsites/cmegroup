@@ -1,0 +1,65 @@
+body .header {
+  &.home {
+    .site-header-mobile-bar {
+      transition: 0.1s ease-in, top 0.7s, background-color 0.5s;
+    }
+
+    &.transparent {
+      @media (width >= 993px) {
+        background-color: rgb(58 70 79 / 80%);
+        box-shadow: 0 0.125rem 0.25rem 0 rgb(0 0 0 / 20%);
+      }
+
+      & .nav-desktop-right {
+        & button {
+          color: var(--white);
+        }
+      }
+
+      & .site-header-mobile-bar {
+        background-color: rgb(58 70 79 / 80%);
+        box-shadow: 0 0.125rem 0.25rem 0 rgb(0 0 0 / 20%);
+      }
+
+      & button.btn-menu-toggle,
+      & button.btn-menu-close,
+      & button.btn-search {
+        color: var(--gray6);
+      }
+
+      & .nav-wrapper {
+        & .nav {
+          background-color: rgb(58 70 79 / 80%);
+
+          @media (width >= 993px) {
+            background-color: transparent;
+          }
+
+          & .site-header-logo {
+            & svg {
+              & > path {
+                fill: var(--white);
+              }
+            }
+          }
+
+          & .navigation {
+            & .navigation-item {
+              &::before {
+                color: var(--white);
+              }
+
+              & > a {
+                color: var(--white);
+
+                @media (width >= 993px) {
+                  background-color: transparent;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

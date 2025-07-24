@@ -1,5 +1,11 @@
 /* eslint-disable import/prefer-default-export */
-import { loadScript, loadCSS, getMetadata } from './aem.js';
+import {
+  loadScript,
+  loadCSS,
+  getMetadata,
+  toCamelCase,
+  toClassName,
+} from './aem.js';
 import ffetch from './ffetch.js';
 
 /**
@@ -137,6 +143,7 @@ function i18n(key) {
  * Retrieves article-related metadata from the page
  * @returns {Object} Object containing article metadata
  * @property {string} template - The template type
+ * @property {string} subTemplates - The sub-templates
  * @property {string} readTime - Estimated reading time
  * @property {string} author - Article author
  * @property {string} tag - Article tag
@@ -144,6 +151,7 @@ function i18n(key) {
  */
 async function getArticleRelatedMetadata() {
   const template = getMetadata('template');
+  const subTemplates = getMetadata('sub-template')?.split(' ');
   const readTime = getMetadata('read-time');
   const author = getMetadata('author');
   const primaryTopic = getMetadata('primary-topic');
@@ -153,9 +161,10 @@ async function getArticleRelatedMetadata() {
 
   return {
     template,
+    subTemplates,
     readTime,
-    author: authorTag.title,
-    primaryTopic: primaryTopicTag.title,
+    author: authorTag?.title,
+    primaryTopic: primaryTopicTag?.title,
     date,
   };
 }
@@ -205,26 +214,72 @@ function generateRandomId() {
   return Math.random().toString(36).slice(-8);
 }
 
-function parseTime(time) {
-  if (!time) {
+async function parseTime(time) {
+  if (!time || !/^[0-9]+:[0-9]+$/.test(time)) {
     return '';
   }
-  const [minStr, secStr] = time.split(':');
-  const seconds = parseInt(secStr, 10);
-  let minutes = parseInt(minStr, 10);
-
-  if (minutes === 0) {
-    minutes = 1;
-  } else if (seconds > 30) {
-    minutes += 1;
+  const [
+    hrLabel,
+    minLabel,
+  ] = await Promise.all([
+    i18n('Hr'),
+    i18n('Min'),
+  ]);
+  const [hrStr, minStr] = time.split(':');
+  const minutes = parseInt(minStr, 10);
+  const hours = parseInt(hrStr, 10);
+  if (hours > 0) {
+    return `${hours} ${hrLabel}${minutes ? ` ${minutes} ${minLabel}` : ''}`;
   }
+  return `${minutes} ${minLabel}`;
+}
 
-  if (minutes >= 60) {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours} Hr${mins ? ` ${mins} Min` : ''}`;
+async function getReadTimeLabel(subTemplates) {
+  if (!subTemplates || subTemplates.length === 0) {
+    return '';
   }
-  return `${minutes} Min`;
+  const [
+    readLabel,
+    watchLabel,
+    listenLabel,
+  ] = await Promise.all([
+    i18n('Read'),
+    i18n('Watch'),
+    i18n('Listen'),
+  ]);
+  if (subTemplates.includes('text')) {
+    return readLabel;
+  }
+  if (subTemplates.includes('video')) {
+    return watchLabel;
+  }
+  if (subTemplates.includes('podcast')) {
+    return listenLabel;
+  }
+  return '';
+}
+
+function getReadTimeIcon(subTemplates) {
+  if (!subTemplates || subTemplates.length === 0) {
+    return '';
+  }
+  let readIconName = '';
+  if (subTemplates.includes('text')) {
+    readIconName = 'list';
+  }
+  if (subTemplates.includes('video')) {
+    readIconName = 'play';
+  }
+  if (subTemplates.includes('podcast')) {
+    readIconName = 'audio';
+  }
+  const readIcon = createElement('img', {
+    src: `/aemedge/icons/${readIconName}.svg`,
+    alt: 'Read Time',
+    loading: 'lazy',
+  });
+  const readIconSpan = createElement('span', { class: `icon icon-${readIconName}` }, readIcon);
+  return readIconSpan;
 }
 
 function formatDate(dateString, includeYear = false) {
@@ -480,11 +535,88 @@ function checkDomain(url) {
   return result;
 }
 
+/**
+ * Checks if a feature toggle is enabled via query parameter.
+ *
+ * @param {string} toggleName - The name of the toggle to check
+ * @param {string} expectedValue - The expected value (defaults to 'y')
+ * @returns {boolean} - True if the toggle is enabled, false otherwise
+ *
+ * @example
+ * // Check if course nav should be hidden
+ * if (isFeatureToggled('hideCourseNav')) {
+ *   // Hide course navigation
+ * }
+ *
+ * // Check for custom value
+ * if (isFeatureToggled('debugMode', 'true')) {
+ *   // Enable debug mode
+ * }
+ */
+function isFeatureToggled(toggleName, expectedValue = 'y') {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(toggleName) === expectedValue;
+}
+
+/**
+ * Extracts the config from a block.
+ * @param {Element} block The block element
+ * @returns {object} The block config
+ */
+function readBlockConfig(block, keysToCamelCase = false) {
+  const config = {};
+  block.querySelectorAll(':scope > div').forEach((row) => {
+    if (row.children) {
+      const cols = [...row.children];
+      if (cols[1]) {
+        const col = cols[1];
+        const name = keysToCamelCase
+          ? toCamelCase(cols[0].textContent) : toClassName(cols[0].textContent);
+        let value = '';
+        if (col.querySelector('a')) {
+          const as = [...col.querySelectorAll('a')];
+          if (as.length === 1) {
+            value = as[0].href;
+          } else {
+            value = as.map((a) => a.href);
+          }
+        } else if (col.querySelector('img')) {
+          const imgs = [...col.querySelectorAll('img')];
+          if (imgs.length === 1) {
+            value = imgs[0].src;
+          } else {
+            value = imgs.map((img) => img.src);
+          }
+        } else if (col.querySelector('p')) {
+          const ps = [...col.querySelectorAll('p')];
+          if (ps.length === 1) {
+            value = ps[0].textContent;
+          } else {
+            value = ps.map((p) => p.textContent);
+          }
+        } else value = row.children[1].textContent;
+        config[name] = value;
+      }
+    }
+  });
+  return config;
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+function toStartCase(str) {
+  return str.split(/[\s-_]+/).map(capitalize).join(' ');
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
   addDividerLine,
   parseTime,
+  getReadTimeLabel,
+  getReadTimeIcon,
   formatDate,
   getTag,
   i18n,
@@ -500,4 +632,7 @@ export {
   buildSlider,
   getUTCfromDateString,
   generateRandomId,
+  isFeatureToggled,
+  readBlockConfig,
+  toStartCase,
 };
