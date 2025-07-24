@@ -171,6 +171,7 @@ function updateFieldsAfterSubmit(form, block) {
 }
 
 function buildOneClickFormCookie(block, element) {
+  //  TODO: remove this when we've the handler for one click form
   const { isLoggedIn } = authentication.authenticationData;
   if (isLoggedIn) {
     return;
@@ -253,10 +254,17 @@ async function decorateOneClickForm(form, formData, block) {
     }
   } else {
     form.classList.add('logged-out');
+    //  TODO: remove following listeners when we've the handlers for login/register
     const register = form.querySelector('#form-register');
     register?.addEventListener('click', async (event) => {
-      buildOneClickFormCookie(block, event.target);
-      authentication.registration();
+      const { target: element } = event;
+      buildOneClickFormCookie(block, element);
+      authentication.registration(
+        (element.href || element.baseURI)?.replace(/^https?:\/\/[^/]+/, ''),
+        element.target,
+        element.getAttribute('data-target-description'),
+        element.getAttribute('data-no-activation-prompt'),
+      );
     });
     const login = form.querySelector('#form-login');
     login?.addEventListener('click', async (event) => {
@@ -339,7 +347,7 @@ function getUserDataFields(payload) {
     Email__c: payload.Email__c || info.Email,
     First_Name__c: payload.First_Name__c || info.Self_Input_First_Name__c || info.FirstName,
     Last_Name__c: payload.Last_Name__c || info.Self_Input_Last_Name__c || info.LastName,
-    Country_Code__c: payload.Country_Code__c || info.Country_Code__c,
+    Country_Code__c: payload.Country_Code__c || info.Country_Code__c || 'US',
     Job_Role__c: payload.Job_Role__c || info.Self_Input_Job_Role__c || info.Job_Role__c,
     Company_Name__c: payload.Company_Name__c || info.Self_Input_Company__c || info.Company,
     Company_Type__c: payload.Company_Type__c || info.Self_Input_Company_Type__c || info.Segment__c,

@@ -3,10 +3,15 @@
   background-color: var(--citron);
   color: var(--blue2);
   padding: 1.875rem;
+  width: 100%;
 
   & form {
     gap: unset;
     width: unset;
+
+    & a {
+      cursor: pointer;
+    }
 
     &.logged-in {
       .field-wrapper:not(.logged-in) {
