@@ -1,0 +1,99 @@
+:root {
+    --dp-bg: #fff;
+    --dp-border: #e0e0e0;
+    --dp-radius: 8px;
+    --dp-shadow: 0 2px 8px rgb(0 0 0 / 7%);
+    --dp-label: #333;
+    --dp-input-bg: #fafbfc;
+    --dp-input-border: #d1d5db;
+    --dp-input-focus: #0E4E9E;
+    --dp-button-bg: #0E4E9E;
+    --dp-button-bg-hover: #174ea6;
+    --dp-button-text: #fff;
+    --dp-preview-bg: #f5f5f5;
+    --dp-preview-text: #222;
+    --dp-timezone: #666;
+  }
+  
+  #picker {
+    max-width: 340px;
+    margin: 2.5em auto;
+    background: var(--dp-bg);
+    border: 1px solid var(--dp-border);
+    border-radius: var(--dp-radius);
+    box-shadow: var(--dp-shadow);
+    padding: 2em 1.5em 1.5em;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2em;
+  }
+  
+  #picker label {
+    color: var(--dp-label);
+    font-weight: 500;
+    margin-bottom: 0.5em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+  }
+  
+  #picker input[type='date'],
+  #picker input[type='time'] {
+    background: var(--dp-input-bg);
+    border: 1px solid var(--dp-input-border);
+    border-radius: 4px;
+    padding: 0.5em 0.7em;
+    font-size: 1em;
+    color: var(--dp-label);
+    transition: border 0.2s;
+  }
+  
+  #picker input[type='date']:focus,
+  #picker input[type='time']:focus {
+    border-color: var(--dp-input-focus);
+    outline: none;
+  }
+  
+  #use {
+    background: var(--dp-button-bg);
+    color: var(--dp-button-text);
+    border: none;
+    border-radius: 4px;
+    padding: 0.7em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 0.5em;
+    align-self: flex-end;
+  }
+  
+  #use:hover {
+    background: var(--dp-button-bg-hover);
+  }
+  
+  .preview-row {
+    margin: 1em 0 0.5em;
+    background: var(--dp-preview-bg);
+    border-radius: 4px;
+    padding: 0.7em 1em;
+    font-size: 1em;
+    color: var(--dp-preview-text);
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  
+  #preview {
+    font-family: monospace;
+    font-size: 1em;
+    color: var(--dp-preview-text);
+  }
+  
+  .timezone-info {
+    font-size: 0.95em;
+    color: var(--dp-timezone);
+    margin-bottom: 0.2em;
+    margin-top: -0.5em;
+    text-align: right;
+  }

@@ -214,26 +214,72 @@ function generateRandomId() {
   return Math.random().toString(36).slice(-8);
 }
 
-function parseTime(time) {
-  if (!time) {
+async function parseTime(time) {
+  if (!time || !/^[0-9]+:[0-9]+$/.test(time)) {
     return '';
   }
-  const [minStr, secStr] = time.split(':');
-  const seconds = parseInt(secStr, 10);
-  let minutes = parseInt(minStr, 10);
-
-  if (minutes === 0) {
-    minutes = 1;
-  } else if (seconds > 30) {
-    minutes += 1;
+  const [
+    hrLabel,
+    minLabel,
+  ] = await Promise.all([
+    i18n('Hr'),
+    i18n('Min'),
+  ]);
+  const [hrStr, minStr] = time.split(':');
+  const minutes = parseInt(minStr, 10);
+  const hours = parseInt(hrStr, 10);
+  if (hours > 0) {
+    return `${hours} ${hrLabel}${minutes ? ` ${minutes} ${minLabel}` : ''}`;
   }
+  return `${minutes} ${minLabel}`;
+}
 
-  if (minutes >= 60) {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours} Hr${mins ? ` ${mins} Min` : ''}`;
+async function getReadTimeLabel(subTemplates) {
+  if (!subTemplates || subTemplates.length === 0) {
+    return '';
   }
-  return `${minutes} Min`;
+  const [
+    readLabel,
+    watchLabel,
+    listenLabel,
+  ] = await Promise.all([
+    i18n('Read'),
+    i18n('Watch'),
+    i18n('Listen'),
+  ]);
+  if (subTemplates.includes('text')) {
+    return readLabel;
+  }
+  if (subTemplates.includes('video')) {
+    return watchLabel;
+  }
+  if (subTemplates.includes('podcast')) {
+    return listenLabel;
+  }
+  return '';
+}
+
+function getReadTimeIcon(subTemplates) {
+  if (!subTemplates || subTemplates.length === 0) {
+    return '';
+  }
+  let readIconName = '';
+  if (subTemplates.includes('text')) {
+    readIconName = 'list';
+  }
+  if (subTemplates.includes('video')) {
+    readIconName = 'play';
+  }
+  if (subTemplates.includes('podcast')) {
+    readIconName = 'audio';
+  }
+  const readIcon = createElement('img', {
+    src: `/aemedge/icons/${readIconName}.svg`,
+    alt: 'Read Time',
+    loading: 'lazy',
+  });
+  const readIconSpan = createElement('span', { class: `icon icon-${readIconName}` }, readIcon);
+  return readIconSpan;
 }
 
 function formatDate(dateString, includeYear = false) {
@@ -556,11 +602,21 @@ function readBlockConfig(block, keysToCamelCase = false) {
   return config;
 }
 
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+function toStartCase(str) {
+  return str.split(/[\s-_]+/).map(capitalize).join(' ');
+}
+
 export {
   createElement,
   getArticleRelatedMetadata,
   addDividerLine,
   parseTime,
+  getReadTimeLabel,
+  getReadTimeIcon,
   formatDate,
   getTag,
   i18n,
@@ -578,4 +634,5 @@ export {
   generateRandomId,
   isFeatureToggled,
   readBlockConfig,
+  toStartCase,
 };
