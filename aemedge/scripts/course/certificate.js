@@ -291,19 +291,21 @@ export async function addCourseCertificate({
   lessonTitle,
   completedModule,
   showModal,
+  container,
+  isFromHistory = false,
 }) {
   const [
     viewCertificateLabel,
+    downloadCertificateLabel,
   ] = await Promise.all([
     i18n('View Certificate'),
+    i18n('Download Certificate'),
   ]);
-  const main = document.querySelector('main');
-  const courseHeading = main.querySelector('h1');
 
   const button = createElement(
     'button',
     { class: 'button secondary view-certificate', type: 'button' },
-    viewCertificateLabel,
+    isFromHistory ? downloadCertificateLabel : viewCertificateLabel,
   );
 
   const openModal = async () => {
@@ -321,7 +323,13 @@ export async function addCourseCertificate({
   };
 
   button.addEventListener('click', () => openModal());
-  courseHeading.insertAdjacentElement('afterend', button);
+  if (container) {
+    container.appendChild(button);
+  } else {
+    const main = document.querySelector('main');
+    const courseHeading = main.querySelector('h1');
+    courseHeading.insertAdjacentElement('afterend', button);
+  }
 
   if (showModal) {
     openModal();
