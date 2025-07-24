@@ -16,14 +16,12 @@ export async function createPagination({
     nextLabel,
     lastLabel,
     prevVisible,
-    nextVisible,
   ] = await Promise.all([
     i18n('First'),
     i18n('Previous'),
     i18n('Next'),
     i18n('Last'),
     i18n('Prev'),
-    i18n('Next'),
   ]);
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
@@ -89,7 +87,7 @@ export async function createPagination({
       pagination.appendChild(li);
     });
 
-    pagination.appendChild(createBtn(nextLabel, nextVisible, currentPage === totalPages, () => {
+    pagination.appendChild(createBtn(nextLabel, nextLabel, currentPage === totalPages, () => {
       currentPage += 1;
       update(true);
     }));
