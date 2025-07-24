@@ -78,13 +78,15 @@
   border: none;
   display: flex;
   align-items: center;
+  background: none;
 }
 
 .block.search .search-icon::before {
-  content: "";
+  content: var(--icon-search);
   font-weight: normal;
   font-size: 1.25rem;
   color: var(--blue4);
+  font-family: var(--cme-group-icons);
 }
 
 .block.search .filters-wrapper {
