@@ -4,6 +4,11 @@
   line-height: 1.25rem;
 }
 
+.form-wrapper {
+  display: flex;
+  height: 100%;
+}
+
 .form .field-wrapper {
   display: grid;
   grid-auto-flow: row;
