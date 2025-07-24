@@ -6,6 +6,8 @@ import {
   parseTime,
   getReadTimeLabel,
   getReadTimeIcon,
+  setupDayjsLibs,
+  getCdtDate,
 } from '../../scripts/utils.js';
 
 async function decorateArticleHero(main) {
@@ -91,13 +93,14 @@ async function decorateArticleHero(main) {
   ] = await Promise.all([
     parseTime(readTime),
     getReadTimeLabel(subTemplates),
+    setupDayjsLibs(),
   ]);
   const readTimeText = readTime ? createElement('span', null, `${parsedTime} ${readLabel}`) : null;
   articleTime.append(readTimeText);
   featuredTag.textContent = primaryTopic;
   saveText.textContent = saveLabel;
   authors.textContent = `${byLabel} ${author}`;
-  articleDate.textContent = date;
+  articleDate.textContent = getCdtDate(date).format('DD MMM YYYY');
 }
 
 export default function articleTemplate() {
