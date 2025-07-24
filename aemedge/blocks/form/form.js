@@ -171,6 +171,7 @@ function updateFieldsAfterSubmit(form, block) {
 }
 
 function buildOneClickFormCookie(block, element) {
+  //  TODO: remove this when we've the handler for one click form
   const { isLoggedIn } = authentication.authenticationData;
   if (isLoggedIn) {
     return;
@@ -253,10 +254,17 @@ async function decorateOneClickForm(form, formData, block) {
     }
   } else {
     form.classList.add('logged-out');
+    //  TODO: remove following listeners when we've the handlers for login/register
     const register = form.querySelector('#form-register');
     register?.addEventListener('click', async (event) => {
-      buildOneClickFormCookie(block, event.target);
-      authentication.registration();
+      const { target: element } = event;
+      buildOneClickFormCookie(block, element);
+      authentication.registration(
+        (element.href || element.baseURI)?.replace(/^https?:\/\/[^/]+/, ''),
+        element.target,
+        element.getAttribute('data-target-description'),
+        element.getAttribute('data-no-activation-prompt'),
+      );
     });
     const login = form.querySelector('#form-login');
     login?.addEventListener('click', async (event) => {
@@ -333,6 +341,20 @@ async function createForm(formData, block) {
   return form;
 }
 
+function getUserDataFields(payload) {
+  const info = window.LocalStorageUtil?.get('userInfo', true);
+  return {
+    Email__c: payload.Email__c || info.Email,
+    First_Name__c: payload.First_Name__c || info.Self_Input_First_Name__c || info.FirstName,
+    Last_Name__c: payload.Last_Name__c || info.Self_Input_Last_Name__c || info.LastName,
+    Country_Code__c: payload.Country_Code__c || info.Country_Code__c || 'US',
+    Job_Role__c: payload.Job_Role__c || info.Self_Input_Job_Role__c || info.Job_Role__c,
+    Company_Name__c: payload.Company_Name__c || info.Self_Input_Company__c || info.Company,
+    Company_Type__c: payload.Company_Type__c || info.Self_Input_Company_Type__c || info.Segment__c,
+    Phone_Number__c: payload.Phone_Number__c || info.Self_Input_Mobile_Phone__c || info.Phone,
+  };
+}
+
 function generatePayload(form, formId, formName, formHighValue) {
   let payload = {};
 
@@ -353,6 +375,12 @@ function generatePayload(form, formId, formName, formHighValue) {
     }
   });
 
+  if (!formId) {
+    //  not salesforce forms
+    return payload;
+  }
+
+  //  salesforce forms
   payload.Form_ID__c = formId;
   payload.Form_Type__c = formName;
   payload.Page_URL__c = window.location.href;
@@ -365,22 +393,10 @@ function generatePayload(form, formId, formName, formHighValue) {
     payload.Fields_to_Update__c = fieldsToUpdate;
   }
 
-  let userData = [];
   const { isLoggedIn } = authentication.authenticationData;
   if (isLoggedIn) {
-    //  required user form fields
-    const userInfo = window.LocalStorageUtil?.get('userInfo', true);
-    userData = {
-      Email__c: payload.Email__c || userInfo.Email,
-      First_Name__c: payload.First_Name__c || userInfo.FirstName,
-      Last_Name__c: payload.Last_Name__c || userInfo.FirstName,
-      Country_Code__c: payload.Country_Code__c || userInfo.Country_Code__c,
-      Job_Role__c: payload.Job_Role__c || userInfo.Job_Role__c,
-      Company_Name__c: payload.Company_Name__c || userInfo.Company,
-      Company_Type__c: payload.Company_Type__c || userInfo.Segment__c,
-      Phone_Number__c: payload.Phone_Number__c || userInfo.Phone,
-    };
-    payload = { ...payload, ...userData };
+    //  required user data fields
+    payload = { ...payload, ...getUserDataFields(payload) };
   }
   if (!payload.Company_Name__c) {
     payload.Company_Name__c = 'Unknown';
@@ -552,7 +568,8 @@ async function checkOneClickFormCookie(form, block) {
   //  auto submit if cookie is present for this form (login/registration flow)
   const formId = block.getAttribute('form-id');
   const oneClickCookie = window.CookieUtil?.get('oneClickFormCookie', true);
-  if (formId.toString() === oneClickCookie?.formId) {
+  const { isLoggedIn } = authentication.authenticationData;
+  if (formId.toString() === oneClickCookie?.formId && (isLoggedIn || uriUtil.hasQuery('email'))) {
     await handleSubmit(form, block);
     window.CookieUtil?.remove('oneClickFormCookie');
   }
@@ -617,7 +634,9 @@ export default async function decorate(block) {
     return;
   }
 
+  block.textContent = '';
   block.append(createSpinner());
+
   const { authenticationData } = authentication;
   authenticationData.loginPromise.then(async () => {
     decorateForm(formData, block);
