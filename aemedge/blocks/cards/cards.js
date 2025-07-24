@@ -10,7 +10,6 @@ import {
   getReadTimeLabel,
   getReadTimeIcon,
   formatDate,
-  i18n,
   decodeHtmlEntities,
   buildSlider,
   formatToCentralTime,
