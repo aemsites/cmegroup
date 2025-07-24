@@ -275,7 +275,7 @@ class Nav {
       innerDiv?.classList.add('login-container');
       const targetDivs = innerDiv?.children;
       if (targetDivs) {
-        Array.from(targetDivs.children).forEach((child) => {
+        Array.from(targetDivs).forEach((child) => {
           child.classList.add('user-container');
         });
       }
