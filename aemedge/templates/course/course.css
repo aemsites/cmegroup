@@ -1,9 +1,24 @@
 @import './course-base.css';
-@import "./course/certificate.css";
+@import "./certificate.css";
 
 .begin-course-button {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  margin-top: 2rem;
   cursor: pointer;
   text-transform: uppercase;
+  text-align: center;
+
+  @media (width >= 481px) {
+    text-align: left;
+  }
+}
+
+.begin-course-button a {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+
+  @media (width >= 480px) {
+    width: auto;
+    display: inline-block;
+  }
 }

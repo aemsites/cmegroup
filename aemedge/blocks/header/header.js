@@ -39,7 +39,10 @@ class Nav {
     this.navOverlay = createElement('div', { class: 'nav-overlay' });
     this.searchOverlay = createElement('div', { class: 'search-overlay' });
     this.searchDrawer = createElement('div', { class: 'search-panel' });
-    this.searchDrawerCloseBtn = createElement('button', { class: 'btn-search-panel-close' });
+    this.searchDrawerCloseBtn = createElement('button', {
+      class: 'btn-search-panel-close',
+      'aria-label': 'Close search',
+    });
     this.nav = createElement('nav', { class: 'nav' });
     this.navDesktopRight = createElement('div', { class: 'nav-desktop-right' });
     this.mobileRightSide = createElement('div', { class: 'site-header-right' });
@@ -366,7 +369,10 @@ class Nav {
 
   // eslint-disable-next-line class-methods-use-this
   decorateSearchNav = () => {
-    const searchBtn = createElement('button', { class: 'btn-search' });
+    const searchBtn = createElement('button', {
+      class: 'btn-search',
+      'aria-label': 'Open search',
+    });
     searchBtn.addEventListener('click', async () => {
       this.openSearchDrawer();
     });
@@ -453,7 +459,10 @@ class Nav {
   };
 
   buildLoginDesktopNav = async () => {
-    const loginUserBtn = createElement('button', { class: 'btn-user-menu-toggle' });
+    const loginUserBtn = createElement('button', {
+      class: 'btn-user-menu-toggle',
+      'aria-label': 'User account menu',
+    });
     this.logDesktopGreeting();
     loginUserBtn.setAttribute('aria-expanded', false);
     loginUserBtn.setAttribute('aria-controls', 'login-nav-menu-0');

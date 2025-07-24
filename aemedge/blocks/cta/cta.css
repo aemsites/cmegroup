@@ -1,83 +1,105 @@
 .cta {
   position: relative;
   cursor: pointer;
-}
 
-.cta.promo {
-  color: var(--white);
-  display: flex;
-  flex-direction: column;
-  margin-top: 3.75rem;
-}
+  &.promo {
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    margin-top: 3.75rem;
 
-.cta.promo a {
-  position: relative;
-  text-decoration: none;
-  padding: 1.875rem;
-}
+    &.primary {
+      background-color: var(--blue1);
 
-.cta.promo picture {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-}
+      & .title p {
+        color: var(--white);
+      }
 
-.cta.promo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: left top;
-}
+      /* Smaller font size for description when both promo and primary classes are present */
+      & .description p {
+        margin-top: 1rem;
+        font-size: .875rem;
+        line-height: 1.875rem;
+      }
 
-.cta.promo .content-wrapper {
-  position: relative;
-  padding-right: 1.875rem;
-  padding-bottom: 3.875rem;
-  z-index: 1;
-}
+      & .footer::after {
+        font-family: var(--cme-group-icons);
+        content: var(--icon-arrow-right-thin);
+        font-size: 1.5rem; 
+        position: absolute;
+        color: var(--blue1);
+        background-color: var(--green);
+        padding: 1rem;
+        bottom: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
 
-.cta.promo p {
-  color: var(--white);
-  margin: 0;
-}
+    & a {
+      position: relative;
+      text-decoration: none;
+      padding: 1.875rem;
+    }
 
-.cta.promo .title p,
-.cta.promo .description p {
-  font-size: 1.875rem;
-  font-family: var(--heading-font-family);
-  line-height: 2.1875rem;
-  text-align: left;
-  word-wrap: break-word;
-  letter-spacing: .03em;
-}
+    & picture {
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+    }
 
-.cta.promo .title p {
-  color: var(--green2);
-}
+    & img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: left top;
+    }
 
-.cta.promo .footer {
-  position: absolute;
-  display: flex;
-  gap: 2rem;
-  margin-top: 1.875rem;
-  text-align: right;
-  z-index: 1;
-  bottom: 0;
-  right: 0;
-}
+    & .content-wrapper {
+      position: relative;
+      padding-right: 1.875rem;
+      padding-bottom: 3.875rem;
+      z-index: 1;
+    }
 
-.cta.promo .footer p {
-  font-size: 1.25rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding-right: 4.9rem;
-  padding-bottom: 1.2rem;
-}
+    & p {
+      color: var(--white);
+      margin: 0;
+    }
 
-.cta.promo .footer .icon {
-  position: absolute;
-  background-color: var(--green);
-  padding: 1rem;
-  bottom: 0;
-  right: 0;
+    & .title p,
+    & .description p {
+      font-size: 1.875rem;
+      font-family: var(--heading-font-family);
+      line-height: 2.1875rem;
+      text-align: left;
+      word-wrap: break-word;
+      letter-spacing: .03em;
+    }
+
+    & .title p {
+      color: var(--green2);
+    }
+
+    & .footer {
+      position: absolute;
+      display: flex;
+      gap: 2rem;
+      margin-top: 1.875rem;
+      text-align: right;
+      z-index: 1;
+      bottom: 0;
+      right: 0;
+
+      & p {
+        font-size: 1.25rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding-right: 4.9rem;
+        padding-bottom: 1.2rem;
+      }
+    }
+  }
 }

@@ -153,6 +153,27 @@ async function loadFonts() {
   }
 }
 
+/**
+ * Applies accessibility enhancements to icon links (addition to decorateIcons from aem.js)
+ * @param {Element} element The element to enhance
+ */
+function enhanceIconAccessibility(element = document) {
+  const iconLinks = element.querySelectorAll('a span.icon');
+  iconLinks.forEach((span) => {
+    const parentLink = span.closest('a');
+    if (parentLink && !parentLink.hasAttribute('aria-label')) {
+      const iconClass = [...span.classList].find((c) => c.startsWith('icon-'));
+      if (iconClass) {
+        const platformName = iconClass.substring(5)
+          .split('-')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        parentLink.setAttribute('aria-label', `Visit ${platformName}`);
+      }
+    }
+  });
+}
+
 function autolinkModals(element) {
   element.addEventListener('click', async (e) => {
     const origin = e.target.closest('a');
@@ -350,39 +371,8 @@ function decorateSidebars(main) {
 }
 
 /**
- * Creates and manages a simple lightbox for images
- */
-async function createSimpleLightbox() {
-  const images = document.querySelectorAll('img[data-lightbox]');
-
-  images.forEach((img) => {
-    img.addEventListener('click', async (e) => {
-      e.preventDefault();
-
-      // eslint-disable-next-line import/no-cycle
-      const { createModal } = await import('../blocks/modal/modal.js');
-
-      const imageElement = document.createElement('img');
-      imageElement.src = img.dataset.lightbox;
-      imageElement.alt = img.alt || '';
-      imageElement.className = 'lightbox-image-display';
-
-      try {
-        const modal = await createModal([imageElement]);
-        const dialog = modal.block.querySelector('dialog');
-        if (dialog) {
-          dialog.classList.add('lightbox-modal');
-          modal.showModal();
-        }
-      } catch (error) {
-        // Lightbox modal creation failed, continue without lightbox functionality
-      }
-    });
-  });
-}
-
-/**
- * Decorates images with lightbox functionality
+ * Decorates images with lightbox functionality.
+ * Add click handler directly lightboxed images to open the lightbox modal.
  * @param {Element} main The main element
  */
 function decorateLightboxImages(main) {
@@ -417,9 +407,36 @@ function decorateLightboxImages(main) {
     picture.parentNode.insertBefore(wrapper, picture);
     wrapper.appendChild(picture);
     wrapper.appendChild(icon);
-  });
 
-  createSimpleLightbox();
+    // Add click handler directly to image if not already done
+    if (!img.hasAttribute('data-lightbox-ready')) {
+      img.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        // eslint-disable-next-line import/no-cycle
+        const { createModal } = await import('../blocks/modal/modal.js');
+
+        const imageElement = document.createElement('img');
+        imageElement.src = img.dataset.lightbox;
+        imageElement.alt = img.alt || '';
+        imageElement.className = 'lightbox-image-display';
+
+        try {
+          const modal = await createModal([imageElement]);
+          const dialog = modal.block.querySelector('dialog');
+          if (dialog) {
+            dialog.classList.add('lightbox-modal');
+            modal.showModal();
+          }
+        } catch (error) {
+          // Lightbox modal creation failed, continue without lightbox functionality
+        }
+      });
+
+      // Add flag to help prevent multiple click handlers from being added
+      img.setAttribute('data-lightbox-ready', 'true');
+    }
+  });
 }
 
 /**
@@ -474,6 +491,7 @@ export function decorateMain(main) {
   // hopefully forward compatible button decoration
   decorateButtons(main);
   decorateIcons(main);
+  enhanceIconAccessibility();
   buildAutoBlocks(main);
   buildFragmentBlocks(main);
   decorateSections(main);
@@ -577,14 +595,18 @@ async function loadLazy(doc) {
 
   // Add feature toggle checks for header and footer
   if (!isFeatureToggled('hideHeader')) {
-    loadHeader(doc.querySelector('header')).then((header) => initFloatingElements(doc, header));
+    loadHeader(doc.querySelector('header')).then((header) => {
+      initFloatingElements(doc, header);
+      enhanceIconAccessibility(header);
+    });
   }
   if (!isFeatureToggled('hideFooter')) {
-    loadFooter(doc.querySelector('footer'));
+    loadFooter(doc.querySelector('footer')).then((footer) => {
+      enhanceIconAccessibility(footer);
+    });
   }
 
   dynamicBlocks(main);
-
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
   window.CookieUtil = CookieUtil;

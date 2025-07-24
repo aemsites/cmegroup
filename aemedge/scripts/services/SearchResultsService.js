@@ -1,7 +1,6 @@
 import {
   apiGet,
-  apiGetAbsolute,
-  apiPostAbsolute,
+  apiPost,
   getResponseData,
   DataCacheUtil,
 } from '../utils/index.js';
@@ -77,7 +76,7 @@ export async function getPopularSearch() {
   const url = window.globalConfig?.popularSearchUrl
     || `${urlByEnvType()}/services/popular-search`;
   try {
-    const response = await apiGetAbsolute(url);
+    const response = await apiGet(url);
     const data = getResponseData(response, 'data');
     return data.map((item) => {
       const { title } = item;
@@ -102,7 +101,7 @@ export async function getRecentSearch(loginInfo) {
 
   try {
     const loggedSearches = getResponseData(
-      await apiPostAbsolute(`${urlByEnvType()}/CmeWS/mvc/secured/MostRecentSearchedTerm/getByUser`, {
+      await apiPost(`${urlByEnvType()}/CmeWS/mvc/secured/MostRecentSearchedTerm/getByUser`, {
         ...getUserInfo(loginInfo),
       }),
       'data',
@@ -123,7 +122,7 @@ export async function getRecentSearch(loginInfo) {
       )
       .slice(0, 5);
 
-    apiPostAbsolute(
+    apiPost(
       `${urlByEnvType()}/CmeWS/mvc/secured/MostRecentSearchedTerm/fullUpdateByUser`,
       {
         ...getUserInfo(loginInfo),
@@ -147,7 +146,7 @@ export async function updateRecentSearch(
 ) {
   if (isLoggedIn) {
     try {
-      return apiPostAbsolute(
+      return apiPost(
         `${urlByEnvType()}/CmeWS/mvc/secured/MostRecentSearchedTerm/updateByUser`,
         {
           ...getUserInfo(loginInfo),
@@ -195,7 +194,7 @@ export async function getSearchSuggestions(
   limit,
 ) {
   try {
-    const response = await apiGetAbsolute(getSearchSuggestionsUrl(term));
+    const response = await apiGet(getSearchSuggestionsUrl(term));
     const data = getResponseData(response, 'data');
     if (data) {
       return data.slice(0, limit);
