@@ -3,13 +3,13 @@
   display: flex;
   gap: 0.7rem;
   border: 1px solid var(--gray4);
-  box-shadow: 0 1px 5px 1px rgb(178 178 178 / 70%);
+  box-shadow: inset 0 6px 0 0 #f1f5f7, 0 1px 5px 1px rgb(178 178 178 / 70%);
   transition: box-shadow 0.2s, border 0.2s, transform 0.15s;
   cursor: pointer;
   flex: 1 1 340px;
   flex-direction: row;
   min-height: 150px;
-  max-height: 200px;
+  max-height: 220px;
 }
 
 .block.search .result-card .result-item {
@@ -31,6 +31,7 @@
   line-height: 0.875rem;
   letter-spacing: 0.05em;
   line-clamp: 1;
+  margin-top: 0.25rem;
 }
 
 .block.search .result-card .result-title {
@@ -160,8 +161,61 @@
   width: 100%;
 }
 
-.block.search .results-wrapper.columns-2 .result-card img {
-  display: none;
+.block.search .card-lesson .result-footer {
+  font-style: italic;
+}
+
+.block.search .card-lesson-thumbnail .result-footer,
+.block.search .card-standalone-lesson-thumbnail .result-footer {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+.block.search .card-course .result-footer,
+.block.search .card-course-thumbnail .result-footer {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+.block.search .card-standalone-lesson .icon-list p {
+  font-style: italic;
+}
+
+.block.search .results-wrapper .result-card .icon {
+  color: var(--blue5);
+  display: flex;
+  flex-direction: row;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+.block.search .results-wrapper .result-card .icon-list p {
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 1;
+  color: var(--gray3);
+  font-size: 0.75rem;
+  text-align: start;
+  white-space: nowrap;
+}
+
+.block.search .results-wrapper .result-card .icon img {
+  display: block;
+  filter: invert(72%) sepia(27%) saturate(1035%) hue-rotate(165deg) brightness(102%) contrast(98%);
+}
+
+.block.search .card-article-thumbnail .icon-list p {
+  font-style: italic;
+}
+
+.block.search .card-article-thumbnail .result-footer {
+  font-style: italic;
 }
 
 @keyframes spin {

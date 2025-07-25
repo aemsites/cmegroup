@@ -9,7 +9,6 @@ import {
   parseTime,
   getReadTimeLabel,
   getReadTimeIcon,
-  i18n,
   decodeHtmlEntities,
   buildSlider,
   readBlockConfig,
@@ -78,57 +77,71 @@ async function createStaticCards(block) {
     }
     cardsContainer.append(mainContainer);
   } else if (block.classList.contains('static')) {
-    const [
-      readLabel,
-      watchLabel,
-    ] = await Promise.all([
-      i18n('Read'),
-      i18n('Watch'),
-    ]);
-    const ul = document.createElement('ul');
+    const cardElements = [];
+    let sliderConfig = null;
+    let disabledOnDesktop = false;
+    const inverse = false;
+
     [...block.children].forEach((row) => {
-      const li = document.createElement('li');
-      const image = row.querySelector('picture');
-      const title = row.querySelector('h3').innerText;
-      const linkSrc = row.querySelector('h3 a').href;
-      const date = row.querySelector('strong').innerText;
-      const format = row.querySelector('em').innerText;
-      const time = row.querySelector('em').parentNode.parentNode.nextElementSibling.querySelector('p').innerText;
-
-      const linkEl = document.createElement('a');
+      const li = createElement('li');
+      const courseQty = row.querySelector('em');
+      const title = row.querySelector('h3');
+      const text = title.nextElementSibling;
+      const linkEl = createElement('a');
+      const linkSrc = row.querySelector('a').href;
+      linkEl.innerText = row.querySelector('a').innerText;
       linkEl.href = linkSrc;
-      linkEl.classList.add(`${format === 'video' ? 'video-card' : 'article-card'}`);
 
-      const imageContainer = document.createElement('div');
-      imageContainer.className = 'cards-image-container';
-      imageContainer.append(image);
-      imageContainer.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
+      const mainContainer = createElement('div', { class: 'cards-body-container' });
+      const cardBody = createElement('div', { class: 'cards-body' });
+      const cardTitleContainer = createElement('div', { class: 'cards-title-container' });
+      const cardTextContainer = createElement('div', { class: 'cards-text-container' });
 
-      const mainContainer = document.createElement('div');
-      mainContainer.className = 'cards-body-container';
-      const cardSubtitle = document.createElement('div');
-      cardSubtitle.className = 'cards-subtitle';
-      const cardTime = document.createElement('span');
-      cardTime.className = 'cards-time';
-      cardTime.innerText = `${parseTime(time)} ${format === 'video' ? watchLabel : readLabel}`;
-      const cardDate = document.createElement('span');
-      cardDate.className = 'cards-date';
-      cardDate.innerText = date;
-      const cardTitle = document.createElement('h3');
-      cardTitle.innerHTML = title;
+      cardTitleContainer.append(courseQty);
+      cardTitleContainer.append(title);
 
-      mainContainer.append(cardTime);
-      mainContainer.append(cardDate);
-      mainContainer.append(cardTitle);
+      if (
+        text
+        && text.tagName.toLowerCase() === 'p'
+        && !text.classList.contains('button-container')
+      ) {
+        cardTextContainer.append(text);
+      }
 
-      linkEl.append(imageContainer);
-      linkEl.append(mainContainer);
-
-      li.append(linkEl);
-      ul.append(li);
+      cardBody.append(cardTitleContainer);
+      cardBody.append(cardTextContainer);
+      cardBody.append(linkEl);
+      mainContainer.append(cardBody);
+      li.append(mainContainer);
+      cardElements.push(li);
     });
 
-    cardsContainer.append(ul);
+    sliderConfig = {
+      slidesToShow: 'auto',
+      slidesToScroll: 1,
+      scrollLock: false,
+      itemWidth: 270,
+      exactWidth: true,
+      draggable: true,
+      duration: 2,
+      responsive: [
+        {
+          breakpoint: 481,
+          settings: {
+            itemWidth: 434,
+          },
+        },
+      ],
+    };
+    disabledOnDesktop = cardElements.length <= 4;
+
+    if (cardElements && cardElements.length) {
+      const ul = createElement('ul', null, ...cardElements);
+      cardsContainer.append(ul);
+      block.textContent = '';
+      block.appendChild(cardsContainer);
+      buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
+    }
   } else {
     const ul = document.createElement('ul');
     [...block.children].forEach((row) => {
