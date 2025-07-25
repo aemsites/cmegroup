@@ -146,15 +146,13 @@ function decorateSections(main) {
  * @param {Element} main The main container element
  */
 function initParallaxSections(main) {
-  const parallaxSections = main.querySelectorAll('.section.parallax[data-background-image]:not([data-parallax-processed])');
+  const parallaxSections = main.querySelectorAll('.section.parallax[data-background-image]');
 
   parallaxSections.forEach((section) => {
     const { backgroundImage } = section.dataset;
     if (backgroundImage) {
       section.style.backgroundImage = `url('${backgroundImage}')`;
-      // Clean up the data attribute and mark as processed
       delete section.dataset.backgroundImage;
-      section.dataset.parallaxProcessed = 'true';
     }
   });
 }
