@@ -2,12 +2,15 @@ import {
   createElement,
   i18n,
   urlByEnvType,
+  setupDayjsLibs,
+  getCdtDate,
+  loadScript,
 } from '../utils.js';
 import {
   apiPost,
   getResponseData,
 } from '../utils/index.js';
-import { loadScript, getMetadata } from '../aem.js';
+import { getMetadata } from '../aem.js';
 import { createModal } from '../../blocks/modal/modal.js';
 
 async function createCertificateModal({
@@ -90,7 +93,7 @@ async function createCertificateModal({
           createElement(
             'p',
             { class: 'date' },
-            dayjs(completedModule).format('MMMM Do YYYY'),
+            getCdtDate(completedModule).format('MMMM Do YYYY'),
           ),
         ),
         createElement(
@@ -255,10 +258,7 @@ async function openCertificateModal({
 }) {
   const scriptPromises = [
     loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/utc.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/timezone.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js'),
+    setupDayjsLibs(),
   ];
 
   // Wait for all scripts to load
@@ -291,19 +291,21 @@ export async function addCourseCertificate({
   lessonTitle,
   completedModule,
   showModal,
+  container,
+  isFromHistory = false,
 }) {
   const [
     viewCertificateLabel,
+    downloadCertificateLabel,
   ] = await Promise.all([
     i18n('View Certificate'),
+    i18n('Download Certificate'),
   ]);
-  const main = document.querySelector('main');
-  const courseHeading = main.querySelector('h1');
 
   const button = createElement(
     'button',
     { class: 'button secondary view-certificate', type: 'button' },
-    viewCertificateLabel,
+    isFromHistory ? downloadCertificateLabel : viewCertificateLabel,
   );
 
   const openModal = async () => {
@@ -321,7 +323,13 @@ export async function addCourseCertificate({
   };
 
   button.addEventListener('click', () => openModal());
-  courseHeading.insertAdjacentElement('afterend', button);
+  if (container) {
+    container.appendChild(button);
+  } else {
+    const main = document.querySelector('main');
+    const courseHeading = main.querySelector('h1');
+    courseHeading.insertAdjacentElement('afterend', button);
+  }
 
   if (showModal) {
     openModal();
