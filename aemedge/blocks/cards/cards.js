@@ -20,17 +20,6 @@ import { convertReadTimeFormat, convertMediaTypeToSubtemplate } from '../../scri
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
 
-function createSpinner() {
-  const spinner = createElement('div', { class: 'spinner-cards' });
-  spinner.innerHTML = `
-    <div></div>
-    <div></div>
-    <div></div>
-    <div></div>
-  `;
-  return spinner;
-}
-
 async function createStaticCards(block) {
   const cardsContainer = document.createElement('div');
   if (block.classList.contains('links')) {
@@ -127,9 +116,6 @@ async function createStaticCards(block) {
       cardElements.push(li);
     });
 
-    block.textContent = '';
-    block.append(createSpinner());
-
     sliderConfig = {
       slidesToShow: 'auto',
       slidesToScroll: 1,
@@ -147,21 +133,14 @@ async function createStaticCards(block) {
         },
       ],
     };
-    disabledOnDesktop = cardElements.length <= 5;
+    disabledOnDesktop = cardElements.length <= 4;
 
     if (cardElements && cardElements.length) {
       const ul = createElement('ul', null, ...cardElements);
       cardsContainer.append(ul);
       block.textContent = '';
       block.appendChild(cardsContainer);
-      if (sliderConfig) {
-        buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
-      }
-    } else {
-      const noResultsLabel = createElement('h4', null, 'No results found');
-      const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
-      block.textContent = '';
-      block.append(noResults);
+      buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
     }
   } else {
     const ul = document.createElement('ul');
@@ -179,6 +158,17 @@ async function createStaticCards(block) {
   }
   block.textContent = '';
   block.append(cardsContainer);
+}
+
+function createSpinner() {
+  const spinner = createElement('div', { class: 'spinner-cards' });
+  spinner.innerHTML = `
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  `;
+  return spinner;
 }
 
 export async function createDynamicCardCourse(contentData) {
