@@ -143,6 +143,7 @@ function applyRichTextFormat(container, selectors = ['label', 'p']) {
 }
 
 async function createLoggedInFields(form, formData) {
+  form.classList.add('logged-in');
   const sheetData = await fetchForm(`${formData.source}?sheet=logged-in`);
   const fields = await Promise.all(sheetData.data.map(async (field) => {
     const fieldElement = await createField(field, form);
@@ -250,7 +251,6 @@ async function decorateOneClickForm(form, formData, block) {
 
   const { isLoggedIn } = authentication.authenticationData;
   if (isLoggedIn) {
-    form.classList.add('logged-in');
     await createLoggedInFields(form, formData);
     const userInfo = window.LocalStorageUtil?.get('userInfo', true);
     subscribed = subscriptions.every(
@@ -264,7 +264,6 @@ async function decorateOneClickForm(form, formData, block) {
       updateFieldsAfterSubmit(form, block);
     }
   } else {
-    form.classList.add('logged-out');
     //  TODO: remove following listeners when we've the handlers for login/register
     const register = form.querySelector('#form-register');
     register?.addEventListener('click', async (event) => {
@@ -440,13 +439,14 @@ function updatePostSubmitUi(form, block) {
   } else {
     const submitLoggedIn = block.querySelector('.post-submit.logged-in');
     const submitLoggedOut = block.querySelector('.post-submit.logged-out');
-    if (submitLoggedIn && submitLoggedOut) {
+    if (submitLoggedIn || submitLoggedOut) {
       //  hides the form and show fragments for logged-in/out status
       form.style.display = 'none';
+      block.querySelector('.recaptcha-disclaimer')?.classList.add('hide');
       if (form.classList.contains('logged-in')) {
-        submitLoggedOut.classList.remove('hide');
+        submitLoggedIn?.classList.remove('hide');
       } else {
-        submitLoggedIn.classList.remove('hide');
+        submitLoggedOut?.classList.remove('hide');
       }
     } else {
       updateFieldsAfterSubmit(form, block);
