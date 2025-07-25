@@ -1,8 +1,8 @@
 import { decorateButtons } from '../../scripts/aem.js';
 import createField from './form-fields.js';
-import { createElement, toStartCase } from '../../scripts/utils.js';
+import { createElement, toStartCase, getCountryCode } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
-import { getUserInfo, postForm } from '../../scripts/api.js';
+import { postForm } from '../../scripts/api.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { URIUtil } from '../../scripts/utils/index.js';
 
@@ -192,10 +192,21 @@ function buildOneClickFormCookie(block, element) {
   element.setAttribute('data-no-activation-prompt', 'true');
 }
 
-function populateUserInfoInContactUsForm(form, userInfo) {
-  Object.entries(userInfo).forEach(([key, value]) => {
-    const field = form.querySelector(`[name="${key}"]`);
-    if (field) {
+function prefillForm(form, userInfo) {
+  [...form.elements].forEach((field) => {
+    //  prefill order from salesforce userInfo:
+    //  - contactLead selfInput field
+    //  - contactLead field
+    //  - field name
+    let value = userInfo[field.prefillSelfInput]
+      || userInfo[field.prefillInput]
+      || userInfo[field.name];
+
+    if (!value && field.name.startsWith('Country_Code')) {
+      //  default value for country
+      value = getCountryCode() || 'US';
+    }
+    if (value) {
       setFieldValue(field, value);
     }
   });
@@ -207,9 +218,8 @@ async function decorateContactUsForm(form, formData, block) {
   if (!isContactUsVariant) return;
 
   form.classList.add('user-info');
-  const loggedIn = formData.mock === 'LoggedIn';
-  if (loggedIn) {
-    const userInfo = await getUserInfo();
+  const { isLoggedIn } = authentication.authenticationData;
+  if (isLoggedIn) {
     form.classList.remove('user-info');
     form.classList.add('collapsed-user-info');
 
@@ -225,7 +235,8 @@ async function decorateContactUsForm(form, formData, block) {
       }
     }
 
-    populateUserInfoInContactUsForm(form, userInfo);
+    const userInfo = window.LocalStorageUtil?.get('userInfo', true);
+    prefillForm(form, userInfo);
   }
 }
 
@@ -347,7 +358,7 @@ function getUserDataFields(payload) {
     Email__c: payload.Email__c || info.Email,
     First_Name__c: payload.First_Name__c || info.Self_Input_First_Name__c || info.FirstName,
     Last_Name__c: payload.Last_Name__c || info.Self_Input_Last_Name__c || info.LastName,
-    Country_Code__c: payload.Country_Code__c || info.Country_Code__c || 'US',
+    Country_Code__c: payload.Country_Code__c || info.Country_Code__c || getCountryCode() || 'US',
     Job_Role__c: payload.Job_Role__c || info.Self_Input_Job_Role__c || info.Job_Role__c,
     Company_Name__c: payload.Company_Name__c || info.Self_Input_Company__c || info.Company,
     Company_Type__c: payload.Company_Type__c || info.Self_Input_Company_Type__c || info.Segment__c,
@@ -370,7 +381,7 @@ function generatePayload(form, formId, formName, formHighValue) {
       }
       if (field.submitName && payload[field.name]) {
         payload[field.submitName] = payload[field.name];
-        payload[field.name] = '';
+        delete payload[field.name];
       }
     }
   });
@@ -433,9 +444,9 @@ function updatePostSubmitUi(form, block) {
       //  hides the form and show fragments for logged-in/out status
       form.style.display = 'none';
       if (form.classList.contains('logged-in')) {
-        submitLoggedIn.classList.remove('hide');
-      } else {
         submitLoggedOut.classList.remove('hide');
+      } else {
+        submitLoggedIn.classList.remove('hide');
       }
     } else {
       updateFieldsAfterSubmit(form, block);
@@ -484,10 +495,7 @@ async function handleSubmit(form, block) {
       if (form.dataset.confirmation) {
         window.location.href = form.dataset.confirmation;
       }
-      if (payload.Fields_to_Update__c) {
-        //  user subscriptions updates
-        window.LocalStorageUtil?.remove('userInfo');
-      }
+      window.LocalStorageUtil?.remove('userInfo');
       updatePostSubmitUi(form, block);
     } else {
       throw new Error(response.error?.message);
