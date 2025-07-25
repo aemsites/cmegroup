@@ -92,7 +92,7 @@ async function getIndexedContent(indexFilter) {
       dateRange.to = dateTo.toISOString();
     }
     if (dateRange.from || dateRange.to) {
-      postData.dateRange = dateRange;
+      postData.query.dateRange = dateRange;
     }
     if (indexFilter.orderBy) {
       postData.sort = {
