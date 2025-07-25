@@ -160,17 +160,6 @@ async function createStaticCards(block) {
   block.append(cardsContainer);
 }
 
-function createSpinner() {
-  const spinner = createElement('div', { class: 'spinner-cards' });
-  spinner.innerHTML = `
-    <div></div>
-    <div></div>
-    <div></div>
-    <div></div>
-  `;
-  return spinner;
-}
-
 export async function createDynamicCardCourse(contentData) {
   const {
     metadata: { 'og:image': image },
@@ -279,6 +268,17 @@ async function fetchAndFilterDataLegacyEndpoint(endpoint) {
     console.error('Error loading data:', error);
     return [];
   }
+}
+
+function createSpinner() {
+  const spinner = createElement('div', { class: 'spinner-cards' });
+  spinner.innerHTML = `
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  `;
+  return spinner;
 }
 
 export async function createDynamicCards(block) {
