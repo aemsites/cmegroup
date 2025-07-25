@@ -9,12 +9,11 @@ import {
   parseTime,
   getReadTimeLabel,
   getReadTimeIcon,
-  formatDate,
   decodeHtmlEntities,
   buildSlider,
-  formatToCentralTime,
-  getUTCfromDateString,
   readBlockConfig,
+  setupDayjsLibs,
+  getCdtDate,
 } from '../../scripts/utils.js';
 import { convertReadTimeFormat, convertMediaTypeToSubtemplate } from '../../scripts/legacyContentMapping.js';
 
@@ -232,45 +231,19 @@ export async function createDynamicCardArticle({ content }) {
     getReadTimeLabel(subTemplates),
     parseTime(durationMin),
   ]);
-
-  const li = document.createElement('li');
-  const linkEl = document.createElement('a');
-  linkEl.href = path;
+  const cardTime = createElement('span', { class: 'cards-time' }, `${durationStr} ${readLabel}`);
+  cardTime.prepend(getReadTimeIcon(subTemplates));
+  const cardDate = createElement('span', { class: 'cards-date' }, getCdtDate(date).format('DD MMMM'));
+  const cardTitle = createElement('h3');
+  cardTitle.innerHTML = title;
+  const mainContainer = createElement('div', { class: 'cards-body-container' }, cardTime, cardDate, cardTitle);
+  const image = createElement('img', { src: fullImage });
+  const imageContainer = createElement('div', { class: 'cards-image-container' }, image);
+  const linkEl = createElement('a', { href: path }, imageContainer, mainContainer);
   if (subTemplates.includes('video')) {
     linkEl.classList.add('video-card');
   }
-
-  const imageContainer = document.createElement('div');
-  imageContainer.className = 'cards-image-container';
-  const image = document.createElement('img');
-  image.src = fullImage;
-  imageContainer.append(image);
-
-  const mainContainer = document.createElement('div');
-  mainContainer.className = 'cards-body-container';
-
-  const cardSubtitle = document.createElement('div');
-  cardSubtitle.className = 'cards-subtitle';
-
-  const cardTime = document.createElement('span');
-  cardTime.className = 'cards-time';
-  cardTime.innerText = `${durationStr} ${readLabel}`;
-  cardTime.prepend(getReadTimeIcon(subTemplates));
-
-  const cardDate = document.createElement('span');
-  cardDate.className = 'cards-date';
-  const utcDate = getUTCfromDateString(date);
-  const { day, month } = formatToCentralTime(utcDate, false, false, ['month', 'day']);
-  cardDate.innerText = `${day} ${month}`;
-
-  const cardTitle = document.createElement('h3');
-  cardTitle.innerHTML = title;
-
-  mainContainer.append(cardTime, cardDate, cardTitle);
-  linkEl.append(imageContainer, mainContainer);
-  li.append(linkEl);
-
-  return li;
+  return createElement('li', null, linkEl);
 }
 
 function createDynamicCardThumbnailMedium({ content }) {
@@ -297,7 +270,7 @@ function createDynamicCardUpcomingEvent(content) {
   } = content;
   const paragraph = createElement('p', { class: 'card-text' }, decodeHtmlEntities(eventName));
   const titletag = createElement('div', { class: 'card-title' }, paragraph);
-  const datetag = createElement('div', { class: 'card-date' }, formatDate(date, true));
+  const datetag = createElement('div', { class: 'card-date' }, getCdtDate(date).format('DD MMM YYYY'));
   const cardBody = createElement('div', { class: 'card-body' }, titletag, datetag);
   const link = createElement('a', { href: url }, cardBody);
   return createElement('li', null, link);
@@ -355,7 +328,10 @@ export async function createDynamicCards(block) {
     cardElements = await Promise.all(filteredData.map(createDynamicCardCourse));
   } else if (block.classList.contains('article')) {
     const { endpoint } = config;
-    filteredData = await fetchAndFilterDataLegacyEndpoint(endpoint);
+    [filteredData] = await Promise.all([
+      fetchAndFilterDataLegacyEndpoint(endpoint),
+      setupDayjsLibs(),
+    ]);
     cardElements = await Promise.all(filteredData.map(createDynamicCardArticle));
     sliderConfig = {
       slidesToShow: 'auto',
@@ -381,7 +357,10 @@ export async function createDynamicCards(block) {
     cardElements = await Promise.all(filteredData.map(createDynamicCardThumbnailMedium));
   } else if (block.classList.contains('upcoming-events')) {
     if (block.classList.contains('econoday-events')) {
-      filteredData = await getEconomicReleaseEvents(new Date().toISOString().slice(0, 10), null, null, null, 10);
+      [filteredData] = await Promise.all([
+        getEconomicReleaseEvents(new Date().toISOString().slice(0, 10), null, null, null, 10),
+        setupDayjsLibs(),
+      ]);
     } else {
       const indexFilter = buildIndexFilter(config);
       indexFilter.templates = ['event'];
@@ -390,7 +369,10 @@ export async function createDynamicCards(block) {
       indexFilter.orderBy = 'date';
       indexFilter.sortDirection = 'asc';
       indexFilter.limit = 10;
-      filteredData = await getIndexedContent(indexFilter);
+      [filteredData] = await Promise.all([
+        getIndexedContent(indexFilter),
+        setupDayjsLibs(),
+      ]);
       filteredData.forEach((obj) => {
         obj.eventName = obj.title;
         obj.url = obj.path;

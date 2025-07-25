@@ -1,22 +1,11 @@
-import { loadScript } from '../../scripts/aem.js';
 import { getIndexedContent } from '../../scripts/indexing.js';
-import { createElement, i18n } from '../../scripts/utils.js';
+import {
+  createElement,
+  i18n,
+  setupDayjsLibs,
+  getCdtDate,
+} from '../../scripts/utils.js';
 import createMonthSelector from '../../scripts/utils/monthSelector.js';
-
-async function setupLibs() {
-  await Promise.all([
-    loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/utc.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/timezone.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js'),
-  ]);
-  /* eslint-disable no-undef */
-  dayjs.extend(dayjs_plugin_utc);
-  dayjs.extend(dayjs_plugin_timezone);
-  dayjs.tz.setDefault('America/Chicago');
-  dayjs.extend(dayjs_plugin_advancedFormat);
-  /* eslint-enable no-undef */
-}
 
 function createUpcomingEvent(content, timeZoneLabel) {
   const {
@@ -26,7 +15,7 @@ function createUpcomingEvent(content, timeZoneLabel) {
     image,
     date,
   } = content;
-  const cdtDate = dayjs.utc(date).tz('America/Chicago');
+  const cdtDate = getCdtDate(date);
   const dateTag = createElement('div', { class: 'card-date' }, cdtDate.format('MMMM DD, YYYY'));
   const chevron = createElement('img', { src: '/aemedge/icons/chevron-right.svg' });
   const spanChevron = createElement('span', { class: 'icon icon-chevron-right' }, chevron);
@@ -71,7 +60,7 @@ async function createEventList(year, month) {
     const list = [];
     filteredData.forEach((item) => {
       const { date } = item;
-      const cdtDate = dayjs.utc(date).tz('America/Chicago');
+      const cdtDate = getCdtDate(date);
       if (currentDate == null
         || currentDate.get('month') !== cdtDate.get('month')
         || currentDate.get('year') !== cdtDate.get('year')) {
@@ -118,11 +107,15 @@ async function createNavigation(cdtDate, resultContainer) {
   return createElement('div', { class: 'month-navigation' }, monthSelector, prevNextMonth);
 }
 
-export default async function decorate(block) {
-  await setupLibs();
-  const cdtDate = dayjs.utc(Date.now()).tz('America/Chicago');
+async function init(block) {
+  await setupDayjsLibs();
+  const cdtDate = getCdtDate(Date.now());
   const resultContainer = createElement('div', { class: 'result-container' });
   block.append(await createNavigation(cdtDate, resultContainer));
   block.append(resultContainer);
   monthSelected(resultContainer, cdtDate.get('year'), cdtDate.get('month') + 1);
+}
+
+export default function decorate(block) {
+  init(block);
 }

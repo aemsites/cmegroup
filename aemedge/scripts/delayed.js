@@ -1,6 +1,6 @@
-import { sampleRUM, loadScript } from './aem.js';
+import { sampleRUM } from './aem.js';
 import loadSitewidePopups from './popups/popups.js';
-import { isFeatureToggled } from './utils.js';
+import { isFeatureToggled, loadScript } from './utils.js';
 
 // Core Web Vitals RUM collection
 sampleRUM('cwv');

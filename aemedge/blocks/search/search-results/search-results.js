@@ -4,7 +4,7 @@ import {
 import searchConfig from '../search-config.js';
 import { updateFilteringByUI } from '../filter-bullets/filter-bullets.js';
 import { getCards } from './cards-template.js';
-import { i18n } from '../../../scripts/utils.js';
+import { i18n, setupDayjsLibs } from '../../../scripts/utils.js';
 import { clearAllFilters } from '../search-utils.js';
 import { getIndexedContent } from '../../../scripts/indexing.js';
 import renderPagination from './pagination.js';
@@ -43,19 +43,12 @@ const buildSearchRequest = () => {
     });
   }
 
+  if (searchConfig.basePaths) {
+    request.basePaths = searchConfig.basePaths;
+  }
+
   if (searchConfig.template && Object.keys(searchConfig.template).length > 0) {
     request.templates = Object.keys(searchConfig.template);
-    Object.keys(searchConfig.template).forEach((template) => {
-      if (searchConfig.template[template].paths?.length > 0) {
-        searchConfig.template[template].paths.forEach((path) => {
-          if (request.basePaths) {
-            request.basePaths.push(path);
-          } else {
-            request.basePaths = [path];
-          }
-        });
-      }
-    });
   }
 
   if (searchConfig.sortOptions) {
@@ -128,6 +121,7 @@ async function filterAndRender(results) {
     i18n('Result'),
     i18n('No results found. There are no results that meet your selection criteria.'),
     i18n('Reset filters'),
+    setupDayjsLibs(),
   ]);
 
   if (resultsTitle) {
