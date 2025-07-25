@@ -599,6 +599,9 @@ async function loadLazy(doc) {
       initFloatingElements(doc, header);
       enhanceIconAccessibility(header);
     });
+  } else {
+    // Add class to body when header is hidden to remove top padding
+    doc.body.classList.add('header-hidden');
   }
   if (!isFeatureToggled('hideFooter')) {
     loadFooter(doc.querySelector('footer')).then((footer) => {

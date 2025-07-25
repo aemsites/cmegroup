@@ -207,7 +207,7 @@
   max-width: 90%;
   flex: 0 1 90%;
   word-wrap: break-word;
-  white-space: normal; 
+  white-space: normal;
 }
 
 .course-nav .collapsible-button.chapter .icon {
@@ -329,5 +329,15 @@
 @media (width > 1200px) {
   .course-nav {
     width: calc(16.66667% + 63.66667px);
+  }
+}
+
+@media (width >= 993px) {
+  body.header-hidden .course-nav {
+    top: 0 !important;
+  }
+
+  body.header-hidden main:has(#alerts-container) .course-nav {
+    top: var(--alert-container-height) !important;
   }
 }
