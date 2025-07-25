@@ -5,7 +5,7 @@ import {
   DataCacheUtil,
 } from '../utils/index.js';
 import { getSearchSuggestionsUrl } from '../legacy-api.js';
-import { formatToCentralTime, isDateBefore, urlByEnvType } from '../utils.js';
+import { getCdtDate, isDateBefore, urlByEnvType } from '../utils.js';
 
 const getUserInfo = ({ userId, token }) => ({ userId, token });
 
@@ -164,7 +164,7 @@ export async function updateRecentSearch(
   let searches = window.LocalStorageUtil?.get('searches', true) || [];
   const newSearch = {
     term,
-    lastUpdated: formatToCentralTime(new Date(), true),
+    lastUpdated: getCdtDate(new Date()).format('YYYY-MM-DD HH:mm:ss'),
   };
 
   if (!searches.length) {

@@ -1,6 +1,5 @@
 /* eslint-disable import/prefer-default-export */
 import {
-  loadScript,
   loadCSS,
   getMetadata,
   toCamelCase,
@@ -95,6 +94,38 @@ function fetchTranslations() {
     });
   }
   return translationsPromise;
+}
+
+const scriptsCache = new Map();
+
+/**
+ * Loads a non module JS file.
+ * @param {string} src URL to the JS file
+ * @param {Object} attrs additional optional attributes
+ */
+async function loadScript(src, attrs) {
+  if (scriptsCache.has(src)) {
+    return scriptsCache.get(src);
+  }
+  const promise = new Promise((resolve, reject) => {
+    if (!document.querySelector(`head > script[src="${src}"]`)) {
+      const script = document.createElement('script');
+      script.src = src;
+      if (attrs) {
+        // eslint-disable-next-line no-restricted-syntax, guard-for-in
+        for (const attr in attrs) {
+          script.setAttribute(attr, attrs[attr]);
+        }
+      }
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+      document.head.appendChild(script);
+    } else {
+      resolve();
+    }
+  });
+  scriptsCache.set(src, promise);
+  return promise;
 }
 
 /**
@@ -282,17 +313,6 @@ function getReadTimeIcon(subTemplates) {
   return readIconSpan;
 }
 
-function formatDate(dateString, includeYear = false) {
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) {
-    return 'Invalid Date';
-  }
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = date.toLocaleString('en-US', { month: 'short' });
-  const year = includeYear ? ` ${date.getFullYear()}` : '';
-  return `${day} ${month}${year}`;
-}
-
 function getBrowserName() {
   const { userAgent } = navigator;
 
@@ -327,41 +347,6 @@ function urlByEnvType() {
   return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
 }
 
-function formatToCentralTime(utcDateString, lastUpdatedFormat, showCT = true, getParts = []) {
-  const utcDate = new Date(utcDateString);
-  const options = {
-    timeZone: 'America/Chicago',
-    year: 'numeric',
-    month: 'long',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  };
-  const formatter = new Intl.DateTimeFormat('en-US', options);
-  const parts = formatter.formatToParts(utcDate);
-  const day = parts.find((p) => p.type === 'day').value;
-  const month = parts.find((p) => p.type === 'month').value;
-  const year = parts.find((p) => p.type === 'year').value;
-  const hour = parts.find((p) => p.type === 'hour').value.padStart(2, '0');
-  const minute = parts.find((p) => p.type === 'minute').value.padStart(2, '0');
-  const second = parts.find((p) => p.type === 'second').value.padStart(2, '0');
-  const period = parts.find((p) => p.type === 'dayPeriod').value.toUpperCase();
-
-  if (getParts.length) {
-    return getParts.reduce((acc, cur) => {
-      acc[cur] = parts.find((p) => p.type === cur).value;
-      return acc;
-    }, {});
-  }
-
-  if (lastUpdatedFormat) {
-    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
-  }
-  return `${month} ${day}, ${year} ${hour}:${minute} ${period} ${showCT ? 'CT' : ''}`;
-}
-
 function isDateBefore(date1, date2) {
   let d1;
   let d2;
@@ -383,18 +368,6 @@ function isDateBefore(date1, date2) {
 function decodeHtmlEntities(str) {
   const doc = new DOMParser().parseFromString(str, 'text/html');
   return doc.documentElement.textContent;
-}
-
-// only to be used with dates with no time, eg. '2025-10-28'
-// eslint-disable-next-line consistent-return
-function getUTCfromDateString(date) {
-  if (!date) {
-    return null;
-  }
-  const [cleanDate] = date.split(/[T\s]/);
-  const parts = cleanDate.split('-').map(Number);
-  const [year, month, day] = parts;
-  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
 }
 
 let sliderPromise = null;
@@ -610,29 +583,53 @@ function toStartCase(str) {
   return str.split(/[\s-_]+/).map(capitalize).join(' ');
 }
 
+/**
+ * Setup the clientlibs for dayjs library
+ */
+async function setupDayjsLibs() {
+  await Promise.all([
+    loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/utc.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/timezone.js'),
+    loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js'),
+  ]);
+  /* eslint-disable no-undef */
+  dayjs.extend(dayjs_plugin_utc);
+  dayjs.extend(dayjs_plugin_timezone);
+  dayjs.extend(dayjs_plugin_advancedFormat);
+  /* eslint-enable no-undef */
+}
+
+/**
+ * Returns a Dayjs object with the datetime set to CDT
+ */
+function getCdtDate(date) {
+  return dayjs.utc(date).tz('America/Chicago');
+}
+
 export {
+  loadScript,
   createElement,
   getArticleRelatedMetadata,
   addDividerLine,
   parseTime,
   getReadTimeLabel,
   getReadTimeIcon,
-  formatDate,
   getTag,
   i18n,
   getPageTags,
   getBrowserName,
   getEnvType,
-  formatToCentralTime,
   isDateBefore,
   urlByEnvType,
   getCurrentLangInWords,
   decodeHtmlEntities,
   checkDomain,
   buildSlider,
-  getUTCfromDateString,
   generateRandomId,
   isFeatureToggled,
   readBlockConfig,
   toStartCase,
+  setupDayjsLibs,
+  getCdtDate,
 };

@@ -3,7 +3,7 @@
   display: flex;
   gap: 0.7rem;
   border: 1px solid var(--gray4);
-  box-shadow: 0 1px 5px 1px rgb(178 178 178 / 70%);
+  box-shadow: inset 0 6px 0 0 #f1f5f7, 0 1px 5px 1px rgb(178 178 178 / 70%);
   transition: box-shadow 0.2s, border 0.2s, transform 0.15s;
   cursor: pointer;
   flex: 1 1 340px;
@@ -31,6 +31,7 @@
   line-height: 0.875rem;
   letter-spacing: 0.05em;
   line-clamp: 1;
+  margin-top: 0.25rem;
 }
 
 .block.search .result-card .result-title {

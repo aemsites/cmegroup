@@ -3,7 +3,7 @@ import {
 } from '../../../scripts/dom-helpers.js';
 import { getTaxonomy } from '../../../scripts/taxonomy.js';
 import {
-  formatDate, i18n, parseTime, getReadTimeLabel, getReadTimeIcon,
+  getCdtDate, i18n, parseTime, getReadTimeLabel, getReadTimeIcon,
   createElement,
 } from '../../../scripts/utils.js';
 
@@ -52,7 +52,7 @@ const resolveTaxonomyPath = (path, taxonomy) => {
 };
 
 const articleCard = async (card, item) => {
-  const footer = div({ class: 'result-footer' }, item.date ? formatDate(item.date, true) : '');
+  const footer = div({ class: 'result-footer' }, item.date ? getCdtDate(item.date).format('DD MMM YYYY') : '');
   const subTemplates = item.metadata?.['sub-template']?.split(' ');
 
   const [
@@ -166,11 +166,11 @@ const courseCard = async (card, item) => {
 const lessonCard = async (card, item) => {
   // todo piyush add course name in place item.metadata?.['module-title']
   await labeledCardLesson(card, item, `Lesson ${item.metadata?.['module-title']
-    ? `: ${item.metadata?.['module-title']}` : ''}`, item.date ? formatDate(item.date) : '');
+    ? `: ${item.metadata?.['module-title']}` : ''}`, item.date ? getCdtDate(item.date).format('DD MMM') : '');
 };
 
 const standaloneLessonCard = async (card, item) => {
-  await labeledCardStandaloneLesson(card, item, '', item.date ? formatDate(item.date) : '');
+  await labeledCardStandaloneLesson(card, item, '', item.date ? getCdtDate(item.date).format('DD MMM') : '');
 };
 
 // Wrap a card type with optional image

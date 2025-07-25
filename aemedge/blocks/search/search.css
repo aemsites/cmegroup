@@ -38,6 +38,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+  padding: 0;
 }
 
 .block.search .search-bar-wrapper .nav-close::before {
@@ -79,6 +80,7 @@
   display: flex;
   align-items: center;
   background: none;
+  box-shadow: none;
 }
 
 .block.search .search-icon::before {

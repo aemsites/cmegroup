@@ -1,0 +1,89 @@
+.filters-section {
+    padding-bottom: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+
+    @media (width >= 769px) {
+        flex-direction: row;
+    }
+
+    & .results-text {
+        font-family: var(--averta);
+        font-weight: 600;
+        font-size: 1.125rem;
+        color: var(--blue2);
+
+        @media (width >= 769px) {
+            font-size: 1.25rem;
+        }
+    }
+
+    & .filters-options {
+        padding-top: 1.25rem;
+
+        @media (width >= 769px) {
+            padding-top: 0;
+        }
+
+        & .option-switcher {
+            display: inline-block;
+            font-size: 0.875rem;
+            font-weight: 700;
+            line-height: 0.875rem;
+            text-transform: uppercase;
+
+            & > span {
+                color: var(--gray3);
+                margin-right: 0.9375rem;
+                font-size: 0.75rem;
+
+                @media (width >= 769px) {
+                    margin-right: 1.25rem;
+                    font-size: 0.875rem;
+                }
+            }
+
+            & ul {
+                display: inline-flex;
+                list-style: none;
+                margin: 0 -0.625rem;
+                padding: 0;
+
+                & li {
+                    display: inline-block;
+                    border-right: 0.0625rem solid var(--gray3);
+                    padding: 0;
+
+                    &:last-child {
+                        border: none;
+                    }
+
+                    & button {
+                        background: none;
+                        box-shadow: none;
+                        border: none;
+                        cursor: pointer;
+                        font-family: var(--averta);
+                        color: var(--blue4);
+                        text-transform: uppercase;
+                        font-weight: 400;
+                        font-size: 0.75rem;
+                        line-height: 0.875rem;
+                        border-color: transparent;
+                        padding: 0 0.625rem;
+
+                        @media (width >= 769px) {
+                            font-size: 0.875rem;
+                        }
+
+                        &.selected {
+                            font-weight: bold;
+                            color: var(--gray3);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
