@@ -364,10 +364,17 @@ const articleHeroBlock = (document) => {
     anchor.href = `https://www.cmegroup.com${imgUrl}`;
     anchor.textContent = anchor.href;
 
+    const h1 = document.createElement('h1');
+    h1.innerText = document.querySelector('h1')?.innerText || '';
+
     const div = document.createElement('div');
     div.appendChild(anchor);
+    if (h1.innerText) {
+      div.appendChild(h1);
+      document.querySelector('h1').remove();
+    }
     hero.after(buildSectionMetadata([['Style', 'Full Width']]), blockSeparator().cloneNode(true));
-    hero.replaceWith(anchor);
+    hero.replaceWith(div);
   }
 };
 

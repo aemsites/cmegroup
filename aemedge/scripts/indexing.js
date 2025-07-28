@@ -25,6 +25,8 @@ function buildIndexFilter(config) {
     orderBy: config.orderBy,
     sortDirection: config.sortDirection,
     limit: config.limit,
+    fullText: config.fullText || '',
+    languages: config.languages || [],
     page: 1,
   };
 }
@@ -44,6 +46,8 @@ function buildIndexFilter(config) {
  *   sortDirection: 'asc', // use asc or desc
  *   limit: 10, // Max quantity of results
  *   page: 1, // Page num
+ *   fullText: 'search query', // Full text search query
+ *   languages: ['en'], // Array of languages
  * });
  */
 async function getIndexedContent(indexFilter) {
