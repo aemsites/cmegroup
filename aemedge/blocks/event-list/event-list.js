@@ -42,7 +42,7 @@ async function createEventList(year, month) {
   const dateDiffMs = new Date(`${year}-${String(month).padStart(2, '0')}-01 00:00:00`) - Date.now();
   const dateDiffDays = Math.ceil(dateDiffMs / (1000 * 60 * 60 * 24));
   const indexFilter = {};
-  indexFilter.template = 'event';
+  indexFilter.templates = ['event'];
   indexFilter.relativeDateFrom = dateDiffDays;
   indexFilter.relativeDateTo = dateDiffDays + 365;
   indexFilter.orderBy = 'date';
