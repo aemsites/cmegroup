@@ -25,7 +25,11 @@ function buildIndexFilter(config) {
     orderBy: config.orderBy,
     sortDirection: config.sortDirection,
     limit: config.limit,
-    page: 1,
+    page: config.page || 1,
+    fullText: config.fullText || '',
+    languages: config.languages || [],
+    getFacets: config.getFacets || false,
+    customTagObjArr: config.customTagObjArr || [],
   };
 }
 
@@ -44,6 +48,10 @@ function buildIndexFilter(config) {
  *   sortDirection: 'asc', // use asc or desc
  *   limit: 10, // Max quantity of results
  *   page: 1, // Page num
+ *   fullText: 'search query', // Full text search query
+ *   languages: ['en'], // Array of languages
+ *   getFacets: true, // Boolean to get facets
+ *   customTagObjArr: [{}] // Custom array for the tags
  * });
  */
 async function getIndexedContent(indexFilter) {
@@ -79,8 +87,8 @@ async function getIndexedContent(indexFilter) {
     if (tags.and || tags.or || tags.not) {
       postData.query.tags = tags;
     }
-    if (indexFilter.customTagObj && indexFilter.customTagObj.length > 0) {
-      postData.query.tags = indexFilter.customTagObj;
+    if (indexFilter.customTagObjArr && indexFilter.customTagObjArr.length > 0) {
+      postData.query.tags = indexFilter.customTagObjArr;
     }
     const dateRange = {};
     if (hasValue(indexFilter.relativeDateFrom)) {
