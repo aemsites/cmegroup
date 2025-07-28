@@ -124,7 +124,7 @@ export default async function decorate(block) {
         templateFiltering(key, block, children.indexOf(child));
         break;
       case 'base-paths':
-        searchConfig.basePaths = val?.split(',').map((x) => x.trim());
+        searchConfig.basePaths = val;
         break;
       default:
         break;
