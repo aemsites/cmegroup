@@ -17,9 +17,9 @@ function buildIndexFilter(config) {
   return {
     basePaths: config.basePaths ? config.basePaths.split(',').map((path) => path.trim().toLowerCase()) : [],
     templates: config.templates ? config.templates.split(',').map((template) => template.trim().toLowerCase()) : [],
-    tagsAnd: config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [],
-    tagsOr: config['optional-tags'] ? config['optional-tags'].split(',').map((tag) => tag.trim().toLowerCase()) : [],
-    tagsNot: config['excluded-tags'] ? config['excluded-tags'].split(',').map((tag) => tag.trim().toLowerCase()) : [],
+    tagsAnd: config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()).filter((tag) => tag !== '') : [],
+    tagsOr: config['optional-tags'] ? config['optional-tags'].split(',').map((tag) => tag.trim().toLowerCase()).filter((tag) => tag !== '') : [],
+    tagsNot: config['excluded-tags'] ? config['excluded-tags'].split(',').map((tag) => tag.trim().toLowerCase()).filter((tag) => tag !== '') : [],
     relativeDateFrom: config['relative-date-from'], // Number in days
     relativeDateTo: config['relative-date-to'], // Number in days
     orderBy: config.orderBy,
@@ -67,13 +67,17 @@ async function getIndexedContent(indexFilter) {
       postData.query.languages = indexFilter.languages;
     }
     const tags = {};
-    tags.and = indexFilter.tagsAnd;
-    tags.or = indexFilter.tagsOr;
-    tags.not = indexFilter.tagsNot;
-    if ((tags.and && tags.and.length > 0)
-      || (tags.or && tags.or.length > 0)
-      || (tags.not && tags.not.length > 0)) {
-      postData.tags = tags;
+    if (indexFilter.tagsAnd && indexFilter.tagsAnd.length > 0) {
+      tags.and = indexFilter.tagsAnd;
+    }
+    if (indexFilter.tagsOr && indexFilter.tagsOr.length > 0) {
+      tags.or = indexFilter.tagsOr;
+    }
+    if (indexFilter.tagsNot && indexFilter.tagsNot.length > 0) {
+      tags.not = indexFilter.tagsNot;
+    }
+    if (tags.and || tags.or || tags.not) {
+      postData.query.tags = tags;
     }
     if (indexFilter.customTagObj && indexFilter.customTagObj.length > 0) {
       postData.query.tags = indexFilter.customTagObj;
@@ -92,7 +96,7 @@ async function getIndexedContent(indexFilter) {
       dateRange.to = dateTo.toISOString();
     }
     if (dateRange.from || dateRange.to) {
-      postData.dateRange = dateRange;
+      postData.query.dateRange = dateRange;
     }
     if (indexFilter.orderBy) {
       postData.sort = {

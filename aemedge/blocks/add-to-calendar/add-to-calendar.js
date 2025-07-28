@@ -1,5 +1,5 @@
-import { loadScript, getMetadata } from '../../scripts/aem.js';
-import { createElement, i18n } from '../../scripts/utils.js';
+import { getMetadata } from '../../scripts/aem.js';
+import { createElement, i18n, loadScript } from '../../scripts/utils.js';
 
 async function buildButton(block) {
   const description = getMetadata('description');
