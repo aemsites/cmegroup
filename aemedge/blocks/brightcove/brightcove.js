@@ -1,4 +1,5 @@
-import { readBlockConfig, getMetadata } from '../../scripts/aem.js';
+import { getMetadata } from '../../scripts/aem.js';
+import { readBlockConfig } from '../../scripts/utils.js';
 import {
   setTracking,
   LocalStorageUtil,
@@ -265,7 +266,7 @@ function getPosterCache() {
 async function getBrightcovePoster(accountId, videoId) {
   const policyKey = getMetadata('brightcove-policy-key');
 
-  if (!policyKey) {
+  if (!policyKey || !videoId) {
     return '';
   }
   const url = `https://edge.api.brightcove.com/playback/v1/accounts/${accountId}/videos/${videoId}`;
@@ -315,7 +316,7 @@ function changeQualityPosterUrl(posterUrl) {
   return posterUrl.replace(/\d*x\d*(\/match\/image)/g, (match, group1) => `${isDesktop ? '800x400' : '400x225'}${group1}`);
 }
 
-async function getPosterWithCache(block, accountId, videoId) {
+async function getPosterWithCache(accountId, videoId) {
   const cache = getPosterCache();
   let posterUrl = cache[videoId]?.posterUrl || await getBrightcovePoster(accountId, videoId);
 
@@ -360,18 +361,19 @@ export default async function decorate(block) {
     aspectratio: aspectRatio,
     cc,
     language,
+    defaultplaylistposter: defaultPlaylistPoster,
   } = dataBlock;
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
   const videoStyles = calculateStyles(aspectRatio, playlist);
   const randomNumber = getRandomNumber();
 
-  const posterUrl = await getPosterWithCache(block, accountId, videoId);
+  const posterUrl = defaultPlaylistPoster || await getPosterWithCache(accountId, videoId);
 
   block.innerHTML = `
   <div class='brightcove-player'>
     <div class="brightcove-placeholder">
-      <img class="brightcove-img-placeholder ${videoStyles}" src="${posterUrl}" fetchpriority="high" />
+      ${posterUrl ? `<img class="brightcove-img-placeholder ${videoStyles}" src="${posterUrl}" fetchpriority="high" />` : ''}
       <div class="spinner-in-video">
         <div></div>
         <div></div>
