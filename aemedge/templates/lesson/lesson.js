@@ -117,7 +117,7 @@ export default async function lessonTemplate() {
     await createCourseBaseTemplate(courseData);
     await initLateralNav(courseData);
     const lesson = getCurrentLesson(courseData);
-    if (!lesson.started) {
+    if (!lesson?.started) {
       //  start current lesson
       await updateLessonStatus(false);
     }
