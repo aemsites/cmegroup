@@ -233,6 +233,41 @@ export function isFragmentLink(link) {
   return href && FRAGMENT_PATHS.some((path) => href.includes(path));
 }
 
+function handleLoginRedirection(event, element) {
+  const { authenticationData } = authentication;
+  if (!authenticationData.isLoggedIn) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    authenticationData.login(
+      element.getAttribute('href') === '#'
+        ? window.location.href
+        : element.href,
+      element.target,
+      '',
+    );
+  }
+}
+
+function handleRegistrationRedirection(event, element) {
+  const { authenticationData } = authentication;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (!authenticationData.isLoggedIn) {
+    const noActivationPrompt = element.getAttribute(
+      'data-no-activation-prompt',
+    );
+    const targetLocation = noActivationPrompt
+      ? window.location.href
+      : element.href;
+    authenticationData.registration(
+      targetLocation,
+      element.target,
+      '',
+      noActivationPrompt,
+    );
+  }
+}
+
 /**
  * Builds fragment blocks from links to fragments
  * @param {Element} main The container element
@@ -245,6 +280,18 @@ export function buildFragmentBlocks(main) {
       const block = buildBlock('fragment', url.pathname);
       a.replaceWith(block);
       decorateBlock(block);
+    }
+    const isLogin = a.title === '[login]';
+    if (isLogin) {
+      a.addEventListener('click', (event) => {
+        handleLoginRedirection(event, a);
+      }, { capture: true });
+    }
+    const isRegistration = a.title === '[registration]';
+    if (isRegistration) {
+      a.addEventListener('click', (event) => {
+        handleRegistrationRedirection(event, a);
+      }, { capture: true });
     }
   });
 }
