@@ -456,13 +456,21 @@ a:visited code {
   font-size: inherit;
 }
 
-a[target='_blank']::after {
-    font-family: var(--cme-group-icons);
-    content: var(--icon-positive);
-    color: var(--blue4);
-    font-size: .625rem;
-    padding-left: 5px;
-    position: relative;
+a[target="_blank"]::after {
+  font-family: var(--cme-group-icons);
+  content: var(--icon-positive);
+  color: var(--blue4);
+  font-size: 0.625rem;
+  padding-left: 5px;
+  position: relative;
+}
+
+a.link {
+  /* font-family: $averta; */
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--blue4);
 }
 
 /* ul */
@@ -528,6 +536,8 @@ button {
   align-items: center;
   color: var(--blue4);
   gap: 0.25rem;
+  text-transform: uppercase;
+  font-style: normal;
 }
 
 a.button,
@@ -547,6 +557,22 @@ button.primary a {
   background-color: var(--blue4);
   color: var(--white);
   border: 0.125rem solid var(--blue4);
+  &::after {
+    color: var(--white);
+  }
+  &.alternate {
+    color: var(--white);
+    border: 0.125rem solid var(--blue2);
+    background-color: var(--blue2);
+  }
+  &:hover {
+    background-color: var(--blue5);
+    border-color: var(--blue5);
+    color: var(--blue2);
+    &::after {
+      color: var(--blue2);
+    }
+  }
 }
 
 a.button.primary:active,
@@ -628,6 +654,15 @@ button.secondary[disabled],
 button.secondary.disabled {
   color: var(--gray4);
   border-color: var(--gray4);
+}
+
+a.button.primary,
+a.button.secondary,
+button.primary,
+button.secondary {
+  & u {
+    text-decoration: none;
+  }
 }
 
 a {
@@ -728,7 +763,7 @@ main .section.gray5-background {
 main .section.light > div,
 main .section.highlight > div,
 main .section.gray5-background > div {
-    background-color: var(--gray5) !important;
+  background-color: var(--gray5) !important;
 }
 
 main .section.blue3-background {
@@ -738,8 +773,8 @@ main .section.blue3-background {
 }
 
 main .section.blue3-background > div {
-    background-color: var(--blue3) !important;
-    color: var(--white);
+  background-color: var(--blue3) !important;
+  color: var(--white);
 }
 
 main .section.blue2-background {
@@ -853,102 +888,102 @@ main .section.divider > div {
 
 /* Parallax section styling */
 main .section.parallax {
-    position: relative;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    color: var(--white);
-    padding: 3.75rem 0 0;
-    margin: -1px 0 1.875rem;
+  position: relative;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: var(--white);
+  padding: 3.75rem 0 0;
+  margin: -1px 0 1.875rem;
+
+  @media (width >= 769px) {
+    margin-bottom: 3.75rem;
+  }
+
+  @media only screen and (orientation: portrait) and (width >= 640px) {
+    background-attachment: fixed;
+  }
+
+  @media only screen and (orientation: landscape) and (width >= 993px) {
+    background-attachment: fixed;
+  }
+
+  /* Disable parallax on mobile for performance */
+  @media (width <= 640px) {
+    background-attachment: scroll;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / 20%);
+    z-index: 1;
+  }
+
+  & .default-content-wrapper {
+    padding-bottom: 3.75rem;
 
     @media (width >= 769px) {
-        margin-bottom: 3.75rem;
+      padding-bottom: 5rem;
+    }
+  }
+
+  & > div {
+    position: relative;
+    z-index: 2;
+    text-align: left;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 480px;
+    padding-left: 30px;
+    padding-right: 30px;
+
+    @media (width >= 481px) {
+      max-width: 768px;
+      padding-left: 45px;
+      padding-right: 45px;
     }
 
-    @media only screen and (orientation: portrait) and (width >= 640px) {
-        background-attachment: fixed;
+    @media (width >= 769px) {
+      max-width: 992px;
+      padding-left: 120px;
+      padding-right: 120px;
     }
 
-    @media only screen and (orientation: landscape) and (width >= 993px) {
-        background-attachment: fixed;
+    @media (width >= 993px) {
+      max-width: 1200px;
+      padding-left: 200px;
+      padding-right: 200px;
+    }
+  }
+
+  & h1,
+  & h2,
+  & h3,
+  & p {
+    color: var(--white);
+    text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
+  }
+
+  & p {
+    font-family: var(--averta), Arial, sans-serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    line-height: 2.25rem;
+    margin-bottom: 1.25rem;
+
+    &:last-child {
+      margin-bottom: 0;
     }
 
-    /* Disable parallax on mobile for performance */
-    @media (width <= 640px) {
-        background-attachment: scroll;
+    &:has(em),
+    & em {
+      font-size: 1rem;
+      line-height: 1.5rem;
     }
-
-    &::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: rgb(0 0 0 / 20%);
-        z-index: 1;
-    }
-
-    & .default-content-wrapper {
-        padding-bottom: 3.75rem;
-
-        @media (width >= 769px) {
-            padding-bottom: 5rem;
-        }
-    }
-
-    & > div {
-        position: relative;
-        z-index: 2;
-        text-align: left;
-        margin: 0 auto;
-        width: 100%;
-        max-width: 480px;
-        padding-left: 30px;
-        padding-right: 30px;
-
-        @media (width >= 481px) {
-            max-width: 768px;
-            padding-left: 45px;
-            padding-right: 45px;
-        }
-
-        @media (width >= 769px) {
-            max-width: 992px;
-            padding-left: 120px;
-            padding-right: 120px;
-        }
-
-        @media (width >= 993px) {
-            max-width: 1200px;
-            padding-left: 200px;
-            padding-right: 200px;
-        }
-    }
-
-    & h1,
-    & h2,
-    & h3,
-    & p {
-        color: var(--white);
-        text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
-    }
-
-    & p {
-        font-family: var(--averta), Arial, sans-serif;
-        font-size: 1.75rem;
-        font-weight: 400;
-        letter-spacing: 0.03em;
-        line-height: 2.25rem;
-        margin-bottom: 1.25rem;
-
-        &:last-child {
-            margin-bottom: 0;
-        }
-
-        &:has(em),
-        & em {
-            font-size: 1rem;
-            line-height: 1.5rem;
-        }
-    }
+  }
 }
 
 /* Loading overlay animation */

@@ -1,7 +1,7 @@
 import {
   loadHeader,
   loadFooter,
-  decorateButtons,
+  // decorateButtons,
   decorateIcons,
   decorateBlock,
   decorateTemplateAndTheme,
@@ -451,6 +451,60 @@ function decorateLightboxImages(main) {
 
       // Add flag to help prevent multiple click handlers from being added
       img.setAttribute('data-lightbox-ready', 'true');
+    }
+  });
+}
+
+function decorateButtons(element) {
+  element.querySelectorAll('a').forEach((a) => {
+    a.title = a.title || a.textContent;
+    if (a.href !== a.textContent) {
+      const up = a.parentElement;
+      const twoup = a.parentElement.parentElement;
+      const threeup = twoup?.parentElement;
+      if (!a.querySelector('img')) {
+        if (up.childNodes.length === 1 && (up.tagName === 'P' || up.tagName === 'DIV')) {
+          up.classList.add('button-container');
+        }
+        if (
+          up.childNodes.length === 1
+          && up.tagName === 'STRONG'
+          && twoup.childNodes.length === 1
+          && twoup.tagName === 'P'
+        ) {
+          a.className = 'button primary';
+          twoup.classList.add('button-container');
+        }
+        if (
+          up.childNodes.length === 1
+          && up.tagName === 'EM'
+          && twoup.childNodes.length === 1
+          && twoup.tagName === 'P'
+        ) {
+          a.className = 'button secondary';
+          twoup.classList.add('button-container');
+        }
+        if (
+          up.tagName === 'EM'
+          && up.childNodes.length === 1
+          && twoup?.tagName === 'STRONG'
+          && twoup.childNodes.length === 1
+          && threeup?.tagName === 'P'
+          && threeup.childNodes.length === 1
+        ) {
+          a.className = 'button tertiary'; // CHECK IF IT IS
+          threeup.classList.add('button-container');
+        }
+        if (
+          up.tagName === 'P'
+          && up.childNodes.length === 1
+        ) {
+          a.className = 'link';
+        }
+        if (a.querySelector('u')) {
+          a.classList.add('alternate');
+        }
+      }
     }
   });
 }
