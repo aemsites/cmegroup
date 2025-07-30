@@ -13,6 +13,7 @@ import {
   toClassName,
   getMetadata,
   buildBlock,
+  updateTitleAndMetaTags,
 } from './aem.js';
 import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
@@ -576,6 +577,8 @@ async function loadEager(doc) {
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
+    updateTitleAndMetaTags(document.title);
+
     if (templateName) {
       await loadTemplate(doc, templateName);
     }

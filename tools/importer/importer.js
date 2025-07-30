@@ -164,8 +164,11 @@ async function setMetadata(meta, document, url) {
           meta['Module ID'] = jsonData[key];
         } else if (key === 'hideCourseNavigation') {
           meta['Hide Course Navigation'] = Boolean(jsonData[key]);
-        } else if (key === 'jcr:title' && (meta.Template === 'lesson' || meta.Template === 'course' || meta.Template === 'chapter' || meta.Template === 'lesson-standalone')) {
-          meta['Module Title'] = jsonData[key];
+        } else if (key === 'jcr:title') {
+          meta.Title = jsonData[key];
+          if (meta.Template === 'lesson' || meta.Template === 'course' || meta.Template === 'chapter' || meta.Template === 'lesson-standalone') {
+            meta['Module Title'] = jsonData[key];
+          }
         } else if (key === 'isPremium') {
           meta.isPremium = Boolean(jsonData[key]);
         } else if (key === 'effectiveDate') {
