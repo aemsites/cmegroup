@@ -79,7 +79,7 @@ async function createStaticCards(block) {
   } else if (block.classList.contains('static')) {
     const cardElements = [];
     let sliderConfig = null;
-    let disabledOnDesktop = false;
+    const disabledOnDesktop = false;
     const inverse = false;
 
     [...block.children].forEach((row) => {
