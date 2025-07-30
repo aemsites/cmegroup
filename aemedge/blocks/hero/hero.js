@@ -1,9 +1,10 @@
-import { getMetadata, loadScript } from '../../scripts/aem.js';
+import { getMetadata } from '../../scripts/aem.js';
 import {
   createElement,
   i18n,
   getTag,
-  formatToCentralTime,
+  setupDayjsLibs,
+  getCdtDate,
 } from '../../scripts/utils.js';
 
 /**
@@ -46,18 +47,9 @@ async function decorateEventPageHero(block) {
     i18n('Location'),
     i18n('Time'),
     i18n('Sponsoring Firm'),
-    loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/utc.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/timezone.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js'),
+    setupDayjsLibs(),
   ]);
-  /* eslint-disable no-undef */
-  dayjs.extend(dayjs_plugin_utc);
-  dayjs.extend(dayjs_plugin_timezone);
-  dayjs.tz.setDefault('America/Chicago');
-  dayjs.extend(dayjs_plugin_advancedFormat);
-  /* eslint-enable no-undef */
-  const cdtDate = dayjs.utc(date).tz('America/Chicago');
+  const cdtDate = getCdtDate(date);
   eventLabel.textContent = eventLabelText;
   const dateTag = createElement('div', { class: 'event-property-value' }, cdtDate.format('dddd DD MMM YYYY'));
   dateWrapper.textContent = `${dateLabel}: `;
@@ -105,9 +97,11 @@ async function decorateEconodayEventPageHero(block) {
   ] = await Promise.all([
     getTag(primaryTopic),
     i18n('Date'),
+    setupDayjsLibs(),
   ]);
+  const cdtDate = getCdtDate(date).format('MMMM DD, YYYY hh:mm A [CT]');
   featuredTag.textContent = primaryTopicTitle;
-  const dateTag = createElement('div', { class: 'economic-release-data-date-value' }, formatToCentralTime(date));
+  const dateTag = createElement('div', { class: 'economic-release-data-date-value' }, cdtDate);
   dateWrapper.textContent = `${dateLabel}: `;
   dateWrapper.append(dateTag);
 }

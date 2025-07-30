@@ -1,8 +1,8 @@
 import { decorateButtons } from '../../scripts/aem.js';
 import createField from './form-fields.js';
-import { createElement, toStartCase } from '../../scripts/utils.js';
+import { createElement, toStartCase, getCountryCode } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
-import { getUserInfo, postForm } from '../../scripts/api.js';
+import { postForm } from '../../scripts/api.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { URIUtil } from '../../scripts/utils/index.js';
 
@@ -143,6 +143,7 @@ function applyRichTextFormat(container, selectors = ['label', 'p']) {
 }
 
 async function createLoggedInFields(form, formData) {
+  form.classList.add('logged-in');
   const sheetData = await fetchForm(`${formData.source}?sheet=logged-in`);
   const fields = await Promise.all(sheetData.data.map(async (field) => {
     const fieldElement = await createField(field, form);
@@ -192,10 +193,21 @@ function buildOneClickFormCookie(block, element) {
   element.setAttribute('data-no-activation-prompt', 'true');
 }
 
-function populateUserInfoInContactUsForm(form, userInfo) {
-  Object.entries(userInfo).forEach(([key, value]) => {
-    const field = form.querySelector(`[name="${key}"]`);
-    if (field) {
+function prefillForm(form, userInfo) {
+  [...form.elements].forEach((field) => {
+    //  prefill order from salesforce userInfo:
+    //  - contactLead selfInput field
+    //  - contactLead field
+    //  - field name
+    let value = userInfo[field.prefillSelfInput]
+      || userInfo[field.prefillInput]
+      || userInfo[field.name];
+
+    if (!value && field.name.startsWith('Country_Code')) {
+      //  default value for country
+      value = getCountryCode() || 'US';
+    }
+    if (value) {
       setFieldValue(field, value);
     }
   });
@@ -207,9 +219,8 @@ async function decorateContactUsForm(form, formData, block) {
   if (!isContactUsVariant) return;
 
   form.classList.add('user-info');
-  const loggedIn = formData.mock === 'LoggedIn';
-  if (loggedIn) {
-    const userInfo = await getUserInfo();
+  const { isLoggedIn } = authentication.authenticationData;
+  if (isLoggedIn) {
     form.classList.remove('user-info');
     form.classList.add('collapsed-user-info');
 
@@ -225,7 +236,8 @@ async function decorateContactUsForm(form, formData, block) {
       }
     }
 
-    populateUserInfoInContactUsForm(form, userInfo);
+    const userInfo = window.LocalStorageUtil?.get('userInfo', true);
+    prefillForm(form, userInfo);
   }
 }
 
@@ -239,7 +251,6 @@ async function decorateOneClickForm(form, formData, block) {
 
   const { isLoggedIn } = authentication.authenticationData;
   if (isLoggedIn) {
-    form.classList.add('logged-in');
     await createLoggedInFields(form, formData);
     const userInfo = window.LocalStorageUtil?.get('userInfo', true);
     subscribed = subscriptions.every(
@@ -248,19 +259,18 @@ async function decorateOneClickForm(form, formData, block) {
     if (subscribed) {
       const subscribedMsg = form.querySelector('#form-subscribedmessage');
       subscribedMsg?.parentElement.classList.toggle('hide', false);
-      const thanksMsg = form.querySelector('#form-thankyoumessage');
-      if (thanksMsg) { thanksMsg.parentElement.dataset.showAfterSubmit = false; }
+      const thanksMsg = form.querySelectorAll('[id^="form-thankyoumessage"]');
+      thanksMsg.forEach((msg) => { msg.parentElement.dataset.showAfterSubmit = false; });
       updateFieldsAfterSubmit(form, block);
     }
   } else {
-    form.classList.add('logged-out');
     //  TODO: remove following listeners when we've the handlers for login/register
     const register = form.querySelector('#form-register');
     register?.addEventListener('click', async (event) => {
       const { target: element } = event;
       buildOneClickFormCookie(block, element);
       authentication.registration(
-        (element.href || element.baseURI)?.replace(/^https?:\/\/[^/]+/, ''),
+        element.href || element.baseURI,
         element.target,
         element.getAttribute('data-target-description'),
         element.getAttribute('data-no-activation-prompt'),
@@ -347,7 +357,7 @@ function getUserDataFields(payload) {
     Email__c: payload.Email__c || info.Email,
     First_Name__c: payload.First_Name__c || info.Self_Input_First_Name__c || info.FirstName,
     Last_Name__c: payload.Last_Name__c || info.Self_Input_Last_Name__c || info.LastName,
-    Country_Code__c: payload.Country_Code__c || info.Country_Code__c || 'US',
+    Country_Code__c: payload.Country_Code__c || info.Country_Code__c || getCountryCode() || 'US',
     Job_Role__c: payload.Job_Role__c || info.Self_Input_Job_Role__c || info.Job_Role__c,
     Company_Name__c: payload.Company_Name__c || info.Self_Input_Company__c || info.Company,
     Company_Type__c: payload.Company_Type__c || info.Self_Input_Company_Type__c || info.Segment__c,
@@ -370,7 +380,7 @@ function generatePayload(form, formId, formName, formHighValue) {
       }
       if (field.submitName && payload[field.name]) {
         payload[field.submitName] = payload[field.name];
-        payload[field.name] = '';
+        delete payload[field.name];
       }
     }
   });
@@ -429,13 +439,14 @@ function updatePostSubmitUi(form, block) {
   } else {
     const submitLoggedIn = block.querySelector('.post-submit.logged-in');
     const submitLoggedOut = block.querySelector('.post-submit.logged-out');
-    if (submitLoggedIn && submitLoggedOut) {
+    if (submitLoggedIn || submitLoggedOut) {
       //  hides the form and show fragments for logged-in/out status
       form.style.display = 'none';
+      block.querySelector('.recaptcha-disclaimer')?.classList.add('hide');
       if (form.classList.contains('logged-in')) {
-        submitLoggedIn.classList.remove('hide');
+        submitLoggedIn?.classList.remove('hide');
       } else {
-        submitLoggedOut.classList.remove('hide');
+        submitLoggedOut?.classList.remove('hide');
       }
     } else {
       updateFieldsAfterSubmit(form, block);
@@ -454,7 +465,7 @@ async function handleSubmit(form, block) {
   const spinner = createSpinner();
   try {
     form.setAttribute('data-submitting', 'true');
-    submit.disabled = true;
+    submit?.setAttribute('disabled', 'true');
     block.append(spinner);
 
     const sitekey = block.querySelector('.recaptcha-disclaimer')?.dataset.sitekey;
@@ -484,10 +495,7 @@ async function handleSubmit(form, block) {
       if (form.dataset.confirmation) {
         window.location.href = form.dataset.confirmation;
       }
-      if (payload.Fields_to_Update__c) {
-        //  user subscriptions updates
-        window.LocalStorageUtil?.remove('userInfo');
-      }
+      window.LocalStorageUtil?.remove('userInfo');
       updatePostSubmitUi(form, block);
     } else {
       throw new Error(response.error?.message);
@@ -498,7 +506,7 @@ async function handleSubmit(form, block) {
   } finally {
     spinner.remove();
     form.setAttribute('data-submitting', 'false');
-    submit.disabled = false;
+    submit?.setAttribute('disabled', 'false');
   }
 }
 

@@ -15,17 +15,21 @@ function hasValue(value) {
  */
 function buildIndexFilter(config) {
   return {
-    basePaths: config.basePaths ? config.basePaths.split(',').map((path) => path.trim().toLowerCase()) : [],
-    templates: config.templates ? config.templates.split(',').map((template) => template.trim().toLowerCase()) : [],
-    tagsAnd: config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()) : [],
-    tagsOr: config['optional-tags'] ? config['optional-tags'].split(',').map((tag) => tag.trim().toLowerCase()) : [],
-    tagsNot: config['excluded-tags'] ? config['excluded-tags'].split(',').map((tag) => tag.trim().toLowerCase()) : [],
+    basePaths: config.basePaths ? config.basePaths.split(',').map((path) => path.trim()) : [],
+    templates: config.templates ? config.templates.split(',').map((template) => template.trim()) : [],
+    tagsAnd: config.tags ? config.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag !== '') : [],
+    tagsOr: config['optional-tags'] ? config['optional-tags'].split(',').map((tag) => tag.trim()).filter((tag) => tag !== '') : [],
+    tagsNot: config['excluded-tags'] ? config['excluded-tags'].split(',').map((tag) => tag.trim()).filter((tag) => tag !== '') : [],
     relativeDateFrom: config['relative-date-from'], // Number in days
     relativeDateTo: config['relative-date-to'], // Number in days
     orderBy: config.orderBy,
     sortDirection: config.sortDirection,
     limit: config.limit,
-    page: 1,
+    page: config.page || 1,
+    fullText: config.fullText || '',
+    languages: config.languages || [],
+    getFacets: config.getFacets || false,
+    customTagObjArr: config.customTagObjArr || [],
   };
 }
 
@@ -44,6 +48,10 @@ function buildIndexFilter(config) {
  *   sortDirection: 'asc', // use asc or desc
  *   limit: 10, // Max quantity of results
  *   page: 1, // Page num
+ *   fullText: 'search query', // Full text search query
+ *   languages: ['en'], // Array of languages
+ *   getFacets: true, // Boolean to get facets
+ *   customTagObjArr: [{}] // Custom array for the tags
  * });
  */
 async function getIndexedContent(indexFilter) {
@@ -67,16 +75,20 @@ async function getIndexedContent(indexFilter) {
       postData.query.languages = indexFilter.languages;
     }
     const tags = {};
-    tags.and = indexFilter.tagsAnd;
-    tags.or = indexFilter.tagsOr;
-    tags.not = indexFilter.tagsNot;
-    if ((tags.and && tags.and.length > 0)
-      || (tags.or && tags.or.length > 0)
-      || (tags.not && tags.not.length > 0)) {
-      postData.tags = tags;
+    if (indexFilter.tagsAnd && indexFilter.tagsAnd.length > 0) {
+      tags.and = indexFilter.tagsAnd;
     }
-    if (indexFilter.customTagObj && indexFilter.customTagObj.length > 0) {
-      postData.query.tags = indexFilter.customTagObj;
+    if (indexFilter.tagsOr && indexFilter.tagsOr.length > 0) {
+      tags.or = indexFilter.tagsOr;
+    }
+    if (indexFilter.tagsNot && indexFilter.tagsNot.length > 0) {
+      tags.not = indexFilter.tagsNot;
+    }
+    if (tags.and || tags.or || tags.not) {
+      postData.query.tags = tags;
+    }
+    if (indexFilter.customTagObjArr && indexFilter.customTagObjArr.length > 0) {
+      postData.query.tags = indexFilter.customTagObjArr;
     }
     const dateRange = {};
     if (hasValue(indexFilter.relativeDateFrom)) {
@@ -92,7 +104,7 @@ async function getIndexedContent(indexFilter) {
       dateRange.to = dateTo.toISOString();
     }
     if (dateRange.from || dateRange.to) {
-      postData.dateRange = dateRange;
+      postData.query.dateRange = dateRange;
     }
     if (indexFilter.orderBy) {
       postData.sort = {

@@ -1,5 +1,5 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { createElement, i18n } from '../../scripts/utils.js';
+import { createElement, i18n, setupDayjsLibs } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
 import { store } from '../../scripts/store/store.js';
 import { authentication as authStatus } from '../../scripts/modules/index.js';
@@ -374,6 +374,7 @@ class Nav {
       'aria-label': 'Open search',
     });
     searchBtn.addEventListener('click', async () => {
+      await setupDayjsLibs();
       this.openSearchDrawer();
     });
     return searchBtn;

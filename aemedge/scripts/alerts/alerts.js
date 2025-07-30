@@ -3,7 +3,7 @@
  */
 
 import { getMetadata } from '../aem.js';
-import { getBrowserName, formatToCentralTime } from '../utils.js';
+import { getBrowserName, setupDayjsLibs, getCdtDate } from '../utils.js';
 import { getLegacyAlerts } from '../legacy-api.js';
 import { store } from '../store/store.js';
 import { addFloatingElement, updateFloatingElements } from '../actions/floatingElements.js';
@@ -63,7 +63,7 @@ function insertAlertsIntoDOM(items) {
 
       const alertTime = document.createElement('div');
       alertTime.className = 'alert-time';
-      alertTime.textContent = formatToCentralTime(item.content.redAlertDate, false, false);
+      alertTime.textContent = getCdtDate(item.content.redAlertDate).format('MMMM DD, YYYY hh:mm A');
 
       alertGccContainer.appendChild(alertTitle);
       alertGccContainer.appendChild(alertText);
@@ -182,7 +182,10 @@ function loadAlerts() {
 export default async function initFloatingElements(doc, header) {
   let alertsFetched = [];
   try {
-    alertsFetched = await loadAlerts();
+    [alertsFetched] = await Promise.all([
+      loadAlerts(),
+      setupDayjsLibs(),
+    ]);
     insertAlertsIntoDOM(alertsFetched);
   } catch (error) {
     // eslint-disable-next-line no-console

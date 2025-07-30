@@ -4,9 +4,9 @@ import {
 import searchConfig from '../search-config.js';
 import { updateFilteringByUI } from '../filter-bullets/filter-bullets.js';
 import { getCards } from './cards-template.js';
-import { i18n } from '../../../scripts/utils.js';
+import { i18n, setupDayjsLibs } from '../../../scripts/utils.js';
 import { clearAllFilters } from '../search-utils.js';
-import { getIndexedContent } from '../../../scripts/indexing.js';
+import { buildIndexFilter, getIndexedContent } from '../../../scripts/indexing.js';
 import renderPagination from './pagination.js';
 
 function showSpinner(container) {
@@ -17,12 +17,17 @@ function showSpinner(container) {
 
 const buildSearchRequest = () => {
   const request = {
+    basePaths: searchConfig.basePaths,
     page: searchConfig.pagination?.currentPage || 1,
     limit: searchConfig.pagination?.size || 10,
     fullText: searchConfig.searchInput || '',
     languages: ['en'], // currently hardcoding languages
     getFacets: searchConfig.getFacets,
   };
+
+  if (searchConfig.template && Object.keys(searchConfig.template).length > 0) {
+    request.templates = Object.keys(searchConfig.template).join(',');
+  }
 
   const mp = {};
   searchConfig.appliedFilters.forEach((filter) => {
@@ -35,27 +40,16 @@ const buildSearchRequest = () => {
   });
 
   if (Object.keys(mp).length > 0) {
-    request.customTagObj = [];
+    request.customTagObjArr = [];
     Object.keys(mp).forEach((key) => {
-      request.customTagObj.push({
+      request.customTagObjArr.push({
         or: mp[key],
       });
     });
   }
 
-  if (searchConfig.template && Object.keys(searchConfig.template).length > 0) {
-    request.templates = Object.keys(searchConfig.template);
-    Object.keys(searchConfig.template).forEach((template) => {
-      if (searchConfig.template[template].paths?.length > 0) {
-        searchConfig.template[template].paths.forEach((path) => {
-          if (request.basePaths) {
-            request.basePaths.push(path);
-          } else {
-            request.basePaths = [path];
-          }
-        });
-      }
-    });
+  if (searchConfig.basePaths) {
+    request.basePaths = searchConfig.basePaths;
   }
 
   if (searchConfig.sortOptions) {
@@ -63,7 +57,7 @@ const buildSearchRequest = () => {
     request.sortDirection = searchConfig.sortOptions.sortType;
   }
 
-  return request;
+  return buildIndexFilter(request);
 };
 
 const searchResults = async () => {
@@ -128,6 +122,7 @@ async function filterAndRender(results) {
     i18n('Result'),
     i18n('No results found. There are no results that meet your selection criteria.'),
     i18n('Reset filters'),
+    setupDayjsLibs(),
   ]);
 
   if (resultsTitle) {

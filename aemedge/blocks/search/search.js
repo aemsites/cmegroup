@@ -123,6 +123,9 @@ export default async function decorate(block) {
       case 'template':
         templateFiltering(key, block, children.indexOf(child));
         break;
+      case 'base-paths':
+        searchConfig.basePaths = val;
+        break;
       default:
         break;
     }

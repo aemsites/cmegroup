@@ -6,17 +6,28 @@ import {
   parseTime,
   getReadTimeLabel,
   getReadTimeIcon,
+  setupDayjsLibs,
+  getCdtDate,
 } from '../../scripts/utils.js';
 
 async function decorateArticleHero(main) {
   const subTemplates = getMetadata('sub-template')?.split(' ');
   const readTime = getMetadata('read-time');
-  main.classList.add('article', ...subTemplates);
 
-  const h1 = main.querySelector('h1');
+  // Static section
+  const heroSection = main.querySelector('.section:first-of-type');
+  heroSection.classList.add('hero', ...subTemplates);
+  const contentArea = createElement('span', { class: 'content-area' });
+  const shadow = createElement('span', { class: 'shadow' });
+  const fade = createElement('span', { class: 'fade' });
+  const shadowWrapper = createElement('span', { class: 'shadow-wrapper' }, contentArea, shadow, fade);
+  const picture = heroSection.querySelector('picture');
+  picture.closest('div').classList.add('background-image');
+  picture.closest('p').append(shadowWrapper);
+
   const readIconSpan = readTime ? getReadTimeIcon(subTemplates) : null;
   const articleTime = createElement('span', { class: 'article-time' }, readIconSpan);
-  const featuredTag = createElement('span', { class: 'article-featured-tag' });
+  const featuredTag = createElement('span', { class: 'featured-tag' });
   const saveIconOutlined = createElement('img', {
     src: '/aemedge/icons/bookmark-outlined.svg',
     alt: 'Bookmark Icon',
@@ -30,38 +41,15 @@ async function decorateArticleHero(main) {
   });
   const saveIconFilledSpan = createElement('span', { class: 'icon icon-bookmark-filled' }, saveIconFilled);
   const saveText = createElement('span', { class: 'save-text' });
-  const bookmarkButton = createElement('a', { class: 'bookmark' }, saveIconOutlinedSpan, saveIconFilledSpan, saveText);
-  const row1 = createElement('div', { class: 'row' }, articleTime, featuredTag, bookmarkButton);
-  const row2 = createElement('div', { class: 'row article-title' }, h1.cloneNode(true));
+  const bookmark = createElement('a', { class: 'bookmark' }, saveIconOutlinedSpan, saveIconFilledSpan, saveText);
+  const topInfo = createElement('div', { class: 'top-info' }, articleTime, featuredTag, bookmark);
+  const h1 = heroSection.querySelector('h1');
   const authors = createElement('span', { class: 'authors' });
   const articleDate = createElement('span', { class: 'article-date' });
-  const row3 = createElement('div', { class: 'row' }, authors, articleDate);
+  const lastInfo = createElement('div', { class: 'article-data' }, authors, articleDate);
+  const contentWrapper = createElement('div', { class: 'default-content-wrapper' }, topInfo, h1, lastInfo);
+  heroSection.append(contentWrapper);
 
-  const firstSection = main.querySelector('.section:first-of-type');
-  const picture = firstSection.querySelector('picture');
-  if (picture?.parentElement?.tagName === 'P') {
-    const container = picture.parentElement.parentElement;
-    if (container) {
-      picture.parentElement.remove();
-      container.appendChild(picture);
-    }
-  }
-  picture?.classList.add('hero-background');
-
-  const articleInfo = createElement('div', { class: 'article-info' }, row1, row2, row3);
-  if (subTemplates.includes('showcase')) {
-    firstSection.append(articleInfo);
-    h1.remove();
-  } else {
-    const secondSection = main.querySelector('.section:nth-of-type(2)');
-    const firstDivChildren = secondSection.querySelector('div:first-of-type').children;
-    const secondDiv = secondSection.querySelector('div:nth-of-type(2)');
-    secondDiv.append(...firstDivChildren, ...secondDiv.children);
-    secondDiv.querySelector('h1')?.replaceWith(articleInfo);
-    secondSection.querySelector('div:first-of-type').remove();
-  }
-
-  const bookmark = main.querySelector('.bookmark');
   const saveIcons = bookmark.querySelectorAll('.icon');
   bookmark.addEventListener('mouseenter', () => {
     saveIcons.forEach((saveIcon) => { saveIcon.classList.toggle('show'); });
@@ -91,13 +79,14 @@ async function decorateArticleHero(main) {
   ] = await Promise.all([
     parseTime(readTime),
     getReadTimeLabel(subTemplates),
+    setupDayjsLibs(),
   ]);
   const readTimeText = readTime ? createElement('span', null, `${parsedTime} ${readLabel}`) : null;
   articleTime.append(readTimeText);
   featuredTag.textContent = primaryTopic;
   saveText.textContent = saveLabel;
   authors.textContent = `${byLabel} ${author}`;
-  articleDate.textContent = date;
+  articleDate.textContent = getCdtDate(date).format('DD MMM YYYY');
 }
 
 export default function articleTemplate() {

@@ -1,5 +1,11 @@
-import { loadScript } from '../../scripts/aem.js';
-import { createElement, i18n, readBlockConfig } from '../../scripts/utils.js';
+import {
+  createElement,
+  i18n,
+  readBlockConfig,
+  setupDayjsLibs,
+  getCdtDate,
+  loadScript,
+} from '../../scripts/utils.js';
 import {
   getEconomicReleaseFilters,
   getEconomicReleaseDates,
@@ -891,7 +897,7 @@ function renderDesktopAccordion(eventsToRender) {
     title,
     url,
   }, index) => {
-    const timeFormatted = `${dayjs.utc(date).tz('America/Chicago').format('hh:mm A [CT]')}` || '-';
+    const timeFormatted = `${getCdtDate(date).format('hh:mm A [CT]')}` || '-';
     const nextReleaseDateFormatted = `${dayjs.utc(nextReleaseDate).format('dddd DD MMM YYYY')}` || '-';
     const {
       actual,
@@ -991,7 +997,7 @@ function renderMobileAccordion(eventsToRender) {
     title,
     url,
   }, index) => {
-    const timeFormatted = `${dayjs.utc(date).tz('America/Chicago').format('hh:mm A [CT] |')}` || '-';
+    const timeFormatted = `${getCdtDate(date).format('hh:mm A [CT] |')}` || '-';
     const {
       actual,
       consensus,
@@ -1343,12 +1349,6 @@ function initFilters() {
 }
 
 async function init(block, version) {
-  /* eslint-disable no-undef */
-  dayjs.extend(dayjs_plugin_utc);
-  dayjs.extend(dayjs_plugin_timezone);
-  dayjs.tz.setDefault('America/Chicago');
-  dayjs.extend(dayjs_plugin_advancedFormat);
-  /* eslint-enable no-undef */
   await initializeLabels();
   economicFilters = await getEconomicReleaseFilters();
   initFilters();
@@ -1430,10 +1430,7 @@ export default async function decorate(block) {
   // Array to hold promises for script loading
   const scriptPromises = [
     loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/dayjs.min.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/utc.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/timezone.js'),
-    loadScript('/aemedge/scripts/third-party/dayjs/advancedFormat.js'),
+    setupDayjsLibs(),
   ];
 
   // Wait for all scripts to load
