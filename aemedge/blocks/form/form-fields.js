@@ -97,6 +97,7 @@ const createHeading = (fd) => {
   heading.id = fd.Id;
 
   fieldWrapper.append(heading);
+  fieldWrapper.classList.remove(level);
 
   return { field: heading, fieldWrapper };
 };
