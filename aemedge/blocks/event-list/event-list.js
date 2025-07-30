@@ -10,10 +10,13 @@ import createMonthSelector from '../../scripts/utils/monthSelector.js';
 function createUpcomingEvent(content, timeZoneLabel) {
   const {
     path,
-    location,
     title,
-    image,
     date,
+    metadata: {
+      location,
+      // eslint-disable-next-line no-useless-computed-key
+      ['og:image']: image,
+    },
   } = content;
   const cdtDate = getCdtDate(date);
   const dateTag = createElement('div', { class: 'card-date' }, cdtDate.format('MMMM DD, YYYY'));
