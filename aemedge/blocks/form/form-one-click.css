@@ -13,9 +13,21 @@
       cursor: pointer;
     }
 
+    & .submit-wrapper {
+      display: none;
+    }
+
     &.logged-in {
       .field-wrapper:not(.logged-in) {
         display: none;
+      }
+
+      .field-wrapper.submit-wrapper:not(.hide) {
+        display: unset;
+      }
+
+      .field-wrapper.privacy-text:not(.hide) {
+        display: unset;
       }
     }
 
