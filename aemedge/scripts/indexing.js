@@ -15,11 +15,11 @@ function hasValue(value) {
  */
 function buildIndexFilter(config) {
   return {
-    basePaths: config.basePaths ? config.basePaths.split(',').map((path) => path.trim().toLowerCase()) : [],
-    templates: config.templates ? config.templates.split(',').map((template) => template.trim().toLowerCase()) : [],
-    tagsAnd: config.tags ? config.tags.split(',').map((tag) => tag.trim().toLowerCase()).filter((tag) => tag !== '') : [],
-    tagsOr: config['optional-tags'] ? config['optional-tags'].split(',').map((tag) => tag.trim().toLowerCase()).filter((tag) => tag !== '') : [],
-    tagsNot: config['excluded-tags'] ? config['excluded-tags'].split(',').map((tag) => tag.trim().toLowerCase()).filter((tag) => tag !== '') : [],
+    basePaths: config.basePaths ? config.basePaths.split(',').map((path) => path.trim()) : [],
+    templates: config.templates ? config.templates.split(',').map((template) => template.trim()) : [],
+    tagsAnd: config.tags ? config.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag !== '') : [],
+    tagsOr: config['optional-tags'] ? config['optional-tags'].split(',').map((tag) => tag.trim()).filter((tag) => tag !== '') : [],
+    tagsNot: config['excluded-tags'] ? config['excluded-tags'].split(',').map((tag) => tag.trim()).filter((tag) => tag !== '') : [],
     relativeDateFrom: config['relative-date-from'], // Number in days
     relativeDateTo: config['relative-date-to'], // Number in days
     orderBy: config.orderBy,
