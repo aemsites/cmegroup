@@ -92,7 +92,7 @@ main > .section > div {
   max-height: 13.75rem;
 
   & .close-button {
-    padding-left: 0.625rem;dr
+    padding-left: 0.625rem;
     padding-top: 0.625rem;
 
     &:focus-visible {
