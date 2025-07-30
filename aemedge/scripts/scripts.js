@@ -13,6 +13,7 @@ import {
   toClassName,
   getMetadata,
   buildBlock,
+  updateTitleAndMetaTags,
 } from './aem.js';
 import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
@@ -137,6 +138,22 @@ function decorateSections(main) {
         }
       });
       sectionMeta.parentNode.remove();
+    }
+  });
+}
+
+/**
+ * Initialize parallax sections with background images from data attributes
+ * @param {Element} main The main container element
+ */
+function initParallaxSections(main) {
+  const parallaxSections = main.querySelectorAll('.section.parallax[data-background-image]');
+
+  parallaxSections.forEach((section) => {
+    const { backgroundImage } = section.dataset;
+    if (backgroundImage) {
+      section.style.backgroundImage = `url('${backgroundImage}')`;
+      delete section.dataset.backgroundImage;
     }
   });
 }
@@ -560,6 +577,8 @@ async function loadEager(doc) {
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
+    updateTitleAndMetaTags(document.title);
+
     if (templateName) {
       await loadTemplate(doc, templateName);
     }
@@ -588,6 +607,7 @@ async function loadLazy(doc) {
 
   const main = doc.querySelector('main');
   await loadSections(main);
+  initParallaxSections(main);
 
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
