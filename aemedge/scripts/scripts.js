@@ -281,14 +281,17 @@ export function buildFragmentBlocks(main) {
       a.replaceWith(block);
       decorateBlock(block);
     }
-    const isLogin = a.title === '[login]';
+
+    const isLogin = a.title.includes('[login]');
     if (isLogin) {
+      a.title = a.title.replaceAll('[login]', '').trim();
       a.addEventListener('click', (event) => {
         handleLoginRedirection(event, a);
       }, { capture: true });
     }
-    const isRegistration = a.title === '[registration]';
+    const isRegistration = a.title.includes('[registration]');
     if (isRegistration) {
+      a.title = a.title.replaceAll('[registration]', '').trim();
       a.addEventListener('click', (event) => {
         handleRegistrationRedirection(event, a);
       }, { capture: true });
