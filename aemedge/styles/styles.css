@@ -855,6 +855,106 @@ main .section.divider > div {
   border-bottom: 0.0625rem solid var(--gray4);
 }
 
+/* Parallax section styling */
+main .section.parallax {
+    position: relative;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: var(--white);
+    padding: 3.75rem 0 0;
+    margin: -1px 0 1.875rem;
+
+    @media (width >= 769px) {
+        margin-bottom: 3.75rem;
+    }
+
+    @media only screen and (orientation: portrait) and (width >= 640px) {
+        background-attachment: fixed;
+    }
+
+    @media only screen and (orientation: landscape) and (width >= 993px) {
+        background-attachment: fixed;
+    }
+
+    /* Disable parallax on mobile for performance */
+    @media (width <= 640px) {
+        background-attachment: scroll;
+    }
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgb(0 0 0 / 20%);
+        z-index: 1;
+    }
+
+    & .default-content-wrapper {
+        padding-bottom: 3.75rem;
+
+        @media (width >= 769px) {
+            padding-bottom: 5rem;
+        }
+    }
+
+    & > div {
+        position: relative;
+        z-index: 2;
+        text-align: left;
+        margin: 0 auto;
+        width: 100%;
+        max-width: 480px;
+        padding-left: 30px;
+        padding-right: 30px;
+
+        @media (width >= 481px) {
+            max-width: 768px;
+            padding-left: 45px;
+            padding-right: 45px;
+        }
+
+        @media (width >= 769px) {
+            max-width: 992px;
+            padding-left: 120px;
+            padding-right: 120px;
+        }
+
+        @media (width >= 993px) {
+            max-width: 1200px;
+            padding-left: 200px;
+            padding-right: 200px;
+        }
+    }
+
+    & h1,
+    & h2,
+    & h3,
+    & p {
+        color: var(--white);
+        text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
+    }
+
+    & p {
+        font-family: var(--averta), Arial, sans-serif;
+        font-size: 1.75rem;
+        font-weight: 400;
+        letter-spacing: 0.03em;
+        line-height: 2.25rem;
+        margin-bottom: 1.25rem;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        &:has(em),
+        & em {
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+    }
+}
+
 /* Loading overlay animation */
 @keyframes loading {
   0% {

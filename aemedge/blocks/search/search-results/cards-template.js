@@ -32,7 +32,7 @@ const buildBaseCard = ({
 // Add image to card if present
 const addImage = (card, item) => {
   const imageUrl = item.metadata?.['og:image'];
-  if (imageUrl) {
+  if (imageUrl && (imageUrl.includes('https://') || imageUrl.includes('http://'))) {
     const imageEl = img({ src: imageUrl, alt: item.title });
     card.children[0]?.prepend(imageEl);
   }
@@ -52,7 +52,8 @@ const resolveTaxonomyPath = (path, taxonomy) => {
 };
 
 const articleCard = async (card, item) => {
-  const footer = div({ class: 'result-footer' }, item.date ? getCdtDate(item.date).format('DD MMM YYYY') : '');
+  const date = item.date ? getCdtDate(item.date).format('MMM DD, YYYY') : '';
+  const footer = div({ class: 'result-footer' }, date);
   const subTemplates = item.metadata?.['sub-template']?.split(' ');
 
   const [
@@ -66,6 +67,7 @@ const articleCard = async (card, item) => {
   const readIconSpan = parsedTime ? getReadTimeIcon(subTemplates) : null;
   if (readIconSpan) {
     readIconSpan.appendChild(p(`${parsedTime} ${readLabel?.toLowerCase()}`));
+    footer.classList.add('no-margin-top-auto');
   }
 
   const taxonomy = await getTaxonomy('tags');
@@ -73,7 +75,9 @@ const articleCard = async (card, item) => {
 
   if (item.metadata['primary-topic']) {
     const resolved = resolveTaxonomyPath(item.metadata['primary-topic'], taxonomy);
-    header = div({ class: 'result-header' }, resolved.node.title);
+    if (resolved) {
+      header = div({ class: 'result-header' }, resolved.node.title);
+    }
   }
 
   const anchor = buildBaseCard({
@@ -142,6 +146,7 @@ const labeledCardStandaloneLesson = async (card, item, labelKey, footerText) => 
 
   if (readIconSpan) {
     readIconSpan.appendChild(p(`${parsedTime} ${readLabel?.toLowerCase()}`));
+    footer.classList.add('no-margin-top-auto');
   }
 
   const anchor = buildBaseCard({
@@ -166,11 +171,11 @@ const courseCard = async (card, item) => {
 const lessonCard = async (card, item) => {
   // todo piyush add course name in place item.metadata?.['module-title']
   await labeledCardLesson(card, item, `Lesson ${item.metadata?.['module-title']
-    ? `: ${item.metadata?.['module-title']}` : ''}`, item.date ? getCdtDate(item.date).format('DD MMM') : '');
+    ? `: ${item.metadata?.['module-title']}` : ''}`, item.date ? getCdtDate(item.date).format('MMM DD, YYYY') : '');
 };
 
 const standaloneLessonCard = async (card, item) => {
-  await labeledCardStandaloneLesson(card, item, '', item.date ? getCdtDate(item.date).format('DD MMM') : '');
+  await labeledCardStandaloneLesson(card, item, '', item.date ? getCdtDate(item.date).format('MMM DD, YYYY') : '');
 };
 
 // Wrap a card type with optional image

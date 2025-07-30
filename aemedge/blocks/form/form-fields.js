@@ -61,6 +61,8 @@ function setCommonAttributes(field, fd) {
   field.placeholder = fd.Placeholder;
   field.value = fd.Value;
   field.submitName = fd.SubmitName;
+  field.prefillInput = fd.PrefillInput;
+  field.prefillSelfInput = fd.PrefillSelfInput;
 
   // Set validation message (empty if not provided)
   const validationMessage = fd.ValidationMessage || '';

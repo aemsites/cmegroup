@@ -15,6 +15,8 @@
 .block.search .result-card .result-item {
   padding: 1rem;
   min-height: 9.25rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .block.search .result-card img {
@@ -27,7 +29,7 @@
   color: var(--gray3);
   font-size: 12px;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   line-height: 0.875rem;
   letter-spacing: 0.05em;
   line-clamp: 1;
@@ -39,11 +41,12 @@
   min-height: 30px;
   max-height: 45px;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   line-height: 24px;
   line-clamp: 2;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-top: 0.25rem;
 }
 
 .block.search .result-card:hover .result-title::after {
@@ -54,7 +57,7 @@
   content: var(--icon-chevron-right);
   font-family: var(--cme-group-icons);
   line-height: 1;
-  font-size: 16px;
+  font-size: 0.85rem;
   margin-left: 0.5rem;
   color: var(--blue5);
 }
@@ -83,6 +86,10 @@
 .block.search .result-card .result-footer {
   font-size: 12px;
   color: var(--gray3);
+}
+
+.block.search .result-card .result-footer:not(.no-margin-top-auto) {
+  margin-top: auto;
 }
 
 .block.search .result-card.course .result-footer {
@@ -179,6 +186,10 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-size: 0.75rem;
+}
+
+.block.search .result-card .icon-list {
+  margin-top: auto;
 }
 
 .block.search .card-standalone-lesson .icon-list p {

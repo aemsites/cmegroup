@@ -607,6 +607,11 @@ function getCdtDate(date) {
   return dayjs.utc(date).tz('America/Chicago');
 }
 
+function getCountryCode() {
+  const { locale } = Intl.DateTimeFormat().resolvedOptions();
+  return new Intl.Locale(locale)?.region || '';
+}
+
 export {
   loadScript,
   createElement,
@@ -632,4 +637,5 @@ export {
   toStartCase,
   setupDayjsLibs,
   getCdtDate,
+  getCountryCode,
 };

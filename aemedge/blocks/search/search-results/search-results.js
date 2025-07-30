@@ -6,7 +6,7 @@ import { updateFilteringByUI } from '../filter-bullets/filter-bullets.js';
 import { getCards } from './cards-template.js';
 import { i18n, setupDayjsLibs } from '../../../scripts/utils.js';
 import { clearAllFilters } from '../search-utils.js';
-import { getIndexedContent } from '../../../scripts/indexing.js';
+import { buildIndexFilter, getIndexedContent } from '../../../scripts/indexing.js';
 import renderPagination from './pagination.js';
 
 function showSpinner(container) {
@@ -17,12 +17,17 @@ function showSpinner(container) {
 
 const buildSearchRequest = () => {
   const request = {
+    basePaths: searchConfig.basePaths,
     page: searchConfig.pagination?.currentPage || 1,
     limit: searchConfig.pagination?.size || 10,
     fullText: searchConfig.searchInput || '',
     languages: ['en'], // currently hardcoding languages
     getFacets: searchConfig.getFacets,
   };
+
+  if (searchConfig.template && Object.keys(searchConfig.template).length > 0) {
+    request.templates = Object.keys(searchConfig.template).join(',');
+  }
 
   const mp = {};
   searchConfig.appliedFilters.forEach((filter) => {
@@ -35,9 +40,9 @@ const buildSearchRequest = () => {
   });
 
   if (Object.keys(mp).length > 0) {
-    request.customTagObj = [];
+    request.customTagObjArr = [];
     Object.keys(mp).forEach((key) => {
-      request.customTagObj.push({
+      request.customTagObjArr.push({
         or: mp[key],
       });
     });
@@ -47,16 +52,12 @@ const buildSearchRequest = () => {
     request.basePaths = searchConfig.basePaths;
   }
 
-  if (searchConfig.template && Object.keys(searchConfig.template).length > 0) {
-    request.templates = Object.keys(searchConfig.template);
-  }
-
   if (searchConfig.sortOptions) {
     request.orderBy = searchConfig.sortOptions.value;
     request.sortDirection = searchConfig.sortOptions.sortType;
   }
 
-  return request;
+  return buildIndexFilter(request);
 };
 
 const searchResults = async () => {
