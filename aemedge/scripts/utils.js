@@ -380,7 +380,14 @@ let sliderPromise = null;
  * @param {*} config Glider configuration
  * @param {*} includeArrows boolean, if true, arrows are included for navigation
  */
-function buildSlider(el, config, includeArrows = true, disableOnDesktop = false, inverse = false) {
+function buildSlider(
+  el,
+  config,
+  includeArrows = true,
+  disableOnDesktop = false,
+  inverse = false,
+  responsiveSlider = false,
+) {
   if (!sliderPromise) {
     sliderPromise = loadScript('/aemedge/scripts/third-party/glider/glider.min.js');
     loadCSS('/aemedge/scripts/third-party/glider/glider.min.css');
@@ -454,10 +461,28 @@ function buildSlider(el, config, includeArrows = true, disableOnDesktop = false,
     };
 
     const handleResize = () => {
-      if (disableOnDesktop && window.innerWidth >= 769) {
-        destroySlider();
-      } else {
+      const windowWidth = window.innerWidth;
+      const childCount = currentEl.querySelectorAll('li').length;
+
+      let shouldEnableSlider = true;
+
+      if (disableOnDesktop && windowWidth >= 769) {
+        shouldEnableSlider = false;
+      } else if (responsiveSlider) {
+        if (
+          (childCount <= 2 && windowWidth >= 769)
+          || (childCount <= 3 && windowWidth >= 860)
+          || (childCount <= 4 && windowWidth >= 1139)
+          || (childCount <= 5 && windowWidth >= 1436)
+        ) {
+          shouldEnableSlider = false;
+        }
+      }
+
+      if (shouldEnableSlider) {
         initSlider();
+      } else {
+        destroySlider();
       }
     };
 

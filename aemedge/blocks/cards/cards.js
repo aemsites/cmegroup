@@ -133,14 +133,13 @@ async function createStaticCards(block) {
         },
       ],
     };
-    disabledOnDesktop = cardElements.length <= 4;
 
     if (cardElements && cardElements.length) {
       const ul = createElement('ul', null, ...cardElements);
       cardsContainer.append(ul);
       block.textContent = '';
       block.appendChild(cardsContainer);
-      buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
+      buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse, true);
     }
   } else {
     const ul = document.createElement('ul');
