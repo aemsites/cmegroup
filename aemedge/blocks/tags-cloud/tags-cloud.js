@@ -76,7 +76,7 @@ async function buildTagList(block, listPage) {
     const { name, title } = tag;
     const button = createElement('a', {
       class: 'btn-tag-filter',
-      href: `${listPage || defaultUrl}?filters=${name}`,
+      href: `${listPage || defaultUrl}#filters=${name}`,
     });
     button.textContent = title;
     block.append(button);
