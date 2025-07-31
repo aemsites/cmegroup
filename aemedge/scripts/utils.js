@@ -637,6 +637,53 @@ function getCountryCode() {
   return new Intl.Locale(locale)?.region || '';
 }
 
+/**
+ * Preserves hideXXX query parameters for internal links
+ * @param {Element} main The main element
+ */
+function preserveHideParameters(main) {
+  const currentUrl = new URL(window.location.href);
+  const hideParams = new Map();
+
+  // Extract all hideXXX parameters from current URL
+  currentUrl.searchParams.forEach((value, key) => {
+    if (key.startsWith('hide') && value) {
+      hideParams.set(key, value);
+    }
+  });
+
+  // If no hide parameters, nothing to preserve
+  if (hideParams.size === 0) return;
+
+  main.querySelectorAll('a[href]').forEach((link) => {
+    const href = link.getAttribute('href');
+    if (href) {
+      const isInternal = href.startsWith('/') || href.startsWith('#') || href.startsWith('?');
+      const isAnchorOnly = href.startsWith('#');
+
+      // Only process internal links that aren't just anchor links
+      if (isInternal && !isAnchorOnly) {
+        try {
+          const linkUrl = new URL(href, window.location.origin);
+
+          // Add hide parameters that don't already exist
+          hideParams.forEach((value, key) => {
+            if (!linkUrl.searchParams.has(key)) {
+              linkUrl.searchParams.set(key, value);
+            }
+          });
+
+          // Update the href with preserved parameters
+          const newHref = linkUrl.pathname + linkUrl.search + linkUrl.hash;
+          link.setAttribute('href', newHref);
+        } catch (error) {
+          // Skip malformed URLs
+        }
+      }
+    }
+  });
+}
+
 export {
   loadScript,
   createElement,
@@ -663,4 +710,5 @@ export {
   setupDayjsLibs,
   getCdtDate,
   getCountryCode,
+  preserveHideParameters,
 };
