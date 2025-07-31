@@ -234,6 +234,41 @@ export function isFragmentLink(link) {
   return href && FRAGMENT_PATHS.some((path) => href.includes(path));
 }
 
+function handleLoginRedirection(event, element) {
+  const { authenticationData } = authentication;
+  if (!authenticationData.isLoggedIn) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    authenticationData.login(
+      element.getAttribute('href') === '#'
+        ? window.location.href
+        : element.href,
+      element.target,
+      '',
+    );
+  }
+}
+
+function handleRegistrationRedirection(event, element) {
+  const { authenticationData } = authentication;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (!authenticationData.isLoggedIn) {
+    const noActivationPrompt = element.getAttribute(
+      'data-no-activation-prompt',
+    );
+    const targetLocation = noActivationPrompt
+      ? window.location.href
+      : element.href;
+    authenticationData.registration(
+      targetLocation,
+      element.target,
+      '',
+      noActivationPrompt,
+    );
+  }
+}
+
 /**
  * Builds fragment blocks from links to fragments
  * @param {Element} main The container element
@@ -246,6 +281,21 @@ export function buildFragmentBlocks(main) {
       const block = buildBlock('fragment', url.pathname);
       a.replaceWith(block);
       decorateBlock(block);
+    }
+
+    const isLogin = a.title.includes('[login]');
+    if (isLogin) {
+      a.title = a.title.replaceAll('[login]', '').trim();
+      a.addEventListener('click', (event) => {
+        handleLoginRedirection(event, a);
+      }, { capture: true });
+    }
+    const isRegistration = a.title.includes('[registration]');
+    if (isRegistration) {
+      a.title = a.title.replaceAll('[registration]', '').trim();
+      a.addEventListener('click', (event) => {
+        handleRegistrationRedirection(event, a);
+      }, { capture: true });
     }
   });
 }
@@ -619,6 +669,9 @@ async function loadLazy(doc) {
       initFloatingElements(doc, header);
       enhanceIconAccessibility(header);
     });
+  } else {
+    // Add class to body when header is hidden to remove top padding
+    doc.body.classList.add('header-hidden');
   }
   if (!isFeatureToggled('hideFooter')) {
     loadFooter(doc.querySelector('footer')).then((footer) => {
