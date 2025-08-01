@@ -23,7 +23,7 @@ async function createProgressCard(data) {
       <span>${completedCount} ${ofText} ${totalCount} ${completedText}</span>
     </div>
     <div class="card-title">
-      Title Title ${title || moduleId}
+      ${title || moduleId}
     </div>
   `;
   link.append(bodyWrapper);
@@ -45,7 +45,7 @@ async function createRecommendedCard(data) {
       <span>${recommendedText}</span>
     </div>
     <div class="cards-title">
-      Title Title ${title || moduleId}
+      ${title || moduleId}
     </div>
   `;
   link.append(bodyWrapper);
