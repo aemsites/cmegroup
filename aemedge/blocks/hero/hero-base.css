@@ -1,33 +1,30 @@
 .hero {
   position: relative;
   padding: 40px 24px;
-  min-height: 300px;
-}
 
-.hero h1 {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  color: var(--background-color);
-}
-
-.hero picture {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  object-fit: cover;
-  box-sizing: border-box;
-}
-
-.hero img {
-  object-fit: cover;
-  width: 100%;
-  height: 100% !important;
-  object-position: 0 0;
-}
-
-@media (width > 992px) {
-  .hero {
+  @media (width > 992px) {
     padding: 40px 32px;
+  }
+
+  & h1 {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    color: var(--background-color);
+  }
+
+  & picture {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    object-fit: cover;
+    box-sizing: border-box;
+  }
+
+  & img {
+    object-fit: cover;
+    width: 100%;
+    height: 100% !important;
+    object-position: 0 0;
   }
 }
