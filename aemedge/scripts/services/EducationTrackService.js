@@ -193,3 +193,18 @@ export async function getUserProgress() {
     return [];
   }
 }
+
+/**
+ * Get a list of in progress and recommended courses for current user
+ */
+export async function getRecommendedCourses(maxItems) {
+  const url = `${urlByEnvType()}/services/education-track/recommended-courses?maxItems=${maxItems || 10}`;
+  try {
+    const response = await apiGet(url);
+    return getResponseData(response);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('EducationService => getRecommendedCourses error:', e);
+    return [];
+  }
+}
