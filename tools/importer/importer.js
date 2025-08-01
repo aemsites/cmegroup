@@ -444,7 +444,7 @@ const promoBlock = (document) => {
         cells.push(['Description', description]);
       }
       if (footerText) {
-        cells.push(['Footer Text', `${footerText} ${icon ? `:${icon}:` : ''}`]);
+        cells.push(['Footer', `${footerText} ${icon ? `:${icon}:` : ''}`]);
       }
 
       const table = WebImporter.DOMUtils.createTable(cells, document);
