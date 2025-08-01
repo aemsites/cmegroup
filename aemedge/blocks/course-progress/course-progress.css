@@ -156,6 +156,9 @@
           letter-spacing: 0;
           color: var(--blue4);
           margin-top: -0.313rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
 
           @media (width >= 769px) {
             line-height: 1.5rem;

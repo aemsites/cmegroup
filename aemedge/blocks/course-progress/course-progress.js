@@ -38,7 +38,7 @@ async function createRecommendedCard(data) {
   } = data;
   const link = createElement('a', { href: path });
   const bodyWrapper = createElement('div', { class: 'card-body' });
-  const [recommendedText] = await Promise.all([i18n('Recommended')]);
+  const recommendedText = await i18n('Recommended');
 
   bodyWrapper.innerHTML = `
     <div class="card-eyebrow">
@@ -70,15 +70,22 @@ async function createCardsBlock(data) {
     ],
   };
 
-  const progressCards = await Promise.all(data.userProgress?.map(createProgressCard));
-  const recommendedCards = await Promise.all(data.recommendedCourses?.map(createRecommendedCard));
+  const [progressCards, recommendedCards] = await Promise.all([
+    await Promise.all(data.userProgress?.map(createProgressCard)),
+    await Promise.all(data.recommendedCourses?.map(createRecommendedCard)),
+  ]);
   const cards = [progressCards, recommendedCards];
-  const ul = createElement('ul', null, ...cards);
-  const cardsContainer = createElement('div', null, ul);
-  if (sliderConfig) {
-    buildSlider(ul, sliderConfig, true, false, true);
+  if (cards?.length) {
+    const ul = createElement('ul', null, ...cards);
+    const cardsContainer = createElement('div', null, ul);
+    if (sliderConfig) {
+      buildSlider(ul, sliderConfig, true, false, true);
+    }
+    return cardsContainer;
   }
-  return cardsContainer;
+  const noResultsLabel = createElement('span', null, 'No results found');
+  const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
+  return noResults;
 }
 
 async function createTitleBlock() {
@@ -128,18 +135,14 @@ async function createSummaryBlock(data) {
 
 async function createCourseProgress(block) {
   const data = await getRecommendedCourses(6);
-  const titleContainer = await createTitleBlock(data);
-  const summaryContainer = await createSummaryBlock(data);
-  block.append(titleContainer);
-  block.append(summaryContainer);
-  if (data.userProgress || data.recommendedCourses) {
-    const cardsContainer = await createCardsBlock(data);
-    block.append(cardsContainer);
-  } else {
-    const noResultsLabel = createElement('span', null, 'No results found');
-    const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
-    block.append(noResults);
-  }
+  const [titleBlock, summaryBlock, cardsBlock] = await Promise.all([
+    createTitleBlock(data),
+    createSummaryBlock(data),
+    createCardsBlock(data),
+  ]);
+  block.append(titleBlock);
+  block.append(summaryBlock);
+  block.append(cardsBlock);
 }
 
 export default async function decorate(block) {
