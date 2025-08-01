@@ -518,6 +518,9 @@ const faqBlock = (document, meta) => {
     let componentIndex = 0;
 
     const olList = document.querySelectorAll('ol li');
+    if (olList.length === 0) {
+      return;
+    }
     document.querySelector('ol')?.remove();
 
     for (let i = 0; i < components.length; i += 1) {
