@@ -107,11 +107,11 @@ async function createSummaryBlock(data) {
     i18n('in progress'),
   ]);
 
-  const completed = createElement('span', { class: 'totals' });
+  const completed = createElement('span', { class: 'courses-count' });
   completed.textContent = data.completedCourses || 0;
   const completedCourses = createElement('span');
   completedCourses.innerHTML = `${coursesText}<br/>${completedText}`;
-  const inProgress = createElement('span', { class: 'totals' });
+  const inProgress = createElement('span', { class: 'courses-count' });
   inProgress.textContent = data.userProgress?.length || 0;
   const inProgressCourses = createElement('span');
   inProgressCourses.innerHTML = `${coursesText}<br/>${inProgressText}`;
