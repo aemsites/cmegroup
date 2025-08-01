@@ -305,16 +305,30 @@ export function buildFragmentBlocks(main) {
  * @param {Element} main The main element
  */
 export function decorateExternalLinks(main) {
+  const linkConfig = {
+    domain: 'cmegroup.com',
+    subdomains: ['events'],
+  };
+
+  const domainRegex = new RegExp(`^https?:\\/\\/([^/]+\\.)?${linkConfig.domain.replace('.', '\\.')}(\\/|$)`);
+
   main.querySelectorAll('a').forEach((a) => {
     const href = a.getAttribute('href');
     if (href) {
       const extension = href.split('.').pop().trim();
       const isExternal = !href.startsWith('/') && !href.startsWith('#');
       const isPDF = extension === 'pdf';
-      const isCMEGroup = href.includes('cmegroup.com');
+      const isCMEGroup = domainRegex.test(href);
       const hasLinkOverride = a.querySelector('code') !== null;
 
-      if (isPDF || (isExternal && !isCMEGroup) || (isCMEGroup && hasLinkOverride)) {
+      const isConfiguredPage = linkConfig.subdomains.some((subdomain) => href.startsWith(`https://${subdomain}.${linkConfig.domain}`));
+
+      if (
+        isPDF
+        || (isExternal && !isCMEGroup)
+        || (isCMEGroup && hasLinkOverride)
+        || isConfiguredPage
+      ) {
         a.setAttribute('target', '_blank');
       }
     }
