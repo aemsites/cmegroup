@@ -1,9 +1,12 @@
 .view-certificate {
   cursor: pointer;
+  text-transform: uppercase;
 }
 
 .modal.certificate-modal {
-  max-width: 54.375rem;
+  & dialog {
+    max-width: 54.375rem;
+  }
 
   & .close-button {
     margin-top: 0.625rem;
@@ -292,10 +295,14 @@
 @media print {
   body * {
     visibility: hidden;
-    margin: -1rem 0 0;
+    margin: -1.25rem 0 0 -0.5rem;
     padding: 0;
     border: none;
     box-shadow: none;
+  }
+
+  #onetrust-banner-sdk {
+    display: none;
   }
 
   .completion-certificate-container,
@@ -303,6 +310,7 @@
     visibility: visible;
     padding: auto;
     margin: auto;
+    print-color-adjust: exact;
 
     & .divider {
       margin-left: 0;
