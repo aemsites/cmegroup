@@ -453,6 +453,27 @@ const promoBlock = (document) => {
   }
 };
 
+const moveDividerLine = (document) => {
+  const dividers = document.querySelectorAll('.divider.line');
+  if (dividers?.length) {
+    dividers.forEach((divider) => {
+      const parent = divider.parentElement;
+      if (parent) {
+        console.log(1001, parent, parent.nextElementSibling);
+        const sibling = parent.nextElementSibling;
+        if (sibling?.classList?.contains('cme-article-right-column')
+          && sibling.textContent && sibling.textContent.trim() !== ''
+          && !sibling.textContent.trim().includes('article-date')) {
+          // remove divider
+          divider.remove();
+          // add sibling to parent
+          sibling.after(divider);
+        }
+      }
+    });
+  }
+};
+
 /**
  * This function creates a divider block for the document.
  * @param {Document} document - The document to search.
@@ -462,7 +483,7 @@ const dividerBlock = (document) => {
 
   if (dividers?.length) {
     dividers.forEach((divider) => {
-      if (!divider.closest('table')) {
+      if (!divider.closest('table') && !divider.closest('.cme-article-right-column') && !divider.closest('.cme-article-left-column')) {
         const styles = ['Style', 'Divider'];
         const sectionMetadata = buildSectionMetadata([styles]);
         divider.replaceWith(sectionMetadata);
@@ -602,6 +623,31 @@ const removeExtraSectionBreak = (document) => {
         nextP.remove();
       }
     }
+  }
+
+  const walker = document.createTreeWalker(
+    document.body,
+    NodeFilter.SHOW_ELEMENT,
+    null,
+  );
+
+  let prevIsHR = false;
+  let currentNode = walker.nextNode();
+
+  while (currentNode) {
+    if (currentNode.tagName === 'HR') {
+      if (prevIsHR) {
+        const toRemove = currentNode;
+        currentNode = walker.nextNode(); // move ahead before removing
+        toRemove.remove();
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+      prevIsHR = true;
+    } else {
+      prevIsHR = false;
+    }
+    currentNode = walker.nextNode();
   }
 };
 
@@ -745,6 +791,60 @@ const tableBlock = (document) => {
           });
         });
       }
+
+      innerTable.querySelectorAll('tbody tr').forEach((tr) => {
+        const { children } = tr;
+        const allThs = [...children].filter((child) => child.tagName === 'TH');
+
+        if (allThs.length !== children.length) {
+          tr.querySelectorAll('th').forEach((th) => {
+            const td = document.createElement('td');
+            td.textContent = th.textContent;
+
+            if (th.classList.value) {
+              th.classList.forEach((cls) => {
+                td.classList.add(cls);
+              });
+            }
+
+            th.replaceWith(td);
+          });
+        }
+      });
+
+      const rgbToHex = (rgb) => {
+        const result = rgb.match(/\d+/g).map(Number); // Extract numbers and convert to integers
+        return (
+          `#${result
+            .map((val) => val.toString(16).padStart(2, '0')) // Convert to hex and pad if needed
+            .join('')}`
+        );
+      };
+
+      innerTable.querySelectorAll('td').forEach((td) => {
+        const inlineStyle = td.getAttribute('style');
+        if (inlineStyle) {
+          const style = inlineStyle.split(';').map((s) => {
+            let tempStyle = s.trim();
+            if (tempStyle.startsWith('background-color:') || tempStyle.startsWith('color:')) {
+              // only call rgbtohex if tempStyle.split(':')[1] is in rgb
+              if (tempStyle.split(':')[1].match(/rgb/)) {
+                tempStyle = `${tempStyle.split(':')[0]}: ${rgbToHex(tempStyle.split(':')[1])}`;
+              }
+            }
+            return tempStyle;
+          }).filter((s) => s).join(',');
+          const p = document.createElement('p');
+          p.innerHTML = td.innerHTML;
+
+          const p2 = document.createElement('p');
+          p2.textContent = `[${style}]`;
+          td.textContent = '';
+
+          td.appendChild(p);
+          td.appendChild(p2);
+        }
+      });
 
       if (tempArr.length) {
         tableText += ` (${tempArr.join(', ')})`;
@@ -1024,7 +1124,7 @@ const handleArticleFragments = (document) => {
 };
 
 const customBlocks = async (document, main, meta, url) => {
-  dividerBlock(document);
+  moveDividerLine(document);
   figCaptionEmphasize(document);
   convertImagesToLinks(document);
   mapRowsToSection(document);
@@ -1041,6 +1141,7 @@ const customBlocks = async (document, main, meta, url) => {
   sideBarBlocks(document);
   colorMap(document);
   oneClickSubToFragment(document);
+  dividerBlock(document);
 
   if (meta.Template === 'article') {
     handleArticleFragments(document);
