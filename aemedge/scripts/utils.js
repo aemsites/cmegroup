@@ -188,13 +188,24 @@ async function getArticleRelatedMetadata() {
   const primaryTopic = getMetadata('primary-topic');
   const date = getMetadata('date');
 
-  const [authorTag, primaryTopicTag] = await Promise.all([getTag(author), getTag(primaryTopic)]);
+  // Handle both single and multiple authors
+  const getAuthors = async (authorString) => {
+    if (!authorString) return null;
+    const authors = authorString.split(',').map((a) => a.trim());
+    const tags = await Promise.all(authors.map((a) => getTag(a)));
+    return tags.map((tag, i) => tag?.title || authors[i]).join(', ');
+  };
+
+  const [authorResult, primaryTopicTag] = await Promise.all([
+    getAuthors(author),
+    getTag(primaryTopic),
+  ]);
 
   return {
     template,
     subTemplates,
     readTime,
-    author: authorTag?.title,
+    author: authorResult,
     primaryTopic: primaryTopicTag?.title,
     date,
   };
@@ -380,7 +391,14 @@ let sliderPromise = null;
  * @param {*} config Glider configuration
  * @param {*} includeArrows boolean, if true, arrows are included for navigation
  */
-function buildSlider(el, config, includeArrows = true, disableOnDesktop = false, inverse = false) {
+function buildSlider(
+  el,
+  config,
+  includeArrows = true,
+  disableOnDesktop = false,
+  inverse = false,
+  responsiveSlider = false,
+) {
   if (!sliderPromise) {
     sliderPromise = loadScript('/aemedge/scripts/third-party/glider/glider.min.js');
     loadCSS('/aemedge/scripts/third-party/glider/glider.min.css');
@@ -454,10 +472,28 @@ function buildSlider(el, config, includeArrows = true, disableOnDesktop = false,
     };
 
     const handleResize = () => {
-      if (disableOnDesktop && window.innerWidth >= 769) {
-        destroySlider();
-      } else {
+      const windowWidth = window.innerWidth;
+      const childCount = currentEl.querySelectorAll('li').length;
+
+      let shouldEnableSlider = true;
+
+      if (disableOnDesktop && windowWidth >= 769) {
+        shouldEnableSlider = false;
+      } else if (responsiveSlider) {
+        if (
+          (childCount <= 2 && windowWidth >= 769)
+          || (childCount <= 3 && windowWidth >= 860)
+          || (childCount <= 4 && windowWidth >= 1139)
+          || (childCount <= 5 && windowWidth >= 1436)
+        ) {
+          shouldEnableSlider = false;
+        }
+      }
+
+      if (shouldEnableSlider) {
         initSlider();
+      } else {
+        destroySlider();
       }
     };
 
@@ -612,6 +648,53 @@ function getCountryCode() {
   return new Intl.Locale(locale)?.region || '';
 }
 
+/**
+ * Preserves hideXXX query parameters for internal links
+ * @param {Element} main The main element
+ */
+function preserveHideParameters(main) {
+  const currentUrl = new URL(window.location.href);
+  const hideParams = new Map();
+
+  // Extract all hideXXX parameters from current URL
+  currentUrl.searchParams.forEach((value, key) => {
+    if (key.startsWith('hide') && value) {
+      hideParams.set(key, value);
+    }
+  });
+
+  // If no hide parameters, nothing to preserve
+  if (hideParams.size === 0) return;
+
+  main.querySelectorAll('a[href]').forEach((link) => {
+    const href = link.getAttribute('href');
+    if (href) {
+      const isInternal = href.startsWith('/') || href.startsWith('#') || href.startsWith('?');
+      const isAnchorOnly = href.startsWith('#');
+
+      // Only process internal links that aren't just anchor links
+      if (isInternal && !isAnchorOnly) {
+        try {
+          const linkUrl = new URL(href, window.location.origin);
+
+          // Add hide parameters that don't already exist
+          hideParams.forEach((value, key) => {
+            if (!linkUrl.searchParams.has(key)) {
+              linkUrl.searchParams.set(key, value);
+            }
+          });
+
+          // Update the href with preserved parameters
+          const newHref = linkUrl.pathname + linkUrl.search + linkUrl.hash;
+          link.setAttribute('href', newHref);
+        } catch (error) {
+          // Skip malformed URLs
+        }
+      }
+    }
+  });
+}
+
 export {
   loadScript,
   createElement,
@@ -638,4 +721,5 @@ export {
   setupDayjsLibs,
   getCdtDate,
   getCountryCode,
+  preserveHideParameters,
 };

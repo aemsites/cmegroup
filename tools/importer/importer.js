@@ -463,9 +463,10 @@ const dividerBlock = (document) => {
   if (dividers?.length) {
     dividers.forEach((divider) => {
       if (!divider.closest('table')) {
-        const cells = [['Divider']];
-        const table = WebImporter.DOMUtils.createTable(cells, document);
-        divider.replaceWith(table);
+        const styles = ['Style', 'Divider'];
+        const sectionMetadata = buildSectionMetadata([styles]);
+        divider.replaceWith(sectionMetadata);
+        sectionMetadata.after(blockSeparator().cloneNode(true));
       }
     });
   }
@@ -725,13 +726,15 @@ const tableBlock = (document) => {
       }
 
       if (innerTable.querySelectorAll('tr').length) {
+        let theadProcessed = false;
         innerTable.querySelectorAll('tr').forEach((innerRow, index) => {
           const rowClass = innerRow.classList;
           ['tertiary-row', 'secondary-row', 'primary-row'].forEach((row) => {
             if (rowClass.contains(row)) {
               const tempRowName = row.replace('-row', '');
-              if (innerRow.closest('thead')) {
+              if (innerRow.closest('thead') && !theadProcessed) {
                 tempArr.push(`r${index + 1}-${tempRowName}-header`);
+                theadProcessed = true;
               } else if (innerRow.closest('tbody')) {
                 tempArr.push(`r${index + 1}-${tempRowName}-group`);
               }
@@ -750,6 +753,14 @@ const tableBlock = (document) => {
       });
 
       const row = tempTable.insertRow(1);
+      if (table.querySelectorAll('thead').length > 1) {
+        table.querySelectorAll('thead').forEach((thead, index) => {
+          if (index !== 0) {
+            thead.remove();
+          }
+        });
+      }
+
       row.insertCell(0).innerHTML = table.innerHTML;
       table.replaceWith(tempTable);
     });
@@ -979,7 +990,38 @@ const oneClickSubToFragment = (document) => {
   }
 };
 
+const handleArticleFragments = (document) => {
+  const fragments = document.querySelectorAll('.cq-dd-paragraph');
+  if (fragments?.length) {
+    fragments.forEach((fragment) => {
+      if (fragment.textContent.includes('All examples in this report are hypothetical interpretations')) {
+        const anchor = document.createElement('a');
+        anchor.href = `${EDS_DOMAIN}/fragments/disclaimers/hypothetical-interpretation`;
+        anchor.textContent = anchor.href;
+        const cells = [['Fragment'], [anchor]];
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        fragment.replaceWith(table);
+      } else if (fragment.textContent.includes('The information herein has been complied by CME Group for general informational and education purposes only and does not constitute trading advice or the solicitation of purchases or sale of futures, options, swaps, any other financial instrument, or financial service')) {
+        const anchor = document.createElement('a');
+        anchor.href = `${EDS_DOMAIN}/fragments/disclaimers/risk-notice`;
+        anchor.textContent = anchor.href;
+        const cells = [['Fragment'], [anchor]];
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        fragment.replaceWith(table);
+      } else if (fragment.textContent.includes('The views expressed in this program are solely those of the host and speakers in their individual capacity')) {
+        const anchor = document.createElement('a');
+        anchor.href = `${EDS_DOMAIN}/fragments/disclaimers/speakers-views-statement`;
+        anchor.textContent = anchor.href;
+        const cells = [['Fragment'], [anchor]];
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        fragment.replaceWith(table);
+      }
+    });
+  }
+};
+
 const customBlocks = async (document, main, meta, url) => {
+  dividerBlock(document);
   figCaptionEmphasize(document);
   convertImagesToLinks(document);
   mapRowsToSection(document);
@@ -994,9 +1036,12 @@ const customBlocks = async (document, main, meta, url) => {
   await accordionBlock(document);
   await lightBoxGallery(document);
   sideBarBlocks(document);
-  dividerBlock(document);
   colorMap(document);
   oneClickSubToFragment(document);
+
+  if (meta.Template === 'article') {
+    handleArticleFragments(document);
+  }
 
   if (meta['Temp Sub Template'] === 'case-study') {
     threeColumnsArticleXS(document);

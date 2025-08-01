@@ -1,5 +1,10 @@
 import { getMetadata, loadCSS } from '../../../scripts/aem.js';
-import { createElement, i18n, isFeatureToggled } from '../../../scripts/utils.js';
+import {
+  createElement,
+  i18n,
+  isFeatureToggled,
+  preserveHideParameters,
+} from '../../../scripts/utils.js';
 import { store } from '../../../scripts/store/store.js';
 
 function getTotalLessonsCount(courseData) {
@@ -218,6 +223,9 @@ async function init(main, courseData) {
 
   nav.append(header, content);
   main.prepend(nav);
+
+  // Apply hide parameters preservation to course navigation links
+  preserveHideParameters(nav);
 
   header.addEventListener('click', (e) => {
     e.stopPropagation();

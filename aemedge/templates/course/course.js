@@ -1,5 +1,5 @@
 import { getCourseData, createCourseBaseTemplate } from '../../scripts/course/course.js';
-import { createElement, i18n } from '../../scripts/utils.js';
+import { createElement, i18n, preserveHideParameters } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
@@ -43,6 +43,11 @@ export default async function courseTemplate() {
     } else {
       await addBeginCourseButton(courseData);
     }
+
+    // Apply hide parameters preservation after course content is loaded
+    const main = document.querySelector('main');
+    preserveHideParameters(main);
+
     //  dispatch courseData event
     store.dispatch(courseDataChange(courseData));
   });
