@@ -119,7 +119,7 @@ function loadLanguage(videoPlayer, language) {
 
 function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions) {
   block.setAttribute('data-video-status', 'loaded');
-  const languageVideoPlayer = videojs(block.querySelector(`#cmeVideo${videoId}_${randomNumber}`));
+  const languageVideoPlayer = videojs(document.getElementById(`cmeVideo${videoId}_${randomNumber}`));
   if (language) {
     languageVideoPlayer.on('loadedmetadata', () => {
       loadLanguage(languageVideoPlayer, language);
@@ -128,7 +128,7 @@ function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions)
   languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
   languageVideoPlayer.on('loadeddata', () => {
     block.querySelector('.brightcove-placeholder')?.remove();
-    block.querySelector(`#cmeVideo${videoId}_${randomNumber}`).classList.remove('video-hidden');
+    document.getElementById(`cmeVideo${videoId}_${randomNumber}`).classList.remove('video-hidden');
     block.querySelector('.vjs-playlist')?.classList.remove('video-hidden');
     block.querySelector('.brightcove-player').classList.remove('loading');
     const { name: videoName } = languageVideoPlayer.mediainfo;
@@ -244,7 +244,7 @@ function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions)
   }
 
   if (videojs.browser.TOUCH_ENABLED) {
-    const container = block.querySelector(`#cmeVideoContainer${videoId}_${randomNumber}`);
+    const container = document.getElementById(`cmeVideoContainer${videoId}_${randomNumber}`);
     if (container) {
       const element = container.getElementsByClassName('vjs-playlist')[0];
       if (element) {
