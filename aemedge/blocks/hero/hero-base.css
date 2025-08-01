@@ -1,13 +1,13 @@
 .hero {
   position: relative;
-  padding: 40px 24px;
+  padding: 2.5rem 1.5rem;
 
-  @media (width > 992px) {
-    padding: 40px 32px;
+  @media (width >= 993px) {
+    padding: 2.5rem 2rem;
   }
 
   & h1 {
-    max-width: 1200px;
+    max-width: 75rem;
     margin-left: auto;
     margin-right: auto;
     color: var(--background-color);
