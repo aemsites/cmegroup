@@ -432,7 +432,7 @@ const promoBlock = (document) => {
         const anchor = document.createElement('a');
         anchor.href = imgSrc;
         anchor.textContent = anchor.href;
-        cells.push(['Background Image', anchor]);
+        cells.push(['Background', anchor]);
       }
       if (backgroundColor) {
         cells.push(['Background Color', backgroundColor]);
@@ -459,7 +459,6 @@ const moveDividerLine = (document) => {
     dividers.forEach((divider) => {
       const parent = divider.parentElement;
       if (parent) {
-        console.log(1001, parent, parent.nextElementSibling);
         const sibling = parent.nextElementSibling;
         if (sibling?.classList?.contains('cme-article-right-column')
           && sibling.textContent && sibling.textContent.trim() !== ''
@@ -792,6 +791,62 @@ const tableBlock = (document) => {
         });
       }
 
+      if (innerTable.querySelectorAll('tbody tr>th').length) {
+        // Check first row - all elements should be th
+        const firstRow = innerTable.querySelector('tbody tr');
+        const firstRowCells = firstRow?.children || [];
+
+        // For first row, we need to check if all cells (accounting for colspan) are headers
+        // let totalColumns = 0;
+        const allFirstRowHeaders = Array.from(firstRowCells).every((cell) => cell.tagName === 'TH');
+
+        // Check first column - all elements should be th
+        const allRows = innerTable.querySelectorAll('tbody tr');
+        let rowIndex = 0;
+        const processedRows = new Set(); // Keep track of rows we've checked
+
+        const allFirstColumnHeaders = Array.from(allRows).every((row) => {
+          // Skip rows that are covered by previous rowspan
+          if (processedRows.has(rowIndex)) {
+            rowIndex += 1;
+            return true;
+          }
+
+          const firstCell = row.children[0];
+          if (!firstCell) return false;
+
+          // If this cell has rowspan, mark those rows as processed
+          const rowspan = parseInt(firstCell.getAttribute('rowspan') || '1', 10);
+          if (rowspan > 1) {
+            for (let i = rowIndex + 1; i < rowIndex + rowspan; i += 1) {
+              processedRows.add(i);
+            }
+          }
+
+          rowIndex += 1;
+          return firstCell.tagName === 'TH';
+        });
+
+        if (tempArr.length) {
+          // check of tempArr contains something like r1-*
+          if (!tempArr.some((item) => item.startsWith('r1-'))) {
+            if (allFirstRowHeaders) {
+              tempArr.push('r1-primary-header');
+            }
+          }
+          if (allFirstColumnHeaders) {
+            tempArr.push('c1-primary-header');
+          }
+        } else {
+          if (allFirstRowHeaders) {
+            tempArr.push('r1-primary-header');
+          }
+          if (allFirstColumnHeaders) {
+            tempArr.push('c1-primary-header');
+          }
+        }
+      }
+
       innerTable.querySelectorAll('tbody tr').forEach((tr) => {
         const { children } = tr;
         const allThs = [...children].filter((child) => child.tagName === 'TH');
@@ -801,6 +856,15 @@ const tableBlock = (document) => {
             const td = document.createElement('td');
             td.textContent = th.textContent;
 
+            // get attribute like rowspan or colspan
+            const rowspan = th.getAttribute('rowspan');
+            const colspan = th.getAttribute('colspan');
+            if (rowspan) {
+              td.setAttribute('rowspan', rowspan);
+            }
+            if (colspan) {
+              td.setAttribute('colspan', colspan);
+            }
             if (th.classList.value) {
               th.classList.forEach((cls) => {
                 td.classList.add(cls);
@@ -831,18 +895,22 @@ const tableBlock = (document) => {
               if (tempStyle.split(':')[1].match(/rgb/)) {
                 tempStyle = `${tempStyle.split(':')[0]}: ${rgbToHex(tempStyle.split(':')[1])}`;
               }
+            } else {
+              tempStyle = '';
             }
             return tempStyle;
           }).filter((s) => s).join(',');
-          const p = document.createElement('p');
-          p.innerHTML = td.innerHTML;
+          if (style) {
+            const p = document.createElement('p');
+            p.innerHTML = td.innerHTML;
 
-          const p2 = document.createElement('p');
-          p2.textContent = `[${style}]`;
-          td.textContent = '';
+            const p2 = document.createElement('p');
+            p2.textContent = `[${style}]`;
+            td.textContent = '';
 
-          td.appendChild(p);
-          td.appendChild(p2);
+            td.appendChild(p);
+            td.appendChild(p2);
+          }
         }
       });
 
@@ -862,6 +930,16 @@ const tableBlock = (document) => {
             thead.remove();
           }
         });
+      }
+
+      // remove thead and add that tr to body first tr
+      const thead = table.querySelector('thead');
+      if (thead) {
+        const tr = thead.querySelector('tr');
+        if (tr) {
+          const tbody = table.querySelector('tbody');
+          tbody.insertBefore(tr, tbody.firstChild);
+        }
       }
 
       row.insertCell(0).innerHTML = table.innerHTML;
@@ -1093,6 +1171,50 @@ const oneClickSubToFragment = (document) => {
   }
 };
 
+const columnsBlock = (document) => {
+  const rows = document.querySelectorAll('.row');
+  if (!rows?.length) return;
+
+  rows.forEach((row) => {
+    const colSelectors = ['col-md-3', 'col-md-6', 'col-md-9', 'col-md-4'];
+    let columns = [];
+
+    // Collect all columns matching specified sizes
+    colSelectors.forEach((selector) => {
+      const directChildren = Array.from(row.children).filter((child) => child.tagName === 'DIV');
+      columns = columns.concat(directChildren
+        .filter((child) => child.classList.contains(selector)));
+    });
+
+    if (!columns.length) return;
+
+    // Filter only immediate children to avoid nested column issues
+    columns = columns.filter((col) => col.parentElement === row);
+
+    // Get their column width from class name
+    const colWidths = columns.map((col) => {
+      const match = col.className.match(/col-md-(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    });
+
+    const totalWidth = colWidths.reduce((sum, width) => sum + width, 0);
+
+    // Only process rows with a valid total of 12
+    if (totalWidth === 12) {
+      const cells = [['Columns']];
+      const tempArr = [];
+
+      columns.forEach((column) => {
+        tempArr.push(column.innerHTML);
+      });
+
+      cells.push(tempArr);
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      row.replaceWith(table);
+    }
+  });
+};
+
 const handleArticleFragments = (document) => {
   const fragments = document.querySelectorAll('.cq-dd-paragraph');
   if (fragments?.length) {
@@ -1151,8 +1273,10 @@ const customBlocks = async (document, main, meta, url) => {
     threeColumnsArticleXS(document);
     generalColumns(document);
     generateEndColumns(document);
+    columnsBlock(document);
   } else if (meta['Temp Sub Template'] === 'standard') {
     standardArticleInitialColumns(document);
+    columnsBlock(document);
   } else if (['lesson', 'course', 'lesson-standalone'].includes(meta.Template)) {
     await removeCourseSpecificItem(document, main, meta);
     handleFragments(document);
@@ -1241,6 +1365,8 @@ export default {
       '.top-info',
       '.w-sm-auto',
       '.lateral-navigation',
+      '.article-data',
+      '.headline',
     ]);
 
     const results = [];
