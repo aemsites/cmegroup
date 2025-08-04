@@ -3,6 +3,7 @@ import {
   createElement,
   buildSlider,
   i18n,
+  readBlockConfig,
 } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 
@@ -44,27 +45,28 @@ async function createRecommendedCard(data) {
     <div class="card-eyebrow">
       <span>${recommendedText}</span>
     </div>
-    <div class="cards-title">
-      ${title || moduleId}
+    <div class="card-title">
+      ${title || moduleId || data}
     </div>
   `;
   link.append(bodyWrapper);
   return createElement('li', null, link);
 }
 
-async function createCardsBlock(data) {
+async function createCardsBlock(block, data) {
   const sliderConfig = {
     slidesToShow: 'auto',
     slidesToScroll: 1,
     scrollLock: false,
-    exactWidth: false,
+    itemWidth: 207,
+    exactWidth: true,
     draggable: true,
     duration: 2,
     responsive: [
       {
-        breakpoint: 481,
+        breakpoint: 993,
         settings: {
-          itemWidth: 300,
+          itemWidth: 207,
         },
       },
     ],
@@ -78,17 +80,18 @@ async function createCardsBlock(data) {
   if (cards?.length) {
     const ul = createElement('ul', null, ...cards);
     const cardsContainer = createElement('div', null, ul);
+    block.appendChild(cardsContainer);
     if (sliderConfig) {
       buildSlider(ul, sliderConfig, true, false, true);
     }
-    return cardsContainer;
+  } else {
+    const noResultsLabel = createElement('span', null, 'No results found');
+    const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
+    block.append(noResults);
   }
-  const noResultsLabel = createElement('span', null, 'No results found');
-  const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
-  return noResults;
 }
 
-async function createTitleBlock() {
+async function createTitleBlock(block) {
   const [viewText, historyText] = await Promise.all([
     i18n('View all activity'),
     i18n('course History'),
@@ -104,10 +107,10 @@ async function createTitleBlock() {
     title,
     link,
   );
-  return container;
+  block.append(container);
 }
 
-async function createSummaryBlock(data) {
+async function createSummaryBlock(block, data) {
   const [coursesText, completedText, inProgressText] = await Promise.all([
     i18n('courses'),
     i18n('completed'),
@@ -130,29 +133,27 @@ async function createSummaryBlock(data) {
     inProgress,
     inProgressCourses,
   );
-  return container;
+  block.append(container);
 }
 
-async function createCourseProgress(block) {
-  const data = await getRecommendedCourses(6);
-  const [titleBlock, summaryBlock, cardsBlock] = await Promise.all([
-    createTitleBlock(data),
-    createSummaryBlock(data),
-    createCardsBlock(data),
+async function createCourseProgress(config, block) {
+  const data = await getRecommendedCourses(config.items || 6);
+  await Promise.all([
+    createTitleBlock(block),
+    createSummaryBlock(block, data),
+    createCardsBlock(block, data),
   ]);
-  block.append(titleBlock);
-  block.append(summaryBlock);
-  block.append(cardsBlock);
 }
 
 export default async function decorate(block) {
+  const config = readBlockConfig(block);
   block.textContent = '';
   block.classList.add('hide');
   const { authenticationData } = authentication;
   authenticationData.loginPromise.then(async () => {
     if (authenticationData.isLoggedIn) {
       block.classList.remove('hide');
-      createCourseProgress(block);
+      createCourseProgress(config, block);
     }
   });
 }
