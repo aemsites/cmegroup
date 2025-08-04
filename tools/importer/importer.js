@@ -886,7 +886,7 @@ const tableBlock = (document) => {
       };
 
       innerTable.querySelectorAll('td').forEach((td) => {
-        const inlineStyle = td.getAttribute('style');
+        const inlineStyle = td.getAttribute('style') || td.querySelector('p')?.getAttribute('style');
         if (inlineStyle) {
           const style = inlineStyle.split(';').map((s) => {
             let tempStyle = s.trim();
@@ -895,7 +895,10 @@ const tableBlock = (document) => {
               if (tempStyle.split(':')[1].match(/rgb/)) {
                 tempStyle = `${tempStyle.split(':')[0]}: ${rgbToHex(tempStyle.split(':')[1])}`;
               }
+            } else if (tempStyle.startsWith('text-align:')) {
+              tempStyle = `${tempStyle.split(':')[0]}: ${tempStyle.split(':')[1]}`;
             } else {
+              // not taken the other styles like width, height as they may break the UI
               tempStyle = '';
             }
             return tempStyle;
