@@ -917,6 +917,11 @@ const tableBlock = (document) => {
         }
       });
 
+      if (innerTable.classList.contains('cmeCompactTable') || innerTable.classList.contains('compact')) {
+        // compact class added
+        tempArr.push('compact');
+      }
+
       if (tempArr.length) {
         tableText += ` (${tempArr.join(', ')})`;
       }
