@@ -86,6 +86,16 @@ main > .section > div {
   }
 }
 
+.premium-label {
+  color: var(--blue2);
+  font-family: var(--averta);
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .1rem;
+  line-height: .875rem;
+  text-transform: uppercase;
+}
+
 /* Course Auth Prompt Styling */
 .modal.course-auth-modal dialog {
   max-width: 30.3125rem;
