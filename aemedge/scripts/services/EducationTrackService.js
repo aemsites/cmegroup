@@ -70,12 +70,14 @@ const mapModule = (data) => (
       title: lesson.title,
       completed: lesson.status === 'COMPLETED',
       started: !!lesson.startDate,
+      url: lesson.url,
     })),
     completedLessons: data.lessons?.filter(({ status }) => status === 'COMPLETED').length,
     totalLessons: data.lessons?.length || 0,
     started: !!data.startDate,
     endDate: data.endDate,
     updated: data.updated,
+    url: data.url,
   }
 );
 
@@ -193,7 +195,7 @@ export async function getUserProgress() {
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('EducationService => getUserProgress error:', e);
-    return [];
+    return null;
   }
 }
 
