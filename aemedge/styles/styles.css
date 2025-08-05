@@ -366,7 +366,7 @@ p {
 /* p & span */
 p,
 span {
-  &.text1 {
+  &.text-1 {
     font-family: var(--body-font-family);
     font-weight: 400;
     margin-bottom: 1.25rem;
@@ -380,7 +380,7 @@ span {
     }
   }
 
-  &.text2 {
+  &.text-2 {
     font-family: var(--body-font-family);
     font-weight: 400;
     font-size: 1rem;
@@ -395,7 +395,7 @@ span {
     }
   }
 
-  &.text3 {
+  &.text-3 {
     font-family: var(--body-font-family);
     font-weight: 400;
     font-size: 0.875rem;
@@ -410,7 +410,7 @@ span {
     }
   }
 
-  &.text4 {
+  &.text-4 {
     font-family: var(--body-font-family);
     font-weight: 400;
     font-size: 0.75rem;
@@ -446,10 +446,10 @@ span {
 
 /* span */
 span {
-  &.text1,
-  &.text2,
-  &.text3,
-  &.text4,
+  &.text-1,
+  &.text-2,
+  &.text-3,
+  &.text-4,
   &.text-small,
   &.tagline {
     display: inline-block;
@@ -668,10 +668,10 @@ a {
 main > .section {
   margin-bottom: 1.875rem;
 
-  &.text1,
-  &.text2,
-  &.text3,
-  &.text4,
+  &.text-1,
+  &.text-2,
+  &.text-3,
+  &.text-4,
   &.text-small,
   &.tagline {
     span {
@@ -679,7 +679,7 @@ main > .section {
     }
   }
 
-  &.text1 {
+  &.text-1 {
     p,
     span {
       font-family: var(--body-font-family);
@@ -696,7 +696,7 @@ main > .section {
     }
   }
 
-  &.text2 {
+  &.text-2 {
     p,
     span {
       font-family: var(--body-font-family);
@@ -714,7 +714,7 @@ main > .section {
     }
   }
 
-  &.text3 {
+  &.text-3 {
     p,
     span {
       font-family: var(--body-font-family);
@@ -732,7 +732,7 @@ main > .section {
     }
   }
 
-  &.text4 {
+  &.text-4 {
     p,
     span {
       font-family: var(--body-font-family);
