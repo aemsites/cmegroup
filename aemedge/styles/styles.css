@@ -424,6 +424,24 @@ span {
       margin-bottom: 1.25rem;
     }
   }
+
+  &.text-small {
+    font-size: 80%;
+  }
+
+  &.tagline {
+    font-family: var(--body-font-family);
+    font-weight: 600;
+    font-size: 1.375rem;
+    line-height: 1.75rem;
+    color: var(--gray3);
+    margin-bottom: 1.875rem;
+
+    @media (width >=481px) {
+      font-size: 2.375rem;
+      line-height: 3rem;
+    }
+  }
 }
 
 /* span */
@@ -431,7 +449,9 @@ span {
   &.text1,
   &.text2,
   &.text3,
-  &.text4 {
+  &.text4,
+  &.text-small,
+  &.tagline {
     display: inline-block;
   }
 }
@@ -647,6 +667,112 @@ a {
 /* sections */
 main > .section {
   margin-bottom: 1.875rem;
+
+  &.text1,
+  &.text2,
+  &.text3,
+  &.text4,
+  &.text-small,
+  &.tagline {
+    span {
+      display: inline-block;
+    }
+  }
+
+  &.text1 {
+    p,
+    span {
+      font-family: var(--body-font-family);
+      font-weight: 400;
+      margin-bottom: 1.25rem;
+      font-size: 1.125rem;
+      line-height: 1.625rem;
+  
+      @media (width >=481px) {
+        font-size: 1.75rem;
+        letter-spacing: 0.0525rem;
+        line-height: 2.25rem;
+      }
+    }
+  }
+
+  &.text2 {
+    p,
+    span {
+      font-family: var(--body-font-family);
+      font-weight: 400;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      margin-bottom: 0.9375rem;
+
+      @media (width >=481px) {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+        letter-spacing: 0.03em;
+        margin-bottom: 1.875rem;
+      }
+    }
+  }
+
+  &.text3 {
+    p,
+    span {
+      font-family: var(--body-font-family);
+      font-weight: 400;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      margin-bottom: 0.9375rem;
+
+      @media (width >=481px) {
+        font-size: 1rem;
+        letter-spacing: 0.03em;
+        line-height: 1.5rem;
+        margin-bottom: 1.875rem;
+      }
+    }
+  }
+
+  &.text4 {
+    p,
+    span {
+      font-family: var(--body-font-family);
+      font-weight: 400;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      margin-bottom: 0.625rem;
+
+      @media (width >=481px) {
+        font-size: 0.875rem;
+        letter-spacing: 0.03em;
+        line-height: 1.25rem;
+        margin-bottom: 1.25rem;
+      }
+    }
+  }
+
+  &.text-small {
+    p,
+    span {
+      font-size: 80%;
+    }
+  }
+
+  &.tagline {
+    p,
+    span {
+      font-family: var(--body-font-family);
+      font-weight: 600;
+      font-size: 1.375rem;
+      line-height: 1.75rem;
+      color: var(--gray3);
+      margin-bottom: 1.875rem;
+  
+      @media (width >=481px) {
+        font-size: 2.375rem;
+        line-height: 3rem;
+      }
+    }
+  }
 }
 
 @media (width > 768px) {
