@@ -6,7 +6,7 @@
     text-align: left;
     padding: 0.9375rem 1.875rem;
     background-color: var(--yellow);
-    min-height: 3.625rem;
+    min-height: 1.75rem;
 
     & span {
         font-family: var(--averta);

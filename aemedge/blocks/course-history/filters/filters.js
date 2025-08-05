@@ -55,9 +55,9 @@ export async function createFilters({ items, onFilterChange, initialFilterValue 
   if (initialButton) {
     let filteredItems = [...items];
     if (initialFilterValue === 'PROGRESS') {
-      filteredItems = items.filter(({ data }) => data.completed);
-    } else if (initialFilterValue === 'COMPLETED') {
       filteredItems = items.filter(({ data }) => !data.completed);
+    } else if (initialFilterValue === 'COMPLETED') {
+      filteredItems = items.filter(({ data }) => data.completed);
     }
     onFilterChange(filteredItems, initialFilterValue, false);
   }

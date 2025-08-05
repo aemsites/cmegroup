@@ -1,9 +1,9 @@
-import { createElement } from '../../../scripts/utils.js';
+import { createElement, i18n } from '../../../scripts/utils.js';
 import { addCourseCertificate } from '../../../scripts/course/certificate.js';
 import { authentication } from '../../../scripts/modules/Authentication.js';
 
 // eslint-disable-next-line import/prefer-default-export
-export function createEducationCard(item, isLesson = false) {
+export async function createEducationCard(item, isLesson = false) {
   const {
     url, title, completed, updated, description,
   } = item;
@@ -14,13 +14,35 @@ export function createEducationCard(item, isLesson = false) {
     day: 'numeric',
   });
 
+  const [
+    courseLabel,
+    lessonLabel,
+    launchCourseText,
+    launchLessonText,
+    lessonsCompletedLabel,
+    lastLaunchedLabel,
+    courseCompletedLabel,
+    lessonCompletedLabel,
+    lessonsText,
+  ] = await Promise.all([
+    i18n('Course'),
+    i18n('Lesson'),
+    i18n('Launch Course'),
+    i18n('Launch Lesson'),
+    i18n('Lessons complete'),
+    i18n('Last launched'),
+    i18n('Course completed'),
+    i18n('Lesson completed'),
+    i18n('Lessons'),
+  ]);
+
   const header = createElement(
     'div',
     { class: 'course-header' },
     createElement(
       'div',
       { class: 'labels' },
-      createElement('span', {}, isLesson ? 'Lesson' : 'Course'),
+      createElement('span', {}, isLesson ? lessonLabel : courseLabel),
     ),
   );
 
@@ -54,7 +76,7 @@ export function createEducationCard(item, isLesson = false) {
     launchBtn = createElement(
       'a',
       { class: 'btn link', href: url },
-      createElement('span', { class: 'text' }, isLesson ? 'Launch Lesson' : 'Launch Course'),
+      createElement('span', { class: 'text' }, isLesson ? launchLessonText : launchCourseText),
     );
   }
 
@@ -68,18 +90,22 @@ export function createEducationCard(item, isLesson = false) {
     description,
   );
 
-  let totalLessons = 0;
-  if (isLesson) {
-    totalLessons = 1;
-  } else if (item.lessons?.length) {
-    totalLessons = item.lessons.length;
-  }
-
+  const totalLessons = isLesson ? 1 : item.lessons?.length || 0;
   let lessonsCompleted = 0;
+
   if (item.lessons) {
     lessonsCompleted = item.lessons.filter((lesson) => lesson.completed).length;
   } else if (item.completed) {
     lessonsCompleted = 1;
+  }
+
+  let labelText;
+  if (!completed) {
+    labelText = lastLaunchedLabel;
+  } else if (isLesson) {
+    labelText = lessonCompletedLabel;
+  } else {
+    labelText = courseCompletedLabel;
   }
 
   const details = createElement(
@@ -88,24 +114,30 @@ export function createEducationCard(item, isLesson = false) {
     createElement(
       'p',
       {},
-      createElement('span', {}, 'Lessons completed'),
+      createElement('span', {}, lessonsCompletedLabel),
       createElement('br'),
       createElement('span', {}, `${lessonsCompleted} of ${totalLessons}`),
     ),
     createElement(
       'p',
       {},
-      createElement('span', {}, 'Last Launched'),
+      createElement('span', {}, labelText),
       createElement('br'),
       createElement('span', {}, lastLaunchedDate),
     ),
   );
 
+  const titleElementDesktop = createElement('h2', { class: 'desktop-only' }, title);
+  const titleElementMobile = createElement(
+    'a',
+    { href: url, class: 'mobile-only' },
+    createElement('h2', {}, title),
+  );
+
   const content = createElement(
     'div',
     { class: 'course-info' },
-    // TO DO: add mobile link
-    createElement('div', {}, createElement('h2', {}, title), descriptionElement),
+    createElement('div', {}, titleElementDesktop, titleElementMobile, descriptionElement),
     details,
   );
 
@@ -155,7 +187,7 @@ export function createEducationCard(item, isLesson = false) {
         createElement(
           'div',
           { class: 'expand-collapse-lessons' },
-          createElement('span', {}, `${numberOfLesson} Lessons`),
+          createElement('span', {}, `${numberOfLesson} ${lessonsText}`),
           expandBtn,
         ),
       ),
