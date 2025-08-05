@@ -94,7 +94,7 @@ export async function createEducationCard(item, isLesson = false) {
   let lessonsCompleted = 0;
 
   if (item.lessons) {
-    lessonsCompleted = item.lessons.filter((lesson) => lesson.completed).length;
+    lessonsCompleted = item.completedLessons;
   } else if (item.completed) {
     lessonsCompleted = 1;
   }
