@@ -188,13 +188,24 @@ async function getArticleRelatedMetadata() {
   const primaryTopic = getMetadata('primary-topic');
   const date = getMetadata('date');
 
-  const [authorTag, primaryTopicTag] = await Promise.all([getTag(author), getTag(primaryTopic)]);
+  // Handle both single and multiple authors
+  const getAuthors = async (authorString) => {
+    if (!authorString) return null;
+    const authors = authorString.split(',').map((a) => a.trim());
+    const tags = await Promise.all(authors.map((a) => getTag(a)));
+    return tags.map((tag, i) => tag?.title || authors[i]).join(', ');
+  };
+
+  const [authorResult, primaryTopicTag] = await Promise.all([
+    getAuthors(author),
+    getTag(primaryTopic),
+  ]);
 
   return {
     template,
     subTemplates,
     readTime,
-    author: authorTag?.title,
+    author: authorResult,
     primaryTopic: primaryTopicTag?.title,
     date,
   };
