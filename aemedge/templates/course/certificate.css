@@ -1,6 +1,17 @@
 .view-certificate {
   cursor: pointer;
   text-transform: uppercase;
+
+  &.download-icon::before {
+      content: var(--icon-download-line);
+      font-family: var(--cme-group-icons);
+      font-style: normal;
+      font-size: 0.75rem;
+      line-height: 1;
+      color: var(--gray3);
+      display: inline-block;
+      margin-right: 0.5rem;
+  }
 }
 
 .modal.certificate-modal {

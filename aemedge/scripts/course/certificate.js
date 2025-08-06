@@ -272,7 +272,7 @@ export async function addCourseCertificate({
 
   const button = createElement(
     'button',
-    { class: 'button secondary view-certificate', type: 'button' },
+    { class: `button secondary view-certificate ${isFromHistory && 'download-icon'}`, type: 'button' },
     isFromHistory ? downloadCertificateLabel : viewCertificateLabel,
   );
 

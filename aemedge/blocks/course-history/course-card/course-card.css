@@ -160,12 +160,12 @@
             flex-direction: row;
             gap: 3.75rem;
 
-            & > :first-child {
-                width: 75%;
-            }
-
             & > :last-child {
                 width: 25%;
+            }
+
+            & > :first-child {
+                width: 75%;
             }
         }
     }
@@ -254,15 +254,16 @@
         color: var(--blue4);
         padding: 1.875rem 0;
         display: flex;
+        flex-wrap: wrap;
 
         & .lesson-list-item {
             margin-bottom: 0.9375rem;
             display: flex;
             align-items: flex-start;
-            padding-left: 1.875rem;
-            padding-right: 1.875rem;
+            padding-left: 0.938rem;
+            padding-right: 0.938rem;
             flex: 0 0 auto;
-            width: 25%;
+            width: calc(25% - 1.876rem);
 
             & .circle-mark {
                 display: inline-block;

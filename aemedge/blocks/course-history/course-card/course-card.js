@@ -1,18 +1,13 @@
-import { createElement, i18n } from '../../../scripts/utils.js';
+import { createElement, i18n, getCdtDate } from '../../../scripts/utils.js';
 import { addCourseCertificate } from '../../../scripts/course/certificate.js';
 import { authentication } from '../../../scripts/modules/Authentication.js';
 
 // eslint-disable-next-line import/prefer-default-export
 export async function createEducationCard(item, isLesson = false) {
   const {
-    url, title, completed, updated, description,
+    launchUrl, title, completed, updated, description,
   } = item;
-
-  const lastLaunchedDate = new Date(updated).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const lastLaunchedDate = getCdtDate(updated);
 
   const [
     courseLabel,
@@ -49,33 +44,35 @@ export async function createEducationCard(item, isLesson = false) {
   let launchBtn;
 
   if (completed) {
-    const container = createElement('div');
-    launchBtn = container;
+    if (!isLesson) {
+      const container = createElement('div');
+      launchBtn = container;
 
-    const { authenticationData } = authentication;
-    authenticationData.loginPromise.then(async () => {
-      const { isLoggedIn, loginInfo } = authenticationData;
-      const buttonContent = await addCourseCertificate({
-        isLoggedIn,
-        userName: loginInfo?.userName,
-        moduleId: item?.courseId,
-        lessonTitle: item?.title,
-        completedModule: item?.endDate,
-        container,
-        isFromHistory: true,
+      const { authenticationData } = authentication;
+      authenticationData.loginPromise.then(async () => {
+        const { isLoggedIn, loginInfo } = authenticationData;
+        const buttonContent = await addCourseCertificate({
+          isLoggedIn,
+          userName: loginInfo?.userName,
+          moduleId: item?.courseId,
+          lessonTitle: item?.title,
+          completedModule: item?.endDate,
+          container,
+          isFromHistory: true,
+        });
+
+        if (typeof buttonContent === 'string') {
+          launchBtn.innerHTML = buttonContent;
+        } else if (buttonContent instanceof HTMLElement) {
+          launchBtn.innerHTML = '';
+          launchBtn.appendChild(buttonContent);
+        }
       });
-
-      if (typeof buttonContent === 'string') {
-        launchBtn.innerHTML = buttonContent;
-      } else if (buttonContent instanceof HTMLElement) {
-        launchBtn.innerHTML = '';
-        launchBtn.appendChild(buttonContent);
-      }
-    });
+    }
   } else {
     launchBtn = createElement(
       'a',
-      { class: 'btn link', href: url },
+      { class: 'btn link desktop-only', href: launchUrl },
       createElement('span', { class: 'text' }, isLesson ? launchLessonText : launchCourseText),
     );
   }
@@ -123,14 +120,14 @@ export async function createEducationCard(item, isLesson = false) {
       {},
       createElement('span', {}, labelText),
       createElement('br'),
-      createElement('span', {}, lastLaunchedDate),
+      createElement('span', {}, lastLaunchedDate.format('MMMM D, YYYY')),
     ),
   );
 
   const titleElementDesktop = createElement('h2', { class: 'desktop-only' }, title);
   const titleElementMobile = createElement(
     'a',
-    { href: url, class: 'mobile-only' },
+    { href: launchUrl, class: 'mobile-only' },
     createElement('h2', {}, title),
   );
 
