@@ -283,16 +283,16 @@ export function buildFragmentBlocks(main) {
       decorateBlock(block);
     }
 
-    const isLogin = a.title.includes('[login]');
+    const isLogin = a.title.match(/\[login\]/i);
     if (isLogin) {
-      a.title = a.title.replaceAll('[login]', '').trim();
+      a.title = a.title.replaceAll(/\[login\]/ig, '').trim();
       a.addEventListener('click', (event) => {
         handleLoginRedirection(event, a);
       }, { capture: true });
     }
-    const isRegistration = a.title.includes('[registration]');
+    const isRegistration = a.title.match(/\[registration\]/i);
     if (isRegistration) {
-      a.title = a.title.replaceAll('[registration]', '').trim();
+      a.title = a.title.replaceAll(/\[registration\]/ig, '').trim();
       a.addEventListener('click', (event) => {
         handleRegistrationRedirection(event, a);
       }, { capture: true });
@@ -307,7 +307,7 @@ export function buildFragmentBlocks(main) {
 export function decorateExternalLinks(main) {
   const linkConfig = {
     domain: 'cmegroup.com',
-    subdomains: ['events'],
+    subdomains: [],
   };
 
   const domainRegex = new RegExp(`^https?:\\/\\/([^/]+\\.)?${linkConfig.domain.replace('.', '\\.')}(\\/|$)`);
