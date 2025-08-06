@@ -27,7 +27,13 @@ async function renderCards({
   ]);
 
   const cards = await Promise.all(
-    paginatedItems.map(({ type, data }) => createEducationCard(data, type === 'lesson')),
+    paginatedItems.map(({ type, data }) => {
+      const isLesson = type === 'lesson';
+      const launchUrl = isLesson
+        ? data.url
+        : data.lessons?.find((lesson) => !lesson.completed)?.url || data.url;
+      return createEducationCard({ ...data, launchUrl }, isLesson);
+    }),
   );
 
   wrapper.querySelectorAll('.course-card').forEach((el) => el.remove());
