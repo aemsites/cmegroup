@@ -468,7 +468,7 @@ a[target="_blank"]::after {
   font-family: var(--cme-group-icons);
   content: var(--icon-positive);
   font-size: 0.625rem;
-  padding-left: 0.3125rem;
+  margin-left: 0.3125rem;
   position: relative;
 }
 
@@ -500,6 +500,9 @@ a {
 
   & .icon {
     filter: var(--blue4-filter);
+    img {
+      width: 0.7188rem;
+    }
   }
 }
 
