@@ -1,7 +1,6 @@
 import {
   loadHeader,
   loadFooter,
-  // decorateButtons,
   decorateIcons,
   decorateBlock,
   decorateTemplateAndTheme,
@@ -455,13 +454,15 @@ function decorateLightboxImages(main) {
   });
 }
 
-function decorateButtons(element) {
+export function decorateButtons(element) {
   element.querySelectorAll('a').forEach((a) => {
-    a.title = a.title || a.textContent;
-    if (a.href !== a.textContent) {
+    const text = a.textContent;
+    a.title = a.title || text;
+    let textIndex = -1;
+    let iconIndex = -1;
+    if (a.href !== text) {
       const up = a.parentElement;
       const twoup = a.parentElement.parentElement;
-      const threeup = twoup?.parentElement;
       if (!a.querySelector('img')) {
         if (up.childNodes.length === 1 && (up.tagName === 'P' || up.tagName === 'DIV')) {
           up.classList.add('button-container');
@@ -470,7 +471,7 @@ function decorateButtons(element) {
           up.childNodes.length === 1
           && up.tagName === 'STRONG'
           && twoup.childNodes.length === 1
-          && twoup.tagName === 'P'
+          && (twoup.tagName === 'P' || twoup.tagName === 'DIV')
         ) {
           a.className = 'button primary';
           twoup.classList.add('button-container');
@@ -479,30 +480,44 @@ function decorateButtons(element) {
           up.childNodes.length === 1
           && up.tagName === 'EM'
           && twoup.childNodes.length === 1
-          && twoup.tagName === 'P'
+          && (twoup.tagName === 'P' || twoup.tagName === 'DIV')
         ) {
           a.className = 'button secondary';
           twoup.classList.add('button-container');
         }
-        if (
-          up.tagName === 'EM'
-          && up.childNodes.length === 1
-          && twoup?.tagName === 'STRONG'
-          && twoup.childNodes.length === 1
-          && threeup?.tagName === 'P'
-          && threeup.childNodes.length === 1
-        ) {
-          a.className = 'button tertiary'; // CHECK IF IT IS
-          threeup.classList.add('button-container');
-        }
-        if (
-          up.tagName === 'P'
-          && up.childNodes.length === 1
-        ) {
-          a.className = 'link';
-        }
-        if (a.querySelector('u')) {
-          a.classList.add('alternate');
+
+        // Add classes from brackets text
+        Array.from(a.childNodes).forEach((node, index) => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            let texto = node.textContent;
+            const bracketMatch = texto.match(/\[([^\]]+)\]/);
+
+            if (bracketMatch) {
+              const classes = bracketMatch[1].split(',').map((c) => c.trim());
+              a.classList.add(...classes);
+              texto = texto.replace(/\s*\[[^\]]*\]/, '');
+              node.textContent = texto;
+            }
+
+            if (textIndex === -1 && text.trim() !== '') {
+              textIndex = index;
+            }
+          }
+
+          if (
+            iconIndex === -1 && node.nodeType === Node.ELEMENT_NODE && (node.matches('.icon'))
+          ) {
+            iconIndex = index;
+          }
+        });
+
+        // Add class for spacing between text and icon
+        if (iconIndex !== -1 && textIndex !== -1) {
+          if (iconIndex < textIndex) {
+            a.classList.add('position-left');
+          } else if (iconIndex > textIndex) {
+            a.classList.add('position-right');
+          }
         }
       }
     }
