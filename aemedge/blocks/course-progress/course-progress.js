@@ -9,13 +9,12 @@ import { authentication } from '../../scripts/modules/Authentication.js';
 
 async function createProgressCard(data) {
   const {
-    moduleId,
     title,
     completedCount,
     totalCount,
-    path,
+    url,
   } = data;
-  const link = createElement('a', { href: path });
+  const link = createElement('a', { href: url });
   const bodyWrapper = createElement('div', { class: 'card-body' });
   const [ofText, completedText] = await Promise.all([i18n('of'), i18n('lessons completed')]);
 
@@ -24,7 +23,7 @@ async function createProgressCard(data) {
       <span>${completedCount} ${ofText} ${totalCount} ${completedText}</span>
     </div>
     <div class="card-title">
-      ${title || moduleId}
+      ${title}
     </div>
   `;
   link.append(bodyWrapper);
@@ -33,11 +32,10 @@ async function createProgressCard(data) {
 
 async function createRecommendedCard(data) {
   const {
-    moduleId,
     title,
-    path,
+    url,
   } = data;
-  const link = createElement('a', { href: path });
+  const link = createElement('a', { href: url });
   const bodyWrapper = createElement('div', { class: 'card-body' });
   const recommendedText = await i18n('Recommended');
 
@@ -46,7 +44,7 @@ async function createRecommendedCard(data) {
       <span>${recommendedText}</span>
     </div>
     <div class="card-title">
-      ${title || moduleId || data}
+      ${title}
     </div>
   `;
   link.append(bodyWrapper);
