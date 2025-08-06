@@ -1,4 +1,9 @@
-import { createElement, i18n, readBlockConfig } from '../../scripts/utils.js';
+import {
+  createElement,
+  i18n,
+  readBlockConfig,
+  setupDayjsLibs,
+} from '../../scripts/utils.js';
 import { getUserProgress } from '../../scripts/services/EducationTrackService.js';
 import { createEducationCard } from './course-card/course-card.js';
 import { createPagination } from './pagination/pagination.js';
@@ -143,7 +148,12 @@ export default async function decorate(block) {
   } = readBlockConfig(block, true);
   const numberOfCoursesToShowPerPage = Number(pageSizeRaw) || 10;
 
-  const userProgress = await getUserProgress();
+  let userProgress = null;
+
+  [userProgress] = await Promise.all([
+    getUserProgress(),
+    setupDayjsLibs(),
+  ]);
 
   if (!userProgress) {
     block.innerHTML = '';

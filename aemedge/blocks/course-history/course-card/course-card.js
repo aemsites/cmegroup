@@ -1,4 +1,4 @@
-import { createElement, i18n } from '../../../scripts/utils.js';
+import { createElement, i18n, getCdtDate } from '../../../scripts/utils.js';
 import { addCourseCertificate } from '../../../scripts/course/certificate.js';
 import { authentication } from '../../../scripts/modules/Authentication.js';
 
@@ -7,12 +7,7 @@ export async function createEducationCard(item, isLesson = false) {
   const {
     launchUrl, title, completed, updated, description,
   } = item;
-
-  const lastLaunchedDate = new Date(updated).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const lastLaunchedDate = getCdtDate(updated);
 
   const [
     courseLabel,
@@ -125,7 +120,7 @@ export async function createEducationCard(item, isLesson = false) {
       {},
       createElement('span', {}, labelText),
       createElement('br'),
-      createElement('span', {}, lastLaunchedDate),
+      createElement('span', {}, lastLaunchedDate.format('MMMM D, YYYY')),
     ),
   );
 
