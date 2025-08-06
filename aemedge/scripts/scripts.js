@@ -307,7 +307,7 @@ export function buildFragmentBlocks(main) {
 export function decorateExternalLinks(main) {
   const linkConfig = {
     domain: 'cmegroup.com',
-    subdomains: ['events'],
+    subdomains: [],
   };
 
   const domainRegex = new RegExp(`^https?:\\/\\/([^/]+\\.)?${linkConfig.domain.replace('.', '\\.')}(\\/|$)`);
