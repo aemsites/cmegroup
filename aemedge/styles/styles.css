@@ -107,12 +107,6 @@ body.curtain-visible {
   }
 }
 
-@media (width >= 993px) {
-  main {
-    padding-top: 6.25rem;
-  }
-}
-
 body.header-hidden main {
   padding-top: 0 !important;
 }
@@ -901,6 +895,10 @@ fieldset:disabled .button {
 /* section */
 main {
   padding-top: 3.125rem;
+
+  @media (width >= 993px) {
+    padding-top: 6.25rem;
+  }
 
   & > .section {
     margin-bottom: 1.875rem;
