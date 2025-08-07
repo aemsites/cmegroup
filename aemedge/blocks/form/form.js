@@ -259,8 +259,8 @@ async function decorateOneClickForm(form, formData, block) {
     if (subscribed) {
       const subscribedMsg = form.querySelector('#form-subscribedmessage');
       subscribedMsg?.parentElement.classList.toggle('hide', false);
-      const thanksMsg = form.querySelector('#form-thankyoumessage');
-      if (thanksMsg) { thanksMsg.parentElement.dataset.showAfterSubmit = false; }
+      const thanksMsg = form.querySelectorAll('[id^="form-thankyoumessage"]');
+      thanksMsg.forEach((msg) => { msg.parentElement.dataset.showAfterSubmit = false; });
       updateFieldsAfterSubmit(form, block);
     }
   } else {
@@ -270,7 +270,7 @@ async function decorateOneClickForm(form, formData, block) {
       const { target: element } = event;
       buildOneClickFormCookie(block, element);
       authentication.registration(
-        (element.href || element.baseURI)?.replace(/^https?:\/\/[^/]+/, ''),
+        element.href || element.baseURI,
         element.target,
         element.getAttribute('data-target-description'),
         element.getAttribute('data-no-activation-prompt'),
@@ -465,7 +465,7 @@ async function handleSubmit(form, block) {
   const spinner = createSpinner();
   try {
     form.setAttribute('data-submitting', 'true');
-    submit.disabled = true;
+    submit?.setAttribute('disabled', 'true');
     block.append(spinner);
 
     const sitekey = block.querySelector('.recaptcha-disclaimer')?.dataset.sitekey;
@@ -506,7 +506,7 @@ async function handleSubmit(form, block) {
   } finally {
     spinner.remove();
     form.setAttribute('data-submitting', 'false');
-    submit.disabled = false;
+    submit?.setAttribute('disabled', 'false');
   }
 }
 

@@ -170,7 +170,6 @@ const courseCard = async (card, item) => {
 // Lesson card
 const lessonCard = async (card, item) => {
   // todo piyush add course name in place item.metadata?.['module-title']
-  item.date = '2025-07-25T10:00:00.000Z';
   await labeledCardLesson(card, item, `Lesson ${item.metadata?.['module-title']
     ? `: ${item.metadata?.['module-title']}` : ''}`, item.date ? getCdtDate(item.date).format('MMM DD, YYYY') : '');
 };

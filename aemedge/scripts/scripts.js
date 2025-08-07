@@ -12,6 +12,7 @@ import {
   toClassName,
   getMetadata,
   buildBlock,
+  updateTitleAndMetaTags,
 } from './aem.js';
 import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
@@ -232,6 +233,41 @@ export function isFragmentLink(link) {
   return href && FRAGMENT_PATHS.some((path) => href.includes(path));
 }
 
+function handleLoginRedirection(event, element) {
+  const { authenticationData } = authentication;
+  if (!authenticationData.isLoggedIn) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    authenticationData.login(
+      element.getAttribute('href') === '#'
+        ? window.location.href
+        : element.href,
+      element.target,
+      '',
+    );
+  }
+}
+
+function handleRegistrationRedirection(event, element) {
+  const { authenticationData } = authentication;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (!authenticationData.isLoggedIn) {
+    const noActivationPrompt = element.getAttribute(
+      'data-no-activation-prompt',
+    );
+    const targetLocation = noActivationPrompt
+      ? window.location.href
+      : element.href;
+    authenticationData.registration(
+      targetLocation,
+      element.target,
+      '',
+      noActivationPrompt,
+    );
+  }
+}
+
 /**
  * Builds fragment blocks from links to fragments
  * @param {Element} main The container element
@@ -245,6 +281,21 @@ export function buildFragmentBlocks(main) {
       a.replaceWith(block);
       decorateBlock(block);
     }
+
+    const isLogin = a.title.match(/\[login\]/i);
+    if (isLogin) {
+      a.title = a.title.replaceAll(/\[login\]/ig, '').trim();
+      a.addEventListener('click', (event) => {
+        handleLoginRedirection(event, a);
+      }, { capture: true });
+    }
+    const isRegistration = a.title.match(/\[registration\]/i);
+    if (isRegistration) {
+      a.title = a.title.replaceAll(/\[registration\]/ig, '').trim();
+      a.addEventListener('click', (event) => {
+        handleRegistrationRedirection(event, a);
+      }, { capture: true });
+    }
   });
 }
 
@@ -253,16 +304,30 @@ export function buildFragmentBlocks(main) {
  * @param {Element} main The main element
  */
 export function decorateExternalLinks(main) {
+  const linkConfig = {
+    domain: 'cmegroup.com',
+    subdomains: [],
+  };
+
+  const domainRegex = new RegExp(`^https?:\\/\\/([^/]+\\.)?${linkConfig.domain.replace('.', '\\.')}(\\/|$)`);
+
   main.querySelectorAll('a').forEach((a) => {
     const href = a.getAttribute('href');
     if (href) {
       const extension = href.split('.').pop().trim();
       const isExternal = !href.startsWith('/') && !href.startsWith('#');
       const isPDF = extension === 'pdf';
-      const isCMEGroup = href.includes('cmegroup.com');
+      const isCMEGroup = domainRegex.test(href);
       const hasLinkOverride = a.querySelector('code') !== null;
 
-      if (isPDF || (isExternal && !isCMEGroup) || (isCMEGroup && hasLinkOverride)) {
+      const isConfiguredPage = linkConfig.subdomains.some((subdomain) => href.startsWith(`https://${subdomain}.${linkConfig.domain}`));
+
+      if (
+        isPDF
+        || (isExternal && !isCMEGroup)
+        || (isCMEGroup && hasLinkOverride)
+        || isConfiguredPage
+      ) {
         a.setAttribute('target', '_blank');
       }
     }
@@ -645,6 +710,8 @@ async function loadEager(doc) {
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
+    updateTitleAndMetaTags(document.title);
+
     if (templateName) {
       await loadTemplate(doc, templateName);
     }
@@ -685,6 +752,9 @@ async function loadLazy(doc) {
       initFloatingElements(doc, header);
       enhanceIconAccessibility(header);
     });
+  } else {
+    // Add class to body when header is hidden to remove top padding
+    doc.body.classList.add('header-hidden');
   }
   if (!isFeatureToggled('hideFooter')) {
     loadFooter(doc.querySelector('footer')).then((footer) => {

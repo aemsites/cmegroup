@@ -119,54 +119,6 @@ async function createCertificateModal({
   return modal;
 }
 
-async function handleDownloadClick(block) {
-  const scriptPdfPromises = [
-    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
-    loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
-  ];
-
-  await Promise.all(scriptPdfPromises);
-
-  const originalElement = block.querySelector('.completion-certificate-container');
-
-  const clone = originalElement.cloneNode(true);
-  clone.classList.add('force-print-style');
-
-  const hiddenWrapper = document.createElement('div');
-  hiddenWrapper.classList.add('hidden-wrapper');
-  hiddenWrapper.appendChild(clone);
-  document.body.appendChild(hiddenWrapper);
-
-  // eslint-disable-next-line no-undef
-  const canvas = await html2canvas(clone, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: '#ffffff',
-  });
-
-  const imgData = canvas.toDataURL('image/png');
-
-  const { jsPDF } = window.jspdf;
-  // eslint-disable-next-line new-cap
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'pt',
-    format: 'a4',
-  });
-
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-
-  const imgWidth = canvas.width;
-  const imgHeight = canvas.height;
-  const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
-
-  pdf.addImage(imgData, 'PNG', 0, 0, imgWidth * ratio, imgHeight * ratio);
-  pdf.save('certificate.pdf');
-
-  hiddenWrapper.remove();
-}
-
 async function getShareCertificateData(formData) {
   try {
     const url = `${urlByEnvType()}/services/course-certificate`;
@@ -213,13 +165,30 @@ async function buildUrlForShare(certContainer, moduleId) {
   return `${urlByEnvType()}/services/course-certificate/${res}`;
 }
 
+function createSpinner() {
+  const spinner = createElement('div', { class: 'spinner-certificate' });
+  spinner.innerHTML = `
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  `;
+  return spinner;
+}
+
 async function handleShareClick(block, moduleId) {
   const platforms = getMetadata('share-links').split(',');
   const container = createElement('div', {
     class: 'share-buttons-container',
   });
+
+  const shareBtn = block.querySelector('.sharer');
+  const spinner = createSpinner();
+  shareBtn.replaceWith(spinner);
+
   const certContainer = block.querySelector('.completion-certificate-container');
   const shareUrl = await buildUrlForShare(certContainer, moduleId);
+
   platforms.forEach((platform) => {
     const button = createElement(
       'button',
@@ -237,8 +206,7 @@ async function handleShareClick(block, moduleId) {
     container.appendChild(button);
   });
 
-  const shareBtn = block.querySelector('.sharer');
-  shareBtn.replaceWith(container);
+  spinner.replaceWith(container);
 
   loadScript('https://cdn.jsdelivr.net/npm/sharer.js@latest/sharer.min.js').then(() => {
     document.querySelectorAll('[data-sharer]').forEach((btn) => {
@@ -271,8 +239,8 @@ async function openCertificateModal({
   });
 
   const downloadBtn = block.querySelectorAll('.print-pdf')[0];
-  downloadBtn.addEventListener('click', async () => {
-    handleDownloadClick(block);
+  downloadBtn.addEventListener('click', () => {
+    window.print();
   });
 
   const shareBtn = block.querySelector('.sharer');
@@ -304,7 +272,7 @@ export async function addCourseCertificate({
 
   const button = createElement(
     'button',
-    { class: 'button secondary view-certificate', type: 'button' },
+    { class: `button secondary view-certificate ${isFromHistory && 'download-icon'}`, type: 'button' },
     isFromHistory ? downloadCertificateLabel : viewCertificateLabel,
   );
 

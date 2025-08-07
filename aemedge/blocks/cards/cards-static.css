@@ -1,5 +1,7 @@
 .cards.static {
     & ul {
+      grid-template-columns: repeat(auto-fill, minmax(14.375rem, 14.375rem));
+
         & .glider-track {
             column-gap: 1.1875rem;
 

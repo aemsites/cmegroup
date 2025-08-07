@@ -1,4 +1,9 @@
-import { createElement, i18n, readBlockConfig } from '../../scripts/utils.js';
+import {
+  createElement,
+  i18n,
+  readBlockConfig,
+  setupDayjsLibs,
+} from '../../scripts/utils.js';
 import { getUserProgress } from '../../scripts/services/EducationTrackService.js';
 import { createEducationCard } from './course-card/course-card.js';
 import { createPagination } from './pagination/pagination.js';
@@ -14,23 +19,30 @@ function sortItemsByUpdated(items) {
 function createNoResultsElement(boldText, normalText, linkText) {
   const boldSpan = createElement('span', { class: 'bold-error-text' }, boldText);
   const normalSpan = createElement('span', {}, normalText);
-  const link = createElement('a', { href: '/education/courses.html' }, linkText);
+  const link = createElement('a', { href: '/education/courses.html' }, createElement('span', {}, linkText));
 
   return createElement('div', { class: 'no-results' }, boldSpan, normalSpan, link);
 }
 
 async function renderCards({
-  wrapper, paginationWrapper, paginatedItems, page, total, pageSize, resultsText,
+  wrapper, paginationWrapper, paginatedItems, total, resultsText,
 }) {
   const [showingText] = await Promise.all([
-    i18n('Showing {end} of {total} results'),
+    i18n('Showing {currentCount} of {total} results'),
   ]);
 
-  wrapper.querySelectorAll('.course-card').forEach((el) => el.remove());
+  const cards = await Promise.all(
+    paginatedItems.map(({ type, data }) => {
+      const isLesson = type === 'lesson';
+      const launchUrl = isLesson
+        ? data.url
+        : data.lessons?.find((lesson) => !lesson.completed)?.url || data.url;
+      return createEducationCard({ ...data, launchUrl }, isLesson);
+    }),
+  );
 
-  paginatedItems.forEach(({ type, data }) => {
-    wrapper.appendChild(createEducationCard(data, type === 'lesson'));
-  });
+  wrapper.querySelectorAll('.course-card').forEach((el) => el.remove());
+  cards.forEach((card) => wrapper.appendChild(card));
 
   requestAnimationFrame(() => {
     wrapper.querySelectorAll('.progress-bar .progress').forEach((bar, index) => {
@@ -43,15 +55,16 @@ async function renderCards({
   });
 
   wrapper.querySelector('.wrapper-paginator')?.remove();
-  wrapper.appendChild(paginationWrapper);
+  if (paginationWrapper) {
+    wrapper.appendChild(paginationWrapper);
+  }
 
-  const start = (page - 1) * pageSize + 1;
-  const end = start + paginatedItems.length - 1;
+  const currentCount = paginatedItems.length;
 
   resultsText.innerHTML = '';
   resultsText.appendChild(
     createElement('span', {}, showingText
-      .replace('{end}', end)
+      .replace('{currentCount}', currentCount)
       .replace('{total}', total)),
   );
 }
@@ -67,14 +80,15 @@ function applyFilter(items, filterValue) {
 }
 
 async function setupPagination({
-  container, items, pageSize, wrapper, resultsText,
+  container, items, pageSize, wrapper, resultsText, initialPage,
 }) {
-  await createPagination({
+  createPagination({
     container,
     filteredItems: items,
     itemsPerPage: pageSize,
+    ...(initialPage !== undefined ? { initialPage } : {}),
     onPageChange: async (paginatedItems, page) => {
-      await renderCards({
+      renderCards({
         wrapper,
         paginationWrapper: container,
         paginatedItems,
@@ -87,6 +101,44 @@ async function setupPagination({
   });
 }
 
+function renderFilteredItems({
+  wrapper,
+  paginationWrapper,
+  filteredItems,
+  pageSize,
+  resultsText,
+  forcePageOne = false,
+}) {
+  const needsPagination = (
+    Number.isFinite(pageSize)
+    && pageSize > 0
+    && filteredItems.length > pageSize
+  );
+
+  wrapper.querySelector('.wrapper-paginator')?.remove();
+
+  if (needsPagination) {
+    setupPagination({
+      container: paginationWrapper,
+      items: filteredItems,
+      pageSize,
+      wrapper,
+      resultsText,
+      initialPage: forcePageOne ? 1 : undefined,
+    });
+  } else {
+    renderCards({
+      wrapper,
+      paginationWrapper: null,
+      paginatedItems: filteredItems,
+      page: 1,
+      total: filteredItems.length,
+      pageSize,
+      resultsText,
+    });
+  }
+}
+
 export default async function decorate(block) {
   const {
     numberOfCoursesToShowPerPage: pageSizeRaw,
@@ -94,9 +146,19 @@ export default async function decorate(block) {
     noCoursesTextNormal,
     noCoursesLinkText,
   } = readBlockConfig(block, true);
-  const numberOfCoursesToShowPerPage = Number(pageSizeRaw) || 0;
+  const numberOfCoursesToShowPerPage = Number(pageSizeRaw) || 10;
 
-  const userProgress = await getUserProgress();
+  let userProgress = null;
+
+  [userProgress] = await Promise.all([
+    getUserProgress(),
+    setupDayjsLibs(),
+  ]);
+
+  if (!userProgress) {
+    block.innerHTML = '';
+    return;
+  }
 
   const items = [
     ...userProgress.courses.map((course) => ({ type: 'course', data: course })),
@@ -144,12 +206,13 @@ export default async function decorate(block) {
         uriUtil.navigate(true);
       }
 
-      setupPagination({
-        container: paginationWrapper,
-        items: filteredItems,
-        pageSize: numberOfCoursesToShowPerPage,
+      renderFilteredItems({
         wrapper,
+        paginationWrapper,
+        filteredItems,
+        pageSize: numberOfCoursesToShowPerPage,
         resultsText,
+        forcePageOne: true,
       });
     },
   });
@@ -158,29 +221,13 @@ export default async function decorate(block) {
 
   wrapper.appendChild(filtersSection);
 
-  if (
-    Number.isFinite(numberOfCoursesToShowPerPage)
-    && numberOfCoursesToShowPerPage > 0
-    && numberOfCoursesToShowPerPage < items.length
-  ) {
-    setupPagination({
-      container: paginationWrapper,
-      items: filteredItems,
-      pageSize: numberOfCoursesToShowPerPage,
-      wrapper,
-      resultsText,
-    });
-  } else {
-    await renderCards({
-      wrapper,
-      paginationWrapper,
-      paginatedItems: filteredItems,
-      page: 1,
-      total: filteredItems.length,
-      pageSize: numberOfCoursesToShowPerPage,
-      resultsText,
-    });
-  }
+  renderFilteredItems({
+    wrapper,
+    paginationWrapper,
+    filteredItems,
+    pageSize: numberOfCoursesToShowPerPage,
+    resultsText,
+  });
 
   block.innerHTML = '';
   block.appendChild(wrapper);

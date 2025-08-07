@@ -283,9 +283,10 @@ export async function createCourseBaseTemplate(courseData) {
     header.appendChild(readTimeElement);
   }
 
+  const isPremium = getMetadata('ispremium');
+
   if (template.toLowerCase() === 'course') {
     const type = createElement('div', { class: 'metadata type' });
-    const isPremium = getMetadata('ispremium');
     if (isPremium) {
       type.textContent = `${premiumLabel} ${courseLabel}`;
     } else {
@@ -301,6 +302,11 @@ export async function createCourseBaseTemplate(courseData) {
       type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${lessons.length}`;
     }
     header.appendChild(type);
+    if (isPremium) {
+      const lessonPremiumLabel = createElement('div', { class: 'premium-label' });
+      lessonPremiumLabel.textContent = premiumLabel;
+      courseHeading?.nextElementSibling?.querySelector('h1')?.before(lessonPremiumLabel);
+    }
   }
 
   const currentLanguage = getCurrentLangInWords();

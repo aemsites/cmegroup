@@ -5,14 +5,9 @@ import {
   isEmpty,
 } from '../utils/index.js';
 import { urlByEnvType } from '../utils.js';
-import { store } from '../store/store.js';
+import { authentication } from '../modules/Authentication.js';
 
 const SYNC_CACHE_KEY = 'course_progress_data';
-
-let loggedIn = false;
-store.subscribe(({ authentication }) => authentication, ({ isLoggedIn }) => {
-  loggedIn = isLoggedIn;
-});
 
 class SyncStorage {
   syncInProgress;
@@ -25,8 +20,9 @@ class SyncStorage {
   }
 
   async init() {
-    store.subscribe(({ authentication }) => authentication, ({ isLoggedIn }) => {
-      if (isLoggedIn !== this.loggedIn) {
+    const { authenticationData } = authentication;
+    authenticationData.loginPromise.then(async () => {
+      if (authenticationData.isLoggedIn) {
         this.sync();
       }
     });
@@ -74,12 +70,14 @@ const mapModule = (data) => (
       title: lesson.title,
       completed: lesson.status === 'COMPLETED',
       started: !!lesson.startDate,
+      url: lesson.url,
     })),
     completedLessons: data.lessons?.filter(({ status }) => status === 'COMPLETED').length,
     totalLessons: data.lessons?.length || 0,
     started: !!data.startDate,
     endDate: data.endDate,
     updated: data.updated,
+    url: data.url,
   }
 );
 
@@ -90,6 +88,9 @@ async function getStorageProgress(moduleId) {
   const url = `${urlByEnvType()}/services/education-track/public-progress`;
   try {
     const progress = syncStorage.get();
+    if (!progress) {
+      return null;
+    }
     const response = await apiPost(url, {
       progress,
     });
@@ -113,12 +114,14 @@ async function getStorageProgress(moduleId) {
  * Course/standalone progress for current user
  */
 export async function getProgress(moduleId, moduleType) {
-  if (!loggedIn) {
+  const { isLoggedIn } = authentication.authenticationData;
+  if (!isLoggedIn) {
     return getStorageProgress(moduleId);
   }
   const url = `${urlByEnvType()}/services/education-track/${
     moduleType === 'lesson' ? 'progress-for-lesson' : 'progress-for-course'}/${moduleId}`;
   try {
+    await syncStorage.syncInProgress;
     const response = await apiGet(url);
     const data = getResponseData(response);
     return mapModule(data);
@@ -157,7 +160,8 @@ export async function postLesson(
   completed,
 ) {
   const progress = { educationElementId: lessonId, status: completed ? 'COMPLETED' : 'PROGRESS' };
-  if (!loggedIn) {
+  const { isLoggedIn } = authentication.authenticationData;
+  if (!isLoggedIn) {
     syncStorage.set(lessonId, progress.status);
     return getStorageProgress(courseId || lessonId);
   }
@@ -179,6 +183,7 @@ export async function postLesson(
 export async function getUserProgress() {
   const url = `${urlByEnvType()}/services/education-track/progress-for-user`;
   try {
+    await syncStorage.syncInProgress;
     const response = await apiGet(url);
     const data = getResponseData(response);
     const mappedCourses = data.courses?.map(mapModule) || [];
@@ -190,6 +195,22 @@ export async function getUserProgress() {
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('EducationService => getUserProgress error:', e);
+    return null;
+  }
+}
+
+/**
+ * Get a list of in progress and recommended courses for current user
+ */
+export async function getRecommendedCourses(maxItems) {
+  const url = `${urlByEnvType()}/services/education-track/recommended-courses?maxItems=${maxItems || 10}`;
+  try {
+    await syncStorage.syncInProgress;
+    const response = await apiGet(url);
+    return getResponseData(response);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('EducationService => getRecommendedCourses error:', e);
     return [];
   }
 }

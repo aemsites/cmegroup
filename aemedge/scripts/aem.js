@@ -283,6 +283,25 @@ function getMetadata(name, doc = document) {
 }
 
 /**
+ * Updates the document title and related meta tags
+ * @param {string} title The base title to set
+ * @param {string} [suffix='CME Group'] The suffix to append to the title
+ * @param {Document} doc Document object to update. Defaults to the window's document
+ */
+export function updateTitleAndMetaTags(title, suffix = 'CME Group') {
+  if (!title) return;
+
+  const fullTitle = suffix ? `${title} - ${suffix}` : title;
+
+  document.title = fullTitle;
+
+  const ogTitle = document.head.querySelector('meta[property="og:title"]');
+  if (ogTitle) {
+    ogTitle.setAttribute('content', fullTitle);
+  }
+}
+
+/**
  * Returns a picture element with webp and fallbacks
  * @param {string} src The image URL
  * @param {string} [alt] The image alternative text

@@ -97,6 +97,10 @@ async function addLateralNavigation(prevHref, nextHref) {
   );
 
   main.appendChild(nav);
+
+  // Apply hide parameters preservation to navigation links
+  const { preserveHideParameters } = await import('../../scripts/utils.js');
+  preserveHideParameters(nav);
 }
 
 function initLateralNav(courseData) {
@@ -117,7 +121,7 @@ export default async function lessonTemplate() {
     await createCourseBaseTemplate(courseData);
     await initLateralNav(courseData);
     const lesson = getCurrentLesson(courseData);
-    if (!lesson.started) {
+    if (!lesson?.started) {
       //  start current lesson
       await updateLessonStatus(false);
     }
