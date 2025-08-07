@@ -60,4 +60,6 @@
     --fade-transparent-white: linear-gradient(180deg, hsl(0deg 0% 100% / 0%), #fff);
     --brightcove-play: #0097e8;
     --article-standard-shadow: 0 0.5rem 1rem 0 rgb(0 0 0 / 15%);
+    --check-green: #21b002;
+    --check-green-filter: brightness(0) saturate(100%) invert(45%) sepia(86%) saturate(1699%) hue-rotate(74deg) brightness(97%) contrast(103%);
 }
