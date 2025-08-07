@@ -32,7 +32,7 @@ async function loadOneTrust() {
 }
 
 function loadPage() {
-  if (!isFeatureToggled('hideEducationIframe')) {
+  if (!isFeatureToggled('educationIframe')) {
     loadSitewidePopups();
   }
 
