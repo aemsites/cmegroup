@@ -489,14 +489,14 @@ export function decorateButtons(element) {
         // Add classes from brackets text
         Array.from(a.childNodes).forEach((node, index) => {
           if (node.nodeType === Node.TEXT_NODE) {
-            let texto = node.textContent;
-            const bracketMatch = texto.match(/\[([^\]]+)\]/);
+            let nodeText = node.textContent;
+            const bracketMatch = nodeText.match(/\[([^\]]+)\]/);
 
             if (bracketMatch) {
               const classes = bracketMatch[1].split(',').map((c) => c.trim());
               a.classList.add(...classes);
-              texto = texto.replace(/\s*\[[^\]]*\]/, '');
-              node.textContent = texto;
+              nodeText = nodeText.replace(/\s*\[[^\]]*\]/, '');
+              node.textContent = nodeText;
             }
 
             if (textIndex === -1 && text.trim() !== '') {
