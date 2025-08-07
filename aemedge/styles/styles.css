@@ -506,7 +506,6 @@ a {
   }
 }
 
-
 /* ul */
 ol,
 ul {
@@ -646,20 +645,6 @@ button.primary a {
     border-color: var(--blue-active-state);
     color: var(--white);
     text-decoration: none;
-
-    &.reverse {
-      background-color: var(--white);
-      border-color: var(--white);
-      color: var(--gray1);
-
-      & .icon {
-        filter: var(--gray1-filter);
-      }
-
-      &::after {
-        color: var(--gray1);
-      }
-    }
 
     & .icon {
       filter: var(--white-filter);
@@ -880,6 +865,10 @@ button {
       & .icon {
         filter: var(--gray3-filter);
       }
+
+      &::after {
+        color: var(--gray3);
+      }
     }
   }
 }
@@ -890,7 +879,6 @@ fieldset:disabled .button {
   pointer-events: none;
   opacity: 0.65;
 }
-
 
 /* sections */
 main > .section {
