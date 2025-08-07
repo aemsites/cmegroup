@@ -133,7 +133,7 @@
       & li {
         box-shadow: none;
         border: none;
-        border-bottom: 1px solid var(--gray4);
+        border-bottom: 0.0625rem solid var(--gray4);
 
         &:last-child {
           border-bottom: none;
@@ -174,7 +174,7 @@
             min-height: auto;
             height: 5rem;
             padding: 0 1.25rem;
-            width: calc(100% - 100px);
+            width: calc(100% - 6.25rem);
 
             & .cards-time {
               display: block;
@@ -202,7 +202,7 @@
 
           &:hover {
             text-decoration: none;
-            
+
             & .cards-body-container {
               & h3 {
                 color: var(--blue5);
