@@ -3,11 +3,12 @@ import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
+import { isFeatureToggled } from '../../scripts/utils.js';
 
 export default function lessonStandaloneTemplate() {
   const { authenticationData } = authentication;
   authenticationData.loginPromise.then(async () => {
-    if (!authenticationData.isLoggedIn) {
+    if (!authenticationData.isLoggedIn && !isFeatureToggled('educationIframe')) {
       await import('../../scripts/course/auth-modal.js');
     }
     const courseData = await getCourseData();
