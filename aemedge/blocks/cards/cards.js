@@ -395,7 +395,7 @@ export async function createDynamicCards(block) {
     const cardsContainer = createElement('div', null, ul);
     const isList = block.classList.contains('list');
     block.textContent = '';
-    if (isList) {
+    if (config.title) {
       const listCardTitle = document.createElement('h4');
       listCardTitle.textContent = config.title;
       block.appendChild(listCardTitle);
