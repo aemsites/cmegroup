@@ -63,7 +63,7 @@
     font-family: var(--averta);
 }
 
-@media (width >= 993px) {
+@media (width >= 769px) {
     .cards.white-raised-box ul {
         display: flex;
     }
