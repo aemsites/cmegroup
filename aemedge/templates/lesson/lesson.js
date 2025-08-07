@@ -2,7 +2,7 @@ import {
   createCourseBaseTemplate, getCourseData, updateLessonStatus, getCurrentLesson,
 } from '../../scripts/course/course.js';
 import { addCourseCertificate } from '../../scripts/course/certificate.js';
-import { createElement, i18n } from '../../scripts/utils.js';
+import { createElement, i18n, isFeatureToggled } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
@@ -105,6 +105,9 @@ async function addLateralNavigation(prevHref, nextHref) {
 }
 
 function initLateralNav(courseData) {
+  if (isFeatureToggled('hideCourseNav')) {
+    return;
+  }
   const currentPath = window.location.pathname;
   const flatLessons = flattenLessons(courseData);
   const { prevHref, nextHref } = findNavigationLinks(currentPath, flatLessons);
@@ -115,7 +118,7 @@ export default async function lessonTemplate() {
   const { authenticationData } = authentication;
   authenticationData.loginPromise.then(async () => {
     const { isLoggedIn, loginInfo } = authenticationData;
-    if (!isLoggedIn) {
+    if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
       await import('../../scripts/course/auth-modal.js');
     }
     const courseData = await getCourseData();
