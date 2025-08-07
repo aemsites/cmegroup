@@ -1,7 +1,6 @@
 import {
   loadHeader,
   loadFooter,
-  decorateButtons,
   decorateIcons,
   decorateBlock,
   decorateTemplateAndTheme,
@@ -270,37 +269,6 @@ function handleRegistrationRedirection(event, element) {
 }
 
 /**
- * Builds fragment blocks from links to fragments
- * @param {Element} main The container element
- */
-export function buildFragmentBlocks(main) {
-  main.querySelectorAll('a[href]').forEach((a) => {
-    const url = new URL(a.href);
-    const domainCheck = checkDomain(url);
-    if (domainCheck.isKnown && isFragmentLink(a)) {
-      const block = buildBlock('fragment', url.pathname);
-      a.replaceWith(block);
-      decorateBlock(block);
-    }
-
-    const isLogin = a.title.match(/\[login\]/i);
-    if (isLogin) {
-      a.title = a.title.replaceAll(/\[login\]/ig, '').trim();
-      a.addEventListener('click', (event) => {
-        handleLoginRedirection(event, a);
-      }, { capture: true });
-    }
-    const isRegistration = a.title.match(/\[registration\]/i);
-    if (isRegistration) {
-      a.title = a.title.replaceAll(/\[registration\]/ig, '').trim();
-      a.addEventListener('click', (event) => {
-        handleRegistrationRedirection(event, a);
-      }, { capture: true });
-    }
-  });
-}
-
-/**
  * Decorates external links to open in a new tab.
  * @param {Element} main The main element
  */
@@ -521,6 +489,107 @@ function decorateLightboxImages(main) {
 }
 
 /**
+  * Create and styles links and buttons
+  * Builds fragment blocks from links to fragments
+  * @param {Element} main The container element
+  */
+export function decorateButtons(element) {
+  element.querySelectorAll('a[href]').forEach((a) => {
+    const text = a.textContent;
+    const url = new URL(a.href);
+    const domainCheck = checkDomain(url);
+    const isLogin = a.title.match(/\[login\]/i);
+    const isRegistration = a.title.match(/\[registration\]/i);
+    let textIndex = -1;
+    let iconIndex = -1;
+    a.title = a.title || text;
+
+    // Button decoration
+    if (a.href !== text && !a.querySelector('img')) {
+      const up = a.parentElement;
+      const twoup = up?.parentElement;
+
+      if (up?.childNodes.length === 1 && (up.tagName === 'P' || up.tagName === 'DIV')) {
+        up.classList.add('button-container');
+      }
+
+      if (
+        up?.childNodes.length === 1
+        && up.tagName === 'STRONG'
+        && twoup?.childNodes.length === 1
+        && (twoup.tagName === 'P' || twoup.tagName === 'DIV')
+      ) {
+        a.className = 'button primary';
+        twoup.classList.add('button-container');
+      }
+
+      if (
+        up?.childNodes.length === 1
+        && up.tagName === 'EM'
+        && twoup?.childNodes.length === 1
+        && (twoup.tagName === 'P' || twoup.tagName === 'DIV')
+      ) {
+        a.className = 'button secondary';
+        twoup.classList.add('button-container');
+      }
+
+      // Add classes from brackets text
+      Array.from(a.childNodes).forEach((node, index) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          let nodeText = node.textContent;
+          const bracketMatch = nodeText.match(/\[([^\]]+)\]/);
+
+          if (bracketMatch) {
+            const classes = bracketMatch[1].split(',').map((c) => c.trim());
+            a.classList.add(...classes);
+            nodeText = nodeText.replace(/\s*\[[^\]]*\]/, '');
+            node.textContent = nodeText;
+          }
+
+          if (textIndex === -1 && text.trim() !== '') {
+            textIndex = index;
+          }
+        }
+
+        if (iconIndex === -1 && node.nodeType === Node.ELEMENT_NODE && node.matches('.icon')) {
+          iconIndex = index;
+        }
+      });
+
+      // Add class for spacing between text and icon
+      if (iconIndex !== -1 && textIndex !== -1) {
+        if (iconIndex < textIndex) {
+          a.classList.add('position-left');
+        } else if (iconIndex > textIndex) {
+          a.classList.add('position-right');
+        }
+      }
+    }
+
+    // Login/Register handling
+    if (isLogin) {
+      a.title = a.title.replaceAll(/\[login\]/ig, '').trim();
+      a.addEventListener('click', (event) => {
+        handleLoginRedirection(event, a);
+      }, { capture: true });
+    }
+
+    if (isRegistration) {
+      a.title = a.title.replaceAll(/\[registration\]/ig, '').trim();
+      a.addEventListener('click', (event) => {
+        handleRegistrationRedirection(event, a);
+      }, { capture: true });
+    }
+
+    if (domainCheck.isKnown && isFragmentLink(a)) {
+      const block = buildBlock('fragment', url.pathname);
+      a.replaceWith(block);
+      decorateBlock(block);
+    }
+  });
+}
+
+/**
  * Decorates author's text highlights in the main element.
  * Author can select text to highlight via "inline code".
  * Author can set the highlight color in the section metadata via "text-highlight" property.
@@ -574,7 +643,6 @@ export function decorateMain(main) {
   decorateIcons(main);
   enhanceIconAccessibility();
   buildAutoBlocks(main);
-  buildFragmentBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
   decorateExternalLinks(main);
