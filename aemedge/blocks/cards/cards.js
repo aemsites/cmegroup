@@ -393,9 +393,15 @@ export async function createDynamicCards(block) {
   if (cardElements && cardElements.length) {
     const ul = createElement('ul', null, ...cardElements);
     const cardsContainer = createElement('div', null, ul);
+    const isList = block.classList.contains('list');
     block.textContent = '';
+    if (isList) {
+      const listCardTitle = document.createElement('h4');
+      listCardTitle.textContent = config.title;
+      block.appendChild(listCardTitle);
+    }
     block.appendChild(cardsContainer);
-    if (sliderConfig) {
+    if (sliderConfig && !isList) {
       buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
     }
   } else {
