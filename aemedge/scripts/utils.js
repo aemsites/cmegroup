@@ -696,6 +696,19 @@ function preserveHideParameters(main) {
   });
 }
 
+function showTooltip(parent, content, hideAfter) {
+  let tooltip = parent.querySelector('.tooltip');
+  if (tooltip) {
+    tooltip.remove();
+  }
+  tooltip = createElement('div', { class: 'tooltip-content' }, content);
+  const tooltipContainer = createElement('div', { class: 'tooltip' }, tooltip);
+  parent.append(tooltipContainer);
+  if (hideAfter) {
+    setTimeout(() => { tooltip.remove(); }, hideAfter);
+  }
+}
+
 export {
   loadScript,
   createElement,
@@ -723,4 +736,5 @@ export {
   getCdtDate,
   getCountryCode,
   preserveHideParameters,
+  showTooltip,
 };

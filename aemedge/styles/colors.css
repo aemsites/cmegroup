@@ -4,6 +4,7 @@
     --blue1: #081d37;
     --blue-transparency: #020f1ed9;
     --blue2: #112b4a;
+    --blue2-filter: brightness(0) saturate(100%) invert(11%) sepia(33%) saturate(2902%) hue-rotate(191deg) brightness(93%) contrast(92%);
     --blue3: #1f3374;
     --blue3-a: #1f3655;
     --blue4: #006eb6;
@@ -19,16 +20,19 @@
     --blue-9: #357cc7;
     --blue-10: #002d74;
     --gray1: #16202a;
+    --gray1-filter: brightness(0) saturate(100%) invert(10%) sepia(45%) saturate(444%) hue-rotate(169deg) brightness(98%) contrast(96%);
     --gray2: #25323c;
     --gray3: #5a6874;
     --gray3-filter: brightness(0) saturate(100%) invert(39%) sepia(7%) saturate(1016%) hue-rotate(166deg) brightness(97%) contrast(89%);
     --gray4: #c2cace;
+    --gray4-filter: brightness(0) saturate(100%) invert(85%) sepia(9%) saturate(174%) hue-rotate(155deg) brightness(95%) contrast(87%);
     --gray5: #ebedee;
     --gray5-a: #eee;
+    --gray5-filter: invert(95%) sepia(3%) saturate(93%) hue-rotate(156deg) brightness(103%) contrast(89%);
     --gray6: #f1f5f7;
     --gray7: #3a464f;
     --gray8: #3c4043;
-    --gray8-shadow: 0 0.0625rem 0.125rem 0 rgb(60 64 67 / 30%), 0 0.125rem 0.375rem 0.125rem rgba(60 64 67 / 15%);
+    --gray8-shadow: 0 0.0625rem 0.125rem 0 rgb(60 64 67 / 30%), 0 0.125rem 0.375rem 0.125rem rgb(60 64 67 / 15%);
     --gray9: #b2b2b2;
     --gray10: #d5dbdF;
     --gray11: #e5e5e5;
@@ -60,4 +64,6 @@
     --fade-transparent-white: linear-gradient(180deg, hsl(0deg 0% 100% / 0%), #fff);
     --brightcove-play: #0097e8;
     --article-standard-shadow: 0 0.5rem 1rem 0 rgb(0 0 0 / 15%);
+    --check-green: #21b002;
+    --check-green-filter: brightness(0) saturate(100%) invert(45%) sepia(86%) saturate(1699%) hue-rotate(74deg) brightness(97%) contrast(103%);
 }
