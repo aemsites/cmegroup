@@ -207,7 +207,11 @@ export async function getRecommendedCourses(maxItems) {
   try {
     await syncStorage.syncInProgress;
     const response = await apiGet(url);
-    return getResponseData(response);
+    const data = getResponseData(response);
+    return {
+      ...data,
+      userProgress: data.userProgress?.map(mapModule) || [],
+    };
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('EducationService => getRecommendedCourses error:', e);
