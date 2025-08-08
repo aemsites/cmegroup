@@ -9,6 +9,7 @@ export async function createPagination({
   filteredItems,
   itemsPerPage,
   onPageChange,
+  initialPage,
 }) {
   const [
     firstLabel,
@@ -25,7 +26,7 @@ export async function createPagination({
   ]);
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-  let currentPage = 1;
+  let currentPage = initialPage;
 
   const update = (triggeredByUser = false) => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -33,7 +34,7 @@ export async function createPagination({
     const paginatedItems = filteredItems.slice(start, end);
 
     if (triggeredByUser) {
-      uriUtil.addHash('pageNum', currentPage.toString()).navigate(true);
+      uriUtil.update().addHash('pageNum', currentPage.toString()).navigate(true);
     }
 
     onPageChange(paginatedItems, currentPage);
@@ -103,10 +104,14 @@ export async function createPagination({
     container.appendChild(nav);
   };
 
-  const hash = uriUtil.getHash();
-  const pageFromHash = parseInt(hash.pageNum, 10);
-  if (!Number.isNaN(pageFromHash) && pageFromHash >= 1 && pageFromHash <= totalPages) {
-    currentPage = pageFromHash;
+  if (typeof initialPage === 'undefined') {
+    const hash = uriUtil.getHash();
+    const pageFromHash = parseInt(hash.pageNum, 10);
+    if (!Number.isNaN(pageFromHash) && pageFromHash >= 1 && pageFromHash <= totalPages) {
+      currentPage = pageFromHash;
+    } else {
+      currentPage = 1;
+    }
   }
 
   update();

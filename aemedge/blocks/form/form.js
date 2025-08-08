@@ -1,4 +1,4 @@
-import { decorateButtons } from '../../scripts/aem.js';
+import { decorateButtons } from '../../scripts/scripts.js';
 import createField from './form-fields.js';
 import { createElement, toStartCase, getCountryCode } from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';

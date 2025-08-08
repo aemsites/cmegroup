@@ -1,18 +1,35 @@
-import { createElement } from '../../../scripts/utils.js';
+import { createElement, i18n, getCdtDate } from '../../../scripts/utils.js';
 import { addCourseCertificate } from '../../../scripts/course/certificate.js';
 import { authentication } from '../../../scripts/modules/Authentication.js';
 
 // eslint-disable-next-line import/prefer-default-export
-export function createEducationCard(item, isLesson = false) {
+export async function createEducationCard(item, isLesson = false) {
   const {
-    url, title, completed, updated, description,
+    launchUrl, title, completed, updated, description,
   } = item;
+  const lastLaunchedDate = getCdtDate(updated);
 
-  const lastLaunchedDate = new Date(updated).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const [
+    courseLabel,
+    lessonLabel,
+    launchCourseText,
+    launchLessonText,
+    lessonsCompletedLabel,
+    lastLaunchedLabel,
+    courseCompletedLabel,
+    lessonCompletedLabel,
+    lessonsText,
+  ] = await Promise.all([
+    i18n('Course'),
+    i18n('Lesson'),
+    i18n('Launch Course'),
+    i18n('Launch Lesson'),
+    i18n('Lessons complete'),
+    i18n('Last launched'),
+    i18n('Course completed'),
+    i18n('Lesson completed'),
+    i18n('Lessons'),
+  ]);
 
   const header = createElement(
     'div',
@@ -20,41 +37,43 @@ export function createEducationCard(item, isLesson = false) {
     createElement(
       'div',
       { class: 'labels' },
-      createElement('span', {}, isLesson ? 'Lesson' : 'Course'),
+      createElement('span', {}, isLesson ? lessonLabel : courseLabel),
     ),
   );
 
   let launchBtn;
 
   if (completed) {
-    const container = createElement('div');
-    launchBtn = container;
+    if (!isLesson) {
+      const container = createElement('div');
+      launchBtn = container;
 
-    const { authenticationData } = authentication;
-    authenticationData.loginPromise.then(async () => {
-      const { isLoggedIn, loginInfo } = authenticationData;
-      const buttonContent = await addCourseCertificate({
-        isLoggedIn,
-        userName: loginInfo?.userName,
-        moduleId: item?.courseId,
-        lessonTitle: item?.title,
-        completedModule: item?.endDate,
-        container,
-        isFromHistory: true,
+      const { authenticationData } = authentication;
+      authenticationData.loginPromise.then(async () => {
+        const { isLoggedIn, loginInfo } = authenticationData;
+        const buttonContent = await addCourseCertificate({
+          isLoggedIn,
+          userName: loginInfo?.userName,
+          moduleId: item?.courseId,
+          lessonTitle: item?.title,
+          completedModule: item?.endDate,
+          container,
+          isFromHistory: true,
+        });
+
+        if (typeof buttonContent === 'string') {
+          launchBtn.innerHTML = buttonContent;
+        } else if (buttonContent instanceof HTMLElement) {
+          launchBtn.innerHTML = '';
+          launchBtn.appendChild(buttonContent);
+        }
       });
-
-      if (typeof buttonContent === 'string') {
-        launchBtn.innerHTML = buttonContent;
-      } else if (buttonContent instanceof HTMLElement) {
-        launchBtn.innerHTML = '';
-        launchBtn.appendChild(buttonContent);
-      }
-    });
+    }
   } else {
     launchBtn = createElement(
       'a',
-      { class: 'btn link', href: url },
-      createElement('span', { class: 'text' }, isLesson ? 'Launch Lesson' : 'Launch Course'),
+      { class: 'btn link desktop-only', href: launchUrl },
+      createElement('span', { class: 'text' }, isLesson ? launchLessonText : launchCourseText),
     );
   }
 
@@ -68,18 +87,22 @@ export function createEducationCard(item, isLesson = false) {
     description,
   );
 
-  let totalLessons = 0;
-  if (isLesson) {
-    totalLessons = 1;
-  } else if (item.lessons?.length) {
-    totalLessons = item.lessons.length;
-  }
-
+  const totalLessons = isLesson ? 1 : item.lessons?.length || 0;
   let lessonsCompleted = 0;
+
   if (item.lessons) {
-    lessonsCompleted = item.lessons.filter((lesson) => lesson.completed).length;
+    lessonsCompleted = item.completedLessons;
   } else if (item.completed) {
     lessonsCompleted = 1;
+  }
+
+  let labelText;
+  if (!completed) {
+    labelText = lastLaunchedLabel;
+  } else if (isLesson) {
+    labelText = lessonCompletedLabel;
+  } else {
+    labelText = courseCompletedLabel;
   }
 
   const details = createElement(
@@ -88,24 +111,30 @@ export function createEducationCard(item, isLesson = false) {
     createElement(
       'p',
       {},
-      createElement('span', {}, 'Lessons completed'),
+      createElement('span', {}, lessonsCompletedLabel),
       createElement('br'),
       createElement('span', {}, `${lessonsCompleted} of ${totalLessons}`),
     ),
     createElement(
       'p',
       {},
-      createElement('span', {}, 'Last Launched'),
+      createElement('span', {}, labelText),
       createElement('br'),
-      createElement('span', {}, lastLaunchedDate),
+      createElement('span', {}, lastLaunchedDate.format('MMMM D, YYYY')),
     ),
+  );
+
+  const titleElementDesktop = createElement('h2', { class: 'desktop-only' }, title);
+  const titleElementMobile = createElement(
+    'a',
+    { href: launchUrl, class: 'mobile-only' },
+    createElement('h2', {}, title),
   );
 
   const content = createElement(
     'div',
     { class: 'course-info' },
-    // TO DO: add mobile link
-    createElement('div', {}, createElement('h2', {}, title), descriptionElement),
+    createElement('div', {}, titleElementDesktop, titleElementMobile, descriptionElement),
     details,
   );
 
@@ -155,7 +184,7 @@ export function createEducationCard(item, isLesson = false) {
         createElement(
           'div',
           { class: 'expand-collapse-lessons' },
-          createElement('span', {}, `${numberOfLesson} Lessons`),
+          createElement('span', {}, `${numberOfLesson} ${lessonsText}`),
           expandBtn,
         ),
       ),

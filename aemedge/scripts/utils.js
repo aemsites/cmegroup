@@ -545,7 +545,7 @@ function checkDomain(url) {
 }
 
 /**
- * Checks if a feature toggle is enabled via query parameter.
+ * Checks if a feature toggle is enabled via query parameter or is in iframe.
  *
  * @param {string} toggleName - The name of the toggle to check
  * @param {string} expectedValue - The expected value (defaults to 'y')
@@ -563,8 +563,9 @@ function checkDomain(url) {
  * }
  */
 function isFeatureToggled(toggleName, expectedValue = 'y') {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(toggleName) === expectedValue;
+  const isInIframe = window.self !== window.top;
+  return isInIframe
+    || new URLSearchParams(window.location.search).get(toggleName) === expectedValue;
 }
 
 /**
@@ -695,6 +696,19 @@ function preserveHideParameters(main) {
   });
 }
 
+function showTooltip(parent, content, hideAfter) {
+  let tooltip = parent.querySelector('.tooltip');
+  if (tooltip) {
+    tooltip.remove();
+  }
+  tooltip = createElement('div', { class: 'tooltip-content' }, content);
+  const tooltipContainer = createElement('div', { class: 'tooltip' }, tooltip);
+  parent.append(tooltipContainer);
+  if (hideAfter) {
+    setTimeout(() => { tooltip.remove(); }, hideAfter);
+  }
+}
+
 export {
   loadScript,
   createElement,
@@ -722,4 +736,5 @@ export {
   getCdtDate,
   getCountryCode,
   preserveHideParameters,
+  showTooltip,
 };

@@ -5,6 +5,7 @@ import {
   setupDayjsLibs,
   getCdtDate,
   loadScript,
+  isFeatureToggled,
 } from '../utils.js';
 import {
   apiPost,
@@ -262,6 +263,9 @@ export async function addCourseCertificate({
   container,
   isFromHistory = false,
 }) {
+  // Disable if educationIframe query parameter is set
+  if (isFeatureToggled('educationIframe')) return;
+
   const [
     viewCertificateLabel,
     downloadCertificateLabel,
@@ -272,7 +276,7 @@ export async function addCourseCertificate({
 
   const button = createElement(
     'button',
-    { class: 'button secondary view-certificate', type: 'button' },
+    { class: `button secondary view-certificate ${isFromHistory && 'download-icon'}`, type: 'button' },
     isFromHistory ? downloadCertificateLabel : viewCertificateLabel,
   );
 
