@@ -7,20 +7,22 @@ import {
 } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 
+//  course in progress
 async function createProgressCard(data) {
   const {
     title,
-    completedCount,
-    totalCount,
-    url,
+    completedLessons,
+    totalLessons,
+    lessons,
   } = data;
+  const url = lessons?.find((lesson) => !lesson.completed)?.url;
   const link = createElement('a', { href: url });
   const bodyWrapper = createElement('div', { class: 'card-body' });
   const [ofText, completedText] = await Promise.all([i18n('of'), i18n('lessons completed')]);
 
   bodyWrapper.innerHTML = `
     <div class="card-eyebrow">
-      <span>${completedCount} ${ofText} ${totalCount} ${completedText}</span>
+      <span>${completedLessons} ${ofText} ${totalLessons} ${completedText}</span>
     </div>
     <div class="card-title">
       ${title}
@@ -30,6 +32,7 @@ async function createProgressCard(data) {
   return createElement('li', null, link);
 }
 
+//  recommended progress
 async function createRecommendedCard(data) {
   const {
     title,
