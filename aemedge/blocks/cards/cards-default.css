@@ -87,6 +87,7 @@
         &:hover {
             background: linear-gradient(90deg, hsl(0deg 0% 100% / 0%), #fff) !important;
             display: block;
+
             & img {
                 @media (width >= 769px) {
                     opacity: 1;
