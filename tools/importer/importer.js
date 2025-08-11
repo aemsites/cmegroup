@@ -16,7 +16,9 @@ import {
   threeColumnsArticleXS, generalColumns, generateEndColumns,
 } from './case-study-article.js';
 import { standardArticleInitialColumns } from './standard-article.js';
-import { fetchTemplate, SECTION_SELECTORS, EDS_DOMAIN } from './utils.js';
+import {
+  fetchTemplate, SECTION_SELECTORS, EDS_DOMAIN, buildSectionMetadata,
+} from './utils.js';
 import { customReportElements } from './report.js';
 import {
   removeCourseSpecificItem,
@@ -27,11 +29,6 @@ import {
 } from './course-lesson.js';
 
 const DOMAIN = 'https://www.cmegroup.com';
-
-export const buildSectionMetadata = (cells) => WebImporter.Blocks.createBlock(document, {
-  name: 'Section Metadata',
-  cells: [...cells],
-});
 
 async function setMetadata(meta, document, url) {
   const readTime = document.querySelector('.article-time');
@@ -186,6 +183,23 @@ async function setMetadata(meta, document, url) {
     document.querySelector('.premium-label').remove();
   }
 }
+
+const changeAnchors = (document) => {
+  const anchors = document.querySelectorAll('a');
+  anchors.forEach((anchor) => {
+    if (anchor.classList.contains('btn') && anchor.classList.contains('primary')) {
+      // wrap anchor in strong
+      const strong = document.createElement('strong');
+      anchor.replaceWith(strong);
+      strong.appendChild(anchor);
+    } else if (anchor.classList.contains('btn') && anchor.classList.contains('secondary')) {
+      // wrap anchor in em
+      const em = document.createElement('em');
+      anchor.replaceWith(em);
+      em.appendChild(anchor);
+    }
+  });
+};
 
 /**
  * This function creates a block separator.
@@ -1298,6 +1312,7 @@ const customBlocks = async (document, main, meta, url) => {
   createForm(document);
   correctLinks(document);
   delete meta['Temp Sub Template'];
+  changeAnchors(document);
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
   //   form.remove();
