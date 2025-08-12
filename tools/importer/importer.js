@@ -286,6 +286,12 @@ const changeAnchors = (document) => {
         }
 
         let classes = [];
+        if (anchor.classList.contains('link-bold')) {
+          classes.push('link-bold');
+        }
+        if (anchor.classList.contains('disabled')) {
+          classes.push('disabled');
+        }
         if (anchor.classList.contains('secondary-2')) {
           classes.push('secondary-2');
           classes.push('button');
@@ -306,8 +312,20 @@ const changeAnchors = (document) => {
         const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
         anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
       } else {
+        let classes = [];
+        if (anchor.classList.contains('link-bold')) {
+          classes.push('link-bold');
+        }
+        if (anchor.classList.contains('disabled')) {
+          classes.push('disabled');
+        }
+
+        if (classes.length) {
+          classes = `[${classes.join(',')}]`;
+        }
+
         const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
-        anchor.textContent = `${firstIcon} ${anchor.textContent} ${secondIcon} ${thirdIcon}`;
+        anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
       }
     }
   });
