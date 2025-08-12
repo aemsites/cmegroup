@@ -188,11 +188,18 @@
   font-size: 0.75rem;
 }
 
-.block.search .result-card .icon-list {
+.block.search .result-card .icon-list,
+.block.search .result-card .icon-play,
+.block.search .result-card .icon-audio {
   margin-top: auto;
 }
 
-.block.search .card-standalone-lesson .icon-list p {
+.block.search .card-article-thumbnail .icon-list p,
+.block.search .card-standalone-lesson .icon-list p,
+.block.search .card-article-thumbnail .icon-play p,
+.block.search .card-standalone-lesson .icon-play p,
+.block.search .card-article-thumbnail .icon-audio p,
+.block.search .card-standalone-lesson .icon-audio p {
   font-style: italic;
 }
 
@@ -206,7 +213,9 @@
   width: 0.75rem;
 }
 
-.block.search .results-wrapper .result-card .icon-list p {
+.block.search .results-wrapper .result-card .icon-list p,
+.block.search .results-wrapper .result-card .icon-play p,
+.block.search .results-wrapper .result-card .icon-audio p {
   margin-top: 0;
   margin-bottom: 0;
   line-height: 1;

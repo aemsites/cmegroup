@@ -16,7 +16,9 @@ import {
   threeColumnsArticleXS, generalColumns, generateEndColumns,
 } from './case-study-article.js';
 import { standardArticleInitialColumns } from './standard-article.js';
-import { fetchTemplate, SECTION_SELECTORS, EDS_DOMAIN } from './utils.js';
+import {
+  fetchTemplate, SECTION_SELECTORS, EDS_DOMAIN, buildSectionMetadata,
+} from './utils.js';
 import { customReportElements } from './report.js';
 import {
   removeCourseSpecificItem,
@@ -27,11 +29,6 @@ import {
 } from './course-lesson.js';
 
 const DOMAIN = 'https://www.cmegroup.com';
-
-export const buildSectionMetadata = (cells) => WebImporter.Blocks.createBlock(document, {
-  name: 'Section Metadata',
-  cells: [...cells],
-});
 
 async function setMetadata(meta, document, url) {
   const readTime = document.querySelector('.article-time');
@@ -186,6 +183,153 @@ async function setMetadata(meta, document, url) {
     document.querySelector('.premium-label').remove();
   }
 }
+
+const getIconName = (icon) => {
+  if (icon === 'icon-chevron-right') {
+    return ':chevron-right:';
+  }
+  if (icon === 'icon-chevron-left') {
+    return ':chevron-left:';
+  }
+  if (icon === 'icon-chevron-down') {
+    return ':chevron-down:';
+  }
+  if (icon === 'icon-chevron-up') {
+    return ':chevron-up:';
+  }
+  if (icon === 'icon-lock') {
+    return ':lock:';
+  }
+  if (icon === 'icon-bell') {
+    return ':bell:';
+  }
+  if (icon === 'icon-arrow-right') {
+    return ':arrow-right:';
+  }
+  if (icon === 'icon-arrow-left') {
+    return ':arrow-left:';
+  }
+  if (icon === 'icon-arrow-down') {
+    return ':arrow-down:';
+  }
+  if (icon === 'icon-arrow-up') {
+    return ':arrow-up:';
+  }
+  return '';
+};
+
+const iconsDataButton = (anchor) => {
+  let firstIcon = '';
+  let secondIcon = '';
+  let thirdIcon = '';
+  const firstSpan = anchor.querySelector('span');
+  const secondSpan = anchor.querySelectorAll('span')?.[1];
+  const thirdSpan = anchor.querySelectorAll('span')?.[2];
+
+  if (firstSpan && firstSpan.classList.contains('icon')) {
+    firstIcon = Array.from(firstSpan.classList).find((cls) => cls.trim() !== 'icon');
+    firstIcon = getIconName(firstIcon);
+  }
+  if (secondSpan && secondSpan.classList.contains('icon')) {
+    secondIcon = Array.from(secondSpan.classList).find((cls) => cls.trim() !== 'icon');
+    secondIcon = getIconName(secondIcon);
+  }
+  if (thirdSpan && thirdSpan.classList.contains('icon')) {
+    thirdIcon = Array.from(thirdSpan.classList).find((cls) => cls.trim() !== 'icon');
+    thirdIcon = getIconName(thirdIcon);
+  }
+
+  return {
+    firstIcon,
+    secondIcon,
+    thirdIcon,
+  };
+};
+
+const changeAnchors = (document) => {
+  const anchors = document.querySelectorAll('a');
+  anchors.forEach((anchor) => {
+    if (anchor.classList.contains('btn')) {
+      if (anchor.classList.contains('primary') || anchor.classList.contains('primary-alternate')) {
+        // wrap anchor in strong
+        const strong = document.createElement('strong');
+        anchor.replaceWith(strong);
+        strong.appendChild(anchor);
+
+        const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
+
+        let classes = [];
+        if (anchor.classList.contains('link-bold')) {
+          classes.push('link-bold');
+        }
+        if (anchor.classList.contains('disabled')) {
+          classes.push('disabled');
+        }
+        if (anchor.classList.contains('primary-alternate')) {
+          classes.push('alternate');
+        }
+
+        if (classes.length) {
+          classes = `[${classes.join(',')}]`;
+        }
+
+        anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+      } else if (anchor.classList.contains('secondary')
+        || anchor.classList.contains('secondary-2')
+        || anchor.classList.contains('secondary-3')
+        || anchor.classList.contains('secondary-4')) {
+        // wrap anchor in em
+        if (anchor.classList.contains('secondary')) {
+          const em = document.createElement('em');
+          anchor.replaceWith(em);
+          em.appendChild(anchor);
+        }
+
+        let classes = [];
+        if (anchor.classList.contains('link-bold')) {
+          classes.push('link-bold');
+        }
+        if (anchor.classList.contains('disabled')) {
+          classes.push('disabled');
+        }
+        if (anchor.classList.contains('secondary-2')) {
+          classes.push('secondary-2');
+          classes.push('button');
+        }
+        if (anchor.classList.contains('secondary-3')) {
+          classes.push('secondary-3');
+          classes.push('button');
+        }
+        if (anchor.classList.contains('secondary-4')) {
+          classes.push('secondary-4');
+          classes.push('button');
+        }
+
+        if (classes.length) {
+          classes = `[${classes.join(',')}]`;
+        }
+
+        const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
+        anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+      } else {
+        let classes = [];
+        if (anchor.classList.contains('link-bold')) {
+          classes.push('link-bold');
+        }
+        if (anchor.classList.contains('disabled')) {
+          classes.push('disabled');
+        }
+
+        if (classes.length) {
+          classes = `[${classes.join(',')}]`;
+        }
+
+        const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
+        anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+      }
+    }
+  });
+};
 
 /**
  * This function creates a block separator.
@@ -1298,6 +1442,7 @@ const customBlocks = async (document, main, meta, url) => {
   createForm(document);
   correctLinks(document);
   delete meta['Temp Sub Template'];
+  changeAnchors(document);
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
   //   form.remove();

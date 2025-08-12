@@ -1,3 +1,5 @@
+/* global WebImporter */
+/* eslint-disable no-console, class-methods-use-this */
 const SECTION_SELECTORS = [
   '.blue1-background',
   '.blue2-background',
@@ -37,8 +39,14 @@ const fetchTemplate = (document) => {
   return 'unknown';
 };
 
+const buildSectionMetadata = (cells) => WebImporter.Blocks.createBlock(document, {
+  name: 'Section Metadata',
+  cells: [...cells],
+});
+
 export {
   fetchTemplate,
   SECTION_SELECTORS,
   EDS_DOMAIN,
+  buildSectionMetadata,
 };
