@@ -398,8 +398,9 @@ main > .section {
       }
 
       & .authors {
-        min-width: fit-content;
+        min-width: min-content;
         letter-spacing: normal;
+        max-width: 80%;
       }
 
       & .article-date {
@@ -478,6 +479,14 @@ main > .section {
           cursor: pointer;
         }
       }
+    }
+  }
+}
+
+h4#footnote {
+  ~ p {
+    a {
+      line-break: anywhere;
     }
   }
 }
