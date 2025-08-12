@@ -3,8 +3,8 @@ import {
   apiPost,
   getResponseData,
   isEmpty,
+  urlByEnvType,
 } from '../utils/index.js';
-import { urlByEnvType } from '../utils.js';
 import { authentication } from '../modules/Authentication.js';
 
 const SYNC_CACHE_KEY = 'course_progress_data';
