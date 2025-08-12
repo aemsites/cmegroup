@@ -2,7 +2,6 @@ import { getMetadata, loadCSS } from '../../../scripts/aem.js';
 import {
   createElement,
   i18n,
-  isFeatureToggled,
   preserveHideParameters,
 } from '../../../scripts/utils.js';
 import { store } from '../../../scripts/store/store.js';
