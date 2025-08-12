@@ -10,6 +10,7 @@ import {
   getReadTimeIcon,
   setupDayjsLibs,
   getCdtDate,
+  showTooltip,
 } from '../../scripts/utils.js';
 import { createModal } from '../../blocks/modal/modal.js';
 
