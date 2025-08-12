@@ -3,9 +3,10 @@ import {
   apiPost,
   getResponseData,
   DataCacheUtil,
+  urlByEnvType,
 } from '../utils/index.js';
 import { getSearchSuggestionsUrl } from '../legacy-api.js';
-import { getCdtDate, isDateBefore, urlByEnvType } from '../utils.js';
+import { getCdtDate, isDateBefore } from '../utils.js';
 
 const getUserInfo = ({ userId, token }) => ({ userId, token });
 

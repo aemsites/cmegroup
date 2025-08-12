@@ -1,8 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-console */
 /* eslint-disable max-len */
-import { urlByEnvType } from './utils.js';
-import { apiPost, getResponseData } from './utils/index.js';
+import { apiPost, getResponseData, urlByEnvType } from './utils/index.js';
 
 const QUERY_INDEX_ENDPOINT = '/services/query-index/search';
 

@@ -1,5 +1,9 @@
-import { apiGet, apiPost, getResponseData } from '../utils/index.js';
-import { urlByEnvType } from '../utils.js';
+import {
+  apiGet,
+  apiPost,
+  getResponseData,
+  urlByEnvType,
+} from '../utils/index.js';
 
 export async function getEconomicReleaseFilters() {
   const url = `${urlByEnvType()}/services/economic-release-filters`;

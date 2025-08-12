@@ -390,21 +390,6 @@ function getBrowserName() {
   return '';
 }
 
-function getEnvType() {
-  const prodEnvs = [
-    'cmegroup.com',
-    'www.cmegroup.com',
-    'main--cmegroup--aemsites.aem.page',
-    'main--cmegroup--aemsites.aem.live',
-  ];
-  const type = prodEnvs.includes(window.location.hostname) ? 'prod' : 'stage';
-  return type;
-}
-
-function urlByEnvType() {
-  return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
-}
-
 function isDateBefore(date1, date2) {
   let d1;
   let d2;
@@ -768,9 +753,7 @@ export {
   i18n,
   getPageTags,
   getBrowserName,
-  getEnvType,
   isDateBefore,
-  urlByEnvType,
   getCurrentLangInWords,
   decodeHtmlEntities,
   checkDomain,
