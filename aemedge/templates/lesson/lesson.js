@@ -96,7 +96,8 @@ async function addLateralNavigation(prevHref, nextHref) {
     ),
   );
 
-  main.appendChild(nav);
+  const lastChild = main.lastElementChild;
+  lastChild.insertBefore(nav, lastChild.lastElementChild);
 
   // Apply hide parameters preservation to navigation links
   const { preserveHideParameters } = await import('../../scripts/utils.js');
