@@ -164,6 +164,21 @@ async function buildBookmark(bookmark, bookmarkIcons, saveText) {
   });
 }
 
+function renderAuthors(authorsData, container, byLabel) {
+  container.innerHTML = '';
+  const authorList = authorsData.map((author) => {
+    if (author.path) {
+      const link = document.createElement('a');
+      link.href = author.path;
+      link.textContent = author.title;
+      return link.outerHTML;
+    }
+    return author.title;
+  });
+  const authorsString = authorList.join(', ');
+  container.innerHTML = `${byLabel} ${authorsString}`;
+}
+
 async function decorateArticleHero(main) {
   const subTemplates = getMetadata('sub-template')?.split(' ');
   const readTime = getMetadata('read-time');
@@ -199,9 +214,9 @@ async function decorateArticleHero(main) {
   const bookmark = createElement('a', { class: 'bookmark' }, bookmarkIcons, saveText);
   const topInfo = createElement('div', { class: 'top-info' }, articleTime, featuredTag, bookmark);
   const h1 = heroSection.querySelector('h1');
-  const authors = createElement('span', { class: 'authors' });
+  const authorsContainer = createElement('span', { class: 'authors' });
   const articleDate = createElement('span', { class: 'article-date' });
-  const lastInfo = createElement('div', { class: 'article-data' }, authors, articleDate);
+  const lastInfo = createElement('div', { class: 'article-data' }, authorsContainer, articleDate);
   const contentWrapper = createElement('div', { class: 'default-content-wrapper' }, topInfo, h1, lastInfo);
   heroSection.append(contentWrapper);
 
@@ -229,7 +244,7 @@ async function decorateArticleHero(main) {
   articleTime.append(readTimeText);
   featuredTag.textContent = primaryTopic;
   saveText.textContent = saveLabel;
-  authors.textContent = `${byLabel} ${author}`;
+  renderAuthors(author, authorsContainer, byLabel);
   articleDate.textContent = getCdtDate(date).format('DD MMM YYYY');
   buildBookmark(bookmark, bookmarkIcons, saveText);
 }

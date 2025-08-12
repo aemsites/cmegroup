@@ -1,10 +1,10 @@
 import {
   createElement,
-  getEnvType,
   getCurrentLangInWords,
   i18n,
   parseTime,
 } from '../utils.js';
+import { getEnvType } from '../utils/index.js';
 import { getMetadata } from '../aem.js';
 import { getIndexedContent } from '../indexing.js';
 import { getProgress, postLesson } from '../services/EducationTrackService.js';
