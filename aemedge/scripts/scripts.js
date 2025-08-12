@@ -633,7 +633,7 @@ function decorateTextHighlights(main) {
 }
 
 /**
- * Disable blocks with enabled toggled params
+ * Disable blocks via enabled toggled params
  * @param {Element} main The main element
  */
 function toggleBlocks(main) {
