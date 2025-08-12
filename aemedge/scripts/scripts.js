@@ -663,6 +663,7 @@ export function decorateMain(main) {
   buildAutoBlocks(main);
   toggleBlocks(main);
   decorateSections(main);
+  toggleBlocks(main);
   decorateBlocks(main);
   decorateExternalLinks(main);
   decorateExternalImages(main);
