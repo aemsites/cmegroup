@@ -250,9 +250,6 @@ export default async function createCourseNav(main) {
   const template = getMetadata('template');
   if (!['course', 'lesson'].includes(template.toLowerCase())) return;
 
-  // Disable if hideCourseNav query parameter is set
-  if (isFeatureToggled('hideCourseNav')) return;
-
   //  courseData change event
   store.subscribe(({ courseData }) => courseData, (courseData) => {
     if (courseData) {

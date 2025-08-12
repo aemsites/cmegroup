@@ -105,7 +105,7 @@ async function addLateralNavigation(prevHref, nextHref) {
 }
 
 function initLateralNav(courseData) {
-  if (isFeatureToggled('hideCourseNav')) {
+  if (isFeatureToggled('hideCourseNav', 'y', true)) {
     return;
   }
   const currentPath = window.location.pathname;

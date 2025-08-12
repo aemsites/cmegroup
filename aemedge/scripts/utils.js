@@ -581,6 +581,7 @@ function checkDomain(url) {
  *
  * @param {string} toggleName - The name of the toggle to check
  * @param {string} expectedValue - The expected value (defaults to 'y')
+ * @param {boolean} ignoreIframe - ignores if the page is in iframe
  * @returns {boolean} - True if the toggle is enabled, false otherwise
  *
  * @example
@@ -594,9 +595,8 @@ function checkDomain(url) {
  *   // Enable debug mode
  * }
  */
-function isFeatureToggled(toggleName, expectedValue = 'y') {
-  const isInIframe = window.self !== window.top;
-  return isInIframe
+function isFeatureToggled(toggleName, expectedValue = 'y', ignoreIframe = false) {
+  return (!ignoreIframe && window.self !== window.top)
     || new URLSearchParams(window.location.search).get(toggleName) === expectedValue;
 }
 
