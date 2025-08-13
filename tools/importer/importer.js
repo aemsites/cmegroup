@@ -1433,6 +1433,19 @@ const handleArticleFragments = (document) => {
   }
 };
 
+const mapBlueDesignBoxToCardsFactoid = (document) => {
+  const blueDesignBoxes = document.querySelectorAll('.component.design-box.blue1-background');
+  if (blueDesignBoxes?.length) {
+    blueDesignBoxes.forEach((box) => {
+      const table = WebImporter.Blocks.createBlock(document, {
+        name: 'Cards (factoid)',
+        cells: [[box.innerHTML]],
+      });
+      box.replaceWith(table);
+    });
+  }
+};
+
 const customBlocks = async (document, main, meta, url) => {
   moveDividerLine(document);
   changeAnchors(document);
@@ -1483,6 +1496,7 @@ const customBlocks = async (document, main, meta, url) => {
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
   correctLinks(document);
+  mapBlueDesignBoxToCardsFactoid(document);
   delete meta['Temp Sub Template'];
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
