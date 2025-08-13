@@ -16,6 +16,7 @@ import {
   threeColumnsArticleXS, generalColumns, generateEndColumns,
 } from './case-study-article.js';
 import { standardArticleInitialColumns } from './standard-article.js';
+import { mapPodcast, podcastFragments } from './podcast.js';
 import {
   fetchTemplate, SECTION_SELECTORS, EDS_DOMAIN, buildSectionMetadata,
 } from './utils.js';
@@ -327,6 +328,22 @@ const changeAnchors = (document) => {
         const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
         anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
       }
+    } else {
+      const aParent = anchor.parentElement;
+      const { firstChild } = anchor;
+      let classes = [];
+
+      if (aParent && aParent?.tagName === 'STRONG') {
+        classes.push('link-bold');
+      } else if (firstChild && firstChild?.tagName === 'STRONG') {
+        classes.push('link-bold');
+      }
+
+      if (classes.length) {
+        classes = `[${classes.join(',')}]`;
+      }
+
+      anchor.textContent = `${anchor.textContent} ${classes}`;
     }
   });
 };
@@ -641,22 +658,28 @@ const dividerBlock = (document) => {
  * @param {Document} document - The document to search.
  */
 const authorBioBlock = (document) => {
-  const authorBio = document.querySelector('.author-bio');
-  if (authorBio) {
-    const authorTags = authorBio.getAttribute('data-author-tags');
-    const authorTag = authorTags ? JSON.parse(authorTags)[0] : '';
+  const authorBio = document.querySelector('.component.author-bio');
+  if (authorBio && authorBio.textContent.trim() !== '') {
+    let authorTags = authorBio.getAttribute('data-author-tags');
+    authorTags = authorTags ? JSON.parse(authorTags) : [];
 
-    if (authorTag) {
-      const link = `${EDS_DOMAIN}/fragments/authors/${authorTag}`;
+    const tempDiv = document.createElement('div');
 
-      const anchor = document.createElement('a');
-      anchor.href = link;
-      anchor.textContent = anchor.href;
-      const cells = [['Fragment'], [anchor]];
+    if (authorTags.length) {
+      authorTags.forEach((tag) => {
+        const link = `${EDS_DOMAIN}/fragments/authors/${tag}`;
 
-      const table = WebImporter.DOMUtils.createTable(cells, document);
-      authorBio.replaceWith(table);
+        const anchor = document.createElement('a');
+        anchor.href = link;
+        anchor.textContent = anchor.href;
+        const cells = [['Fragment'], [anchor]];
+
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        tempDiv.appendChild(table);
+      });
     }
+
+    authorBio.replaceWith(tempDiv);
   }
 };
 
@@ -679,26 +702,27 @@ const faqBlock = (document, meta) => {
   if (meta['Temp Sub Template'] === 'faqs') {
     const components = document.querySelectorAll('.component');
     const cells = [['FAQ (Ordered)']];
-    let componentIndex = 0;
+    let componentIndex = -1;
 
-    const olList = document.querySelectorAll('ol li');
+    const olList = document.querySelectorAll('.article-info ol li');
     if (olList.length === 0) {
       return;
     }
-    document.querySelector('ol')?.remove();
 
     for (let i = 0; i < components.length; i += 1) {
       const component = components[i];
-      const h2s = component.querySelectorAll('h2');
+      const h2s = component.querySelectorAll('h2.title-text, h3.title-text');
 
       if (h2s?.length) {
-        for (let j = 0; j < h2s.length; j += 1) {
+        const mini = Math.min(h2s.length, olList.length);
+        for (let j = 0; j < mini; j += 1) {
           const h2 = h2s[j];
-          const h2ParentSibling = h2?.parentElement?.nextElementSibling?.querySelector('.text').innerHTML;
+          const h2ParentSibling = h2?.parentElement?.nextElementSibling?.querySelector('.text');
+
           if (h2ParentSibling) {
             const newH2 = document.createElement('h2');
             newH2.textContent = olList[j].textContent;
-            cells.push([newH2, h2ParentSibling]);
+            cells.push([newH2, h2ParentSibling.innerHTML]);
           }
         }
 
@@ -707,11 +731,23 @@ const faqBlock = (document, meta) => {
       }
     }
 
+    document.querySelector('ol')?.remove();
     const table = WebImporter.DOMUtils.createTable(cells, document);
-    // Only replace the first component after we've found our h2s
-    if (componentIndex) {
+
+    if (componentIndex >= 0) {
       components[componentIndex].replaceWith(table);
     }
+  }
+};
+
+const removeBackToTop = (document) => {
+  const backToTop = document.querySelectorAll('a');
+  if (backToTop.length) {
+    backToTop.forEach((anchor) => {
+      if (anchor.textContent.trim().toLowerCase() === 'back to top') {
+        anchor.remove();
+      }
+    });
   }
 };
 
@@ -1399,6 +1435,7 @@ const handleArticleFragments = (document) => {
 
 const customBlocks = async (document, main, meta, url) => {
   moveDividerLine(document);
+  changeAnchors(document);
   figCaptionEmphasize(document);
   convertImagesToLinks(document);
   mapRowsToSection(document);
@@ -1409,7 +1446,6 @@ const customBlocks = async (document, main, meta, url) => {
   authorBioBlock(document);
   quizBlock(document);
   tagsCloudBlock(document);
-  faqBlock(document, meta);
   await accordionBlock(document);
   await lightBoxGallery(document);
   sideBarBlocks(document);
@@ -1433,6 +1469,12 @@ const customBlocks = async (document, main, meta, url) => {
     await removeCourseSpecificItem(document, main, meta);
     handleFragments(document);
     coursesColumnsBlock(document);
+  } else if (meta['Temp Sub Template'] === 'podcast') {
+    mapPodcast(document);
+    podcastFragments(document);
+  } else if (meta['Temp Sub Template'] === 'faqs') {
+    removeBackToTop(document);
+    faqBlock(document, meta);
   }
   await moduleOrder(document, meta, url);
   document.querySelector('.course-nav')?.remove();
@@ -1442,7 +1484,6 @@ const customBlocks = async (document, main, meta, url) => {
   createForm(document);
   correctLinks(document);
   delete meta['Temp Sub Template'];
-  changeAnchors(document);
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
   //   form.remove();
