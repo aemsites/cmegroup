@@ -414,7 +414,7 @@ main > .section {
       & .authors {
         min-width: min-content;
         letter-spacing: normal;
-        max-width: 80%;
+        max-width: 70%;
       }
 
       & .article-date {
