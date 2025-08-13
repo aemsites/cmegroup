@@ -175,6 +175,7 @@ main > .section {
     position: relative;
     overflow: hidden;
     color: var(--white);
+    margin-bottom: 3.5625rem !important;
 
     & .background-image {
       & img {
@@ -205,6 +206,18 @@ main > .section {
 
         & .featured-tag {
           justify-content: center;
+        }
+
+        & .bookmark {
+          & .bookmark-icon {
+            & .icon {
+              filter: none;
+            }
+          }
+
+          & .save-text {
+            color: var(--blue5);
+          }
         }
       }
 
@@ -301,6 +314,7 @@ main > .section {
         height: 0.9375rem;
         color: var(--blue5);
         margin-bottom: 0.1rem;
+        filter: none;
 
         & img {
           filter: var(--blue5-filter);
