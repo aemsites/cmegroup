@@ -123,7 +123,7 @@ const handleFragments = (document) => {
         const anchor = document.createElement('a');
         anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/extend-your-learning`;
         anchor.textContent = anchor.href;
-        const cells = [['Fragment'], [anchor]];
+        const cells = [['Fragment (toggled-by-education-iframe)'], [anchor]];
         const table = WebImporter.DOMUtils.createTable(cells, document);
         fragment.before(document.createElement('hr'));
         const tempCells = [['Style', 'full-width, no-padding']];
