@@ -6,6 +6,10 @@ import {
   toClassName,
 } from './aem.js';
 import ffetch from './ffetch.js';
+import {
+  buildIndexFilter,
+  getIndexedContent,
+} from './indexing.js';
 
 /**
  * Language
@@ -171,6 +175,43 @@ function i18n(key) {
 }
 
 /**
+ * mergeAuthorData
+ * @param {*} bios getIndexedContent response (authors pages data)
+ * @param {*} allAuthors tags
+ * @returns Object containing =>
+ *  tag: author.tag,
+ *  title: author.title,
+ *  path: author.path || null,
+ */
+function mergeAuthorData(bios, allAuthors) {
+  const authorMap = new Map();
+
+  bios.forEach((bio) => {
+    const authorTag = bio.tags.find((tag) => tag.startsWith('authors/'));
+    if (authorTag) {
+      authorMap.set(authorTag, {
+        tag: authorTag,
+        title: bio.title,
+        path: bio.path,
+      });
+    }
+  });
+
+  const mergedData = allAuthors.map((author) => {
+    if (authorMap.has(author.tag)) {
+      return authorMap.get(author.tag);
+    }
+    return {
+      tag: author.tag,
+      title: author.title,
+      path: null,
+    };
+  });
+
+  return mergedData;
+}
+
+/**
  * Retrieves article-related metadata from the page
  * @returns {Object} Object containing article metadata
  * @property {string} template - The template type
@@ -193,7 +234,13 @@ async function getArticleRelatedMetadata() {
     if (!authorString) return null;
     const authors = authorString.split(',').map((a) => a.trim());
     const tags = await Promise.all(authors.map((a) => getTag(a)));
-    return tags.map((tag, i) => tag?.title || authors[i]).join(', ');
+    const indexFilter = buildIndexFilter({});
+    indexFilter.basePaths = ['/education/featured-reports/bios'];
+    indexFilter.templates = ['author'];
+    indexFilter.tagsOr = authors;
+    const filteredData = await getIndexedContent(indexFilter);
+
+    return mergeAuthorData(filteredData, tags);
   };
 
   const [authorResult, primaryTopicTag] = await Promise.all([
@@ -341,21 +388,6 @@ function getBrowserName() {
     return 'internet explorer';
   }
   return '';
-}
-
-function getEnvType() {
-  const prodEnvs = [
-    'cmegroup.com',
-    'www.cmegroup.com',
-    'main--cmegroup--aemsites.aem.page',
-    'main--cmegroup--aemsites.aem.live',
-  ];
-  const type = prodEnvs.includes(window.location.hostname) ? 'prod' : 'stage';
-  return type;
-}
-
-function urlByEnvType() {
-  return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
 }
 
 function isDateBefore(date1, date2) {
@@ -549,6 +581,7 @@ function checkDomain(url) {
  *
  * @param {string} toggleName - The name of the toggle to check
  * @param {string} expectedValue - The expected value (defaults to 'y')
+ * @param {boolean} ignoreIframe - ignores if the page is in iframe
  * @returns {boolean} - True if the toggle is enabled, false otherwise
  *
  * @example
@@ -562,9 +595,8 @@ function checkDomain(url) {
  *   // Enable debug mode
  * }
  */
-function isFeatureToggled(toggleName, expectedValue = 'y') {
-  const isInIframe = window.self !== window.top;
-  return isInIframe
+function isFeatureToggled(toggleName, expectedValue = 'y', ignoreIframe = false) {
+  return (!ignoreIframe && window.self !== window.top)
     || new URLSearchParams(window.location.search).get(toggleName) === expectedValue;
 }
 
@@ -721,9 +753,7 @@ export {
   i18n,
   getPageTags,
   getBrowserName,
-  getEnvType,
   isDateBefore,
-  urlByEnvType,
   getCurrentLangInWords,
   decodeHtmlEntities,
   checkDomain,
