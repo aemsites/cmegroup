@@ -834,18 +834,37 @@ function searchAndReplaceHTML(content, searchTerm, replaceTerm = '', caseSensiti
   // Create search flags
   const flags = caseSensitive ? 'g' : 'gi';
 
-  // Escape special regex characters in the search term for literal matching
-  const escapedSearchTerm = cleanSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(escapedSearchTerm, flags);
+  // Get search type to determine if we should escape or not
+  const searchType = document.getElementById('search-type')?.value || 'contains';
+
+  let processedSearchTerm;
+  if (searchType === 'regex') {
+    // For regex mode, use the search term as-is (no escaping)
+    processedSearchTerm = cleanSearchTerm;
+  } else {
+    // For contains/exact modes, escape and add flexibility
+    const escapedSearchTerm = cleanSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Create a flexible regex that handles optional <p> tags and whitespace variations
+    processedSearchTerm = escapedSearchTerm
+      // Make <p> tags optional: <p> becomes (<p>)?
+      .replace(/<p>/g, '(<p>)?')
+      .replace(/<\/p>/g, '(</p>)?')
+      // Allow flexible whitespace
+      .replace(/>\s*</g, '>\\s*<')
+      .replace(/>\s+/g, '>\\s*')
+      .replace(/\s+</g, '\\s*<');
+  }
+
+  const regex = new RegExp(processedSearchTerm, flags);
 
   const matches = [];
   const lineMatchCounts = {};
   let match = regex.exec(searchContent);
 
   while (match !== null) {
-    // For display purposes, calculate line numbers from formatted content
-    const formattedContent = formatHTML(searchContent);
-    const lineNum = formattedContent.substring(0, match.index).split('\n').length;
+    // Calculate line numbers from the same content we're searching (raw content)
+    const lineNum = searchContent.substring(0, match.index).split('\n').length;
 
     // Track the sequence of this match on its line
     if (!lineMatchCounts[lineNum]) {
@@ -865,8 +884,8 @@ function searchAndReplaceHTML(content, searchTerm, replaceTerm = '', caseSensiti
 
   let updatedContent = content;
   if (replaceTerm !== undefined && matches.length > 0) {
-    // Direct replacement on original content
-    const replacementRegex = new RegExp(escapedSearchTerm, flags);
+    // Use the same processed search term for replacement
+    const replacementRegex = new RegExp(processedSearchTerm, flags);
     updatedContent = content.replace(replacementRegex, replaceTerm);
   }
 
@@ -1074,6 +1093,19 @@ async function scanFiles() {
     const results = await Promise.all(files.map(processFile));
     app.results = results.filter((result) => result !== null);
 
+    // Initialize all matches as selected by default and populate selectedFiles
+    app.selectedFiles.clear();
+    app.results.forEach((result, index) => {
+      // Set file as selected since all matches are selected by default
+      app.selectedFiles.add(index);
+      // Initialize all matches as selected
+      result.matches.forEach((match) => {
+        if (match.selected === undefined) {
+          match.selected = true;
+        }
+      });
+    });
+
     filesScanned = files.length;
     matchesFound = app.results.reduce((total, result) => total + result.matches.length, 0);
 
@@ -1163,8 +1195,7 @@ function displayResults(filteredResults = null) {
 
   list.innerHTML = '';
 
-  // Clear selected files set for fresh state
-  app.selectedFiles.clear();
+  // Don't clear selectedFiles here - preserve selection state during pagination
 
   // Use filtered results if provided, otherwise use all results
   const resultsToShow = filteredResults || app.results;
@@ -1203,10 +1234,7 @@ function displayResults(filteredResults = null) {
     const searchTerm = document.getElementById('search-term')?.value || '';
 
     const matchesHtml = result.matches.map((match, matchIndex) => {
-      // Initialize match selection if not exists
-      if (!match.selected) {
-        match.selected = true; // Default all matches to selected
-      }
+      // Match selection is already initialized during search
 
       // Handle element-only searches differently
       if (result.foundElements && !searchTerm) {
@@ -1650,8 +1678,37 @@ async function executeReplace() {
       // Step 2: Perform the replacement (only if version was created successfully)
       updateProgress(((index + 0.5) / selected.length) * 100, `Updating ${fileName}...`);
 
-      // Use granular replacement function for selected matches only
-      const updatedContent = replaceSelectedMatches(result.originalContent, result.matches, searchTerm, replaceTerm);
+      // Check if HTML mode is enabled
+      const htmlMode = document.getElementById('html-mode')?.checked || false;
+
+      let updatedContent;
+      if (htmlMode) {
+        // For HTML mode, use the same logic as searchAndReplaceHTML
+        const caseSensitive = document.getElementById('case-sensitive')?.checked || false;
+        const flags = caseSensitive ? 'g' : 'gi';
+        const searchType = document.getElementById('search-type')?.value || 'contains';
+
+        let processedSearchTerm;
+        if (searchType === 'regex') {
+          // For regex mode, use the search term as-is (no escaping)
+          processedSearchTerm = searchTerm.trim();
+        } else {
+          // For contains/exact modes, escape and add flexibility
+          const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          processedSearchTerm = escapedSearchTerm
+            .replace(/<p>/g, '(<p>)?')
+            .replace(/<\/p>/g, '(</p>)?')
+            .replace(/>\s*</g, '>\\s*<')
+            .replace(/>\s+/g, '>\\s*')
+            .replace(/\s+</g, '\\s*<');
+        }
+
+        const replacementRegex = new RegExp(processedSearchTerm, flags);
+        updatedContent = result.originalContent.replace(replacementRegex, replaceEmptyChecked ? '' : replaceTerm);
+      } else {
+        // Use granular replacement function for selected matches only
+        updatedContent = replaceSelectedMatches(result.originalContent, result.matches, searchTerm, replaceTerm);
+      }
       const success = await saveContent(result.file.path, updatedContent);
       return { success, versionCreated: true, skipped: false };
     });
@@ -2356,20 +2413,35 @@ function setupEventListeners() {
 
   if (toggleAll) {
     toggleAll.addEventListener('click', () => {
-      const checkboxes = document.querySelectorAll('.result-checkbox');
-      const allChecked = Array.from(checkboxes).every((cb) => cb.checked);
+      // Work directly with app.results data instead of DOM elements
+      const allSelected = app.results.every((result) => result.selected);
+      const newSelectionState = !allSelected;
 
-      checkboxes.forEach((cb, index) => {
-        cb.checked = !allChecked;
-        if (app.results[index]) {
-          app.results[index].selected = !allChecked;
-        }
+      // Update all results data
+      app.results.forEach((result, index) => {
+        result.selected = newSelectionState;
 
-        if (!allChecked) {
+        // Also update all matches within each result
+        result.matches.forEach((match) => {
+          match.selected = newSelectionState;
+        });
+
+        if (newSelectionState) {
           app.selectedFiles.add(index);
         } else {
           app.selectedFiles.delete(index);
         }
+      });
+
+      // Update visible DOM elements
+      document.querySelectorAll('.result-checkbox').forEach((cb) => {
+        cb.checked = newSelectionState;
+        cb.indeterminate = false;
+      });
+
+      // Update visible match checkboxes
+      document.querySelectorAll('.match-checkbox').forEach((matchCb) => {
+        matchCb.checked = newSelectionState;
       });
 
       updateActionButtons();
@@ -2378,13 +2450,29 @@ function setupEventListeners() {
 
   if (clearSelection) {
     clearSelection.addEventListener('click', () => {
-      document.querySelectorAll('.result-checkbox').forEach((cb, index) => {
-        cb.checked = false;
-        if (app.results[index]) {
-          app.results[index].selected = false;
-        }
+      // Clear all results data
+      app.results.forEach((result) => {
+        result.selected = false;
+        // Also clear all matches within each result
+        result.matches.forEach((match) => {
+          match.selected = false;
+        });
       });
+
+      // Clear selected files set
       app.selectedFiles.clear();
+
+      // Update visible DOM elements
+      document.querySelectorAll('.result-checkbox').forEach((cb) => {
+        cb.checked = false;
+        cb.indeterminate = false;
+      });
+
+      // Update visible match checkboxes
+      document.querySelectorAll('.match-checkbox').forEach((matchCb) => {
+        matchCb.checked = false;
+      });
+
       updateActionButtons();
     });
   }
