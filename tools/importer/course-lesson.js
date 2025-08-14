@@ -138,7 +138,7 @@ const handleFragments = (document) => {
 const quizBlock = (document, meta) => {
   const quizTopDivs = document.querySelectorAll('.quiz.multipaneleditor');
   quizTopDivs.forEach((quizTopDiv) => {
-    let dataItems = JSON.parse(quizTopDiv.getAttribute('data-items'));
+    let dataItems = [];
     if (meta.protected) {
       dataItems = JSON.parse(quizTopDiv.getAttribute('data-items'));
     }
@@ -155,6 +155,7 @@ const quizBlock = (document, meta) => {
       if (inlineQuiz) {
         cells.push(['Do Not Mark Lesson As Completed', true, '', '']);
       }
+      cells.push(['Questions', 'Options', 'Correct', 'Snippet']);
       quizzes.forEach((quiz, index) => {
         let questionText = '';
         if (meta.protected && dataItems.length) {
@@ -165,7 +166,6 @@ const quizBlock = (document, meta) => {
         const questionTextWithoutQuotes = questionText?.replace(/^['"]|['"]$/g, '').trim();
         const answersItems = quiz.getAttribute('data-answers-items') ? JSON.parse(quiz.getAttribute('data-answers-items')) : [];
 
-        cells.push(['Questions', 'Options', 'Correct', 'Snippet']);
         cells.push([questionTextWithoutQuotes, answersItems[0].answerOpt,
           answersItems[0].correctAnswer || '', answersItems[0].answerSnip || '']);
 
