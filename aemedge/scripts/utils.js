@@ -263,7 +263,14 @@ async function getArticleRelatedMetadata() {
  * @returns {Object} Object containing article metadata
  */
 async function getPageTags() {
-  const metadataTags = getMetadata('article:tag');
+  let metadataTags = getMetadata('article:tag');
+  const authorTags = getMetadata('author');
+  if (authorTags) {
+    const metadataArray = metadataTags.split(',').map((tag) => tag.trim());
+    const authorArray = authorTags.split(',').map((tag) => tag.trim());
+    const allTagsSet = new Set([...metadataArray, ...authorArray]);
+    metadataTags = [...allTagsSet].join(', ');
+  }
   if (!metadataTags || metadataTags.trim() === '') {
     return [];
   }
