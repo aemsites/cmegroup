@@ -50,6 +50,14 @@
     font-family: var(--averta);
 }
 
+.cards.white-raised-box li .cards-card-body picture {
+    height: auto !important;
+}
+
+.cards.white-raised-box li .cards-card-body img {
+    height: auto !important;
+}
+
 .cards.white-raised-box li .cards-card-body ul {
     display: block;
     list-style-type: disc;

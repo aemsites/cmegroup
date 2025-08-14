@@ -633,6 +633,24 @@ function decorateTextHighlights(main) {
 }
 
 /**
+ * Disable blocks via enabled toggled params
+ * @param {Element} main The main element
+ */
+function toggleBlocks(main) {
+  const elements = main.querySelectorAll(
+    'div.section > div:not(.layout) > div, div.section > div.layout > div > div > div',
+  );
+  elements.forEach((element) => {
+    const toggledParams = Array.from(element.classList)
+      .map((className) => className.match(/^toggled-by-(.+)$/)?.[1]).filter(Boolean);
+
+    if (toggledParams.find((toggle) => isFeatureToggled(toCamelCase(toggle)))) {
+      element.remove();
+    }
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -643,7 +661,9 @@ export function decorateMain(main) {
   decorateIcons(main);
   enhanceIconAccessibility();
   buildAutoBlocks(main);
+  toggleBlocks(main);
   decorateSections(main);
+  toggleBlocks(main);
   decorateBlocks(main);
   decorateExternalLinks(main);
   decorateExternalImages(main);
