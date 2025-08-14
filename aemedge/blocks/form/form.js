@@ -199,14 +199,9 @@ function prefillForm(form, userInfo) {
     //  - contactLead selfInput field
     //  - contactLead field
     //  - field name
-    let value = userInfo[field.prefillSelfInput]
+    const value = userInfo[field.prefillSelfInput]
       || userInfo[field.prefillInput]
       || userInfo[field.name];
-
-    if (!value && field.name.startsWith('Country_Code')) {
-      //  default value for country
-      value = getCountryCode() || 'US';
-    }
     if (value) {
       setFieldValue(field, value);
     }
@@ -214,10 +209,20 @@ function prefillForm(form, userInfo) {
   replaceTemplateVariables(form);
 }
 
+function prefillDefault(form) {
+  [...form.elements].forEach((field) => {
+    if (field.name.startsWith('Country_Code')) {
+      //  default value for country
+      setFieldValue(field, getCountryCode() || 'US');
+    }
+  });
+}
+
 async function decorateContactUsForm(form, formData, block) {
   const isContactUsVariant = block.classList.contains('contact-us');
   if (!isContactUsVariant) return;
 
+  prefillDefault(form);
   form.classList.add('user-info');
   const { isLoggedIn } = authentication.authenticationData;
   if (isLoggedIn) {
@@ -610,7 +615,7 @@ async function decorateForm(formData, block) {
       const invalidFields = form.querySelectorAll(':invalid');
       invalidFields.forEach((field) => {
         const wrapper = field.closest('.field-wrapper:not(.hide)');
-        if (!wrapper.querySelector('.error-message')) {
+        if (wrapper && !wrapper.querySelector('.error-message')) {
           const errorMsg = createElement('div', { class: 'error-message' });
           errorMsg.className = 'error-message';
           errorMsg.textContent = field.validationMessage || 'This field is required';
