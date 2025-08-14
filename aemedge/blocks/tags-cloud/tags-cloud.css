@@ -15,6 +15,7 @@
     margin-bottom: .625rem;
     margin-right: .3125rem;
     cursor: pointer;
+    display: inline-block;
 }
 
 .tags-cloud .btn-tag-filter:hover {

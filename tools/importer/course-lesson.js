@@ -1,6 +1,6 @@
 /* global WebImporter */
 /* eslint-disable no-console, class-methods-use-this, no-await-in-loop */
-import { EDS_DOMAIN, buildSectionMetadata } from './utils.js';
+import { EDS_DOMAIN } from './utils.js';
 
 const jsonMap = {
   '/education/courses/cme-institute-live/chapter-1-introduction-to-cme-group-and-fundamentals-of-financial-futures-and-options.html': '/education/courses/cme-institute-live/chapter-1-introduction-to-cme-group-and-fundamentals-of-financial-futures-and-options/introduction-to-options.html',
