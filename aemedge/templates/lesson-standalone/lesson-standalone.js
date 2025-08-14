@@ -3,7 +3,9 @@ import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
-import { isFeatureToggled } from '../../scripts/utils.js';
+import { isFeatureToggled, addFragmentBlock } from '../../scripts/utils.js';
+
+const FRAGMENT_URL = '/fragments/courses-lessons/extend-your-learning';
 
 export default function lessonStandaloneTemplate() {
   const { authenticationData } = authentication;
@@ -13,6 +15,7 @@ export default function lessonStandaloneTemplate() {
     }
     const courseData = await getCourseData();
     await createCourseBaseTemplate(courseData);
+    await addFragmentBlock(FRAGMENT_URL);
     if (!courseData.started) {
       //  start lesson
       await updateLessonStatus(false);
