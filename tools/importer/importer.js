@@ -31,7 +31,42 @@ import {
 
 const DOMAIN = 'https://www.cmegroup.com';
 
-async function setMetadata(meta, document, url) {
+/**
+ * Handles content toggle elements by fetching their published content
+ * @param {Document} document - The document to process
+ */
+async function handleContentToggle(document, url, tempMeta) {
+  const toggleElements = Array.from(document.querySelectorAll('.content-toggle'));
+  const pathName = new URL(url).pathname.replace('.html', '');
+
+  const processToggleElement = async (element) => {
+    const dataPath = element.getAttribute('data-path');
+    if (!dataPath.includes(pathName)) return;
+
+    const toggleUrl = `${DOMAIN}${dataPath}.content-toggle-publish.html`;
+
+    const response = await fetch(`http://localhost:4005/api/hello?url=${toggleUrl}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'text/html',
+      },
+    });
+
+    const data = await response.json();
+    const content = data?.gatedContentTest?.contentPreview;
+
+    if (content) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      element.replaceWith(tempDiv);
+      tempMeta.protected = true;
+    }
+  };
+
+  await Promise.all(toggleElements.map(processToggleElement));
+}
+
+async function setMetadata(meta, document, url, tempMeta) {
   const readTime = document.querySelector('.article-time');
   const templates = {
     'cme-group-case-study-article-template': {
@@ -182,6 +217,10 @@ async function setMetadata(meta, document, url) {
   if (document.querySelector('.premium-label')) {
     meta.isPremium = true;
     document.querySelector('.premium-label').remove();
+  }
+
+  if (tempMeta.protected) {
+    meta.protected = true;
   }
 }
 
@@ -878,16 +917,18 @@ const brightCoveVideo = (document) => {
         // eslint-disable-next-line no-continue
         continue;
       }
-      const accountId = video.getAttribute('data-account-id');
-      const playlistLocation = video.getAttribute('data-playlist-location');
-      const videoId = video.getAttribute('data-video-id');
-      const aspectRatio = video.getAttribute('data-aspect-ratio');
+      const accountId = video.getAttribute('data-account-id') || video.querySelector('.brightcove-video')?.getAttribute('data-account-id');
+      const playlistLocation = video.getAttribute('data-playlist-location') || video.querySelector('.brightcove-video')?.getAttribute('data-playlist-location');
+      const videoId = video.getAttribute('data-video-id') || video.querySelector('.brightcove-video')?.getAttribute('data-video-id');
+      const aspectRatio = video.getAttribute('data-aspect-ratio') || video.querySelector('.brightcove-video')?.getAttribute('data-aspect-ratio');
 
       const cells = [['Brightcove']];
       cells.push(['accountID', accountId]);
       cells.push(['videoID', videoId]);
       cells.push(['playlistID', '']);
-      cells.push(['playlistLocation', playlistLocation]);
+      if (playlistLocation) {
+        cells.push(['playlistLocation', playlistLocation]);
+      }
       cells.push(['aspectRatio', aspectRatio]);
 
       cells.push(['cc', '']);
@@ -1457,7 +1498,7 @@ const customBlocks = async (document, main, meta, url) => {
   articleHeroBlock(document, meta);
   promoBlock(document);
   authorBioBlock(document);
-  quizBlock(document);
+  quizBlock(document, meta);
   tagsCloudBlock(document);
   await accordionBlock(document);
   await lightBoxGallery(document);
@@ -1534,6 +1575,10 @@ export default {
   }) => {
     // define the main element: the one that will be transformed to Markdown
     const main = document.body;
+    const tempMeta = {};
+
+    // Handle gated content and content toggles
+    await handleContentToggle(document, url, tempMeta);
 
     WebImporter.DOMUtils.remove(document, [
       'script[src*="https://solutions.invocacdn.com/js/invoca-latest.min.js"]',
@@ -1581,7 +1626,7 @@ export default {
     const report = customReportElements(document);
 
     const meta = WebImporter.Blocks.getMetadata(document);
-    await setMetadata(meta, document, url);
+    await setMetadata(meta, document, url, tempMeta);
     await customBlocks(document, main, meta, url);
 
     const mdb = WebImporter.Blocks.getMetadataBlock(document, meta);
