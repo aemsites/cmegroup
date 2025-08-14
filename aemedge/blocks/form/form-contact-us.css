@@ -161,6 +161,7 @@
     > textarea:-webkit-autofill:hover,
     > textarea:-webkit-autofill:focus {
       -webkit-text-fill-color: var(--white);
+      /* stylelint-disable-next-line property-no-vendor-prefix */
       -webkit-box-shadow: 0 0 0 1000px var(--blue1) inset;
       transition: background-color 5000s ease-in-out 0s;
     }
