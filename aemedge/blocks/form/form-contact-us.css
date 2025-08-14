@@ -124,13 +124,16 @@
     }
 
     &.submit-wrapper {
-      display: grid;
-      grid-column: auto;
       width: 100%;
-      justify-self: start;
 
-      @media (width > 768px) {
-        width: auto;
+      & button {
+        text-align: center;
+        display: block;
+        width: 100%;
+
+        @media (width > 768px) {
+          width: fit-content;
+        }
       }
     }
 
