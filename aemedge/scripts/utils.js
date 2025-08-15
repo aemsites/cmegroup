@@ -4,6 +4,9 @@ import {
   getMetadata,
   toCamelCase,
   toClassName,
+  buildBlock,
+  decorateBlock,
+  loadBlock,
 } from './aem.js';
 import ffetch from './ffetch.js';
 import {
@@ -748,6 +751,21 @@ function showTooltip(parent, content, hideAfter) {
   }
 }
 
+/**
+ * Appends a fragment block to the main element
+ * @param {string} fragmentUrl - The fragment URL to load
+ */
+async function addFragmentBlock(fragmentUrl) {
+  const main = document.querySelector('main');
+  if (!main) return;
+
+  const fragmentLink = createElement('a', { href: fragmentUrl }, fragmentUrl);
+  const fragmentBlock = buildBlock('fragment', [[fragmentLink]]);
+  main.appendChild(fragmentBlock);
+  decorateBlock(fragmentBlock);
+  await loadBlock(fragmentBlock);
+}
+
 export {
   loadScript,
   createElement,
@@ -774,4 +792,5 @@ export {
   getCountryCode,
   preserveHideParameters,
   showTooltip,
+  addFragmentBlock,
 };
