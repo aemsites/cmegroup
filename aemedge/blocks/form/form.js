@@ -197,7 +197,7 @@ function prefillForm(form) {
   const userInfo = window.LocalStorageUtil?.get('userInfo', true);
   [...form.elements].forEach((field) => {
     let value;
-    if (userInfo) {
+    if (userInfo && field.prefillInput) {
       //  prefill order from salesforce userInfo:
       //  - contactLead selfInput field
       //  - contactLead field
@@ -216,13 +216,14 @@ function prefillForm(form) {
 }
 
 function prefillDefault(field) {
-  if (field.name.startsWith('Country_Code')) {
-    //  default value from browser region
-    setFieldValue(field, getCountryCode() || 'US');
-  }
   if (field.type === 'email') {
+    //  logged in user email
     const { loginInfo } = authentication.authenticationData;
     setFieldValue(field, loginInfo?.email || '');
+  }
+  else if (field.name.startsWith('Country_Code')) {
+    //  default value from browser region
+    setFieldValue(field, getCountryCode() || 'US');
   }
 }
 

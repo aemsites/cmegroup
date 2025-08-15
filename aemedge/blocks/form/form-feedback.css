@@ -16,14 +16,14 @@
   & form {
     gap: 1rem;
 
-    @media (width > 768px) {
+    @media (width >= 769px) {
       gap: 1.5rem;
     }
 
     & fieldset {
       gap: 2rem;
 
-      @media (width > 768px) {
+      @media (width >= 769px) {
         gap: 1.5rem;
       }
     }
@@ -31,7 +31,7 @@
     &:has(.error-message) {
       gap: 1.5rem;
 
-      @media (width > 768px) {
+      @media (width >= 769px) {
         gap: 2rem;
       }
     }
