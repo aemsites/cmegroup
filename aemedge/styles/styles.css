@@ -353,6 +353,7 @@ p {
   }
 }
 
+/* stylelint-disable-next-line no-duplicate-selectors */
 .reverse {
   & a[target="_blank"] {
     background-image: linear-gradient(
@@ -517,6 +518,7 @@ a {
   }
 }
 
+/* stylelint-disable-next-line no-duplicate-selectors */
 .reverse {
   & a {
     color: var(--blue5);
@@ -725,6 +727,7 @@ button.primary a {
   }
 }
 
+/* stylelint-disable-next-line no-duplicate-selectors */
 .reverse {
   & a.button.primary,
   & button.primary,
@@ -821,6 +824,7 @@ button.secondary-3 {
   }
 }
 
+/* stylelint-disable-next-line no-duplicate-selectors */
 .reverse {
   & a.button.secondary,
   & a.button.secondary-2,
@@ -882,6 +886,7 @@ a.button.secondary-2 {
   border-color: var(--gray3);
 }
 
+/* stylelint-disable-next-line no-duplicate-selectors */
 .reverse {
   & a.button.secondary-2 {
     border-color: var(--white);
@@ -905,6 +910,7 @@ a.button.secondary-3 {
   }
 }
 
+/* stylelint-disable-next-line no-duplicate-selectors */
 .reverse {
   & a.button.secondary-3 { 
     border-color: var(--blue5);
