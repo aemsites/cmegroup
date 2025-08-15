@@ -1,7 +1,7 @@
 .course-nav {
   box-sizing: border-box;
   border: none;
-  box-shadow: 0 0.125rem 0.5rem rgba(0, 45, 116, 0.08);
+  box-shadow: 0 0.125rem 0.5rem rgb(0 45 116 / 8%);
   z-index: 1000;
   transition: max-width 0.2s ease;
   border-top-right-radius: 4px;
@@ -238,7 +238,7 @@
   border-bottom: .0625rem solid var(--gray4);
   font-size: .875rem;
   line-height: 1.25rem;
-  padding: 1.25rem 1.25rem;
+  padding: 1.25rem;
   margin-bottom: 0;
 }
 
@@ -270,11 +270,7 @@
   width: 100%;
 }
 
-.course-nav.expanded .course-nav-content {
-  display: block;
-  border: none;
-  margin: 0;
-}
+
 
 /* Reset margins and ensure box-sizing */
 .course-nav * {
@@ -298,7 +294,7 @@
   flex-shrink: 0;
 }
 
-.course-nav .icon-check:before {
+.course-nav .icon-check::before {
     color: var(--white);
     content: var(--icon-check);
     font-size: 0.65rem;
@@ -316,13 +312,14 @@
     position: absolute;
     margin-top: 4rem;
     left: 0;
-    top: 6rem;
+    top: 3rem;
     width: calc(16.66667% + 49px);
   }
 
   main:has(#alerts-container) .course-nav {
     --alert-container-height: 3.125rem;
-    top: calc(6rem + var(--alert-container-height));
+    
+    top: calc(3rem + var(--alert-container-height));
   }
 }
 
