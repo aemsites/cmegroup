@@ -1,50 +1,64 @@
-.block.search .filter-bullets {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding-top: 1.5rem;
-  background-color: var(--white);
-}
+.block.search {
+  .filter-bullets {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding-top: 0.813rem;
+    background-color: var(--white);
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
 
-.block.search .filter-bullets .filter-tags {
-  display: flex;
-  gap: 0.5rem;
-  flex-flow: row wrap;
-}
+    .filter-tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-flow: row wrap;
+      margin-left: -0.375rem;
+      margin-right: -0.375rem;
 
-.block.search .filter-bullets .filter-tags .filter-tag {
-  border: .0625rem solid var(--gray3);
-  border-radius: 1.875rem;
-  color: var(--gray3);
-  font-weight: normal;
-  background-color: var(--white);
-  font-size: .875rem;
-  height: max-content;
-  line-height: 1.25rem;
-  margin-bottom: .4375rem;
-  padding: .3125rem .9375rem;
-  white-space: nowrap;
-  text-transform: none;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  cursor: pointer;
-}
+      .filter-tag {
+        box-shadow: none;
+        border: 0.0625rem solid var(--gray3);
+        border-radius: 1.875rem;
+        color: var(--gray3);
+        font-weight: normal;
+        background-color: var(--white);
+        font-size: 0.875rem;
+        height: max-content;
+        line-height: 1.25rem;
+        margin: 0.4375rem;
+        padding: 0.3125rem 0.9375rem;
+        white-space: nowrap;
+        text-transform: none;
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        letter-spacing: 0;
+        cursor: pointer;
 
-.block.search .filter-bullets .filter-tags .filter-tag:hover {
-  border: .0625rem solid var(--blue4);
-  color: var(--blue4);
-}
+        &:hover {
+          border: 0.0625rem solid var(--blue4);
+          color: var(--blue4);
+        }
 
-.block.search .filter-bullets .filter-tags .filter-tag::after {
-  color: var(--gray1);
-  font-size: 1.5625rem;
-  line-height: .875rem;
-  content: "×";
-}
+        &::after {
+          color: var(--gray1);
+          font-size: 1.5625rem;
+          line-height: 0.875rem;
+          content: "×";
+        }
 
-@media (width >= 768px) {
-  .block.search .filter-bullets {
-    flex-direction: row;
+        @media (width >= 769px) {
+          margin-left: 0;
+          margin-right: 0;
+        }
+      }
+    }
+
+    @media (width >= 769px) {
+      flex-direction: row;
+      gap: 1.675rem;
+      padding-left: 0;
+      padding-right: 0;
+    }
   }
 }
