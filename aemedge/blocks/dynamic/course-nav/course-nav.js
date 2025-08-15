@@ -2,7 +2,6 @@ import { getMetadata, loadCSS } from '../../../scripts/aem.js';
 import {
   createElement,
   i18n,
-  isFeatureToggled,
   preserveHideParameters,
 } from '../../../scripts/utils.js';
 import { store } from '../../../scripts/store/store.js';
@@ -249,9 +248,6 @@ export default async function createCourseNav(main) {
   // Disable if not an allowed template
   const template = getMetadata('template');
   if (!['course', 'lesson'].includes(template.toLowerCase())) return;
-
-  // Disable if hideCourseNav query parameter is set
-  if (isFeatureToggled('hideCourseNav')) return;
 
   //  courseData change event
   store.subscribe(({ courseData }) => courseData, (courseData) => {

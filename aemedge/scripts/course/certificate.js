@@ -1,7 +1,6 @@
 import {
   createElement,
   i18n,
-  urlByEnvType,
   setupDayjsLibs,
   getCdtDate,
   loadScript,
@@ -10,6 +9,7 @@ import {
 import {
   apiPost,
   getResponseData,
+  urlByEnvType,
 } from '../utils/index.js';
 import { getMetadata } from '../aem.js';
 import { createModal } from '../../blocks/modal/modal.js';

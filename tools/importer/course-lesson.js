@@ -1,6 +1,6 @@
 /* global WebImporter */
 /* eslint-disable no-console, class-methods-use-this, no-await-in-loop */
-import { EDS_DOMAIN } from './utils.js';
+import { EDS_DOMAIN, buildSectionMetadata } from './utils.js';
 
 const jsonMap = {
   '/education/courses/cme-institute-live/chapter-1-introduction-to-cme-group-and-fundamentals-of-financial-futures-and-options.html': '/education/courses/cme-institute-live/chapter-1-introduction-to-cme-group-and-fundamentals-of-financial-futures-and-options/introduction-to-options.html',
@@ -123,8 +123,11 @@ const handleFragments = (document) => {
         const anchor = document.createElement('a');
         anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/extend-your-learning`;
         anchor.textContent = anchor.href;
-        const cells = [['Fragment'], [anchor]];
+        const cells = [['Fragment (toggled-by-education-iframe)'], [anchor]];
         const table = WebImporter.DOMUtils.createTable(cells, document);
+        fragment.before(document.createElement('hr'));
+        const tempCells = [['Style', 'full-width, no-padding']];
+        fragment.after(buildSectionMetadata(tempCells));
         fragment.replaceWith(table);
       }
     });

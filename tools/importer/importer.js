@@ -16,7 +16,10 @@ import {
   threeColumnsArticleXS, generalColumns, generateEndColumns,
 } from './case-study-article.js';
 import { standardArticleInitialColumns } from './standard-article.js';
-import { fetchTemplate, SECTION_SELECTORS, EDS_DOMAIN } from './utils.js';
+import { mapPodcast, podcastFragments } from './podcast.js';
+import {
+  fetchTemplate, SECTION_SELECTORS, EDS_DOMAIN, buildSectionMetadata,
+} from './utils.js';
 import { customReportElements } from './report.js';
 import {
   removeCourseSpecificItem,
@@ -27,11 +30,6 @@ import {
 } from './course-lesson.js';
 
 const DOMAIN = 'https://www.cmegroup.com';
-
-export const buildSectionMetadata = (cells) => WebImporter.Blocks.createBlock(document, {
-  name: 'Section Metadata',
-  cells: [...cells],
-});
 
 async function setMetadata(meta, document, url) {
   const readTime = document.querySelector('.article-time');
@@ -186,6 +184,169 @@ async function setMetadata(meta, document, url) {
     document.querySelector('.premium-label').remove();
   }
 }
+
+const getIconName = (icon) => {
+  if (icon === 'icon-chevron-right') {
+    return ':chevron-right:';
+  }
+  if (icon === 'icon-chevron-left') {
+    return ':chevron-left:';
+  }
+  if (icon === 'icon-chevron-down') {
+    return ':chevron-down:';
+  }
+  if (icon === 'icon-chevron-up') {
+    return ':chevron-up:';
+  }
+  if (icon === 'icon-lock') {
+    return ':lock:';
+  }
+  if (icon === 'icon-bell') {
+    return ':bell:';
+  }
+  if (icon === 'icon-arrow-right') {
+    return ':arrow-right:';
+  }
+  if (icon === 'icon-arrow-left') {
+    return ':arrow-left:';
+  }
+  if (icon === 'icon-arrow-down') {
+    return ':arrow-down:';
+  }
+  if (icon === 'icon-arrow-up') {
+    return ':arrow-up:';
+  }
+  return '';
+};
+
+const iconsDataButton = (anchor) => {
+  let firstIcon = '';
+  let secondIcon = '';
+  let thirdIcon = '';
+  const firstSpan = anchor.querySelector('span');
+  const secondSpan = anchor.querySelectorAll('span')?.[1];
+  const thirdSpan = anchor.querySelectorAll('span')?.[2];
+
+  if (firstSpan && firstSpan.classList.contains('icon')) {
+    firstIcon = Array.from(firstSpan.classList).find((cls) => cls.trim() !== 'icon');
+    firstIcon = getIconName(firstIcon);
+  }
+  if (secondSpan && secondSpan.classList.contains('icon')) {
+    secondIcon = Array.from(secondSpan.classList).find((cls) => cls.trim() !== 'icon');
+    secondIcon = getIconName(secondIcon);
+  }
+  if (thirdSpan && thirdSpan.classList.contains('icon')) {
+    thirdIcon = Array.from(thirdSpan.classList).find((cls) => cls.trim() !== 'icon');
+    thirdIcon = getIconName(thirdIcon);
+  }
+
+  return {
+    firstIcon,
+    secondIcon,
+    thirdIcon,
+  };
+};
+
+const changeAnchors = (document) => {
+  const anchors = document.querySelectorAll('a');
+  anchors.forEach((anchor) => {
+    if (anchor.classList.contains('btn')) {
+      if (anchor.classList.contains('primary') || anchor.classList.contains('primary-alternate')) {
+        // wrap anchor in strong
+        const strong = document.createElement('strong');
+        anchor.replaceWith(strong);
+        strong.appendChild(anchor);
+
+        const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
+
+        let classes = [];
+        if (anchor.classList.contains('link-bold')) {
+          classes.push('link-bold');
+        }
+        if (anchor.classList.contains('disabled')) {
+          classes.push('disabled');
+        }
+        if (anchor.classList.contains('primary-alternate')) {
+          classes.push('alternate');
+        }
+
+        if (classes.length) {
+          classes = `[${classes.join(',')}]`;
+        }
+
+        anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+      } else if (anchor.classList.contains('secondary')
+        || anchor.classList.contains('secondary-2')
+        || anchor.classList.contains('secondary-3')
+        || anchor.classList.contains('secondary-4')) {
+        // wrap anchor in em
+        if (anchor.classList.contains('secondary')) {
+          const em = document.createElement('em');
+          anchor.replaceWith(em);
+          em.appendChild(anchor);
+        }
+
+        let classes = [];
+        if (anchor.classList.contains('link-bold')) {
+          classes.push('link-bold');
+        }
+        if (anchor.classList.contains('disabled')) {
+          classes.push('disabled');
+        }
+        if (anchor.classList.contains('secondary-2')) {
+          classes.push('secondary-2');
+          classes.push('button');
+        }
+        if (anchor.classList.contains('secondary-3')) {
+          classes.push('secondary-3');
+          classes.push('button');
+        }
+        if (anchor.classList.contains('secondary-4')) {
+          classes.push('secondary-4');
+          classes.push('button');
+        }
+
+        if (classes.length) {
+          classes = `[${classes.join(',')}]`;
+        }
+
+        const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
+        anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+      } else {
+        let classes = [];
+        if (anchor.classList.contains('link-bold')) {
+          classes.push('link-bold');
+        }
+        if (anchor.classList.contains('disabled')) {
+          classes.push('disabled');
+        }
+
+        if (classes.length) {
+          classes = `[${classes.join(',')}]`;
+        }
+
+        const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
+        anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+      }
+    } else {
+      const aParent = anchor.parentElement;
+      const { firstChild } = anchor;
+      let classes = [];
+
+      if (aParent && aParent?.tagName === 'STRONG') {
+        classes.push('link-bold');
+      } else if (firstChild && firstChild?.tagName === 'STRONG') {
+        classes.push('link-bold');
+      }
+
+      if (classes.length) {
+        classes = `[${classes.join(',')}]`;
+      }
+
+      anchor.textContent = `${anchor.textContent} ${classes}`;
+    }
+  });
+};
 
 /**
  * This function creates a block separator.
@@ -432,7 +593,7 @@ const promoBlock = (document) => {
         const anchor = document.createElement('a');
         anchor.href = imgSrc;
         anchor.textContent = anchor.href;
-        cells.push(['Background Image', anchor]);
+        cells.push(['Background', anchor]);
       }
       if (backgroundColor) {
         cells.push(['Background Color', backgroundColor]);
@@ -459,7 +620,6 @@ const moveDividerLine = (document) => {
     dividers.forEach((divider) => {
       const parent = divider.parentElement;
       if (parent) {
-        console.log(1001, parent, parent.nextElementSibling);
         const sibling = parent.nextElementSibling;
         if (sibling?.classList?.contains('cme-article-right-column')
           && sibling.textContent && sibling.textContent.trim() !== ''
@@ -498,22 +658,28 @@ const dividerBlock = (document) => {
  * @param {Document} document - The document to search.
  */
 const authorBioBlock = (document) => {
-  const authorBio = document.querySelector('.author-bio');
-  if (authorBio) {
-    const authorTags = authorBio.getAttribute('data-author-tags');
-    const authorTag = authorTags ? JSON.parse(authorTags)[0] : '';
+  const authorBio = document.querySelector('.component.author-bio');
+  if (authorBio && authorBio.textContent.trim() !== '') {
+    let authorTags = authorBio.getAttribute('data-author-tags');
+    authorTags = authorTags ? JSON.parse(authorTags) : [];
 
-    if (authorTag) {
-      const link = `${EDS_DOMAIN}/fragments/authors/${authorTag}`;
+    const tempDiv = document.createElement('div');
 
-      const anchor = document.createElement('a');
-      anchor.href = link;
-      anchor.textContent = anchor.href;
-      const cells = [['Fragment'], [anchor]];
+    if (authorTags.length) {
+      authorTags.forEach((tag) => {
+        const link = `${EDS_DOMAIN}/fragments/authors/${tag}`;
 
-      const table = WebImporter.DOMUtils.createTable(cells, document);
-      authorBio.replaceWith(table);
+        const anchor = document.createElement('a');
+        anchor.href = link;
+        anchor.textContent = anchor.href;
+        const cells = [['Fragment'], [anchor]];
+
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        tempDiv.appendChild(table);
+      });
     }
+
+    authorBio.replaceWith(tempDiv);
   }
 };
 
@@ -536,26 +702,27 @@ const faqBlock = (document, meta) => {
   if (meta['Temp Sub Template'] === 'faqs') {
     const components = document.querySelectorAll('.component');
     const cells = [['FAQ (Ordered)']];
-    let componentIndex = 0;
+    let componentIndex = -1;
 
-    const olList = document.querySelectorAll('ol li');
+    const olList = document.querySelectorAll('.article-info ol li');
     if (olList.length === 0) {
       return;
     }
-    document.querySelector('ol')?.remove();
 
     for (let i = 0; i < components.length; i += 1) {
       const component = components[i];
-      const h2s = component.querySelectorAll('h2');
+      const h2s = component.querySelectorAll('h2.title-text, h3.title-text');
 
       if (h2s?.length) {
-        for (let j = 0; j < h2s.length; j += 1) {
+        const mini = Math.min(h2s.length, olList.length);
+        for (let j = 0; j < mini; j += 1) {
           const h2 = h2s[j];
-          const h2ParentSibling = h2?.parentElement?.nextElementSibling?.querySelector('.text').innerHTML;
+          const h2ParentSibling = h2?.parentElement?.nextElementSibling?.querySelector('.text');
+
           if (h2ParentSibling) {
             const newH2 = document.createElement('h2');
             newH2.textContent = olList[j].textContent;
-            cells.push([newH2, h2ParentSibling]);
+            cells.push([newH2, h2ParentSibling.innerHTML]);
           }
         }
 
@@ -564,11 +731,23 @@ const faqBlock = (document, meta) => {
       }
     }
 
+    document.querySelector('ol')?.remove();
     const table = WebImporter.DOMUtils.createTable(cells, document);
-    // Only replace the first component after we've found our h2s
-    if (componentIndex) {
+
+    if (componentIndex >= 0) {
       components[componentIndex].replaceWith(table);
     }
+  }
+};
+
+const removeBackToTop = (document) => {
+  const backToTop = document.querySelectorAll('a');
+  if (backToTop.length) {
+    backToTop.forEach((anchor) => {
+      if (anchor.textContent.trim().toLowerCase() === 'back to top') {
+        anchor.remove();
+      }
+    });
   }
 };
 
@@ -792,6 +971,62 @@ const tableBlock = (document) => {
         });
       }
 
+      if (innerTable.querySelectorAll('tbody tr>th').length) {
+        // Check first row - all elements should be th
+        const firstRow = innerTable.querySelector('tbody tr');
+        const firstRowCells = firstRow?.children || [];
+
+        // For first row, we need to check if all cells (accounting for colspan) are headers
+        // let totalColumns = 0;
+        const allFirstRowHeaders = Array.from(firstRowCells).every((cell) => cell.tagName === 'TH');
+
+        // Check first column - all elements should be th
+        const allRows = innerTable.querySelectorAll('tbody tr');
+        let rowIndex = 0;
+        const processedRows = new Set(); // Keep track of rows we've checked
+
+        const allFirstColumnHeaders = Array.from(allRows).every((row) => {
+          // Skip rows that are covered by previous rowspan
+          if (processedRows.has(rowIndex)) {
+            rowIndex += 1;
+            return true;
+          }
+
+          const firstCell = row.children[0];
+          if (!firstCell) return false;
+
+          // If this cell has rowspan, mark those rows as processed
+          const rowspan = parseInt(firstCell.getAttribute('rowspan') || '1', 10);
+          if (rowspan > 1) {
+            for (let i = rowIndex + 1; i < rowIndex + rowspan; i += 1) {
+              processedRows.add(i);
+            }
+          }
+
+          rowIndex += 1;
+          return firstCell.tagName === 'TH';
+        });
+
+        if (tempArr.length) {
+          // check of tempArr contains something like r1-*
+          if (!tempArr.some((item) => item.startsWith('r1-'))) {
+            if (allFirstRowHeaders) {
+              tempArr.push('r1-primary-header');
+            }
+          }
+          if (allFirstColumnHeaders) {
+            tempArr.push('c1-primary-header');
+          }
+        } else {
+          if (allFirstRowHeaders) {
+            tempArr.push('r1-primary-header');
+          }
+          if (allFirstColumnHeaders) {
+            tempArr.push('c1-primary-header');
+          }
+        }
+      }
+
       innerTable.querySelectorAll('tbody tr').forEach((tr) => {
         const { children } = tr;
         const allThs = [...children].filter((child) => child.tagName === 'TH');
@@ -801,6 +1036,15 @@ const tableBlock = (document) => {
             const td = document.createElement('td');
             td.textContent = th.textContent;
 
+            // get attribute like rowspan or colspan
+            const rowspan = th.getAttribute('rowspan');
+            const colspan = th.getAttribute('colspan');
+            if (rowspan) {
+              td.setAttribute('rowspan', rowspan);
+            }
+            if (colspan) {
+              td.setAttribute('colspan', colspan);
+            }
             if (th.classList.value) {
               th.classList.forEach((cls) => {
                 td.classList.add(cls);
@@ -822,7 +1066,7 @@ const tableBlock = (document) => {
       };
 
       innerTable.querySelectorAll('td').forEach((td) => {
-        const inlineStyle = td.getAttribute('style');
+        const inlineStyle = td.getAttribute('style') || td.querySelector('p')?.getAttribute('style');
         if (inlineStyle) {
           const style = inlineStyle.split(';').map((s) => {
             let tempStyle = s.trim();
@@ -831,20 +1075,32 @@ const tableBlock = (document) => {
               if (tempStyle.split(':')[1].match(/rgb/)) {
                 tempStyle = `${tempStyle.split(':')[0]}: ${rgbToHex(tempStyle.split(':')[1])}`;
               }
+            } else if (tempStyle.startsWith('text-align:')) {
+              tempStyle = `${tempStyle.split(':')[0]}: ${tempStyle.split(':')[1]}`;
+            } else {
+              // not taken the other styles like width, height as they may break the UI
+              tempStyle = '';
             }
             return tempStyle;
           }).filter((s) => s).join(',');
-          const p = document.createElement('p');
-          p.innerHTML = td.innerHTML;
+          if (style) {
+            const p = document.createElement('p');
+            p.innerHTML = td.innerHTML;
 
-          const p2 = document.createElement('p');
-          p2.textContent = `[${style}]`;
-          td.textContent = '';
+            const p2 = document.createElement('p');
+            p2.textContent = `[${style}]`;
+            td.textContent = '';
 
-          td.appendChild(p);
-          td.appendChild(p2);
+            td.appendChild(p);
+            td.appendChild(p2);
+          }
         }
       });
+
+      if (innerTable.classList.contains('cmeCompactTable') || innerTable.classList.contains('compact')) {
+        // compact class added
+        tempArr.push('compact');
+      }
 
       if (tempArr.length) {
         tableText += ` (${tempArr.join(', ')})`;
@@ -862,6 +1118,16 @@ const tableBlock = (document) => {
             thead.remove();
           }
         });
+      }
+
+      // remove thead and add that tr to body first tr
+      const thead = table.querySelector('thead');
+      if (thead) {
+        const tr = thead.querySelector('tr');
+        if (tr) {
+          const tbody = table.querySelector('tbody');
+          tbody.insertBefore(tr, tbody.firstChild);
+        }
       }
 
       row.insertCell(0).innerHTML = table.innerHTML;
@@ -1093,6 +1359,50 @@ const oneClickSubToFragment = (document) => {
   }
 };
 
+const columnsBlock = (document) => {
+  const rows = document.querySelectorAll('.row');
+  if (!rows?.length) return;
+
+  rows.forEach((row) => {
+    const colSelectors = ['col-md-3', 'col-md-6', 'col-md-9', 'col-md-4'];
+    let columns = [];
+
+    // Collect all columns matching specified sizes
+    colSelectors.forEach((selector) => {
+      const directChildren = Array.from(row.children).filter((child) => child.tagName === 'DIV');
+      columns = columns.concat(directChildren
+        .filter((child) => child.classList.contains(selector)));
+    });
+
+    if (!columns.length) return;
+
+    // Filter only immediate children to avoid nested column issues
+    columns = columns.filter((col) => col.parentElement === row);
+
+    // Get their column width from class name
+    const colWidths = columns.map((col) => {
+      const match = col.className.match(/col-md-(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    });
+
+    const totalWidth = colWidths.reduce((sum, width) => sum + width, 0);
+
+    // Only process rows with a valid total of 12
+    if (totalWidth === 12) {
+      const cells = [['Columns']];
+      const tempArr = [];
+
+      columns.forEach((column) => {
+        tempArr.push(column.innerHTML);
+      });
+
+      cells.push(tempArr);
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      row.replaceWith(table);
+    }
+  });
+};
+
 const handleArticleFragments = (document) => {
   const fragments = document.querySelectorAll('.cq-dd-paragraph');
   if (fragments?.length) {
@@ -1123,8 +1433,22 @@ const handleArticleFragments = (document) => {
   }
 };
 
+const mapBlueDesignBoxToCardsFactoid = (document) => {
+  const blueDesignBoxes = document.querySelectorAll('.component.design-box.blue1-background');
+  if (blueDesignBoxes?.length) {
+    blueDesignBoxes.forEach((box) => {
+      const table = WebImporter.Blocks.createBlock(document, {
+        name: 'Cards (factoid)',
+        cells: [[box.innerHTML]],
+      });
+      box.replaceWith(table);
+    });
+  }
+};
+
 const customBlocks = async (document, main, meta, url) => {
   moveDividerLine(document);
+  changeAnchors(document);
   figCaptionEmphasize(document);
   convertImagesToLinks(document);
   mapRowsToSection(document);
@@ -1135,7 +1459,6 @@ const customBlocks = async (document, main, meta, url) => {
   authorBioBlock(document);
   quizBlock(document);
   tagsCloudBlock(document);
-  faqBlock(document, meta);
   await accordionBlock(document);
   await lightBoxGallery(document);
   sideBarBlocks(document);
@@ -1151,12 +1474,20 @@ const customBlocks = async (document, main, meta, url) => {
     threeColumnsArticleXS(document);
     generalColumns(document);
     generateEndColumns(document);
+    columnsBlock(document);
   } else if (meta['Temp Sub Template'] === 'standard') {
     standardArticleInitialColumns(document);
+    columnsBlock(document);
   } else if (['lesson', 'course', 'lesson-standalone'].includes(meta.Template)) {
     await removeCourseSpecificItem(document, main, meta);
     handleFragments(document);
     coursesColumnsBlock(document);
+  } else if (meta['Temp Sub Template'] === 'podcast') {
+    mapPodcast(document);
+    podcastFragments(document);
+  } else if (meta['Temp Sub Template'] === 'faqs') {
+    removeBackToTop(document);
+    faqBlock(document, meta);
   }
   await moduleOrder(document, meta, url);
   document.querySelector('.course-nav')?.remove();
@@ -1165,6 +1496,7 @@ const customBlocks = async (document, main, meta, url) => {
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
   correctLinks(document);
+  mapBlueDesignBoxToCardsFactoid(document);
   delete meta['Temp Sub Template'];
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
@@ -1241,6 +1573,8 @@ export default {
       '.top-info',
       '.w-sm-auto',
       '.lateral-navigation',
+      '.article-data',
+      '.headline',
     ]);
 
     const results = [];

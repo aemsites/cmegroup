@@ -1,4 +1,6 @@
 import { getMetadata } from '../../scripts/aem.js';
+import { authentication } from '../../scripts/modules/Authentication.js';
+import { apiPost, getResponseData } from '../../scripts/utils/index.js';
 import {
   createElement,
   i18n,
@@ -8,7 +10,174 @@ import {
   getReadTimeIcon,
   setupDayjsLibs,
   getCdtDate,
+  showTooltip,
 } from '../../scripts/utils.js';
+import { createModal } from '../../blocks/modal/modal.js';
+
+async function saveArticle() {
+  try {
+    const serviceUrl = '/services/bookmarks/save';
+    const response = await apiPost(serviceUrl);
+    return getResponseData(response);
+  } catch (e) {
+    return null;
+  }
+}
+
+async function removeArticle() {
+  try {
+    const serviceUrl = '/services/bookmarks/remove';
+    const response = await apiPost(serviceUrl);
+    return getResponseData(response);
+  } catch (e) {
+    return null;
+  }
+}
+
+async function hasArticle() {
+  try {
+    const serviceUrl = '/services/bookmarks/hasArticle';
+    const response = await apiPost(serviceUrl);
+    return getResponseData(response);
+  } catch (e) {
+    return [];
+  }
+}
+
+let enableFunc;
+function toggleSaveIcon(bookmark, saveIcons, enable) {
+  if (enable) {
+    enableFunc = () => {
+      saveIcons.forEach((saveIcon) => { saveIcon.classList.toggle('show'); });
+    };
+    bookmark.addEventListener('mouseenter', enableFunc);
+    bookmark.addEventListener('mouseleave', enableFunc);
+  } else if (enableFunc) {
+    bookmark.removeEventListener('mouseenter', enableFunc);
+    bookmark.removeEventListener('mouseleave', enableFunc);
+  }
+}
+
+async function showBookmarkTooltip(parent) {
+  const [
+    savedToLabel,
+    bookmarksLabel,
+  ] = await Promise.all([
+    i18n('Saved to'),
+    i18n('Bookmarks'),
+  ]);
+  const checkIcon = createElement('img', {
+    src: '/aemedge/icons/check.svg',
+    alt: 'Saved',
+    loading: 'eager',
+  });
+  const checkIconSpan = createElement('span', { class: 'icon check' }, checkIcon);
+  const bookmarks = createElement('a', { href: '/my-profile.html#tab=bookmarks' }, bookmarksLabel);
+  const tooltipContent = createElement('span', null, checkIconSpan, `${savedToLabel} `, bookmarks);
+  showTooltip(parent, tooltipContent, 5000);
+}
+
+async function createAuthModal() {
+  const [
+    title,
+    loginLabel,
+    orLabel,
+    accountLabel,
+    bookmarkText,
+  ] = await Promise.all([
+    i18n('CME Group Login'),
+    i18n('Login'),
+    i18n('or'),
+    i18n('create an account'),
+    i18n('to bookmark content on cmegroup.com'),
+  ]);
+  const iconLock = createElement('img', {
+    src: '/aemedge/icons/lock.svg',
+    alt: 'Lock Icon',
+    loading: 'eager',
+  });
+  const iconLockSpan = createElement('span', { class: 'icon icon-lock' }, iconLock);
+  const modalTitle = createElement('h5', { class: 'modal-title' }, title);
+  const modalHeader = createElement('div', { class: 'modal-header' }, iconLockSpan, modalTitle);
+  const login = createElement('span', { class: 'login-handler' }, loginLabel);
+  login.addEventListener('click', async () => {
+    authentication.login();
+  });
+  const account = createElement('span', { class: 'registration-handler' }, accountLabel);
+  account.addEventListener('click', async () => {
+    authentication.registration();
+  });
+  const modalBody = createElement('div', { class: 'modal-body' }, login, ` ${orLabel} `, account, ` ${bookmarkText}`);
+  const modal = await createModal([modalHeader, modalBody]);
+  modal.block?.classList.add('article-auth-modal');
+  return modal;
+}
+
+async function buildBookmark(bookmark, bookmarkIcons, saveText) {
+  const [
+    saveLabel,
+    savedLabel,
+  ] = await Promise.all([
+    i18n('Save'),
+    i18n('Saved'),
+  ]);
+  const { authenticationData } = authentication;
+  authenticationData.loginPromise.then(async () => {
+    const saveIcons = bookmark.querySelectorAll('.icon');
+    let savedArticle = false;
+    if (authenticationData.isLoggedIn) {
+      const response = await hasArticle();
+      if (response) {
+        const [userHasArticle] = response;
+        if (userHasArticle) {
+          savedArticle = true;
+          saveText.textContent = savedLabel;
+          saveIcons.forEach((saveIcon) => { saveIcon.classList.add('show'); });
+        }
+      }
+      bookmark.addEventListener('click', async () => {
+        if (savedArticle) {
+          const removeResponse = await removeArticle();
+          if (removeResponse) {
+            savedArticle = false;
+            saveText.textContent = saveLabel;
+          }
+        } else {
+          const saveResponse = await saveArticle();
+          if (saveResponse) {
+            savedArticle = true;
+            saveText.textContent = savedLabel;
+            showBookmarkTooltip(bookmarkIcons);
+          }
+        }
+        toggleSaveIcon(bookmark, saveIcons, !savedArticle);
+      });
+    } else {
+      bookmark.addEventListener('click', async () => {
+        const { showModal } = await createAuthModal();
+        showModal();
+      });
+    }
+    if (!savedArticle) {
+      toggleSaveIcon(bookmark, saveIcons, true);
+    }
+  });
+}
+
+function renderAuthors(authorsData, container, byLabel) {
+  container.innerHTML = '';
+  const authorList = authorsData.map((author) => {
+    if (author.path) {
+      const link = document.createElement('a');
+      link.href = author.path;
+      link.textContent = author.title;
+      return link.outerHTML;
+    }
+    return author.title;
+  });
+  const authorsString = authorList.join(', ');
+  container.innerHTML = `${byLabel} ${authorsString}`;
+}
 
 async function decorateArticleHero(main) {
   const subTemplates = getMetadata('sub-template')?.split(' ');
@@ -41,25 +210,15 @@ async function decorateArticleHero(main) {
   });
   const saveIconFilledSpan = createElement('span', { class: 'icon icon-bookmark-filled' }, saveIconFilled);
   const saveText = createElement('span', { class: 'save-text' });
-  const bookmark = createElement('a', { class: 'bookmark' }, saveIconOutlinedSpan, saveIconFilledSpan, saveText);
+  const bookmarkIcons = createElement('span', { class: 'bookmark-icon' }, saveIconOutlinedSpan, saveIconFilledSpan);
+  const bookmark = createElement('a', { class: 'bookmark' }, bookmarkIcons, saveText);
   const topInfo = createElement('div', { class: 'top-info' }, articleTime, featuredTag, bookmark);
   const h1 = heroSection.querySelector('h1');
-  const authors = createElement('span', { class: 'authors' });
+  const authorsContainer = createElement('span', { class: 'authors' });
   const articleDate = createElement('span', { class: 'article-date' });
-  const lastInfo = createElement('div', { class: 'article-data' }, authors, articleDate);
+  const lastInfo = createElement('div', { class: 'article-data' }, authorsContainer, articleDate);
   const contentWrapper = createElement('div', { class: 'default-content-wrapper' }, topInfo, h1, lastInfo);
   heroSection.append(contentWrapper);
-
-  const saveIcons = bookmark.querySelectorAll('.icon');
-  bookmark.addEventListener('mouseenter', () => {
-    saveIcons.forEach((saveIcon) => { saveIcon.classList.toggle('show'); });
-  });
-  bookmark.addEventListener('mouseleave', () => {
-    saveIcons.forEach((saveIcon) => { saveIcon.classList.toggle('show'); });
-  });
-  bookmark.addEventListener('click', () => {
-    // TODO: Add bookmark functionality
-  });
 
   // Dynamic Section
   const [
@@ -85,8 +244,9 @@ async function decorateArticleHero(main) {
   articleTime.append(readTimeText);
   featuredTag.textContent = primaryTopic;
   saveText.textContent = saveLabel;
-  authors.textContent = `${byLabel} ${author}`;
+  renderAuthors(author, authorsContainer, byLabel);
   articleDate.textContent = getCdtDate(date).format('DD MMM YYYY');
+  buildBookmark(bookmark, bookmarkIcons, saveText);
 }
 
 export default function articleTemplate() {

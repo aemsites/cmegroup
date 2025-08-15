@@ -3,8 +3,8 @@ import {
   apiPost,
   getResponseData,
   isEmpty,
+  urlByEnvType,
 } from '../utils/index.js';
-import { urlByEnvType } from '../utils.js';
 import { authentication } from '../modules/Authentication.js';
 
 const SYNC_CACHE_KEY = 'course_progress_data';
@@ -207,7 +207,11 @@ export async function getRecommendedCourses(maxItems) {
   try {
     await syncStorage.syncInProgress;
     const response = await apiGet(url);
-    return getResponseData(response);
+    const data = getResponseData(response);
+    return {
+      ...data,
+      userProgress: data.userProgress?.map(mapModule) || [],
+    };
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('EducationService => getRecommendedCourses error:', e);
