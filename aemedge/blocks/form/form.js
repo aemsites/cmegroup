@@ -193,36 +193,44 @@ function buildOneClickFormCookie(block, element) {
   element.setAttribute('data-no-activation-prompt', 'true');
 }
 
-function prefillForm(form, userInfo) {
+function prefillForm(form) {
+  const userInfo = window.LocalStorageUtil?.get('userInfo', true);
   [...form.elements].forEach((field) => {
-    //  prefill order from salesforce userInfo:
-    //  - contactLead selfInput field
-    //  - contactLead field
-    //  - field name
-    const value = userInfo[field.prefillSelfInput]
-      || userInfo[field.prefillInput]
-      || userInfo[field.name];
+    let value;
+    if (userInfo && field.prefillInput) {
+      //  prefill order from salesforce userInfo:
+      //  - contactLead selfInput field
+      //  - contactLead field
+      //  - field name
+      value = userInfo[field.prefillSelfInput]
+        || userInfo[field.prefillInput]
+        || userInfo[field.name];
+    }
     if (value) {
       setFieldValue(field, value);
+    } else {
+      prefillDefault(field);
     }
   });
   replaceTemplateVariables(form);
 }
 
-function prefillDefault(form) {
-  [...form.elements].forEach((field) => {
-    if (field.name.startsWith('Country_Code')) {
-      //  default value for country
-      setFieldValue(field, getCountryCode() || 'US');
-    }
-  });
+function prefillDefault(field) {
+  if (field.type === 'email') {
+    //  logged in user email
+    const { loginInfo } = authentication.authenticationData;
+    setFieldValue(field, loginInfo?.email || '');
+  }
+  if (field.name.startsWith('Country_Code')) {
+    //  default value from browser region
+    setFieldValue(field, getCountryCode() || 'US');
+  }
 }
 
 async function decorateContactUsForm(form, formData, block) {
   const isContactUsVariant = block.classList.contains('contact-us');
   if (!isContactUsVariant) return;
 
-  prefillDefault(form);
   form.classList.add('user-info');
   const { isLoggedIn } = authentication.authenticationData;
   if (isLoggedIn) {
@@ -240,9 +248,6 @@ async function decorateContactUsForm(form, formData, block) {
         });
       }
     }
-
-    const userInfo = window.LocalStorageUtil?.get('userInfo', true);
-    prefillForm(form, userInfo);
   }
 }
 
@@ -351,6 +356,7 @@ async function createForm(formData, block) {
   await loadChoices(form);
   await decorateContactUsForm(form, formData, block);
   await decorateOneClickForm(form, formData, block);
+  prefillForm(form);
   applyRichTextFormat(form, ['label', 'p']);
   addListenersForDefaultHideFields(form);
   return form;
@@ -470,7 +476,7 @@ async function handleSubmit(form, block) {
   const spinner = createSpinner();
   try {
     form.setAttribute('data-submitting', 'true');
-    submit?.setAttribute('disabled', 'true');
+    submit?.setAttribute('disabled', '');
     block.append(spinner);
 
     const sitekey = block.querySelector('.recaptcha-disclaimer')?.dataset.sitekey;
@@ -511,7 +517,7 @@ async function handleSubmit(form, block) {
   } finally {
     spinner.remove();
     form.setAttribute('data-submitting', 'false');
-    submit?.setAttribute('disabled', 'false');
+    submit?.removeAttribute('disabled');
   }
 }
 
@@ -541,7 +547,7 @@ function getFormData(block) {
     }
   });
 
-  const formId = formData.id;
+  const formId = formData.id || '';
   block.setAttribute('form-id', formId);
 
   const formName = block.classList[block.classList.length > 1 ? 1 : 0];
