@@ -237,12 +237,9 @@
   z-index: 1;
 }
 
-.form .feedback-smiley-wrapper:hover label{
-  background-color: var(--blue4);
-}
-
-.form .feedback-smiley-wrapper:hover label img {
-  filter: var(--white-filter);
+.form .feedback-smiley-wrapper:hover label {
+  background-color: var(--gray4);
+  color: var(--gray3);;
 }
 
 .form .feedback-smiley-wrapper input[type="radio"]:checked + label {

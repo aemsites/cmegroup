@@ -1,97 +1,162 @@
-.section:has(.form.feedback) {
-  margin: 0;
-}
-
-.section:has(.form.feedback) h1,
-.section:has(.form.feedback) h2,
-.section:has(.form.feedback) h3,
-.section:has(.form.feedback) h4,
-.section:has(.form.feedback) h5,
-.section:has(.form.feedback) h6 {
-  font-family: var(--heading-font-family);
-  font-size: var(--heading-font-size-m);
-  font-weight: 400;
-  line-height: 2.5rem;
-  letter-spacing: .09rem;
-  color: var(--blue2);
-}
-
-.form.feedback form {
-  gap: 1rem;
-}
-
-.form.feedback form fieldset {
-  gap: 2rem;
-}
-
-.form.feedback form:has(.error-message) {
-  gap: 1.5rem;
-}
-
-.form.feedback .field-wrapper:has(fieldset .feedback-smiley-wrapper) {
-  align-items: end;
-}
-
-.form.feedback label {
-  color: var(--gray3);
-  font-family: var(--heading-font-family);
-  font-size: 0.6875rem;
-  font-weight: 400;
-  letter-spacing: 0.0938rem;
-  line-height: 0.6875rem;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
-}
-
-.form.feedback .feedback-smiley-wrapper label {
-  margin: 0;
-}
-
-.form.feedback textarea,
-.form.feedback input {
-  background-color: var(--gray6);
-  color: var(--gray3);
-  border-radius: 0;
-  border: none;
-  max-width: 100%;
-}
-
-.form.feedback input:hover,
-.form.feedback textarea:hover {
-  border: none;
-}
-
-.form.feedback input:focus,
-.form.feedback textarea:focus {
-  outline: 0.125rem solid var(--link-color);
-}
-
-.form.feedback .feedback-smiley-wrapper fieldset {
-  position: relative;
-  gap: 0;
-}
-
-.form.feedback .post-submit {
-  margin-top: 1rem;
-  font-size: 1rem;
-  font-weight: 700;
-  max-width: calc(100% - 16.5625rem);
-}
-
-.form.feedback .post-submit.custom-submit-msg-green {
-  color: var(--green3);
-}
-
-@media (width >= 768px) {
-  .form.feedback form {
-    gap: 1.5rem;
+.section {
+  &:has(.form.feedback) {
+    margin: 0;
   }
 
-  .form.feedback form fieldset {
-    gap: 1.5rem;
+  &:has(.form.feedback) {
+    & h1, h2, h3, h4, h5, h6 {
+      color: var(--blue2);
+      font-weight: 400;
+      line-height: 2.5rem;
+      letter-spacing: 0.18rem;
+      color: var(--blue2);
+      padding-bottom: 1.25rem;
+    }
+  }
+}
+
+.form.feedback {
+  & form {
+    gap: 1rem;
+
+    @media (width > 768px) {
+      gap: 1.5rem;
+    }
+
+    & fieldset {
+      gap: 2rem;
+
+      @media (width > 768px) {
+        gap: 1.5rem;
+      }
+    }
+
+    &:has(.error-message) {
+      gap: 1.5rem;
+
+      @media (width > 768px) {
+        gap: 2rem;
+      }
+    }
   }
 
-  .form.feedback form:has(.error-message) {
-    gap: 2rem;
+  & .field-wrapper {
+    &:has(.feedback-smiley-wrapper) {
+      margin-top: 0.938rem;
+      margin-left: 0.875rem;
+    }
+
+    & .feedback-smiley-wrapper {
+      margin-right: .425rem;
+
+      &:last-child {
+        margin-right: 0;
+      }
+
+      & label {
+        width: 1.563rem;
+        height: 1.563rem;
+      }
+
+      & img {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      & .icon {
+        width: 100%;
+      }
+    }
+
+    &.submit-wrapper {
+      grid-column: inherit;
+
+      & button[type="submit"] {
+        padding: 0.625rem 1.375rem;
+      }
+    }
+
+    > select:focus,
+    > textarea:focus,
+    &:not(.error-message) > input:focus {
+      outline: none;
+      border: 0.125rem solid var(--blue5);
+    }
+  }
+
+  & label {
+    color: var(--gray3);
+    font-family: var(--heading-font-family);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    letter-spacing: 0.0938rem;
+    line-height: 0.6875rem;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  & .feedback-smiley-wrapper {
+    & label {
+      margin: 0;
+    }
+
+    & fieldset {
+      position: relative;
+      gap: 0;
+    }
+  }
+
+  & textarea, input {
+    background-color: var(--gray6);
+    color: var(--gray3);
+    border-radius: 0;
+    border: none;
+    max-width: 100%;
+  }
+
+  & input {
+    height: 3.125rem;
+    padding: 1rem 0.625rem;
+  }
+
+  & textarea {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active{
+    -webkit-text-fill-color: var(--gray3);
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  & .post-submit {
+    margin-top: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    max-width: calc(100% - 16.5625rem);
+
+    &.custom-submit-msg-green {
+      color: var(--green3);
+    }
+  }
+}
+
+.modal {
+  & dialog:has(.form.feedback) {
+    max-width: 43.563rem;
+    border-radius: 0.5rem;
+  }
+
+  & .modal-content:has(.form.feedback) {
+    padding: 1rem 1.6rem 3rem;
+  }
+}
+
+.form-wrapper {
+  &:has(.form.feedback) {
+    display: block;
   }
 }

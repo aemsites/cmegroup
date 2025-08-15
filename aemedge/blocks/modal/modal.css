@@ -21,12 +21,6 @@ body.modal-open {
   border: 0.0625rem solid var(--dark-color);
 }
 
-.modal dialog:has(.form.feedback) {
-  max-width: 80%;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-}
-
 .modal dialog .modal-content {
   box-sizing: border-box;
   overflow-y: auto;
@@ -36,23 +30,6 @@ body.modal-open {
   padding: 1.5rem;
   padding-top: 0;
   margin-top: 2.75rem;
-}
-
-.modal dialog .modal-content:has(.form.feedback) {
-  margin-top: 0;
-  padding-top: 0;
-}
-
-@media (width > 550px) {
-  .modal dialog:has(.form.feedback) {
-    max-width: 30rem;
-  }
-}
-
-@media (width > 768px) {
-  .modal dialog:has(.form.feedback) {
-    max-width: 38rem;
-  }
 }
 
 @media (width >= 900px) {
