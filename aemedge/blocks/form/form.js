@@ -171,28 +171,6 @@ function updateFieldsAfterSubmit(form, block) {
   });
 }
 
-function buildOneClickFormCookie(block, element) {
-  //  TODO: remove this when we've the handler for one click form
-  const { isLoggedIn } = authentication.authenticationData;
-  if (isLoggedIn) {
-    return;
-  }
-  const expires = new Date();
-  expires.setMinutes(expires.getMinutes() + 30);
-  window.CookieUtil?.set(
-    'oneClickFormCookie',
-    {
-      location: element.href,
-      formId: block.getAttribute('form-id'),
-    },
-    {
-      expires,
-    },
-  );
-  //  noActivationPrompt used in registration url
-  element.setAttribute('data-no-activation-prompt', 'true');
-}
-
 function prefillForm(form) {
   const userInfo = window.LocalStorageUtil?.get('userInfo', true);
   [...form.elements].forEach((field) => {
@@ -273,24 +251,6 @@ async function decorateOneClickForm(form, formData, block) {
       thanksMsg.forEach((msg) => { msg.parentElement.dataset.showAfterSubmit = false; });
       updateFieldsAfterSubmit(form, block);
     }
-  } else {
-    //  TODO: remove following listeners when we've the handlers for login/register
-    const register = form.querySelector('#form-register');
-    register?.addEventListener('click', async (event) => {
-      const { target: element } = event;
-      buildOneClickFormCookie(block, element);
-      authentication.registration(
-        element.href || element.baseURI,
-        element.target,
-        element.getAttribute('data-target-description'),
-        element.getAttribute('data-no-activation-prompt'),
-      );
-    });
-    const login = form.querySelector('#form-login');
-    login?.addEventListener('click', async (event) => {
-      buildOneClickFormCookie(block, event.target);
-      authentication.login();
-    });
   }
 }
 

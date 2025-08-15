@@ -268,6 +268,27 @@ function handleRegistrationRedirection(event, element) {
   }
 }
 
+function handleOneClickForm(event, element) {
+  const { authenticationData } = authentication;
+  event.preventDefault();
+  if (!authenticationData.isLoggedIn) {
+    const expires = new Date();
+    expires.setMinutes(expires.getMinutes() + 30);
+    window.CookieUtil?.set(
+      'oneClickFormCookie',
+      {
+        location: element.href,
+        formId: element.closest('[form-id]')?.getAttribute('form-id'),
+      },
+      {
+        expires,
+      },
+    );
+    //  noActivationPrompt used in registration url
+    element.setAttribute('data-no-activation-prompt', 'true');
+  }
+}
+
 /**
  * Decorates external links to open in a new tab.
  * @param {Element} main The main element
@@ -498,6 +519,7 @@ export function decorateButtons(element) {
     const text = a.textContent;
     const url = new URL(a.href);
     const domainCheck = checkDomain(url);
+    const isOneClick = a.title.match(/\[one-click\]/i);
     const isLogin = a.title.match(/\[login\]/i);
     const isRegistration = a.title.match(/\[registration\]/i);
     let textIndex = -1;
@@ -566,7 +588,13 @@ export function decorateButtons(element) {
       }
     }
 
-    // Login/Register handling
+    // Login/Register/OneClick handling
+    if (isOneClick) {
+      a.title = a.title.replaceAll(/\[one-click\]/ig, '').trim();
+      a.addEventListener('click', (event) => {
+        handleOneClickForm(event, a);
+      }, { capture: true });
+    }
     if (isLogin) {
       a.title = a.title.replaceAll(/\[login\]/ig, '').trim();
       a.addEventListener('click', (event) => {
