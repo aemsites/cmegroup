@@ -1,15 +1,12 @@
 .section {
   &:has(.form.feedback) {
     margin: 0;
-  }
 
-  &:has(.form.feedback) {
     & h1, h2, h3, h4, h5, h6 {
       color: var(--blue2);
       font-weight: 400;
       line-height: 2.5rem;
       letter-spacing: 0.18rem;
-      color: var(--blue2);
       padding-bottom: 1.25rem;
     }
   }
