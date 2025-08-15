@@ -221,7 +221,7 @@ function prefillDefault(field) {
     const { loginInfo } = authentication.authenticationData;
     setFieldValue(field, loginInfo?.email || '');
   }
-  else if (field.name.startsWith('Country_Code')) {
+  if (field.name.startsWith('Country_Code')) {
     //  default value from browser region
     setFieldValue(field, getCountryCode() || 'US');
   }
