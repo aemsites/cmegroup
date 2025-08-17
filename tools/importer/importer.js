@@ -434,9 +434,20 @@ const convertSectionsToMetadata = (document) => {
   const sections = document.querySelectorAll('.section');
   sections.forEach((section, index) => {
     const style = [];
+    const tempBlueSelectors = [
+      '.blue1-background',
+      '.blue2-background',
+      '.blue3-background',
+      '.blue4-background',
+      '.blue5-background',
+      '.blue6-background',
+    ];
 
     SECTION_SELECTORS.forEach((selector) => {
       if (section.matches(selector)) {
+        if (tempBlueSelectors.includes(selector)) {
+          style.push('reverse');
+        }
         style.push(selector.replace('.', '').replace('-', ' '));
       }
     });
