@@ -565,12 +565,13 @@ export function decorateButtons(element) {
 
           if (bracketMatch) {
             const classes = bracketMatch[1]
-              .split(',')
+              .split(",")
               .map((value) => value.trim())
-              .filter((value) =>
-                value.toLowerCase() !== 'one-click' && 
-                value.toLowerCase() !== 'login' &&
-                value.toLowerCase() !== 'registration'
+              .filter(
+                (value) =>
+                  value.toLowerCase() !== "one-click" &&
+                  value.toLowerCase() !== "login" &&
+                  value.toLowerCase() !== "registration",
               );
 
             if (classes.length > 0) {
