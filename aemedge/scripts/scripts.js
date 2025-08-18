@@ -569,7 +569,7 @@ export function decorateButtons(element) {
               .map((value) => value.trim())
               .filter((value) => value.toLowerCase() !== 'one-click'
                 && value.toLowerCase() !== 'login'
-                && value.toLowerCase() !== 'registration'
+                && value.toLowerCase() !== 'registration',
               );
 
             if (classes.length > 0) {
