@@ -519,17 +519,17 @@ export function decorateButtons(element) {
     const text = a.textContent;
     const url = new URL(a.href);
     const domainCheck = checkDomain(url);
-    const isOneClick = a.title.match(/\[one-click\]/i);
-    const isLogin = a.title.match(/\[login\]/i);
-    const isRegistration = a.title.match(/\[registration\]/i);
+    const loginRegex = /\[[^\]]*\blogin\b[^\]]*\]/i;
+    const registrationRegex = /\[[^\]]*\bregistration\b[^\]]*\]/i;
+    const isLogin = loginRegex.test(a.textContent);
+    const isRegistration = registrationRegex.test(a.textContent);
     let textIndex = -1;
     let iconIndex = -1;
-    a.title = a.title || text;
 
     // Button decoration
     if (a.href !== text && !a.querySelector('img')) {
-      const up = a.parentElement;
-      const twoup = up?.parentElement;
+      const up = a.parentElement || null;
+      const twoup = up?.parentElement || null;
 
       if (up?.childNodes.length === 1 && (up.tagName === 'P' || up.tagName === 'DIV')) {
         up.classList.add('button-container');
@@ -562,8 +562,15 @@ export function decorateButtons(element) {
           const bracketMatch = nodeText.match(/\[([^\]]+)\]/);
 
           if (bracketMatch) {
-            const classes = bracketMatch[1].split(',').map((c) => c.trim());
-            a.classList.add(...classes);
+            const classes = bracketMatch[1]
+              .split(',')
+              .map((value) => value.trim())
+              .filter((value) => value.toLowerCase() !== 'login' && value.toLowerCase() !== 'registration');
+
+            if (classes.length > 0) {
+              a.classList.add(...classes);
+            }
+
             nodeText = nodeText.replace(/\s*\[[^\]]*\]/, '');
             node.textContent = nodeText;
           }
@@ -596,14 +603,12 @@ export function decorateButtons(element) {
       }, { capture: true });
     }
     if (isLogin) {
-      a.title = a.title.replaceAll(/\[login\]/ig, '').trim();
       a.addEventListener('click', (event) => {
         handleLoginRedirection(event, a);
       }, { capture: true });
     }
 
     if (isRegistration) {
-      a.title = a.title.replaceAll(/\[registration\]/ig, '').trim();
       a.addEventListener('click', (event) => {
         handleRegistrationRedirection(event, a);
       }, { capture: true });
@@ -661,24 +666,6 @@ function decorateTextHighlights(main) {
 }
 
 /**
- * Disable blocks via enabled toggled params
- * @param {Element} main The main element
- */
-function toggleBlocks(main) {
-  const elements = main.querySelectorAll(
-    'div.section > div:not(.layout) > div, div.section > div.layout > div > div > div',
-  );
-  elements.forEach((element) => {
-    const toggledParams = Array.from(element.classList)
-      .map((className) => className.match(/^toggled-by-(.+)$/)?.[1]).filter(Boolean);
-
-    if (toggledParams.find((toggle) => isFeatureToggled(toCamelCase(toggle)))) {
-      element.remove();
-    }
-  });
-}
-
-/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -689,9 +676,7 @@ export function decorateMain(main) {
   decorateIcons(main);
   enhanceIconAccessibility();
   buildAutoBlocks(main);
-  toggleBlocks(main);
   decorateSections(main);
-  toggleBlocks(main);
   decorateBlocks(main);
   decorateExternalLinks(main);
   decorateExternalImages(main);

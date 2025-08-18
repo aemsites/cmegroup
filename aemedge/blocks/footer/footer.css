@@ -16,11 +16,20 @@ footer .footer .footer-section {
 
 footer .footer .footer-feedback {
     height: 0;
+    
+    @media (width >= 993px) {
+    position: relative;
+    }
 }
 
-footer .footer .footer-feedback button {
+footer .footer .footer-feedback .button {
     top: -1.25rem;
     position: relative;
+    
+    @media (width >= 993px) {
+        right: 4.125rem;
+        position: absolute;
+    }
 }
 
 footer .footer .footer-languages {
@@ -28,6 +37,7 @@ footer .footer .footer-languages {
 }
 
 footer .footer .footer-languages .language-selector-button {
+    align-items: center;
     background-color: transparent;
     border: none;
     border-radius: 0;
@@ -106,12 +116,6 @@ footer .footer .footer-languages .language-selector-dropdown li a {
     white-space: nowrap;
 }
 
-footer .footer .footer-feedback button .icon img {
-    height: 0.75rem;
-    width: 0.75rem;
-    filter: invert(1);
-}
-
 footer .footer .footer-languages .language-selector-dropdown li a img {
     position: absolute;
     left: 0.75rem;
@@ -158,12 +162,6 @@ footer .footer .footer-languages .language-selector-button:focus {
 
 footer .footer .footer-languages .language-selector-button:focus {
     border: 0.063rem solid var(--blue5);
-}
-
-footer .footer .footer-feedback button .icon {
-    margin-right: 0.5rem;
-    height: auto;
-    width: auto;
 }
 
 footer .footer .footer-disclaimer-wrapper {
@@ -217,6 +215,7 @@ footer .footer .footer-section .footer-social ul li .icon,
 footer .footer .footer-section .footer-social ul li img {
     height: auto;
     width: auto;
+    filter: none;
 }
 
 footer .footer .footer-section .footer-links {
@@ -237,6 +236,10 @@ footer .footer .footer-section .footer-links .footer-collapsible p {
     margin: 0;
     padding: 1rem 0;
     text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
 }
 
 footer .footer .footer-section .footer-links .footer-collapsible p .arrow-up {
@@ -245,8 +248,6 @@ footer .footer .footer-section .footer-links .footer-collapsible p .arrow-up {
 
 footer .footer .footer-section .footer-links .footer-collapsible p .arrow-up,
 footer .footer .footer-section .footer-links .footer-collapsible p .arrow-down {
-    float: right;
-    padding-top: 0.313rem;
     filter: brightness(0) saturate(100%) invert(38%) sepia(29%) saturate(235%)
         hue-rotate(166deg) brightness(97%) contrast(92%);
 }
@@ -329,10 +330,6 @@ footer .footer .footer-feedback button:hover .icon img {
 @media (width > 768px) {
     footer .footer .footer-disclaimer .disclaimer-links {
         margin-top: 0;
-    }
-
-    footer .footer .footer-feedback button {
-        float: right;
     }
 
     footer .footer .footer-section .footer-links > div {

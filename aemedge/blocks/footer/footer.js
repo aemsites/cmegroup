@@ -1,4 +1,5 @@
 import { getMetadata, decorateIcons } from '../../scripts/aem.js';
+import { decorateButtons } from '../../scripts/scripts.js';
 import { createElement } from '../../scripts/utils.js';
 
 // Footer Links collapsible - Start
@@ -128,11 +129,11 @@ function decorateFooter(footer) {
 
 function decorateFeedback(footer) {
   const footerFeedback = footer.querySelector('.footer-feedback');
-  const feedbackButton = createElement('button', { class: 'primary' });
-  feedbackButton.append(...footerFeedback.firstElementChild.firstElementChild.childNodes);
+  const link = footerFeedback.querySelector('a');
+  link.classList.add('button', 'primary');
   footerFeedback.classList.add('container');
   footerFeedback.innerText = '';
-  footerFeedback.append(feedbackButton);
+  footerFeedback.append(link);
   footer.append(footerFeedback);
 }
 
@@ -174,6 +175,7 @@ export default async function decorate(block) {
         ul.remove();
       }
     }
+    decorateButtons(footer);
     decorateIcons(footer);
     decorateFooter(footer);
     decorateFeedback(footer);
