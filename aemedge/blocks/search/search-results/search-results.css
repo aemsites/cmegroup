@@ -112,7 +112,7 @@
     }
 
     &.course {
-      .result-footer {
+      & .result-footer {
         text-transform: uppercase;
         font-weight: 700;
       }

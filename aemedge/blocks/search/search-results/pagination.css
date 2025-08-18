@@ -1,5 +1,5 @@
 .block.search {
-  .pagination-nav {
+  & .pagination-nav {
     display: flex;
     justify-content: center;
     margin-top: 2rem;

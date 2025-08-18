@@ -4,7 +4,7 @@
 @import url("search-results/pagination.css");
 
 .block.search {
-  .search-bar-and-filters {
+  & .search-bar-and-filters {
     background-color: var(--gray6);
     display: flex;
     flex-direction: column;
@@ -19,14 +19,14 @@
     }
   }
 
-  .search-bar-wrapper {
+  & .search-bar-wrapper {
     position: relative;
     margin: 1.5rem 1.5rem 1.875rem;
     display: flex;
     align-items: center;
     background-color: var(--white);
 
-    .nav-close {
+    & .nav-close {
       border: none;
       background-color: var(--white);
       box-shadow: none;
@@ -50,13 +50,13 @@
     }
 
     @media (width >= 769px) {
-      .nav-close::before {
+      & .nav-close::before {
         font-size: 1.75rem;
       }
     }
   }
 
-  .search-input {
+  & .search-input {
     border: none;
     font-size: 1rem;
     height: 2rem;
@@ -82,7 +82,7 @@
     }
   }
 
-  .search-icon {
+  & .search-icon {
     border: none;
     display: flex;
     align-items: center;
@@ -108,12 +108,12 @@
     }
   }
 
-  .results-title {
+  & .results-title {
     display: flex;
     flex-direction: column;
     margin-bottom: 1.25rem;
 
-    h4 {
+    & h4 {
       margin-bottom: 1rem;
     }
 
@@ -125,20 +125,20 @@
     @media (width >= 769px) {
       margin-bottom: 1.5rem;
 
-      h4 {
+      & h4 {
         margin-bottom: 0;
       }
     }
   }
 
-  .filters-wrapper {
+  & .filters-wrapper {
     margin-left: 1.5rem;
     margin-right: 1.5rem;
     margin-bottom: 1.5rem;
     display: flex;
     flex-direction: row;
 
-    .filters {
+    & .filters {
       flex-flow: row wrap;
       display: none;
       align-items: center;
@@ -149,7 +149,7 @@
     }
   }
 
-  .filters-wrapper-title {
+  & .filters-wrapper-title {
     color: var(--gray3);
     font-size: 1rem;
     font-weight: 700;
@@ -165,7 +165,7 @@
     }
   }
 
-  .dropdown {
+  & .dropdown {
     color: var(--gray3);
     min-width: 11.875rem;
     position: relative;
@@ -173,7 +173,7 @@
     margin-bottom: 1.5rem;
     margin-right: 1.875rem;
 
-    .dropdown-toggle-menu .dropdown-toggle {
+    & .dropdown-toggle-menu .dropdown-toggle {
       padding-left: 0.625rem;
 
       &::after {
@@ -181,7 +181,7 @@
       }
     }
 
-    .dropdown-toggle {
+    & .dropdown-toggle {
       padding: 0.125rem 0.625rem 0 1.375rem;
       cursor: pointer;
       background: var(--gray5);
@@ -210,7 +210,7 @@
       }
     }
 
-    .dropdown-menu {
+    & .dropdown-menu {
       display: none;
       position: absolute;
       width: 100%;
@@ -225,7 +225,7 @@
     }
   }
 
-  .dropdown-option {
+  & .dropdown-option {
     padding: 0.5rem 0.75rem;
     display: flex;
     align-items: center;
@@ -235,12 +235,12 @@
       background-color: var(--gray4);
     }
 
-    .dropdown-option-label {
+    & .dropdown-option-label {
       cursor: pointer;
     }
   }
 
-  .no-results {
+  & .no-results {
     background-color: var(--yellow);
     color: var(--gray2);
     font-size: 1.25rem;
@@ -250,13 +250,13 @@
     padding: 1.875rem;
     text-align: center;
 
-    a {
+    & a {
       color: var(--blue4);
       text-decoration: none;
     }
   }
 
-  .checkbox {
+  & .checkbox {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -266,7 +266,7 @@
     justify-content: space-between;
   }
 
-  input[type="checkbox"] {
+  & input[type="checkbox"] {
     appearance: none;
     background-color: var(--gray5);
     margin: 0 1rem 0 0;
@@ -296,21 +296,21 @@
     }
   }
 
-  .checkbox-items {
+  & .checkbox-items {
     flex-flow: row wrap;
     display: flex;
     flex-direction: row;
     gap: 1.875rem;
   }
 
-  .checkbox-item {
+  & .checkbox-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
   }
 
-  .filter-title {
+  & .filter-title {
     display: flex;
     flex-direction: column;
     white-space: nowrap;
@@ -318,7 +318,7 @@
     line-height: 1.25rem;
     padding-top: 0.4375rem;
 
-    a {
+    & a {
       color: var(--blue4);
       text-decoration: none;
       font-size: 0.75rem;
@@ -331,7 +331,7 @@
     }
   }
 
-  .checkbox-label {
+  & .checkbox-label {
     font-size: 0.6875rem;
     font-weight: 700;
     letter-spacing: 0.0938rem;
@@ -339,10 +339,10 @@
     text-transform: uppercase;
   }
 
-  .checkbox-option {
+  & .checkbox-option {
     display: flex;
 
-    .checkbox-label {
+    & .checkbox-label {
       font-size: 0.875rem;
       font-weight: 400;
       letter-spacing: 0;
@@ -352,12 +352,12 @@
     }
   }
 
-  .checkbox-input {
+  & .checkbox-input {
     text-transform: capitalize;
     margin-left: 0;
   }
 
-  .mobile-filter-title {
+  & .mobile-filter-title {
     display: none;
     font-size: 0.625rem;
     font-weight: 400;
@@ -373,7 +373,7 @@
     }
   }
 
-  .mobile-filter-header {
+  & .mobile-filter-header {
     display: flex;
     justify-content: flex-end;
     align-items: end;
@@ -399,7 +399,7 @@
     }
   }
 
-  .mobile-filter-section {
+  & .mobile-filter-section {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
 
@@ -455,14 +455,14 @@
     }
   }
 
-  .mobile-filter-buttons {
+  & .mobile-filter-buttons {
     display: flex;
     flex-direction: row;
     gap: 1rem;
     justify-content: space-between;
     width: 100%;
 
-    button {
+    & button {
       width: 45%;
       align-items: center;
       justify-content: center;
@@ -470,7 +470,7 @@
     }
   }
 
-  .mobile-filter-overlay {
+  & .mobile-filter-overlay {
     display: none;
 
     &.visible {
@@ -526,10 +526,10 @@
     }
   }
 
-  .mobile-filter-button,
-  .mobile-filter-buttons,
-  .mobile-filter-overlay,
-  .mobile-filter-overlay.visible {
+  & .mobile-filter-button,
+  & .mobile-filter-buttons,
+  & .mobile-filter-overlay,
+  & .mobile-filter-overlay.visible {
     @media (width >= 769px) {
       display: none;
     }
