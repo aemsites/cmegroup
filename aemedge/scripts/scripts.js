@@ -567,7 +567,10 @@ export function decorateButtons(element) {
             const classes = bracketMatch[1]
               .split(',')
               .map((value) => value.trim())
-              .filter((value) => value.toLowerCase() !== 'one-click' && value.toLowerCase() !== 'login' && value.toLowerCase() !== 'registration');
+              .filter((value) => value.toLowerCase() !== 'one-click'
+                && value.toLowerCase() !== 'login'
+                && value.toLowerCase() !== 'registration'
+              );
 
             if (classes.length > 0) {
               a.classList.add(...classes);
