@@ -44,7 +44,6 @@
     }
 
     & .result-title {
-      color: var(--card-title-color);
       font-size: 1.125rem;
       max-height: 2.8125rem;
       font-weight: 700;
