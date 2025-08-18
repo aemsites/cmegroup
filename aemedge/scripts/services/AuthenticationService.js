@@ -2,9 +2,9 @@ import {
   apiGet,
   apiPost,
   getResponseData,
+  urlByEnvType,
 } from '../utils/index.js';
 import { getLoginDataUrl } from '../legacy-api.js';
-import { urlByEnvType } from '../utils.js';
 
 export async function getIsLoggedIn() {
   const isLoggedInService = `${urlByEnvType()}/services/login/validate`;

@@ -16,7 +16,10 @@ import {
   threeColumnsArticleXS, generalColumns, generateEndColumns,
 } from './case-study-article.js';
 import { standardArticleInitialColumns } from './standard-article.js';
-import { fetchTemplate, SECTION_SELECTORS, EDS_DOMAIN } from './utils.js';
+import { mapPodcast, podcastFragments } from './podcast.js';
+import {
+  fetchTemplate, SECTION_SELECTORS, EDS_DOMAIN, buildSectionMetadata,
+} from './utils.js';
 import { customReportElements } from './report.js';
 import {
   removeCourseSpecificItem,
@@ -28,12 +31,42 @@ import {
 
 const DOMAIN = 'https://www.cmegroup.com';
 
-export const buildSectionMetadata = (cells) => WebImporter.Blocks.createBlock(document, {
-  name: 'Section Metadata',
-  cells: [...cells],
-});
+/**
+ * Handles content toggle elements by fetching their published content
+ * @param {Document} document - The document to process
+ */
+async function handleContentToggle(document, url, tempMeta) {
+  const toggleElements = Array.from(document.querySelectorAll('.content-toggle'));
+  const pathName = new URL(url).pathname.replace('.html', '');
 
-async function setMetadata(meta, document, url) {
+  const processToggleElement = async (element) => {
+    const dataPath = element.getAttribute('data-path');
+    if (!dataPath.includes(pathName)) return;
+
+    const toggleUrl = `${DOMAIN}${dataPath}.content-toggle-publish.html`;
+
+    const response = await fetch(`http://localhost:4005/api/hello?url=${toggleUrl}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'text/html',
+      },
+    });
+
+    const data = await response.json();
+    const content = data?.gatedContentTest?.contentPreview;
+
+    if (content) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      element.replaceWith(tempDiv);
+      tempMeta.protected = true;
+    }
+  };
+
+  await Promise.all(toggleElements.map(processToggleElement));
+}
+
+async function setMetadata(meta, document, url, tempMeta) {
   const readTime = document.querySelector('.article-time');
   const templates = {
     'cme-group-case-study-article-template': {
@@ -185,7 +218,174 @@ async function setMetadata(meta, document, url) {
     meta.isPremium = true;
     document.querySelector('.premium-label').remove();
   }
+
+  if (tempMeta.protected) {
+    meta.protected = true;
+  }
 }
+
+const getIconName = (icon) => {
+  if (icon === 'icon-chevron-right') {
+    return ':chevron-right:';
+  }
+  if (icon === 'icon-chevron-left') {
+    return ':chevron-left:';
+  }
+  if (icon === 'icon-chevron-down') {
+    return ':chevron-down:';
+  }
+  if (icon === 'icon-chevron-up') {
+    return ':chevron-up:';
+  }
+  if (icon === 'icon-lock') {
+    return ':lock:';
+  }
+  if (icon === 'icon-bell') {
+    return ':bell:';
+  }
+  if (icon === 'icon-arrow-right') {
+    return ':arrow-right:';
+  }
+  if (icon === 'icon-arrow-left') {
+    return ':arrow-left:';
+  }
+  if (icon === 'icon-arrow-down') {
+    return ':arrow-down:';
+  }
+  if (icon === 'icon-arrow-up') {
+    return ':arrow-up:';
+  }
+  return '';
+};
+
+const iconsDataButton = (anchor) => {
+  let firstIcon = '';
+  let secondIcon = '';
+  let thirdIcon = '';
+  const firstSpan = anchor.querySelector('span');
+  const secondSpan = anchor.querySelectorAll('span')?.[1];
+  const thirdSpan = anchor.querySelectorAll('span')?.[2];
+
+  if (firstSpan && firstSpan.classList.contains('icon')) {
+    firstIcon = Array.from(firstSpan.classList).find((cls) => cls.trim() !== 'icon');
+    firstIcon = getIconName(firstIcon);
+  }
+  if (secondSpan && secondSpan.classList.contains('icon')) {
+    secondIcon = Array.from(secondSpan.classList).find((cls) => cls.trim() !== 'icon');
+    secondIcon = getIconName(secondIcon);
+  }
+  if (thirdSpan && thirdSpan.classList.contains('icon')) {
+    thirdIcon = Array.from(thirdSpan.classList).find((cls) => cls.trim() !== 'icon');
+    thirdIcon = getIconName(thirdIcon);
+  }
+
+  return {
+    firstIcon,
+    secondIcon,
+    thirdIcon,
+  };
+};
+
+const changeAnchors = (document) => {
+  const anchors = document.querySelectorAll('a');
+  anchors.forEach((anchor) => {
+    if (anchor.classList.contains('btn')) {
+      if (anchor.classList.contains('primary') || anchor.classList.contains('primary-alternate')) {
+        // wrap anchor in strong
+        const strong = document.createElement('strong');
+        anchor.replaceWith(strong);
+        strong.appendChild(anchor);
+
+        const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
+
+        let classes = [];
+        if (anchor.classList.contains('link-bold')) {
+          classes.push('link-bold');
+        }
+        if (anchor.classList.contains('disabled')) {
+          classes.push('disabled');
+        }
+        if (anchor.classList.contains('primary-alternate')) {
+          classes.push('alternate');
+        }
+
+        if (classes.length) {
+          classes = `[${classes.join(',')}]`;
+        }
+
+        anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+      } else if (anchor.classList.contains('secondary')
+        || anchor.classList.contains('secondary-2')
+        || anchor.classList.contains('secondary-3')
+        || anchor.classList.contains('secondary-4')) {
+        // wrap anchor in em
+        if (anchor.classList.contains('secondary')) {
+          const em = document.createElement('em');
+          anchor.replaceWith(em);
+          em.appendChild(anchor);
+        }
+
+        let classes = [];
+        if (anchor.classList.contains('link-bold')) {
+          classes.push('link-bold');
+        }
+        if (anchor.classList.contains('disabled')) {
+          classes.push('disabled');
+        }
+        if (anchor.classList.contains('secondary-2')) {
+          classes.push('secondary-2');
+          classes.push('button');
+        }
+        if (anchor.classList.contains('secondary-3')) {
+          classes.push('secondary-3');
+          classes.push('button');
+        }
+        if (anchor.classList.contains('secondary-4')) {
+          classes.push('secondary-4');
+          classes.push('button');
+        }
+
+        if (classes.length) {
+          classes = `[${classes.join(',')}]`;
+        }
+
+        const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
+        anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+      } else {
+        let classes = [];
+        if (anchor.classList.contains('link-bold')) {
+          classes.push('link-bold');
+        }
+        if (anchor.classList.contains('disabled')) {
+          classes.push('disabled');
+        }
+
+        if (classes.length) {
+          classes = `[${classes.join(',')}]`;
+        }
+
+        const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
+        anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+      }
+    } else {
+      const aParent = anchor.parentElement;
+      const { firstChild } = anchor;
+      let classes = [];
+
+      if (aParent && aParent?.tagName === 'STRONG') {
+        classes.push('link-bold');
+      } else if (firstChild && firstChild?.tagName === 'STRONG') {
+        classes.push('link-bold');
+      }
+
+      if (classes.length) {
+        classes = `[${classes.join(',')}]`;
+      }
+
+      anchor.textContent = `${anchor.textContent} ${classes}`;
+    }
+  });
+};
 
 /**
  * This function creates a block separator.
@@ -234,9 +434,20 @@ const convertSectionsToMetadata = (document) => {
   const sections = document.querySelectorAll('.section');
   sections.forEach((section, index) => {
     const style = [];
+    const tempBlueSelectors = [
+      '.blue1-background',
+      '.blue2-background',
+      '.blue3-background',
+      '.blue4-background',
+      '.blue5-background',
+      '.blue6-background',
+    ];
 
     SECTION_SELECTORS.forEach((selector) => {
       if (section.matches(selector)) {
+        if (tempBlueSelectors.includes(selector)) {
+          style.push('reverse');
+        }
         style.push(selector.replace('.', '').replace('-', ' '));
       }
     });
@@ -497,22 +708,28 @@ const dividerBlock = (document) => {
  * @param {Document} document - The document to search.
  */
 const authorBioBlock = (document) => {
-  const authorBio = document.querySelector('.author-bio');
-  if (authorBio) {
-    const authorTags = authorBio.getAttribute('data-author-tags');
-    const authorTag = authorTags ? JSON.parse(authorTags)[0] : '';
+  const authorBio = document.querySelector('.component.author-bio');
+  if (authorBio && authorBio.textContent.trim() !== '') {
+    let authorTags = authorBio.getAttribute('data-author-tags');
+    authorTags = authorTags ? JSON.parse(authorTags) : [];
 
-    if (authorTag) {
-      const link = `${EDS_DOMAIN}/fragments/authors/${authorTag}`;
+    const tempDiv = document.createElement('div');
 
-      const anchor = document.createElement('a');
-      anchor.href = link;
-      anchor.textContent = anchor.href;
-      const cells = [['Fragment'], [anchor]];
+    if (authorTags.length) {
+      authorTags.forEach((tag) => {
+        const link = `${EDS_DOMAIN}/fragments/authors/${tag}`;
 
-      const table = WebImporter.DOMUtils.createTable(cells, document);
-      authorBio.replaceWith(table);
+        const anchor = document.createElement('a');
+        anchor.href = link;
+        anchor.textContent = anchor.href;
+        const cells = [['Fragment'], [anchor]];
+
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        tempDiv.appendChild(table);
+      });
     }
+
+    authorBio.replaceWith(tempDiv);
   }
 };
 
@@ -535,26 +752,27 @@ const faqBlock = (document, meta) => {
   if (meta['Temp Sub Template'] === 'faqs') {
     const components = document.querySelectorAll('.component');
     const cells = [['FAQ (Ordered)']];
-    let componentIndex = 0;
+    let componentIndex = -1;
 
-    const olList = document.querySelectorAll('ol li');
+    const olList = document.querySelectorAll('.article-info ol li');
     if (olList.length === 0) {
       return;
     }
-    document.querySelector('ol')?.remove();
 
     for (let i = 0; i < components.length; i += 1) {
       const component = components[i];
-      const h2s = component.querySelectorAll('h2');
+      const h2s = component.querySelectorAll('h2.title-text, h3.title-text');
 
       if (h2s?.length) {
-        for (let j = 0; j < h2s.length; j += 1) {
+        const mini = Math.min(h2s.length, olList.length);
+        for (let j = 0; j < mini; j += 1) {
           const h2 = h2s[j];
-          const h2ParentSibling = h2?.parentElement?.nextElementSibling?.querySelector('.text').innerHTML;
+          const h2ParentSibling = h2?.parentElement?.nextElementSibling?.querySelector('.text');
+
           if (h2ParentSibling) {
             const newH2 = document.createElement('h2');
             newH2.textContent = olList[j].textContent;
-            cells.push([newH2, h2ParentSibling]);
+            cells.push([newH2, h2ParentSibling.innerHTML]);
           }
         }
 
@@ -563,11 +781,23 @@ const faqBlock = (document, meta) => {
       }
     }
 
+    document.querySelector('ol')?.remove();
     const table = WebImporter.DOMUtils.createTable(cells, document);
-    // Only replace the first component after we've found our h2s
-    if (componentIndex) {
+
+    if (componentIndex >= 0) {
       components[componentIndex].replaceWith(table);
     }
+  }
+};
+
+const removeBackToTop = (document) => {
+  const backToTop = document.querySelectorAll('a');
+  if (backToTop.length) {
+    backToTop.forEach((anchor) => {
+      if (anchor.textContent.trim().toLowerCase() === 'back to top') {
+        anchor.remove();
+      }
+    });
   }
 };
 
@@ -698,16 +928,18 @@ const brightCoveVideo = (document) => {
         // eslint-disable-next-line no-continue
         continue;
       }
-      const accountId = video.getAttribute('data-account-id');
-      const playlistLocation = video.getAttribute('data-playlist-location');
-      const videoId = video.getAttribute('data-video-id');
-      const aspectRatio = video.getAttribute('data-aspect-ratio');
+      const accountId = video.getAttribute('data-account-id') || video.querySelector('.brightcove-video')?.getAttribute('data-account-id');
+      const playlistLocation = video.getAttribute('data-playlist-location') || video.querySelector('.brightcove-video')?.getAttribute('data-playlist-location');
+      const videoId = video.getAttribute('data-video-id') || video.querySelector('.brightcove-video')?.getAttribute('data-video-id');
+      const aspectRatio = video.getAttribute('data-aspect-ratio') || video.querySelector('.brightcove-video')?.getAttribute('data-aspect-ratio');
 
       const cells = [['Brightcove']];
       cells.push(['accountID', accountId]);
       cells.push(['videoID', videoId]);
       cells.push(['playlistID', '']);
-      cells.push(['playlistLocation', playlistLocation]);
+      if (playlistLocation) {
+        cells.push(['playlistLocation', playlistLocation]);
+      }
       cells.push(['aspectRatio', aspectRatio]);
 
       cells.push(['cc', '']);
@@ -760,7 +992,7 @@ const tableBlock = (document) => {
       const tempArr = [];
       const trs = innerTable.querySelectorAll('tr');
       trs.forEach((tr) => {
-        if (!tr.textContent || tr.textContent.trim() === '') {
+        if (!tr.textContent || tr.textContent === '') {
           tr.remove();
         }
       });
@@ -769,8 +1001,13 @@ const tableBlock = (document) => {
         tempArr.push('no-header');
       }
 
-      if (innerTable.querySelector('.collapsible')) {
+      if (innerTable.classList?.contains('collapsible')) {
         tempArr.push('collapsible');
+      }
+
+      if (innerTable.classList?.contains('cmeCompactTable') || innerTable.classList?.contains('compact')) {
+        // compact class added
+        tempArr.push('compact');
       }
 
       if (innerTable.querySelectorAll('tr').length) {
@@ -916,11 +1153,6 @@ const tableBlock = (document) => {
           }
         }
       });
-
-      if (innerTable.classList.contains('cmeCompactTable') || innerTable.classList.contains('compact')) {
-        // compact class added
-        tempArr.push('compact');
-      }
 
       if (tempArr.length) {
         tableText += ` (${tempArr.join(', ')})`;
@@ -1253,8 +1485,22 @@ const handleArticleFragments = (document) => {
   }
 };
 
+const mapBlueDesignBoxToCardsFactoid = (document) => {
+  const blueDesignBoxes = document.querySelectorAll('.component.design-box.blue1-background');
+  if (blueDesignBoxes?.length) {
+    blueDesignBoxes.forEach((box) => {
+      const table = WebImporter.Blocks.createBlock(document, {
+        name: 'Cards (factoid)',
+        cells: [[box.innerHTML]],
+      });
+      box.replaceWith(table);
+    });
+  }
+};
+
 const customBlocks = async (document, main, meta, url) => {
   moveDividerLine(document);
+  changeAnchors(document);
   figCaptionEmphasize(document);
   convertImagesToLinks(document);
   mapRowsToSection(document);
@@ -1263,9 +1509,8 @@ const customBlocks = async (document, main, meta, url) => {
   articleHeroBlock(document, meta);
   promoBlock(document);
   authorBioBlock(document);
-  quizBlock(document);
+  quizBlock(document, meta);
   tagsCloudBlock(document);
-  faqBlock(document, meta);
   await accordionBlock(document);
   await lightBoxGallery(document);
   sideBarBlocks(document);
@@ -1289,6 +1534,12 @@ const customBlocks = async (document, main, meta, url) => {
     await removeCourseSpecificItem(document, main, meta);
     handleFragments(document);
     coursesColumnsBlock(document);
+  } else if (meta['Temp Sub Template'] === 'podcast') {
+    mapPodcast(document);
+    podcastFragments(document);
+  } else if (meta['Temp Sub Template'] === 'faqs') {
+    removeBackToTop(document);
+    faqBlock(document, meta);
   }
   await moduleOrder(document, meta, url);
   document.querySelector('.course-nav')?.remove();
@@ -1297,6 +1548,7 @@ const customBlocks = async (document, main, meta, url) => {
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
   correctLinks(document);
+  mapBlueDesignBoxToCardsFactoid(document);
   delete meta['Temp Sub Template'];
   // TODO remove this as removing all forms as of now
   // document.querySelectorAll('form')?.forEach((form) => {
@@ -1334,6 +1586,10 @@ export default {
   }) => {
     // define the main element: the one that will be transformed to Markdown
     const main = document.body;
+    const tempMeta = {};
+
+    // Handle gated content and content toggles
+    await handleContentToggle(document, url, tempMeta);
 
     WebImporter.DOMUtils.remove(document, [
       'script[src*="https://solutions.invocacdn.com/js/invoca-latest.min.js"]',
@@ -1381,7 +1637,7 @@ export default {
     const report = customReportElements(document);
 
     const meta = WebImporter.Blocks.getMetadata(document);
-    await setMetadata(meta, document, url);
+    await setMetadata(meta, document, url, tempMeta);
     await customBlocks(document, main, meta, url);
 
     const mdb = WebImporter.Blocks.getMetadataBlock(document, meta);

@@ -1,13 +1,18 @@
 import { getMetadata } from '../../scripts/aem.js';
+import { isFeatureToggled } from '../../scripts/utils.js';
 
 const isTabsRequired = (main) => main.querySelectorAll(':scope > .section.tabs').length > 0;
 const isCourseNavRequired = () => {
+  if (isFeatureToggled('hideCourseNav', 'y', true)) return false;
+
   const template = getMetadata('template');
   if (!template) return false;
   return template.toLowerCase() === 'course' || template.toLowerCase() === 'lesson';
 };
 
 const isRelatedCoursesRequired = () => {
+  if (isFeatureToggled('educationIframe')) return false;
+
   const template = getMetadata('template');
   if (!template) return false;
   return template.toLowerCase() === 'course';

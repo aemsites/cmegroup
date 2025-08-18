@@ -268,6 +268,27 @@ function handleRegistrationRedirection(event, element) {
   }
 }
 
+function handleOneClickForm(event, element) {
+  const { authenticationData } = authentication;
+  event.preventDefault();
+  if (!authenticationData.isLoggedIn) {
+    const expires = new Date();
+    expires.setMinutes(expires.getMinutes() + 30);
+    window.CookieUtil?.set(
+      'oneClickFormCookie',
+      {
+        location: element.href,
+        formId: element.closest('[form-id]')?.getAttribute('form-id'),
+      },
+      {
+        expires,
+      },
+    );
+    //  noActivationPrompt used in registration url
+    element.setAttribute('data-no-activation-prompt', 'true');
+  }
+}
+
 /**
  * Decorates external links to open in a new tab.
  * @param {Element} main The main element
@@ -498,16 +519,19 @@ export function decorateButtons(element) {
     const text = a.textContent;
     const url = new URL(a.href);
     const domainCheck = checkDomain(url);
-    const isLogin = a.title.match(/\[login\]/i);
-    const isRegistration = a.title.match(/\[registration\]/i);
+    const oneCLickRegex = /\[[^\]]*\bone-click\b[^\]]*\]/i;
+    const loginRegex = /\[[^\]]*\blogin\b[^\]]*\]/i;
+    const registrationRegex = /\[[^\]]*\bregistration\b[^\]]*\]/i;
+    const isOneClick = oneCLickRegex.test(a.textContent);
+    const isLogin = loginRegex.test(a.textContent);
+    const isRegistration = registrationRegex.test(a.textContent);
     let textIndex = -1;
     let iconIndex = -1;
-    a.title = a.title || text;
 
     // Button decoration
     if (a.href !== text && !a.querySelector('img')) {
-      const up = a.parentElement;
-      const twoup = up?.parentElement;
+      const up = a.parentElement || null;
+      const twoup = up?.parentElement || null;
 
       if (up?.childNodes.length === 1 && (up.tagName === 'P' || up.tagName === 'DIV')) {
         up.classList.add('button-container');
@@ -540,8 +564,17 @@ export function decorateButtons(element) {
           const bracketMatch = nodeText.match(/\[([^\]]+)\]/);
 
           if (bracketMatch) {
-            const classes = bracketMatch[1].split(',').map((c) => c.trim());
-            a.classList.add(...classes);
+            const classes = bracketMatch[1]
+              .split(',')
+              .map((value) => value.trim())
+              .filter((value) => value.toLowerCase() !== 'one-click'
+                && value.toLowerCase() !== 'login'
+                && value.toLowerCase() !== 'registration');
+
+            if (classes.length > 0) {
+              a.classList.add(...classes);
+            }
+
             nodeText = nodeText.replace(/\s*\[[^\]]*\]/, '');
             node.textContent = nodeText;
           }
@@ -566,16 +599,19 @@ export function decorateButtons(element) {
       }
     }
 
-    // Login/Register handling
+    // Login/Register/OneClick handling
+    if (isOneClick) {
+      a.addEventListener('click', (event) => {
+        handleOneClickForm(event, a);
+      }, { capture: true });
+    }
     if (isLogin) {
-      a.title = a.title.replaceAll(/\[login\]/ig, '').trim();
       a.addEventListener('click', (event) => {
         handleLoginRedirection(event, a);
       }, { capture: true });
     }
 
     if (isRegistration) {
-      a.title = a.title.replaceAll(/\[registration\]/ig, '').trim();
       a.addEventListener('click', (event) => {
         handleRegistrationRedirection(event, a);
       }, { capture: true });

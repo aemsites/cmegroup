@@ -204,7 +204,7 @@ const getCards = async (cardType, item) => {
   if (cardFn) {
     await cardFn(card, item);
   } else {
-    await cardFn(cardMap.default, item);
+    await cardMap.default(card, item);
   }
 
   return card;

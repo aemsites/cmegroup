@@ -171,47 +171,38 @@ function updateFieldsAfterSubmit(form, block) {
   });
 }
 
-function buildOneClickFormCookie(block, element) {
-  //  TODO: remove this when we've the handler for one click form
-  const { isLoggedIn } = authentication.authenticationData;
-  if (isLoggedIn) {
-    return;
-  }
-  const expires = new Date();
-  expires.setMinutes(expires.getMinutes() + 30);
-  window.CookieUtil?.set(
-    'oneClickFormCookie',
-    {
-      location: element.href,
-      formId: block.getAttribute('form-id'),
-    },
-    {
-      expires,
-    },
-  );
-  //  noActivationPrompt used in registration url
-  element.setAttribute('data-no-activation-prompt', 'true');
-}
-
-function prefillForm(form, userInfo) {
+function prefillForm(form) {
+  const userInfo = window.LocalStorageUtil?.get('userInfo', true);
   [...form.elements].forEach((field) => {
-    //  prefill order from salesforce userInfo:
-    //  - contactLead selfInput field
-    //  - contactLead field
-    //  - field name
-    let value = userInfo[field.prefillSelfInput]
-      || userInfo[field.prefillInput]
-      || userInfo[field.name];
-
-    if (!value && field.name.startsWith('Country_Code')) {
-      //  default value for country
-      value = getCountryCode() || 'US';
+    let value;
+    if (userInfo && field.prefillInput) {
+      //  prefill order from salesforce userInfo:
+      //  - contactLead selfInput field
+      //  - contactLead field
+      //  - field name
+      value = userInfo[field.prefillSelfInput]
+        || userInfo[field.prefillInput]
+        || userInfo[field.name];
     }
     if (value) {
       setFieldValue(field, value);
+    } else {
+      prefillDefault(field);
     }
   });
   replaceTemplateVariables(form);
+}
+
+function prefillDefault(field) {
+  if (field.type === 'email') {
+    //  logged in user email
+    const { loginInfo } = authentication.authenticationData;
+    setFieldValue(field, loginInfo?.email || '');
+  }
+  if (field.name.startsWith('Country_Code')) {
+    //  default value from browser region
+    setFieldValue(field, getCountryCode() || 'US');
+  }
 }
 
 async function decorateContactUsForm(form, formData, block) {
@@ -235,9 +226,6 @@ async function decorateContactUsForm(form, formData, block) {
         });
       }
     }
-
-    const userInfo = window.LocalStorageUtil?.get('userInfo', true);
-    prefillForm(form, userInfo);
   }
 }
 
@@ -263,24 +251,6 @@ async function decorateOneClickForm(form, formData, block) {
       thanksMsg.forEach((msg) => { msg.parentElement.dataset.showAfterSubmit = false; });
       updateFieldsAfterSubmit(form, block);
     }
-  } else {
-    //  TODO: remove following listeners when we've the handlers for login/register
-    const register = form.querySelector('#form-register');
-    register?.addEventListener('click', async (event) => {
-      const { target: element } = event;
-      buildOneClickFormCookie(block, element);
-      authentication.registration(
-        element.href || element.baseURI,
-        element.target,
-        element.getAttribute('data-target-description'),
-        element.getAttribute('data-no-activation-prompt'),
-      );
-    });
-    const login = form.querySelector('#form-login');
-    login?.addEventListener('click', async (event) => {
-      buildOneClickFormCookie(block, event.target);
-      authentication.login();
-    });
   }
 }
 
@@ -346,6 +316,7 @@ async function createForm(formData, block) {
   await loadChoices(form);
   await decorateContactUsForm(form, formData, block);
   await decorateOneClickForm(form, formData, block);
+  prefillForm(form);
   applyRichTextFormat(form, ['label', 'p']);
   addListenersForDefaultHideFields(form);
   return form;
@@ -465,7 +436,7 @@ async function handleSubmit(form, block) {
   const spinner = createSpinner();
   try {
     form.setAttribute('data-submitting', 'true');
-    submit?.setAttribute('disabled', 'true');
+    submit?.setAttribute('disabled', '');
     block.append(spinner);
 
     const sitekey = block.querySelector('.recaptcha-disclaimer')?.dataset.sitekey;
@@ -506,7 +477,7 @@ async function handleSubmit(form, block) {
   } finally {
     spinner.remove();
     form.setAttribute('data-submitting', 'false');
-    submit?.setAttribute('disabled', 'false');
+    submit?.removeAttribute('disabled');
   }
 }
 
@@ -536,7 +507,7 @@ function getFormData(block) {
     }
   });
 
-  const formId = formData.id;
+  const formId = formData.id || '';
   block.setAttribute('form-id', formId);
 
   const formName = block.classList[block.classList.length > 1 ? 1 : 0];
@@ -610,7 +581,7 @@ async function decorateForm(formData, block) {
       const invalidFields = form.querySelectorAll(':invalid');
       invalidFields.forEach((field) => {
         const wrapper = field.closest('.field-wrapper:not(.hide)');
-        if (!wrapper.querySelector('.error-message')) {
+        if (wrapper && !wrapper.querySelector('.error-message')) {
           const errorMsg = createElement('div', { class: 'error-message' });
           errorMsg.className = 'error-message';
           errorMsg.textContent = field.validationMessage || 'This field is required';
