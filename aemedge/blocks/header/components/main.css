@@ -96,6 +96,14 @@ body {
         flex-wrap: wrap;
         justify-content: space-between;
 
+        @media (width >= 993px) {
+          padding: 0 0 0 4.125rem;
+        }
+
+        @media (width >= 1201px) {
+          padding: 0 0 0 5.5rem;
+        }
+
         &.is-open {
           position: fixed;
           left: 0;
@@ -340,6 +348,11 @@ body {
               justify-content: space-between;
               align-items: center;
               transition: background-color 0.1s ease;
+
+              @media (width >= 993px) {
+                background-color: transparent;
+              }
+
               &:hover {
                 color: var(--blue5);
               }
@@ -354,7 +367,6 @@ body {
             & .navigation-link {
               @media (width >= 993px) {
                 color: var(--gray7);
-                background-color: var(--white);
                 padding: 0;
 
                 &::after {
@@ -607,10 +619,6 @@ body {
             margin-right: 3.75rem;
           }
         }
-
-        @media (width >= 993px) {
-          padding: 0 0 0 4.125rem;
-        }
       }
     }
 
@@ -618,6 +626,7 @@ body {
       &.btn-search,
       &.btn-menu-close,
       &.btn-menu-toggle {
+        align-items: center;
         background-color: transparent;
         border-radius: 0;
         border-width: 0 0 0 0.0625rem;
