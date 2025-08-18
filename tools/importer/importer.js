@@ -992,7 +992,7 @@ const tableBlock = (document) => {
       const tempArr = [];
       const trs = innerTable.querySelectorAll('tr');
       trs.forEach((tr) => {
-        if (!tr.textContent || tr.textContent.trim() === '') {
+        if (!tr.textContent || tr.textContent === '') {
           tr.remove();
         }
       });
@@ -1001,8 +1001,13 @@ const tableBlock = (document) => {
         tempArr.push('no-header');
       }
 
-      if (innerTable.querySelector('.collapsible')) {
+      if (innerTable.classList?.contains('collapsible')) {
         tempArr.push('collapsible');
+      }
+
+      if (innerTable.classList?.contains('cmeCompactTable') || innerTable.classList?.contains('compact')) {
+        // compact class added
+        tempArr.push('compact');
       }
 
       if (innerTable.querySelectorAll('tr').length) {
@@ -1148,11 +1153,6 @@ const tableBlock = (document) => {
           }
         }
       });
-
-      if (innerTable.classList.contains('cmeCompactTable') || innerTable.classList.contains('compact')) {
-        // compact class added
-        tempArr.push('compact');
-      }
 
       if (tempArr.length) {
         tableText += ` (${tempArr.join(', ')})`;
