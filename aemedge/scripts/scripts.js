@@ -519,8 +519,10 @@ export function decorateButtons(element) {
     const text = a.textContent;
     const url = new URL(a.href);
     const domainCheck = checkDomain(url);
+    const oneCLickRegex = /\[[^\]]*\bone-click\b[^\]]*\]/i;
     const loginRegex = /\[[^\]]*\blogin\b[^\]]*\]/i;
     const registrationRegex = /\[[^\]]*\bregistration\b[^\]]*\]/i;
+    const isOneClick = oneCLickRegex.test(a.textContent);
     const isLogin = loginRegex.test(a.textContent);
     const isRegistration = registrationRegex.test(a.textContent);
     let textIndex = -1;
@@ -565,7 +567,11 @@ export function decorateButtons(element) {
             const classes = bracketMatch[1]
               .split(',')
               .map((value) => value.trim())
-              .filter((value) => value.toLowerCase() !== 'login' && value.toLowerCase() !== 'registration');
+              .filter((value) =>
+                value.toLowerCase() !== 'one-click' && 
+                value.toLowerCase() !== 'login' &&
+                value.toLowerCase() !== 'registration'
+              );
 
             if (classes.length > 0) {
               a.classList.add(...classes);
@@ -597,7 +603,6 @@ export function decorateButtons(element) {
 
     // Login/Register/OneClick handling
     if (isOneClick) {
-      a.title = a.title.replaceAll(/\[one-click\]/ig, '').trim();
       a.addEventListener('click', (event) => {
         handleOneClickForm(event, a);
       }, { capture: true });
