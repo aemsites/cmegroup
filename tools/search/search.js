@@ -1857,6 +1857,12 @@ async function bulkOperation() {
     return;
   }
 
+  // Handle Copy URLs operation separately (no API calls needed)
+  if (operationType === 'copy-urls') {
+    await copySelectedUrlsFromBulk(selected);
+    return;
+  }
+
   // Validate org/site configuration
   if (!validateOrgSite()) {
     return;
@@ -1906,6 +1912,67 @@ async function bulkOperation() {
   } catch (error) {
     showMessage(`${operationType} failed: ${error.message}`, 'error');
     updateProgress(0, '');
+  }
+}
+
+async function copySelectedUrlsFromBulk(selected) {
+  try {
+    // Get the organization and site from org-site-path configuration
+    // This will construct URL like: https://main--site--org.aem.page
+    let baseUrl = null;
+
+    // Get org/site from configuration
+    const orgSite = parseOrgSite();
+    if (orgSite && orgSite.org && orgSite.site) {
+      const { org, site } = orgSite;
+      baseUrl = `https://main--${site}--${org}.aem.page`;
+    } else if (app.orgSiteCache) {
+      const { org, site } = app.orgSiteCache;
+      baseUrl = `https://main--${site}--${org}.aem.page`;
+    }
+
+    // If no org/site configuration found, show error
+    if (!baseUrl) {
+      showMessage('Please configure the Org/Site Path to copy URLs', 'error');
+      return;
+    }
+
+    // Collect URLs from selected files
+    const urls = selected.map((result) => {
+      let path = result.file.path;
+
+      // Remove org/site prefix if present (using the same org/site from baseUrl)
+      if (orgSite && orgSite.org && orgSite.site) {
+        const { org, site } = orgSite;
+        const prefixToRemove = `/${org}/${site}`;
+        if (path.startsWith(prefixToRemove)) {
+          path = path.substring(prefixToRemove.length);
+        }
+      }
+
+      // Ensure path starts with /
+      if (!path.startsWith('/')) {
+        path = `/${path}`;
+      }
+
+      // Remove .html extension if present
+      if (path.endsWith('.html')) {
+        path = path.slice(0, -5);
+      }
+
+      return `${baseUrl}${path}`;
+    });
+
+    // Join URLs with newlines
+    const urlList = urls.join('\n');
+
+    // Copy to clipboard
+    await navigator.clipboard.writeText(urlList);
+
+    showMessage(`Copied ${urls.length} URL${urls.length === 1 ? '' : 's'} to clipboard`, 'success');
+  } catch (error) {
+    console.error('Error copying URLs:', error);
+    showMessage('Failed to copy URLs to clipboard', 'error');
   }
 }
 
@@ -2165,15 +2232,22 @@ function updateBulkButtonText() {
 
   if (select && buttonText) {
     const operation = select.value;
-    const operationText = operation.charAt(0).toUpperCase() + operation.slice(1);
+    let operationText;
+
+    // Handle special case for copy-urls
+    if (operation === 'copy-urls') {
+      operationText = 'Copy URLs';
+    } else {
+      operationText = operation.charAt(0).toUpperCase() + operation.slice(1);
+    }
 
     // Count selected files
     const selectedCount = app.results.filter((result) => result.selected).length;
 
     if (selectedCount > 0) {
-      buttonText.textContent = `${operationText} Selected (${selectedCount})`;
+      buttonText.textContent = `${operationText} (${selectedCount})`;
     } else {
-      buttonText.textContent = `${operationText} Selected`;
+      buttonText.textContent = operationText;
     }
   }
 }
