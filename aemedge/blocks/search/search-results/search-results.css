@@ -1,5 +1,5 @@
 .block.search {
-  .result-card {
+  & .result-card {
     background: var(--white);
     display: flex;
     gap: 0.7rem;
@@ -12,7 +12,7 @@
     min-height: 9.375rem;
     max-height: 13.75rem;
 
-    .result-item {
+    & .result-item {
       padding: 1rem 1rem 0.5rem;
       display: flex;
       flex-direction: column;
@@ -22,7 +22,7 @@
       }
     }
 
-    img {
+    & img {
       max-width: 19.5625rem;
       display: none;
 
@@ -31,7 +31,7 @@
       }
     }
 
-    .result-header {
+    & .result-header {
       text-transform: uppercase;
       color: var(--gray3);
       font-size: 0.6875rem;
@@ -43,7 +43,7 @@
       margin-top: 0.313rem;
     }
 
-    .result-title {
+    & .result-title {
       color: var(--card-title-color);
       font-size: 1.125rem;
       max-height: 2.8125rem;
@@ -74,12 +74,12 @@
       }
     }
 
-    a {
+    & a {
       text-decoration: none;
       display: flex;
     }
 
-    .result-desc {
+    & .result-desc {
       font-size: 0.875rem;
       color: var(--gray3);
       margin-bottom: 1rem;
@@ -98,7 +98,7 @@
       }
     }
 
-    .result-footer {
+    & .result-footer {
       display: none;
 
       @media (width >= 769px) {
@@ -118,7 +118,7 @@
       }
     }
 
-    .result-read-time {
+    & .result-read-time {
       font-size: 0.75rem;
       color: var(--gray3);
       font-style: italic;
@@ -144,21 +144,21 @@
       }
     }
 
-    .icon-list,
-    .icon-play,
-    .icon-audio {
+    & .icon-list,
+    & .icon-play,
+    & .icon-audio {
       margin-top: auto;
     }
   }
 
-  .search-spinner {
+  & .search-spinner {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 3.125rem;
   }
 
-  .spinner {
+  & .spinner {
     width: 1.5625rem;
     height: 1.5625rem;
     border: 0.25rem solid var(--white);
@@ -169,13 +169,13 @@
     animation: spin 1s linear infinite;
   }
 
-  .results-wrapper {
+  & .results-wrapper {
     &.columns-1 {
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
 
-      .results-container {
+      & .results-container {
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
@@ -187,7 +187,7 @@
       flex-direction: column;
       gap: 1.5rem;
 
-      .results-container {
+      & .results-container {
         display: grid;
         grid-template-columns: repeat(1, 1fr);
         gap: 1.5rem;
@@ -200,8 +200,8 @@
       }
     }
 
-    .result-card {
-      .icon {
+    & .result-card {
+      & .icon {
         color: var(--blue5);
         display: flex;
         flex-direction: row;
@@ -210,15 +210,15 @@
         height: 0.75rem;
         width: 0.75rem;
 
-        img {
+        & img {
           display: block;
           filter: invert(72%) sepia(27%) saturate(1035%) hue-rotate(165deg) brightness(102%) contrast(98%);
         }
       }
 
-      .icon-list p,
-      .icon-play p,
-      .icon-audio p {
+      & .icon-list p,
+      & .icon-play p,
+      & .icon-audio p {
         margin-top: 0;
         margin-bottom: 0;
         line-height: 1;
@@ -230,28 +230,28 @@
     }
   }
 
-  .card-lesson {
-    .result-footer {
+  & .card-lesson {
+    & .result-footer {
       font-style: italic;
     }
   }
 
-  .card-lesson-thumbnail .result-footer,
-  .card-standalone-lesson-thumbnail .result-footer,
-  .card-course .result-footer,
-  .card-course-thumbnail .result-footer {
+  & .card-lesson-thumbnail .result-footer,
+  & .card-standalone-lesson-thumbnail .result-footer,
+  & .card-course .result-footer,
+  & .card-course-thumbnail .result-footer {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-size: 0.75rem;
   }
 
-  .card-article-thumbnail {
-    .icon-list p {
+  & .card-article-thumbnail {
+    & .icon-list p {
       font-style: italic;
     }
 
-    .result-footer {
+    & .result-footer {
       font-style: italic;
     }
   }

@@ -9,7 +9,7 @@
     }
   }
 
-  .pagination-list {
+  & .pagination-list {
     display: flex;
     list-style: none;
     padding: 0;
@@ -18,7 +18,7 @@
     border-radius: 0.25rem;
     overflow: hidden;
 
-    .pagination-item {
+    & .pagination-item {
       margin-bottom: 0;
 
       &:first-of-type {
@@ -29,7 +29,7 @@
         border-left: 0.125rem solid var(--gray4);
       }
 
-      a {
+      & a {
         display: flex;
         align-items: center;
         height: 2rem;
@@ -51,7 +51,7 @@
       &.disabled {
         opacity: 0.5;
 
-        a {
+        & a {
           cursor: not-allowed;
           color: var(--gray3);
         }
@@ -59,7 +59,7 @@
     }
   }
 
-  .pagination-ellipsis {
+  & .pagination-ellipsis {
     display: flex;
     align-items: center;
     justify-content: center;
