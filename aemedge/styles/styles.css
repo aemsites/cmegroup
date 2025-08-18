@@ -155,24 +155,28 @@ h1,
 .h1 {
   font-size: 1.5rem;
   line-height: 2rem;
+  letter-spacing: 0.0262rem;
 }
 
 h2,
 .h2 {
   font-size: 1.375rem;
   line-height: 1.75rem;
+  letter-spacing: 0.02rem;
 }
 
 h3,
 .h3 {
   font-size: 1.25rem;
   line-height: 1.625rem;
+  letter-spacing: 0.0163rem;
 }
 
 h4,
 .h4 {
   font-size: 1.125rem;
   line-height: 1.5rem;
+  letter-spacing: 0.0262rem;
 }
 
 h5,
@@ -180,7 +184,7 @@ h5,
   text-transform: uppercase;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  letter-spacing: 0.1462rem;
+  letter-spacing: 0.0788rem;
 }
 
 h6,
@@ -228,7 +232,6 @@ h6,
   .h1 {
     font-size: var(--heading-font-size-xxl);
     line-height: 3.375rem;
-    letter-spacing: 0.0262rem;
     margin-bottom: 1.875rem;
   }
 
@@ -236,7 +239,6 @@ h6,
   .h2 {
     font-size: var(--heading-font-size-xl);
     line-height: 2.625rem;
-    letter-spacing: 0.0262rem;
     margin-bottom: 1.875rem;
   }
 
@@ -244,7 +246,6 @@ h6,
   .h3 {
     font-size: var(--heading-font-size-l);
     line-height: 2.125rem;
-    letter-spacing: 0.0262rem;
     margin-bottom: 1.875rem;
   }
 
@@ -252,7 +253,6 @@ h6,
   .h4 {
     font-size: var(--heading-font-size-m);
     line-height: 1.625rem;
-    letter-spacing: 0.0262rem;
     margin-bottom: 1.875rem;
   }
 
@@ -260,7 +260,6 @@ h6,
   .h5 {
     font-size: var(--heading-font-size-s);
     line-height: 1.375rem;
-    letter-spacing: 0.09rem;
     margin-bottom: 1.875rem;
   }
 
@@ -912,7 +911,7 @@ a.button.secondary-3 {
 
 /* stylelint-disable-next-line no-duplicate-selectors */
 .reverse {
-  & a.button.secondary-3 { 
+  & a.button.secondary-3 {
     border-color: var(--blue5);
   }
 }
