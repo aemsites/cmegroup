@@ -32,6 +32,7 @@ const app = {
 
 // Global flag to prevent blur handler interference with autocomplete
 let isSelectingFromAutocomplete = false;
+let isInteractingWithTree = false;
 
 const API = {
   LIST: 'https://admin.da.live/list',
@@ -53,19 +54,17 @@ function addSearchPath(path) {
     return false;
   }
 
-  // Only allow valid paths from the backend API
-  if (app.availablePaths.length === 0) {
-    showMessage('Please wait for folder structure to load, then try again or use autocomplete.', 'warning');
-    return false;
+  // If folder structure is loaded, validate against it
+  if (app.availablePaths.length > 0) {
+    const pathExists = app.availablePaths.some((availablePath) => (
+      availablePath === normalizedPath || availablePath.startsWith(`${normalizedPath}/`)
+    ));
+    if (!pathExists) {
+      showMessage(`Path "${normalizedPath}" does not exist in this site. Type to browse available paths or use autocomplete.`, 'error');
+      return false;
+    }
   }
-
-  const pathExists = app.availablePaths.some((availablePath) => (
-    availablePath === normalizedPath || availablePath.startsWith(`${normalizedPath}/`)
-  ));
-  if (!pathExists) {
-    showMessage(`Path "${normalizedPath}" does not exist in this site. Type to browse available paths or use autocomplete.`, 'error');
-    return false;
-  }
+  // If folder structure isn't loaded yet, allow custom paths (user can enter any path)
 
   app.searchPaths.push(normalizedPath);
   renderPathTags();
@@ -1939,7 +1938,7 @@ async function copySelectedUrlsFromBulk(selected) {
 
     // Collect URLs from selected files
     const urls = selected.map((result) => {
-      let path = result.file.path;
+      let { path } = result.file;
 
       // Remove org/site prefix if present (using the same org/site from baseUrl)
       if (orgSite && orgSite.org && orgSite.site) {
@@ -2030,18 +2029,72 @@ async function exportResults() {
   }
 }
 
+function showSearchPathsLoader() {
+  const loader = document.getElementById('search-paths-loader');
+  const message = document.getElementById('search-paths-message');
+  const pathInput = document.getElementById('search-path-input');
+
+  if (loader) loader.style.display = 'flex';
+  if (message) message.style.display = 'none';
+  // Don't disable input during loading - user can still enter custom paths
+  if (pathInput) pathInput.disabled = false;
+}
+
+function hideSearchPathsLoader() {
+  const loader = document.getElementById('search-paths-loader');
+  const pathInput = document.getElementById('search-path-input');
+
+  if (loader) loader.style.display = 'none';
+  if (pathInput) pathInput.disabled = false;
+}
+
+function showSearchPathsMessage() {
+  const loader = document.getElementById('search-paths-loader');
+  const message = document.getElementById('search-paths-message');
+  const pathInput = document.getElementById('search-path-input');
+
+  if (loader) loader.style.display = 'none';
+  if (message) message.style.display = 'flex';
+  if (pathInput) pathInput.disabled = true;
+}
+
+function hideSearchPathsMessage() {
+  const message = document.getElementById('search-paths-message');
+  const pathInput = document.getElementById('search-path-input');
+
+  if (message) message.style.display = 'none';
+  if (pathInput) pathInput.disabled = false;
+}
+
+function triggerPathSuggestions() {
+  const pathInput = document.getElementById('search-path-input');
+  if (!pathInput) return;
+
+  // Focus the input and trigger a synthetic input event to show suggestions
+  pathInput.focus();
+
+  // Create and dispatch an input event to trigger suggestions
+  const inputEvent = new Event('input', { bubbles: true });
+  pathInput.dispatchEvent(inputEvent);
+}
+
 async function loadFolderTree() {
   try {
     const { token } = app;
     if (!token) {
+      showSearchPathsMessage();
       return;
     }
 
     // Use user's org/site configuration instead of DA context
     const orgSite = parseOrgSite();
     if (!orgSite) {
+      showSearchPathsMessage();
       return;
     }
+
+    // Show loader while loading
+    showSearchPathsLoader();
 
     const folders = new Set();
     const { org, site } = orgSite;
@@ -2076,14 +2129,441 @@ async function loadFolderTree() {
 
     await Promise.race([results, timeoutPromise]);
 
-    // Store folders globally for autocomplete
-    app.availablePaths = Array.from(folders).sort();
+    // Store folders globally for autocomplete - filter to only include drafts paths
+    app.availablePaths = Array.from(folders)
+      .filter((path) => path.toLowerCase().startsWith('/drafts') || path.toLowerCase().startsWith('drafts'))
+      .sort();
 
-    // Setup autocomplete
+    // Hide loader and show autocomplete
+    hideSearchPathsLoader();
     setupPathAutocomplete();
+
+    // Automatically show suggestions after loading completes
+    triggerPathSuggestions();
   } catch (error) {
+    hideSearchPathsLoader();
     showMessage('Could not load folder structure for autocomplete', 'error');
     app.availablePaths = [];
+  }
+}
+
+function buildFolderTree(paths, query = '') {
+  // Create a tree structure from flat paths
+  const tree = {};
+
+  // If no query, show all paths
+  if (!query.trim()) {
+    const filteredPaths = paths;
+
+    // Build the tree structure
+    filteredPaths.forEach((path) => {
+      const parts = path.split('/').filter(Boolean);
+      let current = tree;
+
+      parts.forEach((part, index) => {
+        if (!current[part]) {
+          const nodePath = `/${parts.slice(0, index + 1).join('/')}`;
+          current[part] = {
+            name: part,
+            path: nodePath,
+            level: index,
+            children: {},
+            hasChildren: false,
+            expanded: false,
+            id: `folder_${parts.slice(0, index + 1).join('_')}`,
+          };
+        }
+        current = current[part].children;
+      });
+    });
+  } else {
+    // Advanced search: find paths that contain matching folder names
+    let queryLower = query.toLowerCase();
+
+    // Handle leading slash - remove it for matching purposes
+    if (queryLower.startsWith('/')) {
+      queryLower = queryLower.slice(1);
+    }
+
+    // Check if query ends with slash (indicating user wants to expand + exact matching)
+    const shouldExpandMatches = queryLower.endsWith('/');
+    const useExactMatching = queryLower.endsWith('/');
+
+    // Handle trailing slash - remove it for matching
+    if (queryLower.endsWith('/')) {
+      queryLower = queryLower.slice(0, -1);
+    }
+
+    const relevantPaths = new Set();
+    const pathsToExpand = new Set();
+    const foldersToExpand = new Set(); // Track folders that should be expanded due to trailing slash
+
+    // Find all paths that have any folder matching the search query
+    paths.forEach((path) => {
+      const parts = path.split('/').filter(Boolean);
+      let hasMatch = false;
+
+      // Determine if this path matches based on exact vs partial matching rules
+      let pathMatches = false;
+
+      if (queryLower.includes('/')) {
+        // Multi-segment query like "drafts/piyush"
+        const queryParts = queryLower.split('/').filter(Boolean);
+        const pathString = parts.join('/').toLowerCase();
+
+        if (useExactMatching) {
+          // For trailing slash, check exact sequence matching
+          const pathParts = parts.map((p) => p.toLowerCase());
+          for (let i = 0; i <= pathParts.length - queryParts.length; i++) {
+            let exactMatch = true;
+            for (let j = 0; j < queryParts.length; j++) {
+              if (pathParts[i + j] !== queryParts[j]) {
+                exactMatch = false;
+                break;
+              }
+            }
+            if (exactMatch) {
+              pathMatches = true;
+
+              // Mark for expansion
+              const lastMatchedIndex = i + queryParts.length - 1;
+              const lastMatchedPath = `/${parts.slice(0, lastMatchedIndex + 1).join('/')}`;
+              foldersToExpand.add(lastMatchedPath);
+
+              // Mark parent paths for expansion
+              for (let k = 0; k < lastMatchedIndex; k++) {
+                const parentPath = `/${parts.slice(0, k + 1).join('/')}`;
+                pathsToExpand.add(parentPath);
+              }
+              break;
+            }
+          }
+        } else if (pathString.includes(queryParts.join('/'))) {
+          // For non-trailing slash, use partial matching
+          pathMatches = true;
+
+          // Mark parent paths for expansion (but don't expand the matched folders)
+          const matchIndex = pathString.indexOf(queryParts.join('/'));
+          const beforeMatch = pathString.substring(0, matchIndex);
+          const segmentsBeforeMatch = beforeMatch ? beforeMatch.split('/').length : 0;
+          const querySegmentCount = queryParts.length;
+
+          for (let i = 0; i < segmentsBeforeMatch + querySegmentCount - 1; i++) {
+            if (i < parts.length) {
+              const parentPath = `/${parts.slice(0, i + 1).join('/')}`;
+              pathsToExpand.add(parentPath);
+            }
+          }
+        }
+      } else {
+        // Single segment query like "drafts"
+        parts.forEach((part, index) => {
+          let matches = false;
+
+          if (useExactMatching) {
+            // Exact matching for trailing slash
+            matches = part.toLowerCase() === queryLower;
+          } else {
+            // Partial matching for non-trailing slash
+            matches = part.toLowerCase().includes(queryLower);
+          }
+
+          if (matches) {
+            pathMatches = true;
+
+            // Mark parent paths for expansion up to (but not including) the matching folder
+            for (let i = 0; i < index; i++) {
+              const parentPath = `/${parts.slice(0, i + 1).join('/')}`;
+              pathsToExpand.add(parentPath);
+            }
+
+            // If trailing slash, mark the matching folder itself for expansion
+            if (useExactMatching) {
+              const matchingFolderPath = `/${parts.slice(0, index + 1).join('/')}`;
+              foldersToExpand.add(matchingFolderPath);
+            }
+          }
+        });
+      }
+
+      if (pathMatches) {
+        hasMatch = true;
+        relevantPaths.add(path);
+      }
+    });
+
+    // If we're expanding folders (trailing slash), include their direct children
+    if (shouldExpandMatches && foldersToExpand.size > 0) {
+      foldersToExpand.forEach((folderToExpand) => {
+        paths.forEach((path) => {
+          // Check if this path is a child of the folder we want to expand
+          if (path.toLowerCase().startsWith(`${folderToExpand.toLowerCase()}/`)) {
+            relevantPaths.add(path);
+          }
+        });
+      });
+    }
+
+    // Build the tree structure with only relevant paths
+    relevantPaths.forEach((path) => {
+      const parts = path.split('/').filter(Boolean);
+      let current = tree;
+
+      parts.forEach((part, index) => {
+        if (!current[part]) {
+          const nodePath = `/${parts.slice(0, index + 1).join('/')}`;
+
+          // Determine if this specific folder should be highlighted
+          let isMatch = false;
+
+          if (queryLower.includes('/')) {
+            // For path queries like "drafts/anu", find the matching sequence in the path
+            const queryParts = queryLower.split('/').filter(Boolean);
+            const fullPath = parts.join('/').toLowerCase();
+            const queryString = queryParts.join('/');
+
+            // Find where the query sequence starts in the full path
+            const matchStartIndex = fullPath.indexOf(queryString);
+            if (matchStartIndex !== -1) {
+              // Calculate which parts of the path are before the match
+              const beforeMatch = fullPath.substring(0, matchStartIndex);
+              const beforeParts = beforeMatch ? beforeMatch.split('/').filter(Boolean) : [];
+              const queryStartIndex = beforeParts.length;
+
+              // Check if this current folder is part of the matched sequence
+              queryParts.forEach((queryPart, queryPartIndex) => {
+                const absoluteIndex = queryStartIndex + queryPartIndex;
+                if (index === absoluteIndex && part.toLowerCase().includes(queryPart)) {
+                  isMatch = true;
+                }
+              });
+            }
+          } else if (useExactMatching) {
+            // Exact matching for trailing slash queries
+            isMatch = part.toLowerCase() === queryLower;
+          } else {
+            // Partial matching for regular queries
+            isMatch = part.toLowerCase().includes(queryLower);
+          }
+
+          current[part] = {
+            name: part,
+            path: nodePath,
+            level: index,
+            children: {},
+            hasChildren: false,
+            expanded: pathsToExpand.has(nodePath) || foldersToExpand.has(nodePath),
+            id: `folder_${parts.slice(0, index + 1).join('_')}`,
+            isMatch,
+          };
+        } else {
+          // Update expansion state if this path should be expanded
+          if (pathsToExpand.has(current[part].path) || foldersToExpand.has(current[part].path)) {
+            current[part].expanded = true;
+          }
+
+          // Update match status
+          let isMatch = false;
+
+          if (queryLower.includes('/')) {
+            const queryParts = queryLower.split('/').filter(Boolean);
+            const fullPath = parts.join('/').toLowerCase();
+            const queryString = queryParts.join('/');
+
+            const matchStartIndex = fullPath.indexOf(queryString);
+            if (matchStartIndex !== -1) {
+              const beforeMatch = fullPath.substring(0, matchStartIndex);
+              const beforeParts = beforeMatch ? beforeMatch.split('/').filter(Boolean) : [];
+              const queryStartIndex = beforeParts.length;
+
+              queryParts.forEach((queryPart, queryPartIndex) => {
+                const absoluteIndex = queryStartIndex + queryPartIndex;
+                if (index === absoluteIndex && part.toLowerCase().includes(queryPart)) {
+                  isMatch = true;
+                }
+              });
+            }
+          } else if (useExactMatching) {
+            // Exact matching for trailing slash queries
+            isMatch = part.toLowerCase() === queryLower;
+          } else {
+            // Partial matching for regular queries
+            isMatch = part.toLowerCase().includes(queryLower);
+          }
+
+          if (isMatch) {
+            current[part].isMatch = true;
+          }
+        }
+        current = current[part].children;
+      });
+    });
+  }
+
+  // Mark nodes that have children
+  const markHasChildren = (node) => {
+    Object.keys(node).forEach((key) => {
+      const item = node[key];
+      const childrenKeys = Object.keys(item.children);
+      if (childrenKeys.length > 0) {
+        item.hasChildren = true;
+        markHasChildren(item.children);
+      }
+    });
+  };
+  markHasChildren(tree);
+
+  return tree;
+}
+
+function renderTreeNodes(tree, parentElement, suggestionsList, pathInput) {
+  Object.keys(tree).sort().forEach((key) => {
+    const folder = tree[key];
+    const item = document.createElement('div');
+    item.className = 'suggestion-item';
+    item.setAttribute('data-level', folder.level.toString());
+    item.setAttribute('data-path', folder.path);
+    item.setAttribute('data-id', folder.id);
+
+    if (folder.hasChildren) {
+      item.classList.add('has-children');
+    } else {
+      item.classList.add('leaf-node');
+    }
+
+    // Create expand indicator
+    const expandIndicator = document.createElement('span');
+    expandIndicator.className = 'expand-indicator';
+    if (folder.hasChildren) {
+      // Set initial state based on folder.expanded
+      if (folder.expanded) {
+        expandIndicator.classList.add('expanded');
+        expandIndicator.innerHTML = '▼';
+      } else {
+        expandIndicator.innerHTML = '▶';
+      }
+      expandIndicator.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // Prevent input from losing focus
+      });
+
+      expandIndicator.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        isInteractingWithTree = true;
+        toggleFolder(folder.id, suggestionsList);
+        // Keep focus on the input
+        pathInput.focus();
+        // Reset the flag after a short delay
+        setTimeout(() => {
+          isInteractingWithTree = false;
+        }, 100);
+      });
+    } else {
+      expandIndicator.classList.add('no-children');
+    }
+
+    // Create folder icon using text symbol
+    const icon = document.createElement('span');
+    icon.className = 'folder-icon';
+    icon.innerHTML = '📁';
+    icon.setAttribute('aria-label', 'Folder');
+
+    // Create folder name
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'folder-name';
+    if (folder.isMatch) {
+      nameSpan.classList.add('search-match');
+    }
+    nameSpan.textContent = folder.name;
+
+    // Create folder path (for reference)
+    const pathSpan = document.createElement('span');
+    pathSpan.className = 'folder-path';
+    pathSpan.textContent = folder.path;
+
+    item.appendChild(expandIndicator);
+    item.appendChild(icon);
+    item.appendChild(nameSpan);
+    item.appendChild(pathSpan);
+
+    // Prevent item from causing input blur
+    item.addEventListener('mousedown', (e) => {
+      // Don't prevent default if clicking on expand indicator (it has its own handler)
+      if (!e.target.classList.contains('expand-indicator')) {
+        e.preventDefault(); // Prevent input from losing focus
+      }
+    });
+
+    // Add click handler for path selection (not expand/collapse)
+    item.addEventListener('click', (e) => {
+      // Only trigger expand/collapse if clicking specifically on the expand indicator
+      if (e.target.classList.contains('expand-indicator')) {
+        // This is handled by the expand indicator's click event
+        return;
+      }
+
+      // For any other click on the item, select the path
+      e.preventDefault();
+      e.stopPropagation();
+      isSelectingFromAutocomplete = true;
+      if (addSearchPath(folder.path)) {
+        pathInput.value = '';
+      }
+      suggestionsList.style.display = 'none';
+      pathInput.focus();
+      setTimeout(() => {
+        isSelectingFromAutocomplete = false;
+      }, 100);
+    });
+
+    // Add mouse hover handler
+    item.addEventListener('mouseenter', () => {
+      // Remove previous selection
+      suggestionsList.querySelectorAll('.suggestion-item').forEach((i) => {
+        i.classList.remove('selected');
+      });
+      item.classList.add('selected');
+    });
+
+    parentElement.appendChild(item);
+
+    // Recursively add children (initially collapsed unless folder is expanded)
+    if (folder.hasChildren) {
+      const childContainer = document.createElement('div');
+      childContainer.className = folder.expanded ? 'child-container' : 'child-container collapsed';
+      childContainer.setAttribute('data-parent-id', folder.id);
+      renderTreeNodes(folder.children, childContainer, suggestionsList, pathInput);
+      parentElement.appendChild(childContainer);
+    }
+  });
+}
+
+function toggleFolder(folderId, suggestionsList) {
+  const expandIndicator = suggestionsList.querySelector(`[data-id="${folderId}"] .expand-indicator`);
+  const childContainer = suggestionsList.querySelector(`[data-parent-id="${folderId}"]`);
+
+  if (!expandIndicator || !childContainer) return;
+
+  const isExpanded = expandIndicator.classList.contains('expanded');
+  if (isExpanded) {
+    // Collapse
+    expandIndicator.classList.remove('expanded');
+    expandIndicator.innerHTML = '▶';
+    childContainer.classList.add('collapsed');
+    // Hide all child items
+    childContainer.querySelectorAll('.suggestion-item').forEach((item) => {
+      item.classList.add('collapsed');
+    });
+  } else {
+    // Expand
+    expandIndicator.classList.add('expanded');
+    expandIndicator.innerHTML = '▼';
+    childContainer.classList.remove('collapsed');
+    // Show immediate child items only
+    const immediateChildren = Array.from(childContainer.children).filter((child) => child.classList.contains('suggestion-item') && child.getAttribute('data-level') === (parseInt(childContainer.querySelector('.suggestion-item')?.getAttribute('data-level') || '0', 10)).toString());
+    immediateChildren.forEach((item) => {
+      item.classList.remove('collapsed');
+    });
   }
 }
 
@@ -2112,18 +2592,29 @@ function setupPathAutocomplete() {
   let selectedIndex = -1;
 
   // Update placeholder
-  pathInput.placeholder = 'Type to search folders (e.g., /drafts, /fragments)';
+  pathInput.placeholder = 'Type folder paths or search available folders (e.g., /drafts, /fragments)';
 
   function showSuggestions(query) {
+    // Check if org/site is configured
+    const orgSite = parseOrgSite();
+    if (!orgSite) {
+      suggestionsList.style.display = 'none';
+      showSearchPathsMessage();
+      return;
+    }
+
     // Don't show suggestions if folder structure isn't loaded
     if (!app.availablePaths || app.availablePaths.length === 0) {
       suggestionsList.style.display = 'none';
       return;
     }
 
-    const filtered = app.availablePaths.filter((path) => path.toLowerCase().includes(query.toLowerCase())).slice(0, 10); // Limit to 10 suggestions
+    // Hide any messages since we have data
+    hideSearchPathsMessage();
 
-    if (filtered.length === 0) {
+    // Build nested folder structure
+    const folderTree = buildFolderTree(app.availablePaths, query);
+    if (Object.keys(folderTree).length === 0) {
       suggestionsList.style.display = 'none';
       return;
     }
@@ -2131,42 +2622,18 @@ function setupPathAutocomplete() {
     suggestionsList.innerHTML = '';
     selectedIndex = -1;
 
-    filtered.forEach((path, index) => {
-      const item = document.createElement('div');
-      item.className = 'suggestion-item';
-      item.textContent = path;
-
-      item.addEventListener('mouseenter', () => {
-        // Remove previous selection
-        suggestionsList.querySelectorAll('.suggestion-item').forEach((i) => {
-          i.classList.remove('selected');
-        });
-        item.classList.add('selected');
-        selectedIndex = index;
-      });
-
-      item.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        isSelectingFromAutocomplete = true;
-        if (addSearchPath(path)) {
-          pathInput.value = '';
-        }
-        suggestionsList.style.display = 'none';
-        pathInput.focus();
-        setTimeout(() => {
-          isSelectingFromAutocomplete = false;
-        }, 100);
-      });
-
-      suggestionsList.appendChild(item);
-    });
+    // Render the tree structure (only top level initially visible)
+    renderTreeNodes(folderTree, suggestionsList, suggestionsList, pathInput);
 
     suggestionsList.style.display = 'block';
   }
 
   function hideSuggestions() {
     setTimeout(() => {
+      // Don't hide if we're interacting with the tree (expanding/collapsing)
+      if (isInteractingWithTree) {
+        return;
+      }
       suggestionsList.style.display = 'none';
     }, 150);
   }
@@ -2186,7 +2653,7 @@ function setupPathAutocomplete() {
 
   // Keyboard navigation
   pathInput.addEventListener('keydown', (e) => {
-    const items = suggestionsList.querySelectorAll('.suggestion-item');
+    const items = suggestionsList.querySelectorAll('.suggestion-item:not(.collapsed)');
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -2196,12 +2663,33 @@ function setupPathAutocomplete() {
       e.preventDefault();
       selectedIndex = Math.max(selectedIndex - 1, -1);
       updateSelection(items);
+    } else if (e.key === 'ArrowRight' && selectedIndex >= 0) {
+      e.preventDefault();
+      const selectedItem = items[selectedIndex];
+      if (selectedItem && selectedItem.classList.contains('has-children')) {
+        const folderId = selectedItem.getAttribute('data-id');
+        const expandIndicator = selectedItem.querySelector('.expand-indicator');
+        if (!expandIndicator.classList.contains('expanded')) {
+          toggleFolder(folderId, suggestionsList);
+        }
+      }
+    } else if (e.key === 'ArrowLeft' && selectedIndex >= 0) {
+      e.preventDefault();
+      const selectedItem = items[selectedIndex];
+      if (selectedItem && selectedItem.classList.contains('has-children')) {
+        const folderId = selectedItem.getAttribute('data-id');
+        const expandIndicator = selectedItem.querySelector('.expand-indicator');
+        if (expandIndicator.classList.contains('expanded')) {
+          toggleFolder(folderId, suggestionsList);
+        }
+      }
     } else if (e.key === 'Enter' && selectedIndex >= 0) {
       e.preventDefault();
       isSelectingFromAutocomplete = true;
       const selectedItem = items[selectedIndex];
       if (selectedItem) {
-        if (addSearchPath(selectedItem.textContent)) {
+        const folderPath = selectedItem.getAttribute('data-path');
+        if (addSearchPath(folderPath)) {
           pathInput.value = '';
         }
         suggestionsList.style.display = 'none';
@@ -2481,6 +2969,29 @@ function setupEventListeners() {
       orgSiteInput.addEventListener('blur', () => {
         // Reset flag so tree reloads with new org/site
         folderTreeLoaded = false;
+        // Check if we should show the message
+        const orgSite = parseOrgSite();
+        if (!orgSite) {
+          showSearchPathsMessage();
+        } else {
+          hideSearchPathsMessage();
+          // Enable search paths input immediately when valid org/site is entered
+          const pathInput = document.getElementById('search-path-input');
+          if (pathInput) pathInput.disabled = false;
+        }
+      });
+
+      orgSiteInput.addEventListener('input', () => {
+        // Real-time validation as user types
+        const orgSite = parseOrgSite();
+        if (!orgSite) {
+          showSearchPathsMessage();
+        } else {
+          hideSearchPathsMessage();
+          // Enable search paths input immediately when valid org/site is entered
+          const pathInput = document.getElementById('search-path-input');
+          if (pathInput) pathInput.disabled = false;
+        }
       });
     }
   }
@@ -2657,6 +3168,9 @@ async function init() {
     // Initialize path tags and info
     renderPathTags();
     updatePathInfo();
+
+    // Show message for search paths since org/site won't be configured initially
+    showSearchPathsMessage();
 
     // Show ready message
     showMessage('FindReplace Pro is ready! Enter your org/site to get started.', 'success');
