@@ -2130,9 +2130,7 @@ async function loadFolderTree() {
 
     await Promise.race([results, timeoutPromise]);
 
-    // Store folders globally for autocomplete - filter to only include drafts paths
     app.availablePaths = Array.from(folders)
-      .filter((path) => path.toLowerCase().startsWith('/drafts') || path.toLowerCase().startsWith('drafts'))
       .sort();
 
     // Hide loader and show autocomplete
