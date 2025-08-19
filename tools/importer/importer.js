@@ -255,6 +255,9 @@ const getIconName = (icon) => {
   if (icon === 'icon-arrow-up') {
     return ':arrow-up:';
   }
+  if (icon === 'icon-document-pdf') {
+    return ':download-pdf:';
+  }
   return '';
 };
 
@@ -1347,6 +1350,21 @@ const correctLinks = (document) => {
 
             if (link.textContent === oldHref) {
               link.textContent = link.href;
+            }
+          } else if (pathname?.endsWith('.pdf')
+            || pathname?.endsWith('.mp3')
+            || pathname?.endsWith('.mp4')) {
+            if (link.href.startsWith('/')) {
+              link.href = `${DOMAIN}${link.href}`;
+            } else {
+              completeLink.hostname = DOMAIN.replace('https://', '');
+              completeLink.protocol = 'https';
+              completeLink.port = '';
+              link.href = completeLink.toString();
+              if (link.href === link.textContent) {
+                link.textContent = completeLink.toString();
+              }
+              link.href = completeLink.toString();
             }
           }
         }
