@@ -1839,8 +1839,9 @@ async function handleBulkOperation(operationType, paths, context, org, site, tok
   updateProgress(90, 'Processing...');
 
   if (result.job) {
-    updateProgress(100, `Bulk ${operationType} job started: ${result.job}`);
-    showMessage(`Bulk ${operationType} job initiated for ${paths.length} files. Job ID: ${result.job}`, 'success');
+    const jobId = result?.job?.name;
+    updateProgress(100, `Bulk ${operationType} job started: ${jobId}`);
+    showMessage(`Bulk ${operationType} job initiated for ${paths.length} files. Job ID: ${jobId}`, 'success');
   } else {
     updateProgress(100, `Bulk ${operationType} completed!`);
     showMessage(`Bulk ${operationType} completed for ${paths.length} files`, 'success');

@@ -402,11 +402,10 @@ input, textarea, select {
 
 .folder-icon {
   width: 14px;
-  height: 14px;
   margin-right: var(--spacing-xs);
   flex-shrink: 0;
   opacity: 0.7;
-  margin-right: 0.5rem;
+  margin-right: 0.3rem;
 }
 
 .folder-name {
