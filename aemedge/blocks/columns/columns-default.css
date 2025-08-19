@@ -173,6 +173,42 @@
     }
   }
 
+  &.column-30-70 {
+    &.flex-end {
+      & > div > div:last-child {
+        align-self: flex-end !important;
+      }
+    }
+
+    & > div > div {
+      flex: auto;
+
+      @media (width >= 769px) {
+        width: 30%;
+      }
+
+      &:last-child {
+        width: 100%;
+
+        @media (width >= 769px) {
+          width: 70%;
+        }
+
+        & p {  
+          margin-top: 0.8125rem !important;
+
+          & a {
+            padding: 0;
+          }
+        }
+
+        &.flex-end {
+          align-self: flex-end !important;
+        }
+      }
+    }
+  }
+
   &.divider {
     & > div > div:not(:last-child) {
       @media (width >= 769px) {

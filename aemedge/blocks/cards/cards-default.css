@@ -37,6 +37,7 @@
         box-shadow: none;
 
         &:hover {
+            display: block;
             background: linear-gradient(90deg, #fff, hsl(0deg 0% 100% / 0%)) !important;
 
             & img {
@@ -85,6 +86,7 @@
 
         &:hover {
             background: linear-gradient(90deg, hsl(0deg 0% 100% / 0%), #fff) !important;
+            display: block;
 
             & img {
                 @media (width >= 769px) {

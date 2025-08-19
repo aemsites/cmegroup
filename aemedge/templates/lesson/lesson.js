@@ -2,12 +2,15 @@ import {
   createCourseBaseTemplate, getCourseData, updateLessonStatus, getCurrentLesson,
 } from '../../scripts/course/course.js';
 import { addCourseCertificate } from '../../scripts/course/certificate.js';
-import { createElement, i18n, isFeatureToggled } from '../../scripts/utils.js';
+import {
+  createElement, i18n, isFeatureToggled, addFragmentBlock,
+} from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
-import { buildBlock, decorateBlock, loadBlock } from '../../scripts/aem.js';
+
+const FRAGMENT_URL = '/fragments/courses-lessons/extend-your-learning';
 
 function flattenLessons(courseData) {
   const lessons = courseData.lessons || [];
@@ -104,18 +107,6 @@ async function addLateralNavigation(prevHref, nextHref) {
   preserveHideParameters(nav);
 }
 
-async function appendFragmentBlock() {
-  const main = document.querySelector('main');
-  if (!main) return;
-
-  const fragmentUrl = '/fragments/courses-lessons/extend-your-learning';
-  const fragmentLink = createElement('a', { href: fragmentUrl }, fragmentUrl);
-  const fragmentBlock = buildBlock('fragment', [[fragmentLink]]);
-  main.appendChild(fragmentBlock);
-  decorateBlock(fragmentBlock);
-  await loadBlock(fragmentBlock);
-}
-
 async function initLateralNav(courseData) {
   if (isFeatureToggled('hideCourseNav', 'y', true)) {
     return;
@@ -124,7 +115,7 @@ async function initLateralNav(courseData) {
   const flatLessons = flattenLessons(courseData);
   const { prevHref, nextHref } = findNavigationLinks(currentPath, flatLessons);
   await addLateralNavigation(prevHref, nextHref);
-  await appendFragmentBlock();
+  await addFragmentBlock(FRAGMENT_URL);
 }
 
 export default async function lessonTemplate() {
