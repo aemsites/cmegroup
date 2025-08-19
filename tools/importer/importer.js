@@ -377,18 +377,16 @@ const changeAnchors = (document) => {
       const { firstChild } = anchor;
       let classes = [];
 
-      if (aParent && aParent?.tagName === 'STRONG') {
-        classes.push('link-bold');
-      } else if (firstChild && firstChild?.tagName === 'STRONG') {
-        classes.push('link-bold');
+      if (!anchor.querySelector('img')) {
+        if ((aParent && aParent?.tagName === 'STRONG') || (firstChild && firstChild?.tagName === 'STRONG')) {
+          classes.push('link-bold');
+          if (classes.length) {
+            classes = `[${classes.join(',')}]`;
+          }
+          anchor.textContent = `${anchor.textContent} ${classes}`;
+          anchor.textContent = anchor.textContent?.trim();
+        }
       }
-
-      if (classes.length) {
-        classes = `[${classes.join(',')}]`;
-      }
-
-      anchor.textContent = `${anchor.textContent} ${classes}`;
-      anchor.textContent = anchor.textContent?.trim();
     }
   });
 };
