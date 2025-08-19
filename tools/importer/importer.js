@@ -354,6 +354,7 @@ const changeAnchors = (document) => {
 
         const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
         anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+        anchor.textContent = anchor.textContent?.trim();
       } else {
         let classes = [];
         if (anchor.classList.contains('link-bold')) {
@@ -369,6 +370,7 @@ const changeAnchors = (document) => {
 
         const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
         anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+        anchor.textContent = anchor.textContent?.trim();
       }
     } else {
       const aParent = anchor.parentElement;
@@ -386,6 +388,7 @@ const changeAnchors = (document) => {
       }
 
       anchor.textContent = `${anchor.textContent} ${classes}`;
+      anchor.textContent = anchor.textContent?.trim();
     }
   });
 };
