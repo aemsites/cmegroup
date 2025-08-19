@@ -540,6 +540,7 @@ async function bulkRevertLastReplacement() {
     return;
   }
 
+  // eslint-disable-next-line no-alert
   const confirmation = confirm(
     `Revert ${selectedResults.length} selected files to their most recent saved versions?\n\n`
     + 'This will restore each file to its latest saved version.',
