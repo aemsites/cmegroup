@@ -31,6 +31,7 @@ export default async function courseTemplate() {
   authenticationData.loginPromise.then(async () => {
     const courseData = await getCourseData();
     await createCourseBaseTemplate(courseData);
+    await addBeginCourseButton(courseData);
     if (courseData.completed) {
       const { isLoggedIn, loginInfo } = authenticationData;
       await addCourseCertificate({
@@ -40,8 +41,6 @@ export default async function courseTemplate() {
         lessonTitle: courseData?.title,
         completedModule: courseData?.endDate,
       });
-    } else {
-      await addBeginCourseButton(courseData);
     }
 
     // Apply hide parameters preservation after course content is loaded
