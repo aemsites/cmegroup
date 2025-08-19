@@ -1355,16 +1355,20 @@ const correctLinks = (document) => {
             || pathname?.endsWith('.mp3')
             || pathname?.endsWith('.mp4')) {
             if (link.href.startsWith('/')) {
+              // relative path
               link.href = `${DOMAIN}${link.href}`;
             } else {
-              completeLink.hostname = DOMAIN.replace('https://', '');
-              completeLink.protocol = 'https';
-              completeLink.port = '';
-              link.href = completeLink.toString();
-              if (link.href === link.textContent) {
-                link.textContent = completeLink.toString();
+              // eslint-disable-next-line
+              if (link.href.includes(DOMAIN) || link.href.includes('localhost')) {
+                completeLink.hostname = DOMAIN.replace('https://', '');
+                completeLink.protocol = 'https';
+                completeLink.port = '';
+
+                if (link.href === link.textContent) {
+                  link.textContent = completeLink.toString();
+                }
+                link.href = completeLink.toString();
               }
-              link.href = completeLink.toString();
             }
           }
         }
