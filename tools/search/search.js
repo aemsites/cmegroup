@@ -541,6 +541,7 @@ async function bulkRevertLastReplacement() {
     return;
   }
 
+  // eslint-disable-next-line no-alert
   const confirmation = confirm(
     `Revert ${selectedResults.length} selected files to their most recent saved versions?\n\n`
     + 'This will restore each file to its latest saved version.',
@@ -1939,7 +1940,7 @@ async function copySelectedUrlsFromBulk(selected) {
 
     // Collect URLs from selected files
     const urls = selected.map((result) => {
-      let path = result.file.path;
+      let { path } = result.file;
 
       // Remove org/site prefix if present (using the same org/site from baseUrl)
       if (orgSite && orgSite.org && orgSite.site) {
