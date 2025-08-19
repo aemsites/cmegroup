@@ -458,10 +458,6 @@ input, textarea, select {
   color: var(--color-text-primary);
 }
 
-.expand-indicator.expanded {
-  transform: rotate(90deg);
-}
-
 .expand-indicator.no-children {
   visibility: hidden;
 }

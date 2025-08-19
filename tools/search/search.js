@@ -2237,20 +2237,28 @@ function buildFolderTree(paths, query = '') {
               break;
             }
           }
-        } else if (pathString.includes(queryParts.join('/'))) {
-          // For non-trailing slash, use partial matching
-          pathMatches = true;
+        } else {
+          // For non-trailing slash, use partial matching - check if query sequence matches at folder boundaries
+          const pathParts = parts.map((p) => p.toLowerCase());
+          for (let i = 0; i <= pathParts.length - queryParts.length; i++) {
+            let partialMatch = true;
+            for (let j = 0; j < queryParts.length; j++) {
+              if (!pathParts[i + j].startsWith(queryParts[j])) {
+                partialMatch = false;
+                break;
+              }
+            }
+            if (partialMatch) {
+              pathMatches = true;
 
-          // Mark parent paths for expansion (but don't expand the matched folders)
-          const matchIndex = pathString.indexOf(queryParts.join('/'));
-          const beforeMatch = pathString.substring(0, matchIndex);
-          const segmentsBeforeMatch = beforeMatch ? beforeMatch.split('/').length : 0;
-          const querySegmentCount = queryParts.length;
-
-          for (let i = 0; i < segmentsBeforeMatch + querySegmentCount - 1; i++) {
-            if (i < parts.length) {
-              const parentPath = `/${parts.slice(0, i + 1).join('/')}`;
-              pathsToExpand.add(parentPath);
+              // Mark parent paths for expansion (but don't expand the matched folders)
+              for (let k = 0; k < i + queryParts.length - 1; k++) {
+                if (k < parts.length) {
+                  const parentPath = `/${parts.slice(0, k + 1).join('/')}`;
+                  pathsToExpand.add(parentPath);
+                }
+              }
+              break;
             }
           }
         }
@@ -2263,8 +2271,8 @@ function buildFolderTree(paths, query = '') {
             // Exact matching for trailing slash
             matches = part.toLowerCase() === queryLower;
           } else {
-            // Partial matching for non-trailing slash
-            matches = part.toLowerCase().includes(queryLower);
+            // Partial matching for non-trailing slash - use startsWith for more precise matching
+            matches = part.toLowerCase().startsWith(queryLower);
           }
 
           if (matches) {
@@ -2332,7 +2340,7 @@ function buildFolderTree(paths, query = '') {
               // Check if this current folder is part of the matched sequence
               queryParts.forEach((queryPart, queryPartIndex) => {
                 const absoluteIndex = queryStartIndex + queryPartIndex;
-                if (index === absoluteIndex && part.toLowerCase().includes(queryPart)) {
+                if (index === absoluteIndex && part.toLowerCase().startsWith(queryPart)) {
                   isMatch = true;
                 }
               });
@@ -2341,8 +2349,8 @@ function buildFolderTree(paths, query = '') {
             // Exact matching for trailing slash queries
             isMatch = part.toLowerCase() === queryLower;
           } else {
-            // Partial matching for regular queries
-            isMatch = part.toLowerCase().includes(queryLower);
+            // Partial matching for regular queries - use startsWith for consistency
+            isMatch = part.toLowerCase().startsWith(queryLower);
           }
 
           current[part] = {
@@ -2377,7 +2385,7 @@ function buildFolderTree(paths, query = '') {
 
               queryParts.forEach((queryPart, queryPartIndex) => {
                 const absoluteIndex = queryStartIndex + queryPartIndex;
-                if (index === absoluteIndex && part.toLowerCase().includes(queryPart)) {
+                if (index === absoluteIndex && part.toLowerCase().startsWith(queryPart)) {
                   isMatch = true;
                 }
               });
@@ -2386,8 +2394,8 @@ function buildFolderTree(paths, query = '') {
             // Exact matching for trailing slash queries
             isMatch = part.toLowerCase() === queryLower;
           } else {
-            // Partial matching for regular queries
-            isMatch = part.toLowerCase().includes(queryLower);
+            // Partial matching for regular queries - use startsWith for consistency
+            isMatch = part.toLowerCase().startsWith(queryLower);
           }
 
           if (isMatch) {
@@ -2544,6 +2552,7 @@ function toggleFolder(folderId, suggestionsList) {
   if (!expandIndicator || !childContainer) return;
 
   const isExpanded = expandIndicator.classList.contains('expanded');
+
   if (isExpanded) {
     // Collapse
     expandIndicator.classList.remove('expanded');
