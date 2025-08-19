@@ -273,34 +273,6 @@
     }
   }
 
-  &.column-75-25 {
-    &.flex-end {
-      & > div > div:last-child {
-        align-self: flex-end !important;
-      }
-    }
-
-    & > div > div {
-      flex: auto;
-
-      @media (width >= 769px) {
-        width: 75%;
-      }
-
-      &:last-child {
-        width: 100%;
-
-        @media (width >= 769px) {
-          width: 25%;
-        }
-
-        &.flex-end {
-          align-self: flex-end !important;
-        }
-      }
-    }
-  }
-
   &.column-50-50 {
     &.flex-end {
       & > div > div:last-child {
