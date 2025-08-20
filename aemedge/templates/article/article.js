@@ -175,7 +175,18 @@ function renderAuthors(authorsData, container, byLabel) {
     }
     return author.title;
   });
-  const authorsString = authorList.join(', ');
+
+  // Format authors with proper "and" conjunction
+  let authorsString;
+  if (authorList.length === 1) {
+    [authorsString] = authorList;
+  } else if (authorList.length === 2) {
+    authorsString = `${authorList[0]} and ${authorList[1]}`;
+  } else {
+    const lastAuthor = authorList.pop();
+    authorsString = `${authorList.join(', ')} and ${lastAuthor}`;
+  }
+
   container.innerHTML = `${byLabel} ${authorsString}`;
 }
 
