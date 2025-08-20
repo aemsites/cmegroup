@@ -35,6 +35,7 @@ const DOMAIN = 'https://www.cmegroup.com';
  * Handles content toggle elements by fetching their published content
  * @param {Document} document - The document to process
  */
+// eslint-disable-next-line no-unused-vars
 async function handleContentToggle(document, url, tempMeta) {
   const toggleElements = Array.from(document.querySelectorAll('.content-toggle'));
   const pathName = new URL(url).pathname.replace('.html', '');
@@ -1612,7 +1613,8 @@ export default {
     const tempMeta = {};
 
     // Handle gated content and content toggles
-    await handleContentToggle(document, url, tempMeta);
+    // todo below is the gated content part
+    // await handleContentToggle(document, url, tempMeta);
 
     WebImporter.DOMUtils.remove(document, [
       'script[src*="https://solutions.invocacdn.com/js/invoca-latest.min.js"]',
