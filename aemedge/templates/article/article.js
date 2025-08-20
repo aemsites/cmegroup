@@ -175,7 +175,11 @@ function renderAuthors(authorsData, container, byLabel) {
     }
     return author.title;
   });
-  const authorsString = authorList.join(', ');
+
+  // Format authors with proper conjunction using browser's Intl.ListFormat
+  const locale = getMetadata('locale') || 'en';
+  const authorsString = new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(authorList);
+
   container.innerHTML = `${byLabel} ${authorsString}`;
 }
 

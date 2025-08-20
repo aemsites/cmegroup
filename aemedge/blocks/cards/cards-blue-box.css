@@ -29,8 +29,6 @@
 
 .cards.blue-box li .cards-card-body h3{
     color: var(--white);
-    margin: 0 0 1.875rem;
-    font-size: 1.625rem;
 }
 
 .cards.blue-box li .cards-card-body .button-container {
