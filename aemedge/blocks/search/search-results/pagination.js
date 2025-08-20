@@ -15,7 +15,6 @@ function createPaginationItem(text, page, onPageChange, isDisabled = false, isAc
       searchConfig.pagination.currentPage = page;
       await onPageChange(page);
       urlUpdate();
-      window.scrollTo(0, 0);
     };
   }
 
