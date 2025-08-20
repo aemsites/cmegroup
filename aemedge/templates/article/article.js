@@ -176,7 +176,7 @@ function renderAuthors(authorsData, container, byLabel) {
     return author.title;
   });
 
-  // Format authors with proper "and" conjunction
+  // Format authors with proper "and" conjunction.
   let authorsString;
   if (authorList.length === 1) {
     [authorsString] = authorList;
