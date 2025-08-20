@@ -1939,7 +1939,7 @@ async function copySelectedUrlsFromBulk(selected) {
 
     // Collect URLs from selected files
     const urls = selected.map((result) => {
-      let path = result.file.path;
+      let { path } = result.file;
 
       // Remove org/site prefix if present (using the same org/site from baseUrl)
       if (orgSite && orgSite.org && orgSite.site) {
