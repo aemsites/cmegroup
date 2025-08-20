@@ -176,16 +176,9 @@ function renderAuthors(authorsData, container, byLabel) {
     return author.title;
   });
 
-  // Format authors with proper "and" conjunction.
-  let authorsString;
-  if (authorList.length === 1) {
-    [authorsString] = authorList;
-  } else if (authorList.length === 2) {
-    authorsString = `${authorList[0]} and ${authorList[1]}`;
-  } else {
-    const lastAuthor = authorList.pop();
-    authorsString = `${authorList.join(', ')} and ${lastAuthor}`;
-  }
+  // Format authors with proper conjunction using browser's Intl.ListFormat
+  const locale = getMetadata('locale') || 'en';
+  const authorsString = new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(authorList);
 
   container.innerHTML = `${byLabel} ${authorsString}`;
 }
