@@ -157,7 +157,7 @@ export default async function decorate(block) {
       const rowspan = col.getAttribute('rowspan') || 1;
 
       const cell = buildCell(colspan, rowspan, i === 0 && header);
-      cell.innerHTML = col.innerHTML;
+      cell.innerHTML = col.innerHTML === '[empty-cell]' ? '&nbsp;' : col.innerHTML || '&nbsp;';
 
       // Extract and apply inline styles from the last paragraph
       const paragraphs = cell.querySelectorAll('p');
