@@ -66,7 +66,7 @@ function setDefaultStyles(styleMatrix, data, header) {
     const cells = [...child.children];
 
     if (header && i === 0) {
-      firstHeaderEmpty = cells[0]?.textContent.trim() === '';
+      firstHeaderEmpty = cells[0]?.textContent.trim() === '' || cells[0]?.textContent.trim() !== '[empty-cell]';
     }
 
     cells.forEach((col, j) => {
@@ -157,7 +157,7 @@ export default async function decorate(block) {
       const rowspan = col.getAttribute('rowspan') || 1;
 
       const cell = buildCell(colspan, rowspan, i === 0 && header);
-      cell.innerHTML = col.innerHTML;
+      cell.innerHTML = col.innerHTML === '[empty-cell]' ? '&nbsp;' : col.innerHTML || '&nbsp;';
 
       // Extract and apply inline styles from the last paragraph
       const paragraphs = cell.querySelectorAll('p');

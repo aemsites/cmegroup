@@ -6,9 +6,10 @@
 .table table {
   width: 100%;
   max-width: 100%;
-  border-collapse: separate;
+  border-collapse: collapse;
   border-spacing: 0;
   font-size: var(--body-font-size-xs);
+  margin-bottom: 1.25rem;
 }
 
 @media (width >= 600px) {
@@ -23,23 +24,17 @@
   }
 }
 
-.table table thead tr th {
-  border-top: 2px solid #dadada;
-  border-bottom: 2px solid #dadada;
-}
-
 .table table tbody tr {
   font-size: 16px;
   line-height: 24px;
   padding: 18px 20px;
   text-align: left;
-  vertical-align: top;
   border-bottom: 1px solid #dadada;
   color: #5a6874;
 }
 
 .table table tbody tr:nth-child(2n) {
-  background-color: #F1F5F7;
+  background-color: var(--gray6);
 }
 
 .table.disable-row-banding table tbody tr:nth-child(2n) {
@@ -62,7 +57,7 @@
 .table.compact table tbody tr {
   padding: 10px;
   font-size: 12px;
-  line-height: 18px;
+  line-height: 1.5rem;
 }
 
 .table.data table tbody tr td:not([class$="-header"]) {
@@ -77,6 +72,34 @@
   text-align: left;
 }
 
+.table.simple-first-row table thead tr:hover {
+  background-color: var(--blue6);
+}
+
+.table.simple-first-row table thead tr th {
+  font-size: 0.75rem;
+}
+
+.table.simple-first-row table tbody tr {
+  vertical-align: top;
+}
+
+.table.simple-first-row table tbody tr:nth-child(1n) {
+  background-color: var(--gray6);
+}
+
+.table.simple-first-row table tbody tr:nth-child(2n) {
+  background-color: var(--white);
+}
+
+.table.simple-first-row table tbody tr td.primary-header p{
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .06875rem;
+  line-height: .875rem;
+  vertical-align: middle;
+}
+
 .table table th p,
 .table table td p {
   margin: 0;
@@ -87,9 +110,9 @@
 }
 
 .table table tbody tr td p {
-  font-size: 14px;
+  font-size: 0.75rem;
   line-height: 22px;
-  margin-bottom: 15px;
+  margin-bottom: 0;
 }
 
 .table table tbody tr td p:last-child {
@@ -168,9 +191,13 @@
 
 .table table th,
 .table table td {
-  padding: 0.5em;
+  padding: 0.625rem;
   text-align: left;
   border: 0.5px solid #dadada;
+
+  & strong {
+    font-weight: 700;
+  }
 }
 
 .table.no-header table tbody tr {
