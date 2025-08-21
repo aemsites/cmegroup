@@ -1,3 +1,6 @@
+@import url("cards-article-card-list.css");
+@import url("cards-article-list.css");
+@import url("cards-article-thumbnail-medium.css");
 @import url("cards-default.css");
 @import url("cards-blue-box.css");
 @import url("cards-full-width-gray.css");
@@ -7,9 +10,7 @@
 @import url("cards-event.css");
 @import url("cards-promo-link.css");
 @import url("cards-course.css");
-@import url("cards-article.css");
 @import url("cards-tiles.css");
-@import url("cards-list-thumbnail-medium.css");
 @import url("cards-upcoming-events.css");
 @import url("cards-factoid.css");
 @import url("cards-related-courses.css");
