@@ -29,7 +29,7 @@
   line-height: 1.5rem;
   padding: 1.125rem 1.25rem;
   text-align: left;
-  border-bottom: 0.0625rem solid #dadada;
+  border-bottom: 0.0625rem solid var(--gray4);
   color: #5a6874;
 }
 
@@ -193,7 +193,7 @@
 .table table td {
   padding: 0.625rem;
   text-align: left;
-  border: 0.0313rem solid #dadada;
+  border: 0.0313rem solid var(--gray4);
 
   & strong {
     font-weight: 700;
@@ -201,7 +201,7 @@
 }
 
 .table.no-header table tbody tr {
-  border-top: 0.0625rem solid #dadada;
+  border-top: 0.0625rem solid var(--gray4);
 }
 
 .table.collapsible {
@@ -225,7 +225,7 @@
   .table.collapsible tr {
     margin-bottom: 0;
     padding: 0;
-    border-bottom: 0.0625rem solid #dadada;
+    border-bottom: 0.0625rem solid var(--gray4);
     width: 100%;
   }
 
@@ -261,7 +261,7 @@
 
   .table.collapsible tr.expanded td:not(:first-child) {
     display: block;
-    border-top: 0.0625rem solid #dadada;
+    border-top: 0.0625rem solid var(--gray4);
     width: 100%;
   }
 }
