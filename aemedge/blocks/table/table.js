@@ -66,7 +66,7 @@ function setDefaultStyles(styleMatrix, data, header) {
     const cells = [...child.children];
 
     if (header && i === 0) {
-      firstHeaderEmpty = cells[0]?.textContent.trim() === '' || cells[0]?.textContent.trim() !== '[empty-cell]';
+      firstHeaderEmpty = cells[0]?.textContent.trim() === '';
     }
 
     cells.forEach((col, j) => {
