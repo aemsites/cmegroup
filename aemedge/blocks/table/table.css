@@ -25,11 +25,11 @@
 }
 
 .table table tbody tr {
-  font-size: 16px;
-  line-height: 24px;
-  padding: 18px 20px;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding: 1.125rem 1.25rem;
   text-align: left;
-  border-bottom: 1px solid #dadada;
+  border-bottom: 0.0625rem solid #dadada;
   color: #5a6874;
 }
 
@@ -55,17 +55,17 @@
 }
 
 .table.compact table tbody tr {
-  padding: 10px;
-  font-size: 12px;
+  padding: 0.625rem;
+  font-size: 0.75rem;
   line-height: 1.5rem;
 }
 
 .table.data table tbody tr td:not([class$="-header"]) {
   text-align: right;
   font-family: var(--roboto-mono-font-family);
-  font-size: 16px;
+  font-size: 1rem;
   color: #25323c;
-  padding: 18px 20px;
+  padding: 1.125rem 1.25rem;
 }
 
 .table.data table tbody tr td[class$="-header"] {
@@ -111,7 +111,7 @@
 
 .table table tbody tr td p {
   font-size: 0.75rem;
-  line-height: 22px;
+  line-height: 1.375rem;
   margin-bottom: 0;
 }
 
@@ -120,8 +120,8 @@
 }
 
 .table table tbody tr td ul {
-  margin-bottom: 15px;
-  padding-inline-start: 20px;
+  margin-bottom: 0.9375rem;
+  padding-inline-start: 1.25rem;
 }
 
 .table table tbody tr td ul li:last-child {
@@ -142,10 +142,10 @@
 
 .table table tr [class$="-header"] {
   font-size: var(--heading-font-size-xs);
-  line-height: 14px;
-  letter-spacing: 1.1px;
+  line-height: 0.875rem;
+  letter-spacing: 0.0688rem;
   font-weight: 700;
-  padding: 15px 20px;
+  padding: 0.9375rem 1.25rem;
   color: #c2cace;
   text-transform: uppercase;
   text-align: center;
@@ -159,7 +159,7 @@
 }
 
 .table.compact table tr [class$="-header"] {
-  padding: 10px;
+  padding: 0.625rem;
 }
 
 .table table .primary-header {
@@ -193,7 +193,7 @@
 .table table td {
   padding: 0.625rem;
   text-align: left;
-  border: 0.5px solid #dadada;
+  border: 0.0313rem solid #dadada;
 
   & strong {
     font-weight: 700;
@@ -201,7 +201,7 @@
 }
 
 .table.no-header table tbody tr {
-  border-top: 1px solid #dadada;
+  border-top: 0.0625rem solid #dadada;
 }
 
 .table.collapsible {
@@ -225,7 +225,7 @@
   .table.collapsible tr {
     margin-bottom: 0;
     padding: 0;
-    border-bottom: 1px solid #dadada;
+    border-bottom: 0.0625rem solid #dadada;
     width: 100%;
   }
 
@@ -261,7 +261,7 @@
 
   .table.collapsible tr.expanded td:not(:first-child) {
     display: block;
-    border-top: 1px solid #dadada;
+    border-top: 0.0625rem solid #dadada;
     width: 100%;
   }
 }
