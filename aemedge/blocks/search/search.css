@@ -217,7 +217,7 @@
       background-color: var(--gray5);
       z-index: 1;
       max-height: 12.8125rem;
-      overflow-y: scroll;
+      overflow-y: auto;
 
       &.visible {
         display: block;
@@ -267,6 +267,7 @@
   }
 
   & input[type="checkbox"] {
+    display: flex;
     appearance: none;
     background-color: var(--gray5);
     margin: 0 1rem 0 0;
@@ -285,7 +286,6 @@
         border-right: 0.1875rem solid var(--white);
         height: 0.5rem;
         position: relative;
-        bottom: 0.3rem;
         left: 0.2rem;
         width: 0.1rem;
         transform: rotate(45deg);

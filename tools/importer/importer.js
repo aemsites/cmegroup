@@ -35,6 +35,7 @@ const DOMAIN = 'https://www.cmegroup.com';
  * Handles content toggle elements by fetching their published content
  * @param {Document} document - The document to process
  */
+// eslint-disable-next-line no-unused-vars
 async function handleContentToggle(document, url, tempMeta) {
   const toggleElements = Array.from(document.querySelectorAll('.content-toggle'));
   const pathName = new URL(url).pathname.replace('.html', '');
@@ -255,6 +256,9 @@ const getIconName = (icon) => {
   if (icon === 'icon-arrow-up') {
     return ':arrow-up:';
   }
+  if (icon === 'icon-document-pdf') {
+    return ':download-pdf:';
+  }
   return '';
 };
 
@@ -351,6 +355,7 @@ const changeAnchors = (document) => {
 
         const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
         anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+        anchor.textContent = anchor.textContent?.trim();
       } else {
         let classes = [];
         if (anchor.classList.contains('link-bold')) {
@@ -366,23 +371,23 @@ const changeAnchors = (document) => {
 
         const { firstIcon, secondIcon, thirdIcon } = iconsDataButton(anchor);
         anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+        anchor.textContent = anchor.textContent?.trim();
       }
     } else {
       const aParent = anchor.parentElement;
       const { firstChild } = anchor;
       let classes = [];
 
-      if (aParent && aParent?.tagName === 'STRONG') {
-        classes.push('link-bold');
-      } else if (firstChild && firstChild?.tagName === 'STRONG') {
-        classes.push('link-bold');
+      if (!anchor.querySelector('img')) {
+        if ((aParent && aParent?.tagName === 'STRONG') || (firstChild && firstChild?.tagName === 'STRONG')) {
+          classes.push('link-bold');
+          if (classes.length) {
+            classes = `[${classes.join(',')}]`;
+          }
+          anchor.textContent = `${anchor.textContent} ${classes}`;
+          anchor.textContent = anchor.textContent?.trim();
+        }
       }
-
-      if (classes.length) {
-        classes = `[${classes.join(',')}]`;
-      }
-
-      anchor.textContent = `${anchor.textContent} ${classes}`;
     }
   });
 };
@@ -1348,6 +1353,25 @@ const correctLinks = (document) => {
             if (link.textContent === oldHref) {
               link.textContent = link.href;
             }
+          } else if (pathname?.endsWith('.pdf')
+            || pathname?.endsWith('.mp3')
+            || pathname?.endsWith('.mp4')) {
+            if (link.href.startsWith('/')) {
+              // relative path
+              link.href = `${DOMAIN}${link.href}`;
+            } else {
+              // eslint-disable-next-line
+              if (link.href.includes(DOMAIN) || link.href.includes('localhost')) {
+                completeLink.hostname = DOMAIN.replace('https://', '');
+                completeLink.protocol = 'https';
+                completeLink.port = '';
+
+                if (link.href === link.textContent) {
+                  link.textContent = completeLink.toString();
+                }
+                link.href = completeLink.toString();
+              }
+            }
           }
         }
       } catch (error) {
@@ -1589,7 +1613,8 @@ export default {
     const tempMeta = {};
 
     // Handle gated content and content toggles
-    await handleContentToggle(document, url, tempMeta);
+    // todo below is the gated content part
+    // await handleContentToggle(document, url, tempMeta);
 
     WebImporter.DOMUtils.remove(document, [
       'script[src*="https://solutions.invocacdn.com/js/invoca-latest.min.js"]',
