@@ -4,4 +4,31 @@
   height: 0.0625rem;
   margin: 1rem 0 1.25rem;
   opacity: 1;
+
+  /* Back-to-top variant styles */
+  &.back-to-top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0 1.25rem;
+    height: auto;
+    background-color: transparent;
+
+    & .divider {
+      background-color: var(--gray4);
+      height: 0.0625rem;
+      width: 100%;
+    }
+
+    & .back-to-top-link {
+      display: block;
+      text-align: right;
+      color: var(--blue4);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
 }
