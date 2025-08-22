@@ -1587,7 +1587,6 @@ body.loading::before {
   font-size: 0.875rem;
   pointer-events: none;
   z-index: 10;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
 }
 
 .lightbox-expand-icon::before {
@@ -1683,7 +1682,13 @@ body.loading::before {
 
 /* share this overrides */
 #st-2 {
-  top: 8.25rem !important;
+  top: auto;
+}
+
+@media (width > 1024px) {
+  #st-2 {
+    top: 8.25rem !important;
+  }
 }
 
 #st-2.st-right {

@@ -44,9 +44,21 @@ const buildSectionMetadata = (cells) => WebImporter.Blocks.createBlock(document,
   cells: [...cells],
 });
 
+function decodeHtmlEntities(str) {
+  return str.replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
+// Decode if needed
+const decodedString = (rawString) => JSON.parse(/&[a-z]+;/.test(rawString) ? decodeHtmlEntities(rawString) : rawString);
+
 export {
   fetchTemplate,
   SECTION_SELECTORS,
   EDS_DOMAIN,
   buildSectionMetadata,
+  decodedString,
 };

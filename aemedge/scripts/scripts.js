@@ -268,6 +268,27 @@ function handleRegistrationRedirection(event, element) {
   }
 }
 
+function handleOneClickForm(event, element) {
+  const { authenticationData } = authentication;
+  event.preventDefault();
+  if (!authenticationData.isLoggedIn) {
+    const expires = new Date();
+    expires.setMinutes(expires.getMinutes() + 30);
+    window.CookieUtil?.set(
+      'oneClickFormCookie',
+      {
+        location: element.href,
+        formId: element.closest('[form-id]')?.getAttribute('form-id'),
+      },
+      {
+        expires,
+      },
+    );
+    //  noActivationPrompt used in registration url
+    element.setAttribute('data-no-activation-prompt', 'true');
+  }
+}
+
 /**
  * Decorates external links to open in a new tab.
  * @param {Element} main The main element
@@ -498,8 +519,10 @@ export function decorateButtons(element) {
     const text = a.textContent;
     const url = new URL(a.href);
     const domainCheck = checkDomain(url);
+    const oneCLickRegex = /\[[^\]]*\bone-click\b[^\]]*\]/i;
     const loginRegex = /\[[^\]]*\blogin\b[^\]]*\]/i;
     const registrationRegex = /\[[^\]]*\bregistration\b[^\]]*\]/i;
+    const isOneClick = oneCLickRegex.test(a.textContent);
     const isLogin = loginRegex.test(a.textContent);
     const isRegistration = registrationRegex.test(a.textContent);
     let textIndex = -1;
@@ -544,7 +567,9 @@ export function decorateButtons(element) {
             const classes = bracketMatch[1]
               .split(',')
               .map((value) => value.trim())
-              .filter((value) => value.toLowerCase() !== 'login' && value.toLowerCase() !== 'registration');
+              .filter((value) => value.toLowerCase() !== 'one-click'
+                && value.toLowerCase() !== 'login'
+                && value.toLowerCase() !== 'registration');
 
             if (classes.length > 0) {
               a.classList.add(...classes);
@@ -574,7 +599,12 @@ export function decorateButtons(element) {
       }
     }
 
-    // Login/Register handling
+    // Login/Register/OneClick handling
+    if (isOneClick) {
+      a.addEventListener('click', (event) => {
+        handleOneClickForm(event, a);
+      }, { capture: true });
+    }
     if (isLogin) {
       a.addEventListener('click', (event) => {
         handleLoginRedirection(event, a);

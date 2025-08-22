@@ -630,11 +630,11 @@ const authorBioBlockDetection = (document) => {
   const authorBio = document.querySelector('.author-bio');
   if (authorBio) {
     const authorTags = authorBio.getAttribute('data-author-tags');
-    const authorTag = authorTags ? JSON.parse(authorTags)[0] : '';
+    // add all authortags like in json arrray like [link1, link2]
+    const authorTag = authorTags ? JSON.parse(authorTags) : [];
 
     if (authorTag) {
-      const link = `${EDS_DOMAIN}/fragments/authors/${authorTag}`;
-      return link;
+      return authorTag.map((tag) => `${EDS_DOMAIN}/fragments/authors/${tag}`);
     }
   }
 
@@ -685,7 +685,7 @@ const customReportElements = (document) => {
 
   const authorBioBlock = authorBioBlockDetection(document);
   if (authorBioBlock) {
-    report['author-bio'] = authorBioBlock;
+    report['author-bio'] = authorBioBlock.join(',');
   }
 
   const currentClassesMap = {

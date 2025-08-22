@@ -1,5 +1,5 @@
 import {
-  a, div, h3, img, p,
+  a, div, h2, img, p,
 } from '../../../scripts/dom-helpers.js';
 import { getTaxonomy } from '../../../scripts/taxonomy.js';
 import {
@@ -11,7 +11,7 @@ import {
 const buildBaseCard = ({
   title, description, path, header = null, children = [],
 }) => {
-  const titleEl = h3({ class: 'result-title' }, title);
+  const titleEl = h2({ class: 'result-title' }, title);
   const descEl = p({ class: 'result-desc' }, description);
   const anchor = a({ href: path });
   const tempDiv = div({ class: 'result-item' });
@@ -110,7 +110,7 @@ const labeledCardCourse = async (card, item, labelKey, footerText) => {
 const labeledCardLesson = async (card, item, labelKey, footerText) => {
   const label = await i18n(labelKey);
   const header = div({ class: 'result-header' }, label);
-  const footer = div({ class: 'result-footer' }, footerText);
+  const footer = div({ class: 'result-footer date' }, footerText);
 
   const anchor = buildBaseCard({
     title: item.metadata?.['module-title'] || item.title,
@@ -126,7 +126,7 @@ const labeledCardLesson = async (card, item, labelKey, footerText) => {
 const labeledCardStandaloneLesson = async (card, item, labelKey, footerText) => {
   const label = labelKey ? await i18n(labelKey) : null;
   const header = label ? div({ class: 'result-header' }, label) : null;
-  const footer = div({ class: 'result-footer' }, footerText);
+  const footer = div({ class: 'result-footer date' }, footerText);
 
   const subTemplates = item.metadata?.['sub-template']?.split(' ');
   const [
@@ -194,7 +194,7 @@ const getCards = async (cardType, item) => {
     'card-standalone-lesson': (c, i) => standaloneLessonCard(c, i),
     'card-course-thumbnail': (c, i) => imageCard(c, i, courseCard),
     'card-lesson-thumbnail': (c, i) => imageCard(c, i, lessonCard),
-    'card-standalone-lesson-thumbnail': (c, i) => imageCard(c, i, lessonCard),
+    'card-standalone-lesson-thumbnail': (c, i) => imageCard(c, i, standaloneLessonCard),
     'card-article-thumbnail': (c, i) => imageCard(c, i, articleCard),
     article: articleCard,
     default: (c, i) => imageCard(c, i, articleCard),
@@ -204,7 +204,7 @@ const getCards = async (cardType, item) => {
   if (cardFn) {
     await cardFn(card, item);
   } else {
-    await cardFn(cardMap.default, item);
+    await cardMap.default(card, item);
   }
 
   return card;

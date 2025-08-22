@@ -1,0 +1,102 @@
+.cards {
+  &.article {
+    &.thumbnail-medium  {
+      & ul {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        border-top: 0.0625rem solid var(--gray4);
+        padding: 1.25rem 0;
+        grid-gap: 0;
+
+        & li {
+          background: none;
+          flex-basis: auto;
+          position: relative;
+          width: 100%;
+          min-height: 3.4375rem;
+          margin: 0;
+          border: 0;
+
+          @media (width >= 769px) {
+            text-align: center;
+            width: 32%;
+            max-width: 32%;
+          }
+
+          & a {
+            border: none;
+            height: 100%;
+
+            &:hover {
+              text-decoration: none;
+            }
+          }
+
+          & .card-img-top {
+            min-width: 4.375rem;
+            min-height: 2.8125rem;
+            width: 4.375rem;
+            height: 2.8125rem;
+            position: absolute;
+            border-radius: 0;
+            display: block;
+
+            @media (width >= 769px) {
+              width: 100%;
+              height: auto;
+              position: relative;
+            }
+
+            & img {
+              min-width: 4.375rem;
+              min-height: 2.8125rem;
+              width: 4.375rem;
+              height: 2.8125rem;
+              border-radius: 0;
+              aspect-ratio: auto;
+              border: 0.0625rem solid var(--gray12);
+              display: block;
+
+              @media (width >= 769px) {
+                width: 100%;
+                height: auto;
+              }
+            }
+          }
+
+          & .card-body {
+            padding: 0;
+            margin-left: 5.3125rem;
+
+            @media (width >= 769px) {
+              margin: 0;
+              text-align: left;
+            }
+
+            & .card-title {
+              @media (width >= 769px) {
+                margin: 1.25rem 0;
+              }
+
+              & p.card-text {
+                font-family: var(--averta);
+                font-weight: 400;
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+                margin: 0;
+                color: var(--blue4);
+                text-overflow: ellipsis;
+                line-clamp: 2;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

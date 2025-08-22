@@ -1,6 +1,6 @@
 /* global WebImporter */
 /* eslint-disable no-console, class-methods-use-this, no-await-in-loop */
-import { EDS_DOMAIN, buildSectionMetadata } from './utils.js';
+import { EDS_DOMAIN } from './utils.js';
 
 const jsonMap = {
   '/education/courses/cme-institute-live/chapter-1-introduction-to-cme-group-and-fundamentals-of-financial-futures-and-options.html': '/education/courses/cme-institute-live/chapter-1-introduction-to-cme-group-and-fundamentals-of-financial-futures-and-options/introduction-to-options.html',
@@ -120,23 +120,29 @@ const handleFragments = (document) => {
       // Check for extend your learning fragment
       const extendH4 = fragment.querySelector('h4#extend-your-learning');
       if (extendH4) {
-        const anchor = document.createElement('a');
-        anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/extend-your-learning`;
-        anchor.textContent = anchor.href;
-        const cells = [['Fragment (toggled-by-education-iframe)'], [anchor]];
-        const table = WebImporter.DOMUtils.createTable(cells, document);
-        fragment.before(document.createElement('hr'));
-        const tempCells = [['Style', 'full-width, no-padding']];
-        fragment.after(buildSectionMetadata(tempCells));
-        fragment.replaceWith(table);
+        // todo piyush enable this again if we have to add this fragment explicitly on each page
+        // const anchor = document.createElement('a');
+        // anchor.href = `${EDS_DOMAIN}/fragments/courses-lessons/extend-your-learning`;
+        // anchor.textContent = anchor.href;
+        // const cells = [['Fragment (toggled-by-education-iframe)'], [anchor]];
+        // const table = WebImporter.DOMUtils.createTable(cells, document);
+        // fragment.before(document.createElement('hr'));
+        // const tempCells = [['Style', 'full-width, no-padding']];
+        // fragment.after(buildSectionMetadata(tempCells));
+        fragment.remove();
       }
     });
   }
 };
 
-const quizBlock = (document) => {
+const quizBlock = (document, meta) => {
   const quizTopDivs = document.querySelectorAll('.quiz.multipaneleditor');
   quizTopDivs.forEach((quizTopDiv) => {
+    let dataItems = [];
+    if (meta.protected) {
+      dataItems = JSON.parse(quizTopDiv.getAttribute('data-items'));
+    }
+
     const quizzes = quizTopDiv.querySelectorAll('.quiz-item');
     const completeMessage = quizTopDiv.getAttribute('data-complete-msg');
     const inlineQuiz = quizTopDiv.getAttribute('data-is-inline-quiz') === 'true';
@@ -149,12 +155,17 @@ const quizBlock = (document) => {
       if (inlineQuiz) {
         cells.push(['Do Not Mark Lesson As Completed', true, '', '']);
       }
-      quizzes.forEach((quiz) => {
-        const questionText = quiz.getAttribute('data-question');
-        const questionTextWithoutQuotes = questionText.replace(/^['"]|['"]$/g, '').trim();
+      cells.push(['Questions', 'Options', 'Correct', 'Snippet']);
+      quizzes.forEach((quiz, index) => {
+        let questionText = '';
+        if (meta.protected && dataItems.length) {
+          questionText = quiz.getAttribute('data-question') || dataItems[index]['cq:panelTitle'];
+        } else {
+          questionText = quiz.getAttribute('data-question');
+        }
+        const questionTextWithoutQuotes = questionText?.replace(/^['"]|['"]$/g, '').trim();
         const answersItems = quiz.getAttribute('data-answers-items') ? JSON.parse(quiz.getAttribute('data-answers-items')) : [];
 
-        cells.push(['Questions', 'Options', 'Correct', 'Snippet']);
         cells.push([questionTextWithoutQuotes, answersItems[0].answerOpt,
           answersItems[0].correctAnswer || '', answersItems[0].answerSnip || '']);
 
