@@ -152,9 +152,16 @@ export default async function decorate(block) {
     }
 
     const cells = [...child.children];
-    cells.forEach((col, j) => {
-      const colspan = col.getAttribute('colspan') || 1;
-      const rowspan = col.getAttribute('rowspan') || 1;
+    let colIndex = 0;
+
+    cells.forEach((col) => {
+      // skip slots already filled by earlier rowspan/colspan
+      while (styleMatrix[i][colIndex] === 'occupied') {
+        colIndex += 1;
+      }
+
+      const colspan = parseInt(col.getAttribute('colspan') || 1, 10);
+      const rowspan = parseInt(col.getAttribute('rowspan') || 1, 10);
 
       const cell = buildCell(colspan, rowspan, i === 0 && header);
       cell.innerHTML = col.innerHTML === '[empty-cell]' ? '&nbsp;' : col.innerHTML || '&nbsp;';
@@ -175,10 +182,25 @@ export default async function decorate(block) {
         }
       }
 
-      if (styleMatrix[i][j] !== 'body') {
-        cell.classList.add(styleMatrix[i][j]);
+      if (styleMatrix[i][colIndex] !== 'body') {
+        cell.classList.add(styleMatrix[i][colIndex]);
       }
+
+      // mark spanned slots so later cells skip them
+      for (let r = 0; r < rowspan; r += 1) {
+        for (let c = 0; c < colspan; c += 1) {
+          if (r === 0 && c === 0) {
+            // eslint-disable-next-line no-continue
+            continue; // base cell
+          }
+          if (styleMatrix[i + r]) {
+            styleMatrix[i + r][colIndex + c] = 'occupied';
+          }
+        }
+      }
+
       row.append(cell);
+      colIndex += colspan;
     });
   });
 
