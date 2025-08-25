@@ -7,12 +7,13 @@
  * - Client: Simple fallback + author preview functionality
  *
  * Author Preview Environments:
- * - localhost + .aem.page (isPreview)
- * - .aem.reviews (isReviews)
+ * - localhost + .aem.page + .aem.reviews: Always show toggle
+ * - .aem.live: Only show toggle when ?dapreview=on
  *
  * Usage:
  * - ?auth=on  = Show full content (authenticated view)
  * - ?auth=off = Show teasers (anonymous view)
+ * - ?dapreview=on = Enable toggle on .aem.live
  *
  * Protection Levels:
  * 1. Page-level (protected=true + teaser=path in meta)
@@ -29,12 +30,24 @@ import { loadCSS } from '../aem.js';
  * @returns {boolean} True if auth toggle should be displayed
  */
 function isAuthorPreviewMode() {
-  // Show toggle in development and .page/.reviews environments only
-  // Production EdgeWorker handles protection, no client-side toggle needed
-  // isPreview: localhost + .aem.page
-  // isReviews: .aem.reviews
+  // Show toggle based on environment:
+  // - localhost, .aem.page, .aem.reviews: always show
+  // - .aem.live: only show when ?dapreview=on
   const domainInfo = checkDomain(window.location);
-  return domainInfo.isPreview || domainInfo.isReviews;
+  const urlParams = new URLSearchParams(window.location.search);
+  const isDAPreview = urlParams.get('dapreview') === 'on';
+
+  // Always show for non-live environments
+  if (domainInfo.isPreview || domainInfo.isReviews) {
+    return true;
+  }
+
+  // For .aem.live, only show when ?dapreview=on
+  if (domainInfo.isLive) {
+    return isDAPreview;
+  }
+
+  return false;
 }
 
 /**
