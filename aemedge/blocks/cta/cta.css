@@ -131,15 +131,15 @@
         bottom: 1.875rem;
 
         & p {
-          font-size: 16px;
-          line-height: 24px;
+          font-size: 1rem;
+          line-height: 1.5rem;
           font-weight: 600;
           color: var(--blue5);
           text-transform: none;
           padding: 0;
 
           & .icon {
-            margin-right: 10px;
+            margin-right: 0.625rem;
             filter: none;
 
             & img {
