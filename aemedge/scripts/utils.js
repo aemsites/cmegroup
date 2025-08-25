@@ -566,8 +566,9 @@ function checkDomain(url) {
   let result = domainCheckCache[urlToCheck.hostname];
   if (!result) {
     const isProd = PRODUCTION_DOMAINS.some((host) => urlToCheck.hostname.includes(host));
-    const isAEM = ['aem.page', 'aem.live'].some((host) => urlToCheck.hostname.includes(host));
+    const isAEM = ['aem.page', 'aem.live', 'aem.reviews'].some((host) => urlToCheck.hostname.includes(host));
     const isLocal = urlToCheck.hostname.includes('localhost');
+    const isReviews = urlToCheck.hostname.includes('aem.reviews');
     const isPreview = isLocal || urlToCheck.hostname.includes('aem.page');
     const isKnown = isProd || isAEM || isLocal;
     const isExternal = !isKnown;
@@ -575,6 +576,7 @@ function checkDomain(url) {
       isProd,
       isAEM,
       isLocal,
+      isReviews,
       isKnown,
       isExternal,
       isPreview,

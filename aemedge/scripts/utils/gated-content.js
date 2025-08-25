@@ -1,16 +1,23 @@
+/* eslint-disable import/no-cycle */
 /**
- * Client-side implementation of the CDN worker's
- * to preview protected content functionality on .aem.page/.aem.live URLs
+ * Gated content protection system
+ *
+ * Architecture:
+ * - Edge: Akamai EdgeWorker handles protection in production
+ * - Client: Simple fallback + author preview functionality
+ *
+ * Author Preview Environments:
+ * - localhost + .aem.page (isPreview)
+ * - .aem.reviews (isReviews)
  *
  * Usage:
- * - ?auth=on     = User is authenticated (show full protected content)
- * - ?auth=off    = User is anonymous (show teasers)
- * - No param     = Normal page behavior (no protection processing)
+ * - ?auth=on  = Show full content (authenticated view)
+ * - ?auth=off = Show teasers (anonymous view)
  *
- * Protection Hierarchy
- * 1. Page-level protection (highest priority)
- * 2. Section-level protection
- * 3. Block-level protection (ID-based + teaser replacement)
+ * Protection Levels:
+ * 1. Page-level (protected=true + teaser=path in meta)
+ * 2. Section-level (protected=true in section metadata)
+ * 3. Block-level (protected class + teaser path)
  */
 
 import { createElement, checkDomain } from '../utils.js';
@@ -18,14 +25,16 @@ import { loadFragment } from '../../blocks/fragment/fragment.js';
 import { loadCSS } from '../aem.js';
 
 /**
- * Check if auth toggle should be shown
+ * Check if we should show author preview functionality
  * @returns {boolean} True if auth toggle should be displayed
  */
-function isProtectionPreviewEnabled() {
-  // Show toggle by default in development/preview environments (localhost, .page)
-  // Never show on production (.live) URLs where CDN worker handles protection
+function isAuthorPreviewMode() {
+  // Show toggle in development and .page/.reviews environments only
+  // Production EdgeWorker handles protection, no client-side toggle needed
+  // isPreview: localhost + .aem.page
+  // isReviews: .aem.reviews
   const domainInfo = checkDomain(window.location);
-  return domainInfo.isPreview;
+  return domainInfo.isPreview || domainInfo.isReviews;
 }
 
 /**
@@ -420,14 +429,13 @@ async function applySectionLevelProtection(protectionMetadata) {
 }
 
 /**
- * Main function to apply content protection
- * This mimics the exact logic flow from the Cloudflare worker:
- * 1. Performance gate: Check if protected=true exists
- * 2. Page-level (highest priority): Both protected=true AND teaser=path in meta tags
- * 3. Section/Block-level: Parse .plain.html for protection metadata
+ * Apply content protection for author preview
+ * Simple: Only runs in preview environments for author testing
+ * Production protection is handled by Akamai EdgeWorker
  */
 async function applyContentProtection() {
-  if (!isProtectionPreviewEnabled()) {
+  // Only apply client-side protection in preview environments
+  if (!isAuthorPreviewMode()) {
     return;
   }
 
@@ -438,19 +446,18 @@ async function applyContentProtection() {
 
   const isAuthenticated = getAuthState();
 
+  // Page-level protection (highest priority)
   if (pageProtectionMetadata.isPageProtected) {
-    if (isAuthenticated) {
-      return;
+    if (!isAuthenticated) {
+      await applyPageLevelProtection(pageProtectionMetadata.teaserPath);
     }
-    await applyPageLevelProtection(pageProtectionMetadata.teaserPath);
     return;
   }
 
+  // Section/Block-level protection
   const sectionProtectionMetadata = await checkSectionLevelProtection(isAuthenticated);
-  if (sectionProtectionMetadata.isProtected) {
-    if (!isAuthenticated) {
-      await applySectionLevelProtection(sectionProtectionMetadata);
-    }
+  if (sectionProtectionMetadata.isProtected && !isAuthenticated) {
+    await applySectionLevelProtection(sectionProtectionMetadata);
   }
 }
 
@@ -458,7 +465,7 @@ async function applyContentProtection() {
  * Create and show the author preview toggle as a slide-out panel
  */
 function createAuthorToggle() {
-  if (!isProtectionPreviewEnabled()) return;
+  if (!isAuthorPreviewMode()) return;
 
   // Load the CSS file
   loadCSS(`${window.hlx.codeBasePath}/styles/gated-content.css`);
@@ -587,7 +594,7 @@ function initContentProtection() {
 }
 
 export {
-  isProtectionPreviewEnabled,
+  isAuthorPreviewMode,
   getAuthState,
   applyContentProtection,
   initContentProtection,
