@@ -1699,3 +1699,38 @@ body.loading::before {
 .white-background {
   background-color: var(--white);
 }
+
+.tooltip {
+  position: relative;
+
+  & .tooltip-content {
+    position: absolute;
+    background-color: var(--white);
+    padding: 0.625rem 1.875rem;
+    top: 0.625rem;
+    z-index: 10;
+    box-shadow: var(--gray8-shadow);
+    color: var(--gray3);
+    border-radius: 0.3125rem;
+    width: max-content;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    &::before {
+      border-bottom: 0.5625rem solid var(--white);
+      border-left: 0.5625rem solid transparent;
+      border-right: 0.5625rem solid transparent;
+      content: "";
+      height: 0;
+      left: auto;
+      margin: 0 auto;
+      opacity: 1;
+      position: absolute;
+      right: calc(50% - 0.3125rem);
+      top: -0.5625rem;
+      transition-delay: 0s;
+      visibility: visible;
+      width: 0;
+    }
+  }
+}
