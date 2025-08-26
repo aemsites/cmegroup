@@ -32,6 +32,20 @@ import {
 const DOMAIN = 'https://www.cmegroup.com';
 
 /**
+ * Generate a slug from a string
+ * @param {string} value - The string to convert to a slug
+ * @returns {string} - A slug string
+ */
+function slug(value) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-_]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/^-|-$/g, '')
+    .replace(/^\d+-+/, '');
+}
+
+/**
  * Handles content toggle elements by fetching their published content
  * @param {Document} document - The document to process
  */
@@ -318,6 +332,7 @@ const changeAnchors = (document) => {
         }
 
         anchor.textContent = `${firstIcon} ${anchor.textContent} ${classes} ${secondIcon} ${thirdIcon}`;
+        anchor.textContent = anchor.textContent.trim();
       } else if (anchor.classList.contains('secondary')
         || anchor.classList.contains('secondary-2')
         || anchor.classList.contains('secondary-3')
@@ -693,16 +708,18 @@ const moveDividerLine = (document) => {
  * This function creates a divider block for the document.
  * @param {Document} document - The document to search.
  */
-const dividerBlock = (document) => {
+const dividerBlock = (document, meta) => {
   const dividers = document.querySelectorAll('.divider.line');
 
   if (dividers?.length) {
     dividers.forEach((divider) => {
       if (!divider.closest('table') && !divider.closest('.cme-article-right-column') && !divider.closest('.cme-article-left-column')) {
-        const styles = ['Style', 'Divider'];
-        const sectionMetadata = buildSectionMetadata([styles]);
-        divider.replaceWith(sectionMetadata);
-        sectionMetadata.after(blockSeparator().cloneNode(true));
+        if (meta['Temp Sub Template'] !== 'faqs') {
+          const styles = ['Style', 'Divider'];
+          const sectionMetadata = buildSectionMetadata([styles]);
+          divider.replaceWith(sectionMetadata);
+          sectionMetadata.after(blockSeparator().cloneNode(true));
+        }
       }
     });
   }
@@ -755,42 +772,28 @@ const figCaptionEmphasize = (document) => {
 
 const faqBlock = (document, meta) => {
   if (meta['Temp Sub Template'] === 'faqs') {
-    const components = document.querySelectorAll('.component');
-    const cells = [['FAQ (Ordered)']];
-    let componentIndex = -1;
-
-    const olList = document.querySelectorAll('.article-info ol li');
-    if (olList.length === 0) {
-      return;
-    }
-
-    for (let i = 0; i < components.length; i += 1) {
-      const component = components[i];
-      const h2s = component.querySelectorAll('h2.title-text, h3.title-text');
-
-      if (h2s?.length) {
-        const mini = Math.min(h2s.length, olList.length);
-        for (let j = 0; j < mini; j += 1) {
-          const h2 = h2s[j];
-          const h2ParentSibling = h2?.parentElement?.nextElementSibling?.querySelector('.text');
-
-          if (h2ParentSibling) {
-            const newH2 = document.createElement('h2');
-            newH2.textContent = olList[j].textContent;
-            cells.push([newH2, h2ParentSibling.innerHTML]);
-          }
+    const tempOl = document.querySelectorAll('.article-info ol');
+    const tempUl = document.querySelectorAll('.article-info ul');
+    if (tempOl?.length) {
+      tempOl.forEach((ol) => {
+        const list = ol.querySelectorAll('li');
+        if (list?.length) {
+          list.forEach((li) => {
+            const anchor = li.querySelector('a');
+            anchor.href = `#${slug(anchor.textContent)}`;
+          });
         }
-
-        componentIndex = i;
-        break;
-      }
-    }
-
-    document.querySelector('ol')?.remove();
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-
-    if (componentIndex >= 0) {
-      components[componentIndex].replaceWith(table);
+      });
+    } else if (tempUl?.length) {
+      tempUl.forEach((ul) => {
+        const list = ul.querySelectorAll('li');
+        if (list?.length) {
+          list.forEach((li) => {
+            const anchor = li.querySelector('a');
+            anchor.href = `#${slug(anchor.textContent)}`;
+          });
+        }
+      });
     }
   }
 };
@@ -800,7 +803,18 @@ const removeBackToTop = (document) => {
   if (backToTop.length) {
     backToTop.forEach((anchor) => {
       if (anchor.textContent.trim().toLowerCase() === 'back to top') {
-        anchor.remove();
+        const tempTable = WebImporter.Blocks.createBlock(document, {
+          name: 'Divider (Back to Top)',
+          cells: [],
+        });
+        const cmpText = anchor.closest('.cmp-text');
+        if (cmpText) {
+          const dividerNext = cmpText.nextElementSibling?.classList.contains('divider') ? cmpText.nextElementSibling : null;
+          if (dividerNext) {
+            dividerNext.remove();
+          }
+        }
+        anchor.replaceWith(tempTable);
       }
     });
   }
@@ -1314,63 +1328,74 @@ const sideBarBlocks = (document) => {
   sidebarBlock(document, 'right');
 };
 
-const correctLinks = (document) => {
+const correctLinks = (document, meta) => {
   const links = document.querySelectorAll('a');
-  links.forEach((link) => {
-    if (link.href) {
-      try {
-        if (link?.href) {
-          const completeLink = new URL(link.href);
-          const { pathname } = completeLink;
-          const oldHref = link.href;
 
-          if (pathname?.endsWith('.html')) {
-            if (pathname.startsWith('/education/')) {
-              link.href = link.href.replace('.html', '');
-              if (link.href.startsWith('/')) {
-                link.href = `${EDS_DOMAIN}${link.href}`;
-              } else {
-                completeLink.hostname = EDS_DOMAIN.replace('https://', '');
-                completeLink.protocol = 'https';
-                completeLink.port = '';
-                link.href = completeLink.toString();
-                link.href = link.href.replace('.html', '');
-              }
-            } else if (link.href.startsWith('/')) {
-              // relative path
-              link.href = `${DOMAIN}${link.href}`;
+  for (let i = 0; i < links.length; i += 1) {
+    const link = links[i];
+    if (link?.href) {
+      try {
+        if (meta['Temp Sub Template'] === 'faqs' && link.href.includes('#')) {
+          // eslint-disable-next-line
+          continue;
+        }
+
+        const completeLink = new URL(link.href);
+        const { pathname } = completeLink;
+        const oldHref = link.href;
+
+        if (pathname?.endsWith('.html')) {
+          if (pathname.startsWith('/education/')) {
+            link.href = link.href.replace('.html', '');
+            if (link.href.startsWith('/')) {
+              link.href = `${EDS_DOMAIN}${link.href}`;
             } else {
-              // absolute path domain changed
+              completeLink.hostname = EDS_DOMAIN.replace('https://', '');
+              completeLink.protocol = 'https';
+              completeLink.port = '';
+              link.href = completeLink.toString();
+              link.href = link.href.replace('.html', '');
+            }
+          } else if (link.href.startsWith('/')) {
+            // relative path
+            link.href = `${DOMAIN}${link.href}`;
+          } else {
+            // absolute path domain changed
+            completeLink.hostname = DOMAIN.replace('https://', '');
+            completeLink.protocol = 'https';
+            completeLink.port = '';
+            if (link.href === link.textContent) {
+              link.textContent = completeLink.toString();
+            }
+            link.href = completeLink.toString();
+          }
+
+          if (link.textContent === oldHref) {
+            link.textContent = link.href;
+          }
+        } else if (pathname?.endsWith('.pdf')
+          || pathname?.endsWith('.mp3')
+          || pathname?.endsWith('.mp4')
+          || pathname?.endsWith('.csv')
+          || pathname?.endsWith('.xlsx')
+          || pathname?.endsWith('.xls')
+          || pathname?.endsWith('.pptx')
+          || pathname?.endsWith('.ppt')
+        ) {
+          if (link.href.startsWith('/')) {
+            // relative path
+            link.href = `${DOMAIN}${link.href}`;
+          } else {
+            // eslint-disable-next-line
+            if (link.href.includes(DOMAIN) || link.href.includes('localhost')) {
               completeLink.hostname = DOMAIN.replace('https://', '');
               completeLink.protocol = 'https';
               completeLink.port = '';
+
               if (link.href === link.textContent) {
                 link.textContent = completeLink.toString();
               }
               link.href = completeLink.toString();
-            }
-
-            if (link.textContent === oldHref) {
-              link.textContent = link.href;
-            }
-          } else if (pathname?.endsWith('.pdf')
-            || pathname?.endsWith('.mp3')
-            || pathname?.endsWith('.mp4')) {
-            if (link.href.startsWith('/')) {
-              // relative path
-              link.href = `${DOMAIN}${link.href}`;
-            } else {
-              // eslint-disable-next-line
-              if (link.href.includes(DOMAIN) || link.href.includes('localhost')) {
-                completeLink.hostname = DOMAIN.replace('https://', '');
-                completeLink.protocol = 'https';
-                completeLink.port = '';
-
-                if (link.href === link.textContent) {
-                  link.textContent = completeLink.toString();
-                }
-                link.href = completeLink.toString();
-              }
             }
           }
         }
@@ -1378,7 +1403,7 @@ const correctLinks = (document) => {
         console.log(`Error correcting links: ${error}, ${link.href}`);
       }
     }
-  });
+  }
 };
 
 const tagsCloudBlock = (document) => {
@@ -1540,7 +1565,10 @@ const customBlocks = async (document, main, meta, url) => {
   sideBarBlocks(document);
   colorMap(document);
   oneClickSubToFragment(document);
-  dividerBlock(document);
+  if (meta['Temp Sub Template'] === 'faqs') {
+    removeBackToTop(document);
+  }
+  dividerBlock(document, meta);
 
   if (meta.Template === 'article') {
     handleArticleFragments(document);
@@ -1562,7 +1590,6 @@ const customBlocks = async (document, main, meta, url) => {
     mapPodcast(document);
     podcastFragments(document);
   } else if (meta['Temp Sub Template'] === 'faqs') {
-    removeBackToTop(document);
     faqBlock(document, meta);
   }
   await moduleOrder(document, meta, url);
@@ -1571,7 +1598,7 @@ const customBlocks = async (document, main, meta, url) => {
   brightCoveVideo(document);
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
-  correctLinks(document);
+  correctLinks(document, meta);
   mapBlueDesignBoxToCardsFactoid(document);
   delete meta['Temp Sub Template'];
   // TODO remove this as removing all forms as of now
