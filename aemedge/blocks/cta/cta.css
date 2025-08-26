@@ -101,5 +101,61 @@
         padding-bottom: 1.2rem;
       }
     }
+
+    &.secondary {
+      & .footer::after {
+        font-family: var(--cme-group-icons);
+        content: var(--icon-arrow-right-thin);
+        font-size: 1.5rem; 
+        position: absolute;
+        color: var(--blue1);
+        background-color: var(--green);
+        padding: 1rem;
+        bottom: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    &.no-bg {
+      background-color: transparent;
+    }
+
+    &.no-arrow {
+      background-color: var(--blue2);
+
+      & .footer {
+        left: 1.875rem;
+        bottom: 1.875rem;
+
+        & p {
+          font-size: 1rem;
+          line-height: 1.5rem;
+          font-weight: 600;
+          color: var(--blue5);
+          text-transform: none;
+          padding: 0;
+
+          & .icon {
+            margin-right: 0.625rem;
+            filter: none;
+
+            & img {
+              filter: var(--blue5-filter);
+            }
+          }
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+
+        &::after {
+          display: none;
+        }
+      }
+    }
   }
 }
