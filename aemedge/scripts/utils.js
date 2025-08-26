@@ -138,8 +138,14 @@ async function loadScript(src, attrs) {
 /**
  * Creates a new HTML element
  */
+const svgNamespace = 'http://www.w3.org/2000/svg';
+const svgElements = ['svg', 'circle', 'path', 'text', 'line'];
+
 function createElement(tagName, attributes, ...children) {
-  const el = document.createElement(tagName);
+  const isSvg = svgElements.includes(tagName);
+  const el = isSvg
+    ? document.createElementNS(svgNamespace, tagName)
+    : document.createElement(tagName);
   if (attributes) {
     Object.keys(attributes).forEach((name) => {
       el.setAttribute(name, attributes[name]);
