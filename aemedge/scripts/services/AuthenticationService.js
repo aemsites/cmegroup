@@ -7,7 +7,7 @@ import {
 import { getLoginDataUrl } from '../legacy-api.js';
 
 export async function getIsLoggedIn() {
-  const isLoggedInService = `https://preview.cmegroup.com/services/login/validate`;
+  const isLoggedInService = `${urlByEnvType()}/services/login/validate`;
   try {
     const response = await apiGet(isLoggedInService);
     return getResponseData(response);
