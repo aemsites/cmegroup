@@ -365,7 +365,9 @@ p {
 
 /* p & span */
 p,
-span {
+span,
+td,
+th {
   &.text-1 {
     font-family: var(--body-font-family);
     font-weight: 400;
@@ -947,7 +949,9 @@ main {
 
     &.text-1 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         margin-bottom: 1.25rem;
@@ -964,7 +968,9 @@ main {
 
     &.text-2 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         font-size: 1rem;
@@ -982,7 +988,9 @@ main {
 
     &.text-3 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         font-size: 0.875rem;
@@ -1000,7 +1008,9 @@ main {
 
     &.text-4 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         font-size: 0.75rem;
@@ -1018,14 +1028,18 @@ main {
 
     &.text-small {
       p,
-      span {
+      span,
+      td,
+      th {
         font-size: 80%;
       }
     }
 
     &.tagline {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 600;
         font-size: 1.375rem;
@@ -1668,7 +1682,13 @@ body.loading::before {
 
 /* share this overrides */
 #st-2 {
-  top: 8.25rem !important;
+  top: auto;
+}
+
+@media (width > 1024px) {
+  #st-2 {
+    top: 8.25rem !important;
+  }
 }
 
 #st-2.st-right {
