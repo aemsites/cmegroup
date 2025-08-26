@@ -1,7 +1,7 @@
 export function getEnvType() {
   const prodEnvs = [
-    'cmegroup.com',
-    'www.cmegroup.com',
+    'preview.cmegroup.com',
+    'preview.cmegroup.com',
     'main--cmegroup--aemsites.aem.page',
     'main--cmegroup--aemsites.aem.live',
   ];
@@ -10,6 +10,6 @@ export function getEnvType() {
 }
 
 export function urlByEnvType() {
-  //return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
-  return `https://preview.cmegroup.com`;
+  //
+  return `https://${getEnvType() !== 'prod' ? 'beta' : 'www'}.cmegroup.com`;
 }
