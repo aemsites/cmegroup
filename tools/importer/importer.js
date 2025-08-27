@@ -28,6 +28,10 @@ import {
   quizBlock,
   coursesColumnsBlock,
 } from './course-lesson.js';
+import {
+  processEventPage,
+  setEventMetadata,
+} from './events.js';
 
 const DOMAIN = 'https://www.cmegroup.com';
 
@@ -123,12 +127,14 @@ async function setMetadata(meta, document, url, tempMeta) {
   };
 
   const template = fetchTemplate(document);
-  if (template && templates[template]) {
+
+  if (template && template.includes('eventContentTemplate')) {
+    meta.Template = 'event';
+  } else if (template && templates[template]) {
     meta.Template = templates[template].template;
     if (templates[template].subTemplate) {
       meta['Sub Template'] = templates[template].subTemplate;
     }
-
     if (templates[template].tempSubTemplate) {
       meta['Temp Sub Template'] = templates[template].tempSubTemplate;
     }
@@ -236,6 +242,11 @@ async function setMetadata(meta, document, url, tempMeta) {
 
   if (tempMeta.protected) {
     meta.protected = true;
+  }
+
+  // Handle event-specific metadata
+  if (meta.Template === 'event') {
+    await setEventMetadata(meta, document, url);
   }
 }
 
@@ -1591,6 +1602,8 @@ const customBlocks = async (document, main, meta, url) => {
     podcastFragments(document);
   } else if (meta['Temp Sub Template'] === 'faqs') {
     faqBlock(document, meta);
+  } else if (meta.Template === 'event') {
+    processEventPage(document, meta);
   }
   await moduleOrder(document, meta, url);
   document.querySelector('.course-nav')?.remove();
