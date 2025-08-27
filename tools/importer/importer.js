@@ -1558,51 +1558,6 @@ const mapBlueDesignBoxToCardsFactoid = (document) => {
   }
 };
 
-/**
- * Converts clickable images to Cards (Static) blocks.
- *
- * Pattern detected:
- * <a href="action-url"><img src="image-url" ...></a>
- *
- * Converts to:
- * Cards (Static) block with image and action link
- */
-const convertClickableImagesToCards = (document) => {
-  const clickableImages = document.querySelectorAll('a img');
-
-  clickableImages.forEach((img) => {
-    const anchor = img.closest('a');
-    if (!anchor) return;
-
-    const actionHref = anchor.getAttribute('href');
-    const imageHref = img.getAttribute('src');
-
-    // Skip if either href is missing or if image href doesn't look like an image
-    if (!actionHref || !imageHref || !/\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/i.test(imageHref)) {
-      return;
-    }
-
-    // Create image link for the card
-    const imageAnchor = document.createElement('a');
-    imageAnchor.href = imageHref.startsWith('/') ? `${DOMAIN}${imageHref}` : imageHref;
-    imageAnchor.textContent = imageAnchor.href;
-
-    // Create action link for the card
-    const actionAnchor = document.createElement('a');
-    actionAnchor.href = actionHref.startsWith('/') ? `${DOMAIN}${actionHref}` : actionHref;
-    actionAnchor.textContent = actionAnchor.href;
-
-    // Create Cards (Static) block with image and link in same cell, separate lines
-    const cells = [
-      ['Cards (Static)'],
-      [`<p>${imageAnchor.outerHTML}</p><p>${actionAnchor.outerHTML}</p>`],
-    ];
-
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-    anchor.replaceWith(table);
-  });
-};
-
 const dynamicCardsBlock = async (document) => {
   // Dynamic cards block handling
   const cards = document.querySelectorAll('.cards[data-type="list-thumbnail-medium"][data-path]');
@@ -1639,7 +1594,6 @@ const dynamicCardsBlock = async (document) => {
 };
 
 const customBlocks = async (document, main, meta, url) => {
-  convertClickableImagesToCards(document); // Convert clickable images to Cards (Static) blocks
   moveDividerLine(document);
   changeAnchors(document);
   figCaptionEmphasize(document);
