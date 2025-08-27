@@ -1126,7 +1126,6 @@ main {
 
       @media (width >= 1401px) {
         max-width: 45.0625rem;
-        padding-inline: 4.125rem;
       }
 
       > div {
