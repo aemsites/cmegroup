@@ -211,7 +211,7 @@ class Nav {
 
     window.addEventListener('scroll', () => {
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(updateHeaderState, 100);
+      scrollTimeout = setTimeout(updateHeaderState, 10);
     });
 
     this.el.querySelectorAll('a').forEach((a) => {
