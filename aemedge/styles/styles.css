@@ -1103,6 +1103,35 @@ main {
         margin-bottom: 0;
       }
     }
+
+    &.not-full-width {
+      margin: 0 auto;
+
+      @media (width >= 481px) {
+        padding-inline: 2rem;
+      }
+
+      @media (width >= 769px) {
+        padding-inline: 3.375rem;
+      }
+
+      @media (width >= 993px) {
+        padding-inline: 4.125rem;
+      }
+
+      @media (width >= 1201px) {
+        width: calc(70.5% - 17.625rem);
+        padding-inline: 4.125rem !important;
+      }
+
+      @media (width >= 1401px) {
+        max-width: 45.0625rem;
+      }
+
+      > div {
+        width: 100% !important;
+      }
+    }
   }
 
   @media (width >= 769px) {
