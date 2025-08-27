@@ -106,9 +106,9 @@ const processEventPage = (document, meta) => {
 
   // Browse more events
   const columnsCells = [
-    ['Columns'],
+    ['Columns (last-column-right)'],
     ['<h5 id="browse-more-events">Browse more events</h5>',
-      '<a href="/education/calendar"><span class="icon icon-arrow-right"></span>&nbsp;View all events</a>'],
+      '<a href="/education/calendar">:arrow-right: View all events</a>'],
   ];
   const columnsTable = WebImporter.DOMUtils.createTable(columnsCells, document);
   document.body.appendChild(columnsTable);
