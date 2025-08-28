@@ -1,3 +1,7 @@
+.cards.upcoming-events:has(.spinner-cards) {
+  height: 7.5rem
+}
+
 .cards.upcoming-events ul .glider-track {
     column-gap: 1.1875rem;
 }
