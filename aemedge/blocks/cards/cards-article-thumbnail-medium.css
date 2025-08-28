@@ -1,6 +1,10 @@
 .cards {
   &.article {
     &.thumbnail-medium  {
+      &:has(.spinner-cards) {
+        height: 12.5rem;
+      }
+
       & ul {
         display: flex;
         flex-wrap: wrap;
