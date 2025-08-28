@@ -1568,6 +1568,41 @@ const mapBlueDesignBoxToCardsFactoid = (document) => {
   }
 };
 
+const dynamicCardsBlock = async (document) => {
+  // Dynamic cards block handling
+  const cards = document.querySelectorAll('.cards[data-type="list-thumbnail-medium"][data-path]');
+  if (cards?.length) {
+    for (let i = 0; i < cards.length; i += 1) {
+      const card = cards[i];
+
+      // Skip cards that are already processed (e.g., within accordions)
+      if (!card.closest('.expand-collapse')) {
+        const dataPath = card.getAttribute('data-path');
+        const cardBlockName = 'Cards (dynamic, article, thumbnail-medium)';
+        const cells = [[cardBlockName]];
+
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          const cardData = await fetch(`${DOMAIN}${dataPath}.json`);
+          // eslint-disable-next-line no-await-in-loop
+          const cardDataJson = await cardData.json();
+
+          const { requiredTags } = cardDataJson;
+          if (requiredTags?.length) {
+            const tags = requiredTags.map((tag) => tag.replace(/^.*:/, '').toLowerCase());
+            cells.push(['optional tags', tags.join(',')]);
+          }
+        } catch (error) {
+          console.error(`Error fetching article card data: ${error}`);
+        }
+
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        card.replaceWith(table);
+      }
+    }
+  }
+};
+
 const customBlocks = async (document, main, meta, url) => {
   moveDividerLine(document);
   changeAnchors(document);
@@ -1582,6 +1617,7 @@ const customBlocks = async (document, main, meta, url) => {
   quizBlock(document, meta);
   tagsCloudBlock(document);
   await accordionBlock(document);
+  await dynamicCardsBlock(document, meta);
   await lightBoxGallery(document);
   sideBarBlocks(document);
   colorMap(document);
