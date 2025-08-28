@@ -1603,10 +1603,50 @@ const dynamicCardsBlock = async (document) => {
   }
 };
 
+// Converts clickable images to Cards (Static, clickable-image) blocks
+const convertClickableImagesToStaticCards = (document) => {
+  const clickableImages = document.querySelectorAll('a img');
+
+  clickableImages.forEach((img) => {
+    const anchor = img.closest('a');
+    if (!anchor) return;
+
+    const actionHref = anchor.getAttribute('href');
+    let imageHref = img.getAttribute('src');
+
+    // Check if we have data-img-src on the parent component (real image path)
+    const imageComponent = anchor.closest('.component.image');
+    const dataImgSrc = imageComponent?.getAttribute('data-img-src');
+
+    if (dataImgSrc) {
+      imageHref = dataImgSrc;
+    }
+
+    if (!actionHref || !imageHref) return;
+
+    const imageAnchor = document.createElement('a');
+    imageAnchor.href = imageHref.startsWith('/') ? `${DOMAIN}${imageHref}` : imageHref;
+    imageAnchor.textContent = imageAnchor.href;
+
+    const actionAnchor = document.createElement('a');
+    actionAnchor.href = actionHref.startsWith('/') ? `${DOMAIN}${actionHref}` : actionHref;
+    actionAnchor.textContent = actionAnchor.href;
+
+    const cells = [
+      ['Cards (Static, clickable-image)'],
+      [`<p>${imageAnchor.outerHTML}</p><p>${actionAnchor.outerHTML}</p>`],
+    ];
+
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    anchor.replaceWith(table);
+  });
+};
+
 const customBlocks = async (document, main, meta, url) => {
   moveDividerLine(document);
   changeAnchors(document);
   figCaptionEmphasize(document);
+  convertClickableImagesToStaticCards(document);
   convertImagesToLinks(document);
   mapRowsToSection(document);
   tableBlock(document);
