@@ -44,17 +44,36 @@ async function hasArticle() {
   }
 }
 
+function showSaveIcon(saveIcons, enable) {
+  saveIcons.forEach((saveIcon) => {
+    if ((enable && saveIcon.classList.contains('icon-bookmark-outlined'))
+      || (!enable && saveIcon.classList.contains('icon-bookmark-filled'))) {
+      saveIcon.classList.add('show');
+    } else {
+      saveIcon.classList.remove('show');
+    }
+  });
+}
+
 let enableFunc;
+let disableFunc;
 function toggleSaveIcon(bookmark, saveIcons, enable) {
   if (enable) {
     enableFunc = () => {
-      saveIcons.forEach((saveIcon) => { saveIcon.classList.toggle('show'); });
+      showSaveIcon(saveIcons, false);
+    };
+    disableFunc = () => {
+      showSaveIcon(saveIcons, true);
     };
     bookmark.addEventListener('mouseenter', enableFunc);
-    bookmark.addEventListener('mouseleave', enableFunc);
-  } else if (enableFunc) {
-    bookmark.removeEventListener('mouseenter', enableFunc);
-    bookmark.removeEventListener('mouseleave', enableFunc);
+    bookmark.addEventListener('mouseleave', disableFunc);
+  } else {
+    if (enableFunc) {
+      bookmark.removeEventListener('mouseenter', enableFunc);
+    }
+    if (disableFunc) {
+      bookmark.removeEventListener('mouseleave', disableFunc);
+    }
   }
 }
 
@@ -132,7 +151,7 @@ async function buildBookmark(bookmark, bookmarkIcons, saveText) {
         if (userHasArticle) {
           savedArticle = true;
           saveText.textContent = savedLabel;
-          saveIcons.forEach((saveIcon) => { saveIcon.classList.add('show'); });
+          showSaveIcon(saveIcons, false);
         }
       }
       bookmark.addEventListener('click', async () => {
@@ -150,6 +169,7 @@ async function buildBookmark(bookmark, bookmarkIcons, saveText) {
             showBookmarkTooltip(bookmarkIcons);
           }
         }
+        showSaveIcon(saveIcons, !savedArticle);
         toggleSaveIcon(bookmark, saveIcons, !savedArticle);
       });
     } else {
@@ -159,6 +179,7 @@ async function buildBookmark(bookmark, bookmarkIcons, saveText) {
       });
     }
     if (!savedArticle) {
+      showSaveIcon(saveIcons, true);
       toggleSaveIcon(bookmark, saveIcons, true);
     }
   });

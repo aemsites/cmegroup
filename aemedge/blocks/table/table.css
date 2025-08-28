@@ -6,9 +6,10 @@
 .table table {
   width: 100%;
   max-width: 100%;
-  border-collapse: separate;
+  border-collapse: collapse;
   border-spacing: 0;
   font-size: var(--body-font-size-xs);
+  margin-bottom: 1.25rem;
 }
 
 @media (width >= 600px) {
@@ -23,23 +24,17 @@
   }
 }
 
-.table table thead tr th {
-  border-top: 2px solid #dadada;
-  border-bottom: 2px solid #dadada;
-}
-
 .table table tbody tr {
-  font-size: 16px;
-  line-height: 24px;
-  padding: 18px 20px;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding: 1.125rem 1.25rem;
   text-align: left;
-  vertical-align: top;
-  border-bottom: 1px solid #dadada;
+  border-bottom: 0.0625rem solid var(--gray4);
   color: #5a6874;
 }
 
 .table table tbody tr:nth-child(2n) {
-  background-color: #F1F5F7;
+  background-color: var(--gray6);
 }
 
 .table.disable-row-banding table tbody tr:nth-child(2n) {
@@ -60,21 +55,49 @@
 }
 
 .table.compact table tbody tr {
-  padding: 10px;
-  font-size: 12px;
-  line-height: 18px;
+  padding: 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1.5rem;
 }
 
 .table.data table tbody tr td:not([class$="-header"]) {
   text-align: right;
   font-family: var(--roboto-mono-font-family);
-  font-size: 16px;
+  font-size: 1rem;
   color: #25323c;
-  padding: 18px 20px;
+  padding: 1.125rem 1.25rem;
 }
 
 .table.data table tbody tr td[class$="-header"] {
   text-align: left;
+}
+
+.table.simple-first-row table thead tr:hover {
+  background-color: var(--blue6);
+}
+
+.table.simple-first-row table thead tr th {
+  font-size: 0.75rem;
+}
+
+.table.simple-first-row table tbody tr {
+  vertical-align: top;
+}
+
+.table.simple-first-row table tbody tr:nth-child(1n) {
+  background-color: var(--gray6);
+}
+
+.table.simple-first-row table tbody tr:nth-child(2n) {
+  background-color: var(--white);
+}
+
+.table.simple-first-row table tbody tr td.primary-header p{
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.0688rem;
+  line-height: .875rem;
+  vertical-align: middle;
 }
 
 .table table th p,
@@ -87,9 +110,9 @@
 }
 
 .table table tbody tr td p {
-  font-size: 14px;
-  line-height: 22px;
-  margin-bottom: 15px;
+  font-size: 0.75rem;
+  line-height: 1.375rem;
+  margin-bottom: 0;
 }
 
 .table table tbody tr td p:last-child {
@@ -97,8 +120,8 @@
 }
 
 .table table tbody tr td ul {
-  margin-bottom: 15px;
-  padding-inline-start: 20px;
+  margin-bottom: 0.9375rem;
+  padding-inline-start: 1.25rem;
 }
 
 .table table tbody tr td ul li:last-child {
@@ -119,10 +142,10 @@
 
 .table table tr [class$="-header"] {
   font-size: var(--heading-font-size-xs);
-  line-height: 14px;
-  letter-spacing: 1.1px;
+  line-height: 0.875rem;
+  letter-spacing: 0.0688rem;
   font-weight: 700;
-  padding: 15px 20px;
+  padding: 0.9375rem 1.25rem;
   color: #c2cace;
   text-transform: uppercase;
   text-align: center;
@@ -136,7 +159,7 @@
 }
 
 .table.compact table tr [class$="-header"] {
-  padding: 10px;
+  padding: 0.625rem;
 }
 
 .table table .primary-header {
@@ -168,13 +191,17 @@
 
 .table table th,
 .table table td {
-  padding: 0.5em;
+  padding: 0.625rem;
   text-align: left;
-  border: 0.5px solid #dadada;
+  border: 0.0313rem solid var(--gray4);
+
+  & strong {
+    font-weight: 700;
+  }
 }
 
 .table.no-header table tbody tr {
-  border-top: 1px solid #dadada;
+  border-top: 0.0625rem solid var(--gray4);
 }
 
 .table.collapsible {
@@ -198,7 +225,7 @@
   .table.collapsible tr {
     margin-bottom: 0;
     padding: 0;
-    border-bottom: 1px solid #dadada;
+    border-bottom: 0.0625rem solid var(--gray4);
     width: 100%;
   }
 
@@ -234,7 +261,7 @@
 
   .table.collapsible tr.expanded td:not(:first-child) {
     display: block;
-    border-top: 1px solid #dadada;
+    border-top: 0.0625rem solid var(--gray4);
     width: 100%;
   }
 }

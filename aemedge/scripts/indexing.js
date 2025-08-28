@@ -9,16 +9,24 @@ function hasValue(value) {
   return value !== null && value !== undefined && value !== '' && !Number.isNaN(value);
 }
 
+function getValueList(value) {
+  if (!value) {
+    return [];
+  }
+  const values = Array.isArray(value) ? value : value.split(',');
+  return values.map((item) => item.trim()).filter((item) => item !== '');
+}
+
 /**
  * Builds a search using the config from a block
  */
 function buildIndexFilter(config) {
   return {
-    basePaths: config.basePaths ? config.basePaths.split(',').map((path) => path.trim()) : [],
-    templates: config.templates ? config.templates.split(',').map((template) => template.trim()) : [],
-    tagsAnd: config.tags ? config.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag !== '') : [],
-    tagsOr: config['optional-tags'] ? config['optional-tags'].split(',').map((tag) => tag.trim()).filter((tag) => tag !== '') : [],
-    tagsNot: config['excluded-tags'] ? config['excluded-tags'].split(',').map((tag) => tag.trim()).filter((tag) => tag !== '') : [],
+    basePaths: getValueList(config['base-paths']),
+    templates: getValueList(config.templates),
+    tagsAnd: getValueList(config.tags),
+    tagsOr: getValueList(config['optional-tags']),
+    tagsNot: getValueList(config['excluded-tags']),
     relativeDateFrom: config['relative-date-from'], // Number in days
     relativeDateTo: config['relative-date-to'], // Number in days
     orderBy: config.orderBy,

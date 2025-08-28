@@ -110,9 +110,6 @@ async function decorateEconodayEventPageHero(block) {
  * Generic hero section
  */
 function decorateGenericHero(block) {
-  const image = block.querySelector('picture img');
-  block.style.backgroundImage = `url('${image.src}')`;
-  image.remove();
   const contentDiv = block.children.item(0);
   contentDiv.classList.add('container');
 }

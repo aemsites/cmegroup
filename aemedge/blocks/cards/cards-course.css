@@ -3,6 +3,10 @@
     min-height: 20.875rem !important;
 }
 
+.cards.course:has(.spinner-cards) {
+    min-height: 20.875rem;
+}
+
 .cards.course ul {
     grid-template-columns: repeat(4, 1fr);
 }

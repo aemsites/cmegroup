@@ -43,8 +43,7 @@ export async function getSearchResultsApi(
   facet,
   startIndex = 1,
 ) {
-  const resultsUrl = window.globalConfig?.googleSearchUrl
-    || 'https://www.googleapis.com/customsearch/v1?key=AIzaSyA08OZ-RbJDylrSmnVUC4kK2poCIXHhiIU&cx=008309878562025710937:xfqpxxldhce';
+  const resultsUrl = window.globalConfig?.googleSearchUrl;
   const url = `${resultsUrl}&q=${term}${
     facet ? `+${facet}` : ''
   }&start=${startIndex}`;
