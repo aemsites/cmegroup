@@ -960,13 +960,23 @@ const brightCoveVideo = (document) => {
       }
       const accountId = video.getAttribute('data-account-id') || video.querySelector('.brightcove-video')?.getAttribute('data-account-id');
       const playlistLocation = video.getAttribute('data-playlist-location') || video.querySelector('.brightcove-video')?.getAttribute('data-playlist-location');
-      const videoId = video.getAttribute('data-video-id') || video.querySelector('.brightcove-video')?.getAttribute('data-video-id');
+
+      let videoId = video.querySelector('[data-video-id]')?.getAttribute('data-video-id');
+      const outerVideoId = video.getAttribute('data-video-id');
+
+      if (videoId && /^\d+$/.test(videoId)) {
+        // Keep numeric ID
+      } else if (outerVideoId) {
+        videoId = outerVideoId;
+      }
+
+      const playlistId = video.getAttribute('data-playlist-id') || video.querySelector('.brightcove-video')?.getAttribute('data-playlist-id');
       const aspectRatio = video.getAttribute('data-aspect-ratio') || video.querySelector('.brightcove-video')?.getAttribute('data-aspect-ratio');
 
       const cells = [['Brightcove']];
-      cells.push(['accountID', accountId]);
-      cells.push(['videoID', videoId]);
-      cells.push(['playlistID', '']);
+      cells.push(['accountID', accountId || '']);
+      cells.push(['videoID', videoId || '']);
+      cells.push(['playlistID', playlistId || '']);
       if (playlistLocation) {
         cells.push(['playlistLocation', playlistLocation]);
       }
