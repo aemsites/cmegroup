@@ -5,14 +5,14 @@ import {
   decorateBlock,
   decorateTemplateAndTheme,
   waitForFirstImage,
-  loadSection,
-  loadSections,
   loadCSS,
   toCamelCase,
   toClassName,
   getMetadata,
   buildBlock,
   updateTitleAndMetaTags,
+  loadSection,
+  sampleRUM,
 } from './aem.js';
 import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer } from './modules/index.js';
@@ -765,6 +765,26 @@ async function loadEager(doc) {
 }
 
 /**
+ * Loads all sections.
+ * @param {Element} element The parent element of sections to load
+ */
+async function loadSections(element) {
+  return new Promise((resolve) => {
+    (async () => {
+      const sections = [...element.querySelectorAll('div.section')];
+      for (let i = 0; i < sections.length; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        await loadSection(sections[i]);
+        if (i === 0 && sampleRUM.enhance) {
+          sampleRUM.enhance();
+        }
+      }
+      resolve();
+    })();
+  });
+}
+
+/**
  * Loads everything that doesn't need to be delayed.
  * @param {Element} doc The container element
  */
@@ -774,13 +794,26 @@ async function loadLazy(doc) {
   autolinkModals(doc);
 
   const main = doc.querySelector('main');
-  await loadSections(main);
-  initParallaxSections(main);
+  loadSections(main).then(() => {
+    initParallaxSections(main);
+    const { hash } = window.location;
+    const element = hash ? doc.getElementById(hash.substring(1)) : false;
+    if (hash && element) element.scrollIntoView();
 
-  const { hash } = window.location;
-  const element = hash ? doc.getElementById(hash.substring(1)) : false;
-  if (hash && element) element.scrollIntoView();
+    if (!isFeatureToggled('hideFooter')) {
+      loadFooter(doc.querySelector('footer')).then((footer) => {
+        enhanceIconAccessibility(footer);
+      });
+    }
 
+    dynamicBlocks(main);
+    loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+    loadFonts();
+    window.CookieUtil = CookieUtil;
+    window.LocalStorageUtil = LocalStorageUtil;
+    window.SessionStorageUtil = SessionStorageUtil;
+    authentication.handleLoad();
+  });
   // Add feature toggle checks for header and footer
   if (!isFeatureToggled('hideHeader')) {
     loadHeader(doc.querySelector('header')).then((header) => {
@@ -791,19 +824,6 @@ async function loadLazy(doc) {
     // Add class to body when header is hidden to remove top padding
     doc.body.classList.add('header-hidden');
   }
-  if (!isFeatureToggled('hideFooter')) {
-    loadFooter(doc.querySelector('footer')).then((footer) => {
-      enhanceIconAccessibility(footer);
-    });
-  }
-
-  dynamicBlocks(main);
-  loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
-  loadFonts();
-  window.CookieUtil = CookieUtil;
-  window.LocalStorageUtil = LocalStorageUtil;
-  window.SessionStorageUtil = SessionStorageUtil;
-  authentication.handleLoad();
 }
 
 /**
