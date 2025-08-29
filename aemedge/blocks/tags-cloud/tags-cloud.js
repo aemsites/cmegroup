@@ -78,8 +78,11 @@ async function buildTagList(block, listPage) {
       class: 'btn-tag-filter',
       href: `${listPage || defaultUrl}#filters=${name}`,
     });
-    button.textContent = title;
-    block.append(button);
+
+    if (title) {
+      button.textContent = title;
+      block.append(button);
+    }
   });
 }
 

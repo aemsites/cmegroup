@@ -87,34 +87,39 @@
 }
 
 /* Progress Circle Styles */
-.course-nav .course-nav-progress {
-  position: relative;
-  width: 2.625rem;
-  height: 2.625rem;
-  flex-shrink: 0;
-  border: 4px solid var(--gray4);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.course-nav .progress-bar.circular {
   background: var(--background-color, var(--white));
+  display: flex;
 }
 
-.course-nav .course-nav-progress.completed {
-  border-color: var(--notification-success-tick);
+.course-nav .progress-bar.circular .background {
+  fill: none;
+  stroke: var(--gray4);
 }
 
-.course-nav .course-nav-progress-text {
-  font-size: 0.75rem;
+.course-nav .progress-bar.circular .progress {
+  fill: none;
+  stroke: var(--blue5);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.course-nav .progress-bar.circular .completed {
+  fill: none;
+  stroke: var(--notification-success-tick);
+}
+
+.course-nav .progress-bar.circular .text {
+  font-size: 0.688rem;
+  fill: var(--black);
   font-weight: 600;
-  color: var(--blue-10);
-  line-height: 1;
+  letter-spacing: 0;
 }
 
 /* Toggle button */
 .course-nav .course-nav-toggle {
   width: 1.5rem;
-  height: 1.5rem;
+  height: 2rem;
   padding: 0;
   border: none;
   background: none;
@@ -168,9 +173,17 @@
 
 .course-nav .progress-bar.linear {
   background-color: var(--gray6);
-  height: 0.25rem;
-  padding: 0.25rem 0;
-  margin: 0;
+  border-radius: 0;
+}
+
+.course-nav .progress-bar.linear .progress {
+  background-color: var(--blue5);
+  height: 0.3125rem;
+  transition: width 200ms ease 0s;
+}
+
+.course-nav .progress-bar.linear .completed {
+  background-color: var(--notification-success-tick);
 }
 
 /* Chapter styles */

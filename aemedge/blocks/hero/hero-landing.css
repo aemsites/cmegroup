@@ -57,10 +57,6 @@
         }
       }
     }
-
-    &:has(picture) {
-      display: none;
-    }
   }
 
   &.small {

@@ -365,7 +365,9 @@ p {
 
 /* p & span */
 p,
-span {
+span,
+td,
+th {
   &.text-1 {
     font-family: var(--body-font-family);
     font-weight: 400;
@@ -947,7 +949,9 @@ main {
 
     &.text-1 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         margin-bottom: 1.25rem;
@@ -964,7 +968,9 @@ main {
 
     &.text-2 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         font-size: 1rem;
@@ -982,7 +988,9 @@ main {
 
     &.text-3 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         font-size: 0.875rem;
@@ -1000,7 +1008,9 @@ main {
 
     &.text-4 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         font-size: 0.75rem;
@@ -1018,14 +1028,18 @@ main {
 
     &.text-small {
       p,
-      span {
+      span,
+      td,
+      th {
         font-size: 80%;
       }
     }
 
     &.tagline {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 600;
         font-size: 1.375rem;
@@ -1087,6 +1101,35 @@ main {
 
       &:last-of-type {
         margin-bottom: 0;
+      }
+    }
+
+    &.not-full-width {
+      margin: 0 auto;
+
+      @media (width >= 481px) {
+        padding-inline: 2rem;
+      }
+
+      @media (width >= 769px) {
+        padding-inline: 3.375rem;
+      }
+
+      @media (width >= 993px) {
+        padding-inline: 4.125rem;
+      }
+
+      @media (width >= 1201px) {
+        width: calc(70.5% - 17.625rem);
+        padding-inline: 4.125rem !important;
+      }
+
+      @media (width >= 1401px) {
+        max-width: 45.0625rem;
+      }
+
+      > div {
+        width: 100% !important;
       }
     }
   }
@@ -1668,14 +1711,55 @@ body.loading::before {
 
 /* share this overrides */
 #st-2 {
-  top: 8.25rem !important;
+  top: auto;
+}
+
+@media (width > 1024px) {
+  #st-2 {
+    top: 8.25rem !important;
+  }
 }
 
 #st-2.st-right {
-  z-index: 0 !important;
+  z-index: 1 !important;
 }
 
 /* general classes */
 .white-background {
   background-color: var(--white);
+}
+
+.tooltip {
+  position: relative;
+
+  & .tooltip-content {
+    position: absolute;
+    background-color: var(--white);
+    padding: 0.625rem 1.875rem;
+    top: 0.625rem;
+    z-index: 10;
+    box-shadow: var(--gray8-shadow);
+    color: var(--gray3);
+    border-radius: 0.3125rem;
+    width: max-content;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    &::before {
+      border-bottom: 0.5625rem solid var(--white);
+      border-left: 0.5625rem solid transparent;
+      border-right: 0.5625rem solid transparent;
+      content: "";
+      height: 0;
+      left: auto;
+      margin: 0 auto;
+      opacity: 1;
+      position: absolute;
+      right: calc(50% - 0.3125rem);
+      top: -0.5625rem;
+      transition-delay: 0s;
+      visibility: visible;
+      width: 0;
+    }
+  }
 }
