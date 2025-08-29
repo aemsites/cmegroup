@@ -16,6 +16,7 @@
       padding: 1rem 1rem 0.5rem;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
       
       @media (width >= 769px) {
         height: 11rem;
@@ -38,20 +39,28 @@
       font-weight: 700;
       margin-bottom: 0.938rem;
       line-height: 0.875rem;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.094rem;
       line-clamp: 1;
       margin-top: 0.313rem;
     }
 
     & .result-title {
       font-size: 1.125rem;
-      max-height: 2.8125rem;
       font-weight: 700;
       line-height: 1.5rem;
-      line-clamp: 2;
-      overflow: hidden;
-      text-overflow: ellipsis;
       margin-bottom: 0.688rem;
+
+      @media (width >= 769px) {
+        span {
+          display: inline-block;
+          max-width: calc(100% - 30px);
+          max-height: 2.8125rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          vertical-align: middle;
+        }
+      }
 
       &::after {
         content: var(--icon-chevron-right);
@@ -76,6 +85,7 @@
     & a {
       text-decoration: none;
       display: flex;
+      max-width: 100%;
     }
 
     & .result-desc {
@@ -100,6 +110,7 @@
     & .result-footer {
       text-transform: uppercase;
       font-size: 0.6875rem;
+      letter-spacing: 0.094rem;
       color: var(--gray3);
       font-weight: 700;
 
@@ -110,6 +121,8 @@
       &.date {
         font-weight: 500;
         font-style: italic;
+        text-transform: capitalize;
+        letter-spacing: normal;
       }
     }
 
@@ -196,7 +209,7 @@
         width: 100%;
 
         @media (width >= 769px) {
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 1.875rem;
         }
       }
@@ -211,6 +224,7 @@
         margin-bottom: 0.5rem;
         height: 0.75rem;
         width: 0.75rem;
+        filter: none;
 
         & img {
           display: block;
@@ -225,7 +239,7 @@
         margin-bottom: 0;
         line-height: 1;
         color: var(--gray3);
-        font-size: 0.75rem;
+        font-size: 0.688rem;
         text-align: start;
         white-space: nowrap;
       }
@@ -253,7 +267,7 @@
   0% {
     transform: rotate(0deg);
   }
-  
+
   100% {
     transform: rotate(360deg);
   }
