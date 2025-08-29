@@ -181,43 +181,6 @@ function i18n(key) {
 }
 
 /**
- * mergeAuthorData
- * @param {*} bios getIndexedContent response (authors pages data)
- * @param {*} allAuthors tags
- * @returns Object containing =>
- *  tag: author.tag,
- *  title: author.title,
- *  path: author.path || null,
- */
-// function mergeAuthorData(bios, allAuthors) {
-//   const authorMap = new Map();
-
-//   bios.forEach((bio) => {
-//     const authorTag = bio.tags.find((tag) => tag.startsWith('authors/'));
-//     if (authorTag) {
-//       authorMap.set(authorTag, {
-//         tag: authorTag,
-//         title: bio.title,
-//         path: bio.path,
-//       });
-//     }
-//   });
-
-//   const mergedData = allAuthors.map((author) => {
-//     if (authorMap.has(author.tag)) {
-//       return authorMap.get(author.tag);
-//     }
-//     return {
-//       tag: author.tag,
-//       title: author.title,
-//       path: null,
-//     };
-//   });
-
-//   return mergedData;
-// }
-
-/**
  * Retrieves article-related metadata from the page
  * @returns {Object} Object containing article metadata
  * @property {string} template - The template type
