@@ -1,5 +1,5 @@
 import {
-  a, div, h2, img, p,
+  a, div, h2, img, p, span,
 } from '../../../scripts/dom-helpers.js';
 import { getTaxonomy } from '../../../scripts/taxonomy.js';
 import {
@@ -11,7 +11,7 @@ import {
 const buildBaseCard = ({
   title, description, path, header = null, children = [],
 }) => {
-  const titleEl = h2({ class: 'result-title' }, title);
+  const titleEl = h2({ class: 'result-title' }, span(title));
   const descEl = p({ class: 'result-desc' }, description);
   const anchor = a({ href: path });
   const tempDiv = div({ class: 'result-item' });
@@ -31,7 +31,7 @@ const buildBaseCard = ({
 
 // Add image to card if present
 const addImage = (card, item) => {
-  const imageUrl = item.metadata?.['og:image'];
+  const imageUrl = item.metadata?.image || item.metadata?.['og:image'];
   if (imageUrl && (imageUrl.includes('https://') || imageUrl.includes('http://'))) {
     const imageEl = img({ src: imageUrl, alt: item.title });
     card.children[0]?.prepend(imageEl);
