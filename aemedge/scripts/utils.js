@@ -9,10 +9,6 @@ import {
   loadBlock,
 } from './aem.js';
 import ffetch from './ffetch.js';
-import {
-  buildIndexFilter,
-  getIndexedContent,
-} from './indexing.js';
 
 /**
  * Language
@@ -63,6 +59,7 @@ function fetchTaxonomy() {
             taxonomy[row.tag] = {
               tag: row.tag,
               title: row[currentLang] || row[defaultLang],
+              path: row.path,
             };
           });
           resolve(taxonomy);
@@ -184,43 +181,6 @@ function i18n(key) {
 }
 
 /**
- * mergeAuthorData
- * @param {*} bios getIndexedContent response (authors pages data)
- * @param {*} allAuthors tags
- * @returns Object containing =>
- *  tag: author.tag,
- *  title: author.title,
- *  path: author.path || null,
- */
-function mergeAuthorData(bios, allAuthors) {
-  const authorMap = new Map();
-
-  bios.forEach((bio) => {
-    const authorTag = bio.tags.find((tag) => tag.startsWith('authors/'));
-    if (authorTag) {
-      authorMap.set(authorTag, {
-        tag: authorTag,
-        title: bio.title,
-        path: bio.path,
-      });
-    }
-  });
-
-  const mergedData = allAuthors.map((author) => {
-    if (authorMap.has(author.tag)) {
-      return authorMap.get(author.tag);
-    }
-    return {
-      tag: author.tag,
-      title: author.title,
-      path: null,
-    };
-  });
-
-  return mergedData;
-}
-
-/**
  * Retrieves article-related metadata from the page
  * @returns {Object} Object containing article metadata
  * @property {string} template - The template type
@@ -243,13 +203,7 @@ async function getArticleRelatedMetadata() {
     if (!authorString) return null;
     const authors = authorString.split(',').map((a) => a.trim());
     const tags = await Promise.all(authors.map((a) => getTag(a)));
-    const indexFilter = buildIndexFilter({});
-    indexFilter.basePaths = ['/education/featured-reports/bios'];
-    indexFilter.templates = ['author'];
-    indexFilter.tagsOr = authors;
-    const filteredData = await getIndexedContent(indexFilter);
-
-    return mergeAuthorData(filteredData, tags);
+    return tags;
   };
 
   const [authorResult, primaryTopicTag] = await Promise.all([
