@@ -712,8 +712,8 @@ function showTooltip(parent, content, hideAfter) {
 }
 
 function closeAuthToast(toast) {
-  toast.classList.remove('fadeIn');
-  toast.classList.add('fadeOut');
+  toast.classList.remove('fade-in');
+  toast.classList.add('fade-out');
   setTimeout(() => { toast.remove(); }, 2000);
 }
 

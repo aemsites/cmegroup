@@ -59,6 +59,7 @@
     --notification-success-background: #e5f1e3;
     --notification-success-tick: #1f9a00;
     --notification-fail-tick: #9f0026;
+    --notification-fail-background: #ffe2e4;
     --orange: #ff912e;
     --completion-certificate-title: #23a8ff;
     --fade-transparent-white: linear-gradient(180deg, hsl(0deg 0% 100% / 0%), #fff);
@@ -66,10 +67,4 @@
     --article-standard-shadow: 0 0.5rem 1rem 0 rgb(0 0 0 / 15%);
     --check-green: #21b002;
     --check-green-filter: brightness(0) saturate(100%) invert(45%) sepia(86%) saturate(1699%) hue-rotate(74deg) brightness(97%) contrast(103%);
-
-    /* Notifications */
-    --notificationSuccessBackground: #e5f1e3;
-    --notificationSuccessTick: #1f9a00;
-    --notificationFailTick: #9f0026;
-    --notificationFailBackground: #ffe2e4;
 }
