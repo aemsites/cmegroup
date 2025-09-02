@@ -1,6 +1,10 @@
 .cards {
   &.article {
     &.card-list {
+      &:has(.spinner-cards) {
+        height: 25rem;
+      }
+      
       & div > ul {
         grid-template-columns: repeat(auto-fit, minmax(8.375rem, 1fr));
       }

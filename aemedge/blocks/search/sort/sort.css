@@ -18,6 +18,11 @@
       font-size: 0.688rem;
       text-transform: uppercase;
       letter-spacing: 0.0937rem;
+      display: none;
+
+      @media (width >= 481px) {
+        display: block;
+      }
 
       & #sort-dropdown & {
         display: none;

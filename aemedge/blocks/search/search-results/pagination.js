@@ -33,7 +33,7 @@ function getPageRange(currentPage, totalPages) {
 }
 
 export default async function renderPagination(container, onPageChange) {
-  if (!searchConfig.pagination?.show) return;
+  if (!searchConfig.pagination?.show || searchConfig.pagination?.totalPages === 1) return;
 
   const { currentPage = 1, totalPages = 1 } = searchConfig.pagination;
 

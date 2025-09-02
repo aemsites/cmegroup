@@ -1,6 +1,10 @@
 .cards {
   &.article {
     &.list {
+      &:has(.spinner-cards) {
+        height: 28.75rem;
+      }
+
       & div > ul {
         grid: none;
         grid-gap: 0;
