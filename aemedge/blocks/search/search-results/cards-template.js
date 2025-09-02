@@ -113,7 +113,7 @@ const labeledCardLesson = async (card, item, labelKey, footerText) => {
   const footer = div({ class: 'result-footer date' }, footerText);
 
   const anchor = buildBaseCard({
-    title: item.metadata?.['module-title'] || item.title,
+    title: item.metadata?.courseTitle || item.metadata?.['module-title'] || item.title,
     description: item.description,
     path: item.path,
     header,
