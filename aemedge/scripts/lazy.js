@@ -101,6 +101,16 @@ async function loadLazy(doc) {
   dataLayer.handleLoad();
   autolinkModals(doc);
 
+  // Add feature toggle checks for header and footer
+  if (!isFeatureToggled('hideHeader')) {
+    loadHeader(doc.querySelector('header')).then((header) => {
+      initFloatingElements(doc, header);
+      enhanceIconAccessibility(header);
+    });
+  } else {
+    // Add class to body when header is hidden to remove top padding
+    doc.body.classList.add('header-hidden');
+  }
   const main = doc.querySelector('main');
   loadSections(main).then(() => {
     initParallaxSections(main);
@@ -122,16 +132,6 @@ async function loadLazy(doc) {
     window.SessionStorageUtil = SessionStorageUtil;
     authentication.handleLoad();
   });
-  // Add feature toggle checks for header and footer
-  if (!isFeatureToggled('hideHeader')) {
-    loadHeader(doc.querySelector('header')).then((header) => {
-      initFloatingElements(doc, header);
-      enhanceIconAccessibility(header);
-    });
-  } else {
-    // Add class to body when header is hidden to remove top padding
-    doc.body.classList.add('header-hidden');
-  }
 }
 
 await loadLazy(document);
