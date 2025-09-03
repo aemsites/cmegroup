@@ -166,6 +166,34 @@
     }
   }
 
+  & .card-standalone-lesson-thumbnail {
+    & .result-title {
+      max-height: 2.813rem;
+
+      & span {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        max-width: 100%;
+
+        &::after {
+          content: var(--icon-chevron-right);
+          font-family: var(--cme-group-icons);
+          font-size: 0.85rem;
+          margin-left: 0.5rem;
+          color: var(--blue5);
+        }
+      }
+
+      &::after {
+        content: "";
+      }
+    }
+  }
+
   & .search-spinner {
     display: flex;
     justify-content: center;
