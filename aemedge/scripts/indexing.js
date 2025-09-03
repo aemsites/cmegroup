@@ -62,9 +62,9 @@ function buildIndexFilter(config) {
  *   languages: ['en'], // Array of languages
  *   metadata: ['en'], // Array of languages
  *   customTagObjArr: [{}] // Custom array for the tags
- *   metadataAnd: { "moduleId": "G-IF-Course" }, // The page must match all of these key-value pairs
- *   metadataOr: { "mediaType": "course" }, // The page must match at least one of these key-value pairs
- *   metadataNot: { "subNavShow": "show" }, // The page must not match any of these key-value pairs
+ *   metadataAnd: { "moduleId": "G-IF-Course" }, // The page must match all of these metadata key-value pairs
+ *   metadataOr: { "mediaType": "course" }, // The page must match at least one of these metadata key-value pairs
+ *   metadataNot: { "subNavShow": "show" }, // The page must not match any of these metadata key-value pairs
  * });
  */
 async function getIndexedContent(indexFilter) {
