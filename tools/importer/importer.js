@@ -1229,6 +1229,7 @@ const tableBlock = (document) => {
 };
 
 const convertImagesToLinks = (document) => {
+  // Handle .component.image elements
   const images = document.querySelectorAll('.component.image');
 
   images.forEach((image) => {
@@ -1261,6 +1262,25 @@ const convertImagesToLinks = (document) => {
       }
 
       image.replaceWith(div);
+    }
+  });
+
+  // Handle standalone images in text components
+  const standaloneImages = document.querySelectorAll('.component.text img');
+  standaloneImages.forEach((img) => {
+    // Skip if image is already inside an anchor (clickable image)
+    if (img.closest('a')) return;
+
+    let imgSrc = img.getAttribute('src');
+    if (imgSrc?.startsWith('/')) {
+      imgSrc = `${DOMAIN}${imgSrc}`;
+    }
+
+    if (imgSrc) {
+      const anchor = document.createElement('a');
+      anchor.href = imgSrc;
+      anchor.textContent = imgSrc;
+      img.replaceWith(anchor);
     }
   });
 };
