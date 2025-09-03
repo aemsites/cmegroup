@@ -60,7 +60,7 @@ function buildIndexFilter(config) {
  *   page: 1, // Page num
  *   fullText: 'search query', // Full text search query
  *   languages: ['en'], // Array of languages
- *   metadata: ['en'], // Array of languages
+ *   getFacets: true, // Boolean to get facets
  *   customTagObjArr: [{}] // Custom array for the tags
  *   metadataAnd: { "moduleId": "G-IF-Course" }, // The page must match all of these metadata key-value pairs
  *   metadataOr: { "mediaType": "course" }, // The page must match at least one of these metadata key-value pairs
