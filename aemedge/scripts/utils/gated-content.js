@@ -30,19 +30,14 @@ import { loadCSS } from '../aem.js';
  * @returns {boolean} True if auth toggle should be displayed
  */
 function isAuthorPreviewMode() {
-  // Show toggle based on environment:
-  // - localhost, .aem.page, .aem.reviews: always show
-  // - .aem.live: only show when ?dapreview=on
   const domainInfo = checkDomain(window.location);
   const urlParams = new URLSearchParams(window.location.search);
   const isDAPreview = urlParams.get('dapreview') === 'on';
 
-  // Always show for non-live environments
   if (domainInfo.isPreview || domainInfo.isReviews) {
     return true;
   }
 
-  // For .aem.live, only show when ?dapreview=on
   if (domainInfo.isLive) {
     return isDAPreview;
   }
@@ -88,24 +83,25 @@ function checkPageLevelProtection() {
 }
 
 /**
- * Apply page-level protection by replacing main content with teaser
+ * Normalize fragment path to ensure it starts with /
  * @param {string} teaserPath - Path to teaser fragment
+ * @returns {string|null} Normalized path or null if invalid
  */
 function normalizeFragmentPath(teaserPath) {
   if (!teaserPath) return null;
-
-  if (teaserPath.startsWith('/')) {
-    return teaserPath;
-  }
+  if (teaserPath.startsWith('/')) return teaserPath;
 
   try {
-    const url = new URL(teaserPath);
-    return url.pathname;
+    return new URL(teaserPath).pathname;
   } catch {
-    return teaserPath.startsWith('/') ? teaserPath : `/${teaserPath}`;
+    return `/${teaserPath}`;
   }
 }
 
+/**
+ * Apply page-level protection by replacing main content with teaser
+ * @param {string} teaserPath - Path to teaser fragment
+ */
 async function applyPageLevelProtection(teaserPath) {
   const main = document.querySelector('main');
   if (!main) return;
@@ -121,19 +117,30 @@ function getText(element) {
   return element.textContent?.trim() || '';
 }
 
-function createDOMParser(htmlString) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(htmlString, 'text/html');
-
-  return {
-    find: (selector) => doc.querySelectorAll(selector),
-    document: doc,
-  };
+/**
+ * Check if a metadata container has protected=true
+ * @param {Element} metadataEl - Metadata container element
+ * @returns {boolean} True if protected=true is found
+ */
+function isProtectedMetadata(metadataEl) {
+  const rows = metadataEl.querySelectorAll(':scope > div');
+  // eslint-disable-next-line no-restricted-syntax
+  for (const row of rows) {
+    const cells = row.querySelectorAll(':scope > div');
+    if (cells.length === 2) {
+      const keyText = getText(cells[0]);
+      const valueText = getText(cells[1]);
+      if (keyText === 'protected' && valueText === 'true') {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /**
  * Fetch the .plain.html version of the current page to get original block structure
- * @returns {Promise<Object|null>} Parsed plain HTML document or null if fetch fails
+ * @returns {Promise<Document|null>} Parsed plain HTML document or null if fetch fails
  */
 async function fetchPlainHtml() {
   try {
@@ -143,9 +150,8 @@ async function fetchPlainHtml() {
       throw new Error(`Failed to fetch plain HTML: ${response.status}`);
     }
     const plainHtml = await response.text();
-
-    const domParser = createDOMParser(plainHtml);
-    return { parser: domParser, type: 'dom' };
+    const parser = new DOMParser();
+    return parser.parseFromString(plainHtml, 'text/html');
   } catch (error) {
     return null;
   }
@@ -193,13 +199,10 @@ function extractBlockType(classAttr) {
 
 /**
  * Parse teaser information from plain HTML for both blocks and sections using native DOM
- * @param {Object} parserContext - Contains parser and type information
- * @param {Object} parserContext.parser - Native DOM parser with document property
+ * @param {Document} doc - Parsed HTML document
  * @returns {Object} Object with block and section teaser data
  */
-function parseTeasersFromPlainHtml(parserContext) {
-  const { parser } = parserContext;
-  const { document: doc } = parser;
+function parseTeasersFromPlainHtml(doc) {
   const blockTeasers = [];
   const sectionTeasers = [];
 
@@ -220,23 +223,7 @@ function parseTeasersFromPlainHtml(parserContext) {
     if (metadataEl) {
       const teaserPath = extractTeaserPath(metadataEl);
 
-      let isProtected = false;
-      const rows = metadataEl.querySelectorAll(':scope > div');
-      // eslint-disable-next-line no-restricted-syntax
-      for (const row of rows) {
-        const cells = row.querySelectorAll(':scope > div');
-        if (cells.length === 2) {
-          const keyText = getText(cells[0]);
-          const valueText = getText(cells[1]);
-
-          if (keyText === 'protected' && valueText === 'true') {
-            isProtected = true;
-            break;
-          }
-        }
-      }
-
-      if (isProtected && teaserPath) {
+      if (isProtectedMetadata(metadataEl) && teaserPath) {
         sectionTeasers.push({ index: sectionIndex, teaserPath, originalMetadata: metadataEl });
       }
     }
@@ -278,14 +265,14 @@ async function checkSectionLevelProtection(isAuthenticated) {
   const protectedSections = [];
   let teaserBlocks = [];
 
-  // Get teaser information from plain HTML for both blocks and sections
-  const parserContext = await fetchPlainHtml();
-  if (parserContext) {
-    const { blockTeasers, sectionTeasers } = parseTeasersFromPlainHtml(parserContext);
+  const sections = document.querySelectorAll('main > div');
+
+  const plainDoc = await fetchPlainHtml();
+  if (plainDoc) {
+    const { blockTeasers, sectionTeasers } = parseTeasersFromPlainHtml(plainDoc);
 
     // Handle section-level protection - match plain HTML sections to actual DOM sections
     if (!isAuthenticated && sectionTeasers.length > 0) {
-      const sections = document.querySelectorAll('main > div');
       sectionTeasers.forEach((sectionData) => {
         if (sections[sectionData.index]) {
           protectedSections.push({
@@ -296,7 +283,6 @@ async function checkSectionLevelProtection(isAuthenticated) {
       });
     }
 
-    // Handle block-level protection - find matching decorated blocks
     if (blockTeasers.length > 0) {
       teaserBlocks = findMatchingDecoratedBlocks(blockTeasers);
     }
@@ -304,19 +290,12 @@ async function checkSectionLevelProtection(isAuthenticated) {
 
   // Fallback: Check current DOM for section protection if no plain HTML sections found
   if (protectedSections.length === 0) {
-    const sections = document.querySelectorAll('main > div');
     sections.forEach((section) => {
       const sectionMetadata = section.querySelector('.section-metadata');
       if (sectionMetadata && !isAuthenticated) {
         const teaserPath = extractTeaserPath(sectionMetadata);
-        const isProtected = Array.from(sectionMetadata.querySelectorAll(':scope > div')).some((row) => {
-          const cells = row.querySelectorAll(':scope > div');
-          return cells.length === 2
-            && cells[0]?.textContent.trim() === 'protected'
-            && cells[1]?.textContent.trim() === 'true';
-        });
 
-        if (isProtected) {
+        if (isProtectedMetadata(sectionMetadata)) {
           if (teaserPath) {
             protectedSections.push({
               element: section,
@@ -328,12 +307,10 @@ async function checkSectionLevelProtection(isAuthenticated) {
     });
   }
 
-  if (teaserBlocks.length === 0) {
-    const sections = document.querySelectorAll('main > div');
-    sections.forEach((section) => {
-      checkBlockProtectionInSection(section, teaserBlocks, isAuthenticated);
-    });
-  }
+  // Always check for block pairs - they work independently of teaser blocks
+  sections.forEach((section) => {
+    checkBlockProtectionInSection(section, teaserBlocks, isAuthenticated);
+  });
 
   const result = {
     isProtected: protectedSections.length > 0 || teaserBlocks.length > 0,
@@ -346,6 +323,12 @@ async function checkSectionLevelProtection(isAuthenticated) {
 
 /**
  * Check for block-level protection within a section
+ * Handles two types of block protection:
+ * 1. Teaser replacement: blocks with "protected" class and teaser paths
+ * 2. Block pairs: two versions of same content with shared id-* identifier
+ *    - Normal version (for anonymous users): class="blocktype id-identifier"
+ *    - Protected version (for authenticated users): class="blocktype id-identifier protected"
+ *
  * @param {Element} section - Section element to check
  * @param {Array} teaserBlocks - Array to collect teaser blocks
  * @param {boolean} isAuthenticated - Current auth state
@@ -388,12 +371,22 @@ function checkBlockProtectionInSection(section, teaserBlocks, isAuthenticated) {
   }
 
   const blocks = {};
-  section.querySelectorAll('div[class*="id-"]').forEach((blockEl) => {
+
+  const allDivs = section.querySelectorAll('div[class]');
+  const blocksWithId = Array.from(allDivs).filter((div) => {
+    const classAttr = div.getAttribute('class') || '';
+    return /\bid-[^\s]+/.test(classAttr);
+  });
+
+  blocksWithId.forEach((blockEl) => {
     const classAttr = blockEl.getAttribute('class') || '';
-    const idMatch = classAttr.match(/id-([^\s]+)/);
+    const idMatch = classAttr.match(/\bid-([^\s]+)/);
     const isProtected = classAttr.includes('protected');
 
-    if (!idMatch) return;
+    if (!idMatch) {
+      return;
+    }
+
     const blockId = idMatch[1];
     if (!blocks[blockId]) {
       blocks[blockId] = { normal: null, protected: null };
@@ -410,9 +403,13 @@ function checkBlockProtectionInSection(section, teaserBlocks, isAuthenticated) {
     Object.entries(blocks).forEach(([, blockPair]) => {
       if (blockPair.normal && blockPair.protected) {
         if (isAuthenticated) {
+          // Authenticated users: show protected content, hide normal content
           blockPair.normal.remove();
+          blockPair.protected.style.display = '';
         } else {
+          // Anonymous users: show normal content, hide protected content
           blockPair.protected.remove();
+          blockPair.normal.style.display = '';
         }
       }
     });
@@ -480,19 +477,16 @@ async function applyContentProtection() {
 function createAuthorToggle() {
   if (!isAuthorPreviewMode()) return;
 
-  // Load the CSS file
   loadCSS(`${window.hlx.codeBasePath}/styles/gated-content.css`);
 
   const currentState = getAuthState();
   let isExpanded = false;
 
-  // Create toggle container using createElement
   const toggle = createElement('div', {
     id: 'auth-preview-toggle',
     class: 'auth-preview-toggle',
   });
 
-  // Create handle/tab for expanding
   const handleIcon = createElement('div', {
     class: 'auth-preview-handle-icon',
   }, 'AUTH TOGGLE');
@@ -501,7 +495,6 @@ function createAuthorToggle() {
     class: 'auth-preview-handle',
   }, handleIcon);
 
-  // Create header elements
   const headerText = createElement('span', {}, 'Auth Toggle');
   const closeBtn = createElement('button', {
     class: 'auth-preview-close',
@@ -512,26 +505,22 @@ function createAuthorToggle() {
     class: 'auth-preview-header',
   }, headerText, closeBtn);
 
-  // Create state indicator
   const stateClass = currentState ? 'authenticated' : 'anonymous';
   const stateText = currentState ? 'Authenticated' : 'Anonymous';
   const stateLabel = createElement('div', {
     class: `auth-preview-state ${stateClass}`,
   }, stateText);
 
-  // Create toggle button
   const buttonText = `Switch to ${currentState ? 'Anonymous' : 'Authenticated'}`;
   const button = createElement('button', {
     class: 'auth-preview-button',
   }, buttonText);
 
-  // Event listeners
   function togglePanel() {
     isExpanded = !isExpanded;
     toggle.classList.toggle('expanded', isExpanded);
     handle.classList.toggle('hidden', isExpanded);
 
-    // Add/remove click-outside listener
     if (isExpanded) {
       setTimeout(() => {
         document.addEventListener('click', handleClickOutside);
@@ -542,12 +531,10 @@ function createAuthorToggle() {
   }
 
   function handleClickOutside(event) {
-    // Don't close if clicking inside the toggle
     if (toggle.contains(event.target)) {
       return;
     }
 
-    // Close the panel
     if (isExpanded) {
       togglePanel();
     }
@@ -562,26 +549,21 @@ function createAuthorToggle() {
     window.location.href = url.toString();
   });
 
-  // Assemble toggle
   toggle.appendChild(handle);
   toggle.appendChild(header);
   toggle.appendChild(stateLabel);
   toggle.appendChild(button);
 
-  // Cleanup function for proper resource management
   function cleanup() {
     document.removeEventListener('click', handleClickOutside);
   }
 
-  // Store cleanup function for potential future use
   toggle.cleanup = cleanup;
 
-  // Add to page with animation
   document.body.appendChild(toggle);
 
   setTimeout(() => {
     toggle.classList.add('visible');
-    // Show handle with a subtle bounce animation after delay
     setTimeout(() => {
       handle.classList.add('bounce');
       setTimeout(() => {
