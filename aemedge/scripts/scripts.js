@@ -15,7 +15,7 @@ import {
   sampleRUM,
 } from './aem.js';
 import initFloatingElements from './alerts/alerts.js';
-import { authentication, dataLayer, authRedirectionHandler } from './modules/index.js';
+import { authentication, dataLayer } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
 import {
@@ -812,7 +812,6 @@ async function loadLazy(doc) {
     window.CookieUtil = CookieUtil;
     window.LocalStorageUtil = LocalStorageUtil;
     window.SessionStorageUtil = SessionStorageUtil;
-    authRedirectionHandler.handleLoad();
     authentication.handleLoad();
   });
   // Add feature toggle checks for header and footer
