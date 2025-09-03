@@ -260,12 +260,10 @@ export function getOrderedLessons(courseData) {
 
 async function buildLanguageLinks(courseData) {
   const template = getMetadata('template');
-  const moduleId = getMetadata('module-id');
+  const id = getMetadata('module-id');
   const indexFilter = {
     templates: [template, ...legacyEducationTemplates],
-    metadata: {
-      or: { 'module-id': moduleId, moduleId, courseId: moduleId },
-    },
+    metadataOr: { 'module-id': id, moduleId: id, courseId: id },
   };
   const indexedContent = await getIndexedContent(indexFilter);
   const filteredContent = indexedContent.filter(

@@ -37,6 +37,9 @@ function buildIndexFilter(config) {
     languages: config.languages || [],
     getFacets: config.getFacets || false,
     customTagObjArr: config.customTagObjArr || [],
+    metadataAnd: config.metadataAnd,
+    metadataOr: config.metadataOr,
+    metadataNot: config.metadataNot,
   };
 }
 
@@ -57,8 +60,11 @@ function buildIndexFilter(config) {
  *   page: 1, // Page num
  *   fullText: 'search query', // Full text search query
  *   languages: ['en'], // Array of languages
- *   getFacets: true, // Boolean to get facets
+ *   metadata: ['en'], // Array of languages
  *   customTagObjArr: [{}] // Custom array for the tags
+ *   metadataAnd: { "moduleId": "G-IF-Course" }, // The page must match all of these key-value pairs
+ *   metadataOr: { "mediaType": "course" }, // The page must match at least one of these key-value pairs
+ *   metadataNot: { "subNavShow": "show" }, // The page must not match any of these key-value pairs
  * });
  */
 async function getIndexedContent(indexFilter) {
@@ -81,9 +87,6 @@ async function getIndexedContent(indexFilter) {
     if (indexFilter.languages && indexFilter.languages.length > 0) {
       postData.query.languages = indexFilter.languages;
     }
-    if (indexFilter.metadata) {
-      postData.query.metadata = indexFilter.metadata;
-    }
     const tags = {};
     if (indexFilter.tagsAnd && indexFilter.tagsAnd.length > 0) {
       tags.and = indexFilter.tagsAnd;
@@ -96,6 +99,19 @@ async function getIndexedContent(indexFilter) {
     }
     if (tags.and || tags.or || tags.not) {
       postData.query.tags = tags;
+    }
+    const metadata = {};
+    if (indexFilter.metadataAnd) {
+      metadata.and = indexFilter.metadataAnd;
+    }
+    if (indexFilter.metadataOr) {
+      metadata.or = indexFilter.metadataOr;
+    }
+    if (indexFilter.metadataNot) {
+      metadata.not = indexFilter.metadataNot;
+    }
+    if (metadata.and || metadata.or || metadata.not) {
+      postData.query.metadata = metadata;
     }
     if (indexFilter.customTagObjArr && indexFilter.customTagObjArr.length > 0) {
       postData.query.tags = indexFilter.customTagObjArr;
