@@ -33,7 +33,7 @@
   position: relative;
   width: 100%;
   height: min(50vw, calc(100dvh - var(--header-height)));
-  min-height: 400px;
+  min-height: 25rem;
 }
 
 .carousel .carousel-slide:has(.carousel-slide-content[data-align='center']) {
@@ -66,9 +66,9 @@
 
 .carousel .carousel-slide .carousel-slide-content {
   z-index: 1;
-  margin: 68px;
-  padding: 16px;
-  color: white;
+  margin: 4.25rem;
+  padding: 1rem;
+  color: var(--white);
   background-color: rgb(19 19 19 / 75%);
   position: relative;
   width: var(--slide-content-width, auto);
@@ -78,8 +78,8 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  left: 12px;
-  right: 12px;
+  left: 0.75rem;
+  right: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -115,37 +115,37 @@
 .carousel .carousel-navigation-buttons button::after {
   display: block;
   content: '';
-  border: 2px solid;
+  border: 0.125rem solid;
   border-bottom: 0;
   border-left: 0;
-  height: 12px;
-  width: 12px;
+  height: 0.75rem;
+  width: 0.75rem;
   position: absolute;
   top: 50%;
-  left: calc(50% + 2px);
+  left: calc(50% + 0.125rem);
   transform: translate(-50%, -50%) rotate(-135deg);
 }
 
 .carousel .carousel-navigation-buttons button.slide-next::after {
   transform: translate(-50%, -50%) rotate(45deg);
-  left: calc(50% - 2px);
+  left: calc(50% - 0.125rem);
 }
 
-@media (width >= 600px) {
+@media (width >= 769px) {
   .carousel .carousel-navigation-buttons {
-    left: 24px;
-    right: 24px;
+    left: 1.5rem;
+    right: 1.5rem;
   }
 
   .carousel .carousel-slide {
     height: min(40vw, calc(100dvh - var(--header-height)));
-    min-height: 500px;
+    min-height: 31.25rem;
   }
 
   .carousel .carousel-slide .carousel-slide-content {
-    --slide-content-width: calc((100% - 184px) / 2);
+    --slide-content-width: calc((100% - 11.5rem) / 2);
 
-    margin: 92px;
+    margin: 5.75rem;
   }
 
   .carousel .carousel-slide .carousel-slide-content[data-align='justify'] {
@@ -156,6 +156,6 @@
 @media (width >= 993px) {
   .carousel .carousel-slide {
     height: min(35vw, calc(100dvh - var(--header-height)));
-    min-height: 600px;
+    min-height: 37.5rem;
   }
 }
