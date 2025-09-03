@@ -55,6 +55,12 @@ class CookieClass {
     encValue = encodeURIComponent(String(encValue));
     let stringifiedAttributes = '';
     Object.keys(attributes).forEach((attributeName) => {
+      if (
+        attributes[attributeName] === false ||
+        attributes[attributeName] === ''
+      ) {
+        return;
+      }
       stringifiedAttributes += `; ${attributeName}`;
       if (attributes[attributeName] !== true) {
         stringifiedAttributes += `=${attributes[attributeName].split(';')[0]}`;
