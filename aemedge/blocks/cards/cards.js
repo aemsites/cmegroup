@@ -20,6 +20,7 @@ import {
   mapLegacyArticleData,
   isLegacyArticle,
 } from '../../scripts/legacyContentMapping.js';
+import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
@@ -85,8 +86,12 @@ async function createStaticCards(block) {
     let sliderConfig = null;
     const disabledOnDesktop = false;
     const inverse = false;
+    const hasClickableImages = block.classList.contains('clickable-image');
 
     [...block.children].forEach((row) => {
+      if (hasClickableImages) {
+        wrapImgsInLinks(row);
+      }
       const li = createElement('li');
       const courseQty = row.querySelector('em');
       const title = row.querySelector('h3');
