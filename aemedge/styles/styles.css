@@ -1721,7 +1721,7 @@ body.loading::before {
 }
 
 #st-2.st-right {
-  z-index: 1 !important;
+  z-index: 100000 !important;
 }
 
 /* general classes */
