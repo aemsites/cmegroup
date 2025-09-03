@@ -56,8 +56,8 @@ class CookieClass {
     let stringifiedAttributes = '';
     Object.keys(attributes).forEach((attributeName) => {
       if (
-        attributes[attributeName] === false ||
-        attributes[attributeName] === ''
+        attributes[attributeName] === false
+        || attributes[attributeName] === ''
       ) {
         return;
       }
