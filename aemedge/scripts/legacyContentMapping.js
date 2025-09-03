@@ -72,7 +72,7 @@ function mapLegacyArticleData(legacyData) {
   };
 }
 
-function isLegacyArticle(content) {
+function isLegacyContent(content) {
   return content.source === 'onprem';
 }
 
@@ -89,8 +89,18 @@ const legacyArticleTemplates = [
   '/conf/cmegroupaem/settings/wcm/templates/cme-group-brightcove-video-template',
 ];
 
+const legacyEducationTemplates = [
+  '/apps/cmegroup/templates/educationCourseTemplate',
+  '/apps/cmegroup/templates/educationModuleTemplate',
+  '/conf/cmegroupaem/settings/wcm/templates/cme-group-course-template',
+  '/conf/cmegroupaem/settings/wcm/templates/cme-group-lesson-template',
+  '/conf/cmegroupaem/settings/wcm/templates/cme-group-standalone-lesson-template',
+];
+
 export {
   legacyArticleTemplates,
   mapLegacyArticleData,
-  isLegacyArticle,
+  isLegacyContent,
+  legacyEducationTemplates,
+  normalizeLegacyPath,
 };

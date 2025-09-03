@@ -81,6 +81,9 @@ async function getIndexedContent(indexFilter) {
     if (indexFilter.languages && indexFilter.languages.length > 0) {
       postData.query.languages = indexFilter.languages;
     }
+    if (indexFilter.metadata) {
+      postData.query.metadata = indexFilter.metadata;
+    }
     const tags = {};
     if (indexFilter.tagsAnd && indexFilter.tagsAnd.length > 0) {
       tags.and = indexFilter.tagsAnd;

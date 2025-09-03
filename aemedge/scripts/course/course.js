@@ -1,13 +1,26 @@
 import {
   createElement,
-  getCurrentLangInWords,
   i18n,
   parseTime,
+  getLanguageLabel,
 } from '../utils.js';
 import { getEnvType } from '../utils/index.js';
-import { getMetadata } from '../aem.js';
+import {
+  getMetadata,
+  buildBlock,
+  decorateBlock,
+  loadBlock,
+} from '../aem.js';
 import { getIndexedContent } from '../indexing.js';
-import { getProgress, postLesson } from '../services/EducationTrackService.js';
+import {
+  getProgress,
+  postLesson,
+} from '../services/EducationTrackService.js';
+import {
+  isLegacyContent,
+  normalizeLegacyPath,
+  legacyEducationTemplates,
+} from '../legacyContentMapping.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
 const LESSONS_BASE_PATH = '/education/lessons/';
@@ -105,6 +118,7 @@ export async function getCourseData() {
       template: module.template.toLowerCase(),
       moduleId: module.metadata['module-id'],
       modulesOrder: module.metadata['modules-order'],
+      relevantPath,
     }));
 
     // If the page is a lesson standalone, return the first entry
@@ -244,6 +258,29 @@ export function getOrderedLessons(courseData) {
   ];
 }
 
+async function buildLanguageLinks(courseData) {
+  const template = getMetadata('template');
+  const moduleId = getMetadata('module-id');
+  const indexFilter = {
+    templates: [template, ...legacyEducationTemplates],
+    metadata: {
+      or: { 'module-id': moduleId, moduleId, courseId: moduleId },
+    },
+  };
+  const indexedContent = await getIndexedContent(indexFilter);
+  const filteredContent = indexedContent.filter(
+    ({ path }) => path.endsWith(courseData.relevantPath),
+  );
+  const links = filteredContent.map((content) => {
+    const isLegacy = isLegacyContent(content);
+    const { path, language } = content;
+    const link = createElement('a', { href: isLegacy ? normalizeLegacyPath(path) : path });
+    link.innerText = getLanguageLabel(language);
+    return createElement('li', null, link);
+  });
+  return createElement('ul', { class: 'language-selector-options' }, links);
+}
+
 /**
  * Create the base template for a course page
  * It is common for different course templates: course & lesson
@@ -309,8 +346,10 @@ export async function createCourseBaseTemplate(courseData) {
     }
   }
 
-  const currentLanguage = getCurrentLangInWords();
-  const language = createElement('div', { class: 'metadata language' }, currentLanguage);
+  const languageSelector = buildBlock('language-selector', await buildLanguageLinks(courseData));
+  const language = createElement('div', { class: 'metadata language' }, languageSelector);
+  decorateBlock(languageSelector);
+  await loadBlock(languageSelector);
   header.appendChild(language);
 
   courseHeading?.before(header);
