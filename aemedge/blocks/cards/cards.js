@@ -18,7 +18,7 @@ import {
 import {
   legacyArticleTemplates,
   mapLegacyArticleData,
-  isLegacyArticle,
+  isLegacyContent,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 
@@ -200,7 +200,7 @@ export async function createDynamicCardCourse(contentData) {
 }
 
 export async function createDynamicCardArticle(content) {
-  const curatedContent = isLegacyArticle(content) ? mapLegacyArticleData(content) : content;
+  const curatedContent = isLegacyContent(content) ? mapLegacyArticleData(content) : content;
   const {
     path,
     readTime,
@@ -234,7 +234,7 @@ export async function createDynamicCardArticle(content) {
 }
 
 function createDynamicCardThumbnailMedium(content) {
-  const curatedContent = isLegacyArticle(content) ? mapLegacyArticleData(content) : content;
+  const curatedContent = isLegacyContent(content) ? mapLegacyArticleData(content) : content;
   const {
     path,
     title,
