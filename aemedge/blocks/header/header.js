@@ -229,7 +229,13 @@ class Nav {
   };
 
   async initializeLabels() {
-    const [welcomeLabel, loginLabel, logoutLabel, loginAccount, createAccount] = await Promise.all([
+    const [
+      welcomeLabel,
+      loginLabel,
+      logoutLabel,
+      loginAccount,
+      createAccount,
+    ] = await Promise.all([
       i18n('Welcome'),
       i18n('LOG IN'),
       i18n('LOG OUT'),

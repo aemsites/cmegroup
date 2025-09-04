@@ -21,23 +21,34 @@ function getDefaultLang() {
   return 'en';
 }
 
-function getCurrentLangInWords() {
-  const LANGUAGE_MAP = {
-    en: 'English',
-    es: 'Español',
-    fr: 'Français',
-    de: 'Deutsch',
-    it: 'Italian',
-    he: 'עברית',
-    ko: '한국어',
-    nl: 'Dutch',
-    'cn-s': '中文(简体)',
-    'cn-t': '中文(繁體)',
-    pt: 'Português',
-    ar: 'العربية',
-  };
-  const locale = getCurrentLang();
+const LANGUAGE_MAP = {
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  de: 'Deutsch',
+  it: 'Italian',
+  he: 'עברית',
+  ko: '한국어',
+  nl: 'Dutch',
+  'cn-s': '中文(简体)',
+  'cn-t': '中文(繁體)',
+  pt: 'Português',
+  ar: 'العربية',
+  ja: '日本語',
+  ru: 'ру́сский язы́к',
+  uk: 'українська мова',
+  zh_cn: '中文(简体)',
+  zh_hk: '中文(繁體)',
+  iw: 'עברית',
+};
+
+function getLanguageLabel(locale) {
   return LANGUAGE_MAP[locale] || 'English';
+}
+
+function getCurrentLangInWords() {
+  const locale = getCurrentLang();
+  return getLanguageLabel(locale);
 }
 
 /**
@@ -711,6 +722,41 @@ function showTooltip(parent, content, hideAfter) {
   }
 }
 
+function closeAuthToast(toast) {
+  toast.classList.remove('fade-in');
+  toast.classList.add('fade-out');
+  setTimeout(() => { toast.remove(); }, 2000);
+}
+
+function showAuthToast(message, type, fade) {
+  const main = document.querySelector('main');
+  const toastClasses = {
+    success: 'alert-success',
+    warning: 'alert-warning',
+    error: 'alert-error',
+  };
+  const authToastBox = createElement('div', { class: 'auth-toast-box fadeIn' });
+  authToastBox.classList.add(toastClasses[type]);
+  const alertIcon = createElement('div', { class: 'alert-icon' });
+  const icon = createElement('i', { class: type === 'success' ? 'icon-check' : 'icon-attention-triangle' });
+  alertIcon.appendChild(icon);
+  const alertHeading = createElement('div', { class: 'alert-heading' });
+  alertHeading.append(message);
+  const alertClose = createElement('button', { class: 'alert-close' });
+  const iconClose = createElement('i', { class: 'icon-close' });
+  alertClose.appendChild(iconClose);
+  alertClose.addEventListener('click', async () => {
+    closeAuthToast(authToastBox);
+  });
+  authToastBox.appendChild(alertIcon);
+  authToastBox.appendChild(alertHeading);
+  authToastBox.appendChild(alertClose);
+  main.appendChild(authToastBox);
+  if (fade) {
+    setTimeout(() => { closeAuthToast(authToastBox); }, 5000);
+  }
+}
+
 /**
  * Appends a fragment block to the main element
  * @param {string} fragmentUrl - The fragment URL to load
@@ -752,5 +798,7 @@ export {
   getCountryCode,
   preserveHideParameters,
   showTooltip,
+  showAuthToast,
   addFragmentBlock,
+  getLanguageLabel,
 };

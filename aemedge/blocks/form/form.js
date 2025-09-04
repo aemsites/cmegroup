@@ -1,6 +1,11 @@
 import { decorateButtons } from '../../scripts/scripts.js';
 import createField from './form-fields.js';
-import { createElement, toStartCase, getCountryCode } from '../../scripts/utils.js';
+import {
+  createElement,
+  toStartCase,
+  getCountryCode,
+  showAuthToast,
+} from '../../scripts/utils.js';
 import { loadFragment } from '../fragment/fragment.js';
 import { postForm } from '../../scripts/api.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
@@ -547,10 +552,18 @@ async function checkOneClickFormCookie(form, block) {
   //  auto submit if cookie is present for this form (login/registration flow)
   const formId = block.getAttribute('form-id');
   const oneClickCookie = window.CookieUtil?.get('oneClickFormCookie', true);
+  const thanksMsg = form.querySelector('[id^="form-thankyoumessage"]');
   const { isLoggedIn } = authentication.authenticationData;
   if (formId.toString() === oneClickCookie?.formId && (isLoggedIn || uriUtil.hasQuery('email'))) {
     await handleSubmit(form, block);
     window.CookieUtil?.remove('oneClickFormCookie');
+    if (thanksMsg) {
+      showAuthToast(
+        thanksMsg,
+        'success',
+        true,
+      );
+    }
   }
 }
 

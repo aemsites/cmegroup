@@ -18,8 +18,9 @@ import {
 import {
   legacyArticleTemplates,
   mapLegacyArticleData,
-  isLegacyArticle,
+  isLegacyContent,
 } from '../../scripts/legacyContentMapping.js';
+import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
@@ -85,8 +86,12 @@ async function createStaticCards(block) {
     let sliderConfig = null;
     const disabledOnDesktop = false;
     const inverse = false;
+    const hasClickableImages = block.classList.contains('clickable-image');
 
     [...block.children].forEach((row) => {
+      if (hasClickableImages) {
+        wrapImgsInLinks(row);
+      }
       const li = createElement('li');
       const courseQty = row.querySelector('em');
       const title = row.querySelector('h3');
@@ -195,7 +200,7 @@ export async function createDynamicCardCourse(contentData) {
 }
 
 export async function createDynamicCardArticle(content) {
-  const curatedContent = isLegacyArticle(content) ? mapLegacyArticleData(content) : content;
+  const curatedContent = isLegacyContent(content) ? mapLegacyArticleData(content) : content;
   const {
     path,
     readTime,
@@ -229,7 +234,7 @@ export async function createDynamicCardArticle(content) {
 }
 
 function createDynamicCardThumbnailMedium(content) {
-  const curatedContent = isLegacyArticle(content) ? mapLegacyArticleData(content) : content;
+  const curatedContent = isLegacyContent(content) ? mapLegacyArticleData(content) : content;
   const {
     path,
     title,
