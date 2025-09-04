@@ -1716,12 +1716,12 @@ body.loading::before {
 
 @media (width > 1024px) {
   #st-2 {
-    top: 8.25rem !important;
+    top: var(--navbar-height) !important;
   }
 }
 
 #st-2.st-right {
-  z-index: 100000 !important;
+  z-index: 1 !important;
 }
 
 /* general classes */
