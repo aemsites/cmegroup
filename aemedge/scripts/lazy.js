@@ -96,7 +96,7 @@ async function loadSections(element) {
  * Loads everything that doesn't need to be delayed.
  * @param {Element} doc The container element
  */
-async function loadLazy(doc) {
+export default async function loadLazy(doc) {
   import('./dataLayerImport.js');
   dataLayer.handleLoad();
   autolinkModals(doc);

@@ -31,7 +31,7 @@ async function loadOneTrust() {
   return Promise.resolve();
 }
 
-function loadPage() {
+export default function loadPage() {
   if (!isFeatureToggled('educationIframe')) {
     loadSitewidePopups();
   }
