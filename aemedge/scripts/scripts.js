@@ -1,6 +1,4 @@
 import {
-  loadHeader,
-  loadFooter,
   decorateIcons,
   decorateBlock,
   decorateTemplateAndTheme,
@@ -12,12 +10,7 @@ import {
   buildBlock,
   updateTitleAndMetaTags,
   loadSection,
-  sampleRUM,
 } from './aem.js';
-import initFloatingElements from './alerts/alerts.js';
-import { authentication, dataLayer } from './modules/index.js';
-import dynamicBlocks from '../blocks/dynamic/index.js';
-import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
 import {
   checkDomain,
   createElement,
@@ -142,22 +135,6 @@ function decorateSections(main) {
 }
 
 /**
- * Initialize parallax sections with background images from data attributes
- * @param {Element} main The main container element
- */
-function initParallaxSections(main) {
-  const parallaxSections = main.querySelectorAll('.section.parallax[data-background-image]');
-
-  parallaxSections.forEach((section) => {
-    const { backgroundImage } = section.dataset;
-    if (backgroundImage) {
-      section.style.backgroundImage = `url('${backgroundImage}')`;
-      delete section.dataset.backgroundImage;
-    }
-  });
-}
-
-/**
  * load fonts.css and set a session storage flag
  */
 async function loadFonts() {
@@ -186,18 +163,6 @@ function enhanceIconAccessibility(element = document) {
           .join('');
         parentLink.setAttribute('aria-label', `Visit ${platformName}`);
       }
-    }
-  });
-}
-
-function autolinkModals(element) {
-  element.addEventListener('click', async (e) => {
-    const origin = e.target.closest('a');
-
-    if (origin && origin.href && origin.href.includes('/modals/')) {
-      e.preventDefault();
-      const { openModal } = await import(`${window.hlx.codeBasePath}/blocks/modal/modal.js`);
-      openModal(origin.href);
     }
   });
 }
@@ -234,59 +199,65 @@ export function isFragmentLink(link) {
 }
 
 function handleLoginRedirection(event, element) {
-  const { authenticationData } = authentication;
-  if (!authenticationData.isLoggedIn) {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    authenticationData.login(
-      element.getAttribute('href') === '#'
-        ? window.location.href
-        : element.href,
-      element.target,
-      '',
-    );
-  }
+  import('./modules/Authentication.js').then(({ authentication }) => {
+    const { authenticationData } = authentication;
+    if (!authenticationData.isLoggedIn) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      authenticationData.login(
+        element.getAttribute('href') === '#'
+          ? window.location.href
+          : element.href,
+        element.target,
+        '',
+      );
+    }
+  });
 }
 
 function handleRegistrationRedirection(event, element) {
-  const { authenticationData } = authentication;
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  if (!authenticationData.isLoggedIn) {
-    const noActivationPrompt = element.getAttribute(
-      'data-no-activation-prompt',
-    );
-    const targetLocation = noActivationPrompt
-      ? window.location.href
-      : element.href;
-    authenticationData.registration(
-      targetLocation,
-      element.target,
-      '',
-      noActivationPrompt,
-    );
-  }
+  import('./modules/Authentication.js').then(({ authentication }) => {
+    const { authenticationData } = authentication;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (!authenticationData.isLoggedIn) {
+      const noActivationPrompt = element.getAttribute(
+        'data-no-activation-prompt',
+      );
+      const targetLocation = noActivationPrompt
+        ? window.location.href
+        : element.href;
+      authenticationData.registration(
+        targetLocation,
+        element.target,
+        '',
+        noActivationPrompt,
+      );
+    }
+  });
 }
 
 function handleOneClickForm(event, element) {
-  const { authenticationData } = authentication;
-  event.preventDefault();
-  if (!authenticationData.isLoggedIn) {
-    const expires = new Date();
-    expires.setMinutes(expires.getMinutes() + 30);
-    window.CookieUtil?.set(
-      'oneClickFormCookie',
-      {
-        location: element.href,
-        formId: element.closest('[form-id]')?.getAttribute('form-id'),
-      },
-      {
-        expires,
-      },
-    );
-    //  noActivationPrompt used in registration url
-    element.setAttribute('data-no-activation-prompt', 'true');
-  }
+  import('./modules/Authentication.js').then(({ authentication }) => {
+    const { authenticationData } = authentication;
+    event.preventDefault();
+    if (!authenticationData.isLoggedIn) {
+      const expires = new Date();
+      expires.setMinutes(expires.getMinutes() + 30);
+      window.CookieUtil?.set(
+        'oneClickFormCookie',
+        {
+          location: element.href,
+          formId: element.closest('[form-id]')?.getAttribute('form-id'),
+        },
+        {
+          expires,
+        },
+      );
+      //  noActivationPrompt used in registration url
+      element.setAttribute('data-no-activation-prompt', 'true');
+    }
+  });
 }
 
 /**
@@ -765,65 +736,10 @@ async function loadEager(doc) {
 }
 
 /**
- * Loads all sections.
- * @param {Element} element The parent element of sections to load
- */
-async function loadSections(element) {
-  return new Promise((resolve) => {
-    (async () => {
-      const sections = [...element.querySelectorAll('div.section')];
-      for (let i = 0; i < sections.length; i += 1) {
-        // eslint-disable-next-line no-await-in-loop
-        await loadSection(sections[i]);
-        if (i === 0 && sampleRUM.enhance) {
-          sampleRUM.enhance();
-        }
-      }
-      resolve();
-    })();
-  });
-}
-
-/**
  * Loads everything that doesn't need to be delayed.
- * @param {Element} doc The container element
  */
-async function loadLazy(doc) {
-  import('./dataLayerImport.js');
-  dataLayer.handleLoad();
-  autolinkModals(doc);
-
-  const main = doc.querySelector('main');
-  loadSections(main).then(() => {
-    initParallaxSections(main);
-    const { hash } = window.location;
-    const element = hash ? doc.getElementById(hash.substring(1)) : false;
-    if (hash && element) element.scrollIntoView();
-
-    if (!isFeatureToggled('hideFooter')) {
-      loadFooter(doc.querySelector('footer')).then((footer) => {
-        enhanceIconAccessibility(footer);
-      });
-    }
-
-    dynamicBlocks(main);
-    loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
-    loadFonts();
-    window.CookieUtil = CookieUtil;
-    window.LocalStorageUtil = LocalStorageUtil;
-    window.SessionStorageUtil = SessionStorageUtil;
-    authentication.handleLoad();
-  });
-  // Add feature toggle checks for header and footer
-  if (!isFeatureToggled('hideHeader')) {
-    loadHeader(doc.querySelector('header')).then((header) => {
-      initFloatingElements(doc, header);
-      enhanceIconAccessibility(header);
-    });
-  } else {
-    // Add class to body when header is hidden to remove top padding
-    doc.body.classList.add('header-hidden');
-  }
+async function loadLazy() {
+  await import('./lazy.js');
 }
 
 /**
@@ -838,7 +754,7 @@ function loadDelayed() {
 
 async function loadPage() {
   await loadEager(document);
-  await loadLazy(document);
+  await loadLazy();
   loadDelayed();
 }
 
