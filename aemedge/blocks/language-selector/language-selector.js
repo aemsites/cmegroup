@@ -41,7 +41,7 @@ function getCurrentLanguageOption(languages) {
     }
   });
   if (!curr) {
-    curr = languages.firstElementChild.firstElementChild;
+    curr = languages.firstElementChild;
   }
   return curr;
 }
