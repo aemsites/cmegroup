@@ -36,7 +36,7 @@ function getCurrentLanguageOption(languages) {
   let curr;
   [...languages.children].forEach((elem) => {
     const href = elem.firstElementChild.getAttribute('href');
-    if (window.location.href.startsWith(href)) {
+    if (window.location.href.startsWith(href) || window.location.pathname.startsWith(href)) {
       curr = elem;
     }
   });
