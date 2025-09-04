@@ -60,6 +60,18 @@ const addCourseDataToCache = (coursePath, courseData) => {
   }
 };
 
+const parseCurrentPath = () => {
+  const path = window.location.pathname;
+  const template = getMetadata('template');
+  let basePath = COURSES_BASE_PATH;
+  if (isLessonStandalone(template) && path.includes('lessons')) {
+    basePath = LESSONS_BASE_PATH;
+  }
+  const relevantPath = path.split(basePath)[1];
+  const preBasePath = (path.split(basePath)[0] === '' || path.split(basePath)[0] === '/') ? '' : path.split(basePath)[0];
+  return { basePath, relevantPath, preBasePath };
+};
+
 /**
  * Get the course data for the current course
  * It is used for the course page and the lesson page
@@ -69,7 +81,6 @@ const addCourseDataToCache = (coursePath, courseData) => {
  */
 export async function getCourseData() {
   try {
-    const currentPath = window.location.pathname;
     const template = getMetadata('template');
     if (!TEMPLATES.includes(template.toLowerCase())) {
       throw new Error('Not a course page');
@@ -82,14 +93,7 @@ export async function getCourseData() {
       lessons: [],
     };
 
-    let basePath = COURSES_BASE_PATH;
-    if (isLessonStandalone(template) && currentPath.includes('lessons')) {
-      basePath = LESSONS_BASE_PATH;
-    }
-
-    const relevantPath = currentPath.split(basePath)[1];
-    const preBasePath = (currentPath.split(basePath)[0] === '' || currentPath.split(basePath)[0] === '/') ? '' : currentPath.split(basePath)[0];
-
+    const { relevantPath, preBasePath } = parseCurrentPath();
     const course = (template !== 'lesson-standalone') ? relevantPath.split('/')[0] : relevantPath;
     if (template !== 'lesson-standalone' && !course) {
       throw new Error('No course found in the path');
@@ -118,7 +122,6 @@ export async function getCourseData() {
       template: module.template.toLowerCase(),
       moduleId: module.metadata['module-id'],
       modulesOrder: module.metadata['modules-order'],
-      relevantPath,
     }));
 
     // If the page is a lesson standalone, return the first entry
@@ -258,16 +261,18 @@ export function getOrderedLessons(courseData) {
   ];
 }
 
-async function buildLanguageLinks(courseData) {
+async function buildLanguageLinks() {
   const template = getMetadata('template');
   const id = getMetadata('module-id');
+  const { relevantPath } = parseCurrentPath();
   const indexFilter = {
     templates: [template, ...legacyEducationTemplates],
     metadataOr: { 'module-id': id, moduleId: id, courseId: id },
+    limit: 100,
   };
   const indexedContent = await getIndexedContent(indexFilter);
   const filteredContent = indexedContent.filter(
-    ({ path }) => path.endsWith(courseData.relevantPath),
+    ({ path }) => path.endsWith(relevantPath),
   );
   const links = filteredContent.map((content) => {
     const isLegacy = isLegacyContent(content);
@@ -344,7 +349,7 @@ export async function createCourseBaseTemplate(courseData) {
     }
   }
 
-  const languageSelector = buildBlock('language-selector', await buildLanguageLinks(courseData));
+  const languageSelector = buildBlock('language-selector', await buildLanguageLinks());
   const language = createElement('div', { class: 'metadata language' }, languageSelector);
   decorateBlock(languageSelector);
   await loadBlock(languageSelector);
@@ -362,17 +367,12 @@ export function getCurrentLesson(courseData) {
 }
 
 /**
- * Updates the current module status
+ * Updates the current lesson status
  */
 export async function updateLessonStatus(isCompleted) {
   const courseData = await getCourseData();
-  const currentLesson = courseData.isLessonStandalone ? courseData : getCurrentLesson(courseData);
-  if (!currentLesson || !currentLesson.moduleId) {
-    // eslint-disable-next-line no-console
-    console.error('Error getting lesson ID');
-    return null;
-  }
-  const updatedCourse = await postLesson(courseData.moduleId, currentLesson.moduleId, isCompleted);
+  const lessonId = getMetadata('module-id');
+  const updatedCourse = await postLesson(courseData.moduleId, lessonId, isCompleted);
   if (updatedCourse && isCompleted) {
     const { lessons: lessonsProgress, ...courseProgress } = updatedCourse;
     Object.assign(courseData, courseProgress);
