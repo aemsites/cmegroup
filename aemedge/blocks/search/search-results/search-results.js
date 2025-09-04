@@ -15,11 +15,11 @@ function showSpinner(container) {
   container.appendChild(spinner);
 }
 
-const buildSearchRequest = () => {
+function buildSearchRequest(filterId) {
   const request = {
     basePaths: searchConfig.basePaths,
     page: searchConfig.pagination?.currentPage || 1,
-    limit: searchConfig.pagination?.size || 10,
+    limit: filterId ? 0 : searchConfig.pagination?.size || 10,
     fullText: searchConfig.searchInput || '',
     languages: ['en'], // currently hardcoding languages
     getFacets: searchConfig.getFacets,
@@ -32,10 +32,12 @@ const buildSearchRequest = () => {
   const mp = {};
   searchConfig.appliedFilters.forEach((filter) => {
     const value = filter.value.endsWith('--star') ? filter.value.replace('--star', '') : filter.value;
-    if (mp[filter.filterId]) {
-      mp[filter.filterId].push(value);
-    } else {
-      mp[filter.filterId] = [value];
+    if (!filterId || filterId !== filter.filterId) {
+      if (mp[filter.filterId]) {
+        mp[filter.filterId].push(value);
+      } else {
+        mp[filter.filterId] = [value];
+      }
     }
   });
 
@@ -58,12 +60,47 @@ const buildSearchRequest = () => {
   }
 
   return buildIndexFilter(request);
-};
+}
+
+async function executeSearch() {
+  const apiReq = buildSearchRequest();
+  if (!searchConfig.getFacets || searchConfig.appliedFilters.length === 0) {
+    const res = await getIndexedContent(apiReq);
+    return res;
+  }
+  const filters = [...new Set(searchConfig.appliedFilters.map((item) => item.filterId))];
+  const reqs = filters.map((filter) => buildSearchRequest(filter));
+  const results = await Promise.all([apiReq, ...reqs].map(getIndexedContent));
+  const res = results.shift();
+  filters.forEach((filterId, index) => {
+    const filter = document.getElementById(filterId);
+    if (filter) {
+      const localres = results[index];
+      if (localres.facets) {
+        filter.querySelectorAll('.dropdown-option, .checkbox-option').forEach((element) => {
+          const facetValue = element.querySelector('input').value;
+          const matchingFacet = localres.facets.find((f) => f.tag === facetValue);
+          if (matchingFacet) {
+            if (!res.facets) {
+              res.facets = [];
+            }
+            const resFacet = res.facets.find((f) => f.tag === facetValue);
+            if (resFacet) {
+              resFacet.count = matchingFacet.count;
+            } else {
+              res.facets.push(matchingFacet);
+            }
+          }
+        });
+      }
+    }
+  });
+  return res;
+}
 
 const searchResults = async () => {
-  const apiReq = buildSearchRequest();
   showSpinner(document.querySelector('.results-wrapper'));
-  const results = await getIndexedContent(apiReq);
+  const results = await executeSearch();
 
   if (results && Object.keys(results).length > 0) {
     // Update pagination info from response
