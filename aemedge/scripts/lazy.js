@@ -111,6 +111,7 @@ async function loadLazy(doc) {
     // Add class to body when header is hidden to remove top padding
     doc.body.classList.add('header-hidden');
   }
+
   const main = doc.querySelector('main');
   loadSections(main).then(() => {
     initParallaxSections(main);
@@ -133,6 +134,10 @@ async function loadLazy(doc) {
     authRedirectionHandler.handleLoad();
     authentication.handleLoad();
   });
+
+  // eslint-disable-next-line import/no-cycle
+  const { initContentProtection } = await import('./utils/gated-content.js');
+  initContentProtection();
 }
 
 await loadLazy(document);

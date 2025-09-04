@@ -1,6 +1,7 @@
 import { sampleRUM } from './aem.js';
 import loadSitewidePopups from './popups/popups.js';
 import { isFeatureToggled, loadScript } from './utils.js';
+import { getMetadata } from './aem.js';
 
 // Core Web Vitals RUM collection
 sampleRUM('cwv');
@@ -31,6 +32,14 @@ async function loadOneTrust() {
   return Promise.resolve();
 }
 
+async function showLoginPopup() {
+  const visibility = getMetadata('protected');
+  if (visibility && visibility === 'true') {
+    const { openModal } = await import(`${window.hlx.codeBasePath}/blocks/modal/modal.js`);
+    openModal('/fragments/login');
+  }
+}
+
 function loadPage() {
   if (!isFeatureToggled('educationIframe')) {
     loadSitewidePopups();
@@ -41,6 +50,7 @@ function loadPage() {
   }
 
   loadOneTrust();
+  showLoginPopup();
 }
 
 loadPage();
