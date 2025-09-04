@@ -9,10 +9,6 @@ import {
   loadBlock,
 } from './aem.js';
 import ffetch from './ffetch.js';
-import {
-  buildIndexFilter,
-  getIndexedContent,
-} from './indexing.js';
 
 /**
  * Language
@@ -63,6 +59,7 @@ function fetchTaxonomy() {
             taxonomy[row.tag] = {
               tag: row.tag,
               title: row[currentLang] || row[defaultLang],
+              path: row.path,
             };
           });
           resolve(taxonomy);
@@ -138,8 +135,14 @@ async function loadScript(src, attrs) {
 /**
  * Creates a new HTML element
  */
+const svgNamespace = 'http://www.w3.org/2000/svg';
+const svgElements = ['svg', 'circle', 'path', 'text', 'line'];
+
 function createElement(tagName, attributes, ...children) {
-  const el = document.createElement(tagName);
+  const isSvg = svgElements.includes(tagName);
+  const el = isSvg
+    ? document.createElementNS(svgNamespace, tagName)
+    : document.createElement(tagName);
   if (attributes) {
     Object.keys(attributes).forEach((name) => {
       el.setAttribute(name, attributes[name]);
@@ -178,43 +181,6 @@ function i18n(key) {
 }
 
 /**
- * mergeAuthorData
- * @param {*} bios getIndexedContent response (authors pages data)
- * @param {*} allAuthors tags
- * @returns Object containing =>
- *  tag: author.tag,
- *  title: author.title,
- *  path: author.path || null,
- */
-function mergeAuthorData(bios, allAuthors) {
-  const authorMap = new Map();
-
-  bios.forEach((bio) => {
-    const authorTag = bio.tags.find((tag) => tag.startsWith('authors/'));
-    if (authorTag) {
-      authorMap.set(authorTag, {
-        tag: authorTag,
-        title: bio.title,
-        path: bio.path,
-      });
-    }
-  });
-
-  const mergedData = allAuthors.map((author) => {
-    if (authorMap.has(author.tag)) {
-      return authorMap.get(author.tag);
-    }
-    return {
-      tag: author.tag,
-      title: author.title,
-      path: null,
-    };
-  });
-
-  return mergedData;
-}
-
-/**
  * Retrieves article-related metadata from the page
  * @returns {Object} Object containing article metadata
  * @property {string} template - The template type
@@ -237,13 +203,7 @@ async function getArticleRelatedMetadata() {
     if (!authorString) return null;
     const authors = authorString.split(',').map((a) => a.trim());
     const tags = await Promise.all(authors.map((a) => getTag(a)));
-    const indexFilter = buildIndexFilter({});
-    indexFilter.basePaths = ['/education/featured-reports/bios'];
-    indexFilter.templates = ['author'];
-    indexFilter.tagsOr = authors;
-    const filteredData = await getIndexedContent(indexFilter);
-
-    return mergeAuthorData(filteredData, tags);
+    return tags;
   };
 
   const [authorResult, primaryTopicTag] = await Promise.all([
@@ -755,6 +715,41 @@ function showTooltip(parent, content, hideAfter) {
   }
 }
 
+function closeAuthToast(toast) {
+  toast.classList.remove('fade-in');
+  toast.classList.add('fade-out');
+  setTimeout(() => { toast.remove(); }, 2000);
+}
+
+function showAuthToast(message, type, fade) {
+  const main = document.querySelector('main');
+  const toastClasses = {
+    success: 'alert-success',
+    warning: 'alert-warning',
+    error: 'alert-error',
+  };
+  const authToastBox = createElement('div', { class: 'auth-toast-box fadeIn' });
+  authToastBox.classList.add(toastClasses[type]);
+  const alertIcon = createElement('div', { class: 'alert-icon' });
+  const icon = createElement('i', { class: type === 'success' ? 'icon-check' : 'icon-attention-triangle' });
+  alertIcon.appendChild(icon);
+  const alertHeading = createElement('div', { class: 'alert-heading' });
+  alertHeading.append(message);
+  const alertClose = createElement('button', { class: 'alert-close' });
+  const iconClose = createElement('i', { class: 'icon-close' });
+  alertClose.appendChild(iconClose);
+  alertClose.addEventListener('click', async () => {
+    closeAuthToast(authToastBox);
+  });
+  authToastBox.appendChild(alertIcon);
+  authToastBox.appendChild(alertHeading);
+  authToastBox.appendChild(alertClose);
+  main.appendChild(authToastBox);
+  if (fade) {
+    setTimeout(() => { closeAuthToast(authToastBox); }, 5000);
+  }
+}
+
 /**
  * Appends a fragment block to the main element
  * @param {string} fragmentUrl - The fragment URL to load
@@ -796,5 +791,6 @@ export {
   getCountryCode,
   preserveHideParameters,
   showTooltip,
+  showAuthToast,
   addFragmentBlock,
 };

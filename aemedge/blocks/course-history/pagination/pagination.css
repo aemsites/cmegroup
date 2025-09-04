@@ -83,6 +83,8 @@
                 .page-link {
                     box-shadow: none;
                     background-color: var(--white);
+                    text-transform: none;
+                    letter-spacing: 0.0313rem;
                 }
             }
         }

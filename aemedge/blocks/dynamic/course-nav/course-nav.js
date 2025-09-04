@@ -13,6 +13,65 @@ function getTotalLessonsCount(courseData) {
     : (courseData.lessons?.length || 0);
 }
 
+function animatePgText(pgText, from, to, duration = 2000) {
+  let start = null;
+  function step(timestamp) {
+    if (!start) start = timestamp;
+    const progress = Math.min((timestamp - start) / duration, 1);
+    const value = Math.floor(from + (to - from) * progress);
+    pgText.textContent = `${value}%`;
+
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+function createCircleProgress(value, oldValue = 0, size = 42, strokeWidth = 4) {
+  const radius = (size - strokeWidth) / 2;
+  const dashArray = radius * Math.PI * 2;
+
+  const bgCircle = createElement('circle', {
+    class: 'background',
+    cx: size / 2,
+    cy: size / 2,
+    r: radius,
+    'stroke-width': `${strokeWidth}px`,
+  });
+
+  const pgCircle = createElement('circle', {
+    class: `progress ${value >= 100 ? 'completed' : ''}`,
+    cx: size / 2,
+    cy: size / 2,
+    r: radius,
+    'stroke-width': `${strokeWidth}px`,
+    transform: `rotate(-90 ${size / 2} ${size / 2})`,
+  });
+  pgCircle.style.strokeDasharray = dashArray;
+  pgCircle.style.strokeDashoffset = dashArray - (dashArray * oldValue) / 100;
+  pgCircle.style.transition = 'stroke-dashoffset 2s ease';
+  setTimeout(() => {
+    pgCircle.style.strokeDashoffset = dashArray - (dashArray * value) / 100;
+  }, 20);
+
+  const pgText = createElement('text', {
+    class: 'text',
+    x: '50%',
+    y: '50%',
+    dy: '.3em',
+    'text-anchor': 'middle',
+  });
+  animatePgText(pgText, oldValue, value);
+
+  const svg = createElement('svg', {
+    width: size,
+    height: size,
+    viewBox: `0 0 ${size} ${size}`,
+  }, bgCircle, pgCircle, pgText);
+  return svg;
+}
+
 function createIconSpan(iconName, isHidden = false) {
   const img = createElement('img', { src: `/aemedge/icons/${iconName}.svg` });
   const span = createElement('span', { class: `icon icon-${iconName}` });
@@ -56,10 +115,14 @@ function createLessonsList(lessons, currentPath, shouldShow = false) {
 
 function createChapterElement(chapter, currentPath) {
   const chapterWrapper = createElement('div', { class: 'chapter-wrapper' });
-  // Progress bar
-  const progressBar = createElement('div', { class: 'progress-bar linear' });
-  const progress = createElement('div', { class: 'progress', style: { width: '0%' } });
-  progressBar.appendChild(progress);
+  // Progress bar linear
+  const progress = Math.floor((
+    chapter.lessons.filter(({ completed }) => completed).length / chapter.lessons.length) * 100);
+  const progressElm = createElement('div', {
+    class: `progress ${progress >= 100 ? 'completed' : ''}`,
+    style: `width: ${progress}%`,
+  });
+  const progressBar = createElement('div', { class: 'progress-bar linear' }, progressElm);
   chapterWrapper.appendChild(progressBar);
 
   const chapterEl = createElement('div', { class: 'course-nav-chapter' });
@@ -179,7 +242,7 @@ function renderOrderedContent(courseData, currentPath, content) {
   });
 }
 
-async function init(main, courseData) {
+async function buildCourseNav(main, courseData, prevCourseData) {
   await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/course-nav/course-nav.css`);
   const currentPath = window.location.pathname;
   const totalLessons = getTotalLessonsCount(courseData);
@@ -207,10 +270,10 @@ async function init(main, courseData) {
   titleWrapper.appendChild(titleContent);
   // Controls section
   const controls = createElement('div', { class: 'course-nav-controls' });
-  const progress = createElement('div', { class: `course-nav-progress ${courseData.completed ? 'completed' : ''}` });
-  const progressText = createElement('span', { class: 'course-nav-progress-text' });
-  progressText.textContent = `${courseData.progressPercentage || 0}%`;
-  progress.appendChild(progressText);
+  const progress = createElement('div', { class: 'progress-bar circular' }, createCircleProgress(
+    courseData.progressPercentage || 0,
+    prevCourseData?.progressPercentage,
+  ));
   const { toggle, plusIcon: toggleIconPlus, minusIcon: toggleIconMinus } = createToggleButton();
   controls.append(progress, toggle);
   header.append(titleWrapper, controls);
@@ -250,9 +313,11 @@ export default async function createCourseNav(main) {
   if (!['course', 'lesson'].includes(template.toLowerCase())) return;
 
   //  courseData change event
+  let prevData;
   store.subscribe(({ courseData }) => courseData, (courseData) => {
     if (courseData) {
-      init(main, courseData);
+      buildCourseNav(main, courseData, prevData);
+      prevData = courseData;
     }
   });
 }

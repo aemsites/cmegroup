@@ -84,13 +84,17 @@ const searchResults = async () => {
         if (!input || !label) return;
 
         const facetValue = input.value;
-        const existingText = label.textContent;
-        const lastText = existingText?.match(/\(\d+\)$/);
-        const baseText = existingText.replace(lastText, '');
         const matchingFacet = results.facets?.find((f) => f.tag === facetValue);
         const count = matchingFacet ? matchingFacet.count : 0;
 
-        label.textContent = `${baseText} (${count})`;
+        let countSpan = label.querySelector('.filter-facet');
+        if (!countSpan) {
+          countSpan = document.createElement('span');
+          countSpan.className = 'filter-facet';
+          label.appendChild(countSpan);
+        }
+
+        countSpan.textContent = ` (${count})`;
       };
 
       // Update both dropdowns and checkboxes
@@ -148,11 +152,14 @@ async function filterAndRender(results) {
 
   // Create a container for the results cards
   const resultsContainer = div({ class: 'results-container' });
-  results.forEach(async (item) => {
-    const cardType = searchConfig.template?.[item.template]?.cardType || '';
-    const cardDetails = await getCards(cardType, item);
-    resultsContainer.appendChild(cardDetails);
-  });
+  const cards = await Promise.all(
+    results.map(async (item) => {
+      const cardType = searchConfig.template?.[item.template]?.cardType || '';
+      return getCards(cardType, item);
+    }),
+  );
+
+  cards.forEach((card) => resultsContainer.appendChild(card));
   resultsWrapper.appendChild(resultsContainer);
 
   // Render pagination if enabled

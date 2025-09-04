@@ -211,7 +211,7 @@ class Nav {
 
     window.addEventListener('scroll', () => {
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(updateHeaderState, 100);
+      scrollTimeout = setTimeout(updateHeaderState, 10);
     });
 
     this.el.querySelectorAll('a').forEach((a) => {
@@ -229,7 +229,13 @@ class Nav {
   };
 
   async initializeLabels() {
-    const [welcomeLabel, loginLabel, logoutLabel, loginAccount, createAccount] = await Promise.all([
+    const [
+      welcomeLabel,
+      loginLabel,
+      logoutLabel,
+      loginAccount,
+      createAccount,
+    ] = await Promise.all([
       i18n('Welcome'),
       i18n('LOG IN'),
       i18n('LOG OUT'),

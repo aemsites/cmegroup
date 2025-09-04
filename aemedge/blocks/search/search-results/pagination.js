@@ -15,7 +15,6 @@ function createPaginationItem(text, page, onPageChange, isDisabled = false, isAc
       searchConfig.pagination.currentPage = page;
       await onPageChange(page);
       urlUpdate();
-      window.scrollTo(0, 0);
     };
   }
 
@@ -34,7 +33,7 @@ function getPageRange(currentPage, totalPages) {
 }
 
 export default async function renderPagination(container, onPageChange) {
-  if (!searchConfig.pagination?.show) return;
+  if (!searchConfig.pagination?.show || searchConfig.pagination?.totalPages === 1) return;
 
   const { currentPage = 1, totalPages = 1 } = searchConfig.pagination;
 

@@ -1,5 +1,5 @@
 // import store from 'store';
-import { URIUtil, openHiddenIframe } from '../utils/index.js';
+import { URIUtil, openHiddenIframe, getEnvType } from '../utils/index.js';
 import { store } from '../store/store.js';
 import { authLogin, authLogout } from '../actions/auth.js';
 import {
@@ -48,36 +48,14 @@ export class Authentication {
   }
 
   initialize() {
-    // if (
-    //   typeof window.authenticationOptions !== 'undefined'
-    //   && typeof window.globalConfig !== 'undefined'
-    // ) {
-    //   this.loginProcessUrl = window.authenticationOptions.loginProcessUrl || '';
-    //   this.loginUrl = window.authenticationOptions.loginUrl || '';
-    //   this.registerUrl = window.authenticationOptions.registerUrl || '';
-    //   this.logoutUrl = window.authenticationOptions.logoutUrl || '';
-    //   this.logoutProfileUrl = window.authenticationOptions.logoutProfileUrl || '';
-    //   this.isMobileLogin = window.authenticationOptions.mobileLogin || false;
-    //   this.schemaForMobile = window.authenticationOptions.schemaForMobile || '';
-    //   this.isProtectedPage = window.globalConfig.isProtectedPage || false;
-    //   this.authorMode = window.globalConfig.authorMode || false;
-    //   this.loginProcessUrl = '/content/cmegroup/en/login-confirmed.html';
-    //   return true;
-    // }
-    // // eslint-disable-next-line no-console
-    // console.warn('Warning: Authentication config not found!');
-    // return false;
-
     this.loginProcessUrl = '/login-confirmed';
-    this.loginUrl = 'http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://beta.cmegroup.com';
-    this.registerUrl = 'https://loginnr.cmegroup.com/sso/register/';
-    this.logoutUrl = '/libs/cmegroup/security/logout';
-    this.logoutProfileUrl = 'https://myprofile.cmegroup.com/admin/ssoflo';
+    this.loginUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${window.location.origin}/login-confirmed`;
+    this.registerUrl = `https://login${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/sso/register/`;
+    this.logoutProfileUrl = `https://myprofile${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/admin/ssoflo`;
     this.isMobileLogin = false;
     this.schemaForMobile = '';
     this.isProtectedPage = false;
     this.authorMode = false;
-
     return true;
   }
 
@@ -99,14 +77,12 @@ export class Authentication {
     }`;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   setRedirectionCookie(flow, location) {
     // remove cookie after 30 minutes of creation to prevent users hitting login svc over and over
     const expires = new Date();
     expires.setMinutes(expires.getMinutes() + 30);
     if (flow === 'login' || flow === 'registration') {
-      window.CookieUtil?.set('saml_request_path', this.loginProcessUrl, {
-        expires,
-      });
       if (!Authentication.getLoginUrlSfCookie()) {
         const expiresLoginUrlSf = new Date();
         expiresLoginUrlSf.setHours(expiresLoginUrlSf.getHours() + 168); // 7 days from now
@@ -141,8 +117,52 @@ export class Authentication {
 
   static expireRedirectionCookie() {
     window.CookieUtil?.remove('redirectionCookie');
-    window.CookieUtil?.remove('saml_request_path');
     return !Authentication.getRedirectionCookie();
+  }
+
+  static getLoginCookie(cookieName) {
+    if (!cookieName) {
+      return false;
+    }
+    return window.CookieUtil?.get(cookieName, cookieName === 'userinfo');
+  }
+
+  static getLoginCookies() {
+    const [userId, cmeToken, fgp, userData] = [
+      'userId',
+      'cmeToken',
+      '__Secure-Fgp',
+      'userinfo',
+    ].map((cookieName) => Authentication.getLoginCookie(cookieName));
+    return {
+      userId,
+      cmeToken,
+      fgp,
+      userData,
+    };
+  }
+
+  static setLoginCookies({
+    fgp,
+    userId,
+    cmeToken,
+    userData,
+  }) {
+    window.CookieUtil?.set('__Secure-Fgp', fgp, {
+      secure: true,
+      sameSite: 'Strict',
+    });
+    window.CookieUtil?.set('userId', userId);
+    window.CookieUtil?.set('cmeToken', cmeToken);
+    window.CookieUtil?.set('userinfo', userData);
+  }
+
+  static expireLoginCookies() {
+    window.CookieUtil?.remove('__Secure-Fgp');
+    window.CookieUtil?.remove('userId');
+    window.CookieUtil?.remove('cmeToken');
+    window.CookieUtil?.remove('userinfo');
+    return !Authentication.getLoginCookie('userinfo');
   }
 
   static getLoginUrlSfCookie() {
@@ -260,29 +280,28 @@ export class Authentication {
   };
 
   logout = () => {
-    if (this.logoutUrl.length) {
-      window.localStorage.removeItem('ali');
-      if (!this.isProtectedPage) {
-        this.setRedirectionCookie('logout');
-      }
-      Authentication.expireLoginUrlSfCookie();
-      // dispatch
-      store.dispatch(authLogout());
-      // call handlers
-      this.callHandlers('logout');
-      // logout from UNO and redirect
-      if (this.logoutProfileUrl) {
-        openHiddenIframe(this.logoutProfileUrl)
-          .then(() => window.location.assign(this.logoutUrl))
-          // eslint-disable-next-line no-console
-          .catch(() => console.warn('Could not log out user.'));
-      } else {
-        window.location.assign(this.logoutUrl);
-      }
-      window.LocalStorageUtil?.remove('userInfo');
-      return true;
+    const logoutUrl = '/system/sling/logout.html?resource=/content/login';
+    window.localStorage.removeItem('ali');
+    window.LocalStorageUtil?.remove('userInfo');
+    if (!this.isProtectedPage) {
+      this.setRedirectionCookie('logout');
     }
-    return false;
+    Authentication.expireLoginCookies();
+    Authentication.expireLoginUrlSfCookie();
+    // dispatch
+    store.dispatch(authLogout());
+    // call handlers
+    this.callHandlers('logout');
+    // logout from UNO and redirect
+    if (this.logoutProfileUrl) {
+      openHiddenIframe(this.logoutProfileUrl)
+        .then(() => window.location.assign(logoutUrl))
+        // eslint-disable-next-line no-console
+        .catch(() => console.warn('Could not log out user.'));
+    } else {
+      window.location.assign(logoutUrl);
+    }
+    return true;
   };
 
   setHandler = (event, method) => {
@@ -371,32 +390,43 @@ export class Authentication {
       this.callHandlers(`${authAction}_redirection`);
       Authentication.expireAuthActionCookie();
     }
-    const data = await getIsLoggedIn();
+    const {
+      userId: _userId,
+      cmeToken: _cmeToken,
+      fgp: _fgp,
+      userData: _userData,
+    } = Authentication.getLoginCookies();
+    const data = await getIsLoggedIn({
+      secureFgp: _fgp,
+      userId: _userId,
+      cmeToken: _cmeToken,
+    });
     if (data) {
       this.authenticationData.isLoggedIn = data.isLoggedIn;
       const redirectionCookie = Authentication.getRedirectionCookie();
-      const loginUrlSfCookie = Authentication.getLoginUrlSfCookie();
       if (this.authenticationData.isLoggedIn) {
-        const userInfo = window.CookieUtil?.get('userinfo', true) || {};
-        this.processUserData(userInfo);
+        this.processUserData(_userData || {});
       } else if (redirectionCookie || this.authorMode) {
         if (!this.authorMode && redirectionCookie.flow === 'logout') {
           this.resolveLoginPromise();
           this.checkRedirection();
         } else {
-          const location = this.authorMode
-            ? Authentication.getCurrentLocation()
-            : encodeURIComponent(loginUrlSfCookie?.location);
-          const user = await getLoginData(location, loginUrlSfCookie?.title);
-          if (user) {
-            if (user.userId) {
-              this.authenticationData.isLoggedIn = true;
-              this.processUserData(user);
-              if (this.loginProcessUrl) {
+          const xAuthToken = this.uriUtil.getQuery('X-Auth-Token');
+          if (xAuthToken) {
+            const user = await getLoginData(xAuthToken);
+            if (user) {
+              const { secureFgp, userId, userData } = user;
+              const fgp = secureFgp.match(/__Secure-Fgp=([^;]+)/)[1];
+              if (userId) {
+                Authentication.setLoginCookies({ ...user, fgp });
+                this.authenticationData.isLoggedIn = true;
+                this.processUserData(userData);
                 this.checkRedirection();
+              } else {
+                // if user doesn't login in saml...
+                this.resolveLoginPromise();
               }
             } else {
-              // if user doesn't login in saml...
               this.resolveLoginPromise();
             }
           } else {

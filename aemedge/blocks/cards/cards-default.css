@@ -35,6 +35,7 @@
         width: 4.0625rem;
         top: 0;
         box-shadow: none;
+        display: block;
 
         &:hover {
             display: block;
@@ -83,6 +84,7 @@
         width: 4.0625rem;
         top: 0;
         box-shadow: none;
+        display: block;
 
         &:hover {
             background: linear-gradient(90deg, hsl(0deg 0% 100% / 0%), #fff) !important;

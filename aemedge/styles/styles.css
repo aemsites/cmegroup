@@ -365,7 +365,9 @@ p {
 
 /* p & span */
 p,
-span {
+span,
+td,
+th {
   &.text-1 {
     font-family: var(--body-font-family);
     font-weight: 400;
@@ -947,7 +949,9 @@ main {
 
     &.text-1 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         margin-bottom: 1.25rem;
@@ -964,7 +968,9 @@ main {
 
     &.text-2 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         font-size: 1rem;
@@ -982,7 +988,9 @@ main {
 
     &.text-3 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         font-size: 0.875rem;
@@ -1000,7 +1008,9 @@ main {
 
     &.text-4 {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 400;
         font-size: 0.75rem;
@@ -1018,14 +1028,18 @@ main {
 
     &.text-small {
       p,
-      span {
+      span,
+      td,
+      th {
         font-size: 80%;
       }
     }
 
     &.tagline {
       p,
-      span {
+      span,
+      td,
+      th {
         font-family: var(--body-font-family);
         font-weight: 600;
         font-size: 1.375rem;
@@ -1087,6 +1101,35 @@ main {
 
       &:last-of-type {
         margin-bottom: 0;
+      }
+    }
+
+    &.not-full-width {
+      margin: 0 auto;
+
+      @media (width >= 481px) {
+        padding-inline: 2rem;
+      }
+
+      @media (width >= 769px) {
+        padding-inline: 3.375rem;
+      }
+
+      @media (width >= 993px) {
+        padding-inline: 4.125rem;
+      }
+
+      @media (width >= 1201px) {
+        width: calc(70.5% - 17.625rem);
+        padding-inline: 4.125rem !important;
+      }
+
+      @media (width >= 1401px) {
+        max-width: 45.0625rem;
+      }
+
+      > div {
+        width: 100% !important;
       }
     }
   }
@@ -1573,7 +1616,6 @@ body.loading::before {
   font-size: 0.875rem;
   pointer-events: none;
   z-index: 10;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
 }
 
 .lightbox-expand-icon::before {
@@ -1669,14 +1711,208 @@ body.loading::before {
 
 /* share this overrides */
 #st-2 {
-  top: 8.25rem !important;
+  top: auto;
+}
+
+@media (width > 1024px) {
+  #st-2 {
+    top: 8.25rem !important;
+  }
 }
 
 #st-2.st-right {
-  z-index: 0 !important;
+  z-index: 100000 !important;
 }
 
 /* general classes */
 .white-background {
   background-color: var(--white);
+}
+
+.tooltip {
+  position: relative;
+
+  & .tooltip-content {
+    position: absolute;
+    background-color: var(--white);
+    padding: 0.625rem 1.875rem;
+    top: 0.625rem;
+    z-index: 10;
+    box-shadow: var(--gray8-shadow);
+    color: var(--gray3);
+    border-radius: 0.3125rem;
+    width: max-content;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    &::before {
+      border-bottom: 0.5625rem solid var(--white);
+      border-left: 0.5625rem solid transparent;
+      border-right: 0.5625rem solid transparent;
+      content: "";
+      height: 0;
+      left: auto;
+      margin: 0 auto;
+      opacity: 1;
+      position: absolute;
+      right: calc(50% - 0.3125rem);
+      top: -0.5625rem;
+      transition-delay: 0s;
+      visibility: visible;
+      width: 0;
+    }
+  }
+}
+
+/* toast animation */
+@keyframes toast-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes toast-fade-out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* toasts */
+
+.auth-toast-box {
+  color: var(--white);
+  display: block;
+  margin-bottom: 1.5625rem;
+  padding: 0.75rem;
+  border: none;
+  position: fixed;
+  top: 8.75rem;
+  width: 56.25rem;
+  max-width: 80%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  border-radius: 0.25rem 0 0 0.25rem;
+
+  &.fade-in {
+    animation: toast-fade-in 2s 1 ease;
+  }
+
+  &.fade-out {
+    animation: toast-fade-out 2s 1 ease;
+  }
+
+
+  & .alert-icon {
+    border-radius: 0.25rem 0 0 0.25rem;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    left: 0;
+    width: 3.75rem;
+    justify-content: center;
+    color: var(--white);
+    background-color: var(--gray7);
+    font-size: 1.5rem;
+
+    & .icon-check::before {
+      content: var(--icon-check);
+    }
+
+    & .icon-attention-triangle::before {
+      content: var(--icon-attention-triangle);
+    }
+  }
+
+  & .alert-heading{
+    align-items: center;
+    display: flex;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 2.5rem;
+    margin-left: 3.75rem;
+    min-height: 2.5rem;
+    padding-right: 1.875rem;
+  }
+
+  & .alert-close {
+    align-items: center;
+    background-color: transparent;
+    bottom: 0;
+    color: var(--white);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    right: 0;
+    text-decoration: none;
+    top: 0;
+    width: 3.75rem;
+    border: none;
+    box-shadow: none;
+
+    & .icon-close::before {
+      content: var(--icon-menu-close);
+    }
+  }
+
+  &.alert-success {
+    background-color: var(--notification-success-background);
+
+    & .alert-icon {
+      background-color: var(--forest);
+
+      & i {
+        color: var(--white);
+      }
+    }
+
+    & .alert-heading {
+      color: var(--blue2);
+    }
+
+    & .alert-close {
+      color: var(--notification-success-tick);
+    }
+  }
+
+  &.alert-error {
+    background-color: var(--pink);
+
+    & .alert-icon {
+      background-color: transparent;
+
+      & i {
+        color: var(--active-red);
+      }
+    }
+
+    & .alert-heading {
+      color: var(--blue2);
+    }
+
+    & .alert-close {
+      color: var(--active-red);
+    }
+  }
+
+  &.alert-warning {
+    background-color: var(--yellow);
+
+    & .alert-icon {
+      background-color: transparent;
+
+      & i {
+        color: var(--citron);
+      }
+    }
+
+    & .alert-heading {
+      color: var(--blue2);
+    }
+
+    & .alert-close {
+      color: var(--blue2);
+    }
+  }
 }
