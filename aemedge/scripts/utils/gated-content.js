@@ -11,8 +11,8 @@
  * - .aem.live: Only show toggle when ?dapreview=on
  *
  * Usage:
- * - ?auth=on  = Show full content (authenticated view)
- * - ?auth=off = Show teasers (anonymous view)
+ * - ?auth=true  = Show full content (authenticated view)
+ * - ?auth=false = Show teasers (anonymous view)
  * - ?dapreview=on = Enable toggle on .aem.live
  *
  * Protection Levels:
@@ -58,8 +58,12 @@ function getAuthState() {
     return true;
   }
 
-  // Explicit auth parameter: 'on' = authenticated, 'off' = anonymous
-  return authValue === 'on';
+  if (authValue === 'false') {
+    return false;
+  }
+
+  // default to authenticated (show full content)
+  return true;
 }
 
 /**
@@ -545,7 +549,7 @@ function createAuthorToggle() {
 
   button.addEventListener('click', () => {
     const url = new URL(window.location);
-    url.searchParams.set('auth', currentState ? 'off' : 'on');
+    url.searchParams.set('auth', currentState ? 'false' : 'true');
     window.location.href = url.toString();
   });
 
