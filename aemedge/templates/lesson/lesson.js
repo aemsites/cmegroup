@@ -19,8 +19,6 @@ if (window.ga) {
   window.ga();
 }
 
-let courseIsCompleted;
-
 function flattenLessons(courseData) {
   const lessons = courseData.lessons || [];
   const chapters = courseData.chapters || [];
@@ -117,8 +115,6 @@ async function addLateralNavigation(prevHref, nextHref) {
 }
 
 async function initLateralNav(courseData) {
-  courseIsCompleted = courseData.completed;
-
   if (isFeatureToggled('hideCourseNav', 'y', true)) {
     return;
   }
@@ -164,6 +160,16 @@ export default async function lessonTemplate() {
             lessonTitle: lesson.title,
           },
         );
+        if (updatedCourse.completed) {
+          fireTrackingCourses(
+            `Course "${updatedCourse.title}" - completed`,
+            'completed',
+            {
+              courseID: courseId,
+              courseTitle: updatedCourse.title,
+            },
+          );
+        }
       }
     });
     //  courseData change event
@@ -178,16 +184,6 @@ export default async function lessonTemplate() {
           // the modal is opened automatically when the user completes the lesson
           showModal: !lesson?.completed,
         });
-        if (!courseIsCompleted) {
-          fireTrackingCourses(
-            `Course "${course.title}" - completed`,
-            'completed',
-            {
-              courseID: courseId,
-              courseTitle: course.title,
-            },
-          );
-        }
       }
     });
   });
