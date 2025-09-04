@@ -8,5 +8,20 @@ export function getEnvType() {
 }
 
 export function urlByEnvType() {
-  return `https://${getEnv()}.cmegroup.com`;
+  // Once we deploy new services in prod we will have to make www hit prod, not beta
+  const env = getEnv();
+  let subdom;
+  switch (env) {
+    case 'preview':
+      subdom = 'preview';
+      break;
+    case 'beta':
+    case 'www':
+      subdom = 'beta';
+      break;
+    default:
+      subdom = 'www';
+      break;
+  }
+  return `https://${subdom}.cmegroup.com`;
 }
