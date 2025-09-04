@@ -1716,7 +1716,7 @@ body.loading::before {
 
 @media (width > 1024px) {
   #st-2 {
-    top: 8.25rem !important;
+    top: var(--navbar-height) !important;
   }
 }
 

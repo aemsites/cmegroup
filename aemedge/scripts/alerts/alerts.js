@@ -194,6 +194,8 @@ export default async function initFloatingElements(doc, header) {
 
   const main = doc.querySelector('main');
   const alerts = doc.querySelectorAll('.alert-item');
+  const rootStyle = document.documentElement.style;
+  rootStyle.setProperty('--navbar-height', '100px');
 
   if (alertsFetched.length) {
     const updatePositions = () => {
@@ -206,6 +208,7 @@ export default async function initFloatingElements(doc, header) {
 
       header.style.top = `${visibleAlertsHeight - 1}px`;
       main.style.paddingTop = `${offsetTop}px`;
+      rootStyle.setProperty('--navbar-height', `${offsetTop}px`);
 
       const navMenus = doc.querySelectorAll('.submenu');
       navMenus.forEach((menu) => {
