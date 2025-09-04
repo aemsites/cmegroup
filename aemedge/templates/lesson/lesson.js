@@ -9,8 +9,15 @@ import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
+import { setTracking } from '../../scripts/utils/index.js';
 
 const FRAGMENT_URL = '/fragments/courses-lessons/extend-your-learning';
+
+const fireTrackingLessons = setTracking('custom', 'lesson_complete', 'Lessons and Courses');
+const fireTrackingCourses = setTracking('custom', 'course_complete', 'Lessons and Courses');
+if (window.ga) {
+  window.ga();
+}
 
 function flattenLessons(courseData) {
   const lessons = courseData.lessons || [];
@@ -126,6 +133,7 @@ export default async function lessonTemplate() {
       await import('../../scripts/course/auth-modal.js');
     }
     const courseData = await getCourseData();
+    const courseId = courseData.moduleId;
     await createCourseBaseTemplate(courseData);
     await initLateralNav(courseData);
     const lesson = getCurrentLesson(courseData);
@@ -143,6 +151,25 @@ export default async function lessonTemplate() {
       if (isCorrect && !lesson?.completed) {
         const updatedCourse = await updateLessonStatus(true);
         store.dispatch(courseDataChange(updatedCourse));
+        fireTrackingLessons(
+          `Lesson "${lesson.title}" - completed`,
+          'completed',
+          {
+            lessonID: lesson.moduleId,
+            parentCourse: courseId,
+            lessonTitle: lesson.title,
+          },
+        );
+        if (updatedCourse.completed) {
+          fireTrackingCourses(
+            `Course "${updatedCourse.title}" - completed`,
+            'completed',
+            {
+              courseID: courseId,
+              courseTitle: updatedCourse.title,
+            },
+          );
+        }
       }
     });
     //  courseData change event

@@ -4,8 +4,14 @@ import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
 import { isFeatureToggled, addFragmentBlock } from '../../scripts/utils.js';
+import { setTracking } from '../../scripts/utils/index.js';
 
 const FRAGMENT_URL = '/fragments/courses-lessons/extend-your-learning';
+const fireTrackingLessonStandalone = setTracking('custom', 'lesson_complete', 'Lessons and Courses');
+
+if (window.ga) {
+  window.ga();
+}
 
 export default function lessonStandaloneTemplate() {
   const { authenticationData } = authentication;
@@ -28,6 +34,15 @@ export default function lessonStandaloneTemplate() {
       if (isCorrect && !courseData.completed) {
         const updatedCourse = await updateLessonStatus(true);
         store.dispatch(courseDataChange(updatedCourse));
+        fireTrackingLessonStandalone(
+          `Lesson standalone "${courseData.title}" - completed`,
+          'completed',
+          {
+            lessonID: courseData.moduleId,
+            parentCourse: '',
+            lessonTitle: courseData.title,
+          },
+        );
       }
     });
   });
