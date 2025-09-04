@@ -1132,6 +1132,20 @@ main {
         width: 100% !important;
       }
     }
+
+    &.center {
+      & .default-content-wrapper {
+        text-align: center;
+      }
+
+      & .layout > div {
+        margin: 0 auto;
+      }
+    }
+
+    &.flush {
+      margin-top: -3.75rem;
+    }
   }
 
   @media (width >= 769px) {
@@ -1296,6 +1310,10 @@ main .section.divider[has-sidebar="true"] > div:last-of-type {
 
 main .section.divider[has-sidebar="true"] > div:nth-last-of-type(2) {
   border-bottom: 0.0625rem solid var(--gray4);
+}
+
+main .section > [class*="-wrapper"] + [class*="-wrapper"]:not(.default-content-wrapper) {
+  margin-top: 1.875rem;
 }
 
 /* Parallax section styling */
