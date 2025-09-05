@@ -70,6 +70,10 @@
           object-position: center;
         }
       }
+
+      & :is(h1, h2, h3, h4, h5, h6) {
+        color: inherit;
+      }
     }
 
     & .carousel-slide-content {
@@ -154,8 +158,4 @@
       }
     }
   }
-}
-
-main > .section.gradient-heading .carousel :is(h1, h2, h3, h4, h5, h6) {
-  color: inherit;
 }

@@ -481,6 +481,22 @@ function decorateLightboxImages(main) {
 }
 
 /**
+ * Decorates Headings
+*/
+function decorateHeadings(main) {
+  const headings = main.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  headings.forEach((heading) => {
+    const text = heading.textContent;
+    const modifierMatch = text.match(/\[([^\]]+)\]/);
+    if (modifierMatch) {
+      heading.classList.add(modifierMatch[1]);
+      heading.innerHTML = heading.innerHTML.replace(modifierMatch[0], '');
+    }
+  });
+}
+
+
+/**
   * Create and styles links and buttons
   * Builds fragment blocks from links to fragments
   * @param {Element} main The container element
@@ -647,6 +663,7 @@ function decorateTextHighlights(main) {
 export function decorateMain(main) {
   // hopefully forward compatible button decoration
   decorateButtons(main);
+  decorateHeadings(main);
   decorateIcons(main);
   enhanceIconAccessibility();
   buildAutoBlocks(main);

@@ -913,9 +913,9 @@
   }
   
   .atcb-button:hover {
-    background-color: #3cc8ff;
-    border-color: #3cc8ff;
-    color: #112b4a
+    background-color: var(--blue5);
+    border-color: var(--blue5);
+    color: var(--blue2)
   }
   
   .atcb-button::before {
@@ -936,17 +936,17 @@
   
   .atcb-button:not([disabled]):focus,
   .atcb-button:not([disabled]):hover {
-    background-color: #3cc8ff;
-    border-color: #3cc8ff;
-    color: #112b4a;
+    background-color: var(--blue5);
+    border-color: var(--blue5);
+    color: var(--blue2);
   }
   
   .atcb-button.atcb-active:not(.atcb-modal-style, .atcb-dropoverlay),
   .atcb-button.atcb-single:not([disabled]):focus,
   .atcb-button.atcb-single:not([disabled]):hover {
-    background-color: #3cc8ff;
-    border-color: #3cc8ff;
-    color: #112b4a;
+    background-color: var(--blue5);
+    border-color: var(--blue5);
+    color: var(--blue2);
     padding: 0.625rem 1.375rem;
   }
   
