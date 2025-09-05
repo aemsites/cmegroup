@@ -1089,6 +1089,21 @@ main {
       background-color: var(--blue3) !important;
     }
 
+    &.gray-gradient-background {
+      background: linear-gradient(#5A6874, var(--gray1));
+      padding: 1.875rem 0;
+
+      & > div {
+        color: var(--white);
+      }
+    }
+
+    &.gradient-heading :is(h1, h2, h3, h4, h5, h6) {
+      background-image: linear-gradient(45deg, var(--blue5), var(--green));
+      background-clip: text;
+      color: transparent;
+    }
+
     &.gray5-background,
     &.light,
     &.highlight {
