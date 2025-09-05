@@ -446,7 +446,7 @@ body {
               position: relative;
 
               & [aria-controls="nav-menu-0"]:before {
-                border-top: 0.0625rem solid var(--gray14);
+                border-top: 0.0625rem solid var(--gray3);
                 content: "";
                 display: block;
                 position: absolute;

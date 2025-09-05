@@ -1096,7 +1096,7 @@ main {
     }
 
     &.gray-gradient-background {
-      background: linear-gradient(var(--gray14), var(--gray1));
+      background: linear-gradient(var(--gray3), var(--gray1));
       padding: 1.875rem 0;
       color: var(--white);
 
