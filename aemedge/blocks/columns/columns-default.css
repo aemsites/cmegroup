@@ -348,6 +348,12 @@
       display: none;
     }
   }
+
+  &.vertical-center {
+    & > div {
+      align-items: center;
+    }
+  }
 }
 
 main > .section > div:has(.columns.article) {
