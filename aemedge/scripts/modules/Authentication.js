@@ -1,5 +1,10 @@
 // import store from 'store';
-import { URIUtil, openHiddenIframe, getEnvType } from '../utils/index.js';
+import {
+  URIUtil,
+  openHiddenIframe,
+  getEnvType,
+  isCMEEnv,
+} from '../utils/index.js';
 import { store } from '../store/store.js';
 import { authLogin, authLogout } from '../actions/auth.js';
 import {
@@ -48,8 +53,8 @@ export class Authentication {
   }
 
   initialize() {
-    this.loginProcessUrl = '/login-confirmed';
-    this.loginUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${window.location.origin}/login-confirmed`;
+    const loginProcessUrl = `${window.location.origin}/login-confirmed${isCMEEnv() ? '.html' : ''}`;
+    this.loginUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${loginProcessUrl}`;
     this.registerUrl = `https://login${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/sso/register/`;
     this.logoutProfileUrl = `https://myprofile${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/admin/ssoflo`;
     this.isMobileLogin = false;
@@ -465,10 +470,6 @@ export class Authentication {
       company: fixEncode(data.company),
       companyType: fixEncode(data.companyType),
     };
-  }
-
-  inLoginProcess() {
-    return this.loginProcessUrl.indexOf(window.location.pathname) > -1;
   }
 }
 
