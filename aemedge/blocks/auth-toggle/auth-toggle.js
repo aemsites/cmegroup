@@ -25,7 +25,7 @@ const CSS_CLASSES = {
   ACTIVE: 'active',
   CURRENT_STATE: 'current-state',
   AUTHENTICATED: 'authenticated',
-  ANONYMOUS: 'anonymous'
+  ANONYMOUS: 'anonymous',
 };
 
 /**
@@ -127,11 +127,11 @@ export default function decorate(block) {
   // Drag functionality with AbortController for cleaner event management
   let isDragging = false;
   let dragController = null;
-  
+
   function getClientCoords(e) {
     return {
       x: e.clientX || (e.touches && e.touches[0]?.clientX) || 0,
-      y: e.clientY || (e.touches && e.touches[0]?.clientY) || 0
+      y: e.clientY || (e.touches && e.touches[0]?.clientY) || 0,
     };
   }
 
@@ -141,20 +141,20 @@ export default function decorate(block) {
 
     const { x: clientX, y: clientY } = getClientCoords(e);
     const rect = block.getBoundingClientRect();
-    
+
     const dragState = {
       startX: clientX,
       startY: clientY,
       initialX: rect.left,
-      initialY: rect.top
+      initialY: rect.top,
     };
 
     dragController = new AbortController();
     const { signal } = dragController;
-    
-    document.addEventListener('mousemove', (e) => onDrag(e, dragState), { signal });
+
+    document.addEventListener('mousemove', (event) => onDrag(event, dragState), { signal });
     document.addEventListener('mouseup', endDrag, { signal });
-    document.addEventListener('touchmove', (e) => onDrag(e, dragState), { signal });
+    document.addEventListener('touchmove', (event) => onDrag(event, dragState), { signal });
     document.addEventListener('touchend', endDrag, { signal });
   }
 
@@ -257,7 +257,7 @@ export default function decorate(block) {
 export async function createAuthToggle() {
   // Load CSS file for the auth toggle block
   await loadCSS(`${window.hlx.codeBasePath}/blocks/auth-toggle/auth-toggle.css`);
-  
+
   const block = createElement('div', { class: CSS_CLASSES.TOGGLE });
   document.body.appendChild(block);
   return decorate(block);

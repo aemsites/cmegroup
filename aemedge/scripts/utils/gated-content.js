@@ -1,8 +1,8 @@
 /* eslint-disable import/no-cycle */
 /**
  * Client-side gated content system for author/development environments only.
- * Production protection handled by EdgeWorker. 
- * 
+ * Production protection handled by EdgeWorker.
+ *
  * Gating: page gated=true flag, section view=logged-in/out, block CSS classes
  * Auth: ?auth=true (authenticated) or false/unset (anonymous)
  */
@@ -50,13 +50,13 @@ function processSectionViewRestriction(
   sectionsToRemove,
 ) {
   const viewRestriction = getSectionViewRestriction(section);
-  
+
   const shouldRemove = (
-    (!isAuthenticated && viewRestriction === 'logged-in') ||
-    (isAuthenticated && viewRestriction === 'logged-out')
+    (!isAuthenticated && viewRestriction === 'logged-in')
+    || (isAuthenticated && viewRestriction === 'logged-out')
   );
 
-  if (shouldRemove && !sectionsToRemove.some(item => item.element === section)) {
+  if (shouldRemove && !sectionsToRemove.some((item) => item.element === section)) {
     sectionsToRemove.push({ element: section });
   }
 }
@@ -75,11 +75,11 @@ function checkSectionLevelProtection(isAuthenticated) {
 
 function checkBlockProtectionInSection(section, isAuthenticated) {
   const restrictedBlocks = section.querySelectorAll('.logged-in, .logged-out');
-  
+
   restrictedBlocks.forEach((block) => {
     const hasLoggedIn = block.classList.contains('logged-in');
     const hasLoggedOut = block.classList.contains('logged-out');
-    
+
     if ((!isAuthenticated && hasLoggedIn) || (isAuthenticated && hasLoggedOut)) {
       block.remove();
     }
@@ -99,7 +99,7 @@ function applySectionLevelProtection(protectionMetadata, isAuthenticated) {
     // Only include sections with no view restriction (public sections)
     return viewRestriction === null;
   });
-  
+
   publicSections.forEach((section) => {
     checkBlockProtectionInSection(section, isAuthenticated);
   });
@@ -119,14 +119,14 @@ function applyContentProtection() {
 
   const isAuthenticated = getAuthState();
   const sectionProtectionMetadata = checkSectionLevelProtection(isAuthenticated);
-  
+
   // Always run section and block protection
   applySectionLevelProtection(sectionProtectionMetadata, isAuthenticated);
 }
 
 async function createAuthorToggle() {
-  if (!isAuthorEnvironment()) return;
-  return await createAuthToggle();
+  if (!isAuthorEnvironment()) return undefined;
+  return createAuthToggle();
 }
 
 /**
