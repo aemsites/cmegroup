@@ -1098,10 +1098,14 @@ main {
     &.gray-gradient-background {
       background: linear-gradient(var(--gray14), var(--gray1));
       padding: 1.875rem 0;
+      color: var(--white);
 
-      & > div,
-      & :is(h1, h2, h3, h4, h5, h6):not(.gradient) {
+      & .default-content-wrapper {
         color: var(--white);
+
+        & :is(h1, h2, h3, h4, h5, h6):not(.gradient) {
+          color: var(--white);
+        }
       }
     }
 

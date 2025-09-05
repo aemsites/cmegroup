@@ -66,7 +66,7 @@
   }
 
   .cards.blue-box li .cards-card-body {
-    min-height: 10rem;
+    min-height: 12rem;
   }
 
   .cards.blue-box li .cards-card-body .button-container {
@@ -81,5 +81,9 @@
   & .cards-card-body,
   & h3 {
     color: var(--blue2);
+  }
+
+  & a.button {
+    box-shadow:rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
   }
 }
