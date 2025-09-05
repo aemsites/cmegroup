@@ -30,7 +30,7 @@
   padding: 1.125rem 1.25rem;
   text-align: left;
   border-bottom: 0.0625rem solid var(--gray4);
-  color: #5a6874;
+  color: var(--gray14);
 }
 
 .table table tbody tr:nth-child(2n) {

@@ -896,7 +896,7 @@
   [disabled].atcb-button {
     background-color: #ebedee;
     border-color: #ebedee;
-    color: #5a6874
+    color: var(--gray14)
   }
   
   .atcb-button.inactive:active,
