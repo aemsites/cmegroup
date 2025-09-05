@@ -495,7 +495,6 @@ function decorateHeadings(main) {
   });
 }
 
-
 /**
   * Create and styles links and buttons
   * Builds fragment blocks from links to fragments
