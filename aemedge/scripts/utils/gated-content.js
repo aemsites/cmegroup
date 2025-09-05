@@ -1,29 +1,23 @@
 /* eslint-disable import/no-cycle */
 /**
- * Gated content protection system
+ * Gated content view restriction system for author preview
+ * Production protection handled by Akamai EdgeWorker
  *
- * Architecture:
- * - Edge: Akamai EdgeWorker handles protection in production
- * - Client: Simple fallback + author preview functionality
+ * Gating System (case-insensitive):
+ * - Page: gated=true + teaser (entire page protected with custom modal)
+ *         gated=true without teaser (fallback to DEFAULT_LOGIN_TEASER_FRAGMENT)
+ * - Section: view=logged-in/logged-out in metadata or data-view
+ * - Block: logged-in/logged-out CSS classes
  *
- * Author Preview Environments:
- * - localhost + .aem.page + .aem.reviews: Always show toggle
- * - .aem.live: Only show toggle when ?dapreview=on
- *
- * Usage:
- * - ?auth=true  = Show full content (authenticated view)
- * - ?auth=false = Show teasers (anonymous view)
- * - ?dapreview=on = Enable toggle on .aem.live
- *
- * Protection Levels:
- * 1. Page-level (protected=true + teaser=path in meta)
- * 2. Section-level (protected=true in section metadata)
- * 3. Block-level (protected class + teaser path)
+ * Auth States: ?auth=true/false or no param (preview mode)
  */
 
 import { createElement, checkDomain } from '../utils.js';
 import { loadFragment } from '../../blocks/fragment/fragment.js';
 import { loadCSS } from '../aem.js';
+
+// Default login teaser fragment for gated pages without custom teaser
+const DEFAULT_LOGIN_TEASER_FRAGMENT = '/fragments/teasers/login';
 
 /**
  * Check if we should show author preview functionality
@@ -47,42 +41,43 @@ function isAuthorPreviewMode() {
 
 /**
  * Get the authentication state from query parameters
- * @returns {boolean} True if authenticated user, false for anonymous user
+ * @returns {boolean|null} True = authenticated, false = anonymous, null = preview mode (show all)
  */
 function getAuthState() {
   const urlParams = new URLSearchParams(window.location.search);
   const authValue = urlParams.get('auth');
 
-  // If no auth parameter, default to authenticated (show full content)
   if (!authValue) {
-    return true;
+    return null;
   }
 
   if (authValue === 'false') {
     return false;
   }
 
-  // default to authenticated (show full content)
   return true;
 }
 
 /**
- * Check for page-level protection metadata (performance gate + page protection)
- * Page-level protection requires BOTH protected=true AND teaser=path
- * @returns {Object} Protection metadata with isPageProtected and teaserPath
+ * Check for page-level gating metadata
+ * @returns {Object} Gating metadata with isPageGated, isGatedWithoutTeaser, and gatingType
  */
-function checkPageLevelProtection() {
-  const protectedMeta = document.querySelector('meta[name="protected"]');
+function checkPageLevelGating() {
+  const gatedMeta = document.querySelector('meta[name="gated"]');
   const pageTeaserMeta = document.querySelector('meta[name="teaser"]');
-  const isProtected = protectedMeta && protectedMeta.getAttribute('content') === 'true';
+  const gatedContent = gatedMeta?.getAttribute('content');
   const teaserContent = pageTeaserMeta?.getAttribute('content');
   const hasTeaser = pageTeaserMeta && teaserContent && teaserContent.trim();
-  const isPageProtected = isProtected && hasTeaser;
+  const isGatedTrue = gatedContent?.toLowerCase() === 'true';
+  const isPageGated = isGatedTrue && hasTeaser;
+  const isGatedWithoutTeaser = isGatedTrue && !hasTeaser;
 
   return {
-    isPageProtected,
+    isPageGated,
+    isGatedWithoutTeaser,
     teaserPath: teaserContent,
-    hasAnyProtection: isProtected,
+    hasAnyGating: isGatedTrue,
+    gatingType: isGatedTrue ? 'logged-in' : null,
   };
 }
 
@@ -103,18 +98,12 @@ function normalizeFragmentPath(teaserPath) {
 }
 
 /**
- * Apply page-level protection by replacing main content with teaser
- * @param {string} teaserPath - Path to teaser fragment
+ * Show login modal with teaser fragment
  */
 async function applyPageLevelProtection(teaserPath) {
-  const main = document.querySelector('main');
-  if (!main) return;
-
+  const { openModal } = await import('../../blocks/modal/modal.js');
   const normalizedPath = normalizeFragmentPath(teaserPath);
-  const fragmentElement = await loadFragment(normalizedPath);
-  if (fragmentElement) {
-    main.replaceWith(fragmentElement);
-  }
+  openModal(normalizedPath);
 }
 
 function getText(element) {
@@ -122,11 +111,11 @@ function getText(element) {
 }
 
 /**
- * Check if a metadata container has protected=true
+ * Get view restriction from metadata container (case-insensitive)
  * @param {Element} metadataEl - Metadata container element
- * @returns {boolean} True if protected=true is found
+ * @returns {string|null} View restriction ('logged-in', 'logged-out', or null)
  */
-function isProtectedMetadata(metadataEl) {
+function getViewRestriction(metadataEl) {
   const rows = metadataEl.querySelectorAll(':scope > div');
   // eslint-disable-next-line no-restricted-syntax
   for (const row of rows) {
@@ -134,12 +123,21 @@ function isProtectedMetadata(metadataEl) {
     if (cells.length === 2) {
       const keyText = getText(cells[0]);
       const valueText = getText(cells[1]);
-      if (keyText === 'protected' && valueText === 'true') {
-        return true;
+      if (keyText === 'view') {
+        return valueText.toLowerCase();
       }
     }
   }
-  return false;
+  return null;
+}
+
+/**
+ * Get view restriction from section data attributes (case-insensitive)
+ * @param {Element} sectionEl - Section element
+ * @returns {string|null} View restriction ('logged-in', 'logged-out', or null)
+ */
+function getSectionViewRestriction(sectionEl) {
+  return sectionEl.dataset.view?.toLowerCase() || null;
 }
 
 /**
@@ -187,242 +185,178 @@ function extractTeaserPath(container) {
 }
 
 /**
- * Extract block type from class attribute
- * @param {string} classAttr - Class attribute value
- * @returns {string|null} Block type or null if not extractable
- */
-function extractBlockType(classAttr) {
-  const cleanClass = classAttr
-    .replace(/\s*protected\s*/g, ' ')
-    .replace(/\s*id-\d+\s*/g, ' ')
-    .trim();
-
-  const firstWord = cleanClass.split(/\s+/)[0];
-  return firstWord || null;
-}
-
-/**
- * Parse teaser information from plain HTML for both blocks and sections using native DOM
- * @param {Document} doc - Parsed HTML document
- * @returns {Object} Object with block and section teaser data
+ * Parse view-restricted content from plain HTML
  */
 function parseTeasersFromPlainHtml(doc) {
-  const blockTeasers = [];
   const sectionTeasers = [];
-
-  const protectedBlocks = doc.querySelectorAll('[class*="protected"]');
-  protectedBlocks.forEach((blockEl) => {
-    const classAttr = blockEl.getAttribute('class') || '';
-    const blockType = extractBlockType(classAttr);
-    const teaserPath = extractTeaserPath(blockEl);
-
-    if (blockType && teaserPath) {
-      blockTeasers.push({ blockType, teaserPath, originalBlock: blockEl });
-    }
-  });
+  const loggedInSections = [];
+  const loggedOutSections = [];
 
   const allSections = doc.body.querySelectorAll(':scope > div');
   allSections.forEach((section, sectionIndex) => {
     const metadataEl = section.querySelector('.section-metadata');
     if (metadataEl) {
+      const viewRestriction = getViewRestriction(metadataEl);
       const teaserPath = extractTeaserPath(metadataEl);
 
-      if (isProtectedMetadata(metadataEl) && teaserPath) {
-        sectionTeasers.push({ index: sectionIndex, teaserPath, originalMetadata: metadataEl });
+      if (viewRestriction === 'logged-in') {
+        if (teaserPath) {
+          sectionTeasers.push({ index: sectionIndex, teaserPath, originalMetadata: metadataEl });
+        } else {
+          loggedInSections.push({ index: sectionIndex, originalMetadata: metadataEl });
+        }
+      } else if (viewRestriction === 'logged-out') {
+        loggedOutSections.push({ index: sectionIndex, originalMetadata: metadataEl });
       }
     }
   });
 
-  return { blockTeasers, sectionTeasers };
+  return {
+    sectionTeasers,
+    loggedInSections,
+    loggedOutSections,
+  };
 }
 
 /**
- * Find matching decorated blocks in the current DOM for plain HTML teaser blocks
- * @param {Array} plainTeaserBlocks - Teaser blocks from plain HTML
- * @returns {Array} Array of matching decorated blocks with teaser info
+ * Helper function to process section view restrictions consistently
+ * @param {Element} section - Section element to check
+ * @param {boolean} isAuthenticated - Current authentication state
+ * @param {Array} sectionsWithTeasers - Array to collect sections with teasers
+ * @param {Array} sectionsToRemove - Array to collect sections to remove
  */
-function findMatchingDecoratedBlocks(plainTeaserBlocks) {
-  const matchingBlocks = [];
+function processSectionViewRestriction(
+  section,
+  isAuthenticated,
+  sectionsWithTeasers,
+  sectionsToRemove,
+) {
+  // Check both data attributes and metadata
+  let viewRestriction = getSectionViewRestriction(section);
+  let teaserPath = section.dataset.teaser;
 
-  plainTeaserBlocks.forEach((plainBlock) => {
-    const selector = `.${plainBlock.blockType}.protected`;
-    const decoratedBlocks = document.querySelectorAll(selector);
+  // If no data attributes, check section metadata
+  if (!viewRestriction) {
+    const sectionMetadata = section.querySelector('.section-metadata');
+    if (sectionMetadata) {
+      viewRestriction = getViewRestriction(sectionMetadata);
+      teaserPath = teaserPath || extractTeaserPath(sectionMetadata);
+    }
+  }
 
-    decoratedBlocks.forEach((decoratedBlock) => {
-      matchingBlocks.push({
-        element: decoratedBlock,
-        teaserPath: plainBlock.teaserPath,
-        blockType: plainBlock.blockType,
-      });
-    });
-  });
-
-  return matchingBlocks;
+  // Apply view restriction logic
+  if (!isAuthenticated && viewRestriction === 'logged-in') {
+    if (teaserPath) {
+      const alreadyExists = sectionsWithTeasers.some((item) => item.element === section);
+      if (!alreadyExists) {
+        sectionsWithTeasers.push({ element: section, teaserPath });
+      }
+    } else {
+      const alreadyExists = sectionsToRemove.some((item) => item.element === section);
+      if (!alreadyExists) {
+        sectionsToRemove.push({ element: section });
+      }
+    }
+  } else if (isAuthenticated && viewRestriction === 'logged-out') {
+    const alreadyExists = sectionsToRemove.some((item) => item.element === section);
+    if (!alreadyExists) {
+      sectionsToRemove.push({ element: section });
+    }
+  }
 }
 
 /**
- * Check for section and block level protection
- * @param {boolean} isAuthenticated - Current auth state
- * @returns {Promise<Object>} Protection metadata with sections and teaser blocks
+ * Check section and block level view restrictions
  */
 async function checkSectionLevelProtection(isAuthenticated) {
-  const protectedSections = [];
-  let teaserBlocks = [];
+  const sectionsWithTeasers = [];
+  const sectionsToRemove = [];
 
   const sections = document.querySelectorAll('main > div');
 
   const plainDoc = await fetchPlainHtml();
   if (plainDoc) {
-    const { blockTeasers, sectionTeasers } = parseTeasersFromPlainHtml(plainDoc);
+    const {
+      sectionTeasers,
+      loggedInSections,
+      loggedOutSections,
+    } = parseTeasersFromPlainHtml(plainDoc);
 
-    // Handle section-level protection - match plain HTML sections to actual DOM sections
-    if (!isAuthenticated && sectionTeasers.length > 0) {
-      sectionTeasers.forEach((sectionData) => {
+    if (!isAuthenticated) {
+      if (sectionTeasers.length > 0) {
+        sectionTeasers.forEach((sectionData) => {
+          if (sections[sectionData.index]) {
+            sectionsWithTeasers.push({
+              element: sections[sectionData.index],
+              teaserPath: sectionData.teaserPath,
+            });
+          }
+        });
+      }
+
+      if (loggedInSections.length > 0) {
+        loggedInSections.forEach((sectionData) => {
+          if (sections[sectionData.index]) {
+            sectionsToRemove.push({
+              element: sections[sectionData.index],
+            });
+          }
+        });
+      }
+    }
+
+    if (isAuthenticated && loggedOutSections.length > 0) {
+      loggedOutSections.forEach((sectionData) => {
         if (sections[sectionData.index]) {
-          protectedSections.push({
+          sectionsToRemove.push({
             element: sections[sectionData.index],
-            teaserPath: sectionData.teaserPath,
           });
         }
       });
     }
-
-    if (blockTeasers.length > 0) {
-      teaserBlocks = findMatchingDecoratedBlocks(blockTeasers);
-    }
   }
 
-  // Fallback: Check current DOM for section protection if no plain HTML sections found
-  if (protectedSections.length === 0) {
-    sections.forEach((section) => {
-      const sectionMetadata = section.querySelector('.section-metadata');
-      if (sectionMetadata && !isAuthenticated) {
-        const teaserPath = extractTeaserPath(sectionMetadata);
-
-        if (isProtectedMetadata(sectionMetadata)) {
-          if (teaserPath) {
-            protectedSections.push({
-              element: section,
-              teaserPath,
-            });
-          }
-        }
-      }
-    });
-  }
-
-  // Always check for block pairs - they work independently of teaser blocks
+  // Process current page sections for view restrictions
   sections.forEach((section) => {
-    checkBlockProtectionInSection(section, teaserBlocks, isAuthenticated);
+    processSectionViewRestriction(section, isAuthenticated, sectionsWithTeasers, sectionsToRemove);
+  });
+
+  sections.forEach((section) => {
+    checkBlockProtectionInSection(section, isAuthenticated);
   });
 
   const result = {
-    isProtected: protectedSections.length > 0 || teaserBlocks.length > 0,
-    sections: protectedSections,
-    teaserBlocks,
+    isProtected: sectionsWithTeasers.length > 0
+      || sectionsToRemove.length > 0,
+    sections: sectionsWithTeasers,
+    sectionsToRemove,
   };
 
   return result;
 }
 
 /**
- * Check for block-level protection within a section
- * Handles two types of block protection:
- * 1. Teaser replacement: blocks with "protected" class and teaser paths
- * 2. Block pairs: two versions of same content with shared id-* identifier
- *    - Normal version (for anonymous users): class="blocktype id-identifier"
- *    - Protected version (for authenticated users): class="blocktype id-identifier protected"
- *
- * @param {Element} section - Section element to check
- * @param {Array} teaserBlocks - Array to collect teaser blocks
- * @param {boolean} isAuthenticated - Current auth state
+ * Check block-level view restrictions within a section
  */
-function checkBlockProtectionInSection(section, teaserBlocks, isAuthenticated) {
-  if (!isAuthenticated) {
-    const protectedDivsWithTeasers = Array.from(section.querySelectorAll('div[class*="protected"]'))
-      .filter((el) => {
-        const divs = el.querySelectorAll('div');
-
-        let hasTeaserKeyword = false;
-        let hasFragmentPath = false;
-
-        divs.forEach((div) => {
-          const text = div.textContent.trim();
-          if (text === 'teaser') {
-            hasTeaserKeyword = true;
-          }
-          if (text.includes('/fragments/') || text.includes('/teasers/') || (text.startsWith('/') && text.length > 1)) {
-            hasFragmentPath = true;
-          }
-        });
-
-        return hasTeaserKeyword && hasFragmentPath;
-      });
-
-    if (protectedDivsWithTeasers.length > 0) {
-      protectedDivsWithTeasers.forEach((el) => {
-        const lastDiv = el.querySelector('div:last-child');
-        const teaserText = lastDiv?.textContent.trim();
-        if (teaserText) {
-          teaserBlocks.push({
-            element: el,
-            teaserPath: teaserText,
-          });
-        }
-      });
-      return;
-    }
-  }
-
-  const blocks = {};
-
-  const allDivs = section.querySelectorAll('div[class]');
-  const blocksWithId = Array.from(allDivs).filter((div) => {
-    const classAttr = div.getAttribute('class') || '';
-    return /\bid-[^\s]+/.test(classAttr);
+function checkBlockProtectionInSection(section, isAuthenticated) {
+  const allBlocks = section.querySelectorAll('[class]');
+  const viewRestrictedBlocks = Array.from(allBlocks).filter((block) => {
+    const classNames = Array.from(block.classList).map((c) => c.toLowerCase());
+    return classNames.includes('logged-in') || classNames.includes('logged-out');
   });
 
-  blocksWithId.forEach((blockEl) => {
-    const classAttr = blockEl.getAttribute('class') || '';
-    const idMatch = classAttr.match(/\bid-([^\s]+)/);
-    const isProtected = classAttr.includes('protected');
-
-    if (!idMatch) {
-      return;
-    }
-
-    const blockId = idMatch[1];
-    if (!blocks[blockId]) {
-      blocks[blockId] = { normal: null, protected: null };
-    }
-
-    if (isProtected) {
-      blocks[blockId].protected = blockEl;
-    } else {
-      blocks[blockId].normal = blockEl;
+  viewRestrictedBlocks.forEach((block) => {
+    const classNames = Array.from(block.classList).map((c) => c.toLowerCase());
+    if (!isAuthenticated && classNames.includes('logged-in')) {
+      block.remove();
+    } else if (isAuthenticated && classNames.includes('logged-out')) {
+      block.remove();
     }
   });
-
-  if (Object.keys(blocks).length > 0) {
-    Object.entries(blocks).forEach(([, blockPair]) => {
-      if (blockPair.normal && blockPair.protected) {
-        if (isAuthenticated) {
-          // Authenticated users: show protected content, hide normal content
-          blockPair.normal.remove();
-          blockPair.protected.style.display = '';
-        } else {
-          // Anonymous users: show normal content, hide protected content
-          blockPair.protected.remove();
-          blockPair.normal.style.display = '';
-        }
-      }
-    });
-  }
 }
 
 /**
- * Apply section-level protection by replacing protected sections with teasers
- * @param {Object} protectionMetadata - Protection metadata from checkSectionLevelProtection
+ * Apply section-level protection
  */
 async function applySectionLevelProtection(protectionMetadata) {
   await Promise.all(protectionMetadata.sections.map(async (sectionData) => {
@@ -433,44 +367,47 @@ async function applySectionLevelProtection(protectionMetadata) {
     }
   }));
 
-  await Promise.all(protectionMetadata.teaserBlocks.map(async (blockData) => {
-    const normalizedPath = normalizeFragmentPath(blockData.teaserPath);
-    const fragmentElement = await loadFragment(normalizedPath);
-    if (fragmentElement) {
-      blockData.element.replaceWith(...fragmentElement.children);
-    }
-  }));
+  protectionMetadata.sectionsToRemove.forEach((sectionData) => {
+    sectionData.element.remove();
+  });
 }
 
 /**
  * Apply content protection for author preview
- * Simple: Only runs in preview environments for author testing
- * Production protection is handled by Akamai EdgeWorker
  */
 async function applyContentProtection() {
-  // Only apply client-side protection in preview environments
   if (!isAuthorPreviewMode()) {
     return;
   }
 
-  const pageProtectionMetadata = checkPageLevelProtection();
-  if (!pageProtectionMetadata.hasAnyProtection) {
+  const pageProtectionMetadata = checkPageLevelGating();
+
+  const authState = getAuthState();
+
+  if (authState === null) {
     return;
   }
 
-  const isAuthenticated = getAuthState();
+  const isAuthenticated = authState;
 
-  // Page-level protection (highest priority)
-  if (pageProtectionMetadata.isPageProtected) {
-    if (!isAuthenticated) {
-      await applyPageLevelProtection(pageProtectionMetadata.teaserPath);
+  // Handle page-level protection
+  if (pageProtectionMetadata.isPageGated) {
+    const { gatingType, teaserPath } = pageProtectionMetadata;
+
+    if (gatingType === 'logged-in' && !isAuthenticated) {
+      await applyPageLevelProtection(teaserPath);
     }
-    return;
   }
 
-  // Section/Block-level protection
+  // Handle gated=true but missing teaser (fallback to default login modal)
+  if (pageProtectionMetadata.isGatedWithoutTeaser && !isAuthenticated) {
+    await applyPageLevelProtection(DEFAULT_LOGIN_TEASER_FRAGMENT);
+  }
+
+  // ALWAYS apply section/block protection regardless of page-level protection
+  // This ensures login-teaser blocks and other sensitive content is properly protected
   const sectionProtectionMetadata = await checkSectionLevelProtection(isAuthenticated);
-  if (sectionProtectionMetadata.isProtected && !isAuthenticated) {
+  if (sectionProtectionMetadata.isProtected) {
     await applySectionLevelProtection(sectionProtectionMetadata);
   }
 }
@@ -497,6 +434,7 @@ function createAuthorToggle() {
 
   const handle = createElement('div', {
     class: 'auth-preview-handle',
+    title: 'Click to expand or drag to move',
   }, handleIcon);
 
   const headerText = createElement('span', {}, 'Auth Toggle');
@@ -509,16 +447,45 @@ function createAuthorToggle() {
     class: 'auth-preview-header',
   }, headerText, closeBtn);
 
-  const stateClass = currentState ? 'authenticated' : 'anonymous';
-  const stateText = currentState ? 'Authenticated' : 'Anonymous';
+  // Handle three states: null (preview), true (authenticated), false (anonymous)
+  let stateClass;
+  let stateText;
+  if (currentState === null) {
+    stateClass = 'preview';
+    stateText = 'Preview Mode';
+  } else if (currentState === true) {
+    stateClass = 'authenticated';
+    stateText = 'Logged-In View';
+  } else {
+    stateClass = 'anonymous';
+    stateText = 'Logged-Out View';
+  }
+
   const stateLabel = createElement('div', {
     class: `auth-preview-state ${stateClass}`,
   }, stateText);
 
-  const buttonText = `Switch to ${currentState ? 'Anonymous' : 'Authenticated'}`;
-  const button = createElement('button', {
-    class: 'auth-preview-button',
-  }, buttonText);
+  // Create three option buttons
+  const optionsContainer = createElement('div', {
+    class: 'auth-preview-options',
+  });
+
+  const previewButton = createElement('button', {
+    class: `auth-option-button ${currentState === null ? 'active' : ''}`,
+    'data-auth-state': 'preview',
+  }, 'Preview All');
+
+  const authenticatedButton = createElement('button', {
+    class: `auth-option-button ${currentState === true ? 'active' : ''}`,
+    'data-auth-state': 'authenticated',
+  }, 'Logged-In View');
+
+  const anonymousButton = createElement('button', {
+    class: `auth-option-button ${currentState === false ? 'active' : ''}`,
+    'data-auth-state': 'anonymous',
+  }, 'Logged-Out View');
+
+  optionsContainer.append(previewButton, anonymousButton, authenticatedButton);
 
   function togglePanel() {
     isExpanded = !isExpanded;
@@ -544,22 +511,111 @@ function createAuthorToggle() {
     }
   }
 
-  handle.addEventListener('click', togglePanel);
+  // Drag functionality
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let initialX = 0;
+  let initialY = 0;
+
+  function startDrag(e) {
+    e.preventDefault();
+    isDragging = false; // Will be set to true if actually dragging
+
+    const clientX = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
+    const clientY = e.clientY || (e.touches && e.touches[0]?.clientY) || 0;
+
+    dragStartX = clientX;
+    dragStartY = clientY;
+
+    const rect = toggle.getBoundingClientRect();
+    initialX = rect.left;
+    initialY = rect.top;
+
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchmove', onDrag);
+    document.addEventListener('touchend', endDrag);
+  }
+
+  function onDrag(e) {
+    e.preventDefault();
+
+    const clientX = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
+    const clientY = e.clientY || (e.touches && e.touches[0]?.clientY) || 0;
+
+    const deltaX = clientX - dragStartX;
+    const deltaY = clientY - dragStartY;
+
+    if (!isDragging && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
+      isDragging = true;
+      toggle.classList.add('dragging');
+    }
+
+    if (isDragging) {
+      const newX = initialX + deltaX;
+      const newY = initialY + deltaY;
+
+      // Constrain to viewport
+      const maxX = window.innerWidth - toggle.offsetWidth;
+      const maxY = window.innerHeight - toggle.offsetHeight;
+
+      const constrainedX = Math.max(0, Math.min(newX, maxX));
+      const constrainedY = Math.max(0, Math.min(newY, maxY));
+
+      toggle.style.left = `${constrainedX}px`;
+      toggle.style.top = `${constrainedY}px`;
+      toggle.style.right = 'auto';
+    }
+  }
+
+  function endDrag() {
+    document.removeEventListener('mousemove', onDrag);
+    document.removeEventListener('mouseup', endDrag);
+    document.removeEventListener('touchmove', onDrag);
+    document.removeEventListener('touchend', endDrag);
+
+    if (isDragging) {
+      toggle.classList.remove('dragging');
+      isDragging = false;
+    } else {
+      togglePanel();
+    }
+  }
+
+  handle.addEventListener('mousedown', startDrag);
+  handle.addEventListener('touchstart', startDrag);
   closeBtn.addEventListener('click', togglePanel);
 
-  button.addEventListener('click', () => {
+  function handleOptionClick(targetState) {
     const url = new URL(window.location);
-    url.searchParams.set('auth', currentState ? 'false' : 'true');
+
+    if (targetState === 'preview') {
+      url.searchParams.delete('auth');
+    } else if (targetState === 'authenticated') {
+      url.searchParams.set('auth', 'true');
+    } else if (targetState === 'anonymous') {
+      url.searchParams.set('auth', 'false');
+    }
+
     window.location.href = url.toString();
-  });
+  }
+
+  previewButton.addEventListener('click', () => handleOptionClick('preview'));
+  authenticatedButton.addEventListener('click', () => handleOptionClick('authenticated'));
+  anonymousButton.addEventListener('click', () => handleOptionClick('anonymous'));
 
   toggle.appendChild(handle);
   toggle.appendChild(header);
   toggle.appendChild(stateLabel);
-  toggle.appendChild(button);
+  toggle.appendChild(optionsContainer);
 
   function cleanup() {
     document.removeEventListener('click', handleClickOutside);
+    document.removeEventListener('mousemove', onDrag);
+    document.removeEventListener('mouseup', endDrag);
+    document.removeEventListener('touchmove', onDrag);
+    document.removeEventListener('touchend', endDrag);
   }
 
   toggle.cleanup = cleanup;
