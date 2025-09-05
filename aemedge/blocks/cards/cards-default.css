@@ -180,6 +180,15 @@
             }
         }
     }
+
+    &.flag {
+        & div > ul > li {
+            border-image: linear-gradient(180deg, #3cc8ff, #006eb6) 1 100% !important;
+            border-left-style: solid !important;
+            border-width: 0 0 0 .5rem !important;
+            margin: .9375rem 0;
+        }
+    }
 }
 
 @keyframes spinner-cards {
