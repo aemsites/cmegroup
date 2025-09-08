@@ -39,7 +39,7 @@ async function showLoginPopup() {
   }
 }
 
-function loadPage() {
+export default function loadPage() {
   if (!isFeatureToggled('educationIframe')) {
     loadSitewidePopups();
   }

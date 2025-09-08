@@ -9,7 +9,7 @@ import initFloatingElements from './alerts/alerts.js';
 import { authentication, dataLayer, authRedirectionHandler } from './modules/index.js';
 import dynamicBlocks from '../blocks/dynamic/index.js';
 import { CookieUtil, LocalStorageUtil, SessionStorageUtil } from './utils/index.js';
-import { isFeatureToggled } from './utils.js';
+import { isFeatureToggled, getPageTags, createElement } from './utils.js';
 
 /**
  * Initialize parallax sections with background images from data attributes
@@ -60,6 +60,45 @@ function enhanceIconAccessibility(element = document) {
   });
 }
 
+/**
+ * Fetches all article:tag meta properties and adds them to keywords meta
+ */
+async function decorateMetaKeywords() {
+  try {
+    const tags = await getPageTags();
+
+    if (!tags || tags.length === 0) return;
+
+    // Extract and clean keywords
+    const newKeywords = tags
+      .map((tag) => tag.title)
+      .filter((title) => title && title.trim() !== '')
+      .map((title) => title.trim());
+
+    if (newKeywords.length === 0) return;
+
+    const existingKeywordsMeta = document.querySelector('meta[name="keywords"]');
+
+    if (existingKeywordsMeta) {
+      // Merge with existing keywords and deduplicate
+      const existingKeywords = existingKeywordsMeta.getAttribute('content') || '';
+      const existingArray = existingKeywords ? existingKeywords.split(',').map((k) => k.trim()) : [];
+      const allKeywords = [...new Set([...existingArray, ...newKeywords])];
+      existingKeywordsMeta.setAttribute('content', allKeywords.join(','));
+    } else {
+      // Create new keywords meta
+      const keywordsMeta = createElement('meta', {
+        name: 'keywords',
+        content: newKeywords.join(','),
+      });
+      document.head.appendChild(keywordsMeta);
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Failed to process article:tag metas:', error);
+  }
+}
+
 function autolinkModals(element) {
   element.addEventListener('click', async (e) => {
     const origin = e.target.closest('a');
@@ -96,7 +135,7 @@ async function loadSections(element) {
  * Loads everything that doesn't need to be delayed.
  * @param {Element} doc The container element
  */
-async function loadLazy(doc) {
+export default async function loadLazy(doc) {
   import('./dataLayerImport.js');
   dataLayer.handleLoad();
   autolinkModals(doc);
@@ -133,6 +172,7 @@ async function loadLazy(doc) {
     window.SessionStorageUtil = SessionStorageUtil;
     authRedirectionHandler.handleLoad();
     authentication.handleLoad();
+    decorateMetaKeywords();
   });
 
   // eslint-disable-next-line import/no-cycle

@@ -263,6 +263,8 @@ async function setMetadata(meta, document, url, tempMeta) {
         } else if (key === 'effectiveDate') {
           const date = new Date(jsonData[key]);
           meta.Date = date.toISOString();
+        } else if (key === 'relatedKeywords') {
+          meta.Keywords = jsonData[key];
         }
       });
     } catch (error) {
