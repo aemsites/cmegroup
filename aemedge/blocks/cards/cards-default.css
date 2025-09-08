@@ -189,6 +189,19 @@
             margin: .9375rem 0;
         }
     }
+
+    &.borderless > div > ul > li {
+      border: none;
+    }
+
+    &.citron-background > div > ul > li {
+      background-color: var(--citron) !important;
+      color: var(--blue2);
+    }
+
+    &.size-1 > div > ul {
+      grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+    }
 }
 
 @keyframes spinner-cards {
