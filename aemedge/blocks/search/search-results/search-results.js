@@ -4,7 +4,7 @@ import {
 import searchConfig from '../search-config.js';
 import { updateFilteringByUI } from '../filter-bullets/filter-bullets.js';
 import { getCards } from './cards-template.js';
-import { i18n, setupDayjsLibs } from '../../../scripts/utils.js';
+import { i18n, setupDayjsLibs, debounce } from '../../../scripts/utils.js';
 import { clearAllFilters } from '../search-utils.js';
 import { buildIndexFilter, getIndexedContent } from '../../../scripts/indexing.js';
 import renderPagination from './pagination.js';
@@ -98,9 +98,16 @@ async function executeSearch() {
   return res;
 }
 
-const searchResults = async () => {
+let lastSearch = 0;
+
+const searchResultsInternal = async () => {
+  lastSearch += 1;
+  const currentSearch = lastSearch;
   showSpinner(document.querySelector('.results-wrapper'));
   const results = await executeSearch();
+  if (currentSearch < lastSearch) {
+    return;
+  }
 
   if (results && Object.keys(results).length > 0) {
     // Update pagination info from response
@@ -181,7 +188,7 @@ async function filterAndRender(results) {
     reset.onclick = async (e) => {
       e.preventDefault();
       clearAllFilters();
-      await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
+      await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResultsInternal);
     };
     resultsWrapper.appendChild(noResultsDiv);
     return;
@@ -202,10 +209,12 @@ async function filterAndRender(results) {
   // Render pagination if enabled
   if (searchConfig.pagination?.show) {
     await renderPagination(resultsWrapper, async () => {
-      await searchResults();
+      await searchResultsInternal();
     });
   }
 }
+
+const searchResults = debounce(searchResultsInternal, 500);
 
 export {
   searchResults,
