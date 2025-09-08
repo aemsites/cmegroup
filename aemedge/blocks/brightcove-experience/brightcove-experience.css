@@ -1,37 +1,50 @@
 .brightcove-experience-container {
   position: relative;
-  
-  & .spinner-in-experience {
-    display: block;
-    position: absolute;
-    width: 6rem;
-    height: 6rem;
-    top: calc(50% - 3.25rem);
-    left: calc(50% - 3.25rem);
-    z-index: 1;
 
-    & div {
-      box-sizing: border-box;
+  .brightcove-experience-placeholder {
+    position: relative;
+    
+    & .brightcove-img-placeholder {
+      width: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      z-index: 1;
+    }
+    
+    & .spinner-in-experience {
       display: block;
       position: absolute;
       width: 6rem;
       height: 6rem;
-      margin: 0.375rem;
-      border: 0.25rem solid var(--gray4);
-      border-radius: 50%;
-      animation: spinner-in-experience 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-      border-color: var(--gray4) transparent transparent;
+      top: calc(50% + 3.25rem);
+      left: calc(50% - 3.25rem);
+      z-index: 1;
 
-      &:nth-child(1) {
-        animation-delay: -0.45s;
-      }
+      & div {
+        box-sizing: border-box;
+        display: block;
+        position: absolute;
+        width: 6rem;
+        height: 6rem;
+        margin: 0.375rem;
+        border: 0.25rem solid var(--gray4);
+        border-radius: 50%;
+        animation: spinner-in-experience 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        border-color: var(--gray4) transparent transparent;
 
-      &:nth-child(2) {
-        animation-delay: -0.3s;
-      }
+        &:nth-child(1) {
+          animation-delay: -0.45s;
+        }
 
-      &:nth-child(3) {
-        animation-delay: -0.15s;
+        &:nth-child(2) {
+          animation-delay: -0.3s;
+        }
+
+        &:nth-child(3) {
+          animation-delay: -0.15s;
+        }
       }
     }
   }
