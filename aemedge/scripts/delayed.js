@@ -32,7 +32,7 @@ async function loadOneTrust() {
 }
 
 async function showLoginPopup() {
-  const visibility = getMetadata('protected');
+  const visibility = getMetadata('gated');
   if (visibility && visibility === 'true') {
     const { openModal } = await import(`${window.hlx.codeBasePath}/blocks/modal/modal.js`);
     openModal('/fragments/login');
