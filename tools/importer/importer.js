@@ -49,40 +49,75 @@ function slug(value) {
     .replace(/^\d+-+/, '');
 }
 
-/**
- * Handles content toggle elements by fetching their published content
- * @param {Document} document - The document to process
- */
-// eslint-disable-next-line no-unused-vars
 async function handleContentToggle(document, url, tempMeta) {
   const toggleElements = Array.from(document.querySelectorAll('.content-toggle'));
-  const pathName = new URL(url).pathname.replace('.html', '');
 
   const processToggleElement = async (element) => {
     const dataPath = element.getAttribute('data-path');
-    if (!dataPath.includes(pathName)) return;
+    if (!dataPath) return;
+
+    const publicDiv = document.createElement('div');
+    publicDiv.innerHTML = element.innerHTML;
 
     const toggleUrl = `${DOMAIN}${dataPath}.content-toggle-publish.html`;
 
-    const response = await fetch(`http://localhost:4005/api/hello?url=${toggleUrl}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'text/html',
-      },
-    });
+    try {
+      const response = await fetch(`http://localhost:4005/api/hello?url=${toggleUrl}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'text/html' },
+      });
 
-    const data = await response.json();
-    const content = data?.gatedContentTest?.contentPreview;
+      const data = await response.json();
+      const gatedContent = data?.gatedContentTest?.contentPreview;
 
-    if (content) {
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = content;
-      element.replaceWith(tempDiv);
-      tempMeta.protected = true;
+      if (gatedContent) {
+        const loggedOutSeparator = document.createElement('hr');
+        const loggedOutMetadata = buildSectionMetadata([['view', 'logged-out']]);
+
+        publicDiv.querySelectorAll('.login-teaser').forEach((teaser) => {
+          const container = teaser.closest('.design-box') || teaser.closest('.component') || teaser;
+          const teaserCells = [['login-teaser'], ['fragment', 'https://main--www--cmegroup.aem.live/fragments/teasers/content-teaser']];
+          const teaserBlock = WebImporter.DOMUtils.createTable(teaserCells, document);
+          container.replaceWith(teaserBlock);
+        });
+
+        const loggedInSeparator = document.createElement('hr');
+        const gatedDiv = document.createElement('div');
+        gatedDiv.innerHTML = gatedContent;
+        const loggedInMetadata = buildSectionMetadata([['view', 'logged-in']]);
+        const endSeparator = document.createElement('hr');
+
+        element.replaceWith(loggedOutSeparator);
+        loggedOutSeparator.after(publicDiv);
+        publicDiv.after(loggedOutMetadata);
+        loggedOutMetadata.after(loggedInSeparator);
+        loggedInSeparator.after(gatedDiv);
+        gatedDiv.after(loggedInMetadata);
+        loggedInMetadata.after(endSeparator);
+
+        tempMeta.protected = true;
+      } else {
+        element.replaceWith(publicDiv);
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('Failed to fetch gated content:', error);
+      element.replaceWith(publicDiv);
     }
   };
 
   await Promise.all(toggleElements.map(processToggleElement));
+}
+
+async function handleLoginTeasers(document, url, tempMeta) {
+  const loginTeaserSections = document.querySelectorAll('.login-teaser');
+  loginTeaserSections.forEach((teaser) => {
+    const container = teaser.closest('.design-box') || teaser.closest('.component') || teaser;
+    const cells = [['login-teaser'], ['fragment', 'https://main--www--cmegroup.aem.live/fragments/teasers/content-teaser']];
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    container.replaceWith(table);
+    tempMeta.protected = true;
+  });
 }
 
 async function setMetadata(meta, document, url, tempMeta) {
@@ -243,7 +278,7 @@ async function setMetadata(meta, document, url, tempMeta) {
   }
 
   if (tempMeta.protected) {
-    meta.protected = true;
+    meta.gated = 'true';
   }
 
   // Handle event-specific metadata
@@ -1002,6 +1037,41 @@ const brightCoveVideo = (document) => {
   }
 };
 
+const injectContentBrightcove = (document) => {
+  const injectSections = document.querySelectorAll('.inject-content');
+  injectSections.forEach((section) => {
+    const iframe = section.querySelector('iframe[src*="players.brightcove.net"]');
+    if (!iframe) return;
+
+    const src = iframe.getAttribute('src');
+    const urlMatch = src.match(/players\.brightcove\.net\/(\d+)\/([^_]+)_/);
+    const urlParams = new URL(src);
+
+    if (urlMatch) {
+      const [, accountId, playerId] = urlMatch;
+      const playlistId = urlParams.searchParams.get('playlistId');
+      const videoId = urlParams.searchParams.get('videoId');
+
+      const cells = [
+        ['Brightcove'],
+        ['accountID', accountId || ''],
+        ['videoID', videoId || ''],
+        ['playlistID', playlistId || ''],
+        ['aspectRatio', '16:9'],
+        ['cc', ''],
+        ['language', ''],
+      ];
+
+      if (playerId) {
+        cells.push(['playerID', playerId]);
+      }
+
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      section.replaceWith(table);
+    }
+  });
+};
+
 const createForm = (document) => {
   const forms = document.querySelectorAll('form');
   if (forms?.length) {
@@ -1717,6 +1787,7 @@ const customBlocks = async (document, main, meta, url) => {
   document.querySelector('.course-nav')?.remove();
 
   brightCoveVideo(document);
+  injectContentBrightcove(document);
   document.querySelector('.tag-cloud')?.remove();
   createForm(document);
   correctLinks(document, meta);
@@ -1760,9 +1831,8 @@ export default {
     const main = document.body;
     const tempMeta = {};
 
-    // Handle gated content and content toggles
-    // todo below is the gated content part
-    // await handleContentToggle(document, url, tempMeta);
+    await handleContentToggle(document, url, tempMeta);
+    await handleLoginTeasers(document, url, tempMeta);
 
     WebImporter.DOMUtils.remove(document, [
       'script[src*="https://solutions.invocacdn.com/js/invoca-latest.min.js"]',
@@ -1804,6 +1874,7 @@ export default {
       '.lateral-navigation',
       '.article-data',
       '.headline',
+      '.login-teaser',
     ]);
 
     const results = [];

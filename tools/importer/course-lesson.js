@@ -135,12 +135,17 @@ const handleFragments = (document) => {
   }
 };
 
-const quizBlock = (document, meta) => {
+const quizBlock = (document) => {
   const quizTopDivs = document.querySelectorAll('.quiz.multipaneleditor');
   quizTopDivs.forEach((quizTopDiv) => {
     let dataItems = [];
-    if (meta.protected) {
-      dataItems = JSON.parse(quizTopDiv.getAttribute('data-items'));
+    const dataItemsAttr = quizTopDiv.getAttribute('data-items');
+    if (dataItemsAttr) {
+      try {
+        dataItems = JSON.parse(dataItemsAttr);
+      } catch (e) {
+        console.warn('Failed to parse data-items:', e);
+      }
     }
 
     const quizzes = quizTopDiv.querySelectorAll('.quiz-item');
@@ -158,11 +163,22 @@ const quizBlock = (document, meta) => {
       cells.push(['Questions', 'Options', 'Correct', 'Snippet']);
       quizzes.forEach((quiz, index) => {
         let questionText = '';
-        if (meta.protected && dataItems.length) {
-          questionText = quiz.getAttribute('data-question') || dataItems[index]['cq:panelTitle'];
-        } else {
-          questionText = quiz.getAttribute('data-question');
-        }
+
+        // Try multiple sources for question text
+        // 1. From data-question attribute
+        const dataQuestion = quiz.getAttribute('data-question');
+
+        // 2. From data-items array cq:panelTitle
+        const dataItemQuestion = dataItems[index] && dataItems[index]['cq:panelTitle'];
+
+        // 3. From h4.question-text element
+        const h4Element = quiz.querySelector('h4.question-text');
+        const h4Question = h4Element?.textContent?.trim();
+
+        // Use the first available source
+        questionText = dataQuestion || dataItemQuestion || h4Question || '';
+
+        // Clean up quotes from the text
         const questionTextWithoutQuotes = questionText?.replace(/^['"]|['"]$/g, '').trim();
         const answersItems = quiz.getAttribute('data-answers-items') ? JSON.parse(quiz.getAttribute('data-answers-items')) : [];
 
