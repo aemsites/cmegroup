@@ -1453,7 +1453,7 @@ const correctLinks = (document, meta) => {
           continue;
         }
 
-        const completeLink = new URL(link.href);
+        const completeLink = new URL(link.href, 'https://www.cmegroup.com');
         const { pathname } = completeLink;
         const oldHref = link.href;
 
@@ -1509,6 +1509,22 @@ const correctLinks = (document, meta) => {
                 link.textContent = completeLink.toString();
               }
               link.href = completeLink.toString();
+            }
+          }
+        } else {
+          const isLocalhost = completeLink.hostname === 'localhost';
+          const isRelativePath = link.href.startsWith('/');
+
+          if (isRelativePath || isLocalhost) {
+            // Handle relative paths without extensions
+            if (pathname.startsWith('/education/')) {
+              link.href = `${EDS_DOMAIN}${pathname}`;
+            } else {
+              link.href = `${DOMAIN}${pathname}`;
+            }
+
+            if (link.textContent === oldHref) {
+              link.textContent = link.href;
             }
           }
         }
