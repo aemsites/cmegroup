@@ -19,9 +19,10 @@ async function loadVideoLibrary(
   accountId,
   experienceId,
 ) {
-  if (!experienceId) {
+  if (!experienceId || block.getAttribute('data-video-status') === 'loaded') {
     return null;
   }
+
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = `https://players.brightcove.net/${accountId}/experience_${experienceId}/live.js`;
@@ -62,5 +63,15 @@ export default async function decorate(block) {
   </div>
   `;
 
-  await loadVideoLibrary(block, accountId, experienceId);
+  if (experienceId) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(async (entry) => {
+        if (entry.isIntersecting) {
+          await loadVideoLibrary(block, accountId, experienceId);
+          observer.unobserve(block);
+        }
+      });
+    });
+    observer.observe(block);
+  }
 }
