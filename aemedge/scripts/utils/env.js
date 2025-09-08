@@ -3,6 +3,11 @@ export function getEnv() {
   return hostname.match(/(preview|beta|www)(-www|\.cmegroup)?/)?.[1] ?? 'www';
 }
 
+export function isCMEEnv() {
+  const { location: { hostname } } = window;
+  return !!hostname.match(/\.cmegroup\.com/)?.at(0);
+}
+
 export function getEnvType() {
   return getEnv() === 'www' ? 'prod' : 'stage';
 }
