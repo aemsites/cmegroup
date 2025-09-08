@@ -1,4 +1,4 @@
-import { sampleRUM } from './aem.js';
+import { sampleRUM, getMetadata } from './aem.js';
 import loadSitewidePopups from './popups/popups.js';
 import { isFeatureToggled, loadScript } from './utils.js';
 
@@ -31,6 +31,14 @@ async function loadOneTrust() {
   return Promise.resolve();
 }
 
+async function showLoginPopup() {
+  const visibility = getMetadata('gated');
+  if (visibility && visibility === 'true') {
+    const { openModal } = await import(`${window.hlx.codeBasePath}/blocks/modal/modal.js`);
+    openModal('/fragments/login');
+  }
+}
+
 export default function loadPage() {
   if (!isFeatureToggled('educationIframe')) {
     loadSitewidePopups();
@@ -41,6 +49,7 @@ export default function loadPage() {
   }
 
   loadOneTrust();
+  showLoginPopup();
 }
 
 loadPage();
