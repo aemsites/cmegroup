@@ -214,7 +214,12 @@ async function filterAndRender(results) {
   }
 }
 
-const searchResults = debounce(searchResultsInternal, 500);
+const searchResultsDebounced = debounce(searchResultsInternal, 500);
+
+const searchResults = () => {
+  showSpinner(document.querySelector('.results-wrapper'));
+  searchResultsDebounced();
+};
 
 export {
   searchResults,
