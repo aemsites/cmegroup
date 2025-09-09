@@ -166,7 +166,7 @@ export default async function lessonTemplate() {
             'completed',
             {
               courseID: courseId,
-              courseTitle: updatedCourse.title,
+              courseTitle: updatedCourse.moduleTitle,
             },
           );
         }
