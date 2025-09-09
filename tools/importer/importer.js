@@ -498,7 +498,7 @@ const getDeepestFirstChild = (el) => {
  * This function converts the sections to metadata.
  * @param {Document} document - The document to search.
  */
-const convertSectionsToMetadata = (document) => {
+const convertSectionsToMetadata = (document, isGated) => {
   const sections = document.querySelectorAll('.section');
   sections.forEach((section, index) => {
     const style = [];
@@ -532,6 +532,10 @@ const convertSectionsToMetadata = (document) => {
         anchor.href = backgroundImg;
         anchor.textContent = anchor.href;
         tempArr.push(['Background Image', anchor]);
+      }
+
+      if (isGated) {
+        tempArr.push(['view', 'logged-in']);
       }
 
       const sectionMetadata = buildSectionMetadata(tempArr);
@@ -676,7 +680,7 @@ const promoBlock = (document) => {
 
   if (promos.length) {
     promos.forEach((promo) => {
-      const theme = selectors.find((selector) => promo.matches(selector)).replace('.', '');
+      const theme = selectors.find((selector) => promo.matches(selector))?.replace('.', '') || '';
 
       const link = promo.querySelector('a')?.href || '';
       const url = new URL(link);
@@ -700,7 +704,7 @@ const promoBlock = (document) => {
         }
       }
 
-      const cells = [[`CTA (Promo, ${theme})`]];
+      const cells = [[`CTA (Promo${theme ? `, ${theme}` : ''})`]];
       if (link) {
         const tempAnchor = document.createElement('a');
         tempAnchor.href = `${DOMAIN}${path}`;
@@ -756,7 +760,7 @@ const moveDividerLine = (document) => {
  * This function creates a divider block for the document.
  * @param {Document} document - The document to search.
  */
-const dividerBlock = (document, meta) => {
+const dividerBlock = (document, meta, isGated) => {
   const dividers = document.querySelectorAll('.divider.line');
 
   if (dividers?.length) {
@@ -764,7 +768,12 @@ const dividerBlock = (document, meta) => {
       if (!divider.closest('table') && !divider.closest('.cme-article-right-column') && !divider.closest('.cme-article-left-column')) {
         if (meta['Temp Sub Template'] !== 'faqs') {
           const styles = ['Style', 'Divider'];
-          const sectionMetadata = buildSectionMetadata([styles]);
+          let sectionMetadata;
+          if (isGated) {
+            sectionMetadata = buildSectionMetadata([styles, ['view', 'logged-in']]);
+          } else {
+            sectionMetadata = buildSectionMetadata([styles]);
+          }
           divider.replaceWith(sectionMetadata);
           sectionMetadata.after(blockSeparator().cloneNode(true));
         }
@@ -1364,7 +1373,7 @@ const convertImagesToLinks = (document, isGated) => {
  * @param {*} document
  * @param {*} type
  */
-const sidebarBlock = (document, type = 'left') => {
+const sidebarBlock = (document, type = 'left', isGated = false) => {
   const sidebars = document.querySelectorAll(`.section .row .cme-article-${type}-column`);
 
   if (sidebars?.length) {
@@ -1433,15 +1442,27 @@ const sidebarBlock = (document, type = 'left') => {
         cells.push([sidebar.innerHTML]);
         const table = WebImporter.DOMUtils.createTable(cells, document);
 
+        const parentSection = sidebar.closest('.section');
+        const parentParentSection = parentSection?.parentElement;
+
+        const parentSectionNextElement = parentParentSection?.nextElementSibling;
+        if ((parentSectionNextElement?.tagName === 'HR'
+          || (parentSectionNextElement?.tagName === 'DIV'
+            && parentSectionNextElement?.firstElementChild?.tagName === 'HR')) && isGated) {
+          const sectionMetadata = buildSectionMetadata([['view', 'logged-in']]);
+          sectionMetadata.after(blockSeparator().cloneNode(true));
+          sidebar.after(sectionMetadata);
+        }
+
         sidebar.replaceWith(table);
       }
     });
   }
 };
 
-const sideBarBlocks = (document) => {
-  sidebarBlock(document, 'left');
-  sidebarBlock(document, 'right');
+const sideBarBlocks = (document, isGated) => {
+  sidebarBlock(document, 'left', isGated);
+  sidebarBlock(document, 'right', isGated);
 };
 
 const correctLinks = (document, meta) => {
@@ -1551,7 +1572,7 @@ const tagsCloudBlock = (document) => {
  * Color map to section metadata
  * @param {*} document
  */
-const colorMap = (document) => {
+const colorMap = (document, isGated) => {
   const spans = document.querySelectorAll('span');
   const newSet = new Set();
   const sections = document.querySelectorAll('.row');
@@ -1570,7 +1591,12 @@ const colorMap = (document) => {
 
       if (!newSet.has(index) && section) {
         newSet.add(index);
-        convertSectionToMetadata(section, index, total, [['text-highlight', colorClasses[0]]]);
+        const cells = [['text-highlight', colorClasses[0]]];
+        if (isGated) {
+          cells.push(['view', 'logged-in']);
+        }
+
+        convertSectionToMetadata(section, index, total, cells);
       }
     }
   });
@@ -1760,9 +1786,11 @@ const customBlocks = async (document, main, meta, url) => {
   figCaptionEmphasize(document);
   convertClickableImagesToStaticCards(document);
   convertImagesToLinks(document, isGated);
-  mapRowsToSection(document);
+  if (!isGated) {
+    mapRowsToSection(document);
+  }
   tableBlock(document, isGated);
-  convertSectionsToMetadata(document, main);
+  convertSectionsToMetadata(document, main, isGated);
   articleHeroBlock(document, meta);
   promoBlock(document);
   authorBioBlock(document);
@@ -1771,13 +1799,13 @@ const customBlocks = async (document, main, meta, url) => {
   await accordionBlock(document);
   await dynamicCardsBlock(document, meta);
   await lightBoxGallery(document);
-  sideBarBlocks(document);
-  colorMap(document);
+  sideBarBlocks(document, isGated);
+  colorMap(document, isGated);
   oneClickSubToFragment(document);
   if (meta['Temp Sub Template'] === 'faqs') {
     removeBackToTop(document);
   }
-  dividerBlock(document, meta);
+  dividerBlock(document, meta, isGated);
 
   if (meta.Template === 'article') {
     handleArticleFragments(document);
