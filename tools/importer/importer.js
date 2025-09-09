@@ -34,6 +34,26 @@ import {
 } from './events.js';
 
 const DOMAIN = 'https://www.cmegroup.com';
+const CONTENT_TEASER_FRAGMENT_URL = 'https://main--www--cmegroup.aem.live/fragments/teasers/content-teaser';
+const VIDEO_TEASER_FRAGMENT_URL = 'https://main--www--cmegroup.aem.live/fragments/teasers/video-teaser';
+
+/**
+ * Get teaser fragment URL based on background-image
+ * @param {Element} element - The element to check
+ * @returns {string} - The fragment URL
+ */
+function getTeaserFragmentUrl(element) {
+  // Check element and its parents for background-image
+  let current = element;
+  while (current) {
+    const backgroundImage = current.style.backgroundImage || '';
+    if (backgroundImage.includes('video-teaser')) {
+      return VIDEO_TEASER_FRAGMENT_URL;
+    }
+    current = current.parentElement;
+  }
+  return CONTENT_TEASER_FRAGMENT_URL;
+}
 
 /**
  * Generate a slug from a string
@@ -76,7 +96,13 @@ async function handleContentToggle(document, url, tempMeta) {
 
         publicDiv.querySelectorAll('.login-teaser').forEach((teaser) => {
           const container = teaser.closest('.design-box') || teaser.closest('.component') || teaser;
-          const teaserCells = [['login-teaser'], ['fragment', 'https://main--www--cmegroup.aem.live/fragments/teasers/content-teaser']];
+
+          // Create anchor element for the fragment URL (dynamic based on background-image)
+          const fragmentAnchor = document.createElement('a');
+          fragmentAnchor.href = getTeaserFragmentUrl(teaser);
+          fragmentAnchor.textContent = fragmentAnchor.href;
+
+          const teaserCells = [['fragment'], [fragmentAnchor]];
           const teaserBlock = WebImporter.DOMUtils.createTable(teaserCells, document);
           container.replaceWith(teaserBlock);
         });
