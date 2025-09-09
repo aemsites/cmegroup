@@ -1095,12 +1095,15 @@ const createForm = (document) => {
   }
 };
 
-const tableBlock = (document) => {
-  const tables = document.querySelectorAll('.table-wrapper');
+const tableBlock = (document, isGated) => {
+  let tables = document.querySelectorAll('.table-wrapper');
+  if (isGated) {
+    tables = document.querySelectorAll('.table');
+  }
   if (tables?.length) {
     tables.forEach((table) => {
       let tableText = 'Table';
-      const innerTable = table.querySelector('table');
+      const innerTable = isGated ? table : table.querySelector('table');
       const tempArr = [];
       const trs = innerTable.querySelectorAll('tr');
       trs.forEach((tr) => {
@@ -1300,12 +1303,12 @@ const tableBlock = (document) => {
   }
 };
 
-const convertImagesToLinks = (document) => {
+const convertImagesToLinks = (document, isGated) => {
   // Handle .component.image elements
   const images = document.querySelectorAll('.component.image');
 
   images.forEach((image) => {
-    if (image.querySelector('img')) {
+    if (image.querySelector('img') || isGated) {
       const div = document.createElement('div');
       let imgUrl = image.getAttribute('data-img-src');
       // check if imgUrl is absolute vs relative
@@ -1751,13 +1754,14 @@ const convertClickableImagesToStaticCards = (document) => {
 };
 
 const customBlocks = async (document, main, meta, url) => {
+  const isGated = meta.gated === 'true';
   moveDividerLine(document);
   changeAnchors(document);
   figCaptionEmphasize(document);
   convertClickableImagesToStaticCards(document);
-  convertImagesToLinks(document);
+  convertImagesToLinks(document, isGated);
   mapRowsToSection(document);
-  tableBlock(document);
+  tableBlock(document, isGated);
   convertSectionsToMetadata(document, main);
   articleHeroBlock(document, meta);
   promoBlock(document);
