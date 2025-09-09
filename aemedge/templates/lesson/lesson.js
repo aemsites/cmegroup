@@ -152,12 +152,12 @@ export default async function lessonTemplate() {
         const updatedCourse = await updateLessonStatus(true);
         store.dispatch(courseDataChange(updatedCourse));
         fireTrackingLessons(
-          `Lesson "${lesson.title}" - completed`,
+          `Lesson "${lesson.moduleTitle}" - completed`,
           'completed',
           {
             lessonID: lesson.moduleId,
             parentCourse: courseId,
-            lessonTitle: lesson.title,
+            lessonTitle: lesson.moduleTitle,
           },
         );
         if (updatedCourse.completed) {
