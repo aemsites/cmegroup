@@ -274,6 +274,9 @@ async function buildLanguageLinks() {
   const filteredContent = indexedContent.filter(
     ({ path }) => path.endsWith(relevantPath),
   );
+  if (filteredContent.length <= 1) {
+    return createElement('div');
+  }
   const links = filteredContent.map((content) => {
     const isLegacy = isLegacyContent(content);
     const { path, language } = content;
