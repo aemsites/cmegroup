@@ -162,7 +162,7 @@ export default async function lessonTemplate() {
         );
         if (updatedCourse.completed) {
           fireTrackingCourses(
-            `Course "${updatedCourse.title}" - completed`,
+            `Course "${updatedCourse.moduleTitle}" - completed`,
             'completed',
             {
               courseID: courseId,
