@@ -34,7 +34,7 @@
     letter-spacing: 0.0375rem;
     color: var(--white);
 
-    & a {
+    & a:not(.button) {
       color: var(--white);
       font-family: var(--averta);
       font-size: .875rem;
