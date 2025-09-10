@@ -1436,6 +1436,63 @@ main .section.parallax {
   }
 }
 
+/* Login teaser with background image */
+main .section.login-teaser-image {
+  position: relative;
+  min-height: 18.75rem;
+
+  @media (width >= 769px) {
+    min-height: 25rem;
+  }
+
+  /* Use image as background */
+  & .default-content-wrapper picture img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 0;
+  }
+
+  /* Hide the paragraph wrapper but keep the image */
+  & .default-content-wrapper {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+
+    & p {
+      margin: 0;
+      height: 100%;
+    }
+
+    & picture {
+      display: block;
+      height: 100%;
+    }
+  }
+
+  /* Position login wrapper as overlay */
+  & .login-wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 18.75rem;
+
+    @media (width >= 769px) {
+      min-height: 25rem;
+    }
+  }
+
+  /* Add margin to login block */
+  & .login {
+    margin: 3.75rem;
+  }
+}
+
 /* Loading overlay animation */
 @keyframes loading {
   0% {
