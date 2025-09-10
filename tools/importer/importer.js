@@ -1139,6 +1139,7 @@ const tableBlock = (document, isGated) => {
     tables.forEach((table) => {
       let tableText = 'Table';
       const innerTable = isGated ? table : table.querySelector('table');
+      if (!innerTable) return; // Skip if no table found
       const tempArr = [];
       const trs = innerTable.querySelectorAll('tr');
       trs.forEach((tr) => {
