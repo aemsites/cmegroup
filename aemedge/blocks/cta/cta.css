@@ -157,5 +157,16 @@
         }
       }
     }
+
+    & .eyebrow p {
+      color: var(--citron);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
   }
+}
+
+main > .section .layout .cta {
+  margin-top: 0;
 }
