@@ -51,6 +51,11 @@
     display: inline-block;
 }
 
+.cards.event .cards-body-container .text-container .button-container a:hover {
+    text-decoration: underline !important;
+    background-position: unset;
+}
+
 .cards.event .cards-body-container .text-container .button-container a:hover::before {
     text-decoration: none;
 }

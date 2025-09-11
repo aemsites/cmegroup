@@ -339,7 +339,7 @@ p {
     line-height: 1.5rem;
   }
 
-  & a[target="_blank"] {
+  & a {
     background-position: 0 100%;
     background-repeat: repeat-x;
     background-size: 200% 0.0625rem;
@@ -488,7 +488,7 @@ a:visited code {
   font-size: inherit;
 }
 
-a[target="_blank"]::after {
+a[target="_blank"]:not([href$=".pdf"])::after {
   font-family: var(--cme-group-icons);
   content: var(--icon-positive);
   font-size: 0.625rem;

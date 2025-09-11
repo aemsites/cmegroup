@@ -58,6 +58,8 @@
 
     &:hover {
       color: var(--blue3);
+      text-decoration: none;
+      background-position: unset;
     }
   }
 

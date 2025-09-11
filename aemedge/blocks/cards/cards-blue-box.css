@@ -43,6 +43,11 @@
   font-weight: 600;
   display: inline-block;
   color: var(--blue5);
+
+  &:hover {
+    text-decoration: underline !important;
+    background-position: unset;
+  }
 }
 
 .cards.blue-box li .cards-card-body .button-container a::before {
