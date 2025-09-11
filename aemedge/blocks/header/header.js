@@ -322,10 +322,11 @@ class Nav {
       const innerDiv = this.innerContentMobile.querySelector('div');
       innerDiv.classList.add('login-container');
       const targetDivs = innerDiv.children;
-
-      Array.from(targetDivs.children).forEach((child) => {
-        child.classList.add('user-container');
-      });
+      if (targetDivs && targetDivs.children) {
+        Array.from(targetDivs.children).forEach((child) => {
+          child.classList.add('user-container');
+        });
+      }
     } else {
       this.innerContentMobile = this.createNoLoggedInItems(this.login?.cloneNode(true), true);
     }
