@@ -540,6 +540,7 @@ function checkDomain(url) {
     const isAEM = ['aem.page', 'aem.live', 'aem.reviews'].some((host) => urlToCheck.hostname.includes(host));
     const isLocal = urlToCheck.hostname.includes('localhost');
     const isReviews = urlToCheck.hostname.includes('aem.reviews');
+    const isDAPreview = urlToCheck.hostname.includes('admin.da.live');
     const isLive = urlToCheck.hostname.includes('aem.live');
     const isPreview = isLocal || urlToCheck.hostname.includes('aem.page');
     const isKnown = isProd || isAEM || isLocal;
@@ -551,6 +552,7 @@ function checkDomain(url) {
       isReviews,
       isLive,
       isKnown,
+      isDAPreview,
       isExternal,
       isPreview,
     };
