@@ -172,7 +172,10 @@ async function createStaticCards(block) {
 
 export async function createDynamicCardCourse(contentData) {
   const {
-    metadata: { 'og:image': image },
+    metadata: {
+      'og:image': ogimage,
+      image,
+    },
     title,
     description,
     path,
@@ -180,7 +183,7 @@ export async function createDynamicCardCourse(contentData) {
   } = contentData;
   const imageWrapper = createElement('div', { class: 'cards-card-image' });
   const link = createElement('a', { href: path });
-  imageWrapper.style.backgroundImage = `url('${image}')`;
+  imageWrapper.style.backgroundImage = `url('${ogimage || image}')`;
 
   const bodyWrapper = createElement('div', { class: 'cards-card-body' });
   bodyWrapper.innerHTML = `
