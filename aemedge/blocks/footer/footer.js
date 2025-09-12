@@ -169,8 +169,13 @@ export default async function decorate(block) {
         const links = ul.querySelectorAll('a');
         const ulParent = ul.parentNode;
         ulParent.classList.add('disclaimer-links');
-        links.forEach((link) => {
+        links.forEach((link, index) => {
           ulParent.insertBefore(link, ul);
+          if (index < links.length - 1) {
+            const separator = createElement('span');
+            separator.textContent = ' | ';
+            ulParent.insertBefore(separator, ul);
+          }
         });
         ul.remove();
       }
