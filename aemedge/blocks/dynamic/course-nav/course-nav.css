@@ -264,6 +264,11 @@
   line-height: 1.4;
   font-family: var(--body-font-family);
   color: var(--blue4);
+
+  &:hover {
+    color: var(--blue3);
+    text-decoration: none;
+  }
 }
 
 .course-nav .course-nav-lesson.current {

@@ -73,7 +73,7 @@ function decorateLanguageSelector(block) {
       src: '/aemedge/icons/check.svg',
       alt: 'Current language',
     });
-    currentLang.prepend(check);
+    currentLang.querySelector('a').prepend(check);
   }
   block.append(button, dropdown);
 }

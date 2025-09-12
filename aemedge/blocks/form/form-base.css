@@ -292,6 +292,10 @@
 .form p.recaptcha-disclaimer a {
   color: var(--blue4);
   text-decoration: none;
+
+  &:hover {
+    background-position: unset;
+  }
 }
 
 /* Choices.js styles */
