@@ -353,7 +353,12 @@ p {
     );
 
     &:hover {
+      color: var(--blue3);
       background-position: -100% 100%;
+    }
+
+    &:visited {
+      color: var(--blue4);
     }
   }
 }
