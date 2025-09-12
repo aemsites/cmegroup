@@ -15,8 +15,6 @@ import { createAuthToggle } from '../../blocks/auth-toggle/auth-toggle.js';
  */
 function isAuthorEnvironment() {
   const domainInfo = checkDomain(window.location);
-  // const urlParams = new URLSearchParams(window.location.search);
-  // const isDAPreview = urlParams.get('dapreview') === 'on';
 
   if (domainInfo.isPreview || domainInfo.isReviews || domainInfo.isDAPreview) {
     return true;
