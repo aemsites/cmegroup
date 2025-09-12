@@ -164,6 +164,23 @@
       font-weight: 600;
       margin-bottom: 1.25rem;
     }
+
+    &.subtitle-inline {
+      & .title,
+      & .description {
+        display: inline;
+
+        & p {
+          display: inline;
+        }
+      }
+
+      & .description {
+        & p {
+          margin-left: 0.625rem;
+        }
+      }
+    }
   }
 }
 
