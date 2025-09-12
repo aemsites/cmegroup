@@ -22,7 +22,7 @@ function isAuthorEnvironment() {
     return true;
   }
 
-  return domainInfo.isLive && isDAPreview;
+  return domainInfo.isLive;
 }
 
 /**
