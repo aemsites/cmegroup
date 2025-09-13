@@ -537,8 +537,11 @@ function checkDomain(url) {
   let result = domainCheckCache[urlToCheck.hostname];
   if (!result) {
     const isProd = PRODUCTION_DOMAINS.some((host) => urlToCheck.hostname.includes(host));
-    const isAEM = ['aem.page', 'aem.live'].some((host) => urlToCheck.hostname.includes(host));
+    const isAEM = ['aem.page', 'aem.live', 'aem.reviews'].some((host) => urlToCheck.hostname.includes(host));
     const isLocal = urlToCheck.hostname.includes('localhost');
+    const isReviews = urlToCheck.hostname.includes('aem.reviews');
+    const isDAPreview = new URLSearchParams(urlToCheck.search).get('dapreview') === 'on';
+    const isLive = urlToCheck.hostname.includes('aem.live');
     const isPreview = isLocal || urlToCheck.hostname.includes('aem.page');
     const isKnown = isProd || isAEM || isLocal;
     const isExternal = !isKnown;
@@ -546,7 +549,10 @@ function checkDomain(url) {
       isProd,
       isAEM,
       isLocal,
+      isReviews,
+      isLive,
       isKnown,
+      isDAPreview,
       isExternal,
       isPreview,
     };
@@ -772,6 +778,14 @@ async function addFragmentBlock(fragmentUrl) {
   await loadBlock(fragmentBlock);
 }
 
+function debounce(fn, delay) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 export {
   loadScript,
   createElement,
@@ -801,4 +815,5 @@ export {
   showAuthToast,
   addFragmentBlock,
   getLanguageLabel,
+  debounce,
 };
