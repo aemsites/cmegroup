@@ -15,12 +15,11 @@ import { createAuthToggle } from '../../blocks/auth-toggle/auth-toggle.js';
  */
 function isAuthorEnvironment() {
   const domainInfo = checkDomain(window.location);
-
-  if (domainInfo.isPreview || domainInfo.isReviews || domainInfo.isDAPreview) {
+  if (domainInfo.isPreview || domainInfo.isReviews) {
     return true;
   }
 
-  return domainInfo.isLive;
+  return false;
 }
 
 /**
@@ -33,11 +32,6 @@ function getAuthState() {
 
 // Check for gated=true metadata flag
 function hasGatedContent() {
-  const domainInfo = checkDomain(window.location);
-  if (domainInfo.isDAPreview) {
-    return true;
-  }
-
   const gatedMeta = document.querySelector('meta[name="gated"]');
   const gatedContent = gatedMeta?.getAttribute('content');
   return gatedContent?.toLowerCase() === 'true';
