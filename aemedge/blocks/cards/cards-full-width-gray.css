@@ -54,4 +54,8 @@
 
 .cards.full-width.background-gray li .cards-card-body a:not(.button) {
     color: var(--blue4);
+
+    &:hover {
+      color: var(--blue3);
+    }
 }
