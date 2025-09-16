@@ -436,6 +436,9 @@ function decorateLightboxImages(main) {
     // Create lightbox structure
     const wrapper = document.createElement('div');
     wrapper.className = 'lightbox-container';
+    if (strongParent.querySelector('em')) {
+      strongParent.closest('p').classList.add('center-img');
+    }
 
     img.setAttribute('data-lightbox', imageUrl);
     img.classList.add('lightbox-image');

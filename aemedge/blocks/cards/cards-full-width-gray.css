@@ -59,3 +59,18 @@
       color: var(--blue3);
     }
 }
+
+@media (width >= 769px) {
+  .cards.full-width.btn-on-right li .cards-card-body p:not(.button-container) {
+      width: 70%;
+      display: inline-block;
+      margin-right: 10px;
+  }
+
+  .cards.full-width.btn-on-right li .cards-card-body p.button-container {
+      width: 25%;
+      display: inline-block;
+      vertical-align: top;
+      margin-left: 10px;
+  }
+}
