@@ -737,7 +737,6 @@ async function waitForFirstImage(section) {
   });
 }
 
-
 /**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
@@ -752,11 +751,9 @@ async function loadEager(doc) {
     updateTitleAndMetaTags(document.title);
 
     document.body.classList.add('appear');
-    
+
     const templatePromise = templateName ? loadTemplate(doc, templateName) : Promise.resolve();
-    await loadSection(main.querySelector('.section'), async (section) => {
-      return Promise.all([templatePromise, waitForFirstImage(section)]);
-    });
+    await loadSection(main.querySelector('.section'), async (section) => Promise.all([templatePromise, waitForFirstImage(section)]));
   }
 
   try {
