@@ -1114,6 +1114,20 @@ main {
       }
     }
 
+    &.gray-gradient-background-reverse {
+      background: linear-gradient(var(--gray1), var(--gray3));
+      padding: 1.875rem 0;
+      color: var(--white);
+
+      & .default-content-wrapper {
+        color: var(--white);
+
+        & :is(h1, h2, h3, h4, h5, h6):not(.gradient) {
+          color: var(--white);
+        }
+      }
+    }
+
     &.gray5-background,
     &.light,
     &.highlight {
@@ -1127,6 +1141,10 @@ main {
       &:last-of-type {
         margin-bottom: 0;
       }
+    }
+
+    &.gray6-background {
+      background-color: var(--gray6);
     }
 
     &.not-full-width {
@@ -1179,6 +1197,7 @@ main {
       &.blue2-background,
       &.blue3-background,
       &.gray5-background,
+      &.gray6-background,
       &.light,
       &.highlight {
         padding: 3.75rem 0;
@@ -1720,6 +1739,11 @@ body.loading::before {
 
 .lightbox-expand-icon::before {
   content: var(--icon-expand-secondary);
+}
+
+/* Lightbox p parent center img */
+p.center-img {
+  text-align: center;
 }
 
 /* Lightbox Modal Styles */
