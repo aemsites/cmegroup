@@ -737,11 +737,12 @@ async function loadEager(doc) {
     decorateMain(main);
     updateTitleAndMetaTags(document.title);
 
-    if (templateName) {
-      await loadTemplate(doc, templateName);
-    }
     document.body.classList.add('appear');
-    await loadSection(main.querySelector('.section'), waitForFirstImage);
+    
+    const templatePromise = templateName ? loadTemplate(doc, templateName) : Promise.resolve();
+    await loadSection(main.querySelector('.section'), async (section) => {
+      return Promise.all([templatePromise, waitForFirstImage(section)]);
+    });
   }
 
   try {
