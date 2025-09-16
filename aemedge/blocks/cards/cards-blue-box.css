@@ -92,3 +92,7 @@
     box-shadow:rgb(60 64 67 / 30%) 0 1px 2px 0, rgb(60 64 67 / 15%) 0 2px 6px 2px;
   }
 }
+
+.cards.blue-box.no-icon-btn li .cards-card-body .button-container a::before {
+  display: none;
+}

@@ -86,7 +86,6 @@ main > .section > div {
 
 .course-header .metadata.language .language-selector-dropdown li img {
   position: absolute;
-  padding-top: .625rem;
   filter: brightness(0) saturate(100%) invert(24%) sepia(99%) saturate(1553%)
       hue-rotate(183deg) brightness(98%) contrast(101%);
 }
