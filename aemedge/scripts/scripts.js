@@ -2,7 +2,6 @@ import {
   decorateIcons,
   decorateBlock,
   decorateTemplateAndTheme,
-  waitForFirstImage,
   loadCSS,
   toCamelCase,
   toClassName,
@@ -723,6 +722,20 @@ export async function loadTemplate(doc, templateName) {
     console.log(`failed to load block ${templateName}`, error);
   }
 }
+
+async function waitForFirstImage(section) {
+  const lcpCandidate = section.querySelector('img:not([data-icon-name])');
+  await new Promise((resolve) => {
+    if (lcpCandidate && !lcpCandidate.complete) {
+      lcpCandidate.setAttribute('loading', 'eager');
+      lcpCandidate.addEventListener('load', resolve);
+      lcpCandidate.addEventListener('error', resolve);
+    } else {
+      resolve();
+    }
+  });
+}
+
 
 /**
  * Loads everything needed to get to LCP.
