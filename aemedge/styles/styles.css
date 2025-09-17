@@ -493,7 +493,7 @@ a:visited code {
   font-size: inherit;
 }
 
-a[target="_blank"]:not([href^="mailto:"]):not([href$=".pdf"])::after {
+a[target="_blank"]:not([href^="mailto:"], [href$=".pdf"])::after {
   font-family: var(--cme-group-icons);
   content: var(--icon-positive);
   font-size: 0.625rem;
