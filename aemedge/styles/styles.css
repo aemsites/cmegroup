@@ -493,7 +493,7 @@ a:visited code {
   font-size: inherit;
 }
 
-a[target="_blank"]:not([href$=".pdf"])::after {
+a[target="_blank"]:not([href^="mailto:"]):not([href$=".pdf"])::after {
   font-family: var(--cme-group-icons);
   content: var(--icon-positive);
   font-size: 0.625rem;
@@ -539,6 +539,10 @@ a {
     &:active {
       color: var(--blue5);
     }
+
+    & .icon {
+      filter: var(--blue5-filter);
+    }
   }
 }
 
@@ -580,6 +584,14 @@ main img {
   display: inline-block;
   height: 0.875rem;
   width: 0.875rem;
+
+  &.icon-envelope {
+    width: auto;
+
+    & img {
+      width: auto;
+    }
+  }
 }
 
 .icon img {
@@ -1188,6 +1200,10 @@ main {
 
     &.flush {
       margin-top: -3.75rem;
+    }
+
+    &.no-margin-bottom {
+      margin-bottom: 0;
     }
   }
 

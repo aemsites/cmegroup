@@ -165,6 +165,7 @@ export default async function decorate(block) {
 
       const cell = buildCell(colspan, rowspan, i === 0 && header);
       cell.innerHTML = col.innerHTML === '[empty-cell]' ? '&nbsp;' : col.innerHTML || '&nbsp;';
+      const inlineStyleCellMatch = cell.textContent.match(/\[(.*?)\]/);
 
       // Extract and apply inline styles from the last paragraph
       const paragraphs = cell.querySelectorAll('p');
@@ -180,6 +181,15 @@ export default async function decorate(block) {
           // Remove the style definition from the paragraph content
           lastParagraph.textContent = lastParagraph.textContent.replace(inlineStyleMatch[0], '').trim();
         }
+      } else if (inlineStyleCellMatch) {
+        // Extract and apply inline styles from the cell (when not a p)
+        const styles = inlineStyleCellMatch[1].split(',').map((s) => s.trim());
+        styles.forEach((style) => {
+          const [property, value] = style.split(':').map((s) => s.trim());
+          cell.style[property] = value;
+        });
+        // Remove the style definition from the cell content
+        cell.textContent = cell.textContent.replace(inlineStyleCellMatch[0], '').trim();
       }
 
       if (styleMatrix[i][colIndex] !== 'body') {

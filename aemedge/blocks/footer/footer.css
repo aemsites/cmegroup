@@ -97,6 +97,10 @@ footer .footer .footer-section .footer-languages .language-selector-dropdown.ope
 footer .footer .footer-languages .language-selector-dropdown li {
     list-style-type: none;
     margin-bottom: 0;
+
+    &:hover {
+      background-color: var(--blue6);
+    }
 }
 
 footer .footer .footer-languages .language-selector-dropdown li a {
