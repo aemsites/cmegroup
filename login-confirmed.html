@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta property="og:title" content="Login Confirmed">
     <script type="module">
+      import { CookieUtil, LocalStorageUtil } from './aemedge/scripts/utils/index.js';
       import { authentication } from './aemedge/scripts/modules/Authentication.js';
+      window.CookieUtil = CookieUtil;
+      window.LocalStorageUtil = LocalStorageUtil;
       authentication.handleLoad();
     </script>
     <script type="module">

@@ -9,7 +9,7 @@ import {
 import { loadFragment } from '../fragment/fragment.js';
 import { postForm } from '../../scripts/api.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
-import { URIUtil } from '../../scripts/utils/index.js';
+import { URIUtil, isEmpty } from '../../scripts/utils/index.js';
 
 const uriUtil = new URIUtil('', URIUtil.ARRAY_COMMA_ENCODE);
 
@@ -246,6 +246,9 @@ async function decorateOneClickForm(form, formData, block) {
   if (isLoggedIn) {
     await createLoggedInFields(form, formData);
     const userInfo = window.LocalStorageUtil?.get('userInfo', true);
+    if (isEmpty(userInfo)) {
+      return;
+    }
     subscribed = subscriptions.every(
       (subs) => userInfo[subs.Name] === (subs.Value === 'true'),
     );
