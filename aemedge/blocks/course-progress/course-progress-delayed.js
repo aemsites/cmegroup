@@ -73,8 +73,8 @@ async function createCardsBlock(block, data) {
   };
 
   const [progressCards, recommendedCards] = await Promise.all([
-    await Promise.all(data.userProgress?.map(createProgressCard)),
-    await Promise.all(data.recommendedCourses?.map(createRecommendedCard)),
+    await Promise.all(data.userProgress?.map(createProgressCard) || []),
+    await Promise.all(data.recommendedCourses?.map(createRecommendedCard) || []),
   ]);
   const cards = [progressCards, recommendedCards];
   if (cards?.length) {
