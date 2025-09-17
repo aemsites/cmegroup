@@ -1,11 +1,20 @@
-import { createElement, i18n, readBlockConfig } from '../../scripts/utils.js';
+import { i18n, readBlockConfig } from '../../scripts/utils.js';
 import { store } from '../../scripts/store/store.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
+import { updateAdvancedNextDisabled, markQuizCompletedAdvanced } from './advanced.js';
+import {
+  div,
+  p,
+  span,
+  button,
+  i as iEl,
+} from '../../scripts/dom-helpers.js';
+
+const testState = { answers: {} };
 
 async function checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted) {
   const answeredCorrectlyEls = block.querySelectorAll('.answered-correctly');
   const allAnsweredCorrectly = answeredCorrectlyEls.length === questions.length;
-
   if (allAnsweredCorrectly && !block.querySelector('.message') && doNotMarkLessonAsCompleted !== 'True') {
     //  quiz completion event
     store.dispatch(quizAnswered(true));
@@ -19,16 +28,12 @@ function buildQuestions(rows) {
   rows.forEach((row) => {
     const firstChild = row.children[0];
     const hasQuestion = firstChild && firstChild.querySelector('p');
-
     const answerText = row.children[1]?.textContent.trim() || '';
     const correctText = row.children[2]?.textContent.trim() || '';
     const snippetText = row.children[3]?.textContent.trim() || '';
 
     if (hasQuestion) {
-      currentQuestion = {
-        question: firstChild.textContent.trim(),
-        answers: [],
-      };
+      currentQuestion = { question: firstChild.textContent.trim(), answers: [] };
       questions.push(currentQuestion);
     }
 
@@ -44,83 +49,113 @@ function buildQuestions(rows) {
   return questions;
 }
 
-function showQuestion(index, wrapper, prev, next, pag, total) {
-  wrapper.style.transform = `translateX(-${index * 100}%)`;
-  if (prev) prev.classList.toggle('arrow-disabled', index === 0);
-  if (next) next.classList.toggle('arrow-disabled', index === total - 1);
-  if (pag) pag.textContent = `${index + 1} OF ${total}`;
-}
+function renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, state) {
+  let progressBar = null;
+  if (type !== 'traditional') {
+    progressBar = div(
+      { class: 'progress-bar linear' },
+      div({ class: 'progress', style: 'width: 0%;' }),
+    );
+    block.appendChild(progressBar);
+  }
 
-function renderQuestions(questions, block, doNotMarkLessonAsCompleted) {
-  const wrapper = createElement('div', { class: 'questions-wrapper' });
+  const wrapper = div({ class: `questions-wrapper ${type}` });
 
-  questions.forEach((q) => {
-    const questionDiv = createElement('div');
-    const questionText = createElement('p', { class: 'question-text' }, q.question);
-    const optionsWrapper = createElement('div', { class: 'options-wrapper' });
+  questions.forEach((q, questionIndex) => {
+    const optionsWrapper = div({ class: 'options-wrapper' });
+    const questionDiv = div(
+      {},
+      p({ class: 'question-text' }, q.question),
+      optionsWrapper,
+    );
 
     q.answers.forEach(({ answer, correct, snippet }, index) => {
-      const optionButton = createElement(
-        'button',
-        {
-          type: 'button',
-          class: 'option-content-answer',
-          'data-index': index,
-        },
-        createElement('span', { class: 'option-text' }, answer),
-        createElement('span', { class: 'option-icon' }),
+      const messageContainer = span({ class: 'question-message' });
+
+      const optionButton = button(
+        { type: 'button', class: 'option-content-answer', 'data-index': index },
+        span({ class: 'option-text' }, answer),
+        span({ class: 'option-icon' }),
       );
 
-      const messageContainer = createElement('span', {
-        class: 'question-message',
-      });
-
-      const optionItem = createElement(
-        'div',
+      const optionItem = div(
         { class: 'option-item' },
-        createElement('div', { class: 'option-content' }, optionButton),
+        div({ class: 'option-content' }, optionButton),
         messageContainer,
       );
 
       optionButton.addEventListener('click', async () => {
+        if (type === 'test') {
+          const allButtons = questionDiv.querySelectorAll('.option-content-answer');
+          allButtons.forEach((btn) => btn.classList.remove('pressed'));
+          state.answers[questionIndex] = index;
+          questionDiv.classList.add('answered');
+          optionButton.classList.add('pressed');
+
+          const navNext = block.querySelector('.arrow-next');
+          if (navNext) {
+            const questionsWrapper = block.querySelector('.questions-wrapper');
+            const currentIndex = [...questionsWrapper.children].indexOf(questionDiv);
+            updateAdvancedNextDisabled(
+              type,
+              questionsWrapper,
+              currentIndex,
+              questions,
+              state,
+              navNext,
+            );
+          }
+          if (block.updateNavigation) block.updateNavigation();
+          return;
+        }
+
         if (questionDiv.classList.contains('answered-correctly')) return;
 
         const allButtons = questionDiv.querySelectorAll('.option-content-answer');
         const allMessages = questionDiv.querySelectorAll('.question-message');
-
-        allMessages.forEach((msg) => {
-          msg.classList.remove('correct', 'incorrect', 'showed');
-        });
-
-        allButtons.forEach((btn) => btn.classList.remove('pressed', 'incorrect', 'correct'));
+        allMessages.forEach((msg) => msg.classList.remove('correct', 'incorrect', 'showed'));
+        if (type !== 'activity') allButtons.forEach((btn) => btn.classList.remove('pressed', 'incorrect', 'correct'));
         optionButton.classList.add('pressed');
 
         if (correct) {
           const [correctLabel] = await Promise.all([i18n('Correct')]);
           optionButton.classList.add('correct');
           questionDiv.classList.add('answered-correctly');
-          messageContainer.classList.add('correct');
-          messageContainer.innerHTML = `<span class="result">${correctLabel}</span><span class="snippet"></span>`;
-          const snippetEl = messageContainer.querySelector('.snippet');
-          snippetEl.textContent = snippet;
-          messageContainer.classList.add('showed');
-          checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted);
+          messageContainer.classList.add('correct', 'showed');
+          messageContainer.innerHTML = '';
+          messageContainer.appendChild(span({ class: 'result' }, correctLabel));
+          messageContainer.appendChild(span({ class: 'snippet' }, snippet));
+
+          if (type === 'traditional') checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted);
+
+          const navNext = block.querySelector('.arrow-next');
+          if (navNext) {
+            const questionsWrapper = block.querySelector('.questions-wrapper');
+            const currentIndex = [...questionsWrapper.children].indexOf(questionDiv);
+            updateAdvancedNextDisabled(
+              type,
+              questionsWrapper,
+              currentIndex,
+              questions,
+              state,
+              navNext,
+            );
+          }
+
+          if (block.updateNavigation) block.updateNavigation();
         } else {
           const [incorrectLabel] = await Promise.all([i18n('Incorrect')]);
           optionButton.classList.add('incorrect');
-          messageContainer.classList.add('incorrect');
-          messageContainer.innerHTML = `<span class="result">${incorrectLabel}</span><span class="snippet"></span>`;
-          const snippetEl = messageContainer.querySelector('.snippet');
-          snippetEl.textContent = snippet;
-          messageContainer.classList.add('showed');
+          messageContainer.classList.add('incorrect', 'showed');
+          messageContainer.innerHTML = '';
+          messageContainer.appendChild(span({ class: 'result' }, incorrectLabel));
+          messageContainer.appendChild(span({ class: 'snippet' }, snippet));
         }
       });
 
       optionsWrapper.appendChild(optionItem);
     });
 
-    questionDiv.appendChild(questionText);
-    questionDiv.appendChild(optionsWrapper);
     wrapper.appendChild(questionDiv);
   });
 
@@ -128,50 +163,89 @@ function renderQuestions(questions, block, doNotMarkLessonAsCompleted) {
   return wrapper;
 }
 
-async function addNavigation(questions, block, wrapper) {
-  const [ofLabel] = await Promise.all([i18n('OF')]);
-  let currentIndex = 0;
-
-  const prev = createElement('button', {
-    type: 'button',
-    class: 'arrow arrow-prev',
-    style: 'display: block;',
-  });
-
-  const next = createElement('button', {
-    type: 'button',
-    class: 'arrow arrow-next',
-    style: 'display: block;',
-  });
-
-  const pag = createElement('span', { class: 'custom-paging-counter' });
-  pag.textContent = `1 ${ofLabel} ${questions.length}`;
-
-  prev.addEventListener('click', () => {
-    if (currentIndex > 0) {
-      currentIndex -= 1;
-      showQuestion(currentIndex, wrapper, prev, next, pag, questions.length);
-    }
-  });
-
-  next.addEventListener('click', () => {
-    if (currentIndex < questions.length - 1) {
-      currentIndex += 1;
-      showQuestion(currentIndex, wrapper, prev, next, pag, questions.length);
-    }
-  });
-
-  const nav = createElement('div', { class: 'quiz-navigation' }, prev, pag, next);
-  block.appendChild(nav);
+function showQuestion(index, wrapper, prev, next, pag, total) {
+  wrapper.style.transform = `translateX(-${index * 100}%)`;
+  if (pag) pag.textContent = `${index + 1} OF ${total}`;
+  const progress = wrapper.parentElement.querySelector('.progress-bar .progress');
+  if (progress) {
+    const percent = ((index + 1) / total) * 100;
+    progress.style.width = `${percent}%`;
+  }
 }
 
-async function markQuizCompleted(block, questionsMeta, completeMessage) {
+async function addNavigation(questions, block, wrapper, type, completeMessage) {
+  const [finishLabel] = await Promise.all([i18n('Finish')]);
+  const prev = button({ type: 'button', class: 'arrow arrow-prev', style: 'display: block;' });
+  const next = button({ type: 'button', class: 'arrow arrow-next', style: 'display: block;' });
+  let finish = null;
+  if (type !== 'traditional') finish = button({ type: 'button', class: 'arrow arrow-finish', style: 'display: none;' }, finishLabel);
+
+  const nav = {
+    prev, next, finish, pag: null, currentIndex: 0,
+  };
+  block.nav = nav;
+
+  const pag = span({ class: 'custom-paging-counter' });
+  nav.pag = pag;
+
+  block.updateNavigation = function updateNavigation() {
+    const lastSlider = nav.currentIndex === questions.length - 1;
+    if (type === 'traditional') {
+      next.style.display = 'block';
+      updateAdvancedNextDisabled(type, wrapper, nav.currentIndex, questions, testState, next);
+      if (lastSlider) { next.disabled = true; next.classList.add('arrow-disabled'); }
+    } else {
+      next.style.display = lastSlider ? 'none' : 'block';
+      if (finish) finish.style.display = lastSlider ? 'block' : 'none';
+      if (type === 'activity') {
+        const currentQuestion = wrapper.querySelectorAll(':scope > div')[nav.currentIndex];
+        const answeredCorrectly = currentQuestion.classList.contains('answered-correctly');
+        if (lastSlider && finish) { finish.disabled = !answeredCorrectly; finish.classList.toggle('arrow-disabled', !answeredCorrectly); }
+      } else if (type === 'test') {
+        if (lastSlider && finish) { const answered = testState.answers[nav.currentIndex] !== undefined; finish.disabled = !answered; finish.classList.toggle('arrow-disabled', !answered); }
+      } else if (finish) { finish.disabled = false; finish.classList.remove('arrow-disabled'); }
+      if (!lastSlider) {
+        updateAdvancedNextDisabled(type, wrapper, nav.currentIndex, questions, testState, next);
+      }
+    }
+    nav.prev.disabled = nav.currentIndex === 0;
+    nav.prev.classList.toggle('arrow-disabled', nav.currentIndex === 0);
+    if (pag) pag.textContent = `${nav.currentIndex + 1} / ${questions.length}`;
+    showQuestion(nav.currentIndex, wrapper, nav.prev, nav.next, pag, questions.length);
+    const reviewContainer = block.querySelector('.review-questions');
+    if (reviewContainer) {
+      reviewContainer.querySelectorAll('.question-link').forEach((l) => l.classList.remove('selected'));
+      const link = reviewContainer.querySelector(`.question-link[data-index="${nav.currentIndex}"]`);
+      if (link) link.classList.add('selected');
+    }
+  };
+
+  prev.addEventListener('click', () => { if (nav.currentIndex > 0) { nav.currentIndex -= 1; block.updateNavigation(); } });
+  next.addEventListener('click', () => { if (nav.currentIndex < questions.length - 1) { nav.currentIndex += 1; block.updateNavigation(); } });
+  if (finish) finish.addEventListener('click', () => { if (!finish.disabled) markQuizCompleted(block, questions, type, completeMessage); });
+
+  const navContainer = div(
+    { class: 'quiz-navigation' },
+    ...(finish ? [prev, pag, next, finish] : [prev, pag, next]),
+  );
+
+  block.appendChild(navContainer);
+  block.updateNavigation();
+}
+
+async function markQuizCompleted(block, questionsMeta, type, completeMessage) {
+  if (type === 'activity' || type === 'test') {
+    await markQuizCompletedAdvanced(block, questionsMeta, type, testState);
+    return;
+  }
+
   const [quizLabel] = await Promise.all([i18n('Lesson complete')]);
-  const completionMessage = createElement(
-    'div',
+  if (block.querySelector('.message')) return;
+
+  const completionMessage = div(
     { class: 'message' },
-    createElement('div', { class: 'message-label' }, createElement('i', { class: 'icon' })),
-    createElement('div', { class: 'message-text' }, completeMessage || quizLabel),
+    div({ class: 'message-label' }, iEl({ class: 'icon' })),
+    div({ class: 'message-text' }, completeMessage || quizLabel),
   );
   block.insertBefore(completionMessage, block.firstChild);
   block.classList.add('complete');
@@ -191,34 +265,28 @@ async function markQuizCompleted(block, questionsMeta, completeMessage) {
 }
 
 export default async function decorate(block) {
-  const { doNotMarkLessonAsCompleted, completeMessage } = readBlockConfig(block, true);
+  const { doNotMarkLessonAsCompleted, completeMessage, type = 'traditional' } = readBlockConfig(block, true);
   const rows = Array.from(block.querySelectorAll(':scope > div'));
   let startIndex = 0;
-  let i = 0;
-  while (i < rows.length) {
-    const firstCellText = rows[i].children[0]?.textContent?.trim();
-    if (firstCellText === 'Questions') {
+
+  for (let i = 0; i < rows.length; i += 1) {
+    if (rows[i].children[0]?.textContent?.trim() === 'Questions') {
       startIndex = i + 1;
       break;
     }
-    i += 1;
   }
 
   const questions = buildQuestions(rows.slice(startIndex));
-
   block.innerHTML = '';
-  const wrapper = renderQuestions(questions, block, doNotMarkLessonAsCompleted);
+  const wrapper = renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, testState);
+  showQuestion(0, wrapper, null, null, null, questions.length);
 
-  if (questions.length > 1) {
-    await addNavigation(questions, block, wrapper);
-  }
+  if (questions.length > 1) await addNavigation(questions, block, wrapper, type, completeMessage);
 
   block.classList.add('showed');
 
   //  quiz completion event subscriber
   store.subscribe(({ quiz }) => quiz, async ({ isCorrect }) => {
-    if (isCorrect) {
-      markQuizCompleted(block, questions, completeMessage);
-    }
+    if (isCorrect) markQuizCompleted(block, questions, type, completeMessage);
   });
 }
