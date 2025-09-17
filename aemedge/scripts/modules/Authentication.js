@@ -161,7 +161,9 @@ export class Authentication {
         expires,
       });
     });
-    await transferCookies(urlByEnvType(), cookiesData);
+    if (window.location.origin !== urlByEnvType()) {
+      await transferCookies(urlByEnvType(), cookiesData);
+    }
   }
 
   static async expireLoginCookies() {
@@ -170,7 +172,9 @@ export class Authentication {
       secure: true,
       sameSite: 'None',
     }));
-    await deleteCookies(urlByEnvType(), cookies);
+    if (window.location.origin !== urlByEnvType()) {
+      await deleteCookies(urlByEnvType(), cookies);
+    }
     return !Authentication.getLoginCookie('userinfo');
   }
 
