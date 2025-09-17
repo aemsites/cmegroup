@@ -67,6 +67,7 @@
 
 .cards.promo .cards-card-body p a:hover{
     text-decoration: none;
+    background-position: unset;
 }
 
 @media (width >= 993px) {

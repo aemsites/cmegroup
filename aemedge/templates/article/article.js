@@ -92,7 +92,7 @@ async function showBookmarkTooltip(parent) {
   });
   const checkIconSpan = createElement('span', { class: 'icon check' }, checkIcon);
   const bookmarks = createElement('a', { href: '/my-profile.html#tab=bookmarks' }, bookmarksLabel);
-  const tooltipContent = createElement('span', null, checkIconSpan, `${savedToLabel} `, bookmarks);
+  const tooltipContent = createElement('span', null, checkIconSpan, `${savedToLabel}`, bookmarks);
   showTooltip(parent, tooltipContent, 5000);
 }
 
@@ -154,7 +154,10 @@ async function buildBookmark(bookmark, bookmarkIcons, saveText) {
           showSaveIcon(saveIcons, false);
         }
       }
-      bookmark.addEventListener('click', async () => {
+      bookmark.addEventListener('click', async (e) => {
+        if (e.target.closest('.tooltip')) {
+          return;
+        }
         if (savedArticle) {
           const removeResponse = await removeArticle();
           if (removeResponse) {
@@ -236,8 +239,9 @@ async function decorateArticleHero(main) {
   const saveIconFilledSpan = createElement('span', { class: 'icon icon-bookmark-filled' }, saveIconFilled);
   const saveText = createElement('span', { class: 'save-text' });
   const bookmarkIcons = createElement('span', { class: 'bookmark-icon' }, saveIconOutlinedSpan, saveIconFilledSpan);
-  const bookmark = createElement('a', { class: 'bookmark' }, bookmarkIcons, saveText);
-  const topInfo = createElement('div', { class: 'top-info' }, articleTime, featuredTag, bookmark);
+  const bookmark = createElement('a', null, bookmarkIcons, saveText);
+  const bookmarkSpan = createElement('span', { class: 'bookmark' }, bookmark);
+  const topInfo = createElement('div', { class: 'top-info' }, articleTime, featuredTag, bookmarkSpan);
   const h1 = heroSection.querySelector('h1');
   const authorsContainer = createElement('span', { class: 'authors' });
   const articleDate = createElement('span', { class: 'article-date' });

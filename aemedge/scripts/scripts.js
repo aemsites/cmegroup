@@ -436,6 +436,9 @@ function decorateLightboxImages(main) {
     // Create lightbox structure
     const wrapper = document.createElement('div');
     wrapper.className = 'lightbox-container';
+    if (strongParent.querySelector('em')) {
+      strongParent.closest('p').classList.add('center-img');
+    }
 
     img.setAttribute('data-lightbox', imageUrl);
     img.classList.add('lightbox-image');
@@ -476,6 +479,21 @@ function decorateLightboxImages(main) {
 
       // Add flag to help prevent multiple click handlers from being added
       img.setAttribute('data-lightbox-ready', 'true');
+    }
+  });
+}
+
+/**
+ * Decorates Headings
+*/
+function decorateHeadings(main) {
+  const headings = main.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  headings.forEach((heading) => {
+    const text = heading.textContent;
+    const modifierMatch = text.match(/\[([^\]]+)\]/);
+    if (modifierMatch) {
+      heading.classList.add(modifierMatch[1]);
+      heading.innerHTML = heading.innerHTML.replace(modifierMatch[0], '');
     }
   });
 }
@@ -647,6 +665,7 @@ function decorateTextHighlights(main) {
 export function decorateMain(main) {
   // hopefully forward compatible button decoration
   decorateButtons(main);
+  decorateHeadings(main);
   decorateIcons(main);
   enhanceIconAccessibility();
   buildAutoBlocks(main);

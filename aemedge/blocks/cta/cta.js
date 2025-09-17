@@ -15,6 +15,9 @@ export default function decorate(block) {
       } else if (type === 'background') {
         content.classList.add('background-image');
         linkWrapper.append(content);
+      } else if (type === 'eyebrow') {
+        content.classList.add('eyebrow');
+        contentWrapper.append(content);
       } else if (type === 'title') {
         content.classList.add('title');
         contentWrapper.append(content);

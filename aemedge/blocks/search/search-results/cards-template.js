@@ -113,7 +113,7 @@ const labeledCardLesson = async (card, item, labelKey, footerText) => {
   const footer = div({ class: 'result-footer date' }, footerText);
 
   const anchor = buildBaseCard({
-    title: item.metadata?.courseTitle || item.metadata?.['module-title'] || item.title,
+    title: item.metadata?.['module-title'] || item.title,
     description: item.description,
     path: item.path,
     header,
@@ -169,9 +169,8 @@ const courseCard = async (card, item) => {
 
 // Lesson card
 const lessonCard = async (card, item) => {
-  // todo piyush add course name in place item.metadata?.['module-title']
-  await labeledCardLesson(card, item, `Lesson ${item.metadata?.['module-title']
-    ? `: ${item.metadata?.['module-title']}` : ''}`, item.date ? getCdtDate(item.date).format('MMM DD, YYYY') : '');
+  await labeledCardLesson(card, item, `Lesson ${item.metadata?.courseTitle || item.metadata?.['module-title']
+    ? `: ${item.metadata?.courseTitle || item.metadata?.['module-title']}` : ''}`, item.date ? getCdtDate(item.date).format('MMM DD, YYYY') : '');
 };
 
 const standaloneLessonCard = async (card, item) => {
