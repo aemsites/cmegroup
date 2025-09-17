@@ -46,6 +46,7 @@ export async function axiosGet(url, config = {}) {
       'Content-Type': 'application/json',
       ...headers,
     },
+    credentials: 'include',
   };
 
   try {
@@ -87,6 +88,7 @@ export async function axiosPost(url, data, config = {}) {
   const fetchOptions = {
     method: 'POST',
     headers,
+    credentials: 'include',
   };
 
   if (data) {

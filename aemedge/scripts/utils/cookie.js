@@ -70,8 +70,8 @@ class CookieClass {
     return document.cookie;
   }
 
-  remove(key) {
-    this.set(key, '', { expires: -1 });
+  remove(key, attr = {}) {
+    this.set(key, '', { expires: -1, ...attr });
   }
 }
 

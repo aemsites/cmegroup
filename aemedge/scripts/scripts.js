@@ -2,7 +2,6 @@ import {
   decorateIcons,
   decorateBlock,
   decorateTemplateAndTheme,
-  waitForFirstImage,
   loadCSS,
   toCamelCase,
   toClassName,
@@ -724,6 +723,20 @@ export async function loadTemplate(doc, templateName) {
   }
 }
 
+async function waitForFirstImage(section) {
+  const lcpCandidate = section.querySelector('img:not([data-icon-name])');
+  await new Promise((resolve) => {
+    if (lcpCandidate && !lcpCandidate.complete) {
+      lcpCandidate.setAttribute('loading', 'eager');
+      lcpCandidate.setAttribute('fetchpriority', 'high');
+      lcpCandidate.addEventListener('load', resolve);
+      lcpCandidate.addEventListener('error', resolve);
+    } else {
+      resolve();
+    }
+  });
+}
+
 /**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
@@ -737,11 +750,10 @@ async function loadEager(doc) {
     decorateMain(main);
     updateTitleAndMetaTags(document.title);
 
-    if (templateName) {
-      await loadTemplate(doc, templateName);
-    }
     document.body.classList.add('appear');
-    await loadSection(main.querySelector('.section'), waitForFirstImage);
+
+    const templatePromise = templateName ? loadTemplate(doc, templateName) : Promise.resolve();
+    await loadSection(main.querySelector('.section'), async (section) => Promise.all([templatePromise, waitForFirstImage(section)]));
   }
 
   try {

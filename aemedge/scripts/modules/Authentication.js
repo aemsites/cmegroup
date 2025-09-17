@@ -1,12 +1,13 @@
-// import store from 'store';
 import {
   URIUtil,
   openHiddenIframe,
   getEnvType,
+  urlByEnvType,
   isCMEEnv,
 } from '../utils/index.js';
 import { store } from '../store/store.js';
 import { authLogin, authLogout } from '../actions/auth.js';
+import { transferCookies, deleteCookies } from './CookieBridge.js';
 import {
   getIsLoggedIn,
   getLoginData,
@@ -133,7 +134,7 @@ export class Authentication {
   }
 
   static getLoginCookies() {
-    const [userId, cmeToken, fgp, userData] = [
+    const [userId, cmeToken, fgp, userinfo] = [
       'userId',
       'cmeToken',
       '__Secure-Fgp',
@@ -143,30 +144,33 @@ export class Authentication {
       userId,
       cmeToken,
       fgp,
-      userData,
+      userinfo,
     };
   }
 
-  static setLoginCookies({
-    fgp,
-    userId,
-    cmeToken,
-    userData,
-  }) {
-    window.CookieUtil?.set('__Secure-Fgp', fgp, {
-      secure: true,
-      sameSite: 'Strict',
+  static async setLoginCookies(cookiesData) {
+    if (!Object.keys(cookiesData).length) {
+      return;
+    }
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 180);
+    Object.entries(cookiesData).forEach(([key, value]) => {
+      window.CookieUtil?.set(key, value, {
+        secure: true,
+        sameSite: 'None',
+        expires,
+      });
     });
-    window.CookieUtil?.set('userId', userId);
-    window.CookieUtil?.set('cmeToken', cmeToken);
-    window.CookieUtil?.set('userinfo', userData);
+    await transferCookies(urlByEnvType(), cookiesData);
   }
 
-  static expireLoginCookies() {
-    window.CookieUtil?.remove('__Secure-Fgp');
-    window.CookieUtil?.remove('userId');
-    window.CookieUtil?.remove('cmeToken');
-    window.CookieUtil?.remove('userinfo');
+  static async expireLoginCookies() {
+    const cookies = ['__Secure-Fgp', 'userId', 'cmeToken', 'userinfo'];
+    cookies.forEach((cookie) => window.CookieUtil?.remove(cookie, {
+      secure: true,
+      sameSite: 'None',
+    }));
+    await deleteCookies(urlByEnvType(), cookies);
     return !Authentication.getLoginCookie('userinfo');
   }
 
@@ -284,14 +288,14 @@ export class Authentication {
     return false;
   };
 
-  logout = () => {
-    const logoutUrl = '/system/sling/logout.html?resource=/content/login';
-    window.localStorage.removeItem('ali');
+  logout = async () => {
+    const logoutUrl = '/';
+    window.LocalStorageUtil?.remove('ali');
     window.LocalStorageUtil?.remove('userInfo');
     if (!this.isProtectedPage) {
       this.setRedirectionCookie('logout');
     }
-    Authentication.expireLoginCookies();
+    await Authentication.expireLoginCookies();
     Authentication.expireLoginUrlSfCookie();
     // dispatch
     store.dispatch(authLogout());
@@ -335,9 +339,9 @@ export class Authentication {
     let alreadyLoggedIn = false;
     if (
       this.authenticationData.isLoggedIn
-      && !window.localStorage.getItem('ali')
+      && !window.LocalStorageUtil.get('ali')
     ) {
-      window.localStorage.setItem('ali', true);
+      window.LocalStorageUtil.set('ali', true);
       alreadyLoggedIn = true;
     }
     return (
@@ -380,7 +384,7 @@ export class Authentication {
   async processSalesforceData(user) {
     if (this.authenticationData.isLoggedIn) {
       const userInfo = window.LocalStorageUtil?.get('userInfo', true);
-      if (!userInfo) {
+      if (!userInfo?.userId) {
         const userData = await getUserInfo(user);
         window.LocalStorageUtil?.set('userInfo', userData);
       }
@@ -399,7 +403,7 @@ export class Authentication {
       userId: _userId,
       cmeToken: _cmeToken,
       fgp: _fgp,
-      userData: _userData,
+      userinfo: _userinfo,
     } = Authentication.getLoginCookies();
     const data = await getIsLoggedIn({
       secureFgp: _fgp,
@@ -410,7 +414,7 @@ export class Authentication {
       this.authenticationData.isLoggedIn = data.isLoggedIn;
       const redirectionCookie = Authentication.getRedirectionCookie();
       if (this.authenticationData.isLoggedIn) {
-        this.processUserData(_userData || {});
+        this.processUserData(_userinfo || {});
       } else if (redirectionCookie || this.authorMode) {
         if (!this.authorMode && redirectionCookie.flow === 'logout') {
           this.resolveLoginPromise();
@@ -420,10 +424,24 @@ export class Authentication {
           if (xAuthToken) {
             const user = await getLoginData(xAuthToken);
             if (user) {
-              const { secureFgp, userId, userData } = user;
+              const {
+                secureFgp,
+                cmeToken,
+                userId,
+                userData,
+              } = user;
               const fgp = secureFgp.match(/__Secure-Fgp=([^;]+)/)[1];
               if (userId) {
-                Authentication.setLoginCookies({ ...user, fgp });
+                const cookiesData = {
+                  userId,
+                  cmeToken,
+                  userinfo: {
+                    ...userData,
+                    userId: `${userData.userId}`,
+                  },
+                  '__Secure-Fgp': fgp,
+                };
+                await Authentication.setLoginCookies(cookiesData);
                 this.authenticationData.isLoggedIn = true;
                 this.processUserData(userData);
                 this.checkRedirection();
@@ -462,7 +480,7 @@ export class Authentication {
     const fixEncode = (text) => decodeURI(text).replace(/\+/g, ' ');
     return {
       ...data,
-      userId: `${data.userId} `,
+      userId: `${data.userId}`,
       userName: fixEncode(data.userName),
       firstName: fixEncode(data.firstName),
       lastName: fixEncode(data.lastName),
