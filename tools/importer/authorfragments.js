@@ -39,6 +39,13 @@ const generateAuthorSlug = (authorName) => {
   return slug;
 };
 
+const extractPersonName = (fullContent) => {
+  // Extract just the person's name from the full eyebrow content
+  // Split on comma and take the first part (the name)
+  const namePart = fullContent.split(',')[0].trim();
+  return namePart || fullContent;
+};
+
 const extractAuthorInfo = (document, authorInfo) => {
   const authorBio = authorInfo.querySelector('.author-bio');
   let authorTag = null;
@@ -73,23 +80,18 @@ const extractAuthorInfo = (document, authorInfo) => {
   }
 
   const authorEyebrow = authorInfo.querySelector('.author-eyebrow');
-  let authorName = authorEyebrow ? authorEyebrow.textContent.trim() : imageAlt || 'Unknown Author';
+  const fullEyebrowContent = authorEyebrow ? authorEyebrow.textContent.trim().replace(/\s+/g, ' ') : imageAlt || 'Unknown Author';
 
-  authorName = authorName.replace(/\s+/g, ' ').trim();
-
-  if (!useExistingTag && (authorName.length > 50 || authorName.toLowerCase().includes('director') || authorName.toLowerCase().includes('manager'))) {
-    const nameParts = authorName.split(/[,-]|director|manager|analyst|vice president|president|head of|chief/i);
-    if (nameParts[0] && nameParts[0].trim().length > 0) {
-      authorName = nameParts[0].trim();
-    }
-  }
+  // Extract clean name for slug generation
+  const cleanNameForSlug = extractPersonName(fullEyebrowContent);
 
   const bioContent = authorBio ? authorBio.innerHTML.trim() : '';
 
-  const slug = useExistingTag ? authorTag : generateAuthorSlug(authorName);
+  const slug = useExistingTag ? authorTag : generateAuthorSlug(cleanNameForSlug);
 
   return {
-    name: authorName,
+    fullEyebrowContent,
+    cleanNameForSlug,
     slug,
     useExistingTag,
     imageUrl,
@@ -112,11 +114,11 @@ const createAuthorFragment = (document, authorData) => {
   }
 
   let contentColumn = '';
-  if (authorData.name && authorData.bioContent) {
+  if (authorData.fullEyebrowContent && authorData.bioContent) {
     const cleanBio = authorData.bioContent.replace(/<p[^>]*>/gi, '').replace(/<\/p>/gi, '').trim();
-    contentColumn = `<p><strong>${authorData.name}</strong> ${cleanBio}</p>`;
-  } else if (authorData.name) {
-    contentColumn = `<p><strong>${authorData.name}</strong></p>`;
+    contentColumn = `<p><strong>${authorData.fullEyebrowContent}</strong> ${cleanBio}</p>`;
+  } else if (authorData.fullEyebrowContent) {
+    contentColumn = `<p><strong>${authorData.fullEyebrowContent}</strong></p>`;
   } else if (authorData.bioContent) {
     contentColumn = authorData.bioContent;
   }
@@ -133,15 +135,44 @@ const processAuthorInfo = (document) => {
     return [];
   }
 
-  const authorDataList = [];
+  const authorDataMap = new Map(); // Use Map to deduplicate by slug
+  const duplicateReport = [];
 
   authorInfoElements.forEach((authorInfo) => {
     const authorData = extractAuthorInfo(document, authorInfo);
 
-    if (authorData.name && authorData.name !== 'Unknown Author') {
-      authorDataList.push(authorData);
+    if (authorData.fullEyebrowContent && authorData.fullEyebrowContent !== 'Unknown Author') {
+      const { slug } = authorData;
+
+      if (authorDataMap.has(slug)) {
+        // Duplicate found - keep the one with more content
+        const existing = authorDataMap.get(slug);
+        const existingContentLength = (existing.bioContent || '').length;
+        const newContentLength = (authorData.bioContent || '').length;
+
+        if (newContentLength > existingContentLength) {
+          authorDataMap.set(slug, authorData);
+          duplicateReport.push(`Duplicate author "${authorData.fullEyebrowContent}" - using version with more bio content`);
+        } else {
+          duplicateReport.push(`Duplicate author "${authorData.fullEyebrowContent}" - keeping existing version`);
+        }
+      } else {
+        authorDataMap.set(slug, authorData);
+      }
     }
   });
+
+  // Convert Map values to array and add duplicate report info
+  const authorDataList = Array.from(authorDataMap.values());
+
+  // Add duplicate info to each author for reporting
+  if (duplicateReport.length > 0) {
+    authorDataList.forEach((author) => {
+      author.duplicateInfo = duplicateReport.filter(
+        (report) => report.includes(author.fullEyebrowContent),
+      );
+    });
+  }
 
   return authorDataList;
 };
@@ -208,7 +239,7 @@ export default {
 
     authorDataList.forEach((authorData) => {
       if (authorData.useExistingTag) {
-        reportItems.push(`Fragment already exists: ${authorData.name} (${authorData.slug})`);
+        reportItems.push(`Fragment already exists: ${authorData.fullEyebrowContent} (${authorData.slug})`);
         return;
       }
 
@@ -228,7 +259,14 @@ export default {
         path: fragmentPath,
       });
 
-      reportItems.push(`Created: ${authorData.name} -> ${fragmentPath}`);
+      let createdMessage = `Created: ${authorData.fullEyebrowContent} -> ${fragmentPath}`;
+
+      // Add duplicate info to report if any
+      if (authorData.duplicateInfo && authorData.duplicateInfo.length > 0) {
+        createdMessage += ` (${authorData.duplicateInfo.join(', ')})`;
+      }
+
+      reportItems.push(createdMessage);
     });
 
     if (results.length === 0) {
