@@ -1,7 +1,7 @@
 import {
   URIUtil,
   openHiddenIframe,
-  getEnvType,
+  // getEnvType,
   urlByEnvType,
   isCMEEnv,
 } from '../utils/index.js';
