@@ -42,9 +42,10 @@
                 color: var(--white);
                 font-style: normal;
                 content: var(--icon-play);
-                left: calc(50% - 0.4375rem);
-                top: calc(50% - 0.875rem);
+                left: calc(50% - 0.5rem);
+                top: calc(50% - 0.5625rem);
                 position: absolute;
+                font-size: 1.5rem;
               }
             }
           }
@@ -77,6 +78,14 @@
           }
 
           &:hover {
+            &.video-card {
+              & .cards-image-container {
+                &::before {
+                  background-color: var(--blue5);
+                }
+              }
+            }
+
             & .cards-body-container {
               & h3 {
                 text-decoration: none;

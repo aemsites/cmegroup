@@ -277,6 +277,7 @@ function simpleDynamicCard(content) {
     path,
     title,
     metadata: {
+      'sub-template': subTemplates,
       image,
     },
   } = curatedContent;
@@ -286,6 +287,9 @@ function simpleDynamicCard(content) {
   const img = createElement('img', { src: image });
   const imageContainer = createElement('div', { class: 'cards-image-container' }, img);
   const linkEl = createElement('a', { href: path }, imageContainer, mainContainer);
+  if (subTemplates.includes('video')) {
+    linkEl.classList.add('video-card');
+  }
   return createElement('li', null, linkEl);
 }
 

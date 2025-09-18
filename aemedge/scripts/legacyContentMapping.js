@@ -49,13 +49,13 @@ function mapLegacyArticleData(legacyData) {
     metadata: {
       thumbnailImage: image,
       primaryTopics,
+      mediaType,
     },
     title,
     description,
     path,
     readTime,
     date,
-    mediaType,
   } = legacyData;
   const durationMin = convertReadTimeFormat(readTime);
   const subTemplates = convertMediaTypeToSubtemplate(mediaType);
@@ -101,6 +101,7 @@ const legacyEducationTemplates = [
 
 const legacyOpenMarketsTemplates = [
   '/conf/openmarkets/settings/wcm/templates/openmarkets-standard-article',
+  '/conf/openmarkets/settings/wcm/templates/openmarkets-showcase-article',
   '/conf/openmarkets/settings/wcm/templates/openmarkets-video-template',
 ];
 
