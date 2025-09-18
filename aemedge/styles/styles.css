@@ -1477,7 +1477,7 @@ main .section.parallax {
 }
 
 /* Login teaser with background image */
-main .section.login-teaser-image {
+main .fragment-wrapper .section.login-teaser-image {
   position: relative;
   min-height: 18.75rem;
 
