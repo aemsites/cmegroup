@@ -23,10 +23,6 @@
       & h4,
       & h5,
       & h6 {
-        font-size: 1.25rem;
-        line-height: 2.1875rem;
-        letter-spacing: 0.0125rem;
-        font-weight: 600;
         font-family: var(--averta);
       }
   
