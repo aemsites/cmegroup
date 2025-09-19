@@ -430,7 +430,7 @@ function buildSlider(
       const nextImg = createElement('img', { 'data-icon-name': 'chevron-right', src: '/aemedge/icons/chevron-right.svg' });
       prevClass = `glider-prev-${uniqueId}`;
       nextClass = `glider-next-${uniqueId}`;
-      const prev = createElement('button', { 'aria-label': 'Previous', class: `glider-prev ${prevClass}` }, prevImg);
+      const prev = createElement('button', { 'aria-label': 'Previous', class: `glider-prev ${prevClass} ${inverse && 'inverse'}` }, prevImg);
       const next = createElement('button', { 'aria-label': 'Next', class: `glider-next ${nextClass} ${inverse && 'inverse'}` }, nextImg);
       parent.append(prev);
       parent.append(next);
