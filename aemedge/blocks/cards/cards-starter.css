@@ -16,58 +16,87 @@
       padding: 1.875rem;
       margin: 0;
       position: relative;
-  
-      & h4 {
-        font-size: 1.25rem;
-        line-height: 2.1875rem;
-        letter-spacing: 0.0125rem;
-        font-weight: 600;
-        font-family: var(--averta);
-      }
+      height: 100%;
   
       & p {
-        & .icon {
-          filter: var(--blue4-filter);
-          margin-right: 0.625rem;
-        }
-  
-        & a {
-          &:hover {
-            background-position: 0;
-            color: var(--blue4);
-            text-decoration: underline !important;
+        &:not(.button-container) {
+          & .icon {
+            filter: var(--blue4-filter);
+            margin-right: 0.25rem;
           }
+    
+          & a {
+            &:hover {
+              background-position: 0;
+              color: var(--blue4);
+              text-decoration: underline !important;
+            }
+          }
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+          font-size: 1rem;
         }
       }
     }
   }
 
   &.blue2-bg {
-    & .cards-card-body {
+    & li {
       background-color: var(--blue2);
-
-      & h4 {
-        color: var(--white);
-      }
-
-      & p {
-        color: var(--white);
-
-        & .icon {
-          filter: var(--blue5-filter);
-          margin-right: 0.625rem;
+      
+      & .cards-card-body {
+        & h1,
+        & h2,
+        & h3,
+        & h4,
+        & h5,
+        & h6 {
+          color: var(--white);
         }
-
-        & a {
-          color: var(--blue5);
-          
+  
+        & p {
+          &:not(.button-container) {
+            color: var(--white);
+  
+            & .icon {
+              filter: var(--blue5-filter);
+              margin-right: 0.625rem;
+            }
+  
+            & a {
+              color: var(--blue5);
+  
+              &:hover {
+                background-position: 0;
+                color: var(--blue5);
+                text-decoration: underline !important;
+              }
+            }
+          }
+        }
+  
+        & .button.secondary {
+          color: var(--white);
+  
           &:hover {
-            background-position: 0;
-            color: var(--blue5);
-            text-decoration: underline !important;
+            color: var(--blue2);
           }
         }
       }
+    }
+  }
+
+  &.no-padding {
+    & .cards-card-body {
+      padding: 0;
+    }
+  }
+
+  &.auto-height {
+    & .cards-card-body {
+      height: auto;
     }
   }
 }
