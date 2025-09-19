@@ -1,7 +1,7 @@
 import {
   URIUtil,
   openHiddenIframe,
-  getEnvType,
+  // getEnvType,
   urlByEnvType,
   isCMEEnv,
 } from '../utils/index.js';
@@ -55,9 +55,13 @@ export class Authentication {
 
   initialize() {
     const loginProcessUrl = `${window.location.origin}/login-confirmed${isCMEEnv() ? '.html' : ''}`;
-    this.loginUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${loginProcessUrl}`;
-    this.registerUrl = `https://login${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/sso/register/`;
-    this.logoutProfileUrl = `https://myprofile${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/admin/ssoflo`;
+    // ToDo: the following urls must be updated before going live
+    this.loginUrl = `http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${loginProcessUrl}`;
+    this.registerUrl = 'https://loginnr.cmegroup.com/sso/register/';
+    this.logoutProfileUrl = 'https://myprofilenr.cmegroup.com/admin/ssoflo';
+    // this.loginUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${loginProcessUrl}`;
+    // this.registerUrl = `https://login${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/sso/register/`;
+    // this.logoutProfileUrl = `https://myprofile${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/admin/ssoflo`;
     this.isMobileLogin = false;
     this.schemaForMobile = '';
     this.isProtectedPage = false;
@@ -161,7 +165,9 @@ export class Authentication {
         expires,
       });
     });
-    await transferCookies(urlByEnvType(), cookiesData);
+    if (window.location.origin !== urlByEnvType()) {
+      await transferCookies(urlByEnvType(), cookiesData);
+    }
   }
 
   static async expireLoginCookies() {
@@ -170,7 +176,9 @@ export class Authentication {
       secure: true,
       sameSite: 'None',
     }));
-    await deleteCookies(urlByEnvType(), cookies);
+    if (window.location.origin !== urlByEnvType()) {
+      await deleteCookies(urlByEnvType(), cookies);
+    }
     return !Authentication.getLoginCookie('userinfo');
   }
 
