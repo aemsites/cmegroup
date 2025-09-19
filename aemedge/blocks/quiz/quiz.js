@@ -175,8 +175,14 @@ function showQuestion(index, wrapper, prev, next, pag, total) {
 
 async function addNavigation(questions, block, wrapper, type, completeMessage) {
   const [finishLabel] = await Promise.all([i18n('Finish')]);
-  const prev = button({ type: 'button', class: 'arrow arrow-prev', style: 'display: block;' });
-  const next = button({ type: 'button', class: 'arrow arrow-next', style: 'display: block;' });
+  const prev = button(
+    { type: 'button', class: 'arrow arrow-prev' },
+    type !== 'traditional' ? 'Prev' : '',
+  );
+  const next = button(
+    { type: 'button', class: 'arrow arrow-next' },
+    type !== 'traditional' ? 'Next' : '',
+  );
   let finish = null;
   if (type !== 'traditional') finish = button({ type: 'button', class: 'arrow arrow-finish', style: 'display: none;' }, finishLabel);
 
@@ -191,11 +197,12 @@ async function addNavigation(questions, block, wrapper, type, completeMessage) {
   block.updateNavigation = function updateNavigation() {
     const lastSlider = nav.currentIndex === questions.length - 1;
     if (type === 'traditional') {
+      prev.style.display = 'block';
       next.style.display = 'block';
       updateAdvancedNextDisabled(type, wrapper, nav.currentIndex, questions, testState, next);
       if (lastSlider) { next.disabled = true; next.classList.add('arrow-disabled'); }
     } else {
-      next.style.display = lastSlider ? 'none' : 'block';
+      next.style.display = lastSlider ? 'none' : 'flex';
       if (finish) finish.style.display = lastSlider ? 'block' : 'none';
       if (type === 'activity') {
         const currentQuestion = wrapper.querySelectorAll(':scope > div')[nav.currentIndex];
@@ -208,7 +215,11 @@ async function addNavigation(questions, block, wrapper, type, completeMessage) {
         updateAdvancedNextDisabled(type, wrapper, nav.currentIndex, questions, testState, next);
       }
     }
-    nav.prev.disabled = nav.currentIndex === 0;
+    if (nav.currentIndex === 0) {
+      nav.prev.style.display = 'none';
+    } else {
+      nav.prev.style.display = 'flex';
+    }
     nav.prev.classList.toggle('arrow-disabled', nav.currentIndex === 0);
     if (pag) pag.textContent = `${nav.currentIndex + 1} / ${questions.length}`;
     showQuestion(nav.currentIndex, wrapper, nav.prev, nav.next, pag, questions.length);
