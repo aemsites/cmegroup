@@ -7,49 +7,14 @@ export function updateAdvancedNextDisabled(type, wrapper, currentIndex, question
   let disable = false;
   if (type === 'activity') {
     const currentQuestion = wrapper.querySelectorAll(':scope > div')[currentIndex];
-    const answered = currentQuestion.classList.contains('answered-correctly');
-    disable = !answered && currentIndex < questions.length - 1;
+    const isAnsweredCorrectly = currentQuestion.classList.contains('answered-correctly');
+    disable = !isAnsweredCorrectly && currentIndex < questions.length - 1;
   } else if (type === 'test') {
-    const answered = state.answers[currentIndex] !== undefined;
+    const answered = !!state.answers[currentIndex];
     disable = !answered && currentIndex < questions.length - 1;
   }
   next.disabled = disable;
   next.classList.toggle('arrow-disabled', disable || currentIndex === questions.length - 1);
-}
-
-function addReviewQuestions(block, questionsMeta, questionsWrapper, state) {
-  let reviewContainer = block.querySelector('.review-questions');
-  if (reviewContainer) reviewContainer.remove();
-
-  reviewContainer = div({ class: 'review-questions' });
-
-  questionsMeta.forEach((q, idx) => {
-    const isCorrect = state.answers[idx] !== undefined && q.answers[state.answers[idx]]?.correct;
-    const isSelected = block.nav && block.nav.currentIndex === idx;
-
-    const questionLink = a(
-      {
-        role: 'button',
-        tabindex: '0',
-        'data-index': idx,
-        class: `question-link ${isCorrect ? ' correct' : ' incorrect'}${isSelected ? ' selected' : ''}`,
-      },
-      `Q${idx + 1}`,
-    );
-
-    questionLink.addEventListener('click', () => {
-      if (block.nav) {
-        block.nav.currentIndex = idx;
-        block.updateNavigation?.();
-      }
-      reviewContainer.querySelectorAll('.question-link').forEach((link) => link.classList.remove('selected'));
-      questionLink.classList.add('selected');
-    });
-
-    reviewContainer.appendChild(questionLink);
-  });
-
-  block.insertBefore(reviewContainer, questionsWrapper);
 }
 
 function addResultsButton(
@@ -62,10 +27,6 @@ function addResultsButton(
   type,
 ) {
   if (!navigation) return;
-
-  if (type === 'test' && !block.classList.contains('in-review')) {
-    return;
-  }
 
   const existingReview = block.querySelector('.review-questions');
   if (existingReview) existingReview.remove();
@@ -92,7 +53,7 @@ function addResultsButton(
       if (progressBar) progressBar.style.display = 'none';
 
       block.classList.remove('in-review');
-      block.classList.add('in-test-results');
+      block.classList.add(type === 'activity' ? 'in-activity-results' : 'in-test-results');
 
       if (type === 'activity') {
         renderActivity(block, questionsMeta, questionsWrapper, progressBar, navigation);
@@ -101,6 +62,74 @@ function addResultsButton(
       }
     });
   });
+}
+
+function addReviewQuestions(block, questionsMeta, questionsWrapper, state) {
+  let reviewContainer = block.querySelector('.review-questions');
+  if (reviewContainer) reviewContainer.remove();
+
+  reviewContainer = div({ class: 'review-questions' });
+
+  questionsMeta.forEach((q, idx) => {
+    const correctIndexes = q.answers.map((ans, i) => (ans.correct ? i : -1)).filter((i) => i >= 0);
+    const raw = state && state.answers ? state.answers[idx] : undefined;
+    let selectedIndexes = [];
+    if (Array.isArray(raw)) {
+      selectedIndexes = raw.map(Number);
+    } else if (typeof raw === 'number') {
+      selectedIndexes = [Number(raw)];
+    }
+
+    const hasAnswer = raw !== undefined;
+    const isCorrect = hasAnswer && selectedIndexes.length === correctIndexes.length
+    && selectedIndexes.every((i) => correctIndexes.includes(i));
+    const isSelected = block.nav && block.nav.currentIndex === idx;
+
+    const questionLink = a(
+      {
+        role: 'button',
+        tabindex: '0',
+        'data-index': idx,
+        class: `question-link ${isCorrect ? ' correct' : ' incorrect'}${isSelected ? ' selected' : ''}`,
+      },
+      `Q${idx + 1}`,
+    );
+
+    questionLink.addEventListener('click', () => {
+      if (block.nav) {
+        block.nav.currentIndex = idx;
+        block.updateNavigation?.();
+      }
+      reviewContainer.querySelectorAll('.question-link').forEach((link) => link.classList.remove('selected'));
+      questionLink.classList.add('selected');
+
+      const questionDiv = questionsWrapper.querySelectorAll(':scope > div')[idx];
+      if (!questionDiv) return;
+
+      questionDiv.querySelectorAll('.question-message').forEach((msg) => {
+        msg.innerHTML = '';
+        msg.classList.remove('showed', 'correct', 'incorrect');
+      });
+
+      const optionItems = questionDiv.querySelectorAll('.option-item');
+      optionItems.forEach((optionItem, oIdx) => {
+        const btn = optionItem.querySelector('.option-content-answer');
+        btn.classList.remove('pressed', 'correct', 'incorrect');
+        if (selectedIndexes.includes(oIdx)) {
+          btn.classList.add('pressed');
+          if (q.answers[oIdx]?.correct) {
+            btn.classList.add('correct');
+          } else {
+            btn.classList.add('incorrect');
+          }
+        }
+      });
+    });
+
+    reviewContainer.appendChild(questionLink);
+  });
+
+  block.insertBefore(reviewContainer, questionsWrapper);
 }
 
 async function renderTestResult(
@@ -115,8 +144,17 @@ async function renderTestResult(
   block.classList.remove('in-review');
 
   const correctCount = questionsMeta.reduce((acc, q, idx) => {
-    const selectedIndex = state.answers[idx];
-    return acc + (selectedIndex !== undefined && q.answers[selectedIndex]?.correct ? 1 : 0);
+    const raw = state && state.answers ? state.answers[idx] : undefined;
+    let selectedIndexes = [];
+    if (Array.isArray(raw)) {
+      selectedIndexes = raw.map(Number);
+    } else if (typeof raw === 'number') {
+      selectedIndexes = [Number(raw)];
+    }
+    const correctIndexes = q.answers.map((ans, i) => (ans.correct ? i : -1)).filter((i) => i >= 0);
+    const isExactlyCorrect = selectedIndexes.length === correctIndexes.length
+      && selectedIndexes.every((i) => correctIndexes.includes(i));
+    return acc + (isExactlyCorrect ? 1 : 0);
   }, 0);
 
   const total = questionsMeta.length;
@@ -142,7 +180,6 @@ async function renderTestResult(
   ]);
 
   const progressWrapper = div({ class: `progress-bar-wrapper ${passed ? 'passed' : 'failed'}` });
-
   const progressImg = img({
     src: passed
       ? '/aemedge/icons/progress-circular-passed.svg'
@@ -150,9 +187,7 @@ async function renderTestResult(
     alt: 'Progress',
     class: 'progress-circular',
   });
-
   const percentageText = span({ class: 'progress-text' }, `${percentage}%`);
-
   progressWrapper.appendChild(progressImg);
   progressWrapper.appendChild(percentageText);
 
@@ -197,10 +232,35 @@ async function renderTestResult(
     if (navigation) navigation.style.display = '';
     if (progressBar) progressBar.style.display = 'none';
 
-    const fakeState = {
-      answers: questionsMeta.map((q) => q.answers.findIndex((ans) => ans.correct)),
-    };
-    addReviewQuestions(block, questionsMeta, questionsWrapper, fakeState);
+    questionsWrapper.querySelectorAll(':scope > div').forEach((questionDiv, qIndex) => {
+      const raw = state && state.answers ? state.answers[qIndex] : undefined;
+      let selectedIndexes = [];
+      if (Array.isArray(raw)) {
+        selectedIndexes = raw.map(Number);
+      } else if (typeof raw === 'number') {
+        selectedIndexes = [Number(raw)];
+      }
+      questionDiv.querySelectorAll('.option-item').forEach((optionItem, oIndex) => {
+        const btn = optionItem.querySelector('.option-content-answer');
+        btn.classList.remove('pressed', 'correct', 'incorrect', 'disabled');
+        if (selectedIndexes.includes(oIndex)) {
+          btn.classList.add('pressed');
+          if (questionsMeta[qIndex].answers[oIndex]?.correct) {
+            btn.classList.add('correct');
+          } else {
+            btn.classList.add('incorrect');
+          }
+        }
+        btn.classList.add('disabled');
+      });
+
+      questionDiv.querySelectorAll('.question-message, .snippet, .results').forEach((msg) => {
+        msg.innerHTML = '';
+        msg.classList.remove('showed', 'correct', 'incorrect', 'disabled');
+      });
+    });
+
+    addReviewQuestions(block, questionsMeta, questionsWrapper, state);
 
     if (block.nav) {
       block.nav.currentIndex = 0;
@@ -209,8 +269,6 @@ async function renderTestResult(
 
     const firstLink = block.querySelector('.review-questions .question-link');
     if (firstLink) firstLink.classList.add('selected');
-
-    await addResultsButton(block, questionsWrapper, progressBar, navigation, questionsMeta, state, 'test');
   });
 }
 
@@ -277,18 +335,16 @@ async function renderActivity(block, questionsMeta, questionsWrapper, progressBa
     if (navigation) navigation.style.display = '';
     if (progressBar) progressBar.style.display = 'none';
 
-    const questionsOptions = questionsWrapper.querySelectorAll('.options-wrapper');
-    questionsOptions.forEach((question, index) => {
-      question.parentElement?.classList.add('answered-correctly');
-
-      const answers = question.querySelectorAll('.option-item');
-      answers.forEach((answer, answerIndex) => {
-        const contentAnswer = answer.querySelector('.option-content-answer');
-        contentAnswer.classList.remove('pressed', 'correct', 'disabled', 'incorrect');
-
+    questionsWrapper.querySelectorAll('.questions-wrapper > div').forEach((question, index) => {
+      question.querySelectorAll('.question-message, .snippet, .results').forEach((msg) => {
+        msg.innerHTML = '';
+        msg.classList.remove('showed', 'correct', 'incorrect', 'disabled');
+      });
+      question.querySelectorAll('.option-content-answer').forEach((answer, answerIndex) => {
+        answer.classList.remove('pressed', 'correct', 'incorrect', 'disabled');
         const { correct } = questionsMeta[index].answers[answerIndex];
         if (correct) {
-          contentAnswer.classList.add('pressed', 'correct');
+          answer.classList.add('pressed', 'correct');
         }
       });
     });
@@ -311,6 +367,7 @@ async function renderActivity(block, questionsMeta, questionsWrapper, progressBa
 }
 
 export async function markQuizCompletedAdvanced(block, questionsMeta, type, state) {
+  state.quizCompleted = true;
   const questionsWrapper = block.querySelector('.questions-wrapper');
   const progressBar = block.querySelector('.progress-bar');
   const navigation = block.querySelector('.quiz-navigation');

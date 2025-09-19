@@ -123,12 +123,7 @@
       }
 
       & .option-icon {
-        /* background-color: var(--blue4); */
-        /* border: none; */
-
         &::before {
-          /* content: var(--icon-check);
-          background-color: var(--blue4); */
           font-family: var(--cme-group-icons);
           font-style: normal;
           line-height: 1;
@@ -141,7 +136,7 @@
 
       &.correct {
         background-color: var(--notification-success-background);
-        border: 0.625rem solid var(--notification-success-tick);
+        border: 0.125rem solid var(--notification-success-tick);
 
         & .option-icon {
           border: none;
@@ -550,6 +545,16 @@ main > .section > .quiz-wrapper {
           border: 0.125rem solid var(--blue4);
         }
       }
+
+      & .multi-correct {
+        & .option-icon {
+          border-radius: 0;
+
+          &::before {
+            border-radius: 0;
+          }
+        }
+      }
     }
 
     &:has(.is-review) {
@@ -573,6 +578,15 @@ main > .section > .quiz-wrapper {
         & .option-content-answer.pressed {
           border: 0.125rem solid var(--notification-success-tick);
           background-color: var(--notification-success-background);
+
+          &.incorrect {
+            border: 0.125rem solid var(--active-red);
+            background-color: var(--pink);
+
+            & .option-icon::before {
+              background-color: var(--active-red);
+            }
+          }
           
           & .option-icon {
             display: block;

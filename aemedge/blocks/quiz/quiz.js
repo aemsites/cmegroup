@@ -69,6 +69,9 @@ function renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, sta
       optionsWrapper,
     );
 
+    const multiCorrect = q.answers.filter((ans) => ans.correct).length > 1;
+    if (multiCorrect) questionDiv.classList.add('multi-correct');
+
     q.answers.forEach(({ answer, correct, snippet }, index) => {
       const messageContainer = span({ class: 'question-message' });
 
@@ -86,11 +89,77 @@ function renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, sta
 
       optionButton.addEventListener('click', async () => {
         if (type === 'test') {
-          const allButtons = questionDiv.querySelectorAll('.option-content-answer');
-          allButtons.forEach((btn) => btn.classList.remove('pressed'));
-          state.answers[questionIndex] = index;
+          if (!state.answers[questionIndex]) state.answers[questionIndex] = [];
+
+          if (multiCorrect) {
+            const isSelected = state.answers[questionIndex].includes(index);
+            if (isSelected) {
+              state.answers[questionIndex] = state
+                .answers[questionIndex].filter((i) => i !== index);
+              optionButton.classList.remove('pressed');
+            } else {
+              state.answers[questionIndex].push(index);
+              optionButton.classList.add('pressed');
+            }
+          } else {
+            const allButtons = questionDiv.querySelectorAll('.option-content-answer');
+            allButtons.forEach((btn) => btn.classList.remove('pressed'));
+            state.answers[questionIndex] = [index];
+            optionButton.classList.add('pressed');
+          }
+
           questionDiv.classList.add('answered');
+
+          const navNext = block.querySelector('.arrow-next');
+          if (navNext) {
+            const questionsWrapper = block.querySelector('.questions-wrapper');
+            const currentIndex = [...questionsWrapper.children].indexOf(questionDiv);
+            updateAdvancedNextDisabled(
+              type,
+              questionsWrapper,
+              currentIndex,
+              questions,
+              state,
+              navNext,
+            );
+          }
+          if (block.updateNavigation) block.updateNavigation();
+          return;
+        }
+
+        if (type === 'activity') {
+          if (questionDiv.classList.contains('answered-correctly')) return;
+
+          const allButtons = questionDiv.querySelectorAll('.option-content-answer');
+          const allMessages = questionDiv.querySelectorAll('.question-message');
+          allMessages.forEach((msg) => msg.classList.remove('correct', 'incorrect', 'showed'));
+          if (type === 'test' && !multiCorrect) allButtons.forEach((btn) => btn.classList.remove('pressed'));
           optionButton.classList.add('pressed');
+
+          if (correct) {
+            const [correctLabel] = await Promise.all([i18n('Correct')]);
+            optionButton.classList.add('correct');
+            messageContainer.classList.add('correct', 'showed');
+            messageContainer.innerHTML = '';
+            messageContainer.appendChild(span({ class: 'result' }, correctLabel));
+            messageContainer.appendChild(span({ class: 'snippet' }, snippet));
+
+            const correctAnswers = q.answers
+              .map((a, i) => (a.correct ? i : null)).filter((i) => i !== null);
+            const pressed = [...questionDiv.querySelectorAll('.option-content-answer.correct.pressed')]
+              .map((btn) => parseInt(btn.getAttribute('data-index'), 10));
+            const allCorrect = correctAnswers.every((i) => pressed.includes(i));
+            if (allCorrect) {
+              questionDiv.classList.add('answered-correctly');
+            }
+          } else {
+            const [incorrectLabel] = await Promise.all([i18n('Incorrect')]);
+            optionButton.classList.add('incorrect');
+            messageContainer.classList.add('incorrect', 'showed');
+            messageContainer.innerHTML = '';
+            messageContainer.appendChild(span({ class: 'result' }, incorrectLabel));
+            messageContainer.appendChild(span({ class: 'snippet' }, snippet));
+          }
 
           const navNext = block.querySelector('.arrow-next');
           if (navNext) {
@@ -114,7 +183,7 @@ function renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, sta
         const allButtons = questionDiv.querySelectorAll('.option-content-answer');
         const allMessages = questionDiv.querySelectorAll('.question-message');
         allMessages.forEach((msg) => msg.classList.remove('correct', 'incorrect', 'showed'));
-        if (type !== 'activity') allButtons.forEach((btn) => btn.classList.remove('pressed', 'incorrect', 'correct'));
+        allButtons.forEach((btn) => btn.classList.remove('pressed', 'incorrect', 'correct'));
         optionButton.classList.add('pressed');
 
         if (correct) {
@@ -141,7 +210,6 @@ function renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, sta
               navNext,
             );
           }
-
           if (block.updateNavigation) block.updateNavigation();
         } else {
           const [incorrectLabel] = await Promise.all([i18n('Incorrect')]);
