@@ -18,19 +18,8 @@
       position: relative;
       height: 100%;
   
-      & h1,
-      & h2,
-      & h3,
-      & h4,
-      & h5,
-      & h6 {
-        font-family: var(--averta);
-      }
-  
       & p {
         &:not(.button-container) {
-          font-size: 0.875rem;
-
           & .icon {
             filter: var(--blue4-filter);
             margin-right: 0.25rem;
@@ -54,59 +43,47 @@
   }
 
   &.blue2-bg {
-    & .cards-card-body {
+    & li {
       background-color: var(--blue2);
-
-      & h1,
-      & h2,
-      & h3,
-      & h4,
-      & h5,
-      & h6 {
-        color: var(--white);
-      }
-
-      & p {
-        &:not(.button-container) {
-          font-size: 1rem;
+      
+      & .cards-card-body {
+        & h1,
+        & h2,
+        & h3,
+        & h4,
+        & h5,
+        & h6 {
           color: var(--white);
-
-          & .icon {
-            filter: var(--blue5-filter);
-            margin-right: 0.625rem;
-          }
-
-          & a {
-            color: var(--blue5);
-
-            &:hover {
-              background-position: 0;
+        }
+  
+        & p {
+          &:not(.button-container) {
+            color: var(--white);
+  
+            & .icon {
+              filter: var(--blue5-filter);
+              margin-right: 0.625rem;
+            }
+  
+            & a {
               color: var(--blue5);
-              text-decoration: underline !important;
+  
+              &:hover {
+                background-position: 0;
+                color: var(--blue5);
+                text-decoration: underline !important;
+              }
             }
           }
         }
-      }
-
-      & .button.secondary {
-        color: var(--white);
-
-        &:hover {
-          color: var(--blue2);
+  
+        & .button.secondary {
+          color: var(--white);
+  
+          &:hover {
+            color: var(--blue2);
+          }
         }
-      }
-    }
-  }
-
-  &.text-2 {
-    & .cards-card-body {
-      & p:not(.button-container) {
-        font-family: var(--averta);
-        font-size: 1.25rem;
-        font-weight: 400;
-        letter-spacing: .03em;
-        line-height: 1.75rem;
-        margin-bottom: 1.875rem;
       }
     }
   }

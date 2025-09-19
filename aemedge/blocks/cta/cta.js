@@ -10,23 +10,32 @@ export default function decorate(block) {
       const type = row.querySelector(':scope > div:first-child')?.textContent?.trim().toLowerCase();
       const content = row.querySelector(':scope > div:last-child');
 
-      if (type === 'url') {
-        linkWrapper.href = content.textContent.trim();
-      } else if (type === 'background') {
-        content.classList.add('background-image');
-        linkWrapper.append(content);
-      } else if (type === 'eyebrow') {
-        content.classList.add('eyebrow');
-        contentWrapper.append(content);
-      } else if (type === 'title') {
-        content.classList.add('title');
-        contentWrapper.append(content);
-      } else if (type === 'description') {
-        content.classList.add('description');
-        contentWrapper.append(content);
-      } else if (type === 'footer') {
-        content.classList.add('footer');
-        linkWrapper.append(content);
+      switch (type) {
+        case 'url':
+          linkWrapper.href = content.textContent.trim();
+          break;
+        case 'background':
+          content.classList.add('background-image');
+          linkWrapper.append(content);
+          break;
+        case 'eyebrow':
+          content.classList.add('eyebrow');
+          contentWrapper.append(content);
+          break;
+        case 'title':
+          content.classList.add('title');
+          contentWrapper.append(content);
+          break;
+        case 'description':
+          content.classList.add('description');
+          contentWrapper.append(content);
+          break;
+        case 'footer':
+          content.classList.add('footer');
+          linkWrapper.append(content);
+          break;
+        default:
+          break;
       }
     });
 
@@ -49,22 +58,31 @@ export default function decorate(block) {
       const type = row.querySelector(':scope > div:first-child')?.textContent?.trim().toLowerCase();
       const content = row.querySelector(':scope > div:last-child');
 
-      if (type === 'url') {
-        linkWrapper.href = content.textContent.trim();
-      } else if (type === 'background') {
-        content.classList.add('background-image');
-        promoWrapper.append(content);
-      } else if (type === 'eyebrow') {
-        content.classList.add('eyebrow');
-        leftContentWrapper.append(content);
-      } else if (type === 'title') {
-        content.classList.add('title');
-        leftContentWrapper.append(content);
-      } else if (type === 'description') {
-        content.classList.add('description');
-        rightContentWrapper.append(content);
-      } else if (type === 'footer') {
-        linkWrapper.innerHTML = content.innerHTML;
+      switch (type) {
+        case 'url':
+          linkWrapper.href = content.textContent.trim();
+          break;
+        case 'background':
+          content.classList.add('background-image');
+          promoWrapper.append(content);
+          break;
+        case 'eyebrow':
+          content.classList.add('eyebrow');
+          leftContentWrapper.append(content);
+          break;
+        case 'title':
+          content.classList.add('title');
+          leftContentWrapper.append(content);
+          break;
+        case 'description':
+          content.classList.add('description');
+          rightContentWrapper.append(content);
+          break;
+        case 'footer':
+          linkWrapper.innerHTML = content.innerHTML;
+          break;
+        default:
+          break;
       }
     });
 
