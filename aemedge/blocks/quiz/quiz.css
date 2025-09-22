@@ -25,8 +25,8 @@
   & .progress-bar-wrapper {
     position: relative;
     display: inline-block;
-    width: 190px;
-    height: 190px;
+    width: 11.875rem;
+    height: 11.875rem;
 
     &.passed {
       background-color: var(--notification-success-background);
@@ -151,7 +151,7 @@
 
       &.incorrect {
         background-color: var(--pink);
-        border: 1px solid var(--active-red);
+        border: .0625rem solid var(--active-red);
 
         & .option-icon {
           border: none;
@@ -248,7 +248,7 @@
     outline: none;
     z-index: 1;
     background-color: transparent;
-    border: 1px solid var(--blue5);
+    border: .0625rem solid var(--blue5);
     top: auto;
     transform: none;
 
@@ -288,9 +288,7 @@
     z-index: 1;
     top: auto;
     border-radius: 0.25rem;
-    box-shadow:
-      0 0.0625rem 0.125rem 0 rgba(var(--gray8) 0.3),
-      0 0.125rem 0.375rem 0.125rem rgba(var(--gray8) 0.15);
+    box-shadow: var(--gray8-shadow);
     display: inline-block;
     font-size: 0.75rem;
     font-weight: 700;
@@ -432,7 +430,7 @@
         border: 0.0625rem solid var(--forest);
 
         &.selected {
-          box-shadow: 0 0 0.3125rem 0 rgba(var(--black), 50%);
+          box-shadow: 0 0 0.3125rem 0 var(--black-50);
           background-color: var(--notification-success-background);
         }
       }
@@ -480,7 +478,7 @@
 main > .section > .quiz-wrapper {
   margin: 1.25rem 0;
   padding: 1.25rem !important;
-  border: 1px solid var(--gray6);
+  border: .0625rem solid var(--gray6);
 
   &:has(.activity),
   &:has(.test) {
@@ -558,8 +556,7 @@ main > .section > .quiz-wrapper {
     }
 
     &:has(.is-review) {
-      /* background-color: rgba(var(--gray5), 40%); */
-      background-color: var(--gray5);
+      background-color: var(--gray5-40);
 
       & .quiz {
         & .option-content-answer:not(.correct) {
@@ -601,8 +598,7 @@ main > .section > .quiz-wrapper {
   }
 
   &:has(.activity) {
-    /* background-color: rgba(var(--blue6), .4); */
-    background-color: var(--blue6);
+    background-color: var(--blue6-40);
     border: none;
 
     & .quiz {
