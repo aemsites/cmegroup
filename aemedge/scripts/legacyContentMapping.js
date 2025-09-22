@@ -35,6 +35,8 @@ function normalizeLegacyPath(path) {
     newPath = newPath.slice('/content/cmegroup/en'.length);
   } else if (newPath.startsWith('/content/cmegroup')) {
     newPath = newPath.slice('/content/cmegroup'.length);
+  } else if (newPath.startsWith('/content/openmarkets')) {
+    newPath = newPath.replace('/content/openmarkets/en', '/openmarkets');
   }
   if (!newPath.endsWith('.html')) {
     newPath += '.html';
@@ -47,13 +49,13 @@ function mapLegacyArticleData(legacyData) {
     metadata: {
       thumbnailImage: image,
       primaryTopics,
+      mediaType,
     },
     title,
     description,
     path,
     readTime,
     date,
-    mediaType,
   } = legacyData;
   const durationMin = convertReadTimeFormat(readTime);
   const subTemplates = convertMediaTypeToSubtemplate(mediaType);
@@ -97,10 +99,17 @@ const legacyEducationTemplates = [
   '/conf/cmegroupaem/settings/wcm/templates/cme-group-standalone-lesson-template',
 ];
 
+const legacyOpenMarketsTemplates = [
+  '/conf/openmarkets/settings/wcm/templates/openmarkets-standard-article',
+  '/conf/openmarkets/settings/wcm/templates/openmarkets-showcase-article',
+  '/conf/openmarkets/settings/wcm/templates/openmarkets-video-template',
+];
+
 export {
   legacyArticleTemplates,
   mapLegacyArticleData,
   isLegacyContent,
   legacyEducationTemplates,
   normalizeLegacyPath,
+  legacyOpenMarketsTemplates,
 };
