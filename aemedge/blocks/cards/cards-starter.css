@@ -10,10 +10,11 @@
     & li {
       width: 100%;
       border: none;
+      margin-bottom: 1.25rem;
     }
   
     & .cards-card-body {
-      padding: 1.875rem;
+      padding: 1.25rem;
       margin: 0;
       position: relative;
       height: 100%;

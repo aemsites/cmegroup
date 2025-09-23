@@ -187,16 +187,28 @@
       padding: 1.875rem;
 
       & .content-wrapper {
-        display: flex;
+        display: block;
         justify-content: space-between;
         padding: 0;
 
+        @media (width >= 769px) {
+          display: flex;
+        }
+
         & .content-wrapper-left {
-          width: 33%;
+          width: 100%;
+
+          @media (width >= 769px) {
+            width: 33%;
+          }
         }
   
         & .content-wrapper-right {
-          width: 66%;
+          width: 100%;
+
+          @media (width >= 769px) {
+            width: 66%;
+          }
 
           & .description {
             & p {
