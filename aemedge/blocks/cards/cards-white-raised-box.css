@@ -58,7 +58,7 @@
 
 .cards.white-raised-box li .cards-card-body p.button-container {
     position: absolute;
-    bottom: 20px;
+    bottom: 1.25rem;
     margin-bottom: 0;
 }
 
