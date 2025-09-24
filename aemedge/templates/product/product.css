@@ -1,0 +1,48 @@
+/* Product Template Styles */
+
+/* Product template specific spacing and typography */
+.product-template .section.tabs h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--gray1);
+  font-weight: 600;
+}
+
+.product-template .section.tabs h2:first-child {
+  margin-top: 0;
+}
+
+.product-template .section.tabs h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--gray2);
+  font-weight: 600;
+}
+
+.product-template .section.tabs p {
+  margin-bottom: 1rem;
+  color: var(--gray2);
+  line-height: 1.6;
+}
+
+/* Basic content wrapper styling for dynamic tabs */
+.product-template .section.tabs .default-content-wrapper {
+  max-width: none;
+}
+
+/* About This Report Modal Sizing */
+.modal.about-report-modal dialog {
+  width: 800px;
+  max-height: 80vh;
+  height: auto;
+  position: fixed;
+  top: 40%;
+  left: 40%;
+  transform: translate(-40%, -40%);
+}
+
+.modal.about-report-modal dialog .modal-content {
+  max-height: calc(80vh - 5rem);
+  overflow-y: auto;
+  height: auto;
+}
