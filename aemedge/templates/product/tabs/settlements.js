@@ -1,28 +1,72 @@
-import { createTabSection, createBasicTabContent, getProductTabTitle } from './utils.js';
+import {
+  createTabSection,
+  createTabFragment,
+  organizeToggleContent,
+  TOGGLE_CONSTANTS,
+} from './utils.js';
+import { getMetadata } from '../../../scripts/aem.js';
+
+// Enable futures/options toggle for this tab
+export const HAS_FUTURES_OPTIONS_TOGGLE = true;
 
 /**
- * Fetch settlements data from API
+ * Create futures content for settlements
  */
-async function fetchSettlementsData() {
-  // Placeholder for API integration
-  // const response = await fetch('/api/product/settlements');
-  // return response.json();
-  return null;
+async function createFuturesContent() {
+  const productName = getMetadata('product') || 'Product';
+  const titleContent = `<h2>${productName} Futures - Settlements</h2>`;
+
+  const futuresContent = `
+    <p><strong>Daily Settlement Prices:</strong> View final settlement prices for futures contracts across all expiration months.</p>
+    <p>Settlement data includes previous day close, settlement price, and daily change for each contract month.</p>
+  `;
+
+  const fragmentBlock = await createTabFragment();
+  const blocks = [titleContent, futuresContent];
+
+  if (fragmentBlock) {
+    blocks.push(fragmentBlock);
+  }
+
+  return blocks;
 }
 
 /**
- * Create settlements-specific blocks and content
- * @returns {Array} Array of blocks to include in the settlements tab
+ * Create options content for settlements
+ */
+async function createOptionsContent() {
+  const productName = getMetadata('product') || 'Product';
+  const titleContent = `<h2>${productName} Options - Settlements</h2>`;
+
+  const optionsContent = `
+    <p>Options settlement data will be displayed here based on the selected expiration from the dropdown above.</p>
+  `;
+
+  const fragmentBlock = await createTabFragment();
+  const blocks = [titleContent, optionsContent];
+
+  if (fragmentBlock) {
+    blocks.push(fragmentBlock);
+  }
+
+  return blocks;
+}
+
+/**
+ * Create settlements content with futures/options toggle
  */
 async function createSettlementsContent() {
-  const [htmlContent, fragmentBlock] = await createBasicTabContent(getProductTabTitle('Settlements'));
-  
-  // Future: Add settlements table, historical data chart, etc.
-  // const settlementsTable = await createSettlementsTable();
-  // const historicalChart = await createHistoricalChart();
-  // return [htmlContent, settlementsTable, historicalChart, fragmentBlock];
-  
-  return [htmlContent, fragmentBlock];
+  const futuresBlocks = await createFuturesContent();
+  const optionsBlocks = await createOptionsContent();
+
+  const toggleContent = organizeToggleContent({
+    futuresBlocks,
+    optionsBlocks,
+    defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
+    tabId: 'settlements',
+  });
+
+  return toggleContent;
 }
 
 /**
@@ -30,9 +74,6 @@ async function createSettlementsContent() {
  * @returns {Element} Section element for settlements tab
  */
 export async function buildSettlementsTab() {
-  const settlementsData = await fetchSettlementsData();
-  const blocks = await createSettlementsContent(settlementsData);
+  const blocks = await createSettlementsContent();
   return createTabSection('settlements', 'Settlements', blocks);
 }
-
-export { fetchSettlementsData };

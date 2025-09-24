@@ -1,29 +1,72 @@
-import { createTabSection, createBasicTabContent, getProductTabTitle } from './utils.js';
+import { 
+  createTabSection, 
+  createTabFragment, 
+  organizeToggleContent,
+  TOGGLE_CONSTANTS,
+} from './utils.js';
+import { getMetadata } from '../../../scripts/aem.js';
+
+// Enable futures/options toggle for this tab
+export const HAS_FUTURES_OPTIONS_TOGGLE = true;
 
 /**
- * Fetch product specifications data
+ * Create futures content for specs
  */
-async function fetchSpecsData() {
-  // Placeholder for API integration
-  // const response = await fetch('/api/product/specifications');
-  // return response.json();
-  return null;
+async function createFuturesContent() {
+  const productName = getMetadata('product') || 'Product';
+  const titleContent = `<h2>${productName} Futures - Specs</h2>`;
+  
+  const futuresContent = `
+    <p><strong>Contract Specifications:</strong> Complete technical specifications for futures contracts.</p>
+    <p>Includes contract size, tick size, trading hours, delivery specifications, and position limits.</p>
+  `;
+
+  const fragmentBlock = await createTabFragment();
+  const blocks = [titleContent, futuresContent];
+  
+  if (fragmentBlock) {
+    blocks.push(fragmentBlock);
+  }
+  
+  return blocks;
 }
 
 /**
- * Create specs-specific blocks and content
- * @returns {Array} Array of blocks to include in the specs tab
+ * Create options content for specs
+ */
+async function createOptionsContent() {
+  const productName = getMetadata('product') || 'Product';
+  const titleContent = `<h2>${productName} Options - Specs</h2>`;
+  
+  const optionsContent = `
+    <p>Options contract specifications will be displayed here based on the selected expiration from the dropdown above.</p>
+  `;
+
+  const fragmentBlock = await createTabFragment();
+  const blocks = [titleContent, optionsContent];
+  
+  if (fragmentBlock) {
+    blocks.push(fragmentBlock);
+  }
+  
+  return blocks;
+}
+
+/**
+ * Create specs content with futures/options toggle
  */
 async function createSpecsContent() {
-  const [htmlContent, fragmentBlock] = await createBasicTabContent(getProductTabTitle('Specs'));
-  
-  // Future: Add specification tables, contract details, trading hours, etc.
-  // const contractSpecs = await createContractSpecsTable();
-  // const tradingHours = await createTradingHoursBlock();
-  // const tickSizes = await createTickSizesTable();
-  // return [htmlContent, contractSpecs, tradingHours, tickSizes, fragmentBlock];
-  
-  return [htmlContent, fragmentBlock];
+  const futuresBlocks = await createFuturesContent();
+  const optionsBlocks = await createOptionsContent();
+
+  const toggleContent = organizeToggleContent({
+    futuresBlocks,
+    optionsBlocks,
+    defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
+    tabId: 'specs',
+  });
+
+  return toggleContent;
 }
 
 /**
@@ -31,9 +74,6 @@ async function createSpecsContent() {
  * @returns {Element} Section element for specs tab
  */
 export async function buildSpecsTab() {
-  const specsData = await fetchSpecsData();
-  const blocks = await createSpecsContent(specsData);
+  const blocks = await createSpecsContent();
   return createTabSection('specs', 'Specs', blocks);
 }
-
-export { fetchSpecsData };

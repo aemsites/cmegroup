@@ -46,3 +46,358 @@
   overflow-y: auto;
   height: auto;
 }
+
+/* Constrain tabs-wrapper width when toggle is present */
+.tabs-wrapper.has-toggle {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Only add padding when toggle is present */
+.tabs-list.desktop-tabs.has-toggle {
+  position: relative; /* Required for absolute positioning of toggle */
+  padding-right: 180px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure main tab buttons don't get too cramped */
+.tabs-list.desktop-tabs.has-toggle button {
+  min-width: 80px;
+  flex-shrink: 1;
+}
+
+.futures-options-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 0;
+  z-index: 10;
+}
+
+.futures-options-toggle .toggle-btn {
+  background: var(--gray6);
+  border: 1px solid var(--gray4);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: var(--gray3);
+  transition: all 0.2s ease;
+  font-family: Averta, "Helvetica Neue", arial, sans-serif;
+  letter-spacing: 0.0938rem;
+}
+
+.futures-options-toggle .toggle-btn:first-child {
+  border-radius: 0.25rem 0 0 0.25rem;
+}
+
+.futures-options-toggle .toggle-btn:last-child {
+  border-radius: 0 0.25rem 0.25rem 0;
+  border-left: 0;
+}
+
+/* Futures button - always blue/active styling */
+.futures-options-toggle .toggle-btn[data-toggle="futures"] {
+  background: var(--blue2);
+  color: white;
+  border-color: var(--blue2);
+}
+
+/* Options dropdown styling */
+.futures-options-toggle .options-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.futures-options-toggle .dropdown-btn {
+  background: transparent;
+  color: var(--gray3);
+  border-color: var(--gray4);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.futures-options-toggle .dropdown-btn:hover {
+  background: var(--gray6);
+  color: var(--gray3);
+}
+
+.futures-options-toggle .dropdown-arrow {
+  font-size: 0.625rem;
+  transition: transform 0.2s ease;
+}
+
+.futures-options-toggle .options-dropdown.dropdown-open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menu */
+.futures-options-toggle .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 280px;
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid var(--gray4);
+  border-radius: 0.25rem;
+  box-shadow: 0 4px 6px rgb(0 0 0 / 10%);
+  z-index: 1000;
+  display: none;
+}
+
+.futures-options-toggle .options-dropdown.dropdown-open .dropdown-menu {
+  display: block;
+}
+
+.futures-options-toggle .dropdown-item {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: var(--gray2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--gray5);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.futures-options-toggle .dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.futures-options-toggle .dropdown-item:hover {
+  background: var(--gray6);
+  color: var(--gray1);
+}
+
+.futures-options-toggle .dropdown-item .link {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+
+/* Toggle Content Visibility */
+.toggle-content {
+  display: none;
+}
+
+.toggle-content.active {
+  display: block;
+}
+
+/* Remove default block wrapper margins in product template */
+main .section > [class*="-wrapper"] + [class*="-wrapper"]:not(.default-content-wrapper) {
+  margin-top: 0;
+}
+
+
+/* Options Table Dropdown Styling */
+.options-table-dropdown {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.options-dropdown-btn {
+  background: transparent;
+  border: 1px solid var(--gray4);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--gray2);
+}
+
+.options-dropdown-btn:hover {
+  background: var(--gray6);
+  border-color: var(--gray3);
+}
+
+.options-dropdown-btn .dropdown-arrow {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+  color: var(--gray3);
+}
+
+.options-table-dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.options-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--gray4);
+  border-radius: 0.25rem;
+  box-shadow: 0 4px 6px rgb(0 0 0 / 10%);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+}
+
+.options-table-dropdown.open .options-dropdown-menu {
+  display: block;
+}
+
+.options-dropdown-item {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  color: var(--gray2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--gray5);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.options-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.options-dropdown-item:hover {
+  background: var(--gray6);
+  color: var(--gray1);
+}
+
+.options-dropdown-item .link {
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+/* Baseball Hero Block Styling */
+.hero.baseball {
+  background: var(--blue1);
+  color: white;
+  padding: 2rem;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero.baseball h1 {
+  font-size: 3rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: white;
+}
+
+.hero.baseball .hero-subtitle {
+  font-size: 1.125rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  color: rgb(255 255 255 / 90%);
+}
+
+.hero.baseball .contract-data {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.hero.baseball .price-section {
+  display: flex;
+  gap: 3rem;
+  align-items: flex-start;
+}
+
+.hero.baseball .current-price,
+.hero.baseball .price-change,
+.hero.baseball .volume-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hero.baseball .label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.0625rem;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 70%);
+}
+
+.hero.baseball .value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+}
+
+.hero.baseball .change-negative {
+  color: #ff6b6b;
+}
+
+.hero.baseball .change-positive {
+  color: #51cf66;
+}
+
+.hero.baseball .trading-data {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.hero.baseball .trading-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.hero.baseball .trading-item .label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(255 255 255 / 80%);
+}
+
+.hero.baseball .trading-item .value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+}
+
+.hero.baseball .market-update {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 1rem;
+}
+
+.hero.baseball .update-time {
+  font-size: 0.875rem;
+  color: rgb(255 255 255 / 80%);
+}
+
+.hero.baseball .market-note {
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 60%);
+}
+
+/* Responsive adjustments */
+@media (width < 768px) {
+  .hero.baseball {
+    padding: 1.5rem;
+  }
+  
+  .hero.baseball h1 {
+    font-size: 2.25rem;
+  }
+  
+  .hero.baseball .price-section {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .hero.baseball .trading-data {
+    gap: 1rem;
+  }
+}

@@ -16,7 +16,6 @@ export { buildCalendarTab } from './calendar.js';
 export {
   createTabSection,
   createTabFragment,
-  createBasicTabContent,
   PRODUCT_TABS_FRAGMENT_URL,
 } from './utils.js';
 

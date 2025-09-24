@@ -1,29 +1,72 @@
-import { createTabSection, createBasicTabContent, getProductTabTitle } from './utils.js';
+import { 
+  createTabSection, 
+  createTabFragment, 
+  organizeToggleContent,
+  TOGGLE_CONSTANTS,
+} from './utils.js';
+import { getMetadata } from '../../../scripts/aem.js';
+
+// Enable futures/options toggle for this tab
+export const HAS_FUTURES_OPTIONS_TOGGLE = true;
 
 /**
- * Fetch calendar/events data
+ * Create futures content for calendar
  */
-async function fetchCalendarData() {
-  // Placeholder for API integration
-  // const response = await fetch('/api/product/calendar');
-  // return response.json();
-  return null;
+async function createFuturesContent() {
+  const productName = getMetadata('product') || 'Product';
+  const titleContent = `<h2>${productName} Futures - Calendar</h2>`;
+  
+  const futuresContent = `
+    <p><strong>Futures Trading Calendar:</strong> Key dates and events for futures contracts.</p>
+    <p>View contract expiration dates, first notice days, last trading days, and trading holidays.</p>
+  `;
+
+  const fragmentBlock = await createTabFragment();
+  const blocks = [titleContent, futuresContent];
+  
+  if (fragmentBlock) {
+    blocks.push(fragmentBlock);
+  }
+  
+  return blocks;
 }
 
 /**
- * Create calendar-specific blocks and content
- * @returns {Array} Array of blocks to include in the calendar tab
+ * Create options content for calendar
+ */
+async function createOptionsContent() {
+  const productName = getMetadata('product') || 'Product';
+  const titleContent = `<h2>${productName} Options - Calendar</h2>`;
+  
+  const optionsContent = `
+    <p>Options calendar and expiration dates will be displayed here based on the selected expiration from the dropdown above.</p>
+  `;
+
+  const fragmentBlock = await createTabFragment();
+  const blocks = [titleContent, optionsContent];
+  
+  if (fragmentBlock) {
+    blocks.push(fragmentBlock);
+  }
+  
+  return blocks;
+}
+
+/**
+ * Create calendar content with futures/options toggle
  */
 async function createCalendarContent() {
-  const [htmlContent, fragmentBlock] = await createBasicTabContent(getProductTabTitle('Calendar'));
-  
-  // Future: Add calendar blocks, trading holidays, expiration dates, etc.
-  // const tradingCalendar = await createTradingCalendar();
-  // const expirationDates = await createExpirationDatesTable();
-  // const holidays = await createTradingHolidays();
-  // return [htmlContent, tradingCalendar, expirationDates, holidays, fragmentBlock];
-  
-  return [htmlContent, fragmentBlock];
+  const futuresBlocks = await createFuturesContent();
+  const optionsBlocks = await createOptionsContent();
+
+  const toggleContent = organizeToggleContent({
+    futuresBlocks,
+    optionsBlocks,
+    defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
+    tabId: 'calendar',
+  });
+
+  return toggleContent;
 }
 
 /**
@@ -31,9 +74,6 @@ async function createCalendarContent() {
  * @returns {Element} Section element for calendar tab
  */
 export async function buildCalendarTab() {
-  const calendarData = await fetchCalendarData();
-  const blocks = await createCalendarContent(calendarData);
+  const blocks = await createCalendarContent();
   return createTabSection('calendar', 'Calendar', blocks);
 }
-
-export { fetchCalendarData };

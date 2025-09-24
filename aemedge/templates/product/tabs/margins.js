@@ -1,29 +1,61 @@
-import { createTabSection, createBasicTabContent, getProductTabTitle } from './utils.js';
+import {
+  createTabSection,
+  createTabFragment,
+} from './utils.js';
+import { getMetadata } from '../../../scripts/aem.js';
+
+// Disable futures/options toggle for this tab (can be enabled later if needed)
+export const HAS_FUTURES_OPTIONS_TOGGLE = false;
 
 /**
- * Fetch margin requirements data
- */
-async function fetchMarginsData() {
-  // Placeholder for API integration
-  // const response = await fetch('/api/product/margins');
-  // return response.json();
-  return null;
-}
-
-/**
- * Create margins-specific blocks and content
- * @returns {Array} Array of blocks to include in the margins tab
+ * Create margins content sections
  */
 async function createMarginsContent() {
-  const [htmlContent, fragmentBlock] = await createBasicTabContent(getProductTabTitle('Margins'));
-  
-  // Future: Add margin tables, performance bond requirements, etc.
-  // const marginTable = await createMarginTable();
-  // const performanceBonds = await createPerformanceBondsBlock();
-  // const marginCalculator = await createMarginCalculator();
-  // return [htmlContent, marginTable, performanceBonds, marginCalculator, fragmentBlock];
-  
-  return [htmlContent, fragmentBlock];
+  const productName = getMetadata('product') || 'Product';
+  const titleContent = `<h2>${productName} - Margins</h2>`;
+
+  // Section 1: Margin Requirements Overview
+  const marginOverview = `
+    <h3>Margin Requirements</h3>
+    <p><strong>Initial and Maintenance Margins:</strong> Performance bond requirements for trading positions.</p>
+    <p>Margin requirements are set by the exchange and may change based on market volatility and risk assessments.</p>
+  `;
+
+  // Section 2: Current Margin Rates
+  const currentRates = `
+    <h3>Current Margin Rates</h3>
+    <p><strong>Futures Contracts:</strong> View current initial and maintenance margin requirements for all contract months.</p>
+    <p><strong>Options Contracts:</strong> Margin requirements for selling options and spread strategies.</p>
+  `;
+
+  // Section 3: Margin Calculator
+  const marginCalculator = `
+    <h3>Margin Calculator</h3>
+    <p><strong>Position Sizing Tool:</strong> Calculate total margin requirements for your trading positions.</p>
+    <p>Estimate margin impact for different contract quantities and portfolio combinations.</p>
+  `;
+
+  // Section 4: Risk Management
+  const riskManagement = `
+    <h3>Risk Management</h3>
+    <p><strong>Performance Bonds:</strong> Understand how margins work as performance bonds to ensure contract fulfillment.</p>
+    <p>Learn about margin calls, variation margin, and daily settlement procedures.</p>
+  `;
+
+  const fragmentBlock = await createTabFragment();
+  const blocks = [
+    titleContent,
+    marginOverview,
+    currentRates,
+    marginCalculator,
+    riskManagement,
+  ];
+
+  if (fragmentBlock) {
+    blocks.push(fragmentBlock);
+  }
+
+  return blocks;
 }
 
 /**
@@ -31,9 +63,6 @@ async function createMarginsContent() {
  * @returns {Element} Section element for margins tab
  */
 export async function buildMarginsTab() {
-  const marginsData = await fetchMarginsData();
-  const blocks = await createMarginsContent(marginsData);
+  const blocks = await createMarginsContent();
   return createTabSection('margins', 'Margins', blocks);
 }
-
-export { fetchMarginsData };
