@@ -20,6 +20,13 @@
     position: relative;
     box-sizing: border-box;
     height: 100%;
+    display: flex;
+    justify-content: flex-start !important;
+    flex-wrap: wrap;
+}
+
+.cards.white-raised-box.padding-30 li .cards-card-body {
+    padding: 1.875rem;
 }
 
 .cards.white-raised-box li .cards-card-body h4{
@@ -57,9 +64,8 @@
 }
 
 .cards.white-raised-box li .cards-card-body p.button-container {
-    position: absolute;
-    bottom: 1.25rem;
     margin-bottom: 0;
+    align-self: flex-end !important;
 }
 
 .cards.white-raised-box li .cards-card-body picture {
