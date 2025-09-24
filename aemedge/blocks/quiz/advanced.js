@@ -25,6 +25,7 @@ function addResultsButton(
   questionsMeta,
   state,
   type,
+  showIndicatorsViaReviewMode,
 ) {
   if (!navigation) return;
 
@@ -55,15 +56,36 @@ function addResultsButton(
       block.classList.add(type === 'activity' ? 'in-activity-results' : 'in-test-results');
 
       if (type === 'activity') {
-        renderActivity(block, questionsMeta, questionsWrapper, progressBar, navigation);
+        renderActivity(
+          block,
+          questionsMeta,
+          questionsWrapper,
+          progressBar,
+          navigation,
+          showIndicatorsViaReviewMode,
+        );
       } else if (type === 'test') {
-        renderTestResult(block, questionsMeta, state, questionsWrapper, progressBar, navigation);
+        renderTestResult(
+          block,
+          questionsMeta,
+          state,
+          questionsWrapper,
+          progressBar,
+          navigation,
+          showIndicatorsViaReviewMode,
+        );
       }
     });
   });
 }
 
-function addReviewQuestions(block, questionsMeta, questionsWrapper, state) {
+function addReviewQuestions(
+  block,
+  questionsMeta,
+  questionsWrapper,
+  state,
+  showIndicatorsViaReviewMode,
+) {
   let reviewContainer = block.querySelector('.review-questions');
   if (reviewContainer) reviewContainer.remove();
 
@@ -116,6 +138,9 @@ function addReviewQuestions(block, questionsMeta, questionsWrapper, state) {
         btn.classList.remove('pressed', 'correct', 'incorrect');
         if (selectedIndexes.includes(oIdx)) {
           btn.classList.add('pressed');
+        }
+
+        if (selectedIndexes.includes(oIdx) || showIndicatorsViaReviewMode === 'true') {
           if (q.answers[oIdx]?.correct) {
             btn.classList.add('correct');
           } else {
@@ -139,6 +164,7 @@ async function renderTestResult(
   progressBar,
   navigation,
   testPercentage,
+  showIndicatorsViaReviewMode,
 ) {
   block.classList.add('in-test-results');
   block.classList.remove('in-review');
@@ -249,6 +275,8 @@ async function renderTestResult(
 
         if (selectedIndexes.includes(oIndex)) {
           btn.classList.add('pressed');
+        }
+        if (selectedIndexes.includes(oIndex) || showIndicatorsViaReviewMode === 'true') {
           if (questionsMeta[qIndex].answers[oIndex]?.correct) {
             btn.classList.add('correct');
           } else {
@@ -266,7 +294,7 @@ async function renderTestResult(
       });
     });
 
-    addReviewQuestions(block, questionsMeta, questionsWrapper, state);
+    addReviewQuestions(block, questionsMeta, questionsWrapper, state, showIndicatorsViaReviewMode);
 
     if (block.nav) {
       block.nav.currentIndex = 0;
@@ -276,11 +304,18 @@ async function renderTestResult(
     const firstLink = block.querySelector('.review-questions .question-link');
     if (firstLink) firstLink.classList.add('selected');
 
-    await addResultsButton(block, questionsWrapper, progressBar, navigation, questionsMeta, state, 'test');
+    await addResultsButton(block, questionsWrapper, progressBar, navigation, questionsMeta, state, 'test', showIndicatorsViaReviewMode);
   });
 }
 
-async function renderActivity(block, questionsMeta, questionsWrapper, progressBar, navigation) {
+async function renderActivity(
+  block,
+  questionsMeta,
+  questionsWrapper,
+  progressBar,
+  navigation,
+  showIndicatorsViaReviewMode,
+) {
   if (block.querySelector('.congratulation-container')) return;
 
   if (questionsWrapper) questionsWrapper.style.display = 'none';
@@ -353,6 +388,8 @@ async function renderActivity(block, questionsMeta, questionsWrapper, progressBa
         const { correct } = questionsMeta[index].answers[answerIndex];
         if (correct) {
           answer.classList.add('pressed', 'correct');
+        } else if (showIndicatorsViaReviewMode === 'true') {
+          answer.classList.add('incorrect');
         }
       });
     });
@@ -363,7 +400,13 @@ async function renderActivity(block, questionsMeta, questionsWrapper, progressBa
         .filter((i) => i >= 0)),
     };
 
-    addReviewQuestions(block, questionsMeta, questionsWrapper, fakeState);
+    addReviewQuestions(
+      block,
+      questionsMeta,
+      questionsWrapper,
+      fakeState,
+      showIndicatorsViaReviewMode,
+    );
 
     if (block.nav) {
       block.nav.currentIndex = 0;
@@ -373,7 +416,7 @@ async function renderActivity(block, questionsMeta, questionsWrapper, progressBa
     const firstLink = block.querySelector('.review-questions .question-link');
     if (firstLink) firstLink.classList.add('selected');
 
-    await addResultsButton(block, questionsWrapper, progressBar, navigation, questionsMeta, fakeState, 'activity');
+    await addResultsButton(block, questionsWrapper, progressBar, navigation, questionsMeta, fakeState, 'activity', showIndicatorsViaReviewMode);
   });
 }
 
@@ -504,6 +547,7 @@ export function attachFinishClick(
   type,
   completeMessage,
   testPercentage,
+  showIndicatorsViaReviewMode,
   markQuizCompletedFn,
 ) {
   nav.finish.addEventListener('click', async () => {
@@ -512,19 +556,40 @@ export function attachFinishClick(
       if (reviewContainer) reviewContainer.remove();
       const resultsLink = block.querySelector('.results-link');
       if (resultsLink) resultsLink.remove();
-      await markQuizCompletedFn(block, questions, type, completeMessage, testPercentage);
+      await markQuizCompletedFn(
+        block,
+        questions,
+        type,
+        completeMessage,
+        testPercentage,
+        showIndicatorsViaReviewMode,
+      );
     }
   });
 }
 
-export async function markQuizCompletedAdvanced(block, questionsMeta, type, state, testPercentage) {
+export async function markQuizCompletedAdvanced(
+  block,
+  questionsMeta,
+  type,
+  state,
+  testPercentage,
+  showIndicatorsViaReviewMode,
+) {
   state.quizCompleted = true;
   const questionsWrapper = block.querySelector('.questions-wrapper');
   const progressBar = block.querySelector('.progress-bar');
   const navigation = block.querySelector('.quiz-navigation');
 
   if (type === 'activity') {
-    await renderActivity(block, questionsMeta, questionsWrapper, progressBar, navigation);
+    await renderActivity(
+      block,
+      questionsMeta,
+      questionsWrapper,
+      progressBar,
+      navigation,
+      showIndicatorsViaReviewMode,
+    );
   } else if (type === 'test') {
     await renderTestResult(
       block,
@@ -534,6 +599,7 @@ export async function markQuizCompletedAdvanced(block, questionsMeta, type, stat
       progressBar,
       navigation,
       testPercentage,
+      showIndicatorsViaReviewMode,
     );
   }
 }

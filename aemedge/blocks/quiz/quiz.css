@@ -571,6 +571,77 @@ main > .section > .quiz-wrapper {
             display: none;
           }
         }
+
+        & .option-content-answer {
+          &.correct {
+            background-color: var(--gray6);
+            border-color: var(--gray3);
+
+            & .option-icon {
+              border: none;
+              display: block;
+              background-color: transparent;
+
+              &::before {
+                content: var(--icon-check);
+                font-family: var(--cme-group-icons);
+                font-style: normal;
+                font-size: .9375rem;
+                line-height: 1;
+                color: var(--white);
+                display: inline-block;
+              }
+            }
+
+            &:not(.pressed) {
+              & .option-text {
+                color: var(--gray3);
+              }
+
+              & .option-icon {
+                display: block;
+
+                &::before {
+                  content: var(--icon-check);
+                  font-family: var(--cme-group-icons);
+                  font-style: normal;
+                  font-size: .9375rem;
+                  line-height: 1;
+                  color: var(--notification-success-tick);
+                  display: inline-block;
+                }
+              }
+            }
+          }
+
+          &.incorrect {
+            border-width: 0.0625rem;
+            border-color: var(--gray3);
+
+            & .option-icon {
+              border: none;
+              display: block;
+              
+              &::before {
+                content: var(--icon-menu-close);
+                font-family: var(--cme-group-icons);
+                font-style: normal;
+                font-size: .9375rem;
+                line-height: 1;
+                color: var(--active-red);
+                display: inline-block;
+              }
+            }
+
+            &.pressed {
+              & .option-icon {
+                &::before {
+                  color: var(--white);
+                }
+              }
+            }
+          }
+        }
         
         & .option-content-answer.pressed {
           border: 0.125rem solid var(--notification-success-tick);

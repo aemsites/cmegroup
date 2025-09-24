@@ -24,7 +24,7 @@ const testState = { answers: {} };
 async function checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted) {
   const answeredCorrectlyEls = block.querySelectorAll('.answered-correctly');
   const allAnsweredCorrectly = answeredCorrectlyEls.length === questions.length;
-  if (allAnsweredCorrectly && !block.querySelector('.message') && doNotMarkLessonAsCompleted !== 'True') {
+  if (allAnsweredCorrectly && !block.querySelector('.message') && doNotMarkLessonAsCompleted !== 'true') {
     //  quiz completion event
     store.dispatch(quizAnswered(true));
   }
@@ -178,7 +178,15 @@ function showQuestion(index, wrapper, prev, next, pag, total) {
   }
 }
 
-async function addNavigation(questions, block, wrapper, type, completeMessage, testPercentage) {
+async function addNavigation(
+  questions,
+  block,
+  wrapper,
+  type,
+  completeMessage,
+  testPercentage,
+  showIndicatorsViaReviewMode,
+) {
   const [finishLabel] = await Promise.all([i18n('Finish')]);
   const prev = button(
     { type: 'button', class: 'arrow arrow-prev' },
@@ -237,6 +245,7 @@ async function addNavigation(questions, block, wrapper, type, completeMessage, t
       type,
       completeMessage,
       testPercentage,
+      showIndicatorsViaReviewMode,
       markQuizCompleted,
     );
   }
@@ -250,9 +259,23 @@ async function addNavigation(questions, block, wrapper, type, completeMessage, t
   block.updateNavigation();
 }
 
-async function markQuizCompleted(block, questionsMeta, type, completeMessage, testPercentage) {
+async function markQuizCompleted(
+  block,
+  questionsMeta,
+  type,
+  completeMessage,
+  testPercentage,
+  showIndicatorsViaReviewMode,
+) {
   if (type === 'activity' || type === 'test') {
-    await markQuizCompletedAdvanced(block, questionsMeta, type, testState, testPercentage);
+    await markQuizCompletedAdvanced(
+      block,
+      questionsMeta,
+      type,
+      testState,
+      testPercentage,
+      showIndicatorsViaReviewMode,
+    );
     return;
   }
 
@@ -287,6 +310,7 @@ export default async function decorate(block) {
     completeMessage,
     testPercentage = 70,
     randomizeOrder = 'false',
+    showIndicatorsViaReviewMode = 'false',
   } = readBlockConfig(block, true);
   let type = 'traditional';
   if (block.classList.contains('activity')) {
@@ -294,6 +318,7 @@ export default async function decorate(block) {
   } else if (block.classList.contains('test')) {
     type = 'test';
   }
+
   const rows = Array.from(block.querySelectorAll(':scope > div'));
   let startIndex = 0;
 
@@ -305,7 +330,6 @@ export default async function decorate(block) {
   }
 
   const questions = buildQuestions(rows.slice(startIndex));
-
   if (randomizeOrder === 'true' && type !== 'traditional') {
     questions.forEach((q) => {
       q.answers = randomOrder(q.answers);
@@ -317,13 +341,21 @@ export default async function decorate(block) {
   showQuestion(0, wrapper, null, null, null, questions.length);
 
   if (questions.length > 1) {
-    await addNavigation(questions, block, wrapper, type, completeMessage, testPercentage);
+    await addNavigation(
+      questions,
+      block,
+      wrapper,
+      type,
+      completeMessage,
+      testPercentage,
+      showIndicatorsViaReviewMode,
+    );
   }
 
   block.classList.add('showed');
 
   //  quiz completion event subscriber
   store.subscribe(({ quiz }) => quiz, async ({ isCorrect }) => {
-    if (isCorrect) markQuizCompleted(block, questions, type, completeMessage);
+    if (isCorrect && type === 'traditional') markQuizCompleted(block, questions, type, completeMessage);
   });
 }
