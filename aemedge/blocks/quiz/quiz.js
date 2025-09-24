@@ -10,10 +10,11 @@ import {
   createProgressBar,
   updateAdvancedNav,
   attachFinishClick,
+  createSelectInstruction,
 } from './advanced.js';
 import {
   div,
-  p,
+  h4,
   span,
   button,
   i as iEl,
@@ -40,9 +41,14 @@ function buildQuestions(rows) {
     const answerText = row.children[1]?.textContent.trim() || '';
     const correctText = row.children[2]?.textContent.trim() || '';
     const snippetText = row.children[3]?.textContent.trim() || '';
+    const questionSnippetText = row.children[4]?.textContent.trim() || '';
 
     if (hasQuestion) {
-      currentQuestion = { question: firstChild.textContent.trim(), answers: [] };
+      currentQuestion = {
+        question: firstChild.textContent.trim(),
+        answers: [],
+        questionSnippet: questionSnippetText,
+      };
       questions.push(currentQuestion);
     }
 
@@ -58,11 +64,18 @@ function buildQuestions(rows) {
   return questions;
 }
 
-function renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, state) {
+async function renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, state) {
   if (type !== 'traditional') {
     const progressBar = createProgressBar();
     block.appendChild(progressBar);
   }
+  const [
+    selectAllLabel,
+    selectOneLabel,
+  ] = await Promise.all([
+    i18n('Select all that apply'),
+    i18n('Select one of the following'),
+  ]);
 
   const wrapper = div({ class: `questions-wrapper ${type}` });
 
@@ -70,9 +83,17 @@ function renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, sta
     const optionsWrapper = div({ class: 'options-wrapper' });
     const questionDiv = div(
       {},
-      p({ class: 'question-text' }, q.question),
+      h4({ class: 'question-text' }, q.question),
       optionsWrapper,
     );
+
+    if (type !== 'traditional') {
+      const multiCorrect = q.answers.filter((ans) => ans.correct).length > 1;
+      if (multiCorrect) questionDiv.classList.add('multi-correct');
+      const selectInstruction = createSelectInstruction(multiCorrect
+        ? selectAllLabel : selectOneLabel);
+      optionsWrapper.insertBefore(selectInstruction, optionsWrapper.firstChild);
+    }
 
     const multiCorrect = q.answers.filter((ans) => ans.correct).length > 1;
     if (multiCorrect) questionDiv.classList.add('multi-correct');
@@ -337,7 +358,8 @@ export default async function decorate(block) {
     randomOrder(questions);
   }
   block.innerHTML = '';
-  const wrapper = renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, testState);
+  const wrapper = await
+  renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, testState);
   showQuestion(0, wrapper, null, null, null, questions.length);
 
   if (questions.length > 1) {

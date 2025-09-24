@@ -292,6 +292,33 @@ async function renderTestResult(
         msg.innerHTML = '';
         msg.classList.remove('showed', 'correct', 'incorrect', 'disabled');
       });
+
+      const correctIndexes = questionsMeta[qIndex].answers
+        .map((ans, i) => (ans.correct ? i : -1))
+        .filter((i) => i >= 0);
+
+      const isExactlyCorrect = selectedIndexes.length === correctIndexes.length
+        && selectedIndexes.every((i) => correctIndexes.includes(i));
+
+      if (!isExactlyCorrect && questionsMeta[qIndex].questionSnippet) {
+        const snippetDiv = div(
+          { class: 'question-snippet' },
+          span({ class: 'option-icon' }),
+          span({ class: 'option-text' }, questionsMeta[qIndex].questionSnippet),
+        );
+
+        const selectInstruction = questionDiv.querySelector('.select-instruction');
+        if (selectInstruction) {
+          selectInstruction.insertAdjacentElement('afterend', snippetDiv);
+        } else {
+          const optionsWrapper = questionDiv.querySelector('.options-wrapper');
+          if (optionsWrapper) {
+            optionsWrapper.insertBefore(snippetDiv, optionsWrapper.firstChild);
+          } else {
+            questionDiv.appendChild(snippetDiv);
+          }
+        }
+      }
     });
 
     addReviewQuestions(block, questionsMeta, questionsWrapper, state, showIndicatorsViaReviewMode);
@@ -509,6 +536,10 @@ export function createProgressBar() {
     div({ class: 'progress', style: 'width: 0%;' }),
   );
   return progressBar;
+}
+
+export function createSelectInstruction(title) {
+  return h4({ class: 'select-instruction' }, title);
 }
 
 export function updateAdvancedNav(nav, wrapper, questions, type, state) {
