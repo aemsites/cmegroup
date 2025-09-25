@@ -168,6 +168,9 @@ async function createStaticCards(block) {
             p.classList.add(textClass);
           });
         }
+        if (!div.hasChildNodes()) {
+          div.parentElement.classList.add('empty-card');
+        }
       });
       ul.append(li);
     });
