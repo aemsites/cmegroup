@@ -4,64 +4,67 @@
     <title>Login Confirmed</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta property="og:title" content="Login Confirmed">
-    <script type="module">
-      import { CookieUtil, LocalStorageUtil } from './aemedge/scripts/utils/index.js';
-      import { authentication } from './aemedge/scripts/modules/Authentication.js';
-      window.CookieUtil = CookieUtil;
-      window.LocalStorageUtil = LocalStorageUtil;
-      authentication.handleLoad();
-    </script>
-    <script type="module">
-      function init() {
-        if (document.cookie.indexOf('redirectionCookie') < 0) { window.location.href = '/'; }
-      }
-      init();
-    </script>
-    <link rel="stylesheet" href="/aemedge/styles/styles.css">
     <style>
+      @font-face {
+        font-family: Averta;
+        src: url('/aemedge/fonts/37E93D_A_0.eot');
+        src: url('/aemedge/fonts/37E93D_A_0.woff2') format('woff2'),
+          url('/aemedge/fonts/37E93D_A_0.woff') format('woff'),
+          url('/aemedge/fonts/37E93D_A_0.ttf') format('truetype');
+        font-display: swap;
+        font-style: normal;
+        font-weight: 400;
+      }
+
       body {
-        background-color: #1f3374;
-        padding: 1.875rem 0;
+        background-color: #112b4a;
         color: #fff;
         text-align: center;
-      }
-
-      .redirect-spinner {
-        text-align: center;
-        padding: 2.5rem;
-      }
-
-      .lds-ring {
-        display: inline-block;
-        position: relative;
-        width: 4rem;
-        height: 4rem;
-        margin-bottom: 2rem;
-      }
-
-      .lds-ring div {
-        box-sizing: border-box;
         display: block;
-        position: absolute;
-        width: 3.1875rem;
-        height: 3.1875rem;
-        margin: 0.375rem;
-        border: 0.25rem solid #fff;
-        border-radius: 50%;
-        animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-        border-color: #fff transparent transparent transparent;
-      }
+        font-family: Averta;
+        font-weight: 400;
+        font-size: 16px;
+        letter-spacing: .03rem;
+        line-height: 1.5rem;
+        margin-top: 3rem;
 
-      .lds-ring div:nth-child(1) {
-        animation-delay: -0.45s;
-      }
+        .lds-ring {
+          display: inline-block;
+          position: relative;
+          width: 4rem;
+          height: 4rem;
+          margin-bottom: 2rem;
+          padding-top: 1.25rem;
 
-      .lds-ring div:nth-child(2) {
-        animation-delay: -0.3s;
-      }
+          & div {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 3.1875rem;
+            height: 3.1875rem;
+            margin: 0.375rem;
+            border: 0.25rem solid #fff;
+            border-radius: 50%;
+            animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: #fff transparent transparent transparent;
+          }
 
-      .lds-ring div:nth-child(3) {
-        animation-delay: -0.15s;
+          & div:nth-child(1) {
+            animation-delay: -0.45s;
+          }
+
+          & div:nth-child(2) {
+            animation-delay: -0.3s;
+          }
+
+          & div:nth-child(3) {
+            animation-delay: -0.15s;
+          }
+
+          & + p {
+            margin: 0;
+          }
+        }
       }
 
       @keyframes lds-ring {
@@ -87,5 +90,18 @@
         <p>One moment please, we're logging you in...</p>
       </div>
     </main>
+    <script type="module">
+      import { CookieUtil, LocalStorageUtil } from './aemedge/scripts/utils/index.js';
+      import { authentication } from './aemedge/scripts/modules/Authentication.js';
+      window.CookieUtil = CookieUtil;
+      window.LocalStorageUtil = LocalStorageUtil;
+      authentication.handleLoad();
+    </script>
+    <script type="module">
+      function init() {
+        if (document.cookie.indexOf('redirectionCookie') < 0) { window.location.href = '/'; }
+      }
+      init();
+    </script>
   </body>
 </html>
