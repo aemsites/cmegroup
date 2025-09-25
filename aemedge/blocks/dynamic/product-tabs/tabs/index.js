@@ -6,17 +6,16 @@
  */
 
 export { default as buildQuotesTab } from './quotes.js';
-export { buildSettlementsTab } from './settlements.js';
-export { buildVolumeTab } from './volume.js';
-export { buildSpecsTab } from './specs.js';
-export { buildMarginsTab } from './margins.js';
-export { buildCalendarTab } from './calendar.js';
+export { default as buildSettlementsTab } from './settlements.js';
+export { default as buildVolumeTab } from './volume.js';
+export { default as buildSpecsTab } from './specs.js';
+export { default as buildMarginsTab } from './margins.js';
+export { default as buildCalendarTab } from './calendar.js';
 
 // Export utilities for external use if needed
 export {
   createTabSection,
   createTabFragment,
-  PRODUCT_TABS_FRAGMENT_URL,
 } from './utils.js';
 
 // Tab registry for dynamic discovery

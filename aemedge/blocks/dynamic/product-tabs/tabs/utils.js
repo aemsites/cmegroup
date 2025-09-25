@@ -1,43 +1,15 @@
-import { createElement } from '../../../scripts/utils.js';
-import {
-  getMetadata, decorateBlock, loadBlock,
-} from '../../../scripts/aem.js';
-import { loadFragment } from '../../../blocks/fragment/fragment.js';
+// External dependencies
+import { createElement } from '../../../../scripts/utils.js';
+import { getMetadata, decorateBlock, loadBlock } from '../../../../scripts/aem.js';
 
-// Fragment URL for product tabs - adjust as needed
-export const PRODUCT_TABS_FRAGMENT_URL = '/drafts/kunwar/corn/fragments/product/tabs';
-
-// Constants for modal functionality - shared across all tabs
-export const MODAL_CONSTANTS = {
-  linkClasses: {
-    aboutReport: 'about-report-link',
-    modalClass: 'about-report-modal',
-  },
-};
-
-// Constants for Futures/Options toggle functionality
-export const TOGGLE_CONSTANTS = {
-  toggleClasses: {
-    container: 'futures-options-toggle',
-    button: 'toggle-btn',
-    active: 'active',
-    content: 'toggle-content',
-    futuresContent: 'futures-content',
-    optionsContent: 'options-content',
-    dropdown: 'options-dropdown',
-    dropdownButton: 'dropdown-btn',
-    dropdownMenu: 'dropdown-menu',
-    dropdownItem: 'dropdown-item',
-    dropdownOpen: 'dropdown-open',
-  },
-  toggleTypes: {
-    futures: 'futures',
-    options: 'options',
-  },
-  apiEndpoints: {
-    expirations: '/aemedge/templates/product/mock-api/expirations.json',
-  },
-};
+// Internal constants
+import { 
+  FRAGMENT_URLS, 
+  MODAL_CONSTANTS, 
+  TOGGLE_CONSTANTS,
+  TABLE_CONSTANTS,
+  API_CONFIG 
+} from '../constants.js';
 
 /**
  * Generic fetch utility for JSON data following project patterns
@@ -71,7 +43,7 @@ export async function fetchJsonData(url, options = {}) {
  * @returns {Promise<Array|null>} Array of expiration options or null if fetch fails
  */
 export async function fetchExpirationsData() {
-  return fetchJsonData(TOGGLE_CONSTANTS.apiEndpoints.expirations);
+  return fetchJsonData(API_CONFIG.expirations);
 }
 
 /**
@@ -135,6 +107,38 @@ export function createOptionsDropdown(expirationsData = []) {
   dropdown.appendChild(dropdownButton);
   dropdown.appendChild(dropdownMenu);
 
+  // Add event listener to toggle dropdown visibility
+  dropdownButton.addEventListener('click', (event) => {
+    event.stopPropagation(); // Prevent document click from closing immediately
+    dropdown.classList.toggle(TOGGLE_CONSTANTS.toggleClasses.dropdownOpen);
+  });
+
+  // Handle option selection - keep button text as "OPTIONS" but process the selection
+  dropdownMenu.addEventListener('click', (event) => {
+    const menuItem = event.target.closest(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownItem}`);
+    if (menuItem) {
+      const selectedText = menuItem.querySelector('.link').textContent;
+      // Keep button text as "OPTIONS" - don't change it
+      dropdown.classList.remove(TOGGLE_CONSTANTS.toggleClasses.dropdownOpen);
+      
+      // Trigger custom event for other components to listen to
+      const customEvent = new CustomEvent('optionSelected', {
+        detail: {
+          productId: menuItem.dataset.value,
+          label: selectedText,
+        },
+      });
+      document.dispatchEvent(customEvent);
+    }
+  });
+
+  // Close dropdown if clicked outside
+  document.addEventListener('click', (event) => {
+    if (!dropdown.contains(event.target)) {
+      dropdown.classList.remove(TOGGLE_CONSTANTS.toggleClasses.dropdownOpen);
+    }
+  });
+
   return dropdown;
 }
 
@@ -163,7 +167,8 @@ export function createTabSection(tabId, tabTitle, blocks = []) {
       } else {
         // Create a wrapper div for block elements
         const blockWrapper = createElement('div');
-        blockWrapper.classList.add(`${block.dataset.blockName || 'block'}-wrapper`);
+        const blockName = block?.dataset?.blockName || 'block';
+        blockWrapper.classList.add(`${blockName}-wrapper`);
         blockWrapper.appendChild(block);
         section.appendChild(blockWrapper);
       }
@@ -179,7 +184,9 @@ export function createTabSection(tabId, tabTitle, blocks = []) {
  */
 export async function createTabFragment() {
   try {
-    const fragmentMain = await loadFragment(PRODUCT_TABS_FRAGMENT_URL);
+    // Import loadFragment dynamically to avoid circular dependency
+    const { loadFragment } = await import('../../../../blocks/fragment/fragment.js');
+    const fragmentMain = await loadFragment(FRAGMENT_URLS.productTabs);
     if (fragmentMain) {
       // Create a wrapper div and move all fragment content into it
       const fragmentWrapper = createElement('div', { class: 'fragment-content' });
@@ -201,20 +208,52 @@ export async function createTabFragment() {
  * @returns {Element} DOM element for the link
  */
 export function createModalLink(linkText, linkClass, fragmentUrl, modalClass = '') {
-  // Initialize the modal functionality for this link
-  initializeTabModal(linkClass, fragmentUrl, modalClass);
-
-  // Create DOM elements using createElement utility
-  const paragraph = createElement('p');
-  const link = createElement('a', {
-    href: '#',
-    class: linkClass,
-  });
-  link.textContent = linkText;
-  paragraph.appendChild(link);
-
-  return paragraph;
+  // Use event delegation instead of direct event listeners
+  // This ensures the event works even when content is dynamically inserted
+  initializeModalLinkHandler(linkClass, fragmentUrl);
+  
+  // Return HTML string that will be properly processed by organizeToggleContent
+  return `<p><a href="#" class="${linkClass}">${linkText}</a></p>`;
 }
+
+// Initialize modal link handler using event delegation
+function initializeModalLinkHandler(linkClass, fragmentUrl) {
+  // Prevent duplicate initialization
+  if (document.querySelector(`[data-modal-handler="${linkClass}"]`)) {
+    return;
+  }
+  
+  // Add marker to prevent duplicate handlers
+  const marker = createElement('div', { 
+    'data-modal-handler': linkClass,
+    style: 'display: none;' 
+  });
+  document.body.appendChild(marker);
+  
+  // Use event delegation for modal links
+  document.addEventListener('click', async (e) => {
+    if (e.target.classList.contains(linkClass)) {
+      e.preventDefault();
+      try {
+        const { createModal } = await import('../../../../blocks/modal/modal.js');
+        const { loadFragment } = await import('../../../../blocks/fragment/fragment.js');
+        
+        const fragment = await loadFragment(fragmentUrl);
+        const { block, showModal } = await createModal(fragment.childNodes);
+        
+        // Apply custom modal class for styling
+        if (linkClass === 'about-report-link') {
+          block.classList.add('about-report-modal');
+        }
+        
+        showModal();
+      } catch (error) {
+        // Silent error handling
+      }
+    }
+  });
+}
+
 
 // Track initialized modals to prevent duplicates
 const initializedModals = new Set();
@@ -244,6 +283,7 @@ export function initializeTabModal(linkClass, fragmentUrl, modalClass = '') {
       e.preventDefault();
       try {
         const { createModal } = await import('../../../blocks/modal/modal.js');
+        const { loadFragment } = await import('../../../../blocks/fragment/fragment.js');
 
         // Load fragment content
         const fragment = await loadFragment(fragmentUrl);
@@ -322,6 +362,7 @@ async function addToggleToTabsList(tabsList, config) {
     showFutures = true,
     showOptions = true,
     tabId = 'default',
+    defaultActive = TOGGLE_CONSTANTS.toggleTypes.futures,
   } = config;
 
   // Check if this tab is currently active
@@ -355,7 +396,7 @@ async function addToggleToTabsList(tabsList, config) {
 
   if (showFutures) {
     const futuresBtn = createElement('button', {
-      class: TOGGLE_CONSTANTS.toggleClasses.button,
+      class: `${TOGGLE_CONSTANTS.toggleClasses.button} ${defaultActive === TOGGLE_CONSTANTS.toggleTypes.futures ? TOGGLE_CONSTANTS.toggleClasses.active : ''}`,
       'data-toggle': TOGGLE_CONSTANTS.toggleTypes.futures,
       'data-tab': tabId,
     });
@@ -525,7 +566,7 @@ export function setToggleConfig(tabId, config) {
  * @param {Array} contentConfig.optionsBlocks - Blocks for options content
  * @param {string} contentConfig.defaultActive - Default active content
  * @param {string} contentConfig.tabId - Tab identifier
- * @returns {Array} Array of organized content sections
+ * @returns {Element} Container element with organized content sections
  */
 export function organizeToggleContent(contentConfig = {}) {
   const {
@@ -534,8 +575,15 @@ export function organizeToggleContent(contentConfig = {}) {
     defaultActive = TOGGLE_CONSTANTS.toggleTypes.futures,
     tabId = 'default',
   } = contentConfig;
+  
+  // Create a container for the toggle content
+  const toggleContainer = createElement('div', {
+    class: 'toggle-container',
+    'data-tab': tabId,
+  });
 
-  const organizedContent = [];
+  // NOTE: Toggle navigation is handled separately by the existing toggle system
+  // organizeToggleContent only organizes the content sections, not the navigation
 
   // Create futures content section
   if (futuresBlocks.length > 0) {
@@ -558,7 +606,7 @@ export function organizeToggleContent(contentConfig = {}) {
       }
     });
 
-    organizedContent.push(futuresSection);
+    toggleContainer.appendChild(futuresSection);
   }
 
   // Create options content section
@@ -582,10 +630,10 @@ export function organizeToggleContent(contentConfig = {}) {
       }
     });
 
-    organizedContent.push(optionsSection);
+    toggleContainer.appendChild(optionsSection);
   }
 
-  return organizedContent;
+  return toggleContainer;
 }
 /**
  * Initialize toggle functionality for a specific tab
@@ -657,6 +705,28 @@ function switchToToggleContent(tabId, toggleType) {
     targetContent.classList.add(TOGGLE_CONSTANTS.toggleClasses.active);
   }
 
+  // Update button styling - remove active from all toggle buttons
+  const toggleContainer = document.querySelector(`[data-tab-toggle="${tabId}"]`);
+  if (toggleContainer) {
+    const allButtons = toggleContainer.querySelectorAll(`.${TOGGLE_CONSTANTS.toggleClasses.button}`);
+    allButtons.forEach((button) => {
+      button.classList.remove(TOGGLE_CONSTANTS.toggleClasses.active);
+    });
+
+    // Activate the appropriate button
+    if (toggleType === TOGGLE_CONSTANTS.toggleTypes.futures) {
+      const futuresBtn = toggleContainer.querySelector(`[data-toggle="${TOGGLE_CONSTANTS.toggleTypes.futures}"]`);
+      if (futuresBtn) {
+        futuresBtn.classList.add(TOGGLE_CONSTANTS.toggleClasses.active);
+      }
+    } else if (toggleType === TOGGLE_CONSTANTS.toggleTypes.options) {
+      const optionsBtn = toggleContainer.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownButton}`);
+      if (optionsBtn) {
+        optionsBtn.classList.add(TOGGLE_CONSTANTS.toggleClasses.active);
+      }
+    }
+  }
+
   // Update the dynamic title after content is switched
   updateTabTitle(tabId, toggleType);
 }
@@ -694,15 +764,8 @@ function handleOptionSelection(tabId, productId, label) {
   // Switch to options content
   switchToToggleContent(tabId, TOGGLE_CONSTANTS.toggleTypes.options);
 
-  // Update dropdown button text
-  const dropdownButton = document.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdown}[data-tab="${tabId}"] .${TOGGLE_CONSTANTS.toggleClasses.dropdownButton}`);
-  if (dropdownButton) {
-    // Update button text but keep the arrow
-    const buttonText = dropdownButton.childNodes[0];
-    if (buttonText && buttonText.nodeType === Node.TEXT_NODE) {
-      buttonText.textContent = label.toUpperCase();
-    }
-  }
+  // Keep button text as "OPTIONS" - don't change it
+  // (Button text should always remain "OPTIONS" regardless of selection)
 
   // Trigger custom event for tab-specific handling
   const customEvent = new CustomEvent('optionSelected', {
@@ -711,24 +774,29 @@ function handleOptionSelection(tabId, productId, label) {
   document.dispatchEvent(customEvent);
 }
 
-// ===== TABLE UTILITIES =====
+// ===== BLOCK CREATION UTILITIES =====
 
 /**
- * Table configuration constants
+ * Creates a block with proper error handling
+ * @param {Function} blockCreator - Function that creates the block
+ * @param {string} blockName - Name of the block for error message (e.g., 'market recap', 'CVOL data')
+ * @returns {Promise<Element|string>} Block element or error message HTML
  */
-export const TABLE_CONSTANTS = {
-  variants: {
-    fixedRowHeader: 'fixed-row-header',
-    responsive: 'responsive',
-    striped: 'striped',
-  },
-  placeholders: {
-    chart: 'CHT',
-    options: 'OPT',
-    loading: '...',
-    noData: '-',
-  },
-};
+export async function createBlockWithErrorHandling(blockCreator, blockName = 'content') {
+  try {
+    const block = await blockCreator();
+    if (block) {
+      return block;
+    } else {
+      return `<div class="no-results"><h4>Unable to load ${blockName}</h4></div>`;
+    }
+  } catch (error) {
+    return `<div class="no-results"><h4>Unable to load ${blockName}</h4></div>`;
+  }
+}
+
+// ===== TABLE UTILITIES =====
+
 
 /**
  * Unified table builder - one function for all table creation needs
@@ -750,7 +818,7 @@ export async function buildTable(headers, data, options = {}) {
 
     // Create table block using manual DOM approach (works with table decorator)
     const tableBlock = document.createElement('div');
-    tableBlock.classList.add('table');
+    tableBlock.classList.add('table', 'api-backed'); // Add api-backed class for API-backed blocks
     tableBlock.dataset.blockName = 'table';
 
     // Add variant classes and ID
@@ -801,15 +869,7 @@ export async function buildTable(headers, data, options = {}) {
     table.appendChild(tbody);
     tableBlock.appendChild(table);
 
-    // Auto-decorate and load the block
-    if (autoDecorate) {
-      try {
-        decorateBlock(tableBlock);
-        await loadBlock(tableBlock);
-      } catch (decorateError) {
-        // Continue even if decoration fails
-      }
-    }
+    // Let AEM handle decoration naturally
 
     return tableBlock;
   } catch (error) {

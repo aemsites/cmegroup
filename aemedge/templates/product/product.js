@@ -1,11 +1,4 @@
-import {
-  buildQuotesTab,
-  buildSettlementsTab,
-  buildVolumeTab,
-  buildSpecsTab,
-  buildMarginsTab,
-  buildCalendarTab,
-} from './tabs/index.js';
+// Dynamic tab system now handled by blocks/dynamic/product-tabs/
 
 import {
   buildBlock,
@@ -15,7 +8,29 @@ import {
 } from '../../scripts/aem.js';
 
 import { createElement } from '../../scripts/utils.js';
-import { fetchJsonData } from './tabs/utils.js';
+import dynamicBlocks from '../../blocks/dynamic/index.js';
+
+// Utility function for fetching JSON data (used by hero block)
+async function fetchJsonData(url, options = {}) {
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    return null;
+  }
+}
 
 const API_CONFIG = {
   contractsEndpoint: '/aemedge/templates/product/mock-api/contracts-by-number.json',
@@ -126,124 +141,6 @@ async function addBaseballHeroBlock(main) {
   }
 }
 
-/**
- * Create empty tab section immediately
- * @param {string} tabId - The tab identifier
- * @param {string} tabTitle - The tab title
- * @returns {Element} Empty tab section ready for content
- */
-function createEmptyTabSection(tabId, tabTitle) {
-  const section = createElement('div', { class: 'section tabs' });
-  section.dataset.tabId = tabId;
-  section.dataset.tabTitle = tabTitle;
-  section.dataset.sectionStatus = 'initialized';
-  section.style.display = 'none';
-  section.textContent = '';
-  return section;
-}
-
-/**
- * Populate tab content independently
- * @param {Element} tabSection - The empty tab section
- * @param {Function} builder - The tab builder function
- */
-async function populateTabContent(tabSection, builder) {
-  try {
-    const tabContent = await builder();
-
-    if (tabContent) {
-      tabSection.textContent = '';
-      const contentElements = Array.from(tabContent.children);
-      contentElements.forEach((element) => {
-        tabSection.appendChild(element);
-      });
-
-      try {
-        const { setupTabToggleIntegration } = await import('./tabs/utils.js');
-        setupTabToggleIntegration();
-      } catch (toggleError) {
-        // Toggle setup failed - non-critical
-      }
-    }
-  } catch (error) {
-    tabSection.textContent = '';
-    const errorDiv = createElement('div', {
-      style: 'padding: 2rem; text-align: center; color: var(--gray3);',
-    });
-    errorDiv.innerHTML = '<p>Failed to load content</p>';
-    tabSection.appendChild(errorDiv);
-  }
-}
-
-async function createDynamicTabs(main) {
-  const overviewSection = main.querySelector('.section.tabs[data-tab-id="overview"]');
-  if (!overviewSection) return;
-
-  const tabDefinitions = [
-    { id: 'quotes', title: 'Quotes', builder: buildQuotesTab },
-    { id: 'settlements', title: 'Settlements', builder: buildSettlementsTab },
-    { id: 'volume', title: 'Volume', builder: buildVolumeTab },
-    { id: 'specs', title: 'Specs', builder: buildSpecsTab },
-    { id: 'margins', title: 'Margins', builder: buildMarginsTab },
-    { id: 'calendar', title: 'Calendar', builder: buildCalendarTab },
-  ];
-
-  // Step 1: Create empty tab sections immediately
-  let insertAfter = overviewSection;
-  tabDefinitions.forEach(({ id, title }) => {
-    const emptySection = createEmptyTabSection(id, title);
-    if (emptySection && insertAfter.parentNode) {
-      insertAfter.parentNode.insertBefore(emptySection, insertAfter.nextSibling);
-      insertAfter = emptySection;
-    }
-  });
-
-  // Step 2: Setup toggle configurations early
-  await setupToggleConfigurations();
-
-  // Step 3: Populate each tab independently (resilient approach)
-  tabDefinitions.forEach(async ({ id, builder }) => {
-    const tabSection = main.querySelector(`[data-tab-id="${id}"]`);
-    if (tabSection) {
-      await populateTabContent(tabSection, builder);
-    }
-  });
-}
-
-async function setupToggleConfigurations() {
-  try {
-    const { setToggleConfig, setupTabToggleIntegration, TOGGLE_CONSTANTS } = await import('./tabs/utils.js');
-
-    const tabModules = [
-      { name: 'quotes', module: () => import('./tabs/quotes.js') },
-      { name: 'settlements', module: () => import('./tabs/settlements.js') },
-      { name: 'volume', module: () => import('./tabs/volume.js') },
-      { name: 'specs', module: () => import('./tabs/specs.js') },
-      { name: 'calendar', module: () => import('./tabs/calendar.js') },
-    ];
-
-    await Promise.all(tabModules.map(async (tab) => {
-      try {
-        const tabModule = await tab.module();
-        if (tabModule.HAS_FUTURES_OPTIONS_TOGGLE === true) {
-          setToggleConfig(tab.name, {
-            showFutures: true,
-            showOptions: true,
-            defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
-            tabId: tab.name,
-          });
-        }
-      } catch (error) {
-        // Skip if module doesn't exist or export toggle flag
-      }
-    }));
-
-    setupTabToggleIntegration();
-  } catch (error) {
-    // Toggle setup failed - non-critical
-  }
-}
-
 export default async function productTemplate(doc = document) {
   const main = doc.querySelector('main');
 
@@ -253,5 +150,5 @@ export default async function productTemplate(doc = document) {
   if (!hasTabsSection) return;
 
   await addBaseballHeroBlock(main);
-  await createDynamicTabs(main);
+  await dynamicBlocks(main);
 }

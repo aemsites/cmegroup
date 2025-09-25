@@ -1,32 +1,45 @@
 /* Product Template Styles */
 
+/* Error/No Results Styling - Available at template level */
+.product .no-results {
+  border: 1px solid #112b4a;
+  color: #112b4a;
+  font-size: 2.125rem;
+  margin: .9375rem auto;
+  text-align: center;
+}
+
+.product .no-results h4 {
+  padding: 1.25rem;
+}
+
 /* Product template specific spacing and typography */
-.product-template .section.tabs h2 {
+.product .section.tabs h2 {
   margin-top: 0;
   margin-bottom: 1rem;
   color: var(--gray1);
   font-weight: 600;
 }
 
-.product-template .section.tabs h2:first-child {
+.product .section.tabs h2:first-child {
   margin-top: 0;
 }
 
-.product-template .section.tabs h3 {
+.product .section.tabs h3 {
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
   color: var(--gray2);
   font-weight: 600;
 }
 
-.product-template .section.tabs p {
+.product .section.tabs p {
   margin-bottom: 1rem;
   color: var(--gray2);
   line-height: 1.6;
 }
 
 /* Basic content wrapper styling for dynamic tabs */
-.product-template .section.tabs .default-content-wrapper {
+.product .section.tabs .default-content-wrapper {
   max-width: none;
 }
 
@@ -99,11 +112,18 @@
   border-left: 0;
 }
 
-/* Futures button - always blue/active styling */
-.futures-options-toggle .toggle-btn[data-toggle="futures"] {
+/* Active toggle button styling - only active one should be blue */
+.futures-options-toggle .toggle-btn.active {
   background: var(--blue2);
   color: white;
   border-color: var(--blue2);
+}
+
+/* Inactive toggle button styling - no background */
+.futures-options-toggle .toggle-btn:not(.active) {
+  background: transparent;
+  color: var(--gray3);
+  border-color: var(--gray4);
 }
 
 /* Options dropdown styling */

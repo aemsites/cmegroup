@@ -1,3 +1,7 @@
+// AEM utilities
+import { buildBlock, getMetadata, decorateBlock, loadBlock } from '../../../../scripts/aem.js';
+
+// Local utilities  
 import {
   createTabSection,
   fetchJsonData,
@@ -5,51 +9,25 @@ import {
   createTabFragment,
   organizeToggleContent,
   buildTable,
+  createBlockWithErrorHandling,
+} from './utils.js';
+
+// Centralized constants
+import {
+  API_CONFIG,
+  FRAGMENT_URLS,
   MODAL_CONSTANTS,
   TOGGLE_CONSTANTS,
   TABLE_CONSTANTS,
   TABLE_FORMATTERS,
-} from './utils.js';
-import {
-  buildBlock,
-  decorateBlock,
-  loadBlock,
-  getMetadata,
-} from '../../../scripts/aem.js';
+  CARDS_VARIANTS,
+  QUOTES_TABLE_CONSTANTS,
+} from '../constants.js';
 
-// API Configuration - easy to switch between mock and real API
-const API_CONFIG = {
-  // For development: use mock data
-  quotesReportsEndpoint: '/aemedge/templates/product/mock-api/quotes/market-recap.json',
-  quotesTableEndpoint: '/aemedge/templates/product/mock-api/quotes/quotes-table.json',
-  cvolEndpoint: '/aemedge/templates/product/mock-api/quotes/cvol.json',
-  // Options table APIs
-  optionsLabelsEndpoint: '/aemedge/templates/product/mock-api/quotes/quotes-v2-getlabels.json',
-  optionsDataEndpoint: '/aemedge/templates/product/mock-api/quotes/quotes-v2-300-',
-};
-
-// Fragment URLs for modals - used in centralized modal initialization
-const FRAGMENT_URLS = {
-  aboutReport: '/drafts/kunwar/corn/fragments/product/about-quotes',
-};
 
 // Toggle configuration - set to true to enable Futures/Options toggle for this tab
 export const HAS_FUTURES_OPTIONS_TOGGLE = true;
 
-// Constants for table placeholders and classes
-// Table-specific constants (using TABLE_CONSTANTS from utils.js for general ones)
-const QUOTES_TABLE_CONSTANTS = {
-  tableId: {
-    quotes: 'quotes-table',
-    options: 'options-table-quotes',
-  },
-};
-
-// Constants for cards block variants
-const CARDS_VARIANTS = {
-  marketRecap: 'market-recap',
-  cvol: 'cvol',
-};
 
 /**
  * Fetch quotes/market reports data
@@ -135,7 +113,7 @@ async function createQuotesTable(quotesData = null) {
     const tableBlock = await buildTable(headers, tableData, {
       variant: TABLE_CONSTANTS.variants.fixedRowHeader,
       tableId: QUOTES_TABLE_CONSTANTS.tableId.quotes,
-      autoDecorate: true,
+      autoDecorate: true, // This will auto-decorate following project pattern
     });
 
     return tableBlock;
@@ -150,68 +128,44 @@ async function createQuotesTable(quotesData = null) {
  */
 async function createMarketRecapCards(reportsData = null) {
   try {
-    let cardsContent;
-
-    if (reportsData && reportsData.length > 0) {
-      // Get product options symbol from metadata (e.g., "OZC")
-      const commodityCode = getMetadata('product-options-symbol') || '';
-
-      // Find the latest matching report by commodity code
-      let matchingReport = null;
-      if (commodityCode) {
-        // Filter reports by commodity code and find the latest by date
-        const matchingReports = reportsData.filter((report) => report.reportCommodity
-          && report.reportCommodity.toUpperCase() === commodityCode.toUpperCase());
-
-        if (matchingReports.length > 0) {
-          // Sort by date (newest first) and take the first one
-          const sortedReports = matchingReports.sort((a, b) => {
-            const dateA = new Date(a.reportDate);
-            const dateB = new Date(b.reportDate);
-            return dateB - dateA; // Descending order (newest first)
-          });
-          [matchingReport] = sortedReports;
-        }
-      }
-
-      // Only proceed if we have a matching report
-      if (!matchingReport) {
-        return null;
-      }
-
-      const commodityName = getMetadata('product') || matchingReport.reportCommodity;
-
-      // Format date
-      const date = new Date(matchingReport.reportDate);
-      const formattedDate = date.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-      });
-
-      cardsContent = [
-        [
-          `<h3>${commodityName} Market Update</h3>`,
-          `<p class="date">${formattedDate}</p>`,
-          matchingReport.reportContent,
-        ],
-      ];
-    } else {
-      // No API data available
+    if (!reportsData || reportsData.length === 0) {
       return null;
     }
+
+    // Get commodity name from metadata
+    const commodityName = getMetadata('commodity-name') || 'OZC';
+    
+    // Find matching report (case-insensitive, latest entry)
+    const matchingReport = reportsData.find(report => 
+      report.reportCommodity?.toLowerCase() === commodityName.toLowerCase()
+    );
+    
+    if (!matchingReport) {
+      return null;
+    }
+
+    const productName = getMetadata('product') || 'Market';
+    const reportDate = new Date(matchingReport.reportDate);
+    const formattedDate = reportDate.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+
+    const cardsContent = [
+      [
+        `<h3>${productName} Market Update</h3>
+         <p class="date">${formattedDate}</p>
+         ${matchingReport.reportContent}`
+      ],
+    ];
 
     const cardsBlock = buildBlock('cards', cardsContent);
-    if (!cardsBlock) {
-      return null;
-    }
-
-    // Add variant class
-    cardsBlock.classList.add(CARDS_VARIANTS.marketRecap);
+    cardsBlock.classList.add(CARDS_VARIANTS.marketRecap, 'api-backed');
+    cardsBlock.dataset.blockName = 'cards';
 
     return cardsBlock;
   } catch (error) {
-    // Cards block creation failed - return null silently
     return null;
   }
 }
@@ -227,117 +181,37 @@ async function createCvolCards(cvolDataArray = null) {
       return null;
     }
 
-    // Get the first (and likely only) object from the array
+    // Get the first object from the array
     const cvolData = cvolDataArray[0];
-
     const productName = getMetadata('product') || 'Product';
-
-    // CVOL description text
-    const cvolDescription = 'Track forward-looking risk expectations on Corn with the CME Group Volatility Index (CVOL™), a robust measure of 30-day implied volatility derived from deeply liquid options on Corn futures.';
-
-    // Format the last updated time
-    let formattedLastUpdated = 'N/A';
-    if (cvolData.transactTime) {
-      const lastUpdated = new Date(cvolData.transactTime);
-      formattedLastUpdated = `${lastUpdated.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-      })} ${lastUpdated.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZoneName: 'short',
-      })}`;
-    }
-
-    // Format the data display
+    
     const cvolDisplay = `
       <div class="cvol-data">
-        <div class="cvol-metrics">
-          <div class="metric">
-            <span class="label">CODE:</span>
-            <span class="value">${cvolData.symbol || 'CVL'}</span>
-          </div>
-          <div class="metric">
-            <span class="label">CVOL:</span>
-            <span class="value">${cvolData.cvolPrice || 'N/A'}</span>
-          </div>
-          <div class="metric">
-            <span class="label">CHANGE:</span>
-            <span class="value ${cvolData.cvolPriceChange && parseFloat(cvolData.cvolPriceChange) < 0 ? 'negative' : ''}">${cvolData.cvolPriceChange || 'N/A'}</span>
-          </div>
-        </div>
-        <div class="last-updated">
-          <span class="label">Last Updated:</span>
-          <span class="value">${formattedLastUpdated}</span>
+        <div class="cvol-value">${cvolData.cvolPrice || 'N/A'}</div>
+        <div class="cvol-change ${parseFloat(cvolData.cvolPriceChange || 0) >= 0 ? 'positive' : 'negative'}">
+          ${cvolData.cvolPriceChange || 'N/A'} (${cvolData.cvolPricePercentChange || 'N/A'})
         </div>
       </div>
     `;
+    
+    const cvolDescription = cvolData.description || 'Corn Volatility Index measures the market\'s expectation of 30-day volatility.';
 
     const cardsContent = [
       [
-        `<h3>${productName} CVOL Index</h3>`,
-        `<p>${cvolDescription}</p>`,
-        cvolDisplay,
+        `<h3>${productName} CVOL Index</h3>
+         <p>${cvolDescription}</p>
+         ${cvolDisplay}`
       ],
     ];
 
     const cardsBlock = buildBlock('cards', cardsContent);
-    if (!cardsBlock) {
-      return null;
-    }
-
-    // Add CVOL variant class
-    cardsBlock.classList.add(CARDS_VARIANTS.cvol);
+    cardsBlock.classList.add(CARDS_VARIANTS.cvol, 'api-backed');
+    cardsBlock.dataset.blockName = 'cards';
 
     return cardsBlock;
   } catch (error) {
-    // Cards block creation failed - return null silently
     return null;
   }
-}
-
-/**
- * Create shared content blocks (market recap, cvol, fragment)
- * @returns {Object} Object containing shared blocks
- */
-async function createSharedContent() {
-  // Fetch shared data
-  const reportsData = await fetchQuotesData();
-  const cvolData = await fetchCvolData();
-  const fragmentBlock = await createTabFragment();
-
-  // Create market recap cards
-  const cardsBlock = await createMarketRecapCards(reportsData);
-  if (cardsBlock) {
-    try {
-      decorateBlock(cardsBlock);
-      await loadBlock(cardsBlock);
-    } catch (error) {
-      // Cards decoration failed - continue without cards block
-    }
-  }
-
-  // Create CVOL cards
-  const cvolCards = await createCvolCards(cvolData);
-  if (cvolCards) {
-    try {
-      decorateBlock(cvolCards);
-      await loadBlock(cvolCards);
-    } catch (error) {
-      // CVOL cards decoration failed - continue without CVOL cards block
-    }
-  }
-
-  // Create QuikStrike attribution content
-  const quikStrikeAttribution = '<p>Recap provided by QuikStrike, access further market information <a href="https://www.cmegroup.com/tools-information/quikstrike.html">here</a>.</p>';
-
-  return {
-    cardsBlock,
-    quikStrikeAttribution,
-    cvolCards,
-    fragmentBlock,
-  };
 }
 
 /**
@@ -350,14 +224,7 @@ async function createFuturesMiddleContent() {
 
   // Create quotes table
   const quotesTable = await createQuotesTable(quotesTableData);
-  if (quotesTable) {
-    try {
-      decorateBlock(quotesTable);
-      await loadBlock(quotesTable);
-    } catch (error) {
-      // Table decoration failed - continue without table
-    }
-  }
+  // Note: decoration/loading moved to after DOM insertion
 
   // Create About this Report link
   const aboutReportLink = createModalLink(
@@ -371,6 +238,9 @@ async function createFuturesMiddleContent() {
   if (quotesTable) {
     middleBlocks.push(quotesTable);
     middleBlocks.push(aboutReportLink);
+  } else {
+    // Show error message if table creation fails
+    middleBlocks.push('<div class="no-results"><h4>Unable to load quotes table</h4></div>');
   }
 
   return middleBlocks;
@@ -404,7 +274,7 @@ async function createOptionsTable() {
 
     // Create table block manually (simple approach)
     const tableBlock = document.createElement('div');
-    tableBlock.classList.add('table', TABLE_CONSTANTS.variants.fixedRowHeader);
+    tableBlock.classList.add('table', TABLE_CONSTANTS.variants.fixedRowHeader, 'api-backed');
     tableBlock.dataset.blockName = 'table';
     tableBlock.id = QUOTES_TABLE_CONSTANTS.tableId.options;
 
@@ -432,7 +302,7 @@ async function createOptionsTable() {
     labelsData.forEach((item) => {
       const option = document.createElement('option');
       option.value = item.quoteCode;
-      option.textContent = item.expirationMonth;
+      option.textContent = `${item.expirationMonth} ${item.quoteCode}`;
       if (item.quoteCode === defaultQuoteCode) {
         option.selected = true;
       }
@@ -460,7 +330,7 @@ async function createOptionsTable() {
         quote.high || TABLE_CONSTANTS.placeholders.noData,
         quote.low || TABLE_CONSTANTS.placeholders.noData,
         TABLE_FORMATTERS.volume(quote.volume),
-        TABLE_FORMATTERS.timestamp(quote.updated),
+        TABLE_FORMATTERS.simpleTime(quote.updated),
       ];
 
       dataCells.forEach((cellData) => {
@@ -480,14 +350,6 @@ async function createOptionsTable() {
     table.appendChild(tbody);
     tableBlock.appendChild(table);
 
-    // Decorate and load
-    try {
-      decorateBlock(tableBlock);
-      await loadBlock(tableBlock);
-    } catch (error) {
-      // Continue if decoration fails
-    }
-
     return tableBlock;
   } catch (error) {
     return null;
@@ -502,111 +364,37 @@ async function createOptionsMiddleContent() {
   // Create the dynamic options table
   const optionsTable = await createOptionsTable();
 
-  // Decorate and load the table block (same as quotes table)
-  if (optionsTable) {
-    try {
-      decorateBlock(optionsTable);
-      await loadBlock(optionsTable);
-    } catch (error) {
-      // Table decoration failed - continue without table
-    }
-  }
+  // Note: decoration/loading moved to after DOM insertion
 
   const middleBlocks = [];
   if (optionsTable) {
     middleBlocks.push(optionsTable);
   } else {
-    // Fallback if table creation fails
-    const fallbackContent = `
-      <div class="options-placeholder" id="options-content-quotes">
-        <h3>Options Data</h3>
-        <p>Loading options data...</p>
-      </div>
-    `;
-    middleBlocks.push(fallbackContent);
+    // Simple error message if table creation fails
+    middleBlocks.push('<div class="no-results"><h4>Unable to load options table</h4></div>');
   }
 
   return middleBlocks;
 }
 
 /**
- * Create futures-specific content for quotes tab
- * @returns {Array} Array of blocks for futures content
+ * Create futures-specific middle content (only the unique parts)
+ * @returns {Array} Array of blocks for futures middle content
  */
 async function createFuturesContent() {
-  // Get shared content
-  const {
-    cardsBlock, quikStrikeAttribution, cvolCards, fragmentBlock,
-  } = await createSharedContent();
-
-  // Get futures-specific middle content
+  // Only return futures-specific middle content
   const futuresMiddleContent = await createFuturesMiddleContent();
-
-  // Create dynamic title using product metadata (will be updated by toggle)
-  const productName = getMetadata('product') || 'Product';
-  const titleContent = `<h2>${productName} Futures - Quotes</h2>`;
-
-  // Assemble blocks in order
-  const blocks = [];
-  blocks.push(titleContent);
-
-  if (cardsBlock) {
-    blocks.push(cardsBlock);
-    blocks.push(quikStrikeAttribution);
-  }
-
-  // Add futures-specific middle content
-  blocks.push(...futuresMiddleContent);
-
-  if (cvolCards) {
-    blocks.push(cvolCards);
-  }
-
-  if (fragmentBlock) {
-    blocks.push(fragmentBlock);
-  }
-
-  return blocks;
+  return futuresMiddleContent;
 }
 
 /**
- * Create options-specific content for quotes tab
- * @returns {Array} Array of blocks for options content
+ * Create options-specific middle content (only the unique parts)
+ * @returns {Array} Array of blocks for options middle content
  */
 async function createOptionsContent() {
-  // Get shared content (same as futures)
-  const {
-    cardsBlock, quikStrikeAttribution, cvolCards, fragmentBlock,
-  } = await createSharedContent();
-
-  // Get options-specific middle content
+  // Only return options-specific middle content
   const optionsMiddleContent = await createOptionsMiddleContent();
-
-  // Create dynamic title using product metadata (will be updated by toggle)
-  const productName = getMetadata('product') || 'Product';
-  const titleContent = `<h2>${productName} Options - Quotes</h2>`;
-
-  // Assemble blocks in same order as futures
-  const blocks = [];
-  blocks.push(titleContent);
-
-  if (cardsBlock) {
-    blocks.push(cardsBlock);
-    blocks.push(quikStrikeAttribution);
-  }
-
-  // Add options-specific middle content
-  blocks.push(...optionsMiddleContent);
-
-  if (cvolCards) {
-    blocks.push(cvolCards);
-  }
-
-  if (fragmentBlock) {
-    blocks.push(fragmentBlock);
-  }
-
-  return blocks;
+  return optionsMiddleContent;
 }
 
 /**
@@ -641,7 +429,7 @@ async function updateOptionsTableData(quoteCode) {
       cells[5].innerHTML = quote.high || '-';
       cells[6].innerHTML = quote.low || '-';
       cells[7].innerHTML = parseInt(quote.volume || '0', 10).toLocaleString();
-      cells[8].innerHTML = TABLE_FORMATTERS.timestamp(quote.updated);
+      cells[8].innerHTML = TABLE_FORMATTERS.simpleTime(quote.updated);
     }
   } catch (error) {
     // Silent error handling
@@ -666,21 +454,7 @@ function handleQuotesOptionSelection() {
     if (optionsContent) {
       optionsContent.innerHTML = `
         <h3>${label}</h3>
-        <p>Product ID: ${productId}</p>
-        <div class="options-data-container">
-          <p>Loading ${label} data...</p>
-          <div class="loading-indicator">
-            <p>Options chain and pricing data for <strong>${label}</strong> will be displayed here.</p>
-            <p>This section will dynamically load:</p>
-            <ul>
-              <li>Strike prices and expiration dates</li>
-              <li>Current bid/ask prices</li>
-              <li>Volume and open interest</li>
-              <li>Implied volatility data</li>
-            </ul>
-            <p><em>Note: Market recap cards and CVOL data remain consistent across all option types.</em></p>
-          </div>
-        </div>
+        <div class="no-results"><h4>Unable to load options data</h4></div>
       `;
     }
 
@@ -706,19 +480,78 @@ function handleQuotesOptionSelection() {
  * @returns {Array} Array of blocks to include in the quotes tab
  */
 async function createQuotesContent() {
-  // Create both futures and options content with shared template structure
-  const futuresBlocks = await createFuturesContent();
-  const optionsBlocks = await createOptionsContent();
+  const allBlocks = [];
 
-  // Create a container for toggle content
-  const toggleContentContainer = organizeToggleContent({
-    futuresBlocks,
-    optionsBlocks,
-    defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
-    tabId: 'quotes',
+  // Create each block completely independently - if one fails, others still load
+  const blockCreators = [
+    // Market recap cards
+    async () => {
+      return await createBlockWithErrorHandling(
+        async () => {
+          const reportsData = await fetchQuotesData();
+          return await createMarketRecapCards(reportsData);
+        },
+        'market recap'
+      );
+    },
+
+    // QuikStrike attribution
+    async () => {
+      try {
+        return '<p>Recap provided by QuikStrike, access further market information <a href="https://www.cmegroup.com/tools-information/quikstrike.html">here</a>.</p>';
+      } catch (error) {
+        return null;
+      }
+    },
+
+    // Tables and toggle system
+    async () => {
+      try {
+        const futuresBlocks = await createFuturesContent();
+        const optionsBlocks = await createOptionsContent();
+        return organizeToggleContent({
+          futuresBlocks,
+          optionsBlocks,
+          defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
+          tabId: 'quotes',
+        });
+      } catch (error) {
+        return '<div class="no-results"><h4>Unable to load toggle system</h4></div>';
+      }
+    },
+
+    // CVOL cards
+    async () => {
+      return await createBlockWithErrorHandling(
+        async () => {
+          const cvolData = await fetchCvolData();
+          return await createCvolCards(cvolData);
+        },
+        'CVOL data'
+      );
+    },
+
+    // Fragment
+    async () => {
+      try {
+        return await createTabFragment();
+      } catch (error) {
+        return null; // Silent fail
+      }
+    },
+  ];
+
+  // Load all blocks independently - failed blocks don't block successful ones
+  const results = await Promise.allSettled(blockCreators.map(creator => creator()));
+  
+  // Add only successful blocks to the tab
+  results.forEach((result, index) => {
+    if (result.status === 'fulfilled' && result.value) {
+      allBlocks.push(result.value);
+    }
   });
 
-  return toggleContentContainer;
+  return allBlocks;
 }
 
 /**
@@ -729,6 +562,9 @@ export default async function buildQuotesTab() {
   // Initialize option selection handler for this tab
   handleQuotesOptionSelection();
 
+  // Get blocks - each block loads independently, failures don't block others
   const blocks = await createQuotesContent();
+
+  // Always return a section with whatever blocks succeeded
   return createTabSection('quotes', 'Quotes', blocks);
 }
