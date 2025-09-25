@@ -26,6 +26,7 @@ function addResultsButton(
   state,
   type,
   showIndicatorsViaReviewMode,
+  redoQuizLabel,
 ) {
   if (!navigation) return;
 
@@ -73,6 +74,7 @@ function addResultsButton(
           progressBar,
           navigation,
           showIndicatorsViaReviewMode,
+          redoQuizLabel,
         );
       }
     });
@@ -165,6 +167,7 @@ async function renderTestResult(
   navigation,
   testPercentage,
   showIndicatorsViaReviewMode,
+  redoQuizLabel,
 ) {
   block.classList.add('in-test-results');
   block.classList.remove('in-review');
@@ -202,7 +205,7 @@ async function renderTestResult(
     i18n('You did not pass'),
     i18n('Next Lesson'),
     i18n('Review your Answers'),
-    i18n('Redo the Test'),
+    i18n('Redo Test'),
   ]);
 
   const progressWrapper = div({ class: `progress-bar-wrapper ${passed ? 'passed' : 'failed'}` });
@@ -232,7 +235,7 @@ async function renderTestResult(
       linksPara.appendChild(reviewLink);
       if (!passed) {
         linksPara.appendChild(document.createTextNode(' or '));
-        linksPara.appendChild(a({ role: 'button', tabindex: '0', class: 'redo-quiz' }, redoLabel));
+        linksPara.appendChild(a({ role: 'button', tabindex: '0', class: 'redo-quiz' }, redoQuizLabel || redoLabel));
       }
       return linksPara;
     })(),
@@ -301,21 +304,23 @@ async function renderTestResult(
         && selectedIndexes.every((i) => correctIndexes.includes(i));
 
       if (!isExactlyCorrect && questionsMeta[qIndex].questionSnippet) {
-        const snippetDiv = div(
-          { class: 'question-snippet' },
-          span({ class: 'option-icon' }),
-          span({ class: 'option-text' }, questionsMeta[qIndex].questionSnippet),
-        );
+        if (!questionDiv.querySelector('.question-snippet')) {
+          const snippetDiv = div(
+            { class: 'question-snippet' },
+            span({ class: 'option-icon' }),
+            span({ class: 'option-text' }, questionsMeta[qIndex].questionSnippet),
+          );
 
-        const selectInstruction = questionDiv.querySelector('.select-instruction');
-        if (selectInstruction) {
-          selectInstruction.insertAdjacentElement('afterend', snippetDiv);
-        } else {
-          const optionsWrapper = questionDiv.querySelector('.options-wrapper');
-          if (optionsWrapper) {
-            optionsWrapper.insertBefore(snippetDiv, optionsWrapper.firstChild);
+          const selectInstruction = questionDiv.querySelector('.select-instruction');
+          if (selectInstruction) {
+            selectInstruction.insertAdjacentElement('afterend', snippetDiv);
           } else {
-            questionDiv.appendChild(snippetDiv);
+            const optionsWrapper = questionDiv.querySelector('.options-wrapper');
+            if (optionsWrapper) {
+              optionsWrapper.insertBefore(snippetDiv, optionsWrapper.firstChild);
+            } else {
+              questionDiv.appendChild(snippetDiv);
+            }
           }
         }
       }
@@ -331,7 +336,7 @@ async function renderTestResult(
     const firstLink = block.querySelector('.review-questions .question-link');
     if (firstLink) firstLink.classList.add('selected');
 
-    await addResultsButton(block, questionsWrapper, progressBar, navigation, questionsMeta, state, 'test', showIndicatorsViaReviewMode);
+    await addResultsButton(block, questionsWrapper, progressBar, navigation, questionsMeta, state, 'test', showIndicatorsViaReviewMode, redoQuizLabel);
   });
 }
 
@@ -579,6 +584,7 @@ export function attachFinishClick(
   completeMessage,
   testPercentage,
   showIndicatorsViaReviewMode,
+  redoQuizLabel,
   markQuizCompletedFn,
 ) {
   nav.finish.addEventListener('click', async () => {
@@ -594,6 +600,7 @@ export function attachFinishClick(
         completeMessage,
         testPercentage,
         showIndicatorsViaReviewMode,
+        redoQuizLabel,
       );
     }
   });
@@ -606,6 +613,7 @@ export async function markQuizCompletedAdvanced(
   state,
   testPercentage,
   showIndicatorsViaReviewMode,
+  redoQuizLabel,
 ) {
   state.quizCompleted = true;
   const questionsWrapper = block.querySelector('.questions-wrapper');
@@ -631,6 +639,7 @@ export async function markQuizCompletedAdvanced(
       navigation,
       testPercentage,
       showIndicatorsViaReviewMode,
+      redoQuizLabel,
     );
   }
 }

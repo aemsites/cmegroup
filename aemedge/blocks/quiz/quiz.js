@@ -207,6 +207,7 @@ async function addNavigation(
   completeMessage,
   testPercentage,
   showIndicatorsViaReviewMode,
+  redoQuizLabel,
 ) {
   const [finishLabel] = await Promise.all([i18n('Finish')]);
   const prev = button(
@@ -267,6 +268,7 @@ async function addNavigation(
       completeMessage,
       testPercentage,
       showIndicatorsViaReviewMode,
+      redoQuizLabel,
       markQuizCompleted,
     );
   }
@@ -287,6 +289,7 @@ async function markQuizCompleted(
   completeMessage,
   testPercentage,
   showIndicatorsViaReviewMode,
+  redoQuizLabel,
 ) {
   if (type === 'activity' || type === 'test') {
     await markQuizCompletedAdvanced(
@@ -296,6 +299,7 @@ async function markQuizCompleted(
       testState,
       testPercentage,
       showIndicatorsViaReviewMode,
+      redoQuizLabel,
     );
     return;
   }
@@ -332,6 +336,7 @@ export default async function decorate(block) {
     testPercentage = 70,
     randomizeOrder = 'false',
     showIndicatorsViaReviewMode = 'false',
+    redoQuizLabel,
   } = readBlockConfig(block, true);
   let type = 'traditional';
   if (block.classList.contains('activity')) {
@@ -371,6 +376,7 @@ export default async function decorate(block) {
       completeMessage,
       testPercentage,
       showIndicatorsViaReviewMode,
+      redoQuizLabel,
     );
   }
 
