@@ -421,6 +421,8 @@ function getArticleTypeConfig(block) {
           firstSlide.style.backgroundImage = `url('${firstSlide.dataset.image}')`;
           if (windowWidth >= 993) {
             firstSlide.style.width = '401px';
+            const track = el.querySelector('.glider-track');
+            track.style.width = `${track.offsetWidth + 77}px`;
           }
         }
       },
