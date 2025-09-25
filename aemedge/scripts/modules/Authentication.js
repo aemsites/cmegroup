@@ -1,7 +1,7 @@
 import {
   URIUtil,
   openHiddenIframe,
-  getEnvType,
+  // getEnvType,
   urlByEnvType,
   isCMEEnv,
 } from '../utils/index.js';
@@ -55,13 +55,16 @@ export class Authentication {
 
   initialize() {
     const loginProcessUrl = `${window.location.origin}/login-confirmed${isCMEEnv() ? '.html' : ''}`;
-    this.loginUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${loginProcessUrl}`;
-    this.registerUrl = `https://login${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/sso/register/`;
-    this.logoutProfileUrl = `https://myprofile${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/admin/ssoflo`;
+    // ToDo: the following urls must be updated before going live
+    this.loginUrl = `http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${loginProcessUrl}`;
+    this.registerUrl = 'https://loginnr.cmegroup.com/sso/register/';
+    this.logoutProfileUrl = 'https://myprofilenr.cmegroup.com/admin/ssoflo';
+    // this.loginUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${loginProcessUrl}`;
+    // this.registerUrl = `https://login${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/sso/register/`;
+    // this.logoutProfileUrl = `https://myprofile${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/admin/ssoflo`;
     this.isMobileLogin = false;
     this.schemaForMobile = '';
     this.isProtectedPage = false;
-    this.authorMode = false;
     return true;
   }
 
@@ -83,8 +86,7 @@ export class Authentication {
     }`;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  setRedirectionCookie(flow, location) {
+  static setRedirectionCookie(flow, location) {
     // remove cookie after 30 minutes of creation to prevent users hitting login svc over and over
     const expires = new Date();
     expires.setMinutes(expires.getMinutes() + 30);
@@ -152,16 +154,26 @@ export class Authentication {
     if (!Object.keys(cookiesData).length) {
       return;
     }
+    const { secureFgp, userinfo } = cookiesData;
+    const { userId, token } = userinfo;
+    const cookies = {
+      '__Secure-Fgp': secureFgp,
+      userId,
+      cmeToken: token,
+      userinfo,
+    };
     const expires = new Date();
     expires.setDate(expires.getDate() + 180);
-    Object.entries(cookiesData).forEach(([key, value]) => {
+    Object.entries(cookies).forEach(([key, value]) => {
       window.CookieUtil?.set(key, value, {
         secure: true,
         sameSite: 'None',
         expires,
       });
     });
-    await transferCookies(urlByEnvType(), cookiesData);
+    if (window.location.origin !== urlByEnvType()) {
+      await transferCookies(urlByEnvType(), cookies);
+    }
   }
 
   static async expireLoginCookies() {
@@ -170,7 +182,9 @@ export class Authentication {
       secure: true,
       sameSite: 'None',
     }));
-    await deleteCookies(urlByEnvType(), cookies);
+    if (window.location.origin !== urlByEnvType()) {
+      await deleteCookies(urlByEnvType(), cookies);
+    }
     return !Authentication.getLoginCookie('userinfo');
   }
 
@@ -199,33 +213,33 @@ export class Authentication {
     window.CookieUtil?.remove('authAction');
   }
 
-  checkRedirection() {
-    const redirectionCookie = Authentication.getRedirectionCookie();
-    if (redirectionCookie) {
-      Authentication.expireRedirectionCookie();
-      let newLocation = redirectionCookie.location;
-      const redirectionFlow = redirectionCookie.flow;
-      if (newLocation.charAt(0) === '/' && newLocation.charAt(1) === '/') {
-        newLocation = newLocation.substring(1, newLocation.length);
-      }
-      Authentication.setAuthActionCookie(redirectionFlow);
-      // only redirect if url have changed...
-      if (Authentication.getCurrentLocation() !== newLocation) {
-        if (
-          ((redirectionFlow === 'login'
-            || redirectionFlow === 'registration')
-            && this.authenticationData.isLoggedIn)
-            || (redirectionFlow === 'logout' && !this.authenticationData.isLoggedIn)
-        ) {
-          window.location.replace(newLocation);
-          return true;
-        }
-      } else {
-        this.callHandlers(`${redirectionFlow}_redirection`);
-        Authentication.expireAuthActionCookie();
-      }
+  checkRedirection(redirectionCookie = Authentication.getRedirectionCookie()) {
+    if (!redirectionCookie) {
+      return false;
     }
-    return false;
+    Authentication.expireRedirectionCookie();
+    let newLocation = redirectionCookie.location;
+    const redirectionFlow = redirectionCookie.flow;
+    if (newLocation.charAt(0) === '/' && newLocation.charAt(1) === '/') {
+      newLocation = newLocation.substring(1, newLocation.length);
+    }
+    Authentication.setAuthActionCookie(redirectionFlow);
+    // only redirect if url have changed...
+    if (Authentication.getCurrentLocation() !== newLocation) {
+      if (
+        ((redirectionFlow === 'login'
+          || redirectionFlow === 'registration')
+          && this.authenticationData.isLoggedIn)
+          || (redirectionFlow === 'logout' && !this.authenticationData.isLoggedIn)
+      ) {
+        window.location.replace(newLocation);
+        return true;
+      }
+    } else {
+      this.callHandlers(`${redirectionFlow}_redirection`);
+      Authentication.expireAuthActionCookie();
+    }
+    return true;
   }
 
   login = (
@@ -234,7 +248,7 @@ export class Authentication {
     targetDescription = '',
   ) => {
     if (this.loginUrl.length) {
-      this.setRedirectionCookie('login', targetLocation);
+      Authentication.setRedirectionCookie('login', targetLocation);
       // call handlers
       this.callHandlers('login');
       this.uriUtil.href(this.loginUrl);
@@ -261,7 +275,7 @@ export class Authentication {
     noActivationPrompt = false,
   ) => {
     if (this.registerUrl.length) {
-      this.setRedirectionCookie('registration', targetLocation);
+      Authentication.setRedirectionCookie('registration', targetLocation);
       // call handlers
       this.callHandlers('registration');
       this.uriUtil.href(this.registerUrl);
@@ -293,7 +307,7 @@ export class Authentication {
     window.LocalStorageUtil?.remove('ali');
     window.LocalStorageUtil?.remove('userInfo');
     if (!this.isProtectedPage) {
-      this.setRedirectionCookie('logout');
+      Authentication.setRedirectionCookie('logout');
     }
     await Authentication.expireLoginCookies();
     Authentication.expireLoginUrlSfCookie();
@@ -350,7 +364,7 @@ export class Authentication {
     );
   }
 
-  async processUserData(user) {
+  async processUserData(user = {}) {
     const guidPattern = /ur\d+/gi;
     //  salesforce userdata
     await this.processSalesforceData(user);
@@ -405,63 +419,39 @@ export class Authentication {
       fgp: _fgp,
       userinfo: _userinfo,
     } = Authentication.getLoginCookies();
-    const data = await getIsLoggedIn({
-      secureFgp: _fgp,
-      userId: _userId,
-      cmeToken: _cmeToken,
-    });
-    if (data) {
-      this.authenticationData.isLoggedIn = data.isLoggedIn;
-      const redirectionCookie = Authentication.getRedirectionCookie();
-      if (this.authenticationData.isLoggedIn) {
-        this.processUserData(_userinfo || {});
-      } else if (redirectionCookie || this.authorMode) {
-        if (!this.authorMode && redirectionCookie.flow === 'logout') {
-          this.resolveLoginPromise();
-          this.checkRedirection();
-        } else {
-          const xAuthToken = this.uriUtil.getQuery('X-Auth-Token');
-          if (xAuthToken) {
-            const user = await getLoginData(xAuthToken);
-            if (user) {
-              const {
-                secureFgp,
-                cmeToken,
-                userId,
-                userData,
-              } = user;
-              const fgp = secureFgp.match(/__Secure-Fgp=([^;]+)/)[1];
-              if (userId) {
-                const cookiesData = {
-                  userId,
-                  cmeToken,
-                  userinfo: {
-                    ...userData,
-                    userId: `${userData.userId}`,
-                  },
-                  '__Secure-Fgp': fgp,
-                };
-                await Authentication.setLoginCookies(cookiesData);
-                this.authenticationData.isLoggedIn = true;
-                this.processUserData(userData);
-                this.checkRedirection();
-              } else {
-                // if user doesn't login in saml...
-                this.resolveLoginPromise();
-              }
-            } else {
-              this.resolveLoginPromise();
-            }
-          } else {
-            this.resolveLoginPromise();
-          }
-        }
-      } else {
-        this.resolveLoginPromise();
-      }
-    } else {
-      this.resolveLoginPromise();
+    let isLoggedIn = false;
+    if (_cmeToken && _userId) {
+      ({ isLoggedIn } = await getIsLoggedIn({
+        secureFgp: _fgp,
+        userId: _userId,
+        cmeToken: _cmeToken,
+      }));
     }
+    this.authenticationData.isLoggedIn = isLoggedIn;
+    if (isLoggedIn) {
+      this.processUserData(_userinfo);
+    } else {
+      const redirectionCookie = Authentication.getRedirectionCookie();
+      const xAuthToken = this.uriUtil.getQuery('X-Auth-Token');
+      if (!redirectionCookie || !xAuthToken) {
+        this.resolveLoginPromise();
+        return false;
+      }
+      if (redirectionCookie?.flow === 'logout') {
+        this.resolveLoginPromise();
+        this.checkRedirection(redirectionCookie);
+      }
+      const user = await getLoginData(xAuthToken);
+      if (!user?.userinfo?.userId) {
+        this.resolveLoginPromise();
+        return false;
+      }
+      await Authentication.setLoginCookies(user);
+      this.authenticationData.isLoggedIn = true;
+      this.processUserData(user.userinfo);
+      this.checkRedirection(redirectionCookie);
+    }
+    return true;
   }
 
   static setDataLayer(

@@ -19,6 +19,7 @@ import {
   legacyArticleTemplates,
   mapLegacyArticleData,
   isLegacyContent,
+  legacyOpenMarketsTemplates,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 
@@ -154,12 +155,22 @@ async function createStaticCards(block) {
     }
   } else {
     const ul = document.createElement('ul');
+    const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
     [...block.children].forEach((row) => {
       const li = document.createElement('li');
       while (row.firstElementChild) li.append(row.firstElementChild);
       [...li.children].forEach((div) => {
         if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
         else div.className = 'cards-card-body';
+        if (textClass) {
+          const paragraphs = div.querySelectorAll('p');
+          paragraphs.forEach((p) => {
+            p.classList.add(textClass);
+          });
+        }
+        if (!div.hasChildNodes()) {
+          div.parentElement.classList.add('empty-card');
+        }
       });
       ul.append(li);
     });
@@ -270,6 +281,28 @@ function createDynamicCardUpcomingEvent(content) {
   return createElement('li', null, link);
 }
 
+function simpleDynamicCard(content) {
+  const curatedContent = isLegacyContent(content) ? mapLegacyArticleData(content) : content;
+  const {
+    path,
+    title,
+    metadata: {
+      'sub-template': subTemplates,
+      image,
+    },
+  } = curatedContent;
+  const cardTitle = createElement('h3');
+  cardTitle.innerHTML = title;
+  const mainContainer = createElement('div', { class: 'cards-body-container' }, cardTitle);
+  const img = createElement('img', { src: image });
+  const imageContainer = createElement('div', { class: 'cards-image-container' }, img);
+  const linkEl = createElement('a', { href: path }, imageContainer, mainContainer);
+  if (subTemplates.includes('video')) {
+    linkEl.classList.add('video-card');
+  }
+  return createElement('li', null, linkEl);
+}
+
 function createSpinner() {
   const spinner = createElement('div', { class: 'spinner-cards' });
   spinner.innerHTML = `
@@ -356,6 +389,40 @@ export async function createDynamicCards(block) {
       };
     }
     disabledOnDesktop = true;
+  } else if (block.classList.contains('openmarkets')) {
+    const indexFilter = buildIndexFilter(config);
+    indexFilter.templates = legacyOpenMarketsTemplates;
+    if (!indexFilter.basePaths || indexFilter.basePaths.length === 0) {
+      indexFilter.basePaths = ['/content/openmarkets'];
+    }
+    if (!indexFilter.limit) {
+      indexFilter.limit = 2;
+    }
+    indexFilter.orderBy = 'date';
+    indexFilter.sortDirection = 'desc';
+    [filteredData] = await Promise.all([
+      getIndexedContent(indexFilter),
+    ]);
+    cardElements = await Promise.all(filteredData.map(simpleDynamicCard));
+    sliderConfig = {
+      slidesToShow: 'auto',
+      slidesToScroll: 1,
+      scrollLock: false,
+      itemWidth: 255,
+      exactWidth: true,
+      draggable: true,
+      duration: 2,
+      responsive: [
+        {
+          breakpoint: 481,
+          settings: {
+            itemWidth: 426,
+          },
+        },
+      ],
+    };
+    disabledOnDesktop = true;
+    inverse = true;
   } else if (block.classList.contains('upcoming-events')) {
     if (block.classList.contains('econoday-events')) {
       [filteredData] = await Promise.all([

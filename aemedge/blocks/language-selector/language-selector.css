@@ -97,6 +97,10 @@
           & li {
               list-style-type: none;
               margin-bottom: 0;
+
+              &:hover {
+                background-color: var(--blue6);
+              }
   
               & a {
                   cursor: pointer;
