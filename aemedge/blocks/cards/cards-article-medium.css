@@ -65,7 +65,7 @@
                 letter-spacing: .03rem;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                line-clamp: 2;
+                line-clamp: 3;
                 display: -webkit-box;
                 -webkit-line-clamp: 3;
                 -webkit-box-orient: vertical;
@@ -84,7 +84,7 @@
                 text-decoration: none;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                line-clamp: 2;
+                line-clamp: 3;
                 display: -webkit-box;
                 -webkit-line-clamp: 3;
                 -webkit-box-orient: vertical;
@@ -168,6 +168,26 @@
               & h3,
               & .cards-description {
                 color: var(--white);
+              }
+
+              & h3 {
+                line-clamp: 4;
+                -webkit-line-clamp: 4;
+
+                @media (width >= 993px) {
+                  font-size: 1.5rem;
+                  line-height: 1.875rem;
+                }
+              }
+
+              & .cards-description {
+                line-clamp: 5;
+                -webkit-line-clamp: 5;
+
+                @media (width >= 993px) {
+                  font-size: 1rem;
+                  line-height: 1.5rem;
+                }
               }
             }
 
