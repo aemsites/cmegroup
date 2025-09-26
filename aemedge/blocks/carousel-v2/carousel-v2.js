@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { generateRandomId, createElement } from '../../scripts/utils.js';
 
-/* Helper Functions */
+/* Helper Functions (keeping original helper functions for context) */
 function debounce(fn, delay = 250) {
   let timer;
   // eslint-disable-next-line func-names
@@ -150,6 +150,10 @@ const SliderPlugin = (function () {
       if (this.settings.showDots) {
         this.mountDots();
       }
+
+      this.setDynamicHeight();
+      this.slide();
+
       this.sliderInner.addEventListener(mouseTouch(), this.swipeStart);
       window.addEventListener('resize', debounce(this.resizeSlider, 250));
     }
@@ -168,11 +172,36 @@ const SliderPlugin = (function () {
 
       if (this.settings.isVertical) {
         this.elem.classList.add('is-vertical');
-        this.sliderInner.style.height = `calc(${slidesTotal * 100}% + ${slidesTotal * gap}px)`;
-        this.sliderInner.style.top = `calc(-100% - ${gap}px)`;
       } else {
         this.sliderInner.style.width = `calc(${slidesTotal * 100}% + ${slidesTotal * gap}px)`;
-        this.sliderInner.style.left = `calc(-100% - ${gap}px)`;
+        // The initial transform is applied here, but slide() will re-apply it based on activeSlide
+        this.sliderInner.style.transform = `translateX(calc(-100% - ${gap}px))`;
+      }
+    }
+
+    setDynamicHeight() {
+      if (this.settings.isVertical) return;
+
+      // Get the active slide index, accounting for infinite loop clones(index 0 & last index)
+      const activeSlideIndex = this.state.activeSlide;
+      const currentSlide = this.slides[activeSlideIndex];
+
+      if (!currentSlide) return;
+
+      // Apply height to the carousel container parent
+      const carouselContainer = $('.carousel-container', this.elem.parentNode);
+
+      // Use offsetHeight (including padding/border) to get the rendered height of the slide content
+      const contentHeight = currentSlide.offsetHeight;
+
+      if (carouselContainer) {
+        carouselContainer.style.height = `${contentHeight}px`;
+      }
+
+      // Also apply to the slider element to contain other positioned elements like arrows/dots
+      const sliderElement = $('.slider', this.elem.parentNode);
+      if (sliderElement) {
+        sliderElement.style.height = `${contentHeight}px`;
       }
     }
 
@@ -225,17 +254,25 @@ const SliderPlugin = (function () {
 
     slide(movePos = 0) {
       const { isVertical } = this.settings;
+
+      if (this.slides.length === 0) return;
+
       const slideLength = isVertical ? this.slides[0].offsetHeight : this.slides[0].offsetWidth;
       const gap = 20;
-      const endPos = (this.state.activeSlide * -slideLength) - (this.state.activeSlide * gap);
-      const axis = isVertical ? 'top' : 'left';
+
+      const endPos = (this.state.activeSlide * slideLength) + (this.state.activeSlide * gap);
+      const axis = isVertical ? 'Y' : 'X';
+
       if (!this.state.skipTransition) {
         this.sliderInner.classList.remove('no-transition');
       } else {
         this.sliderInner.classList.add('no-transition');
         this.setState({ skipTransition: false });
       }
-      this.sliderInner.style[axis] = `${endPos + movePos}px`;
+
+      this.sliderInner.style.transform = `translate${axis}(${-(endPos - movePos)}px)`;
+
+      this.setDynamicHeight();
     }
 
     swipeStart(e) {
@@ -270,6 +307,7 @@ const SliderPlugin = (function () {
       const { startX, startY, swipeDirection } = this.state;
       const deltaX = touch.pageX - startX;
       const deltaY = touch.pageY - startY;
+      const { isVertical } = this.settings;
 
       if (!swipeDirection) {
         this.setState({
@@ -277,9 +315,23 @@ const SliderPlugin = (function () {
         });
       }
 
+      const currentTransform = window.getComputedStyle(this.sliderInner).transform;
+      // Extract the current translate value(e.g. -100px from matrix(...) or translate(..., -100px))
+      const matrixMatch = currentTransform.match(/matrix\(([^,]+), ([^,]+), ([^,]+), ([^,]+), ([^,]+), ([^,]+)\)/);
+      let currentTranslation = 0;
+      if (matrixMatch) {
+        currentTranslation = isVertical ? parseFloat(matrixMatch[6]) : parseFloat(matrixMatch[5]);
+      } else {
+        // Fallback for browsers that report translate()
+        const translateMatch = currentTransform.match(/translate(X|Y)\(([^)]+)/);
+        if (translateMatch) {
+          currentTranslation = parseFloat(translateMatch[2].replace('px', ''));
+        }
+      }
+
       if (this.state.swipeDirection === 'horizontal') {
         e.preventDefault();
-        this.slide(deltaX);
+        this.sliderInner.style.transform = `translateX(${currentTranslation + deltaX}px)`;
       }
     }
 
@@ -304,7 +356,11 @@ const SliderPlugin = (function () {
       }
 
       this.setState({
-        startX: null, startY: null, startTime: null, isAnimating: false, swipeDirection: null,
+        startX: null,
+        startY: null,
+        startTime: null,
+        isAnimating: false,
+        swipeDirection: null,
       });
 
       window.removeEventListener('mousemove', this.swipeMove);
@@ -315,6 +371,7 @@ const SliderPlugin = (function () {
 
     resizeSlider(e) {
       this.slide();
+      this.setDynamicHeight();
     }
 
     setActiveSlide(index) {
@@ -358,6 +415,57 @@ function createSlide(row, slideIndex, carouselId) {
   return slide;
 }
 
+function createSpinner() {
+  const spinner = createElement('div', { class: 'carousel-spinner' });
+  return spinner;
+}
+
+function waitForImagesToLoad(container) {
+  const images = container.querySelectorAll('img');
+  if (images.length === 0) {
+    return Promise.resolve();
+  }
+  const imagePromises = Array.from(images).map((img) => new Promise((resolve) => {
+    // A single handler for both load and error events, which resolves the promise.
+    const resolveHandler = () => {
+      img.removeEventListener('load', resolveHandler);
+      img.removeEventListener('error', resolveHandler);
+      resolve();
+    };
+
+    // 1. Attach listeners FIRST.
+    img.addEventListener('load', resolveHandler);
+    img.addEventListener('error', resolveHandler);
+
+    setTimeout(() => {
+      // 2. Check for completion or broken state.
+      if (img.complete) {
+        // If 'complete' but broken (no natural dimensions),
+        // OR if 'complete' and successfully loaded (natural dimensions exist),
+        // we must force the browser to re-evaluate to fire the event
+        // or manually resolve the promise.
+        if (img.naturalHeight !== 0) {
+          // Image successfully loaded from cache. Manually resolve.
+          resolveHandler();
+        } else if (img.src) {
+          // Image is complete but dimensions are zero (broken or incomplete cache).
+          // Temporarily blank the src and restore it to force a reliable re-trigger of load/error.
+          const currentSrc = img.src;
+          img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // 1x1 transparent gif
+          img.src = currentSrc;
+        } else {
+          // Edge case: complete but no src (not possible in standard use, but safe fallback)
+          resolveHandler();
+        }
+      }
+    }, 0);
+
+    // For images that were not complete, the attached listeners (step 1) will handle resolution.
+  }));
+
+  return Promise.all(imagePromises);
+}
+
 export default async function decorate(block) {
   const carouselId = generateRandomId();
   block.setAttribute('id', `carousel-${carouselId}`);
@@ -366,6 +474,10 @@ export default async function decorate(block) {
 
   block.setAttribute('role', 'region');
   block.setAttribute('aria-roledescription', 'Carousel');
+
+  block.classList.add('carousel-loading');
+  const spinner = createSpinner();
+  block.prepend(spinner);
 
   const container = createElement('div', { class: 'carousel-container' });
   const slider = createElement('div', { class: 'slider' });
@@ -378,11 +490,22 @@ export default async function decorate(block) {
     row.remove();
   });
 
+  const placeholderImg = slidesList.querySelector('.slider__slide');
+  placeholderImg.classList.add('placeholder');
+
   slider.append(slidesList);
   container.append(slider);
   block.prepend(container);
+  block.prepend(placeholderImg);
 
-  if (!isSingleSlide) {
-    const sliderComponent = new SliderPlugin({ id: `slider-${carouselId}` });
-  }
+  waitForImagesToLoad(slidesList).then(() => {
+    spinner.remove();
+    block.classList.remove('carousel-loading');
+    block.querySelector('.slider__slide.placeholder').remove();
+
+    if (!isSingleSlide) {
+      // eslint-disable-next-line no-new
+      const sliderComponent = new SliderPlugin({ id: `slider-${carouselId}` });
+    }
+  });
 }
