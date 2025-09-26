@@ -56,6 +56,12 @@
         letter-spacing: normal;
         line-height: 1.5rem;
         padding: 0;
+
+        &:hover {
+          background-position: 0;
+          text-decoration: underline !important;
+          color: var(--blue4);
+        }
       }
     }
   }
