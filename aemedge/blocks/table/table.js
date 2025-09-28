@@ -143,9 +143,15 @@ export default async function decorate(block) {
 
   const styleMatrix = populateStyleMatrix(data, [...block.classList], header);
 
+  const maxRowspan = header && data.children.length > 0
+    ? Math.max(...[...data.children[0].children].map((cell) => parseInt(cell.getAttribute('rowspan') || 1, 10)))
+    : 1;
+
   [...data.children].forEach((child, i) => {
     const row = document.createElement('tr');
-    if (header && i === 0) {
+    const isHeaderRow = header && i < maxRowspan;
+
+    if (isHeaderRow) {
       thead.append(row);
     } else {
       tbody.append(row);
@@ -163,7 +169,7 @@ export default async function decorate(block) {
       const colspan = parseInt(col.getAttribute('colspan') || 1, 10);
       const rowspan = parseInt(col.getAttribute('rowspan') || 1, 10);
 
-      const cell = buildCell(colspan, rowspan, i === 0 && header);
+      const cell = buildCell(colspan, rowspan, isHeaderRow);
       cell.innerHTML = col.innerHTML === '[empty-cell]' ? '&nbsp;' : col.innerHTML || '&nbsp;';
       const inlineStyleCellMatch = cell.textContent.match(/\[(.*?)\]/);
 
