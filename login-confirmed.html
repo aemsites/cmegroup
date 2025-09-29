@@ -28,7 +28,7 @@
         line-height: 1.5rem;
         margin-top: 3rem;
 
-        .lds-ring {
+        & .lds-ring {
           display: inline-block;
           position: relative;
           width: 4rem;
@@ -64,6 +64,11 @@
           & + p {
             margin: 0;
           }
+        }
+
+        & iframe {
+          border: 0;
+          pointer-events: none;
         }
       }
 
