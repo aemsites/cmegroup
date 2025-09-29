@@ -411,6 +411,7 @@ function buildSlider(
   disableOnDesktop = false,
   inverse = false,
   responsiveSlider = false,
+  refreshCallback = null,
 ) {
   if (!sliderPromise) {
     sliderPromise = loadScript('/aemedge/scripts/third-party/glider/glider.min.js');
@@ -448,6 +449,12 @@ function buildSlider(
         }
         // eslint-disable-next-line no-new, no-undef
         gliderInstance = new Glider(currentEl, config);
+        if (refreshCallback) {
+          gliderInstance.ele.addEventListener('glider-refresh', () => {
+            refreshCallback(gliderInstance.ele);
+          });
+          refreshCallback(gliderInstance.ele);
+        }
       }
     };
 
