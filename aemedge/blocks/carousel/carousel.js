@@ -224,8 +224,8 @@ const SliderPlugin = (function () {
     }
 
     mountArrows() {
-      const arrowNext = createNode('button', { className: 'slider-arrow slider-arrow--next', type: 'button', 'data-slide-change': '1' }, createNode('span', { className: 'slider-chevron-icon slider-chevron-icon--next' }));
-      const arrowPrev = createNode('button', { className: 'slider-arrow slider-arrow--prev', type: 'button', 'data-slide-change': '-1' }, createNode('span', { className: 'slider-chevron-icon slider-chevron-icon--prev' }));
+      const arrowNext = createNode('button', { className: 'slider-arrow slider-arrow-next', type: 'button', 'data-slide-change': '1' }, createNode('span', { className: 'slider-chevron-icon slider-chevron-icon-next' }));
+      const arrowPrev = createNode('button', { className: 'slider-arrow slider-arrow-prev', type: 'button', 'data-slide-change': '-1' }, createNode('span', { className: 'slider-chevron-icon slider-chevron-icon-prev' }));
       const arrowsWrapper = createNode('div', { className: 'slider-arrows' }, arrowPrev, arrowNext);
 
       arrowsWrapper.addEventListener('click', (e) => {
