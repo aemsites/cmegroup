@@ -235,11 +235,11 @@ export default async function decorate(block) {
     });
   }
   store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
-    document.querySelectorAll('.table.fixed-row-header thead th').forEach((th) => {
-      if (getComputedStyle(th.closest('.table')).overflow === 'auto') {
-        th.style.top = 'auto';
+    document.querySelectorAll('.table.fixed-row-header thead').forEach((headerSection) => {
+      if (getComputedStyle(headerSection.closest('.table')).overflow === 'auto') {
+        headerSection.style.top = '0';
       } else {
-        th.style.top = `${height}px`;
+        headerSection.style.top = `${height}px`;
       }
     });
   });
