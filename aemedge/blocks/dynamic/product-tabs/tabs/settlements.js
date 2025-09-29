@@ -21,14 +21,7 @@ async function createFuturesContent() {
     <p>Settlement data includes previous day close, settlement price, and daily change for each contract month.</p>
   `;
 
-  const fragmentBlock = await createTabFragment();
-  const blocks = [titleContent, futuresContent];
-
-  if (fragmentBlock) {
-    blocks.push(fragmentBlock);
-  }
-
-  return blocks;
+  return [titleContent, futuresContent];
 }
 
 /**
@@ -42,14 +35,7 @@ async function createOptionsContent() {
     <p>Options settlements data</p>
   `;
 
-  const fragmentBlock = await createTabFragment();
-  const blocks = [titleContent, optionsContent];
-
-  if (fragmentBlock) {
-    blocks.push(fragmentBlock);
-  }
-
-  return blocks;
+  return [titleContent, optionsContent];
 }
 
 /**

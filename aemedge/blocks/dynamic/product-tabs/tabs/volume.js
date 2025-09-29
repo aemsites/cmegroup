@@ -21,14 +21,7 @@ async function createFuturesContent() {
     <p>Track market activity across all contract months with historical volume trends and market participation data.</p>
   `;
 
-  const fragmentBlock = await createTabFragment();
-  const blocks = [titleContent, futuresContent];
-
-  if (fragmentBlock) {
-    blocks.push(fragmentBlock);
-  }
-
-  return blocks;
+  return [titleContent, futuresContent];
 }
 
 /**
@@ -42,14 +35,7 @@ async function createOptionsContent() {
     <p>Options volume data</p>
   `;
 
-  const fragmentBlock = await createTabFragment();
-  const blocks = [titleContent, optionsContent];
-
-  if (fragmentBlock) {
-    blocks.push(fragmentBlock);
-  }
-
-  return blocks;
+  return [titleContent, optionsContent];
 }
 
 /**

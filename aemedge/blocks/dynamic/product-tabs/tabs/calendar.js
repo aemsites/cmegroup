@@ -21,14 +21,7 @@ async function createFuturesContent() {
     <p>View contract expiration dates, first notice days, last trading days, and trading holidays.</p>
   `;
 
-  const fragmentBlock = await createTabFragment();
-  const blocks = [titleContent, futuresContent];
-  
-  if (fragmentBlock) {
-    blocks.push(fragmentBlock);
-  }
-  
-  return blocks;
+  return [titleContent, futuresContent];
 }
 
 /**
@@ -42,14 +35,7 @@ async function createOptionsContent() {
     <p>Options calendar data</p>
   `;
 
-  const fragmentBlock = await createTabFragment();
-  const blocks = [titleContent, optionsContent];
-  
-  if (fragmentBlock) {
-    blocks.push(fragmentBlock);
-  }
-  
-  return blocks;
+  return [titleContent, optionsContent];
 }
 
 /**

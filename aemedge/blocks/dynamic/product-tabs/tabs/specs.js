@@ -21,14 +21,7 @@ async function createFuturesContent() {
     <p>Includes contract size, tick size, trading hours, delivery specifications, and position limits.</p>
   `;
 
-  const fragmentBlock = await createTabFragment();
-  const blocks = [titleContent, futuresContent];
-  
-  if (fragmentBlock) {
-    blocks.push(fragmentBlock);
-  }
-  
-  return blocks;
+  return [titleContent, futuresContent];
 }
 
 /**
@@ -42,14 +35,7 @@ async function createOptionsContent() {
     <p>Options specifications data</p>
   `;
 
-  const fragmentBlock = await createTabFragment();
-  const blocks = [titleContent, optionsContent];
-  
-  if (fragmentBlock) {
-    blocks.push(fragmentBlock);
-  }
-  
-  return blocks;
+  return [titleContent, optionsContent];
 }
 
 /**
