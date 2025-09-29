@@ -20,7 +20,7 @@
     }
 
     &:not(.carousel-loading) .carousel-spinner {
-      display: none; /
+      display: none;
     }
   }
 
