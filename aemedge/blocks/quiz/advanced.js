@@ -93,8 +93,9 @@ function addReviewQuestions(
 
   reviewContainer = div({ class: 'review-questions' });
 
-  questionsMeta.forEach((q, idx) => {
-    const correctIndexes = q.answers.map((ans, i) => (ans.correct ? i : -1)).filter((i) => i >= 0);
+  questionsMeta.forEach((question, idx) => {
+    const correctIndexes = question.answers
+      .map((ans, i) => (ans.correct ? i : -1)).filter((i) => i >= 0);
     const raw = state && state.answers ? state.answers[idx] : undefined;
     let selectedIndexes = [];
     if (Array.isArray(raw)) {
@@ -143,7 +144,7 @@ function addReviewQuestions(
         }
 
         if (selectedIndexes.includes(oIdx) || showIndicatorsViaReviewMode === 'true') {
-          if (q.answers[oIdx]?.correct) {
+          if (question.answers[oIdx]?.correct) {
             btn.classList.add('correct');
           } else {
             btn.classList.add('incorrect');
@@ -172,7 +173,7 @@ async function renderTestResult(
   block.classList.add('in-test-results');
   block.classList.remove('in-review');
 
-  const correctCount = questionsMeta.reduce((acc, q, idx) => {
+  const correctCount = questionsMeta.reduce((acc, question, idx) => {
     const raw = state && state.answers ? state.answers[idx] : undefined;
     let selectedIndexes = [];
     if (Array.isArray(raw)) {
@@ -180,7 +181,7 @@ async function renderTestResult(
     } else if (typeof raw === 'number') {
       selectedIndexes = [Number(raw)];
     }
-    const correctIndexes = q.answers.map((ans, i) => (ans.correct ? i : -1)).filter((i) => i >= 0);
+    const correctIndexes = question.answers.map((ans, i) => (ans.correct ? i : -1)).filter((i) => i >= 0);
     const isExactlyCorrect = selectedIndexes.length === correctIndexes.length
       && selectedIndexes.every((i) => correctIndexes.includes(i));
     return acc + (isExactlyCorrect ? 1 : 0);
@@ -427,7 +428,7 @@ async function renderActivity(
     });
 
     const fakeState = {
-      answers: questionsMeta.map((q) => q.answers
+      answers: questionsMeta.map((question) => question.answers
         .map((ans, i) => (ans.correct ? i : -1))
         .filter((i) => i >= 0)),
     };
@@ -493,7 +494,7 @@ export async function handleTestClick({
 }
 
 export async function handleActivityClick({
-  questionDiv, optionButton, correct, snippet, q, messageContainer, block, questions, state,
+  questionDiv, optionButton, correct, snippet, question, messageContainer, block, questions, state,
 }) {
   if (questionDiv.classList.contains('answered-correctly')) return;
 
@@ -509,7 +510,7 @@ export async function handleActivityClick({
     messageContainer.appendChild(span({ class: 'result' }, correctLabel));
     messageContainer.appendChild(span({ class: 'snippet' }, snippet));
 
-    const correctAnswers = q.answers
+    const correctAnswers = question.answers
       .map((ans, i) => (ans.correct ? i : null)).filter((i) => i !== null);
     const pressed = [...questionDiv.querySelectorAll('.option-content-answer.correct.pressed')]
       .map((btn) => parseInt(btn.getAttribute('data-index'), 10));

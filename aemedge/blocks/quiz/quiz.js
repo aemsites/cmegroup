@@ -79,26 +79,26 @@ async function renderQuestions(questions, block, doNotMarkLessonAsCompleted, typ
 
   const wrapper = div({ class: `questions-wrapper ${type}` });
 
-  questions.forEach((q, questionIndex) => {
+  questions.forEach((question, questionIndex) => {
     const optionsWrapper = div({ class: 'options-wrapper' });
     const questionDiv = div(
       {},
-      h4({ class: 'question-text' }, q.question),
+      h4({ class: 'question-text' }, question.question),
       optionsWrapper,
     );
 
     if (type !== 'traditional') {
-      const multiCorrect = q.answers.filter((ans) => ans.correct).length > 1;
+      const multiCorrect = question.answers.filter((ans) => ans.correct).length > 1;
       if (multiCorrect) questionDiv.classList.add('multi-correct');
       const selectInstruction = createSelectInstruction(multiCorrect
         ? selectAllLabel : selectOneLabel);
       optionsWrapper.insertBefore(selectInstruction, optionsWrapper.firstChild);
     }
 
-    const multiCorrect = q.answers.filter((ans) => ans.correct).length > 1;
+    const multiCorrect = question.answers.filter((ans) => ans.correct).length > 1;
     if (multiCorrect) questionDiv.classList.add('multi-correct');
 
-    q.answers.forEach(({ answer, correct, snippet }, index) => {
+    question.answers.forEach(({ answer, correct, snippet }, index) => {
       const messageContainer = span({ class: 'question-message' });
 
       const optionButton = button(
@@ -126,7 +126,7 @@ async function renderQuestions(questions, block, doNotMarkLessonAsCompleted, typ
             optionButton,
             correct,
             snippet,
-            q,
+            question,
             messageContainer,
             block,
             questions,
@@ -189,9 +189,10 @@ async function renderQuestions(questions, block, doNotMarkLessonAsCompleted, typ
   return wrapper;
 }
 
-function showQuestion(index, wrapper, prev, next, pag, total) {
+async function showQuestion(index, wrapper, pag, total) {
+  const [ofLabel] = await Promise.all([i18n('OF')]);
   wrapper.style.transform = `translateX(-${index * 100}%)`;
-  if (pag) pag.textContent = `${index + 1} OF ${total}`;
+  if (pag) pag.textContent = `${index + 1} ${ofLabel} ${total}`;
   const progress = wrapper.parentElement.querySelector('.progress-bar .progress');
   if (progress) {
     const percent = ((index + 1) / total) * 100;
@@ -209,14 +210,14 @@ async function addNavigation(
   showIndicatorsViaReviewMode,
   redoQuizLabel,
 ) {
-  const [finishLabel] = await Promise.all([i18n('Finish')]);
+  const [prevLabel, nextLabel, finishLabel] = await Promise.all([i18n('Prev'), i18n('Next'), i18n('Finish')]);
   const prev = button(
     { type: 'button', class: 'arrow arrow-prev' },
-    type !== 'traditional' ? 'Prev' : '',
+    type !== 'traditional' ? prevLabel : '',
   );
   const next = button(
     { type: 'button', class: 'arrow arrow-next' },
-    type !== 'traditional' ? 'Next' : '',
+    type !== 'traditional' ? nextLabel : '',
   );
   let finish = null;
   if (type !== 'traditional') finish = button({ type: 'button', class: 'arrow arrow-finish', style: 'display: none;' }, finishLabel);
@@ -248,7 +249,7 @@ async function addNavigation(
     }
     nav.prev.classList.toggle('arrow-disabled', nav.currentIndex === 0);
     if (pag) pag.textContent = `${nav.currentIndex + 1} / ${questions.length}`;
-    showQuestion(nav.currentIndex, wrapper, nav.prev, nav.next, pag, questions.length);
+    showQuestion(nav.currentIndex, wrapper, pag, questions.length);
     const reviewContainer = block.querySelector('.review-questions');
     if (reviewContainer) {
       reviewContainer.querySelectorAll('.question-link').forEach((l) => l.classList.remove('selected'));
@@ -257,8 +258,16 @@ async function addNavigation(
     }
   };
 
-  prev.addEventListener('click', () => { if (nav.currentIndex > 0) { nav.currentIndex -= 1; block.updateNavigation(); } });
-  next.addEventListener('click', () => { if (nav.currentIndex < questions.length - 1) { nav.currentIndex += 1; block.updateNavigation(); } });
+  prev.addEventListener('click', () => {
+    if (nav.currentIndex > 0) {
+      nav.currentIndex -= 1; block.updateNavigation();
+    }
+  });
+  next.addEventListener('click', () => {
+    if (nav.currentIndex < questions.length - 1) {
+      nav.currentIndex += 1; block.updateNavigation();
+    }
+  });
   if (finish) {
     attachFinishClick(
       nav,
@@ -357,15 +366,15 @@ export default async function decorate(block) {
 
   const questions = buildQuestions(rows.slice(startIndex));
   if (randomizeOrder === 'true' && type !== 'traditional') {
-    questions.forEach((q) => {
-      q.answers = randomOrder(q.answers);
+    questions.forEach((question) => {
+      question.answers = randomOrder(question.answers);
     });
     randomOrder(questions);
   }
   block.innerHTML = '';
   const wrapper = await
   renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, testState);
-  showQuestion(0, wrapper, null, null, null, questions.length);
+  showQuestion(0, wrapper, null, questions.length);
 
   if (questions.length > 1) {
     await addNavigation(
