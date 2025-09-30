@@ -181,7 +181,8 @@ async function renderTestResult(
     } else if (typeof raw === 'number') {
       selectedIndexes = [Number(raw)];
     }
-    const correctIndexes = question.answers.map((ans, i) => (ans.correct ? i : -1)).filter((i) => i >= 0);
+    const correctIndexes = question.answers
+      .map((ans, i) => (ans.correct ? i : -1)).filter((i) => i >= 0);
     const isExactlyCorrect = selectedIndexes.length === correctIndexes.length
       && selectedIndexes.every((i) => correctIndexes.includes(i));
     return acc + (isExactlyCorrect ? 1 : 0);
