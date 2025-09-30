@@ -87,7 +87,7 @@
     }
   }
 
-  .slider-inner {
+  & .slider-inner {
     position: relative;
     height: auto;
     display: flex;
@@ -110,7 +110,7 @@
     }
   }
 
-  .slider-slide {
+  & .slider-slide {
     position: relative;
     width: 100%;
     height: auto;
@@ -143,7 +143,7 @@
     }
   }
 
-  .slider-arrows {
+  & .slider-arrows {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -197,7 +197,7 @@
     }
   }
 
-  .slider-chevron-icon {
+  & .slider-chevron-icon {
     pointer-events: none;
     position: absolute;
     display: block;
@@ -209,17 +209,17 @@
     border-top: none;
   }
 
-  .slider-chevron-icon-prev {
+  & .slider-chevron-icon-prev {
     left: 58%;
     transform: translate(-50%, -50%) rotate(-225deg);
   }
 
-  .slider-chevron-icon-next {
+  & .slider-chevron-icon-next {
     right: 58%;
     transform: translate(50%, -50%) rotate(-45deg);
   }
 
-  .slider-dots {
+  & .slider-dots {
     position: absolute;
     bottom: 0;
     left: 0;

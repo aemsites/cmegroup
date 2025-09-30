@@ -1,21 +1,7 @@
 /* eslint-disable no-unused-vars */
-import { generateRandomId, createElement } from '../../scripts/utils.js';
+import { generateRandomId, createElement, debounce } from '../../scripts/utils.js';
 
-/* Helper Functions (keeping original helper functions for context) */
-function debounce(fn, delay = 250) {
-  let timer;
-  // eslint-disable-next-line func-names
-  return function (...args) {
-    if (timer) {
-      clearTimeout(timer);
-    }
-    timer = setTimeout(() => {
-      fn(...args);
-      timer = null;
-    }, delay);
-  };
-}
-
+/* Helper Functions */
 function $(selector, context = document) {
   return context.querySelector(selector);
 }
