@@ -275,11 +275,14 @@
     position: relative;
 }
 
-.table.fixed-row-header table th {
+.table.fixed-row-header table thead {
     position: sticky;
     top: 0;
     z-index: 1;
-    transition: top 0.3s ease;
+}
+
+.table.fixed-row-header table th {
+    position: static;
 }
 
 @media (width <= 480px) {
