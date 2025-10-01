@@ -29,10 +29,14 @@
   & p, & h6 {
     margin-top: 0;
     margin-bottom: 1.875rem;
-    font-size: 1.25rem;
+    font-size: 1rem;
     line-height: 1.75rem;
     letter-spacing: 0.0375rem;
     color: var(--white);
+
+    @media (width >=481px) {
+      font-size: 1.25rem;
+    }
 
     & a:not(.button, .hero-link) {
       color: var(--white);
@@ -71,7 +75,11 @@
   & h6 {
     text-transform: none;
     font-weight: normal;
-    font-size: 1rem;
+    font-size: 0.875rem;
+
+    @media (width >=481px) {
+      font-size: 1rem;
+    }
 
     a.hero-link:hover {
       background-image: none;
