@@ -97,7 +97,7 @@ async function createTitleBlock(block) {
     i18n('course History'),
   ]);
 
-  const link = createElement('a', { href: 'education/history' });
+  const link = createElement('a', { href: '/education/history' });
   link.textContent = viewText;
   const title = createElement('div', { class: 'title' });
   title.textContent = historyText;

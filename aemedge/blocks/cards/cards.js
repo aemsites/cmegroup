@@ -217,7 +217,7 @@ export async function createDynamicCardCourse(contentData) {
   return li;
 }
 
-export async function createDynamicCardArticle(content) {
+export async function createDynamicCardArticle(content, showPrimaryTopic = false) {
   const curatedContent = isLegacyContent(content) ? mapLegacyArticleData(content) : content;
   const {
     path,
@@ -227,14 +227,17 @@ export async function createDynamicCardArticle(content) {
     metadata: {
       'sub-template': subTemplates,
       image,
+      'primary-topic': primaryTopic,
     },
   } = curatedContent;
   const [
     readLabel,
     durationStr,
+    primaryTopicStr,
   ] = await Promise.all([
     getReadTimeLabel(subTemplates),
     parseTime(readTime),
+    showPrimaryTopic ? getTag(primaryTopic) : '',
   ]);
   const cardTime = createElement('span', { class: 'cards-time' }, `${durationStr} ${readLabel}`);
   cardTime.prepend(getReadTimeIcon(subTemplates));
@@ -245,6 +248,11 @@ export async function createDynamicCardArticle(content) {
   const img = createElement('img', { src: image });
   const imageContainer = createElement('div', { class: 'cards-image-container' }, img);
   const linkEl = createElement('a', { href: path }, imageContainer, mainContainer);
+  if (showPrimaryTopic && primaryTopicStr) {
+    const cardPrimaryTopic = createElement('span', { class: 'cards-primary-topic' }, primaryTopicStr.title);
+    const cardFooter = createElement('div', { class: 'cards-footer' }, cardPrimaryTopic);
+    linkEl.append(cardFooter);
+  }
   if (subTemplates.includes('video')) {
     linkEl.classList.add('video-card');
   }
@@ -370,7 +378,10 @@ function getArticleTypeConfig(block) {
     return {
       type: 'card-list',
       limit: 4,
-      mapFunction: createDynamicCardArticle,
+      mapFunction: (content) => {
+        const showPrimaryTopic = block.classList.contains('show-primary-topic');
+        return createDynamicCardArticle(content, showPrimaryTopic);
+      },
       disableSliderOnDesktop: true,
       sliderConfig: {
         slidesToShow: 'auto',
@@ -384,7 +395,7 @@ function getArticleTypeConfig(block) {
           {
             breakpoint: 481,
             settings: {
-              itemWidth: 426,
+              itemWidth: 292,
             },
           },
         ],
@@ -589,6 +600,7 @@ export async function createDynamicCards(block) {
     }
     block.appendChild(cardsContainer);
     if (sliderConfig) {
+      disableSliderOnDesktop = disableSliderOnDesktop && !block.classList.contains('always-slider');
       buildSlider(ul, sliderConfig, true, disableSliderOnDesktop, inverse, false, refreshCallback);
     }
   } else {
