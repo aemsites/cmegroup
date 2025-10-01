@@ -56,6 +56,7 @@ function mapLegacyArticleData(legacyData) {
     path,
     readTime,
     date,
+    author,
   } = legacyData;
   const durationMin = convertReadTimeFormat(readTime);
   const subTemplates = convertMediaTypeToSubtemplate(mediaType);
@@ -69,6 +70,7 @@ function mapLegacyArticleData(legacyData) {
     title,
     description,
     readTime: durationMin,
+    author,
     metadata: {
       'sub-template': subTemplates,
       image,
