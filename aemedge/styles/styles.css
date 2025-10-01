@@ -964,6 +964,7 @@ main {
 
   & > .section {
     margin-bottom: 1.875rem;
+    padding: 1.875rem 0;
 
     &.text-1,
     &.text-2,
@@ -1094,6 +1095,7 @@ main {
         color: inherit;
       }
 
+      h1,
       h2,
       h3,
       h4,
@@ -1210,6 +1212,16 @@ main {
 
     &.no-margin-bottom {
       margin-bottom: 0;
+    }
+
+    &.glossary-section {
+      & div {
+        & p:first-child {
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+        }
+      }
     }
   }
 

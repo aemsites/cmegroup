@@ -60,6 +60,9 @@ function mapLegacyArticleData(legacyData) {
   const durationMin = convertReadTimeFormat(readTime);
   const subTemplates = convertMediaTypeToSubtemplate(mediaType);
   const newPath = normalizeLegacyPath(path);
+  let primaryTopic = (Array.isArray(primaryTopics) && primaryTopics.length > 0)
+    ? primaryTopics[0] : primaryTopics;
+  primaryTopic = primaryTopic.includes(':') ? primaryTopic.split(':')[1] : primaryTopic;
   return {
     path: newPath,
     date,
@@ -69,7 +72,7 @@ function mapLegacyArticleData(legacyData) {
     metadata: {
       'sub-template': subTemplates,
       image,
-      'primary-topic': primaryTopics,
+      'primary-topic': primaryTopic,
     },
   };
 }
