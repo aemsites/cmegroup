@@ -10,8 +10,8 @@ import { authentication } from '../../scripts/modules/Authentication.js';
 async function createProgressCard(data) {
   const {
     title,
-    completedLessons,
-    totalLessons,
+    completedLessons = 0,
+    totalLessons = 0,
     lessons,
   } = data;
   const url = lessons?.find((lesson) => !lesson.completed)?.url;
@@ -73,8 +73,8 @@ async function createCardsBlock(block, data) {
   };
 
   const [progressCards, recommendedCards] = await Promise.all([
-    await Promise.all(data.userProgress?.map(createProgressCard) || []),
-    await Promise.all(data.recommendedCourses?.map(createRecommendedCard) || []),
+    await Promise.all(data.progressItems?.map(createProgressCard) || []),
+    await Promise.all(data.recommendedItems?.map(createRecommendedCard) || []),
   ]);
   const cards = [progressCards, recommendedCards];
   if (cards?.length) {
@@ -118,11 +118,11 @@ async function createSummaryBlock(block, data) {
   ]);
 
   const completed = createElement('span', { class: 'courses-count' });
-  completed.textContent = data.completedCourses || 0;
+  completed.textContent = data.completedTotal || 0;
   const completedCourses = createElement('span');
   completedCourses.innerHTML = `${coursesText}<br/>${completedText}`;
   const inProgress = createElement('span', { class: 'courses-count' });
-  inProgress.textContent = data.userProgress?.length || 0;
+  inProgress.textContent = data.progressTotal || 0;
   const inProgressCourses = createElement('span');
   inProgressCourses.innerHTML = `${coursesText}<br/>${inProgressText}`;
   const container = createElement(
