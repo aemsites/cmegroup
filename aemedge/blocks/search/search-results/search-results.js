@@ -17,7 +17,7 @@ function showSpinner(container) {
 
 function buildSearchRequest(filterId) {
   const request = {
-    'base-paths': searchConfig.basePaths,
+    basePaths: searchConfig.basePaths,
     page: searchConfig.pagination?.currentPage || 1,
     limit: filterId ? 0 : searchConfig.pagination?.size || 10,
     fullText: searchConfig.searchInput || '',
