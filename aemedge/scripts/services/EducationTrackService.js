@@ -210,7 +210,7 @@ export async function getRecommendedCourses(maxItems) {
     const data = getResponseData(response);
     return {
       ...data,
-      userProgress: data.userProgress?.map(mapModule) || [],
+      progressItems: data.progressItems?.map(mapModule) || [],
     };
   } catch (e) {
     // eslint-disable-next-line no-console
