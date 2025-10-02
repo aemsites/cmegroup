@@ -310,14 +310,20 @@ main > .section {
       }
 
       & .icon {
-        width: 0.9375rem;
-        height: 0.9375rem;
+        width: 1.5625rem;
+        height: 1.5625rem;
         color: var(--blue5);
         margin-bottom: 0.1rem;
         filter: none;
 
+        @media (width >= 481px) {
+          width: 1rem;
+          height: 1rem;
+        }
+
         & img {
           filter: var(--blue5-filter);
+          width: auto;
         }
       }
 
