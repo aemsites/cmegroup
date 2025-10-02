@@ -129,7 +129,7 @@ function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions)
   languageVideoPlayer.on('loadeddata', () => {
     block.querySelector('.brightcove-placeholder')?.remove();
     document.getElementById(`cmeVideo${videoId}_${randomNumber}`).classList.remove('video-hidden');
-    block.querySelector('.vjs-playlist')?.classList.remove('video-hidden');
+    block.querySelector('.vjs-playlist.video-hidden')?.classList.remove('video-hidden');
     block.querySelector('.brightcove-player').classList.remove('loading');
     const { name: videoName } = languageVideoPlayer.mediainfo;
     const percentsAlreadyTracked = [];
@@ -266,7 +266,7 @@ function getPosterCache() {
 async function getBrightcovePoster(accountId, videoId) {
   const policyKey = getMetadata('brightcove-policy-key');
 
-  if (!policyKey || !videoId) {
+  if (!policyKey || !videoId || videoId === 'null') {
     return '';
   }
   const url = `https://edge.api.brightcove.com/playback/v1/accounts/${accountId}/videos/${videoId}`;
@@ -403,7 +403,7 @@ export default async function decorate(block) {
           </video>
           ${playlistId !== '' && playlistLocation === 'R' ? '<div class="vjs-playlist video-hidden"></div>' : ''}
         </div>
-        ${playlistId !== '' && playlistLocation === 'B' ? '<div class="vjs-playlist playlist-bottom video-hidden"></div>' : ''}
+        ${playlistId !== '' && playlistLocation === 'B' ? `<div class="vjs-playlist playlist-bottom video-hidden" data-for="cmeVideo${videoId}_${randomNumber}"></div>` : ''}
       </div>
     </div>
   </div>

@@ -105,6 +105,10 @@
   max-height: none;
 }
 
+.video-js.vjs-playlist-enabled.playlist-bottom ~ .vjs-playlist-sidebar {
+  display: none;
+}
+
 .brightcove-placeholder {
   & .brightcove-img-placeholder {
     width: 100%;
