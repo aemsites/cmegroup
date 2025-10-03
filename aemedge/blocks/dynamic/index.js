@@ -3,7 +3,7 @@ import { isFeatureToggled } from '../../scripts/utils.js';
 
 const isTabsRequired = (main) => main.querySelectorAll(':scope > .section.tabs').length > 0;
 const isCourseNavRequired = () => {
-  if (isFeatureToggled('hideCourseNav', 'y', true)) return false;
+  if (isFeatureToggled('hideCourseNav', 'y', true) || window.location.pathname.includes('.hideCourseNav.')) return false;
 
   const template = getMetadata('template');
   if (!template) return false;

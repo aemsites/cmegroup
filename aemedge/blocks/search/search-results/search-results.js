@@ -17,7 +17,6 @@ function showSpinner(container) {
 
 function buildSearchRequest(filterId) {
   const request = {
-    basePaths: searchConfig.basePaths,
     page: searchConfig.pagination?.currentPage || 1,
     limit: filterId ? 0 : searchConfig.pagination?.size || 10,
     fullText: searchConfig.searchInput || '',
@@ -51,7 +50,7 @@ function buildSearchRequest(filterId) {
   }
 
   if (searchConfig.basePaths) {
-    request.basePaths = searchConfig.basePaths;
+    request['base-paths'] = searchConfig.basePaths;
   }
 
   if (searchConfig.sortOptions) {
