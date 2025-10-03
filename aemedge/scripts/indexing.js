@@ -22,7 +22,7 @@ function getValueList(value) {
  */
 function buildIndexFilter(config) {
   return {
-    basePaths: getValueList(config.basePaths),
+    basePaths: getValueList(config['base-paths']),
     templates: getValueList(config.templates),
     tagsAnd: getValueList(config.tags),
     tagsOr: getValueList(config['optional-tags']),
