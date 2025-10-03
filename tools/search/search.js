@@ -325,9 +325,11 @@ async function fetchFiles(basePath = '') {
   }
 }
 
-async function fetchContent(path) {
-  if (app.fileCache.has(path)) {
-    return app.fileCache.get(path);
+async function fetchContent(path, useCache = true) {
+  // For empty page detection, always fetch fresh content
+  if (useCache && app.fileCache.has(path)) {
+    const cachedContent = app.fileCache.get(path);
+    return { success: true, content: cachedContent };
   }
 
   const { token } = app;
@@ -341,12 +343,18 @@ async function fetchContent(path) {
 
     if (response.ok) {
       const content = await response.text();
-      app.fileCache.set(path, content);
-      return content;
+
+      // Cache the content for regular searches
+      if (useCache) {
+        app.fileCache.set(path, content);
+      }
+      return { success: true, content };
     }
-    return null;
+    // Non-200 response (404, 500, etc.) - not empty, just inaccessible
+    return { success: false, error: `HTTP ${response.status}` };
   } catch (error) {
-    return null;
+    // Network error, throttling, etc. - not empty, just failed to fetch
+    return { success: false, error: error.message };
   }
 }
 
@@ -540,6 +548,9 @@ async function bulkRevertLastReplacement() {
     showMessage('No files selected for revert', 'error');
     return;
   }
+
+  // Clear cache after revert to ensure fresh content on next scan
+  app.fileCache.clear();
 
   // eslint-disable-next-line no-alert
   const confirmation = confirm(
@@ -1032,9 +1043,14 @@ async function scanFiles() {
   const searchTerm = document.getElementById('search-term')?.value?.trim();
   const targetType = document.getElementById('target-type')?.value || 'all';
   const customSelector = document.getElementById('custom-selector')?.value?.trim();
+  const findBlankPages = document.getElementById('find-blank-pages')?.checked || false;
+
+  // Optional: Clear cache for fresh results (uncomment if you want guaranteed fresh data)
+  // app.fileCache.clear();
 
   // For custom selector, allow element-only searches (no search term required)
-  if (!searchTerm && targetType !== 'custom') {
+  // For blank page search, no search term is required
+  if (!searchTerm && targetType !== 'custom' && !findBlankPages) {
     showMessage('Please enter a search term', 'error');
     return;
   }
@@ -1056,43 +1072,106 @@ async function scanFiles() {
       pathsText = `${app.searchPaths.length} selected paths`;
     }
     showMessage(`Scanning files in ${pathsText}...`, 'info');
-    updateProgress(10, 'Fetching file list...');
-
-    const files = await fetchAllFiles();
-
-    if (files.length === 0) {
-      showMessage('No HTML files found', 'error');
-      updateProgress(0, '');
-      return;
-    }
+    updateProgress(10, 'Starting crawl...');
 
     app.results = [];
     let filesScanned = 0;
     let matchesFound = 0;
 
-    const processFile = async (file, index) => {
-      updateProgress(20 + (index / files.length) * 70, `Scanning ${file.name}...`);
+    // Get org/site configuration to build proper paths for crawl
+    const orgSite = parseOrgSite();
+    if (!orgSite) {
+      showMessage('Please configure org/site path first', 'error');
+      updateProgress(0, '');
+      return;
+    }
 
-      const content = await fetchContent(file.path);
-      if (!content) return null;
+    // Build proper paths with org/site prefix for crawl function
+    let crawlPaths;
+    if (app.searchPaths.length > 0) {
+      // Use specified search paths, ensuring they have org/site prefix
+      crawlPaths = app.searchPaths.map((path) => {
+        const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+        return `/${orgSite.org}/${orgSite.site}/${cleanPath}`.replace(/\/+/g, '/');
+      });
+    } else {
+      // Default to org/site root
+      crawlPaths = [`/${orgSite.org}/${orgSite.site}`];
+    }
 
-      const result = searchInContent(content, searchTerm, replaceTerm);
+    const processItem = async (item) => {
+      // Only process HTML files
+      if (!item.path.endsWith('.html')) return;
+
+      filesScanned++;
+      updateProgress(20 + Math.min((filesScanned / 100) * 70, 70), `Scanning ${item.name}...`);
+
+      // Use cache for all searches for better performance
+      const fetchResult = await fetchContent(item.path, true);
+
+      // Handle blank page search
+      if (findBlankPages) {
+        // Skip files that failed to fetch (network errors, throttling, etc.)
+        if (!fetchResult.success) {
+          return; // Don't include fetch failures as empty pages
+        }
+
+        // For blank page search, check if source API returns no content
+        const isBlank = !fetchResult.content || fetchResult.content.length === 0;
+        if (isBlank) {
+          const result = {
+            file: item,
+            matches: [{
+              match: 'Empty Page',
+              index: 0,
+              line: 1,
+              context: 'Page has no source content',
+              sequenceOnLine: 1,
+              selected: true,
+            }],
+            originalContent: fetchResult.content || '',
+            updatedContent: fetchResult.content || '',
+            selected: true,
+            foundElements: false,
+            elementCount: 0,
+            isBlankPage: true,
+          };
+          app.results.push(result);
+          matchesFound++;
+        }
+        return; // Continue to next file
+      }
+
+      // Regular search logic
+      if (!fetchResult.success || !fetchResult.content) return;
+
+      const result = searchInContent(fetchResult.content, searchTerm, replaceTerm);
       if (result.matches.length > 0) {
-        return {
-          file,
+        const fileResult = {
+          file: item,
           matches: result.matches,
-          originalContent: content,
+          originalContent: fetchResult.content,
           updatedContent: result.updatedContent,
           selected: true,
           foundElements: result.foundElements || false,
           elementCount: result.elementCount || 0,
         };
+        app.results.push(fileResult);
+        matchesFound += result.matches.length;
       }
-      return null;
     };
 
-    const results = await Promise.all(files.map(processFile));
-    app.results = results.filter((result) => result !== null);
+    // Process each crawl path using DA's crawl function
+    // Following the pattern from DA documentation
+    const crawlPromises = crawlPaths.map(async (crawlPath) => {
+      const { results } = crawl({
+        path: crawlPath,
+        callback: processItem,
+        concurrent: 10, // Use DA's recommended concurrency to prevent resource exhaustion
+      });
+      return results;
+    });
+    await Promise.all(crawlPromises);
 
     // Initialize all matches as selected by default and populate selectedFiles
     app.selectedFiles.clear();
@@ -1107,8 +1186,8 @@ async function scanFiles() {
       });
     });
 
-    filesScanned = files.length;
-    matchesFound = app.results.reduce((total, result) => total + result.matches.length, 0);
+    // filesScanned is already tracked in processItem
+    // matchesFound is already tracked in processItem
 
     updateProgress(100, 'Scan complete!');
 
@@ -1155,7 +1234,9 @@ async function scanFiles() {
     const customSelector = document.getElementById('custom-selector')?.value?.trim();
 
     let message;
-    if (targetType === 'custom' && !searchTerm && customSelector) {
+    if (findBlankPages) {
+      message = `Found ${app.results.length} empty pages (no source content)`;
+    } else if (targetType === 'custom' && !searchTerm && customSelector) {
       const totalElements = app.results.reduce((total, result) => total + (result.elementCount || 0), 0);
       message = `Found ${totalElements} ${customSelector} elements in ${app.results.length} files`;
     } else {
@@ -1621,6 +1702,9 @@ async function executeReplace() {
     showMessage('No files selected', 'error');
     return;
   }
+
+  // Clear cache after replacements to ensure fresh content on next scan
+  app.fileCache.clear();
 
   const searchTerm = document.getElementById('search-term')?.value?.trim();
   const replaceEmptyChecked = document.getElementById('replace-empty')?.checked || false;
@@ -3160,6 +3244,60 @@ function setupEventListeners() {
         replaceEmptyCheckbox.checked = false;
         replaceTermTextarea.disabled = false;
         replaceTermTextarea.placeholder = 'Enter replacement text (use $1, $2 for regex groups when using Regular Expression)';
+      }
+    });
+  }
+
+  // Blank pages functionality
+  const findBlankPagesCheckbox = document.getElementById('find-blank-pages');
+  if (findBlankPagesCheckbox && searchTermTextarea) {
+    findBlankPagesCheckbox.addEventListener('change', () => {
+      // Get references to other controls
+      const searchTypeSelect = document.getElementById('search-type');
+      const caseSensitiveCheckbox = document.getElementById('case-sensitive');
+      const htmlModeCheckbox = document.getElementById('html-mode');
+      const targetTypeSelect = document.getElementById('target-type');
+      const customSelectorInput = document.getElementById('custom-selector');
+      const excludeUrlsCheckbox = document.getElementById('exclude-urls');
+
+      if (findBlankPagesCheckbox.checked) {
+        // Disable search-related controls
+        searchTermTextarea.disabled = true;
+        searchTermTextarea.placeholder = 'Search term not needed when finding empty pages';
+
+        if (searchTypeSelect) searchTypeSelect.disabled = true;
+        if (caseSensitiveCheckbox) caseSensitiveCheckbox.disabled = true;
+        if (htmlModeCheckbox) htmlModeCheckbox.disabled = true;
+        if (targetTypeSelect) targetTypeSelect.disabled = true;
+        if (customSelectorInput) customSelectorInput.disabled = true;
+        if (excludeUrlsCheckbox) excludeUrlsCheckbox.disabled = true;
+
+        // Disable replace functionality for empty page discovery
+        if (replaceTermTextarea) {
+          replaceTermTextarea.disabled = true;
+          replaceTermTextarea.placeholder = 'Replace not available when finding empty pages';
+        }
+        if (replaceEmptyCheckbox) replaceEmptyCheckbox.disabled = true;
+      } else {
+        // Re-enable all controls
+        searchTermTextarea.disabled = false;
+        searchTermTextarea.placeholder = 'Enter search term or regex pattern';
+
+        if (searchTypeSelect) searchTypeSelect.disabled = false;
+        if (caseSensitiveCheckbox) caseSensitiveCheckbox.disabled = false;
+        if (htmlModeCheckbox) htmlModeCheckbox.disabled = false;
+        if (targetTypeSelect) targetTypeSelect.disabled = false;
+        if (customSelectorInput) customSelectorInput.disabled = false;
+        if (excludeUrlsCheckbox) excludeUrlsCheckbox.disabled = false;
+
+        // Re-enable replace functionality
+        if (replaceTermTextarea) {
+          replaceTermTextarea.disabled = false;
+          if (!replaceEmptyCheckbox?.checked) {
+            replaceTermTextarea.placeholder = 'Enter replacement text (use $1, $2 for regex groups when using Regular Expression)';
+          }
+        }
+        if (replaceEmptyCheckbox) replaceEmptyCheckbox.disabled = false;
       }
     });
   }
