@@ -3248,57 +3248,73 @@ function setupEventListeners() {
     });
   }
 
-  // Blank pages functionality
+  // Blank pages functionality with improved UX
   const findBlankPagesCheckbox = document.getElementById('find-blank-pages');
   if (findBlankPagesCheckbox && searchTermTextarea) {
-    findBlankPagesCheckbox.addEventListener('change', () => {
-      // Get references to other controls
-      const searchTypeSelect = document.getElementById('search-type');
-      const caseSensitiveCheckbox = document.getElementById('case-sensitive');
-      const htmlModeCheckbox = document.getElementById('html-mode');
-      const targetTypeSelect = document.getElementById('target-type');
-      const customSelectorInput = document.getElementById('custom-selector');
-      const excludeUrlsCheckbox = document.getElementById('exclude-urls');
+    // Define controls that should be disabled during blank page search
+    const searchControls = [
+      { id: 'search-type', originalPlaceholder: null },
+      { id: 'case-sensitive', originalPlaceholder: null },
+      { id: 'html-mode', originalPlaceholder: null },
+      { id: 'target-type', originalPlaceholder: null },
+      { id: 'custom-selector', originalPlaceholder: null },
+      { id: 'exclude-urls', originalPlaceholder: null },
+    ];
 
-      if (findBlankPagesCheckbox.checked) {
-        // Disable search-related controls
-        searchTermTextarea.disabled = true;
-        searchTermTextarea.placeholder = 'Search term not needed when finding empty pages';
+    const replaceControls = [
+      { id: 'replace-term', originalPlaceholder: 'Enter replacement text (use $1, $2 for regex groups when using Regular Expression)' },
+      { id: 'replace-empty', originalPlaceholder: null },
+    ];
 
-        if (searchTypeSelect) searchTypeSelect.disabled = true;
-        if (caseSensitiveCheckbox) caseSensitiveCheckbox.disabled = true;
-        if (htmlModeCheckbox) htmlModeCheckbox.disabled = true;
-        if (targetTypeSelect) targetTypeSelect.disabled = true;
-        if (customSelectorInput) customSelectorInput.disabled = true;
-        if (excludeUrlsCheckbox) excludeUrlsCheckbox.disabled = true;
+    // Store original placeholders
+    const searchTermOriginalPlaceholder = searchTermTextarea.placeholder;
 
-        // Disable replace functionality for empty page discovery
-        if (replaceTermTextarea) {
-          replaceTermTextarea.disabled = true;
-          replaceTermTextarea.placeholder = 'Replace not available when finding empty pages';
+    const toggleBlankPageMode = (isBlankPageMode) => {
+      // Toggle search term
+      searchTermTextarea.disabled = isBlankPageMode;
+      searchTermTextarea.placeholder = isBlankPageMode
+        ? 'Search term not needed when finding empty pages'
+        : searchTermOriginalPlaceholder;
+
+      // Toggle search controls
+      searchControls.forEach((control) => {
+        const element = document.getElementById(control.id);
+        if (element) {
+          element.disabled = isBlankPageMode;
+          // Add visual styling for disabled state
+          element.classList.toggle('blank-page-disabled', isBlankPageMode);
         }
-        if (replaceEmptyCheckbox) replaceEmptyCheckbox.disabled = true;
-      } else {
-        // Re-enable all controls
-        searchTermTextarea.disabled = false;
-        searchTermTextarea.placeholder = 'Enter search term or regex pattern';
+      });
 
-        if (searchTypeSelect) searchTypeSelect.disabled = false;
-        if (caseSensitiveCheckbox) caseSensitiveCheckbox.disabled = false;
-        if (htmlModeCheckbox) htmlModeCheckbox.disabled = false;
-        if (targetTypeSelect) targetTypeSelect.disabled = false;
-        if (customSelectorInput) customSelectorInput.disabled = false;
-        if (excludeUrlsCheckbox) excludeUrlsCheckbox.disabled = false;
+      // Toggle replace controls
+      replaceControls.forEach((control) => {
+        const element = document.getElementById(control.id);
+        if (element) {
+          element.disabled = isBlankPageMode;
+          element.classList.toggle('blank-page-disabled', isBlankPageMode);
 
-        // Re-enable replace functionality
-        if (replaceTermTextarea) {
-          replaceTermTextarea.disabled = false;
-          if (!replaceEmptyCheckbox?.checked) {
-            replaceTermTextarea.placeholder = 'Enter replacement text (use $1, $2 for regex groups when using Regular Expression)';
+          // Handle specific placeholder updates
+          if (control.id === 'replace-term' && element.tagName === 'TEXTAREA') {
+            if (isBlankPageMode) {
+              element.placeholder = 'Replace not available when finding empty pages';
+            } else if (replaceEmptyCheckbox?.checked) {
+              element.placeholder = 'Text will be removed (replaced with empty)';
+            } else {
+              element.placeholder = control.originalPlaceholder;
+            }
           }
         }
-        if (replaceEmptyCheckbox) replaceEmptyCheckbox.disabled = false;
-      }
+      });
+
+      // Update parent containers for better visual feedback
+      const searchSection = document.querySelector('.search-section');
+      const replaceSection = document.querySelector('.replace-section');
+      if (searchSection) searchSection.classList.toggle('blank-page-mode', isBlankPageMode);
+      if (replaceSection) replaceSection.classList.toggle('blank-page-mode', isBlankPageMode);
+    };
+
+    findBlankPagesCheckbox.addEventListener('change', () => {
+      toggleBlankPageMode(findBlankPagesCheckbox.checked);
     });
   }
 }
