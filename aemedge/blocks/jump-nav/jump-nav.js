@@ -1,8 +1,24 @@
+import { createElement } from '../../scripts/utils.js';
+
+const title = createElement('div', { class: 'title' });
+title.innerText = 'Jump To';
+
+const selectionBar = createElement('div', { class: 'selection-bar' });
+
+function onTransitionEnd() {
+  selectionBar.classList.remove('show');
+}
+
+selectionBar.addEventListener('transitionend', onTransitionEnd);
+
 export default function decorate(block) {
   const nav = block.querySelector('ul');
   if (!nav) {
     return;
   }
+
+  block.prepend(title);
+  block.append(selectionBar);
 
   const container = block.closest('.jump-nav-container');
   if (container) {
@@ -10,6 +26,25 @@ export default function decorate(block) {
   }
 
   setupActiveStates(nav);
+}
+
+function updateBarPosition(selected) {
+  const menuActive = selected;
+  const pseudoStyle = getComputedStyle(menuActive, '::after');
+  const menuBarWidth = parseFloat(pseudoStyle.getPropertyValue('width'));
+  const menuBarLeft = parseFloat(pseudoStyle.getPropertyValue('left'));
+  const paddingLeft = parseFloat(
+    getComputedStyle(selected.parentElement.parentElement).getPropertyValue('padding-left'),
+  );
+  const scrollLeft = 0;
+  const selectionBarLeft = paddingLeft + menuActive.offsetLeft - scrollLeft + menuBarLeft;
+  const selectionBarWidth = menuBarWidth;
+
+  selectionBar.style.cssText = `
+    left: ${selectionBarLeft}px;
+    width: ${selectionBarWidth}px;
+  `;
+  selectionBar.classList.add('show');
 }
 
 function setupHeaderSync(container) {
@@ -41,6 +76,15 @@ function setupHeaderSync(container) {
   }
 }
 
+function scrollSection(targetElement, isClickedAfter) {
+  const headerHeight = document.querySelector('.header')?.offsetHeight;
+  const jumpToHeight = 80;
+  targetElement.style.cssText = `
+    scroll-margin-top: ${isClickedAfter ? jumpToHeight : headerHeight + jumpToHeight}px;
+  `;
+  targetElement.scrollIntoView();
+}
+
 function setupActiveStates(nav) {
   const links = nav.querySelectorAll('a');
   const sections = [];
@@ -52,6 +96,20 @@ function setupActiveStates(nav) {
       const targetElement = document.getElementById(targetId);
       if (targetElement) {
         sections.push({ element: targetElement, link });
+        link.addEventListener('click', () => {
+          const activeLink = document.querySelector('.active');
+          const linksArray = Array.from(links);
+          const clickedIndex = linksArray.indexOf(link);
+          let isClickedAfter = false;
+
+          if (activeLink) {
+            const activeIndex = linksArray.indexOf(activeLink);
+            if (clickedIndex > activeIndex) {
+              isClickedAfter = true;
+            }
+          }
+          scrollSection(targetElement, isClickedAfter);
+        });
       }
     }
   });
@@ -67,6 +125,7 @@ function setupActiveStates(nav) {
 
         const section = sections.find((s) => s.element === entry.target);
         if (section) {
+          updateBarPosition(section.link);
           section.link.classList.add('active');
         }
       }
