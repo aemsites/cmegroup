@@ -293,13 +293,6 @@ async function buildLanguageLinks() {
  * Add header using metadata values
  */
 export async function createCourseBaseTemplate(courseData) {
-  const { location } = window;
-  if (location.pathname.includes('.educationIframe.')) {
-    const params = new URLSearchParams(location.search);
-    params.set('hideCourseNav', 'y');
-    location.replace(`${location.pathname}?${params}`);
-    return;
-  }
   const main = document.querySelector('main');
   const courseHeading = main.querySelector('.section').firstChild;
   const header = createElement('div', { class: 'course-header' });
