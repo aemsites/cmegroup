@@ -514,7 +514,7 @@
       margin: 3.75rem 0 2.5rem;
     }
 
-    & .review-answers {
+    & .review-answers, .redo-quiz {
       cursor: pointer;
 
       &:hover {
