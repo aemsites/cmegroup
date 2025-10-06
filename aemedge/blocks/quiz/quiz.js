@@ -371,28 +371,34 @@ export default async function decorate(block) {
     });
     randomOrder(questions);
   }
-  block.innerHTML = '';
-  const wrapper = await
-  renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, testState);
-  showQuestion(0, wrapper, null, questions.length);
 
-  if (questions.length > 1) {
-    await addNavigation(
-      questions,
-      block,
-      wrapper,
-      type,
-      completeMessage,
-      testPercentage,
-      showIndicatorsViaReviewMode,
-      redoQuizLabel,
-    );
+  async function createQuizBlock() {
+    block.innerHTML = '';
+    testState.answers = [];
+    const wrapper = await
+    renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, testState);
+    showQuestion(0, wrapper, null, questions.length);
+
+    if (questions.length > 1) {
+      await addNavigation(
+        questions,
+        block,
+        wrapper,
+        type,
+        completeMessage,
+        testPercentage,
+        showIndicatorsViaReviewMode,
+        redoQuizLabel,
+      );
+    }
+
+    block.classList.add('showed');
   }
-
-  block.classList.add('showed');
+  await createQuizBlock();
 
   //  quiz completion event subscriber
-  store.subscribe(({ quiz }) => quiz, async ({ isCorrect }) => {
-    if (isCorrect && type === 'traditional') markQuizCompleted(block, questions, type, completeMessage);
+  store.subscribe(({ quiz }) => quiz, async ({ isCorrect, redo }) => {
+    if (isCorrect && type === 'traditional') await markQuizCompleted(block, questions, type, completeMessage);
+    if (redo) await createQuizBlock();
   });
 }

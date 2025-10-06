@@ -1,6 +1,8 @@
 import {
   div, p, span, a, h3, h4, img, button,
 } from '../../scripts/dom-helpers.js';
+import { store } from '../../scripts/store/store.js';
+import { quizRedo } from '../../scripts/actions/quiz.js';
 import { i18n } from '../../scripts/utils.js';
 
 export function updateAdvancedNextDisabled(type, wrapper, currentIndex, questions, state, next) {
@@ -53,7 +55,7 @@ function addResultsButton(
       if (navigation) navigation.style.display = 'none';
       if (progressBar) progressBar.style.display = 'none';
 
-      block.classList.remove('in-review');
+      block.classList.remove('in-review', 'is-review');
       block.classList.add(type === 'activity' ? 'in-activity-results' : 'in-test-results');
 
       if (type === 'activity') {
@@ -249,6 +251,13 @@ async function renderTestResult(
   if (questionsWrapper) questionsWrapper.style.display = 'none';
   if (navigation) navigation.style.display = 'none';
   if (progressBar) progressBar.style.display = 'none';
+
+  const redoLink = container.querySelector('.redo-quiz');
+  redoLink.addEventListener('click', async () => {
+    //  quiz redo event
+    store.dispatch(quizRedo(true));
+  });
+  store.dispatch(quizRedo(false));
 
   const reviewLink = container.querySelector('.review-answers');
   reviewLink.addEventListener('click', async () => {
@@ -595,6 +604,7 @@ export function attachFinishClick(
       if (reviewContainer) reviewContainer.remove();
       const resultsLink = block.querySelector('.results-link');
       if (resultsLink) resultsLink.remove();
+      block.classList.remove('is-review');
       await markQuizCompletedFn(
         block,
         questions,
