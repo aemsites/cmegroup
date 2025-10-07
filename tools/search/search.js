@@ -9,28 +9,6 @@ import DA_SDK from 'https://da.live/nx/utils/sdk.js';
 import { crawl } from 'https://da.live/nx/public/utils/tree.js';
 import addAppAccessControl from '../access-control/access-control.js';
 
-function isPageEmpty(content) {
-  // KISS: Check if content is null/undefined or empty string
-  if (!content || content.length === 0) {
-    return true;
-  }
-
-  // KISS: Remove all whitespace and normalize to lowercase
-  const normalized = content.replace(/\s+/g, '').toLowerCase();
-  
-  // KISS: Check for your exact pattern and common variations
-  const emptyPatterns = [
-    '<body><header></header><main><div></div></main><footer></footer></body>',
-    '<body><header></header><main></main><footer></footer></body>',
-    '<body><main><div></div></main></body>',
-    '<body><main></main></body>',
-    '<body></body>',
-    '<html><body></body></html>',
-  ];
-
-  return emptyPatterns.includes(normalized);
-}
-
 // CONFIGURATION - Easily configurable settings
 const CONFIG = {
   RESULTS_PER_PAGE: 10, // Number of results to show per page
@@ -1139,7 +1117,7 @@ async function scanFiles() {
         }
 
         // For blank page search, check if source API returns no content
-        const isBlank = isPageEmpty(fetchResult.content);
+        const isBlank = !fetchResult.content || fetchResult.content.length === 0;
         if (isBlank) {
           const result = {
             file: item,
