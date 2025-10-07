@@ -1,4 +1,5 @@
-import { i18n, readBlockConfig } from '../../scripts/utils.js';
+import { getCourseData } from '../../scripts/course/course.js';
+import { i18n, readBlockConfig, sha256Hash } from '../../scripts/utils.js';
 import { store } from '../../scripts/store/store.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
 import {
@@ -20,7 +21,7 @@ import {
   i as iEl,
 } from '../../scripts/dom-helpers.js';
 
-const testState = { answers: {} };
+let quizStatus = { };
 
 async function checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted) {
   const answeredCorrectlyEls = block.querySelectorAll('.answered-correctly');
@@ -31,32 +32,75 @@ async function checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted)
   }
 }
 
-function buildQuestions(rows) {
+async function buildQuestions(rows) {
+  const courseData = await getCourseData();
+
+  const parsedRows = await Promise.all(
+    rows.map(async (row) => {
+      const firstChild = row.children[0];
+      const hasQuestion = firstChild && firstChild.querySelector('p');
+      const answerText = row.children[1]?.textContent.trim() || '';
+      const correctText = row.children[2]?.textContent.trim() || '';
+      const snippetText = row.children[3]?.textContent.trim() || '';
+      const questionSnippetText = row.children[4]?.textContent.trim() || '';
+      const questionText = firstChild?.textContent.trim() || '';
+
+      let uniqueId = null;
+
+      if (hasQuestion) {
+        uniqueId = await sha256Hash(`${courseData.path}-${questionText}`);
+      }
+
+      return {
+        hasQuestion,
+        questionText,
+        questionSnippetText,
+        answerText,
+        correctText,
+        snippetText,
+        uniqueId,
+      };
+    }),
+  );
+
+  let lastUniqueId = null;
+  for (let i = 0; i < parsedRows.length; i += 1) {
+    const row = parsedRows[i];
+    if (row.uniqueId) {
+      lastUniqueId = row.uniqueId;
+    } else if (lastUniqueId) {
+      row.uniqueId = lastUniqueId;
+    }
+  }
+
+  await Promise.all(
+    parsedRows.map(async (row) => {
+      if (row.answerText && row.uniqueId) {
+        row.answerId = await sha256Hash(`${row.uniqueId}-${row.answerText}`);
+      }
+    }),
+  );
+
   const questions = [];
   let currentQuestion = null;
 
-  rows.forEach((row) => {
-    const firstChild = row.children[0];
-    const hasQuestion = firstChild && firstChild.querySelector('p');
-    const answerText = row.children[1]?.textContent.trim() || '';
-    const correctText = row.children[2]?.textContent.trim() || '';
-    const snippetText = row.children[3]?.textContent.trim() || '';
-    const questionSnippetText = row.children[4]?.textContent.trim() || '';
-
-    if (hasQuestion) {
+  parsedRows.forEach((row) => {
+    if (row.hasQuestion) {
       currentQuestion = {
-        question: firstChild.textContent.trim(),
+        question: row.questionText,
         answers: [],
-        questionSnippet: questionSnippetText,
+        questionSnippet: row.questionSnippetText,
+        uniqueId: row.uniqueId,
       };
       questions.push(currentQuestion);
     }
 
-    if (currentQuestion) {
+    if (currentQuestion && row.answerText) {
       currentQuestion.answers.push({
-        answer: answerText,
-        correct: correctText === 'true',
-        snippet: snippetText,
+        answer: row.answerText,
+        correct: row.correctText === 'true',
+        snippet: row.snippetText,
+        uniqueId: row.answerId,
       });
     }
   });
@@ -131,6 +175,7 @@ async function renderQuestions(questions, block, doNotMarkLessonAsCompleted, typ
             block,
             questions,
             state,
+            questionIndex,
           });
         }
 
@@ -235,10 +280,10 @@ async function addNavigation(
     if (type === 'traditional') {
       prev.style.display = 'block';
       next.style.display = 'block';
-      updateAdvancedNextDisabled(type, wrapper, nav.currentIndex, questions, testState, next);
+      updateAdvancedNextDisabled(type, wrapper, nav.currentIndex, questions, quizStatus, next);
       if (lastSlider) { next.disabled = true; next.classList.add('arrow-disabled'); }
     } else {
-      updateAdvancedNav(nav, wrapper, questions, type, testState);
+      updateAdvancedNav(nav, wrapper, questions, type, quizStatus);
     }
     if (type !== 'traditional') {
       if (nav.currentIndex === 0) {
@@ -305,7 +350,7 @@ async function markQuizCompleted(
       block,
       questionsMeta,
       type,
-      testState,
+      quizStatus,
       testPercentage,
       showIndicatorsViaReviewMode,
       redoQuizLabel,
@@ -364,7 +409,7 @@ export default async function decorate(block) {
     }
   }
 
-  const questions = buildQuestions(rows.slice(startIndex));
+  const questions = await buildQuestions(rows.slice(startIndex));
   if (randomizeOrder === 'true' && type !== 'traditional') {
     questions.forEach((question) => {
       question.answers = randomOrder(question.answers);
@@ -374,9 +419,14 @@ export default async function decorate(block) {
 
   async function createQuizBlock() {
     block.innerHTML = '';
-    testState.answers = [];
+    quizStatus = {
+      quizElementId: block.dataset.quizId || 'quiz-id',
+      type,
+      status: 'PROGRESS',
+      questions: [],
+    };
     const wrapper = await
-    renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, testState);
+    renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, quizStatus);
     showQuestion(0, wrapper, null, questions.length);
 
     if (questions.length > 1) {
