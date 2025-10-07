@@ -38,7 +38,7 @@
         font-family: var(--averta);
         font-size: .6875rem;
         font-weight: 600;
-        letter-spacing: .09375rem;
+        letter-spacing: 0.0938rem;
         line-height: .875rem;
         margin-right: .625rem;
         text-transform: uppercase;
@@ -54,16 +54,13 @@
         overflow-x: scroll;
         -webkit-overflow-scrolling: touch;
         cursor: grab;
-        cursor: -webkit-grab;
         scrollbar-width: none; 
         justify-content: flex-start;
         align-items: center;
         user-select: none;
-        -webkit-user-select: none;
         
         &.active-drag {
           cursor: grabbing;
-          cursor: -webkit-grabbing;
         }
 
         &::-webkit-scrollbar {
@@ -96,11 +93,9 @@
               bottom: 0;
               left: 0.9375rem;
               width: calc(100% - 1.875rem);
-              height: 0.1875rem;
               background-color: var(--blue5);
-              transition: width 0.2s ease;
               opacity: 0;
-              transition: opacity 0s 0s;
+              transition: width 0.2s ease, opacity 0s 0s;
               height: 0.25rem;
             }
 
