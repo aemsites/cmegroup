@@ -104,14 +104,32 @@ function addReviewQuestions(
 
   reviewContainer = div({ class: 'review-questions' });
 
-  const answeredQuestions = state.quizStatus?.questions || [];
+  const isTestMode = !!state.quizStatus?.questions?.length;
+  const answeredQuestions = isTestMode
+    ? state.quizStatus.questions
+    : state.answers || [];
 
   questionsMeta.forEach((question, idx) => {
-    const questionEntry = answeredQuestions
-      .find((ques) => ques.questionElementId === question.uniqueId);
-    const selectedIds = questionEntry?.answers?.map((ans) => ans.answerElementId) || [];
+    let isCorrect = false;
+    let selectedIndexes = [];
 
-    const isCorrect = questionEntry?.isCorrect === true;
+    if (isTestMode) {
+      const questionEntry = answeredQuestions.find(
+        (ques) => ques.questionElementId === question.uniqueId,
+      );
+      const selectedIds = questionEntry?.answers?.map((ans) => ans.answerElementId) || [];
+
+      selectedIndexes = question.answers
+        .map((ans, index) => (selectedIds.includes(ans.uniqueId) ? index : null))
+        .filter((index) => index !== null);
+
+      isCorrect = questionEntry?.isCorrect === true;
+    } else {
+      selectedIndexes = answeredQuestions[idx] || [];
+      isCorrect = question.answers
+        .every((ans, index) => ans.correct === selectedIndexes.includes(index));
+    }
+
     const isSelected = block.nav && block.nav.currentIndex === idx;
 
     const questionLink = a(
@@ -119,7 +137,7 @@ function addReviewQuestions(
         role: 'button',
         tabindex: '0',
         'data-index': idx,
-        class: `question-link ${isCorrect ? ' correct' : ' incorrect'}${isSelected ? ' selected' : ''}`,
+        class: `question-link ${isCorrect ? 'correct' : 'incorrect'}${isSelected ? ' selected' : ''}`,
       },
       `Q${idx + 1}`,
     );
@@ -148,16 +166,12 @@ function addReviewQuestions(
 
         btn.classList.remove('pressed', 'correct', 'incorrect');
 
-        if (selectedIds.includes(answer.uniqueId)) {
+        if (selectedIndexes.includes(oIdx)) {
           btn.classList.add('pressed');
         }
 
-        if (selectedIds.includes(answer.uniqueId) || showIndicatorsViaReviewMode === 'true') {
-          if (answer.correct) {
-            btn.classList.add('correct');
-          } else {
-            btn.classList.add('incorrect');
-          }
+        if (selectedIndexes.includes(oIdx) || showIndicatorsViaReviewMode === 'true') {
+          btn.classList.add(answer.correct ? 'correct' : 'incorrect');
         }
       });
     });
@@ -431,9 +445,17 @@ async function renderActivity(
     });
 
     const fakeState = {
-      answers: questionsMeta.map((question) => question.answers
-        .map((ans, i) => (ans.correct ? i : -1))
-        .filter((i) => i >= 0)),
+      answers: questionsMeta.map((question) => {
+        const selectedIndexes = [];
+
+        question.answers.forEach((ans, index) => {
+          if (ans.correct) {
+            selectedIndexes.push(index);
+          }
+        });
+
+        return selectedIndexes;
+      }),
     };
 
     addReviewQuestions(
@@ -541,17 +563,42 @@ export async function handleTestClick({
 export async function handleActivityClick({
   questionDiv,
   optionButton,
-  correct, snippet, question, messageContainer, block, questions, state, questionIndex,
+  correct,
+  snippet,
+  question,
+  messageContainer,
+  block,
+  questions,
+  state,
 }) {
   if (questionDiv.classList.contains('answered-correctly')) return;
 
-  if (!state.answers[questionIndex]) state.answers[questionIndex] = [];
+  if (!state.quizStatus) state.quizStatus = {};
+  if (!Array.isArray(state.quizStatus.questions)) state.quizStatus.questions = [];
+
+  let questionEntry = state.quizStatus.questions.find(
+    (ques) => ques.questionElementId === question.uniqueId,
+  );
+  if (!questionEntry) {
+    questionEntry = {
+      questionElementId: question.uniqueId,
+      answers: [],
+      isCorrect: false,
+    };
+    state.quizStatus.questions.push(questionEntry);
+  }
 
   const index = parseInt(optionButton.getAttribute('data-index'), 10);
+  const selectedAnswer = question.answers[index];
+  const alreadySelected = questionEntry.answers.some(
+    (ans) => ans.answerElementId === selectedAnswer.uniqueId,
+  );
 
-  const isSelected = state.answers[questionIndex].includes(index);
-  if (!isSelected) {
-    state.answers[questionIndex].push(index);
+  if (!alreadySelected) {
+    questionEntry.answers.push({
+      answerElementId: selectedAnswer.uniqueId,
+      isCorrect: !!selectedAnswer.correct,
+    });
   }
 
   const allMessages = questionDiv.querySelectorAll('.question-message');
@@ -567,10 +614,14 @@ export async function handleActivityClick({
     messageContainer.appendChild(span({ class: 'snippet' }, snippet));
 
     const correctAnswers = question.answers
-      .map((ans, i) => (ans.correct ? i : null)).filter((i) => i !== null);
+      .map((ans, ind) => (ans.correct ? ind : null))
+      .filter((ind) => ind !== null);
     const pressed = [...questionDiv.querySelectorAll('.option-content-answer.correct.pressed')]
       .map((btn) => parseInt(btn.getAttribute('data-index'), 10));
+
     const allCorrect = correctAnswers.every((i) => pressed.includes(i));
+
+    questionEntry.isCorrect = allCorrect;
     if (allCorrect) {
       questionDiv.classList.add('answered-correctly');
     }
@@ -581,6 +632,7 @@ export async function handleActivityClick({
     messageContainer.innerHTML = '';
     messageContainer.appendChild(span({ class: 'result' }, incorrectLabel));
     messageContainer.appendChild(span({ class: 'snippet' }, snippet));
+    questionEntry.isCorrect = false;
   }
 
   questionDiv.classList.add('answered');
