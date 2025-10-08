@@ -59,6 +59,7 @@ function mapLegacyArticleData(legacyData) {
     metadata: {
       thumbnailImage: image,
       primaryTopics,
+      primaryTopic: singlePrimaryTopic,
       mediaType,
     },
     title,
@@ -74,6 +75,9 @@ function mapLegacyArticleData(legacyData) {
   const newImage = normalizeLegacyPath(image);
   let primaryTopic = (Array.isArray(primaryTopics) && primaryTopics.length > 0)
     ? primaryTopics[0] : primaryTopics;
+  if (!primaryTopic) {
+    primaryTopic = singlePrimaryTopic || '';
+  }
   primaryTopic = primaryTopic.includes(':') ? primaryTopic.split(':')[1] : primaryTopic;
   return {
     path: newPath,
