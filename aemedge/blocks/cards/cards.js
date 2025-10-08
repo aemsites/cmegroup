@@ -360,7 +360,7 @@ function getArticleTypeConfig(block) {
     return {
       type: 'list',
       limit: 3,
-      mapFunction: createDynamicCardArticle,
+      mapFunction: (content) => createDynamicCardArticle(content, false),
       sliderConfig: null,
       disableSliderOnDesktop: true,
     };
