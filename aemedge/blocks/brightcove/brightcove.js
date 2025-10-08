@@ -1,5 +1,5 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { readBlockConfig } from '../../scripts/utils.js';
+import { readBlockConfig, loadScript } from '../../scripts/utils.js';
 import {
   setTracking,
   LocalStorageUtil,
@@ -345,21 +345,10 @@ async function loadVideoLibrary(
   }
 
   const scriptSrc = `https://players.brightcove.net/${videoAccount}/${videoPlayer}_default/index.min.js`;
-  const existingScript = document.querySelector(`script[src="${scriptSrc}"]`);
 
-  if (existingScript) {
-    await setPlayerReady(block, language, videoId, randomNumber, autoplayOptions);
-    return;
-  }
-
-  const script = document.createElement('script');
-  script.src = scriptSrc;
-  script.async = true;
-  document.head.appendChild(script);
-
-  script.onload = async () => {
-    await setPlayerReady(block, language, videoId, randomNumber, autoplayOptions);
-  };
+  await loadScript(scriptSrc).then(() => {
+    setPlayerReady(block, language, videoId, randomNumber, autoplayOptions);
+  });
 }
 
 export default async function decorate(block) {
