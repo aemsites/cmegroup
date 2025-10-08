@@ -1,5 +1,5 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { readBlockConfig } from '../../scripts/utils.js';
+import { readBlockConfig, loadScript } from '../../scripts/utils.js';
 import {
   setTracking,
   LocalStorageUtil,
@@ -126,7 +126,8 @@ function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions)
     });
   }
   languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
-  languageVideoPlayer.on('loadeddata', () => {
+  // eslint-disable-next-line no-underscore-dangle
+  if (languageVideoPlayer.isReady_) {
     block.querySelector('.brightcove-placeholder')?.remove();
     document.getElementById(`cmeVideo${videoId}_${randomNumber}`).classList.remove('video-hidden');
     block.querySelector('.vjs-playlist.video-hidden')?.classList.remove('video-hidden');
@@ -233,7 +234,7 @@ function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions)
       );
     });
     // GMT - Events to Track
-  });
+  }
 
   if (autoplayOptions.mute) {
     languageVideoPlayer.volume(0);
@@ -342,13 +343,12 @@ async function loadVideoLibrary(
   if (block.getAttribute('data-video-status') === 'loaded') {
     return;
   }
-  const script = document.createElement('script');
-  script.src = `https://players.brightcove.net/${videoAccount}/${videoPlayer}_default/index.min.js`;
-  script.async = true;
-  document.head.appendChild(script);
-  script.onload = async () => {
-    await setPlayerReady(block, language, videoId, randomNumber, autoplayOptions);
-  };
+
+  const scriptSrc = `https://players.brightcove.net/${videoAccount}/${videoPlayer}_default/index.min.js`;
+
+  await loadScript(scriptSrc).then(() => {
+    setPlayerReady(block, language, videoId, randomNumber, autoplayOptions);
+  });
 }
 
 export default async function decorate(block) {
@@ -362,6 +362,7 @@ export default async function decorate(block) {
     cc,
     language,
     defaultplaylistposter: defaultPlaylistPoster,
+    playliststyle: playlistStyle,
     alternativeurl: alternativeUrl,
   } = dataBlock;
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
@@ -404,7 +405,7 @@ export default async function decorate(block) {
           </video>
           ${playlistId !== '' && playlistLocation === 'R' ? '<div class="vjs-playlist video-hidden"></div>' : ''}
         </div>
-        ${playlistId !== '' && playlistLocation === 'B' ? `<div class="vjs-playlist playlist-bottom video-hidden" data-for="cmeVideo${videoId}_${randomNumber}"></div>` : ''}
+        ${playlistId !== '' && playlistLocation === 'B' ? `<div class="vjs-playlist playlist-bottom ${playlistStyle ? 'playlist-horizontal' : ''} video-hidden" data-for="cmeVideo${videoId}_${randomNumber}"></div>` : ''}
       </div>
     </div>
   </div>
