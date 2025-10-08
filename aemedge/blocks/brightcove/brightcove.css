@@ -87,8 +87,7 @@
 .vjs-playlist.playlist-horizontal.vjs-mouse.vjs-playlist-horizontal {
   max-height: 8.125rem;
   min-height: 8.125rem;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: auto hidden;
 
   & .vjs-playlist-item-list {
     & .vjs-playlist-item {
