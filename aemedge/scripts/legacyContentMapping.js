@@ -47,7 +47,8 @@ function normalizeLegacyPath(path) {
   if (!newPath.includes('.')) {
     newPath += '.html';
   }
-  const domainInfo = checkDomain(window.location);
+  const domainInfo = window.location.hostname ? checkDomain(window.location)
+    : checkDomain(window.parent.location);
   if (domainInfo.isAEM) {
     newPath = urlByEnvType() + newPath;
   }
