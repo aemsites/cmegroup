@@ -16,7 +16,7 @@ export function updateAdvancedNextDisabled(type, wrapper, currentIndex, question
     const question = questions[currentIndex];
     const questionId = question?.uniqueId;
 
-    const questionEntry = state.quizStatus?.questions?.find(
+    const questionEntry = state?.questions?.find(
       (q) => q.questionElementId === questionId,
     );
     const isAnswered = !!(questionEntry && questionEntry.answers.length > 0);
@@ -104,9 +104,9 @@ function addReviewQuestions(
 
   reviewContainer = div({ class: 'review-questions' });
 
-  const isTestMode = !!state.quizStatus?.questions?.length;
+  const isTestMode = !!state.questions?.length;
   const answeredQuestions = isTestMode
-    ? state.quizStatus.questions
+    ? state.questions
     : state.answers || [];
 
   questionsMeta.forEach((question, idx) => {
@@ -196,12 +196,14 @@ async function renderTestResult(
   block.classList.add('in-test-results');
   block.classList.remove('in-review');
 
-  const answeredQuestions = state.quizStatus?.questions || [];
+  const answeredQuestions = state?.questions || [];
 
   const correctCount = answeredQuestions.filter((question) => question.isCorrect === true).length;
   const total = questionsMeta.length;
   const percentage = Math.round((correctCount / total) * 100);
   const passed = percentage >= testPercentage;
+  state.status = passed ? 'COMPLETED' : 'PROGRESS';
+  state.result = percentage;
 
   const [
     congratsLabel,
@@ -494,16 +496,14 @@ export async function handleTestClick({
   const questionId = question.uniqueId;
   const answerId = answer.uniqueId;
 
-  if (!state.quizStatus) {
-    state.quizStatus = {
-      quizElementId: block.dataset.quizId || 'quiz-id',
-      type: 'TEST',
-      status: 'PROGRESS',
-      questions: [],
-    };
+  if (!state.questions) {
+    state.quizElementId = block.dataset.quizId || 'quiz-id';
+    state.type = 'TEST';
+    state.status = 'PROGRESS';
+    state.questions = [];
   }
 
-  let questionEntry = state.quizStatus.questions
+  let questionEntry = state.questions
     .find((ques) => ques.questionElementId === questionId);
   if (!questionEntry) {
     questionEntry = {
@@ -511,7 +511,7 @@ export async function handleTestClick({
       isCorrect: false,
       answers: [],
     };
-    state.quizStatus.questions.push(questionEntry);
+    state.questions.push(questionEntry);
   }
 
   if (multiCorrect) {
@@ -573,10 +573,14 @@ export async function handleActivityClick({
 }) {
   if (questionDiv.classList.contains('answered-correctly')) return;
 
-  if (!state.quizStatus) state.quizStatus = {};
-  if (!Array.isArray(state.quizStatus.questions)) state.quizStatus.questions = [];
+  if (state.type !== 'activity') {
+    state.type = 'activity';
+    state.quizElementId = block.dataset.quizId || 'quiz-id';
+    state.status = 'COMPLETED';
+    state.questions = [];
+  }
 
-  let questionEntry = state.quizStatus.questions.find(
+  let questionEntry = state.questions.find(
     (ques) => ques.questionElementId === question.uniqueId,
   );
   if (!questionEntry) {
@@ -585,7 +589,7 @@ export async function handleActivityClick({
       answers: [],
       isCorrect: false,
     };
-    state.quizStatus.questions.push(questionEntry);
+    state.questions.push(questionEntry);
   }
 
   const index = parseInt(optionButton.getAttribute('data-index'), 10);
@@ -675,7 +679,7 @@ export function updateAdvancedNav(nav, wrapper, questions, type, state) {
     const question = questions[nav.currentIndex];
     const questionId = question?.uniqueId;
 
-    const questionEntry = state.quizStatus?.questions?.find(
+    const questionEntry = state?.questions?.find(
       (ques) => ques.questionElementId === questionId,
     );
 
@@ -735,7 +739,6 @@ export async function markQuizCompletedAdvanced(
   showIndicatorsViaReviewMode,
   redoQuizLabel,
 ) {
-  state.quizCompleted = true;
   const questionsWrapper = block.querySelector('.questions-wrapper');
   const progressBar = block.querySelector('.progress-bar');
   const navigation = block.querySelector('.quiz-navigation');
