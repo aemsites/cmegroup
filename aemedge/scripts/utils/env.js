@@ -1,5 +1,8 @@
 export function getEnv() {
-  const { location: { hostname } } = window;
+  let { location: { hostname } } = window;
+  if (!hostname && window.parent && window.parent !== window) {
+    ({ parent: { location: { hostname } = {} } } = window);
+  }
   return hostname.match(/(preview|beta|www)(-www|\.cmegroup)?/)?.[1] ?? 'www';
 }
 

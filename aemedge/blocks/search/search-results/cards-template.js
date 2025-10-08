@@ -1,11 +1,19 @@
 import {
   a, div, h2, img, p, span,
 } from '../../../scripts/dom-helpers.js';
-import { getTaxonomy } from '../../../scripts/taxonomy.js';
 import {
-  getCdtDate, i18n, parseTime, getReadTimeLabel, getReadTimeIcon,
+  getCdtDate,
+  i18n,
+  parseTime,
+  getReadTimeLabel,
+  getReadTimeIcon,
   createElement,
+  getTag,
 } from '../../../scripts/utils.js';
+import {
+  mapLegacyArticleData,
+  isLegacyContent,
+} from '../../../scripts/legacyContentMapping.js';
 
 // Build base card layout with optional header and additional children
 const buildBaseCard = ({
@@ -32,36 +40,26 @@ const buildBaseCard = ({
 // Add image to card if present
 const addImage = (card, item) => {
   const imageUrl = item.metadata?.image || item.metadata?.['og:image'];
-  if (imageUrl && (imageUrl.includes('https://') || imageUrl.includes('http://'))) {
+  if (imageUrl) {
     const imageEl = img({ src: imageUrl, alt: item.title });
     card.children[0]?.prepend(imageEl);
   }
 };
 
-const resolveTaxonomyPath = (path, taxonomy) => {
-  const parts = path.split('/');
-  let current = taxonomy;
-
-  for (let i = 0; i < parts.length; i += 1) {
-    const key = parts[i];
-    if (!current[key]) return null;
-    current = current[key];
-  }
-
-  return { node: current };
-};
-
 const articleCard = async (card, item) => {
   const date = item.date ? getCdtDate(item.date).format('MMM DD, YYYY') : '';
   const footer = div({ class: 'result-footer' }, date);
-  const subTemplates = item.metadata?.['sub-template']?.split(' ');
+  const subTemplates = item.metadata?.['sub-template'];
+  const primaryTopic = item.metadata?.['primary-topic'];
 
   const [
     parsedTime,
     readLabel,
+    primaryTopicTag,
   ] = await Promise.all([
     parseTime(item.readTime),
     getReadTimeLabel(subTemplates),
+    primaryTopic ? getTag(primaryTopic) : null,
   ]);
 
   const readIconSpan = parsedTime ? getReadTimeIcon(subTemplates) : null;
@@ -70,14 +68,9 @@ const articleCard = async (card, item) => {
     footer.classList.add('no-margin-top-auto');
   }
 
-  const taxonomy = await getTaxonomy('tags');
   let header = null;
-
-  if (item.metadata['primary-topic']) {
-    const resolved = resolveTaxonomyPath(item.metadata['primary-topic'], taxonomy);
-    if (resolved) {
-      header = div({ class: 'result-header' }, resolved.node.title);
-    }
+  if (primaryTopicTag) {
+    header = div({ class: 'result-header' }, primaryTopicTag.title);
   }
 
   const anchor = buildBaseCard({
@@ -128,7 +121,7 @@ const labeledCardStandaloneLesson = async (card, item, labelKey, footerText) => 
   const header = label ? div({ class: 'result-header' }, label) : null;
   const footer = div({ class: 'result-footer date' }, footerText);
 
-  const subTemplates = item.metadata?.['sub-template']?.split(' ');
+  const subTemplates = item.metadata?.['sub-template'];
   const [
     parsedTime,
     readLabel,
@@ -185,6 +178,7 @@ const imageCard = async (card, item, builderFn) => {
 
 // Factory function
 const getCards = async (cardType, item) => {
+  const curatedItem = isLegacyContent(item) ? mapLegacyArticleData(item) : item;
   const card = div({ class: `result-card ${cardType}` });
 
   const cardMap = {
@@ -201,9 +195,9 @@ const getCards = async (cardType, item) => {
 
   const cardFn = cardMap[cardType];
   if (cardFn) {
-    await cardFn(card, item);
+    await cardFn(card, curatedItem);
   } else {
-    await cardMap.default(card, item);
+    await cardMap.default(card, curatedItem);
   }
 
   return card;

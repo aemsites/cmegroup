@@ -363,6 +363,7 @@ export default async function decorate(block) {
     language,
     defaultplaylistposter: defaultPlaylistPoster,
     playliststyle: playlistStyle,
+    alternativeurl: alternativeUrl,
   } = dataBlock;
   const playlist = playlistId !== '' && playlistLocation ? playlistLocation : '';
   const dataPlayer = calculateDataPlayerId(aspectRatio, playlist, cc);
@@ -382,7 +383,7 @@ export default async function decorate(block) {
         <div></div>
       </div>
     </div>
-    <div class='brightcove-video'>
+    <div class='brightcove-video' ${alternativeUrl ? `data-alternative-url="${alternativeUrl}"` : ''}>
       <div class='brightcove-wrapper'>
         <div
           id="cmeVideoContainer${videoId}_${randomNumber}"
