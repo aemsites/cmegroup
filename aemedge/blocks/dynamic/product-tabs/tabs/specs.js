@@ -2,8 +2,9 @@
 /* eslint-disable import/no-cycle */
 import {
   createTabSection,
-} from './utils.js';
-import { TOGGLE_CONSTANTS } from '../constants.js';
+  organizeToggleContent,
+} from '../helpers/utils.js';
+import { TOGGLE_CONSTANTS } from '../helpers/constants.js';
 
 export const HAS_FUTURES_OPTIONS_TOGGLE = true;
 
@@ -27,7 +28,6 @@ async function createSpecsContent() {
     // Toggle content (futures/options)
     async () => {
       try {
-        const { organizeToggleContent } = await import('./utils.js');
         return await organizeToggleContent({
           futuresBlocks: await createFuturesContent(),
           optionsBlocks: await createOptionsContent(),

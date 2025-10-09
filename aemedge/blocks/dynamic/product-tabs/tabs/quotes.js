@@ -9,7 +9,7 @@ import {
   fetchJsonData,
   organizeToggleContent,
   buildTable,
-} from './utils.js';
+} from '../helpers/utils.js';
 import {
   API_CONFIG,
   FRAGMENT_URLS,
@@ -17,7 +17,7 @@ import {
   TABLE_CONSTANTS,
   TABLE_FORMATTERS,
   QUOTES_TABLE_CONSTANTS,
-} from '../constants.js';
+} from '../helpers/constants.js';
 
 export const HAS_FUTURES_OPTIONS_TOGGLE = true;
 
@@ -269,13 +269,13 @@ async function updateOptionsTableData(quoteCode) {
       return;
     }
 
-    const rows = table.querySelectorAll('tbody tr');
-    const dataRow = rows.length === 1 ? rows[0] : rows[1];
+    const tableElement = table.querySelector('table');
+    const dataRow = tableElement ? tableElement.querySelector('thead tr') : null;
     if (!dataRow) {
       return;
     }
 
-    const cells = dataRow.querySelectorAll('td');
+    const cells = dataRow.querySelectorAll('th');
     if (cells.length >= 9) {
       cells[2].innerHTML = quote.last || '-';
       cells[3].innerHTML = `${quote.change || '-'} (${quote.percentageChange || '-'})`;
@@ -286,7 +286,7 @@ async function updateOptionsTableData(quoteCode) {
       cells[8].innerHTML = TABLE_FORMATTERS.simpleTime(quote.updated);
     }
   } catch (error) {
-    // Silent error handling
+    console.error('Error updating options table:', error);
   }
 }
 

@@ -6,7 +6,7 @@ import { getMetadata } from '../../../../scripts/aem.js';
 import {
   TOGGLE_CONSTANTS,
   API_CONFIG,
-} from '../constants.js';
+} from './constants.js';
 
 /**
  * Generic fetch utility for JSON data following project patterns

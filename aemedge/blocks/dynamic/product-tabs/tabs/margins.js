@@ -2,7 +2,7 @@
 
 import {
   createTabSection,
-} from './utils.js';
+} from '../helpers/utils.js';
 
 export const HAS_FUTURES_OPTIONS_TOGGLE = false;
 

@@ -4,8 +4,8 @@
 import {
   createTabSection,
   organizeToggleContent,
-} from './utils.js';
-import { TOGGLE_CONSTANTS } from '../constants.js';
+} from '../helpers/utils.js';
+import { TOGGLE_CONSTANTS } from '../helpers/constants.js';
 
 export const HAS_FUTURES_OPTIONS_TOGGLE = true;
 

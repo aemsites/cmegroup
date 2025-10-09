@@ -111,8 +111,8 @@ async function populateTab(tabSection, builder) {
  */
 async function setupToggles(tabDefinitions) {
   try {
-    const { setToggleConfig, setupTabToggleIntegration } = await import('./tabs/utils.js');
-    const { TOGGLE_CONSTANTS } = await import('./constants.js');
+    const { setToggleConfig, setupTabToggleIntegration } = await import('./helpers/utils.js');
+    const { TOGGLE_CONSTANTS } = await import('./helpers/constants.js');
 
     // Check each tab for toggle support
     await Promise.all(tabDefinitions.map(async (tab) => {
@@ -154,19 +154,18 @@ async function initializeTabsUI() {
  * Main function - create all dynamic tabs
  */
 export default async function createProductTabs(main) {
-  if (isInitialized) return;
+  if (isInitialized) {
+    return;
+  }
   isInitialized = true;
 
   try {
-    // Check if dynamic tabs exist
     const hasDynamicTabs = main.querySelectorAll('.tabs-content').length > 0;
     if (!hasDynamicTabs) return;
 
-    // Load all tab builders
     const allTabs = await loadTabBuilders();
     const orderedTabs = reorderTabs(allTabs);
 
-    // Populate each tab
     const populatePromises = orderedTabs.map(async ({ id, builder }) => {
       const tabSection = main.querySelector(`[data-tab-id="${id}"]`);
       if (tabSection) {
@@ -175,11 +174,10 @@ export default async function createProductTabs(main) {
     });
 
     await Promise.all(populatePromises);
-
-    // Setup toggles and UI
     await setupToggles(orderedTabs);
     await initializeTabsUI();
   } catch (error) {
-    isInitialized = false; // Allow retry
+    console.error('Error in createProductTabs:', error);
+    isInitialized = false;
   }
 }

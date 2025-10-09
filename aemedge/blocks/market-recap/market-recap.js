@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { getMetadata } from '../../scripts/aem.js';
-import { fetchJsonData } from '../dynamic/product-tabs/tabs/utils.js';
+import { fetchJsonData } from '../dynamic/product-tabs/helpers/utils.js';
 
 const API_CONFIG = {
   reportsEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/market-recap.json',
