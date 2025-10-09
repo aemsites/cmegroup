@@ -4,12 +4,12 @@
   padding-bottom: 1.875rem;
 
   &.carousel-loading {
-    min-height: 100px;
+    min-height: 6.25rem;
     position: relative;
 
     & .slider-slide {
-      filter: blur(30px);
-      height: 500px;
+      filter: blur(1.875rem);
+      height: 31.25rem;
 
       &.placeholder {
         position: absolute;
@@ -94,7 +94,7 @@
     align-items: flex-start;
     justify-content: center;
     z-index: 99;
-    gap: 20px;
+    gap: 1.25rem;
     transform: translateZ(0);
     backface-visibility: hidden;
     transition: all .25s ease-out;
@@ -172,8 +172,8 @@
     & .slider-arrow {
       display: block;
       font-size: 1rem;
-      height: 40px;
-      width: 40px;
+      height: 2.5rem;
+      width: 2.5rem;
       z-index: 99;
       position: relative;
       background-color: var(--blue5);
@@ -182,8 +182,8 @@
       border-radius: 0;
 
       @media (width >=480px) {
-        height: 60px;
-        width: 60px;
+        height: 3.75rem;
+        width: 3.75rem;
       }
 
       &:hover {
@@ -281,15 +281,15 @@
 
 /* Spinner styles */
 .carousel-spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
+  border: 0.25rem solid #f3f3f3;
+  border-top: 0.25rem solid #3498db;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 2.5rem;
+  height: 2.5rem;
   animation: carousel-spin 1s linear infinite;
   position: absolute;
-  top: calc(50% - 20px);
-  left: calc(50% - 20px);
+  top: calc(50% - 1.25rem);
+  left: calc(50% - 1.25rem);
   transform: translate(-50%, -50%);
   z-index: 101;
 }
