@@ -1,11 +1,9 @@
-/* eslint-disable import/no-cycle */
 // External dependencies
 import { createElement } from '../../../../scripts/utils.js';
 import { getMetadata } from '../../../../scripts/aem.js';
 
 // Internal constants
 import {
-  FRAGMENT_URLS,
   TOGGLE_CONSTANTS,
   API_CONFIG,
 } from '../constants.js';
@@ -177,130 +175,11 @@ export function createTabSection(tabId, tabTitle, blocks = []) {
   return section;
 }
 
-/**
- * Creates fragment content using the project's loadFragment pattern
- * @returns {Element|null} Fragment content element or null if loading fails
- */
-export async function createTabFragment() {
-  try {
-    // Import loadFragment dynamically to avoid circular dependency
-    const { loadFragment } = await import('../../../fragment/fragment.js');
-    const fragmentMain = await loadFragment(FRAGMENT_URLS.productTabs);
-    if (fragmentMain) {
-      // Create a wrapper div and move all fragment content into it
-      const fragmentWrapper = createElement('div', { class: 'fragment-content' });
-      fragmentWrapper.append(...fragmentMain.childNodes);
-      return fragmentWrapper;
-    }
-  } catch (error) {
-    // Silent fallback
-  }
-  return null;
-}
-
-/**
- * Create a modal trigger link and initialize its modal functionality
- * @param {string} linkText - Text to display in the link
- * @param {string} linkClass - CSS class for the link
- * @param {string} fragmentUrl - URL of the fragment to load in the modal
- * @returns {Element} DOM element for the link
- */
-export function createModalLink(linkText, linkClass, fragmentUrl) {
-  // Use event delegation instead of direct event listeners
-  // This ensures the event works even when content is dynamically inserted
-  initializeModalLinkHandler(linkClass, fragmentUrl);
-
-  // Return HTML string that will be properly processed by organizeToggleContent
-  return `<p><a href="#" class="${linkClass}">${linkText}</a></p>`;
-}
-
-// Initialize modal link handler using event delegation
-function initializeModalLinkHandler(linkClass, fragmentUrl) {
-  // Prevent duplicate initialization
-  if (document.querySelector(`[data-modal-handler="${linkClass}"]`)) {
-    return;
-  }
-
-  // Add marker to prevent duplicate handlers
-  const marker = createElement('div', {
-    'data-modal-handler': linkClass,
-    style: 'display: none;',
-  });
-  document.body.appendChild(marker);
-
-  // Use event delegation for modal links
-  document.addEventListener('click', async (e) => {
-    if (e.target.classList.contains(linkClass)) {
-      e.preventDefault();
-      try {
-        const { createModal } = await import('../../../modal/modal.js');
-        const { loadFragment } = await import('../../../fragment/fragment.js');
-
-        const fragment = await loadFragment(fragmentUrl);
-        const { block, showModal } = await createModal(fragment.childNodes);
-
-        // Apply custom modal class for styling
-        if (linkClass === 'about-report-link') {
-          block.classList.add('about-report-modal');
-        }
-
-        showModal();
-      } catch (error) {
-        // Silent error handling
-      }
-    }
-  });
-}
-
-// Track initialized modals to prevent duplicates
-const initializedModals = new Set();
-
 // Track initialized toggles to prevent duplicates
 const initializedToggles = new Set();
 
 // Store toggle configurations for different tabs
 const toggleConfigs = new Map();
-
-/**
- * Initialize modal functionality for any tab with configurable fragment URL
- * @param {string} linkClass - CSS class of the link that triggers the modal
- * @param {string} fragmentUrl - URL of the fragment to load in the modal
- * @param {string} modalClass - CSS class to add to the modal for custom styling
- */
-export function initializeTabModal(linkClass, fragmentUrl, modalClass = '') {
-  // Prevent duplicate initialization
-  if (initializedModals.has(linkClass)) {
-    return;
-  }
-  initializedModals.add(linkClass);
-
-  // Use event delegation to handle clicks
-  document.addEventListener('click', async (e) => {
-    if (e.target.classList.contains(linkClass)) {
-      e.preventDefault();
-      try {
-        const { createModal } = await import('../../../modal/modal.js');
-        const { loadFragment } = await import('../../../fragment/fragment.js');
-
-        // Load fragment content
-        const fragment = await loadFragment(fragmentUrl);
-
-        // Create modal with custom styling
-        const { block, showModal } = await createModal(fragment.childNodes);
-
-        // Add custom class for modal styling if provided
-        if (modalClass) {
-          block.classList.add(modalClass);
-        }
-
-        // Show the modal
-        showModal();
-      } catch (error) {
-        // Modal failed to open - silent fallback
-      }
-    }
-  });
-}
 
 /**
  * Integrates Futures/Options toggle into the existing tabs navigation
@@ -812,7 +691,7 @@ export async function buildTable(headers, data, options = {}) {
 
     // Create table block using manual DOM approach (works with table decorator)
     const tableBlock = document.createElement('div');
-    tableBlock.classList.add('table', 'api-backed'); // Add api-backed class for API-backed blocks
+    tableBlock.classList.add('table', 'dynamic'); // Add dynamic class for dynamic blocks
     tableBlock.dataset.blockName = 'table';
 
     // Add variant classes and ID
@@ -828,16 +707,18 @@ export async function buildTable(headers, data, options = {}) {
 
     // Create HTML table structure
     const table = document.createElement('table');
+    const thead = document.createElement('thead');
     const tbody = document.createElement('tbody');
 
     // Add header row
     const headerRow = document.createElement('tr');
     headers.forEach((header) => {
-      const td = document.createElement('td');
-      td.innerHTML = header;
-      headerRow.appendChild(td);
+      const th = document.createElement('th');
+      th.innerHTML = header;
+      headerRow.appendChild(th);
     });
-    tbody.appendChild(headerRow);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
 
     // Add data rows
     data.forEach((rowData, rowIndex) => {
@@ -862,8 +743,6 @@ export async function buildTable(headers, data, options = {}) {
 
     table.appendChild(tbody);
     tableBlock.appendChild(table);
-
-    // Let AEM handle decoration naturally
 
     return tableBlock;
   } catch (error) {

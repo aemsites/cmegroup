@@ -1,46 +1,24 @@
-import { getMetadata } from '../../../../scripts/aem.js';
-import { 
-  createTabSection, 
-  createTabFragment, 
-  organizeToggleContent,
+// Calendar Tab - Futures and Options with Toggle System
+
+import {
+  createTabSection,
 } from './utils.js';
 import { TOGGLE_CONSTANTS } from '../constants.js';
 
-// Enable futures/options toggle for this tab
 export const HAS_FUTURES_OPTIONS_TOGGLE = true;
 
-/**
- * Create futures content for calendar
- */
+// Content Functions
 async function createFuturesContent() {
-  const productName = getMetadata('product') || 'Product';
-  const titleContent = `<h2>${productName} Futures - Calendar</h2>`;
-  
-  const futuresContent = `
-    <p><strong>Futures Trading Calendar:</strong> Key dates and events for futures contracts.</p>
-    <p>View contract expiration dates, first notice days, last trading days, and trading holidays.</p>
-  `;
-
-  return [titleContent, futuresContent];
+  // Authors can add content in source document
+  return [];
 }
 
-/**
- * Create options content for calendar
- */
 async function createOptionsContent() {
-  const productName = getMetadata('product') || 'Product';
-  const titleContent = `<h2>${productName} Options - Calendar</h2>`;
-  
-  const optionsContent = `
-    <p>Options calendar data</p>
-  `;
-
-  return [titleContent, optionsContent];
+  // Authors can add content in source document
+  return [];
 }
 
-/**
- * Create calendar content with independent, resilient blocks
- */
+// Main Content Functions
 async function createCalendarContent() {
   const allBlocks = [];
 
@@ -49,32 +27,22 @@ async function createCalendarContent() {
     // Toggle content (futures/options)
     async () => {
       try {
-        const futuresBlocks = await createFuturesContent();
-        const optionsBlocks = await createOptionsContent();
-        return organizeToggleContent({
-          futuresBlocks,
-          optionsBlocks,
+        const { organizeToggleContent } = await import('./utils.js');
+        return await organizeToggleContent({
+          futuresBlocks: await createFuturesContent(),
+          optionsBlocks: await createOptionsContent(),
           defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
           tabId: 'calendar',
         });
       } catch (error) {
-        return '<div class="no-results"><h4>Unable to load calendar toggle</h4></div>';
-      }
-    },
-
-    // Fragment
-    async () => {
-      try {
-        return await createTabFragment();
-      } catch (error) {
-        return null; // Silent fail
+        return '<div class="cards"><div class="no-results"><h4>Unable to load calendar toggle</h4></div></div>';
       }
     },
   ];
 
   // Load all blocks independently using resilient pattern
-  const results = await Promise.allSettled(blockCreators.map(creator => creator()));
-  
+  const results = await Promise.allSettled(blockCreators.map((creator) => creator()));
+
   // Add only successful blocks to the tab
   results.forEach((result) => {
     if (result.status === 'fulfilled' && result.value) {
@@ -85,10 +53,6 @@ async function createCalendarContent() {
   return allBlocks;
 }
 
-/**
- * Builds the Calendar tab content
- * @returns {Element} Section element for calendar tab
- */
 export default async function buildCalendarTab() {
   let blocks = [];
   try {

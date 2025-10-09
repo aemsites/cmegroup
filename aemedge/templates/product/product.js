@@ -1,13 +1,9 @@
 // Dynamic tab system now handled by blocks/dynamic/product-tabs/
 
 import {
-  buildBlock,
-  decorateBlock,
-  loadBlock,
   getMetadata,
 } from '../../scripts/aem.js';
 
-import { createElement } from '../../scripts/utils.js';
 import dynamicBlocks from '../../blocks/dynamic/index.js';
 
 // Utility function for fetching JSON data (used by hero block)
@@ -95,10 +91,10 @@ async function populateHeroData() {
 
         <div class="update-time">
           Last Updated ${new Date(contractData.lastUpdated).toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-          })}
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })}
         </div>
       </div>
     `;

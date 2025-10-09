@@ -1,46 +1,24 @@
-import { getMetadata } from '../../../../scripts/aem.js';
+// Volume Tab - Futures and Options with Toggle System
+
 import {
   createTabSection,
-  createTabFragment,
-  organizeToggleContent,
 } from './utils.js';
 import { TOGGLE_CONSTANTS } from '../constants.js';
 
-// Enable futures/options toggle for this tab
 export const HAS_FUTURES_OPTIONS_TOGGLE = true;
 
-/**
- * Create futures content for volume
- */
+// Content Functions
 async function createFuturesContent() {
-  const productName = getMetadata('product') || 'Product';
-  const titleContent = `<h2>${productName} Futures - Volume</h2>`;
-
-  const futuresContent = `
-    <p><strong>Trading Volume & Open Interest:</strong> Daily trading volume and open interest statistics for futures contracts.</p>
-    <p>Track market activity across all contract months with historical volume trends and market participation data.</p>
-  `;
-
-  return [titleContent, futuresContent];
+  // Authors can add content in source document
+  return [];
 }
 
-/**
- * Create options content for volume
- */
 async function createOptionsContent() {
-  const productName = getMetadata('product') || 'Product';
-  const titleContent = `<h2>${productName} Options - Volume</h2>`;
-
-  const optionsContent = `
-    <p>Options volume data</p>
-  `;
-
-  return [titleContent, optionsContent];
+  // Authors can add content in source document
+  return [];
 }
 
-/**
- * Create volume content with independent, resilient blocks
- */
+// Main Content Functions
 async function createVolumeContent() {
   const allBlocks = [];
 
@@ -49,25 +27,15 @@ async function createVolumeContent() {
     // Toggle content (futures/options)
     async () => {
       try {
-        const futuresBlocks = await createFuturesContent();
-        const optionsBlocks = await createOptionsContent();
-        return organizeToggleContent({
-          futuresBlocks,
-          optionsBlocks,
+        const { organizeToggleContent } = await import('./utils.js');
+        return await organizeToggleContent({
+          futuresBlocks: await createFuturesContent(),
+          optionsBlocks: await createOptionsContent(),
           defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
           tabId: 'volume',
         });
       } catch (error) {
         return '<div class="cards"><div class="no-results"><h4>Unable to load volume toggle</h4></div></div>';
-      }
-    },
-
-    // Fragment
-    async () => {
-      try {
-        return await createTabFragment();
-      } catch (error) {
-        return null; // Silent fail
       }
     },
   ];
@@ -85,10 +53,6 @@ async function createVolumeContent() {
   return allBlocks;
 }
 
-/**
- * Builds the Volume tab content
- * @returns {Element} Section element for volume tab
- */
 export default async function buildVolumeTab() {
   let blocks = [];
   try {

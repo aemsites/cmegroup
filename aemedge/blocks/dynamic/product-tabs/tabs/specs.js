@@ -1,46 +1,24 @@
-import { getMetadata } from '../../../../scripts/aem.js';
-import { 
-  createTabSection, 
-  createTabFragment, 
-  organizeToggleContent,
+// Specs Tab - Futures and Options with Toggle System
+/* eslint-disable import/no-cycle */
+import {
+  createTabSection,
 } from './utils.js';
 import { TOGGLE_CONSTANTS } from '../constants.js';
 
-// Enable futures/options toggle for this tab
 export const HAS_FUTURES_OPTIONS_TOGGLE = true;
 
-/**
- * Create futures content for specs
- */
+// Content Functions
 async function createFuturesContent() {
-  const productName = getMetadata('product') || 'Product';
-  const titleContent = `<h2>${productName} Futures - Specs</h2>`;
-  
-  const futuresContent = `
-    <p><strong>Contract Specifications:</strong> Complete technical specifications for futures contracts.</p>
-    <p>Includes contract size, tick size, trading hours, delivery specifications, and position limits.</p>
-  `;
-
-  return [titleContent, futuresContent];
+  // Authors can add content in source document
+  return [];
 }
 
-/**
- * Create options content for specs
- */
 async function createOptionsContent() {
-  const productName = getMetadata('product') || 'Product';
-  const titleContent = `<h2>${productName} Options - Specs</h2>`;
-  
-  const optionsContent = `
-    <p>Options specifications data</p>
-  `;
-
-  return [titleContent, optionsContent];
+  // Authors can add content in source document
+  return [];
 }
 
-/**
- * Create specs content with independent, resilient blocks
- */
+// Main Content Functions
 async function createSpecsContent() {
   const allBlocks = [];
 
@@ -49,11 +27,10 @@ async function createSpecsContent() {
     // Toggle content (futures/options)
     async () => {
       try {
-        const futuresBlocks = await createFuturesContent();
-        const optionsBlocks = await createOptionsContent();
-        return organizeToggleContent({
-          futuresBlocks,
-          optionsBlocks,
+        const { organizeToggleContent } = await import('./utils.js');
+        return await organizeToggleContent({
+          futuresBlocks: await createFuturesContent(),
+          optionsBlocks: await createOptionsContent(),
           defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
           tabId: 'specs',
         });
@@ -61,20 +38,11 @@ async function createSpecsContent() {
         return '<div class="cards"><div class="no-results"><h4>Unable to load specs toggle</h4></div></div>';
       }
     },
-
-    // Fragment
-    async () => {
-      try {
-        return await createTabFragment();
-      } catch (error) {
-        return null; // Silent fail
-      }
-    },
   ];
 
   // Load all blocks independently using resilient pattern
-  const results = await Promise.allSettled(blockCreators.map(creator => creator()));
-  
+  const results = await Promise.allSettled(blockCreators.map((creator) => creator()));
+
   // Add only successful blocks to the tab
   results.forEach((result) => {
     if (result.status === 'fulfilled' && result.value) {
@@ -85,10 +53,6 @@ async function createSpecsContent() {
   return allBlocks;
 }
 
-/**
- * Builds the Specs tab content
- * @returns {Element} Section element for specs tab
- */
 export default async function buildSpecsTab() {
   let blocks = [];
   try {
