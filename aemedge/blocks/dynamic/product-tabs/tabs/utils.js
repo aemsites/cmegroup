@@ -1,14 +1,13 @@
+/* eslint-disable import/no-cycle */
 // External dependencies
 import { createElement } from '../../../../scripts/utils.js';
-import { getMetadata, decorateBlock, loadBlock } from '../../../../scripts/aem.js';
+import { getMetadata } from '../../../../scripts/aem.js';
 
 // Internal constants
-import { 
-  FRAGMENT_URLS, 
-  MODAL_CONSTANTS, 
+import {
+  FRAGMENT_URLS,
   TOGGLE_CONSTANTS,
-  TABLE_CONSTANTS,
-  API_CONFIG 
+  API_CONFIG,
 } from '../constants.js';
 
 /**
@@ -91,17 +90,17 @@ export function createOptionsDropdown(expirationsData = []) {
       dropdownMenu.appendChild(menuItem);
     });
   } else {
-    // Fallback if no data
-    const fallbackItem = createElement('a', {
+    // No fallback - return empty dropdown if no data
+    const noDataItem = createElement('a', {
       role: 'menuitem',
-      'data-value': '301',
+      'data-value': '',
       tabindex: '0',
       class: TOGGLE_CONSTANTS.toggleClasses.dropdownItem,
     });
     const linkSpan = createElement('span', { class: 'link' });
-    linkSpan.textContent = 'American Options';
-    fallbackItem.appendChild(linkSpan);
-    dropdownMenu.appendChild(fallbackItem);
+    linkSpan.textContent = 'No options available';
+    noDataItem.appendChild(linkSpan);
+    dropdownMenu.appendChild(noDataItem);
   }
 
   dropdown.appendChild(dropdownButton);
@@ -120,7 +119,7 @@ export function createOptionsDropdown(expirationsData = []) {
       const selectedText = menuItem.querySelector('.link').textContent;
       // Keep button text as "OPTIONS" - don't change it
       dropdown.classList.remove(TOGGLE_CONSTANTS.toggleClasses.dropdownOpen);
-      
+
       // Trigger custom event for other components to listen to
       const customEvent = new CustomEvent('optionSelected', {
         detail: {
@@ -185,7 +184,7 @@ export function createTabSection(tabId, tabTitle, blocks = []) {
 export async function createTabFragment() {
   try {
     // Import loadFragment dynamically to avoid circular dependency
-    const { loadFragment } = await import('../../../../blocks/fragment/fragment.js');
+    const { loadFragment } = await import('../../../fragment/fragment.js');
     const fragmentMain = await loadFragment(FRAGMENT_URLS.productTabs);
     if (fragmentMain) {
       // Create a wrapper div and move all fragment content into it
@@ -204,14 +203,13 @@ export async function createTabFragment() {
  * @param {string} linkText - Text to display in the link
  * @param {string} linkClass - CSS class for the link
  * @param {string} fragmentUrl - URL of the fragment to load in the modal
- * @param {string} modalClass - CSS class to add to the modal for custom styling
  * @returns {Element} DOM element for the link
  */
-export function createModalLink(linkText, linkClass, fragmentUrl, modalClass = '') {
+export function createModalLink(linkText, linkClass, fragmentUrl) {
   // Use event delegation instead of direct event listeners
   // This ensures the event works even when content is dynamically inserted
   initializeModalLinkHandler(linkClass, fragmentUrl);
-  
+
   // Return HTML string that will be properly processed by organizeToggleContent
   return `<p><a href="#" class="${linkClass}">${linkText}</a></p>`;
 }
@@ -222,30 +220,30 @@ function initializeModalLinkHandler(linkClass, fragmentUrl) {
   if (document.querySelector(`[data-modal-handler="${linkClass}"]`)) {
     return;
   }
-  
+
   // Add marker to prevent duplicate handlers
-  const marker = createElement('div', { 
+  const marker = createElement('div', {
     'data-modal-handler': linkClass,
-    style: 'display: none;' 
+    style: 'display: none;',
   });
   document.body.appendChild(marker);
-  
+
   // Use event delegation for modal links
   document.addEventListener('click', async (e) => {
     if (e.target.classList.contains(linkClass)) {
       e.preventDefault();
       try {
-        const { createModal } = await import('../../../../blocks/modal/modal.js');
-        const { loadFragment } = await import('../../../../blocks/fragment/fragment.js');
-        
+        const { createModal } = await import('../../../modal/modal.js');
+        const { loadFragment } = await import('../../../fragment/fragment.js');
+
         const fragment = await loadFragment(fragmentUrl);
         const { block, showModal } = await createModal(fragment.childNodes);
-        
+
         // Apply custom modal class for styling
         if (linkClass === 'about-report-link') {
           block.classList.add('about-report-modal');
         }
-        
+
         showModal();
       } catch (error) {
         // Silent error handling
@@ -253,7 +251,6 @@ function initializeModalLinkHandler(linkClass, fragmentUrl) {
     }
   });
 }
-
 
 // Track initialized modals to prevent duplicates
 const initializedModals = new Set();
@@ -282,8 +279,8 @@ export function initializeTabModal(linkClass, fragmentUrl, modalClass = '') {
     if (e.target.classList.contains(linkClass)) {
       e.preventDefault();
       try {
-        const { createModal } = await import('../../../blocks/modal/modal.js');
-        const { loadFragment } = await import('../../../../blocks/fragment/fragment.js');
+        const { createModal } = await import('../../../modal/modal.js');
+        const { loadFragment } = await import('../../../fragment/fragment.js');
 
         // Load fragment content
         const fragment = await loadFragment(fragmentUrl);
@@ -533,7 +530,7 @@ export function setupTabToggleIntegration() {
  */
 function updateTabTitle(tabId, toggleType) {
   // Get product name from metadata
-  const productName = getMetadata('product') || 'Product';
+  const productName = getMetadata('product');
 
   // Determine the title based on toggle type
   const titleType = toggleType === TOGGLE_CONSTANTS.toggleTypes.options ? 'Options' : 'Futures';
@@ -575,7 +572,7 @@ export function organizeToggleContent(contentConfig = {}) {
     defaultActive = TOGGLE_CONSTANTS.toggleTypes.futures,
     tabId = 'default',
   } = contentConfig;
-  
+
   // Create a container for the toggle content
   const toggleContainer = createElement('div', {
     class: 'toggle-container',
@@ -779,7 +776,7 @@ function handleOptionSelection(tabId, productId, label) {
 /**
  * Creates a block with proper error handling
  * @param {Function} blockCreator - Function that creates the block
- * @param {string} blockName - Name of the block for error message (e.g., 'market recap', 'CVOL data')
+ * @param {string} blockName - Name of the block for error message
  * @returns {Promise<Element|string>} Block element or error message HTML
  */
 export async function createBlockWithErrorHandling(blockCreator, blockName = 'content') {
@@ -787,16 +784,14 @@ export async function createBlockWithErrorHandling(blockCreator, blockName = 'co
     const block = await blockCreator();
     if (block) {
       return block;
-    } else {
-      return `<div class="no-results"><h4>Unable to load ${blockName}</h4></div>`;
     }
+    return `<div class="no-results"><h4>Unable to load ${blockName}</h4></div>`;
   } catch (error) {
     return `<div class="no-results"><h4>Unable to load ${blockName}</h4></div>`;
   }
 }
 
 // ===== TABLE UTILITIES =====
-
 
 /**
  * Unified table builder - one function for all table creation needs
@@ -813,7 +808,6 @@ export async function buildTable(headers, data, options = {}) {
       tableId = '',
       className = '',
       customCells = new Map(), // Map of cellKey -> custom element (e.g., '0-1' for row 0, cell 1)
-      autoDecorate = true,
     } = options;
 
     // Create table block using manual DOM approach (works with table decorator)

@@ -1,7 +1,7 @@
-// AEM utilities
-import { buildBlock, getMetadata, decorateBlock, loadBlock } from '../../../../scripts/aem.js';
+/* eslint-disable max-len */
+/* eslint-disable import/no-cycle */
+import { buildBlock, getMetadata } from '../../../../scripts/aem.js';
 
-// Local utilities  
 import {
   createTabSection,
   fetchJsonData,
@@ -12,7 +12,6 @@ import {
   createBlockWithErrorHandling,
 } from './utils.js';
 
-// Centralized constants
 import {
   API_CONFIG,
   FRAGMENT_URLS,
@@ -24,10 +23,8 @@ import {
   QUOTES_TABLE_CONSTANTS,
 } from '../constants.js';
 
-
 // Toggle configuration - set to true to enable Futures/Options toggle for this tab
 export const HAS_FUTURES_OPTIONS_TOGGLE = true;
-
 
 /**
  * Fetch quotes/market reports data
@@ -54,11 +51,37 @@ async function fetchCvolData() {
 }
 
 /**
- * Fetch options labels for dropdown
+ * Fetch options labels for dropdown from expirations data
+ * @param {number} optionsProductId - The selected options product ID from dropdown
  * @returns {Promise<Array|null>} Array of option labels or null if fetch fails
  */
-async function fetchOptionsLabels() {
-  return fetchJsonData(API_CONFIG.optionsLabelsEndpoint);
+async function fetchOptionsLabels(optionsProductId) {
+  // Get product ID from metadata
+  const productId = getMetadata('product-id');
+  if (!productId) {
+    return null;
+  }
+
+  // Using mock data for now (real API has CORS issues)
+  const expirationsData = await fetchJsonData(API_CONFIG.expirations);
+
+  if (!expirationsData || expirationsData.length === 0) {
+    return null;
+  }
+
+  // Find the selected option by optionsProductId and extract its contractExpirations
+  const selectedOption = expirationsData.find((option) => option.productId === optionsProductId);
+  if (!selectedOption || !selectedOption.contractExpirations) {
+    return null;
+  }
+
+  // Transform contractExpirations to match the expected format
+  return selectedOption.contractExpirations.map((contract) => ({
+    expirationMonth: contract.label,
+    quoteCode: contract.underlyingFutureContract,
+    expirationCode: contract.underlyingFutureExpirationCode,
+    selected: false,
+  }));
 }
 
 /**
@@ -97,7 +120,7 @@ async function createQuotesTable(quotesData = null) {
     ];
 
     const tableData = quotesData.quotes.map((quote) => [
-      quote.expirationMonth || TABLE_CONSTANTS.placeholders.noData,
+      `${quote.expirationMonth || TABLE_CONSTANTS.placeholders.noData}<br>${quote.quoteCode || ''}`,
       TABLE_CONSTANTS.placeholders.options,
       TABLE_CONSTANTS.placeholders.chart,
       quote.last || TABLE_CONSTANTS.placeholders.noData,
@@ -132,31 +155,30 @@ async function createMarketRecapCards(reportsData = null) {
       return null;
     }
 
-    // Get commodity name from metadata
-    const commodityName = getMetadata('commodity-name') || 'OZC';
-    
+    // Get product symbol from metadata and prepend OZ to create commodity name
+    const productSymbol = getMetadata('product-symbol');
+    const commodityName = `OZ${productSymbol}`;
+
     // Find matching report (case-insensitive, latest entry)
-    const matchingReport = reportsData.find(report => 
-      report.reportCommodity?.toLowerCase() === commodityName.toLowerCase()
-    );
-    
+    const matchingReport = reportsData.find((report) => report.reportCommodity?.toLowerCase() === commodityName.toLowerCase());
+
     if (!matchingReport) {
       return null;
     }
 
-    const productName = getMetadata('product') || 'Market';
+    const productName = getMetadata('product');
     const reportDate = new Date(matchingReport.reportDate);
-    const formattedDate = reportDate.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const formattedDate = reportDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
 
     const cardsContent = [
       [
         `<h3>${productName} Market Update</h3>
          <p class="date">${formattedDate}</p>
-         ${matchingReport.reportContent}`
+         ${matchingReport.reportContent}`,
       ],
     ];
 
@@ -184,7 +206,7 @@ async function createCvolCards(cvolDataArray = null) {
     // Get the first object from the array
     const cvolData = cvolDataArray[0];
     const productName = getMetadata('product') || 'Product';
-    
+
     const cvolDisplay = `
       <div class="cvol-data">
         <div class="cvol-value">${cvolData.cvolPrice || 'N/A'}</div>
@@ -193,14 +215,14 @@ async function createCvolCards(cvolDataArray = null) {
         </div>
       </div>
     `;
-    
+
     const cvolDescription = cvolData.description || 'Corn Volatility Index measures the market\'s expectation of 30-day volatility.';
 
     const cardsContent = [
       [
         `<h3>${productName} CVOL Index</h3>
          <p>${cvolDescription}</p>
-         ${cvolDisplay}`
+         ${cvolDisplay}`,
       ],
     ];
 
@@ -248,11 +270,23 @@ async function createFuturesMiddleContent() {
 
 /**
  * Create options table with dropdown functionality (same pattern as quotes table)
+ * @param {number} optionsProductId - The selected options product ID from dropdown
  * @returns {Promise<Element|null>} Options table block or null if creation fails
  */
-async function createOptionsTable() {
+async function createOptionsTable(optionsProductId) {
   try {
-    const labelsData = await fetchOptionsLabels();
+    // If no optionsProductId provided, get the first available option from expirations API
+    let productId = optionsProductId;
+    if (!productId) {
+      const expirationsData = await fetchJsonData(API_CONFIG.expirations);
+      if (expirationsData && expirationsData.length > 0) {
+        productId = expirationsData[0].productId; // Use first available option
+      } else {
+        return null; // No fallback - return null if no data available
+      }
+    }
+
+    const labelsData = await fetchOptionsLabels(productId);
     if (!labelsData || labelsData.length === 0) {
       return null;
     }
@@ -272,29 +306,7 @@ async function createOptionsTable() {
       'UPDATED',
     ];
 
-    // Create table block manually (simple approach)
-    const tableBlock = document.createElement('div');
-    tableBlock.classList.add('table', TABLE_CONSTANTS.variants.fixedRowHeader, 'api-backed');
-    tableBlock.dataset.blockName = 'table';
-    tableBlock.id = QUOTES_TABLE_CONSTANTS.tableId.options;
-
-    const table = document.createElement('table');
-    const tbody = document.createElement('tbody');
-
-    // Add header row
-    const headerRow = document.createElement('tr');
-    headers.forEach((header) => {
-      const td = document.createElement('td');
-      td.innerHTML = header;
-      headerRow.appendChild(td);
-    });
-    tbody.appendChild(headerRow);
-
-    // Add data row
-    const dataRow = document.createElement('tr');
-
-    // First cell with simple select dropdown
-    const dropdownCell = document.createElement('td');
+    // Create dropdown for first cell
     const select = document.createElement('select');
     select.className = 'options-dropdown';
     select.id = 'options-dropdown-select';
@@ -316,39 +328,41 @@ async function createOptionsTable() {
       }
     });
 
-    dropdownCell.appendChild(select);
-    dataRow.appendChild(dropdownCell);
-
-    // Remaining cells with data
+    // Prepare table data
+    let tableData = [];
     if (defaultData && defaultData.quotes && defaultData.quotes.length > 0) {
       const quote = defaultData.quotes[0];
-      const dataCells = [
-        TABLE_CONSTANTS.placeholders.chart,
-        quote.last || TABLE_CONSTANTS.placeholders.noData,
-        TABLE_FORMATTERS.change(quote.change, quote.percentageChange),
-        quote.priorSettle || TABLE_CONSTANTS.placeholders.noData,
-        quote.high || TABLE_CONSTANTS.placeholders.noData,
-        quote.low || TABLE_CONSTANTS.placeholders.noData,
-        TABLE_FORMATTERS.volume(quote.volume),
-        TABLE_FORMATTERS.simpleTime(quote.updated),
+      tableData = [
+        [
+          select, // Custom dropdown in first cell
+          TABLE_CONSTANTS.placeholders.chart,
+          quote.last || TABLE_CONSTANTS.placeholders.noData,
+          TABLE_FORMATTERS.change(quote.change, quote.percentageChange),
+          quote.priorSettle || TABLE_CONSTANTS.placeholders.noData,
+          quote.high || TABLE_CONSTANTS.placeholders.noData,
+          quote.low || TABLE_CONSTANTS.placeholders.noData,
+          TABLE_FORMATTERS.volume(quote.volume),
+          TABLE_FORMATTERS.simpleTime(quote.updated),
+        ],
       ];
-
-      dataCells.forEach((cellData) => {
-        const cell = document.createElement('td');
-        cell.innerHTML = cellData;
-        dataRow.appendChild(cell);
-      });
     } else {
+      // Fallback data
+      const fallbackCells = [select]; // Dropdown in first cell
       for (let i = 1; i < headers.length; i += 1) {
-        const cell = document.createElement('td');
-        cell.innerHTML = TABLE_CONSTANTS.placeholders.noData;
-        dataRow.appendChild(cell);
+        fallbackCells.push(TABLE_CONSTANTS.placeholders.noData);
       }
+      tableData = [fallbackCells];
     }
 
-    tbody.appendChild(dataRow);
-    table.appendChild(tbody);
-    tableBlock.appendChild(table);
+    // Use standard buildTable utility with custom cells
+    const customCells = new Map();
+    customCells.set('0-0', select); // First cell (row 0, cell 0) gets the dropdown
+
+    const tableBlock = await buildTable(headers, tableData, {
+      variant: TABLE_CONSTANTS.variants.fixedRowHeader,
+      tableId: QUOTES_TABLE_CONSTANTS.tableId.options,
+      customCells,
+    });
 
     return tableBlock;
   } catch (error) {
@@ -358,11 +372,12 @@ async function createOptionsTable() {
 
 /**
  * Create options-specific middle content
+ * @param {number} optionsProductId - The selected options product ID from dropdown
  * @returns {Promise<Array>} Array of blocks for options middle content
  */
-async function createOptionsMiddleContent() {
+async function createOptionsMiddleContent(optionsProductId) {
   // Create the dynamic options table
-  const optionsTable = await createOptionsTable();
+  const optionsTable = await createOptionsTable(optionsProductId);
 
   // Note: decoration/loading moved to after DOM insertion
 
@@ -389,11 +404,12 @@ async function createFuturesContent() {
 
 /**
  * Create options-specific middle content (only the unique parts)
+ * @param {number} optionsProductId - The selected options product ID from dropdown
  * @returns {Array} Array of blocks for options middle content
  */
-async function createOptionsContent() {
+async function createOptionsContent(optionsProductId) {
   // Only return options-specific middle content
-  const optionsMiddleContent = await createOptionsMiddleContent();
+  const optionsMiddleContent = await createOptionsMiddleContent(optionsProductId);
   return optionsMiddleContent;
 }
 
@@ -441,7 +457,7 @@ async function updateOptionsTableData(quoteCode) {
  * Updates the middle content based on the selected product while keeping shared content
  */
 function handleQuotesOptionSelection() {
-  document.addEventListener('optionSelected', (event) => {
+  document.addEventListener('optionSelected', async (event) => {
     const { tabId, productId, label } = event.detail;
 
     // Only handle this event if it's for the quotes tab
@@ -452,15 +468,32 @@ function handleQuotesOptionSelection() {
     // Update the middle content area (between market recap and CVOL cards)
     const optionsContent = document.getElementById('options-content-quotes');
     if (optionsContent) {
-      optionsContent.innerHTML = `
-        <h3>${label}</h3>
-        <div class="no-results"><h4>Unable to load options data</h4></div>
-      `;
-    }
+      try {
+        // Create new options content with the selected product ID
+        const newOptionsContent = await createOptionsContent(parseInt(productId, 10));
 
-    // Future enhancement: Fetch specific option data based on productId
-    // This is where you would call an API endpoint like:
-    // fetchOptionData(productId).then(data => updateOptionsDisplay(data));
+        // Clear existing content and add new content
+        optionsContent.innerHTML = '';
+        newOptionsContent.forEach((block) => {
+          if (typeof block === 'string') {
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'default-content-wrapper';
+            contentDiv.innerHTML = block;
+            optionsContent.appendChild(contentDiv);
+          } else {
+            const blockWrapper = document.createElement('div');
+            blockWrapper.classList.add(`${block.dataset.blockName || 'block'}-wrapper`);
+            blockWrapper.appendChild(block);
+            optionsContent.appendChild(blockWrapper);
+          }
+        });
+      } catch (error) {
+        optionsContent.innerHTML = `
+          <h3>${label}</h3>
+          <div class="no-results"><h4>Unable to load options data</h4></div>
+        `;
+      }
+    }
   });
 }
 
@@ -485,24 +518,16 @@ async function createQuotesContent() {
   // Create each block completely independently - if one fails, others still load
   const blockCreators = [
     // Market recap cards
-    async () => {
-      return await createBlockWithErrorHandling(
-        async () => {
-          const reportsData = await fetchQuotesData();
-          return await createMarketRecapCards(reportsData);
-        },
-        'market recap'
-      );
-    },
+    async () => createBlockWithErrorHandling(
+      async () => {
+        const reportsData = await fetchQuotesData();
+        return createMarketRecapCards(reportsData);
+      },
+      'market recap',
+    ),
 
     // QuikStrike attribution
-    async () => {
-      try {
-        return '<p>Recap provided by QuikStrike, access further market information <a href="https://www.cmegroup.com/tools-information/quikstrike.html">here</a>.</p>';
-      } catch (error) {
-        return null;
-      }
-    },
+    async () => '<p>Recap provided by QuikStrike, access further market information <a href="https://www.cmegroup.com/tools-information/quikstrike.html">here</a>.</p>',
 
     // Tables and toggle system
     async () => {
@@ -521,20 +546,18 @@ async function createQuotesContent() {
     },
 
     // CVOL cards
-    async () => {
-      return await createBlockWithErrorHandling(
-        async () => {
-          const cvolData = await fetchCvolData();
-          return await createCvolCards(cvolData);
-        },
-        'CVOL data'
-      );
-    },
+    async () => createBlockWithErrorHandling(
+      async () => {
+        const cvolData = await fetchCvolData();
+        return createCvolCards(cvolData);
+      },
+      'CVOL data',
+    ),
 
     // Fragment
     async () => {
       try {
-        return await createTabFragment();
+        return createTabFragment();
       } catch (error) {
         return null; // Silent fail
       }
@@ -542,10 +565,10 @@ async function createQuotesContent() {
   ];
 
   // Load all blocks independently - failed blocks don't block successful ones
-  const results = await Promise.allSettled(blockCreators.map(creator => creator()));
-  
+  const results = await Promise.allSettled(blockCreators.map((creator) => creator()));
+
   // Add only successful blocks to the tab
-  results.forEach((result, index) => {
+  results.forEach((result) => {
     if (result.status === 'fulfilled' && result.value) {
       allBlocks.push(result.value);
     }
