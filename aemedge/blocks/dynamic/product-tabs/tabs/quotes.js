@@ -200,7 +200,7 @@ async function createOptionsTable(optionsProductId) {
       const quote = defaultData.quotes[0];
       tableData = [
         [
-          select, // Custom dropdown in first cell
+          select, // Custom dropdown element in first cell
           TABLE_CONSTANTS.placeholders.chart,
           quote.last || TABLE_CONSTANTS.placeholders.noData,
           TABLE_FORMATTERS.change(quote.change, quote.percentageChange),
@@ -220,14 +220,10 @@ async function createOptionsTable(optionsProductId) {
       tableData = [fallbackCells];
     }
 
-    // Use standard buildTable utility with custom cells
-    const customCells = new Map();
-    customCells.set('0-0', select); // First cell (row 0, cell 0) gets the dropdown
-
+    // Use standard buildTable utility - elements in data array are handled automatically
     const tableBlock = await buildTable(headers, tableData, {
       variant: TABLE_CONSTANTS.variants.fixedRowHeader,
       tableId: QUOTES_TABLE_CONSTANTS.tableId.options,
-      customCells,
     });
 
     return tableBlock;
@@ -270,12 +266,12 @@ async function updateOptionsTableData(quoteCode) {
     }
 
     const tableElement = table.querySelector('table');
-    const dataRow = tableElement ? tableElement.querySelector('thead tr') : null;
+    const dataRow = tableElement ? tableElement.querySelector('tbody tr') : null;
     if (!dataRow) {
       return;
     }
 
-    const cells = dataRow.querySelectorAll('th');
+    const cells = dataRow.querySelectorAll('td');
     if (cells.length >= 9) {
       cells[2].innerHTML = quote.last || '-';
       cells[3].innerHTML = `${quote.change || '-'} (${quote.percentageChange || '-'})`;

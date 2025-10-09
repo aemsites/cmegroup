@@ -673,10 +673,9 @@ export async function createBlockWithErrorHandling(blockCreator, blockName = 'co
 // ===== TABLE UTILITIES =====
 
 /**
- * Unified table builder - one function for all table creation needs
- * Uses buildBlock as foundation with optional custom cell overrides
+ * Build a table block with the structure that the table decorator expects
  * @param {Array} headers - Array of header strings
- * @param {Array} data - Array of data rows (each row is an array of cell values)
+ * @param {Array} data - Array of data rows (each row is an array of cell values or elements)
  * @param {Object} options - Configuration options
  * @returns {Promise<HTMLElement|null>} - The created table block
  */
@@ -686,58 +685,43 @@ export async function buildTable(headers, data, options = {}) {
       variant = '',
       tableId = '',
       className = '',
-      customCells = new Map(), // Map of cellKey -> custom element (e.g., '0-1' for row 0, cell 1)
     } = options;
 
-    // Create table block using manual DOM approach (works with table decorator)
-    const tableBlock = document.createElement('div');
-    tableBlock.classList.add('table', 'dynamic'); // Add dynamic class for dynamic blocks
+    // Create the wrapper div for the table block
+    const tableBlock = createElement('div', {
+      class: `table dynamic${variant ? ` ${variant}` : ''}${className ? ` ${className}` : ''}`,
+    });
     tableBlock.dataset.blockName = 'table';
-
-    // Add variant classes and ID
-    if (variant) {
-      tableBlock.classList.add(variant);
-    }
-    if (className) {
-      tableBlock.classList.add(className);
-    }
     if (tableId) {
       tableBlock.id = tableId;
     }
 
-    // Create HTML table structure
-    const table = document.createElement('table');
-    const thead = document.createElement('thead');
-    const tbody = document.createElement('tbody');
+    // Create the HTML table structure that the decorator expects to read from
+    const table = createElement('table');
+    const tbody = createElement('tbody');
 
     // Add header row
-    const headerRow = document.createElement('tr');
+    const headerRow = createElement('tr');
     headers.forEach((header) => {
-      const th = document.createElement('th');
-      th.innerHTML = header;
-      headerRow.appendChild(th);
+      const td = createElement('td');
+      td.innerHTML = header;
+      headerRow.appendChild(td);
     });
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
+    tbody.appendChild(headerRow);
 
     // Add data rows
-    data.forEach((rowData, rowIndex) => {
-      const tr = document.createElement('tr');
-
-      rowData.forEach((cellData, cellIndex) => {
-        const td = document.createElement('td');
-        const cellKey = `${rowIndex}-${cellIndex}`;
-
-        // Check if there's a custom cell for this position
-        if (customCells.has(cellKey)) {
-          td.appendChild(customCells.get(cellKey));
-        } else {
+    data.forEach((rowData) => {
+      const tr = createElement('tr');
+      rowData.forEach((cellData) => {
+        const td = createElement('td');
+        if (typeof cellData === 'string') {
           td.innerHTML = cellData;
+        } else {
+          // For elements (like dropdown), append directly
+          td.appendChild(cellData);
         }
-
         tr.appendChild(td);
       });
-
       tbody.appendChild(tr);
     });
 
