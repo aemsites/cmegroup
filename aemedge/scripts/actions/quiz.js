@@ -7,3 +7,10 @@ export function quizAnswered(isCorrect) {
     payload: isCorrect,
   };
 }
+
+export function quizRedo(redo) {
+  return {
+    type: QUIZ_ACTIONS.REDO,
+    payload: redo,
+  };
+}

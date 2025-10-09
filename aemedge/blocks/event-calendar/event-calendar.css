@@ -62,7 +62,7 @@
     top: 0;
     transition: visibility .2s linear, opacity .2s linear;
     width: 100%;
-    z-index: 1031;
+    z-index: 100001;
 }
 
 /* filter section container */
@@ -415,7 +415,7 @@
     position: fixed;
     top: 0;
     width: 21.875rem;
-    z-index: 1032;
+    z-index: 100002;
     display: flex;
     flex-direction: column;
 }
@@ -671,7 +671,7 @@
     font-family: sans-serif;
     color: var(--white);
     position: absolute;
-    z-index: 9001;
+    z-index: 100002;
     user-select: none;
     overflow: hidden;
     background: var(--white);
