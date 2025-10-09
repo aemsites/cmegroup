@@ -86,7 +86,7 @@ async function populateTab(tabSection, builder) {
       // Clear marker and add ONLY dynamic content
       container.innerHTML = '';
       container.append(...tabContent.children);
-      
+
       // Decorate and load the dynamic blocks we just added
       const { decorateBlock, loadBlock } = await import('../../../scripts/aem.js');
       const dynamicBlocks = container.querySelectorAll('.dynamic[data-block-name]');
@@ -98,7 +98,7 @@ async function populateTab(tabSection, builder) {
       await Promise.all([...dynamicBlocks].map((block) => loadBlock(block)));
     }
   }
-  
+
   // Load the entire tab section (manually curated blocks + dynamic blocks)
   // This triggers AEM's normal loadSection flow for all blocks in this section
   const { loadSection } = await import('../../../scripts/aem.js');
