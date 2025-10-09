@@ -1864,7 +1864,8 @@ p.center-img {
 
 .highlighted-text {
   font-weight: bold;
-  color: var(--blue2);
+  font-family: var(--averta);
+  font-size: inherit;
 }
 
 /* share this overrides */
