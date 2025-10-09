@@ -155,9 +155,9 @@ async function createMarketRecapCards(reportsData = null) {
       return null;
     }
 
-    // Get product symbol from metadata and prepend OZ to create commodity name
+    // Get product symbol from metadata and prepend O to create commodity name
     const productSymbol = getMetadata('product-symbol');
-    const commodityName = `OZ${productSymbol}`;
+    const commodityName = `O${productSymbol}`;
 
     // Find matching report (case-insensitive, latest entry)
     const matchingReport = reportsData.find((report) => report.reportCommodity?.toLowerCase() === commodityName.toLowerCase());
