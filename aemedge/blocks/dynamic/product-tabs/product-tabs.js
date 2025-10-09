@@ -99,10 +99,11 @@ async function populateTab(tabSection, builder) {
     }
   }
 
-  // Load the entire tab section (manually curated blocks + dynamic blocks)
-  // This triggers AEM's normal loadSection flow for all blocks in this section
-  const { loadSection } = await import('../../../scripts/aem.js');
-  await loadSection(tabSection);
+  // Load manually curated blocks that haven't been loaded yet
+  // Only load blocks with status="initialized" to avoid double-loading
+  const { loadBlock } = await import('../../../scripts/aem.js');
+  const blocksToLoad = tabSection.querySelectorAll('.block[data-block-status="initialized"]');
+  await Promise.all([...blocksToLoad].map((block) => loadBlock(block)));
 }
 
 /**
