@@ -33,7 +33,7 @@ async function fetchJsonData(url, options = {}) {
 }
 
 const API_CONFIG = {
-  contractsEndpoint: '/aemedge/templates/product/mock-api/contracts-by-number.json',
+  contractsEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/contracts-by-number.json',
 };
 
 async function fetchContractData() {
@@ -44,98 +44,64 @@ async function fetchContractData() {
   return null;
 }
 
-async function addBaseballHeroBlock(main) {
+async function populateHeroData() {
   try {
-    const productName = getMetadata('product') || 'Product';
     const contractData = await fetchContractData();
+    if (!contractData) return;
 
-    let heroContent;
+    // Find the hero container and populate it
+    const heroContainer = document.querySelector('.hero.baseball .container');
+    if (!heroContainer) return;
 
-    if (contractData) {
-      const lastUpdated = new Date(contractData.lastUpdated);
-      const formattedTime = lastUpdated.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-      });
+    // Clear existing content and build the hero structure
+    heroContainer.innerHTML = `
+      <div class="hero-content">
+        <h1>${contractData.productName || getMetadata('product') || 'Product'}</h1>
+        <div class="hero-subtitle">${contractData.expirationMonth || ''}</div>
+        
+        <div class="price-section">
+          <div class="current-price">
+            <span class="label">Last</span>
+            <span class="value">${contractData.last || 'N/A'}</span>
+          </div>
+          <div class="price-change">
+            <span class="label">Change</span>
+            <span class="value ${contractData.change && contractData.change.startsWith('-') ? 'change-negative' : 'change-positive'}">${contractData.change || 'N/A'} (${contractData.percentageChange || 'N/A'})</span>
+          </div>
+          <div class="volume-info">
+            <span class="label">Volume</span>
+            <span class="value">${contractData.volume ? parseInt(contractData.volume, 10).toLocaleString() : 'N/A'}</span>
+          </div>
+        </div>
 
-      const changeValue = contractData.change || '0';
-      const isNegative = changeValue.startsWith('-');
-      const changeClass = isNegative ? 'change-negative' : 'change-positive';
+        <div class="trading-data">
+          <div class="trading-item">
+            <span class="label">Prior Settle</span>
+            <span class="value">${contractData.priorSettle || 'N/A'}</span>
+          </div>
+          <div class="trading-item">
+            <span class="label">Open</span>
+            <span class="value">${contractData.open || 'N/A'}</span>
+          </div>
+          <div class="trading-item">
+            <span class="label">High</span>
+            <span class="value">${contractData.high || 'N/A'}</span>
+          </div>
+          <div class="trading-item">
+            <span class="label">Low</span>
+            <span class="value">${contractData.low || 'N/A'}</span>
+          </div>
+        </div>
 
-      heroContent = [
-        [
-          `<h1>${contractData.productName || productName}</h1>`,
-          `<div class="hero-subtitle">${contractData.expirationMonth || ''}</div>`,
-          `<div class="contract-data">
-            <div class="price-section">
-              <div class="current-price">
-                <span class="label">LAST</span>
-                <span class="value">${contractData.last || 'N/A'}</span>
-              </div>
-              <div class="price-change">
-                <span class="label">CHANGE</span>
-                <span class="value ${changeClass}">${contractData.change || 'N/A'} (${contractData.percentageChange || 'N/A'})</span>
-              </div>
-              <div class="volume-info">
-                <span class="label">VOLUME</span>
-                <span class="value">${contractData.volume ? parseInt(contractData.volume, 10).toLocaleString() : 'N/A'}</span>
-              </div>
-            </div>
-            <div class="trading-data">
-              <div class="trading-item">
-                <span class="label">PRIOR SETTLE:</span>
-                <span class="value">${contractData.priorSettle || 'N/A'}</span>
-              </div>
-              <div class="trading-item">
-                <span class="label">OPEN:</span>
-                <span class="value">${contractData.open || 'N/A'}</span>
-              </div>
-              <div class="trading-item">
-                <span class="label">HIGH:</span>
-                <span class="value">${contractData.high || 'N/A'}</span>
-              </div>
-              <div class="trading-item">
-                <span class="label">LOW:</span>
-                <span class="value">${contractData.low || 'N/A'}</span>
-              </div>
-            </div>
-            <div class="market-update">
-              <span class="update-time">Last Updated ${formattedTime}</span>
-              <span class="market-note">Market data is delayed by at least 10 minutes</span>
-            </div>
-          </div>`,
-        ],
-      ];
-    } else {
-      heroContent = [
-        [
-          `<h1>${productName}</h1>`,
-          '<div class="hero-subtitle">Futures and Options</div>',
-          '<p>Loading market data...</p>',
-        ],
-      ];
-    }
-
-    const heroBlock = buildBlock('hero', heroContent);
-    if (!heroBlock) return;
-
-    heroBlock.classList.add('baseball');
-
-    const section = createElement('div', { class: 'section full-width' });
-    const blockWrapper = createElement('div', { class: 'hero-wrapper' });
-    blockWrapper.appendChild(heroBlock);
-    section.appendChild(blockWrapper);
-
-    decorateBlock(heroBlock);
-    await loadBlock(heroBlock);
-
-    const firstSection = main.querySelector('.section');
-    if (firstSection) {
-      main.insertBefore(section, firstSection);
-    } else {
-      main.appendChild(section);
-    }
+        <div class="update-time">
+          Last Updated ${new Date(contractData.lastUpdated).toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          })}
+        </div>
+      </div>
+    `;
   } catch (error) {
     // Silent fallback
   }
@@ -149,6 +115,7 @@ export default async function productTemplate(doc = document) {
   const hasTabsSection = main.querySelector('.section.tabs');
   if (!hasTabsSection) return;
 
-  await addBaseballHeroBlock(main);
+  // Populate hero data if hero block exists in HTML
+  await populateHeroData();
   await dynamicBlocks(main);
 }

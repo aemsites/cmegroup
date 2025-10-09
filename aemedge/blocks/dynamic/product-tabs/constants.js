@@ -6,14 +6,14 @@
 // API Configuration - centralized endpoint management
 export const API_CONFIG = {
   // Quotes tab
-  quotesReportsEndpoint: '/aemedge/templates/product/mock-api/quotes/market-recap.json',
-  quotesTableEndpoint: '/aemedge/templates/product/mock-api/quotes/quotes-table.json',
-  cvolEndpoint: '/aemedge/templates/product/mock-api/quotes/cvol.json',
-  optionsLabelsEndpoint: '/aemedge/templates/product/mock-api/quotes/quotes-v2-getlabels.json',
-  optionsDataEndpoint: '/aemedge/templates/product/mock-api/quotes/quotes-v2-300-',
+  quotesReportsEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/market-recap.json',
+  quotesTableEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-table.json',
+  cvolEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/cvol.json',
+  optionsLabelsEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-v2-getlabels.json',
+  optionsDataEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-v2-300-',
 
   // Shared
-  expirations: '/aemedge/templates/product/mock-api/expirations.json',
+  expirations: '/aemedge/blocks/dynamic/product-tabs/mock-api/expirations.json',
 };
 
 // Fragment URLs
