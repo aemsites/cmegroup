@@ -53,12 +53,14 @@ async function createSpecsContent() {
   return allBlocks;
 }
 
-export default async function buildSpecsTab() {
+export default async function buildSpecsTab(metadata = {}) {
+  const { tabId, tabTitle } = metadata;
+  
   let blocks = [];
   try {
     blocks = await createSpecsContent();
   } catch (error) {
     blocks = ['<div class="cards"><div class="no-results"><h4>Unable to load specs data</h4></div></div>'];
   }
-  return createTabSection('specs', 'Specs', blocks);
+  return createTabSection(tabId, tabTitle, blocks);
 }

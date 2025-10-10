@@ -54,12 +54,14 @@ async function createSettlementsContent() {
   return allBlocks;
 }
 
-export default async function buildSettlementsTab() {
+export default async function buildSettlementsTab(metadata = {}) {
+  const { tabId, tabTitle } = metadata;
+  
   let blocks = [];
   try {
     blocks = await createSettlementsContent();
   } catch (error) {
     blocks = ['<div class="cards"><div class="no-results"><h4>Unable to load settlements data</h4></div></div>'];
   }
-  return createTabSection('settlements', 'Settlements', blocks);
+  return createTabSection(tabId, tabTitle, blocks);
 }

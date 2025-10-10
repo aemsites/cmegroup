@@ -15,12 +15,14 @@ async function createMarginsContent() {
   return allBlocks;
 }
 
-export default async function buildMarginsTab() {
+export default async function buildMarginsTab(metadata = {}) {
+  const { tabId, tabTitle } = metadata;
+
   let blocks = [];
   try {
     blocks = await createMarginsContent();
   } catch (error) {
     blocks = ['<div class="cards"><div class="no-results"><h4>Unable to load margins data</h4></div></div>'];
   }
-  return createTabSection('margins', 'Margins', blocks);
+  return createTabSection(tabId, tabTitle, blocks);
 }

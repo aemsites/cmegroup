@@ -28,12 +28,8 @@ async function loadTabBuilder(tabId) {
 /**
  * Populate a single tab section with dynamic content
  */
-async function populateTabSection(tabSection) {
+async function populateTabSection(tabSection, tabId) {
   try {
-    // Get tab ID from the section
-    const tabId = tabSection.dataset.tabId || tabSection.dataset.normalizedTabId;
-    if (!tabId) return;
-
     // Find tabs-content marker
     const marker = tabSection.querySelector('.tabs-content');
     if (!marker) return;
@@ -42,8 +38,9 @@ async function populateTabSection(tabSection) {
     const builder = await loadTabBuilder(tabId);
     if (!builder) return;
 
-    // Build dynamic content
-    const tabContent = await builder();
+    // Build dynamic content with metadata from source doc
+    const tabTitle = tabSection.dataset.tabTitle || tabId;
+    const tabContent = await builder({ tabId, tabTitle });
     if (!tabContent) return;
 
     // Insert dynamic content into marker
@@ -128,7 +125,7 @@ export default async function createProductTabs(main) {
       if (!hasMarker) return; // Skip static-only tabs
 
       // Populate tab content
-      await populateTabSection(tabSection);
+      await populateTabSection(tabSection, tabId);
 
       // Setup toggle if needed
       await setupToggleForTab(tabId);

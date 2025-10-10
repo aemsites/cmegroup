@@ -54,12 +54,14 @@ async function createCalendarContent() {
   return allBlocks;
 }
 
-export default async function buildCalendarTab() {
+export default async function buildCalendarTab(metadata = {}) {
+  const { tabId, tabTitle } = metadata;
+  
   let blocks = [];
   try {
     blocks = await createCalendarContent();
   } catch (error) {
     blocks = ['<div class="no-results"><h4>Unable to load calendar data</h4></div>'];
   }
-  return createTabSection('calendar', 'Calendar', blocks);
+  return createTabSection(tabId, tabTitle, blocks);
 }

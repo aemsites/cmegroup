@@ -54,12 +54,14 @@ async function createVolumeContent() {
   return allBlocks;
 }
 
-export default async function buildVolumeTab() {
+export default async function buildVolumeTab(metadata = {}) {
+  const { tabId, tabTitle } = metadata;
+  
   let blocks = [];
   try {
     blocks = await createVolumeContent();
   } catch (error) {
     blocks = ['<div class="cards"><div class="no-results"><h4>Unable to load volume data</h4></div></div>'];
   }
-  return createTabSection('volume', 'Volume', blocks);
+  return createTabSection(tabId, tabTitle, blocks);
 }

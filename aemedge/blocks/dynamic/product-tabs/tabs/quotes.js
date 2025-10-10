@@ -282,7 +282,7 @@ async function updateOptionsTableData(quoteCode) {
       cells[8].innerHTML = TABLE_FORMATTERS.simpleTime(quote.updated);
     }
   } catch (error) {
-    console.error('Error updating options table:', error);
+    // Silent error handling
   }
 }
 
@@ -387,9 +387,11 @@ async function createQuotesContent() {
  * @description Main entry point for the quotes tab
  * @returns {Promise<Element>} Section element for quotes tab
  */
-export default async function buildQuotesTab() {
+export default async function buildQuotesTab(metadata = {}) {
+  const { tabId, tabTitle } = metadata;
+
   handleAboutReportModal();
   handleQuotesOptionSelection();
   const blocks = await createQuotesContent();
-  return createTabSection('quotes', 'Quotes', blocks);
+  return createTabSection(tabId, tabTitle, blocks);
 }
