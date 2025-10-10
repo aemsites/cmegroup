@@ -2,6 +2,7 @@
 
 import {
   createTabSection,
+  createErrorMessage,
 } from '../helpers/utils.js';
 
 export const HAS_FUTURES_OPTIONS_TOGGLE = false;
@@ -22,7 +23,7 @@ export default async function buildMarginsTab(metadata = {}) {
   try {
     blocks = await createMarginsContent();
   } catch (error) {
-    blocks = ['<div class="cards"><div class="no-results"><h4>Unable to load margins data</h4></div></div>'];
+    blocks = [createErrorMessage(tabTitle)];
   }
   return createTabSection(tabId, tabTitle, blocks);
 }

@@ -9,6 +9,15 @@ import {
 } from './constants.js';
 
 /**
+ * Create a standardized error message block
+ * @param {string} tabTitle - Tab title to display in error message
+ * @returns {string} HTML string for error display
+ */
+export function createErrorMessage(tabTitle) {
+  return `<div class="cards no-results"><h4>Unable to load ${tabTitle}</h4></div>`;
+}
+
+/**
  * Generic fetch utility for JSON data following project patterns
  * @param {string} url - The endpoint URL
  * @param {Object} options - Fetch options (headers, etc.)
@@ -664,9 +673,9 @@ export async function createBlockWithErrorHandling(blockCreator, blockName = 'co
     if (block) {
       return block;
     }
-    return `<div class="no-results"><h4>Unable to load ${blockName}</h4></div>`;
+    return createErrorMessage(`Unable to load ${blockName}`);
   } catch (error) {
-    return `<div class="no-results"><h4>Unable to load ${blockName}</h4></div>`;
+    return createErrorMessage(`Unable to load ${blockName}`);
   }
 }
 

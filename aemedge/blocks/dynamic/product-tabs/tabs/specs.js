@@ -3,6 +3,7 @@
 import {
   createTabSection,
   organizeToggleContent,
+  createErrorMessage,
 } from '../helpers/utils.js';
 import { TOGGLE_CONSTANTS } from '../helpers/constants.js';
 
@@ -20,7 +21,7 @@ async function createOptionsContent() {
 }
 
 // Main Content Functions
-async function createSpecsContent() {
+async function createSpecsContent(tabId, tabTitle) {
   const allBlocks = [];
 
   // Create each block independently - if one fails, others still load
@@ -32,10 +33,10 @@ async function createSpecsContent() {
           futuresBlocks: await createFuturesContent(),
           optionsBlocks: await createOptionsContent(),
           defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
-          tabId: 'specs',
+          tabId,
         });
       } catch (error) {
-        return '<div class="cards"><div class="no-results"><h4>Unable to load specs toggle</h4></div></div>';
+        return createErrorMessage(tabTitle);
       }
     },
   ];
@@ -55,12 +56,12 @@ async function createSpecsContent() {
 
 export default async function buildSpecsTab(metadata = {}) {
   const { tabId, tabTitle } = metadata;
-  
+
   let blocks = [];
   try {
-    blocks = await createSpecsContent();
+    blocks = await createSpecsContent(tabId, tabTitle);
   } catch (error) {
-    blocks = ['<div class="cards"><div class="no-results"><h4>Unable to load specs data</h4></div></div>'];
+    blocks = [createErrorMessage(tabTitle)];
   }
   return createTabSection(tabId, tabTitle, blocks);
 }

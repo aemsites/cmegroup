@@ -4,6 +4,7 @@
 import {
   createTabSection,
   organizeToggleContent,
+  createErrorMessage,
 } from '../helpers/utils.js';
 import { TOGGLE_CONSTANTS } from '../helpers/constants.js';
 
@@ -21,7 +22,7 @@ async function createOptionsContent() {
 }
 
 // Main Content Functions
-async function createCalendarContent() {
+async function createCalendarContent(tabId, tabTitle) {
   const allBlocks = [];
 
   // Create each block independently - if one fails, others still load
@@ -33,10 +34,10 @@ async function createCalendarContent() {
           futuresBlocks: await createFuturesContent(),
           optionsBlocks: await createOptionsContent(),
           defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
-          tabId: 'calendar',
+          tabId,
         });
       } catch (error) {
-        return '<div class="cards"><div class="no-results"><h4>Unable to load calendar toggle</h4></div></div>';
+        return createErrorMessage(tabTitle);
       }
     },
   ];
@@ -56,12 +57,12 @@ async function createCalendarContent() {
 
 export default async function buildCalendarTab(metadata = {}) {
   const { tabId, tabTitle } = metadata;
-  
+
   let blocks = [];
   try {
-    blocks = await createCalendarContent();
+    blocks = await createCalendarContent(tabId, tabTitle);
   } catch (error) {
-    blocks = ['<div class="no-results"><h4>Unable to load calendar data</h4></div>'];
+    blocks = [createErrorMessage(tabTitle)];
   }
   return createTabSection(tabId, tabTitle, blocks);
 }

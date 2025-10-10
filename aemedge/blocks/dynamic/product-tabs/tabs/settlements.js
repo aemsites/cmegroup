@@ -4,6 +4,7 @@
 import {
   createTabSection,
   organizeToggleContent,
+  createErrorMessage,
 } from '../helpers/utils.js';
 import { TOGGLE_CONSTANTS } from '../helpers/constants.js';
 
@@ -21,7 +22,7 @@ async function createOptionsContent() {
 }
 
 // Main Content Functions
-async function createSettlementsContent() {
+async function createSettlementsContent(tabId, tabTitle) {
   const allBlocks = [];
 
   // Create each block independently - if one fails, others still load
@@ -33,10 +34,10 @@ async function createSettlementsContent() {
           futuresBlocks: await createFuturesContent(),
           optionsBlocks: await createOptionsContent(),
           defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
-          tabId: 'settlements',
+          tabId,
         });
       } catch (error) {
-        return '<div class="cards"><div class="no-results"><h4>Unable to load settlements toggle</h4></div></div>';
+        return createErrorMessage(tabTitle);
       }
     },
   ];
@@ -56,12 +57,12 @@ async function createSettlementsContent() {
 
 export default async function buildSettlementsTab(metadata = {}) {
   const { tabId, tabTitle } = metadata;
-  
+
   let blocks = [];
   try {
-    blocks = await createSettlementsContent();
+    blocks = await createSettlementsContent(tabId, tabTitle);
   } catch (error) {
-    blocks = ['<div class="cards"><div class="no-results"><h4>Unable to load settlements data</h4></div></div>'];
+    blocks = [createErrorMessage(tabTitle)];
   }
   return createTabSection(tabId, tabTitle, blocks);
 }

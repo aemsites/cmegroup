@@ -4,6 +4,7 @@
 import {
   createTabSection,
   organizeToggleContent,
+  createErrorMessage,
 } from '../helpers/utils.js';
 import { TOGGLE_CONSTANTS } from '../helpers/constants.js';
 
@@ -21,7 +22,7 @@ async function createOptionsContent() {
 }
 
 // Main Content Functions
-async function createVolumeContent() {
+async function createVolumeContent(tabId, tabTitle) {
   const allBlocks = [];
 
   // Create each block independently - if one fails, others still load
@@ -33,10 +34,10 @@ async function createVolumeContent() {
           futuresBlocks: await createFuturesContent(),
           optionsBlocks: await createOptionsContent(),
           defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
-          tabId: 'volume',
+          tabId,
         });
       } catch (error) {
-        return '<div class="cards"><div class="no-results"><h4>Unable to load volume toggle</h4></div></div>';
+        return createErrorMessage(tabTitle);
       }
     },
   ];
@@ -56,12 +57,12 @@ async function createVolumeContent() {
 
 export default async function buildVolumeTab(metadata = {}) {
   const { tabId, tabTitle } = metadata;
-  
+
   let blocks = [];
   try {
-    blocks = await createVolumeContent();
+    blocks = await createVolumeContent(tabId, tabTitle);
   } catch (error) {
-    blocks = ['<div class="cards"><div class="no-results"><h4>Unable to load volume data</h4></div></div>'];
+    blocks = [createErrorMessage(tabTitle)];
   }
   return createTabSection(tabId, tabTitle, blocks);
 }

@@ -349,7 +349,7 @@ function handleQuotesOptionSelection() {
  * @namespace MainFunctions
  * @description Main content assembly and orchestration functions
  */
-async function createQuotesContent() {
+async function createQuotesContent(tabId) {
   const allBlocks = [];
 
   // Create each block independently - if one fails, others still load
@@ -361,7 +361,7 @@ async function createQuotesContent() {
           futuresBlocks: await createFuturesContent(),
           optionsBlocks: await createOptionsContent(),
           defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
-          tabId: 'quotes',
+          tabId,
         });
       } catch (error) {
         return '<div class="cards"><div class="no-results"><h4>Unable to load quotes toggle</h4></div></div>';
@@ -392,6 +392,6 @@ export default async function buildQuotesTab(metadata = {}) {
 
   handleAboutReportModal();
   handleQuotesOptionSelection();
-  const blocks = await createQuotesContent();
+  const blocks = await createQuotesContent(tabId);
   return createTabSection(tabId, tabTitle, blocks);
 }
