@@ -701,26 +701,29 @@ export function updateAdvancedNav(nav, wrapper, questions, type, state) {
 export function attachFinishClick(
   nav,
   block,
-  questions,
+  questionsMeta,
   type,
+  state,
   completeMessage,
   testPercentage,
   showIndicatorsViaReviewMode,
   redoQuizLabel,
-  markQuizCompletedFn,
 ) {
   nav.finish.addEventListener('click', async () => {
     if (!nav.finish.disabled) {
       const reviewContainer = block.querySelector('.review-questions');
       if (reviewContainer) reviewContainer.remove();
+
       const resultsLink = block.querySelector('.results-link');
       if (resultsLink) resultsLink.remove();
+
       block.classList.remove('is-review');
-      await markQuizCompletedFn(
+
+      await markQuizCompletedAdvanced(
         block,
-        questions,
+        questionsMeta,
         type,
-        completeMessage,
+        state,
         testPercentage,
         showIndicatorsViaReviewMode,
         redoQuizLabel,
@@ -739,7 +742,7 @@ export async function checkQuizAdvancedCompletion(
   store.dispatch(quizAnswered({ ...state, isCorrect: type === 'test' && passed && !doNotMarkLessonAsCompleted, type: type.toUpperCase() }));
 }
 
-export async function markQuizCompletedAdvanced(
+async function markQuizCompletedAdvanced(
   block,
   questionsMeta,
   type,

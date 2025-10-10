@@ -4,7 +4,6 @@ import { store } from '../../scripts/store/store.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
 import {
   updateAdvancedNextDisabled,
-  markQuizCompletedAdvanced,
   randomOrder,
   handleTestClick,
   handleActivityClick,
@@ -317,11 +316,11 @@ async function addNavigation(
       block,
       questions,
       type,
+      quizStatus,
       completeMessage,
       testPercentage,
       showIndicatorsViaReviewMode,
       redoQuizLabel,
-      markQuizCompleted,
     );
   }
 
@@ -339,23 +338,7 @@ async function markQuizCompleted(
   questionsMeta,
   type,
   completeMessage,
-  testPercentage,
-  showIndicatorsViaReviewMode,
-  redoQuizLabel,
 ) {
-  if (type === 'activity' || type === 'test') {
-    await markQuizCompletedAdvanced(
-      block,
-      questionsMeta,
-      type,
-      quizStatus,
-      testPercentage,
-      showIndicatorsViaReviewMode,
-      redoQuizLabel,
-    );
-    return;
-  }
-
   const [quizLabel] = await Promise.all([i18n('Lesson complete')]);
   if (block.querySelector('.message')) return;
 
