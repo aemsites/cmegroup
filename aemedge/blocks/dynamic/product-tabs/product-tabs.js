@@ -163,6 +163,9 @@ export default async function createProductTabs(main) {
     const hasDynamicTabs = main.querySelectorAll('.tabs-content').length > 0;
     if (!hasDynamicTabs) return;
 
+    // Load product-tabs CSS
+    loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/product-tabs/product-tabs.css`);
+
     const allTabs = await loadTabBuilders();
     const orderedTabs = reorderTabs(allTabs);
 
