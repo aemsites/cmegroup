@@ -2,7 +2,7 @@ import {
   div, p, span, a, h3, h4, img, button,
 } from '../../scripts/dom-helpers.js';
 import { store } from '../../scripts/store/store.js';
-import { quizRedo } from '../../scripts/actions/quiz.js';
+import { quizRedo, quizAnswered } from '../../scripts/actions/quiz.js';
 import { i18n } from '../../scripts/utils.js';
 
 export function updateAdvancedNextDisabled(type, wrapper, currentIndex, questions, state, next) {
@@ -204,6 +204,7 @@ async function renderTestResult(
   const passed = percentage >= testPercentage;
   state.status = passed ? 'COMPLETED' : 'PROGRESS';
   state.result = percentage;
+  checkQuizAdvancedCompletion('test', state, false, passed);
 
   const [
     congratsLabel,
@@ -265,7 +266,7 @@ async function renderTestResult(
 
   const redoLink = container.querySelector('.redo-quiz');
   if (redoLink) {
-    redoLink.addEventListener('click', async () => {
+    redoLink?.addEventListener('click', async () => {
       //  quiz redo event
       store.dispatch(quizRedo(true));
     });
@@ -497,7 +498,6 @@ export async function handleTestClick({
   const answerId = answer.uniqueId;
 
   if (!state.questions) {
-    state.quizElementId = block.dataset.quizId || 'quiz-id';
     state.type = 'TEST';
     state.status = 'PROGRESS';
     state.questions = [];
@@ -573,10 +573,9 @@ export async function handleActivityClick({
 }) {
   if (questionDiv.classList.contains('answered-correctly')) return;
 
-  if (state.type !== 'activity') {
-    state.type = 'activity';
-    state.quizElementId = block.dataset.quizId || 'quiz-id';
-    state.status = 'COMPLETED';
+  state.status = 'COMPLETED';
+  if (state.type !== 'ACTIVITY') {
+    state.type = 'ACTIVITY';
     state.questions = [];
   }
 
@@ -730,6 +729,16 @@ export function attachFinishClick(
   });
 }
 
+export async function checkQuizAdvancedCompletion(
+  type,
+  state,
+  doNotMarkLessonAsCompleted,
+  passed = false,
+) {
+  //  quiz completion event
+  store.dispatch(quizAnswered({ ...state, isCorrect: type === 'test' && passed && !doNotMarkLessonAsCompleted, type: type.toUpperCase() }));
+}
+
 export async function markQuizCompletedAdvanced(
   block,
   questionsMeta,
@@ -745,6 +754,7 @@ export async function markQuizCompletedAdvanced(
 
   if (type === 'activity') {
     // checkQuizCompletion
+    checkQuizAdvancedCompletion(type, state, false);
     await renderActivity(
       block,
       questionsMeta,

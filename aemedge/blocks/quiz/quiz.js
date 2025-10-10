@@ -28,13 +28,11 @@ async function checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted)
   const allAnsweredCorrectly = answeredCorrectlyEls.length === questions.length;
   if (allAnsweredCorrectly && !block.querySelector('.message') && doNotMarkLessonAsCompleted !== 'true') {
     //  quiz completion event
-    store.dispatch(quizAnswered(true));
+    store.dispatch(quizAnswered({ isCorrect: true }));
   }
 }
 
-async function buildQuestions(rows) {
-  const courseData = await getCourseData();
-
+async function buildQuestions(courseData, rows) {
   const parsedRows = await Promise.all(
     rows.map(async (row) => {
       const firstChild = row.children[0];
@@ -398,6 +396,7 @@ export default async function decorate(block) {
   } else if (block.classList.contains('test')) {
     type = 'test';
   }
+  const courseData = await getCourseData();
 
   const rows = Array.from(block.querySelectorAll(':scope > div'));
   let startIndex = 0;
@@ -409,7 +408,7 @@ export default async function decorate(block) {
     }
   }
 
-  const questions = await buildQuestions(rows.slice(startIndex));
+  const questions = await buildQuestions(courseData, rows.slice(startIndex));
   if (randomizeOrder === 'true' && type !== 'traditional') {
     questions.forEach((question) => {
       question.answers = randomOrder(question.answers);
@@ -418,9 +417,11 @@ export default async function decorate(block) {
   }
 
   async function createQuizBlock() {
+    const quizzes = document.querySelectorAll('.quiz.block').length;
+    const quizId = await sha256Hash(`${courseData.path}-${quizzes}`);
     block.innerHTML = '';
     quizStatus = {
-      quizElementId: block.dataset.quizId || 'quiz-id',
+      quizElementId: quizId,
       type,
       status: 'PROGRESS',
       questions: [],
@@ -447,8 +448,8 @@ export default async function decorate(block) {
   await createQuizBlock();
 
   //  quiz completion event subscriber
-  store.subscribe(({ quiz }) => quiz, async ({ isCorrect, redo }) => {
-    if (isCorrect && type === 'traditional') await markQuizCompleted(block, questions, type, completeMessage);
+  store.subscribe(({ quiz }) => quiz, async ({ quizStatus: status, redo }) => {
+    if (status?.isCorrect && type === 'traditional') await markQuizCompleted(block, questions, type, completeMessage);
     if (redo) await createQuizBlock();
   });
 }

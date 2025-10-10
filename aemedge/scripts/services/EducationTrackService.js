@@ -43,9 +43,9 @@ class SyncStorage {
     }
   }
 
-  set(moduleId, status) {
+  set(progress) {
     if (!this.data) this.data = [];
-    this.data.push({ educationElementId: moduleId, status });
+    this.data.push(progress);
     localStorage.setItem(SYNC_CACHE_KEY, JSON.stringify(this.data));
     return true;
   }
@@ -158,11 +158,12 @@ export async function postLesson(
   courseId,
   lessonId,
   completed,
+  quizStatus,
 ) {
-  const progress = { educationElementId: lessonId, status: completed ? 'COMPLETED' : 'PROGRESS' };
+  const progress = { educationElementId: lessonId, status: completed ? 'COMPLETED' : 'PROGRESS', quizStatus };
   const { isLoggedIn } = authentication.authenticationData;
   if (!isLoggedIn) {
-    syncStorage.set(lessonId, progress.status);
+    syncStorage.set(progress);
     return getStorageProgress(courseId || lessonId);
   }
 
