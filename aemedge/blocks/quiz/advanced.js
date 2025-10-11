@@ -64,6 +64,7 @@ function addResultsButton(
       if (navigation) navigation.style.display = 'none';
       if (progressBar) progressBar.style.display = 'none';
 
+      const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
       block.classList.remove('in-review', 'is-review');
       block.classList.add(type === 'activity' ? 'in-activity-results' : 'in-test-results');
 
@@ -86,6 +87,8 @@ function addResultsButton(
           navigation,
           showIndicatorsViaReviewMode,
           redoQuizLabel,
+          '',
+          isReviewMode,
         );
       }
     });
@@ -192,6 +195,7 @@ async function renderTestResult(
   testPercentage,
   showIndicatorsViaReviewMode,
   redoQuizLabel,
+  isReviewMode,
 ) {
   block.classList.add('in-test-results');
   block.classList.remove('in-review');
@@ -204,7 +208,9 @@ async function renderTestResult(
   const passed = percentage >= testPercentage;
   state.status = passed ? 'COMPLETED' : 'PROGRESS';
   state.result = percentage;
-  checkQuizAdvancedCompletion('test', state, false, passed);
+  if (!isReviewMode) {
+    checkQuizAdvancedCompletion('test', state, false, passed);
+  }
 
   const [
     congratsLabel,
@@ -719,6 +725,8 @@ export function attachFinishClick(
 
       block.classList.remove('is-review');
 
+      const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
+
       await markQuizCompletedAdvanced(
         block,
         questionsMeta,
@@ -727,6 +735,7 @@ export function attachFinishClick(
         testPercentage,
         showIndicatorsViaReviewMode,
         redoQuizLabel,
+        isReviewMode,
       );
     }
   });
@@ -739,7 +748,7 @@ export async function checkQuizAdvancedCompletion(
   passed = false,
 ) {
   //  quiz completion event
-  store.dispatch(quizAnswered({ ...state, isCorrect: type === 'test' && passed && !doNotMarkLessonAsCompleted, type: type.toUpperCase() }));
+  store.dispatch(quizAnswered({ ...state, isCorrect: (type === 'test' ? passed && !doNotMarkLessonAsCompleted : true), type: type.toUpperCase() }));
 }
 
 async function markQuizCompletedAdvanced(
@@ -755,9 +764,13 @@ async function markQuizCompletedAdvanced(
   const progressBar = block.querySelector('.progress-bar');
   const navigation = block.querySelector('.quiz-navigation');
 
+  const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
+
   if (type === 'activity') {
     // checkQuizCompletion
-    checkQuizAdvancedCompletion(type, state, false);
+    if (!isReviewMode) {
+      checkQuizAdvancedCompletion(type, state, false);
+    }
     await renderActivity(
       block,
       questionsMeta,
@@ -777,6 +790,7 @@ async function markQuizCompletedAdvanced(
       testPercentage,
       showIndicatorsViaReviewMode,
       redoQuizLabel,
+      isReviewMode,
     );
   }
 }
