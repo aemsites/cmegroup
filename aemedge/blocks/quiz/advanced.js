@@ -33,6 +33,7 @@ function addResultsButton(
   questionsWrapper,
   progressBar,
   navigation,
+  testPercentage,
   questionsMeta,
   state,
   type,
@@ -85,9 +86,9 @@ function addResultsButton(
           questionsWrapper,
           progressBar,
           navigation,
+          testPercentage,
           showIndicatorsViaReviewMode,
           redoQuizLabel,
-          '',
           isReviewMode,
         );
       }
@@ -358,6 +359,7 @@ async function renderTestResult(
       questionsWrapper,
       progressBar,
       navigation,
+      testPercentage,
       questionsMeta,
       state,
       'test',
@@ -483,7 +485,7 @@ async function renderActivity(
     const firstLink = block.querySelector('.review-questions .question-link');
     if (firstLink) firstLink.classList.add('selected');
 
-    await addResultsButton(block, questionsWrapper, progressBar, navigation, questionsMeta, fakeState, 'activity', showIndicatorsViaReviewMode);
+    await addResultsButton(block, questionsWrapper, progressBar, navigation, null, questionsMeta, fakeState, 'activity', showIndicatorsViaReviewMode);
   });
 }
 
