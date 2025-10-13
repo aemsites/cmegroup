@@ -209,3 +209,17 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* move arrow icon to the left */
+.tabs a[target="_blank"]:not([href^="mailto:"], [href$=".pdf"])::after {
+  content: none;
+}
+
+.tabs a.link-bold:not([href^="mailto:"], [href$=".pdf"])::before {
+  content: var(--icon-arrow-right);
+  font-family: var(--cme-group-icons);
+  font-size: 0.875rem;
+  margin-right: .25rem;
+  display: inline-block;
+  text-decoration: none;
+}
