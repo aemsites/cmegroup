@@ -57,7 +57,7 @@ function addResultsButton(
     navigation.insertAdjacentElement('afterend', resultsLinkWrapper);
 
     const resultsBtn = resultsLinkWrapper.querySelector('.results');
-    resultsBtn.addEventListener('click', () => {
+    resultsBtn.addEventListener('click', async () => {
       const existingReview = block.querySelector('.review-questions');
       if (existingReview) existingReview.remove();
       resultsLinkWrapper.remove();
@@ -70,7 +70,7 @@ function addResultsButton(
       block.classList.add(type === 'activity' ? 'in-activity-results' : 'in-test-results');
 
       if (type === 'activity') {
-        renderActivity(
+        await renderActivity(
           block,
           questionsMeta,
           questionsWrapper,
@@ -79,7 +79,7 @@ function addResultsButton(
           showIndicatorsViaReviewMode,
         );
       } else if (type === 'test') {
-        renderTestResult(
+        await renderTestResult(
           block,
           questionsMeta,
           state,
