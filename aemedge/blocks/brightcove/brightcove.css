@@ -84,6 +84,41 @@
   position: relative;
 }
 
+.vjs-playlist.playlist-horizontal.vjs-mouse.vjs-playlist-horizontal {
+  max-height: 8.125rem;
+  min-height: 8.125rem;
+  overflow: auto hidden;
+
+  & .vjs-playlist-item-list {
+    & .vjs-playlist-item {
+      height: 7.5rem;
+      padding: 0.5rem;
+      border-top: 0;
+      width: 7.5rem;
+      display: inline-block;
+      margin-right: 0.3125rem;
+
+      & .vjs-playlist-title-container {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 4.375rem;
+        padding: .2rem .5rem 0 0;
+        top: 0;
+        text-shadow: none;
+
+        & .vjs-playlist-name {
+          max-width: none;
+          max-height: none;
+        }
+
+        & .vjs-up-next-text {
+          line-height: 0.625rem;
+        }
+      }
+    }
+  }
+}
+
 .vjs-playlist.vjs-playlist-horizontal {
     float: none;
     width: auto;

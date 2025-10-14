@@ -304,7 +304,7 @@ function isExternalImage(element) {
   // if the element is not an anchor, it's not an external image
   if (element.tagName !== 'A') return false;
   // IMPLICIT via CME Group Delivery URLs or OOTB DMOpenAPI Delivery URLs
-  return /\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/.test(element.getAttribute('href'));
+  return /\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/i.test(element.getAttribute('href'));
 }
 
 /**

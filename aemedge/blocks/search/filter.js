@@ -30,6 +30,15 @@ const syncCheckboxes = (sourceCheckbox, value, filterId) => {
 };
 
 /**
+ * Updated highlight filter title
+ * @param {HTMLElement} filter
+ */
+const updateHighlightTitle = (filter) => {
+  const isApplied = filter.querySelectorAll('input:checked');
+  filter.querySelector('.mobile-filter-section-title')?.classList.toggle('highlight', isApplied?.length > 0);
+};
+
+/**
  * Create filter option
  * @param {Object} options
  * @param {string} options.value
@@ -77,7 +86,9 @@ const createFilterOption = (
       removeAppliedFilter(filterId, value, labelText);
     }
 
-    if (!isMobile) {
+    if (isMobile) {
+      updateHighlightTitle(target.closest('.mobile-filter-section'));
+    } else {
       await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
     }
   });
@@ -418,6 +429,7 @@ const createMobileFilterOverlay = async (taxonomy) => {
       if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
         if (overlay.classList.contains('visible')) {
           updateMobileFilterCheckboxes();
+          sections.forEach((section) => updateHighlightTitle(section));
         }
       }
     });

@@ -1,3 +1,6 @@
+import { checkDomain } from './utils.js';
+import { urlByEnvType } from './utils/index.js';
+
 function convertReadTimeFormat(duration) {
   let durationMin = '';
   const [minStr, secStr] = duration.split(':');
@@ -30,6 +33,9 @@ function convertMediaTypeToSubtemplate(mediaType) {
 }
 
 function normalizeLegacyPath(path) {
+  if (!path) {
+    return '';
+  }
   let newPath = path;
   if (newPath.startsWith('/content/cmegroup/en')) {
     newPath = newPath.slice('/content/cmegroup/en'.length);
@@ -38,8 +44,13 @@ function normalizeLegacyPath(path) {
   } else if (newPath.startsWith('/content/openmarkets')) {
     newPath = newPath.replace('/content/openmarkets/en', '/openmarkets');
   }
-  if (!newPath.endsWith('.html')) {
+  if (!newPath.includes('.')) {
     newPath += '.html';
+  }
+  const domainInfo = window.location.hostname ? checkDomain(window.location)
+    : checkDomain(window.parent.location);
+  if (domainInfo.isAEM) {
+    newPath = urlByEnvType() + newPath;
   }
   return newPath;
 }
@@ -49,6 +60,7 @@ function mapLegacyArticleData(legacyData) {
     metadata: {
       thumbnailImage: image,
       primaryTopics,
+      primaryTopic: singlePrimaryTopic,
       mediaType,
     },
     title,
@@ -61,8 +73,12 @@ function mapLegacyArticleData(legacyData) {
   const durationMin = convertReadTimeFormat(readTime);
   const subTemplates = convertMediaTypeToSubtemplate(mediaType);
   const newPath = normalizeLegacyPath(path);
+  const newImage = normalizeLegacyPath(image);
   let primaryTopic = (Array.isArray(primaryTopics) && primaryTopics.length > 0)
     ? primaryTopics[0] : primaryTopics;
+  if (!primaryTopic) {
+    primaryTopic = singlePrimaryTopic || '';
+  }
   primaryTopic = primaryTopic.includes(':') ? primaryTopic.split(':')[1] : primaryTopic;
   return {
     path: newPath,
@@ -73,7 +89,7 @@ function mapLegacyArticleData(legacyData) {
     author,
     metadata: {
       'sub-template': subTemplates,
-      image,
+      image: newImage,
       'primary-topic': primaryTopic,
     },
   };

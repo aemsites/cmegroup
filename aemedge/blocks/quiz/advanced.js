@@ -1,18 +1,29 @@
 import {
   div, p, span, a, h3, h4, img, button,
 } from '../../scripts/dom-helpers.js';
+import { store } from '../../scripts/store/store.js';
+import { quizRedo, quizAnswered } from '../../scripts/actions/quiz.js';
 import { i18n } from '../../scripts/utils.js';
 
 export function updateAdvancedNextDisabled(type, wrapper, currentIndex, questions, state, next) {
   let disable = false;
+
   if (type === 'activity') {
     const currentQuestion = wrapper.querySelectorAll(':scope > div')[currentIndex];
     const isAnsweredCorrectly = currentQuestion.classList.contains('answered-correctly');
     disable = !isAnsweredCorrectly && currentIndex < questions.length - 1;
   } else if (type === 'test') {
-    const answered = !!state.answers[currentIndex];
-    disable = !answered && currentIndex < questions.length - 1;
+    const question = questions[currentIndex];
+    const questionId = question?.uniqueId;
+
+    const questionEntry = state?.questions?.find(
+      (q) => q.questionElementId === questionId,
+    );
+    const isAnswered = !!(questionEntry && questionEntry.answers.length > 0);
+
+    disable = !isAnswered && currentIndex < questions.length - 1;
   }
+
   next.disabled = disable;
   next.classList.toggle('arrow-disabled', disable || currentIndex === questions.length - 1);
 }
@@ -22,6 +33,7 @@ function addResultsButton(
   questionsWrapper,
   progressBar,
   navigation,
+  testPercentage,
   questionsMeta,
   state,
   type,
@@ -45,7 +57,7 @@ function addResultsButton(
     navigation.insertAdjacentElement('afterend', resultsLinkWrapper);
 
     const resultsBtn = resultsLinkWrapper.querySelector('.results');
-    resultsBtn.addEventListener('click', () => {
+    resultsBtn.addEventListener('click', async () => {
       const existingReview = block.querySelector('.review-questions');
       if (existingReview) existingReview.remove();
       resultsLinkWrapper.remove();
@@ -53,11 +65,11 @@ function addResultsButton(
       if (navigation) navigation.style.display = 'none';
       if (progressBar) progressBar.style.display = 'none';
 
-      block.classList.remove('in-review');
+      block.classList.remove('in-review', 'is-review');
       block.classList.add(type === 'activity' ? 'in-activity-results' : 'in-test-results');
 
       if (type === 'activity') {
-        renderActivity(
+        await renderActivity(
           block,
           questionsMeta,
           questionsWrapper,
@@ -66,13 +78,14 @@ function addResultsButton(
           showIndicatorsViaReviewMode,
         );
       } else if (type === 'test') {
-        renderTestResult(
+        await renderTestResult(
           block,
           questionsMeta,
           state,
           questionsWrapper,
           progressBar,
           navigation,
+          testPercentage,
           showIndicatorsViaReviewMode,
           redoQuizLabel,
         );
@@ -93,20 +106,32 @@ function addReviewQuestions(
 
   reviewContainer = div({ class: 'review-questions' });
 
+  const isTestMode = !!state.questions?.length;
+  const answeredQuestions = isTestMode
+    ? state.questions
+    : state.answers || [];
+
   questionsMeta.forEach((question, idx) => {
-    const correctIndexes = question.answers
-      .map((ans, i) => (ans.correct ? i : -1)).filter((i) => i >= 0);
-    const raw = state && state.answers ? state.answers[idx] : undefined;
+    let isCorrect = false;
     let selectedIndexes = [];
-    if (Array.isArray(raw)) {
-      selectedIndexes = raw.map(Number);
-    } else if (typeof raw === 'number') {
-      selectedIndexes = [Number(raw)];
+
+    if (isTestMode) {
+      const questionEntry = answeredQuestions.find(
+        (ques) => ques.questionElementId === question.uniqueId,
+      );
+      const selectedIds = questionEntry?.answers?.map((ans) => ans.answerElementId) || [];
+
+      selectedIndexes = question.answers
+        .map((ans, index) => (selectedIds.includes(ans.uniqueId) ? index : null))
+        .filter((index) => index !== null);
+
+      isCorrect = questionEntry?.isCorrect === true;
+    } else {
+      selectedIndexes = answeredQuestions[idx] || [];
+      isCorrect = question.answers
+        .every((ans, index) => ans.correct === selectedIndexes.includes(index));
     }
 
-    const hasAnswer = raw !== undefined;
-    const isCorrect = hasAnswer && selectedIndexes.length === correctIndexes.length
-    && selectedIndexes.every((i) => correctIndexes.includes(i));
     const isSelected = block.nav && block.nav.currentIndex === idx;
 
     const questionLink = a(
@@ -114,7 +139,7 @@ function addReviewQuestions(
         role: 'button',
         tabindex: '0',
         'data-index': idx,
-        class: `question-link ${isCorrect ? ' correct' : ' incorrect'}${isSelected ? ' selected' : ''}`,
+        class: `question-link ${isCorrect ? 'correct' : 'incorrect'}${isSelected ? ' selected' : ''}`,
       },
       `Q${idx + 1}`,
     );
@@ -124,6 +149,7 @@ function addReviewQuestions(
         block.nav.currentIndex = idx;
         block.updateNavigation?.();
       }
+
       reviewContainer.querySelectorAll('.question-link').forEach((link) => link.classList.remove('selected'));
       questionLink.classList.add('selected');
 
@@ -138,17 +164,16 @@ function addReviewQuestions(
       const optionItems = questionDiv.querySelectorAll('.option-item');
       optionItems.forEach((optionItem, oIdx) => {
         const btn = optionItem.querySelector('.option-content-answer');
+        const answer = question.answers[oIdx];
+
         btn.classList.remove('pressed', 'correct', 'incorrect');
+
         if (selectedIndexes.includes(oIdx)) {
           btn.classList.add('pressed');
         }
 
         if (selectedIndexes.includes(oIdx) || showIndicatorsViaReviewMode === 'true') {
-          if (question.answers[oIdx]?.correct) {
-            btn.classList.add('correct');
-          } else {
-            btn.classList.add('incorrect');
-          }
+          btn.classList.add(answer.correct ? 'correct' : 'incorrect');
         }
       });
     });
@@ -173,24 +198,13 @@ async function renderTestResult(
   block.classList.add('in-test-results');
   block.classList.remove('in-review');
 
-  const correctCount = questionsMeta.reduce((acc, question, idx) => {
-    const raw = state && state.answers ? state.answers[idx] : undefined;
-    let selectedIndexes = [];
-    if (Array.isArray(raw)) {
-      selectedIndexes = raw.map(Number);
-    } else if (typeof raw === 'number') {
-      selectedIndexes = [Number(raw)];
-    }
-    const correctIndexes = question.answers
-      .map((ans, i) => (ans.correct ? i : -1)).filter((i) => i >= 0);
-    const isExactlyCorrect = selectedIndexes.length === correctIndexes.length
-      && selectedIndexes.every((i) => correctIndexes.includes(i));
-    return acc + (isExactlyCorrect ? 1 : 0);
-  }, 0);
-
+  const answeredQuestions = state?.questions || [];
+  const correctCount = answeredQuestions.filter((question) => question.isCorrect === true).length;
   const total = questionsMeta.length;
   const percentage = Math.round((correctCount / total) * 100);
   const passed = percentage >= testPercentage;
+  state.status = passed ? 'COMPLETED' : 'PROGRESS';
+  state.result = percentage;
 
   const [
     congratsLabel,
@@ -250,6 +264,14 @@ async function renderTestResult(
   if (navigation) navigation.style.display = 'none';
   if (progressBar) progressBar.style.display = 'none';
 
+  const redoLink = container.querySelector('.redo-quiz');
+  if (redoLink) {
+    redoLink?.addEventListener('click', async () => {
+      //  quiz redo event
+      store.dispatch(quizRedo(true));
+    });
+  }
+
   const reviewLink = container.querySelector('.review-answers');
   reviewLink.addEventListener('click', async () => {
     const existingReview = block.querySelector('.review-questions');
@@ -266,51 +288,37 @@ async function renderTestResult(
     if (progressBar) progressBar.style.display = 'none';
 
     questionsWrapper.querySelectorAll(':scope > div').forEach((questionDiv, qIndex) => {
-      const raw = state && state.answers ? state.answers[qIndex] : undefined;
-      let selectedIndexes = [];
-      if (Array.isArray(raw)) {
-        selectedIndexes = raw.map(Number);
-      } else if (typeof raw === 'number') {
-        selectedIndexes = [Number(raw)];
-      }
+      const questionMeta = questionsMeta[qIndex];
+      const questionEntry = answeredQuestions
+        .find((question) => question.questionElementId === questionMeta.uniqueId);
+      const selectedIds = questionEntry?.answers?.map((answer) => answer.answerElementId) || [];
+
       questionDiv.querySelectorAll('.option-item').forEach((optionItem, oIndex) => {
         const btn = optionItem.querySelector('.option-content-answer');
+        const answer = questionMeta.answers[oIndex];
+
         btn.classList.remove('pressed', 'correct', 'incorrect', 'disabled');
         btn.removeAttribute('disabled');
 
-        if (selectedIndexes.includes(oIndex)) {
+        if (selectedIds.includes(answer.uniqueId)) {
           btn.classList.add('pressed');
         }
-        if (selectedIndexes.includes(oIndex) || showIndicatorsViaReviewMode === 'true') {
-          if (questionsMeta[qIndex].answers[oIndex]?.correct) {
-            btn.classList.add('correct');
-          } else {
-            btn.classList.add('incorrect');
-          }
+
+        if (selectedIds.includes(answer.uniqueId) || showIndicatorsViaReviewMode === 'true') {
+          btn.classList.add(answer.correct ? 'correct' : 'incorrect');
         }
 
         btn.classList.add('disabled');
         btn.setAttribute('disabled', 'true');
       });
 
-      questionDiv.querySelectorAll('.question-message, .snippet, .results').forEach((msg) => {
-        msg.innerHTML = '';
-        msg.classList.remove('showed', 'correct', 'incorrect', 'disabled');
-      });
-
-      const correctIndexes = questionsMeta[qIndex].answers
-        .map((ans, i) => (ans.correct ? i : -1))
-        .filter((i) => i >= 0);
-
-      const isExactlyCorrect = selectedIndexes.length === correctIndexes.length
-        && selectedIndexes.every((i) => correctIndexes.includes(i));
-
-      if (!isExactlyCorrect && questionsMeta[qIndex].questionSnippet) {
+      const isCorrect = questionEntry?.isCorrect === true;
+      if (!isCorrect && questionMeta.questionSnippet) {
         if (!questionDiv.querySelector('.question-snippet')) {
           const snippetDiv = div(
             { class: 'question-snippet' },
             span({ class: 'option-icon' }),
-            span({ class: 'option-text' }, questionsMeta[qIndex].questionSnippet),
+            span({ class: 'option-text' }, questionMeta.questionSnippet),
           );
 
           const selectInstruction = questionDiv.querySelector('.select-instruction');
@@ -338,7 +346,18 @@ async function renderTestResult(
     const firstLink = block.querySelector('.review-questions .question-link');
     if (firstLink) firstLink.classList.add('selected');
 
-    await addResultsButton(block, questionsWrapper, progressBar, navigation, questionsMeta, state, 'test', showIndicatorsViaReviewMode, redoQuizLabel);
+    await addResultsButton(
+      block,
+      questionsWrapper,
+      progressBar,
+      navigation,
+      testPercentage,
+      questionsMeta,
+      state,
+      'test',
+      showIndicatorsViaReviewMode,
+      redoQuizLabel,
+    );
   });
 }
 
@@ -429,9 +448,17 @@ async function renderActivity(
     });
 
     const fakeState = {
-      answers: questionsMeta.map((question) => question.answers
-        .map((ans, i) => (ans.correct ? i : -1))
-        .filter((i) => i >= 0)),
+      answers: questionsMeta.map((question) => {
+        const selectedIndexes = [];
+
+        question.answers.forEach((ans, index) => {
+          if (ans.correct) {
+            selectedIndexes.push(index);
+          }
+        });
+
+        return selectedIndexes;
+      }),
     };
 
     addReviewQuestions(
@@ -450,7 +477,7 @@ async function renderActivity(
     const firstLink = block.querySelector('.review-questions .question-link');
     if (firstLink) firstLink.classList.add('selected');
 
-    await addResultsButton(block, questionsWrapper, progressBar, navigation, questionsMeta, fakeState, 'activity', showIndicatorsViaReviewMode);
+    await addResultsButton(block, questionsWrapper, progressBar, navigation, null, questionsMeta, fakeState, 'activity', showIndicatorsViaReviewMode);
   });
 }
 
@@ -465,23 +492,61 @@ export function randomOrder(array) {
 export async function handleTestClick({
   questionDiv, optionButton, index, state, questionIndex, block, questions, multiCorrect,
 }) {
-  if (!state.answers[questionIndex]) state.answers[questionIndex] = [];
+  const question = questions[questionIndex];
+  const answer = question.answers[index];
+  const questionId = question.uniqueId;
+  const answerId = answer.uniqueId;
+
+  if (!state.questions) {
+    state.type = 'TEST';
+    state.status = 'PROGRESS';
+    state.questions = [];
+  }
+
+  let questionEntry = state.questions
+    .find((ques) => ques.questionElementId === questionId);
+  if (!questionEntry) {
+    questionEntry = {
+      questionElementId: questionId,
+      isCorrect: false,
+      answers: [],
+    };
+    state.questions.push(questionEntry);
+  }
 
   if (multiCorrect) {
-    const isSelected = state.answers[questionIndex].includes(index);
-    if (isSelected) {
-      state.answers[questionIndex] = state.answers[questionIndex].filter((i) => i !== index);
+    const answerAlreadySelected = questionEntry.answers
+      .some((ans) => ans.answerElementId === answerId);
+
+    if (answerAlreadySelected) {
+      questionEntry.answers = questionEntry.answers
+        .filter((ans) => ans.answerElementId !== answerId);
       optionButton.classList.remove('pressed');
     } else {
-      state.answers[questionIndex].push(index);
+      questionEntry.answers.push({
+        answerElementId: answerId,
+        isCorrect: answer.correct,
+      });
       optionButton.classList.add('pressed');
     }
   } else {
     const allButtons = questionDiv.querySelectorAll('.option-content-answer');
     allButtons.forEach((btn) => btn.classList.remove('pressed'));
-    state.answers[questionIndex] = [index];
+
+    questionEntry.answers = [
+      {
+        answerElementId: answerId,
+        isCorrect: answer.correct,
+      },
+    ];
     optionButton.classList.add('pressed');
   }
+
+  const selectedIds = questionEntry.answers.map((ans) => ans.answerElementId);
+  const correctIds = question.answers.filter((ans) => ans.correct).map((ans) => ans.uniqueId);
+
+  questionEntry.isCorrect = selectedIds.length === correctIds.length
+    && selectedIds.every((id) => correctIds.includes(id));
 
   questionDiv.classList.add('answered');
 
@@ -491,13 +556,53 @@ export async function handleTestClick({
     const currentIndex = [...questionsWrapper.children].indexOf(questionDiv);
     updateAdvancedNextDisabled('test', questionsWrapper, currentIndex, questions, state, navNext);
   }
+
   if (block.updateNavigation) block.updateNavigation();
 }
 
 export async function handleActivityClick({
-  questionDiv, optionButton, correct, snippet, question, messageContainer, block, questions, state,
+  questionDiv,
+  optionButton,
+  correct,
+  snippet,
+  question,
+  messageContainer,
+  block,
+  questions,
+  state,
 }) {
   if (questionDiv.classList.contains('answered-correctly')) return;
+
+  state.status = 'COMPLETED';
+  if (state.type !== 'ACTIVITY') {
+    state.type = 'ACTIVITY';
+    state.questions = [];
+  }
+
+  let questionEntry = state.questions.find(
+    (ques) => ques.questionElementId === question.uniqueId,
+  );
+  if (!questionEntry) {
+    questionEntry = {
+      questionElementId: question.uniqueId,
+      answers: [],
+      isCorrect: false,
+    };
+    state.questions.push(questionEntry);
+  }
+
+  const index = parseInt(optionButton.getAttribute('data-index'), 10);
+  const selectedAnswer = question.answers[index];
+  const alreadySelected = questionEntry.answers.some(
+    (ans) => ans.answerElementId === selectedAnswer.uniqueId,
+  );
+
+  if (!alreadySelected) {
+    questionEntry.answers.push({
+      answerElementId: selectedAnswer.uniqueId,
+      isCorrect: !!selectedAnswer.correct,
+    });
+  }
 
   const allMessages = questionDiv.querySelectorAll('.question-message');
   allMessages.forEach((msg) => msg.classList.remove('correct', 'incorrect', 'showed'));
@@ -512,10 +617,14 @@ export async function handleActivityClick({
     messageContainer.appendChild(span({ class: 'snippet' }, snippet));
 
     const correctAnswers = question.answers
-      .map((ans, i) => (ans.correct ? i : null)).filter((i) => i !== null);
+      .map((ans, ind) => (ans.correct ? ind : null))
+      .filter((ind) => ind !== null);
     const pressed = [...questionDiv.querySelectorAll('.option-content-answer.correct.pressed')]
       .map((btn) => parseInt(btn.getAttribute('data-index'), 10));
+
     const allCorrect = correctAnswers.every((i) => pressed.includes(i));
+
+    questionEntry.isCorrect = allCorrect;
     if (allCorrect) {
       questionDiv.classList.add('answered-correctly');
     }
@@ -526,7 +635,10 @@ export async function handleActivityClick({
     messageContainer.innerHTML = '';
     messageContainer.appendChild(span({ class: 'result' }, incorrectLabel));
     messageContainer.appendChild(span({ class: 'snippet' }, snippet));
+    questionEntry.isCorrect = false;
   }
+
+  questionDiv.classList.add('answered');
 
   const navNext = block.querySelector('.arrow-next');
   if (navNext) {
@@ -563,10 +675,18 @@ export function updateAdvancedNav(nav, wrapper, questions, type, state) {
       nav.finish.classList.toggle('arrow-disabled', !answeredCorrectly);
     }
   } else if (type === 'test') {
-    const answered = state.answers[nav.currentIndex] !== undefined;
+    const question = questions[nav.currentIndex];
+    const questionId = question?.uniqueId;
+
+    const questionEntry = state?.questions?.find(
+      (ques) => ques.questionElementId === questionId,
+    );
+
+    const isAnswered = !!(questionEntry && questionEntry.answers.length > 0);
+
     if (lastSlider && nav.finish) {
-      nav.finish.disabled = !answered;
-      nav.finish.classList.toggle('arrow-disabled', !answered);
+      nav.finish.disabled = !isAnswered;
+      nav.finish.classList.toggle('arrow-disabled', !isAnswered);
     }
   } else if (nav.finish) {
     nav.finish.disabled = false;
@@ -581,31 +701,60 @@ export function updateAdvancedNav(nav, wrapper, questions, type, state) {
 export function attachFinishClick(
   nav,
   block,
-  questions,
+  questionsMeta,
   type,
+  state,
   completeMessage,
   testPercentage,
   showIndicatorsViaReviewMode,
-  redoQuizLabel,
-  markQuizCompletedFn,
 ) {
   nav.finish.addEventListener('click', async () => {
     if (!nav.finish.disabled) {
       const reviewContainer = block.querySelector('.review-questions');
       if (reviewContainer) reviewContainer.remove();
+
       const resultsLink = block.querySelector('.results-link');
       if (resultsLink) resultsLink.remove();
-      await markQuizCompletedFn(
+
+      block.classList.remove('is-review');
+
+      await checkQuizAdvancedCompletion(
         block,
-        questions,
+        questionsMeta,
         type,
-        completeMessage,
+        state,
         testPercentage,
         showIndicatorsViaReviewMode,
-        redoQuizLabel,
       );
     }
   });
+}
+
+async function checkQuizAdvancedCompletion(
+  block,
+  questionsMeta,
+  type,
+  state,
+  testPercentage,
+  doNotMarkLessonAsCompleted,
+) {
+  const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
+  if (isReviewMode) return;
+
+  if (type === 'activity') {
+    //  quiz completion event
+    store.dispatch(quizAnswered({ ...state, isCorrect: true, type: type.toUpperCase() }));
+  } else if (type === 'test') {
+    const answeredQuestions = state?.questions || [];
+    const correctCount = answeredQuestions.filter((question) => question.isCorrect === true).length;
+    const total = questionsMeta.length;
+    const percentage = Math.round((correctCount / total) * 100);
+    const passed = percentage >= testPercentage;
+    state.status = passed ? 'COMPLETED' : 'PROGRESS';
+    state.result = percentage;
+    //  quiz completion event
+    store.dispatch(quizAnswered({ ...state, isCorrect: (type === 'test' ? passed && doNotMarkLessonAsCompleted !== 'true' : true), type: type.toUpperCase() }));
+  }
 }
 
 export async function markQuizCompletedAdvanced(
@@ -617,7 +766,6 @@ export async function markQuizCompletedAdvanced(
   showIndicatorsViaReviewMode,
   redoQuizLabel,
 ) {
-  state.quizCompleted = true;
   const questionsWrapper = block.querySelector('.questions-wrapper');
   const progressBar = block.querySelector('.progress-bar');
   const navigation = block.querySelector('.quiz-navigation');
