@@ -284,6 +284,15 @@ function generateRandomId() {
   return Math.random().toString(36).slice(-8);
 }
 
+async function sha256Hash(str) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
 async function parseTime(time) {
   if (!time || !/^[0-9]+:[0-9]+$/.test(time)) {
     return '';
@@ -809,6 +818,7 @@ export {
   checkDomain,
   buildSlider,
   generateRandomId,
+  sha256Hash,
   isFeatureToggled,
   readBlockConfig,
   toStartCase,
