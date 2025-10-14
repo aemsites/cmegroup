@@ -1,7 +1,8 @@
 /* stylelint-disable */
 .podcast.block {
-    background-color: var(--gray5);
-    padding: 0.3125rem;
+    background-color: var(--gray6);
+    padding: 1.25rem;
+    margin-bottom: 1.875rem;
 }
 
 .podcast .media-player {
