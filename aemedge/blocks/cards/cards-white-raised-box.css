@@ -92,9 +92,6 @@
 @media (width >= 769px) {
     .cards.white-raised-box ul {
         display: flex;
-    }
-
-    .cards.white-raised-box li .cards-card-body {
-        min-height: 16.5625rem;
-    }
+        height: max-content;
+      }
 }

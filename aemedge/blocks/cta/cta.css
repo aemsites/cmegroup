@@ -10,7 +10,7 @@
     margin-top: 3.75rem;
 
     &.primary {
-      background-color: var(--blue1);
+      background-color: var(--blue2);
 
       & .title p {
         color: var(--white);

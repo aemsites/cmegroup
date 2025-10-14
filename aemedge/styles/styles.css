@@ -962,7 +962,7 @@ main {
     padding-top: 6.25rem;
   }
 
-  & > .section {
+  & > .section:not(.divider-container, .hero-container) {
     margin-bottom: 1.875rem;
     padding: 1.875rem 0;
 
@@ -1242,14 +1242,9 @@ main {
 
 /* sections */
 
-@media (width > 768px) {
-  main .section {
-    margin-bottom: 3.75rem;
-  }
-}
-
 main > .section:first-of-type {
   margin-top: 0;
+  padding-top: 0;
 }
 
 main > .section.full-width picture,
@@ -1390,7 +1385,7 @@ main .section.divider[has-sidebar="true"] > div:nth-last-of-type(2) {
   border-bottom: 0.0625rem solid var(--gray4);
 }
 
-main .section > [class*="-wrapper"] + [class*="-wrapper"]:not(.default-content-wrapper) {
+main .section > [class*="-wrapper"] + [class*="-wrapper"]:not(.default-content-wrapper, .hero-wrapper) {
   margin-top: 1.875rem;
 }
 
@@ -1864,7 +1859,8 @@ p.center-img {
 
 .highlighted-text {
   font-weight: bold;
-  color: var(--blue2);
+  font-family: var(--averta);
+  font-size: inherit;
 }
 
 /* share this overrides */
