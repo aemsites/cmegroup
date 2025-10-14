@@ -7,24 +7,43 @@ import {
 } from '../helpers/utils.js';
 import { TOGGLE_CONSTANTS } from '../helpers/constants.js';
 
+// Content Creation Functions
+async function createFuturesContent() {
+  const blocks = [];
+  blocks.push('<p>Futures specs content</p>');
+  return blocks;
+}
+
+async function createOptionsContent() {
+  const blocks = [];
+  blocks.push('<p>Options specs content</p>');
+  return blocks;
+}
+
 // Main Content Functions
 async function createSpecsContent(tabId, tabTitle, hasFuturesOptionsToggle) {
   const allBlocks = [];
 
   if (hasFuturesOptionsToggle) {
+    // With toggle: show both futures and options with toggle UI
     try {
-      const futuresBlocks = ['<p>Futures specs content</p>'];
-      const optionsBlocks = ['<p>Options specs content</p>'];
-
       const toggleContent = await organizeToggleContent({
-        futuresBlocks,
-        optionsBlocks,
+        futuresBlocks: await createFuturesContent(),
+        optionsBlocks: await createOptionsContent(),
         defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
         tabId,
       });
       if (toggleContent) {
         allBlocks.push(toggleContent);
       }
+    } catch (error) {
+      allBlocks.push(createErrorMessage(tabTitle));
+    }
+  } else {
+    // Without toggle: show default futures content only
+    try {
+      const futuresContent = await createFuturesContent();
+      allBlocks.push(...futuresContent);
     } catch (error) {
       allBlocks.push(createErrorMessage(tabTitle));
     }

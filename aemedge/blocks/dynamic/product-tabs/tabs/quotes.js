@@ -344,6 +344,7 @@ async function createQuotesContent(tabId, tabTitle, hasFuturesOptionsToggle) {
   const allBlocks = [];
 
   if (hasFuturesOptionsToggle) {
+    // With toggle: show both futures and options with toggle UI
     try {
       const toggleContent = await organizeToggleContent({
         futuresBlocks: await createFuturesContent(),
@@ -354,6 +355,14 @@ async function createQuotesContent(tabId, tabTitle, hasFuturesOptionsToggle) {
       if (toggleContent) {
         allBlocks.push(toggleContent);
       }
+    } catch (error) {
+      allBlocks.push(createErrorMessage(tabTitle));
+    }
+  } else {
+    // Without toggle: show default futures content only
+    try {
+      const futuresContent = await createFuturesContent();
+      allBlocks.push(...futuresContent);
     } catch (error) {
       allBlocks.push(createErrorMessage(tabTitle));
     }
