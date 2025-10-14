@@ -65,7 +65,6 @@ function addResultsButton(
       if (navigation) navigation.style.display = 'none';
       if (progressBar) progressBar.style.display = 'none';
 
-      const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
       block.classList.remove('in-review', 'is-review');
       block.classList.add(type === 'activity' ? 'in-activity-results' : 'in-test-results');
 
@@ -89,7 +88,6 @@ function addResultsButton(
           testPercentage,
           showIndicatorsViaReviewMode,
           redoQuizLabel,
-          isReviewMode,
         );
       }
     });
@@ -196,22 +194,17 @@ async function renderTestResult(
   testPercentage,
   showIndicatorsViaReviewMode,
   redoQuizLabel,
-  isReviewMode,
 ) {
   block.classList.add('in-test-results');
   block.classList.remove('in-review');
 
   const answeredQuestions = state?.questions || [];
-
   const correctCount = answeredQuestions.filter((question) => question.isCorrect === true).length;
   const total = questionsMeta.length;
   const percentage = Math.round((correctCount / total) * 100);
   const passed = percentage >= testPercentage;
   state.status = passed ? 'COMPLETED' : 'PROGRESS';
   state.result = percentage;
-  if (!isReviewMode) {
-    checkQuizAdvancedCompletion('test', state, false, passed);
-  }
 
   const [
     congratsLabel,
@@ -278,7 +271,6 @@ async function renderTestResult(
       store.dispatch(quizRedo(true));
     });
   }
-  store.dispatch(quizRedo(false));
 
   const reviewLink = container.querySelector('.review-answers');
   reviewLink.addEventListener('click', async () => {
@@ -715,7 +707,6 @@ export function attachFinishClick(
   completeMessage,
   testPercentage,
   showIndicatorsViaReviewMode,
-  redoQuizLabel,
 ) {
   nav.finish.addEventListener('click', async () => {
     if (!nav.finish.disabled) {
@@ -727,33 +718,46 @@ export function attachFinishClick(
 
       block.classList.remove('is-review');
 
-      const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
-
-      await markQuizCompletedAdvanced(
+      await checkQuizAdvancedCompletion(
         block,
         questionsMeta,
         type,
         state,
         testPercentage,
         showIndicatorsViaReviewMode,
-        redoQuizLabel,
-        isReviewMode,
       );
     }
   });
 }
 
-export async function checkQuizAdvancedCompletion(
+async function checkQuizAdvancedCompletion(
+  block,
+  questionsMeta,
   type,
   state,
+  testPercentage,
   doNotMarkLessonAsCompleted,
-  passed = false,
 ) {
-  //  quiz completion event
-  store.dispatch(quizAnswered({ ...state, isCorrect: (type === 'test' ? passed && !doNotMarkLessonAsCompleted : true), type: type.toUpperCase() }));
+  const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
+  if (isReviewMode) return;
+
+  if (type === 'activity') {
+    //  quiz completion event
+    store.dispatch(quizAnswered({ ...state, isCorrect: true, type: type.toUpperCase() }));
+  } else if (type === 'test') {
+    const answeredQuestions = state?.questions || [];
+    const correctCount = answeredQuestions.filter((question) => question.isCorrect === true).length;
+    const total = questionsMeta.length;
+    const percentage = Math.round((correctCount / total) * 100);
+    const passed = percentage >= testPercentage;
+    state.status = passed ? 'COMPLETED' : 'PROGRESS';
+    state.result = percentage;
+    //  quiz completion event
+    store.dispatch(quizAnswered({ ...state, isCorrect: (type === 'test' ? passed && doNotMarkLessonAsCompleted !== 'true' : true), type: type.toUpperCase() }));
+  }
 }
 
-async function markQuizCompletedAdvanced(
+export async function markQuizCompletedAdvanced(
   block,
   questionsMeta,
   type,
@@ -766,13 +770,7 @@ async function markQuizCompletedAdvanced(
   const progressBar = block.querySelector('.progress-bar');
   const navigation = block.querySelector('.quiz-navigation');
 
-  const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
-
   if (type === 'activity') {
-    // checkQuizCompletion
-    if (!isReviewMode) {
-      checkQuizAdvancedCompletion(type, state, false);
-    }
     await renderActivity(
       block,
       questionsMeta,
@@ -792,7 +790,6 @@ async function markQuizCompletedAdvanced(
       testPercentage,
       showIndicatorsViaReviewMode,
       redoQuizLabel,
-      isReviewMode,
     );
   }
 }

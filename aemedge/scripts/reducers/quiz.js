@@ -13,6 +13,7 @@ export const quizReducer = (state = quizInitState, action) => {
       return {
         ...state,
         quizStatus: payload,
+        redo: false,
       };
     case QUIZ_ACTIONS.REDO:
       return {

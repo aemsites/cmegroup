@@ -1,4 +1,3 @@
-import { getCourseData } from '../../scripts/course/course.js';
 import { i18n, readBlockConfig, sha256Hash } from '../../scripts/utils.js';
 import { store } from '../../scripts/store/store.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
@@ -11,6 +10,7 @@ import {
   updateAdvancedNav,
   attachFinishClick,
   createSelectInstruction,
+  markQuizCompletedAdvanced,
 } from './advanced.js';
 import {
   div,
@@ -366,7 +366,7 @@ async function markQuizCompleted(
 
 export default async function decorate(block) {
   const {
-    doNotMarkLessonAsCompleted,
+    doNotMarkLessonAsCompleted = 'false',
     completeMessage,
     testPercentage = 70,
     randomizeOrder = 'false',
@@ -379,7 +379,6 @@ export default async function decorate(block) {
   } else if (block.classList.contains('test')) {
     type = 'test';
   }
-  const courseData = await getCourseData();
 
   const rows = Array.from(block.querySelectorAll(':scope > div'));
   let startIndex = 0;
@@ -391,7 +390,8 @@ export default async function decorate(block) {
     }
   }
 
-  const questions = await buildQuestions(courseData, rows.slice(startIndex));
+  const path = window.location.pathname;
+  const questions = await buildQuestions(path, rows.slice(startIndex));
   if (randomizeOrder === 'true' && type !== 'traditional') {
     questions.forEach((question) => {
       question.answers = randomOrder(question.answers);
@@ -401,7 +401,7 @@ export default async function decorate(block) {
 
   async function createQuizBlock() {
     const quizzes = document.querySelectorAll('.quiz.block').length;
-    const quizId = await sha256Hash(`${courseData.path}-${quizzes}`);
+    const quizId = await sha256Hash(`${path}-${quizzes}`);
     block.innerHTML = '';
     quizStatus = {
       quizElementId: quizId,
@@ -432,7 +432,25 @@ export default async function decorate(block) {
 
   //  quiz completion event subscriber
   store.subscribe(({ quiz }) => quiz, async ({ quizStatus: status, redo }) => {
-    if (status?.isCorrect && type === 'traditional') await markQuizCompleted(block, questions, type, completeMessage);
+    if (status?.isCorrect && type === 'traditional') {
+      await markQuizCompleted(
+        block,
+        questions,
+        type,
+        completeMessage,
+      );
+    }
+    if (status && (type === 'activity' || type === 'test')) {
+      await markQuizCompletedAdvanced(
+        block,
+        questions,
+        type,
+        status,
+        testPercentage,
+        showIndicatorsViaReviewMode,
+        redoQuizLabel,
+      );
+    }
     if (redo) await createQuizBlock();
   });
 }

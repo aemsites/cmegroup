@@ -71,6 +71,7 @@ const mapModule = (data) => (
       completed: lesson.status === 'COMPLETED',
       started: !!lesson.startDate,
       url: lesson.url,
+      quiz: { ...lesson.quiz, isCorrect: lesson.quiz?.status === 'COMPLETED' },
     })),
     completedLessons: data.lessons?.filter(({ status }) => status === 'COMPLETED').length,
     totalLessons: data.lessons?.length || 0,
