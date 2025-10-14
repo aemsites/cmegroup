@@ -440,7 +440,7 @@ export default async function decorate(block) {
         completeMessage,
       );
     }
-    if (status && (type === 'activity' || type === 'test')) {
+    if (status?.type && (type === 'activity' || type === 'test')) {
       await markQuizCompletedAdvanced(
         block,
         questions,

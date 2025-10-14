@@ -175,7 +175,7 @@ export default async function lessonTemplate() {
           );
         }
       } else if (quizStatus && !quizStatus.isCorrect) {
-        await updateLessonStatus(false, quizStatus);
+        await updateLessonStatus(false, quizStatus?.status ? quizStatus : null);
       }
     });
     //  courseData change event

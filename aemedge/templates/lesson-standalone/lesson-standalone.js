@@ -48,7 +48,7 @@ export default function lessonStandaloneTemplate() {
           },
         );
       } else if (quizStatus && !quizStatus.isCorrect) {
-        await updateLessonStatus(false, quizStatus);
+        await updateLessonStatus(false, quizStatus?.status ? quizStatus : null);
       }
     });
   });
