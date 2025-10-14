@@ -50,18 +50,22 @@
   display: block;
   width: 100%;
   text-align: left;
-  border: 0.0625rem solid var(--gray4);
+  border-bottom-width: 0.0625rem !important;
+  border-bottom-style: solid! important;
+  border-bottom-color: var(--gray4) !important;
   border-radius: 0;
   margin-bottom: 0;
-  padding: 0.75rem 1rem;
-  background-color: var(--gray6);
+  padding: 0.9375rem 1.5rem;
+  background-color: var(--white);
   position: relative;
-  color: var(--gray3);
+  color: var(--blue2);
   font-weight: 600;
-  line-height: 1rem;
+  line-height: 1.25rem;
   letter-spacing: .09375rem;
   font-family: var(--heading-font-family);
   font-size: .875rem;
+  box-shadow: none;
+  cursor: pointer;
 }
 
 .tabs .mobile-accordion button::after {
@@ -72,6 +76,7 @@
   transform: translateY(-50%);
   font-size: 1.25rem;
   transition: transform 0.3s ease;
+  color: var(--blue4);
 }
 
 .tabs .mobile-accordion button[aria-expanded='true']::after {
@@ -83,12 +88,15 @@
 }
 
 .tabs .mobile-accordion .tab {
+  margin-top: 1.25rem;
   margin-bottom: 0.75rem;
   padding-inline: 1rem;
   background-color: var(--white);
   width: 100%;
   transition: opacity 0.3s ease;
+  padding-left: 2rem;  
 }
+
 
 .tabs .mobile-accordion .tab[hidden] {
   display: none;
