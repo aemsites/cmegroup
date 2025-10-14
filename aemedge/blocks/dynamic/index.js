@@ -5,7 +5,6 @@ const isTabsRequired = (main) => {
   // Exclude product templates (they have their own specialized tab system)
   const template = getMetadata('template');
   if (template && template.toLowerCase() === 'product') return false;
-  
   return main.querySelectorAll(':scope > .section.tabs').length > 0;
 };
 const isCourseNavRequired = () => {
