@@ -9,6 +9,7 @@ import {
   fetchJsonData,
   organizeToggleContent,
   buildTable,
+  createErrorMessage,
 } from '../helpers/utils.js';
 import {
   API_CONFIG,
@@ -18,8 +19,6 @@ import {
   TABLE_FORMATTERS,
   QUOTES_TABLE_CONSTANTS,
 } from '../helpers/constants.js';
-
-export const HAS_FUTURES_OPTIONS_TOGGLE = true;
 
 // API Functions
 async function fetchQuotesTableData() {
@@ -286,10 +285,6 @@ async function updateOptionsTableData(quoteCode) {
   }
 }
 
-/**
- * @namespace EventHandlers
- * @description Functions for handling user interactions and events
- */
 function handleAboutReportModal() {
   document.addEventListener('click', async (e) => {
     if (e.target.classList.contains('about-report-link')) {
@@ -345,39 +340,24 @@ function handleQuotesOptionSelection() {
   });
 }
 
-/**
- * @namespace MainFunctions
- * @description Main content assembly and orchestration functions
- */
-async function createQuotesContent(tabId) {
+async function createQuotesContent(tabId, tabTitle, hasFuturesOptionsToggle) {
   const allBlocks = [];
 
-  // Create each block independently - if one fails, others still load
-  const blockCreators = [
-    // Toggle content (futures/options)
-    async () => {
-      try {
-        return await organizeToggleContent({
-          futuresBlocks: await createFuturesContent(),
-          optionsBlocks: await createOptionsContent(),
-          defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
-          tabId,
-        });
-      } catch (error) {
-        return '<div class="cards"><div class="no-results"><h4>Unable to load quotes toggle</h4></div></div>';
+  if (hasFuturesOptionsToggle) {
+    try {
+      const toggleContent = await organizeToggleContent({
+        futuresBlocks: await createFuturesContent(),
+        optionsBlocks: await createOptionsContent(),
+        defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
+        tabId,
+      });
+      if (toggleContent) {
+        allBlocks.push(toggleContent);
       }
-    },
-  ];
-
-  // Load all blocks independently using resilient pattern
-  const results = await Promise.allSettled(blockCreators.map((creator) => creator()));
-
-  // Add only successful blocks to the tab
-  results.forEach((result) => {
-    if (result.status === 'fulfilled' && result.value) {
-      allBlocks.push(result.value);
+    } catch (error) {
+      allBlocks.push(createErrorMessage(tabTitle));
     }
-  });
+  }
 
   return allBlocks;
 }
@@ -388,10 +368,10 @@ async function createQuotesContent(tabId) {
  * @returns {Promise<Element>} Section element for quotes tab
  */
 export default async function buildQuotesTab(metadata = {}) {
-  const { tabId, tabTitle } = metadata;
+  const { tabId, tabTitle, hasFuturesOptionsToggle } = metadata;
 
   handleAboutReportModal();
   handleQuotesOptionSelection();
-  const blocks = await createQuotesContent(tabId);
+  const blocks = await createQuotesContent(tabId, tabTitle, hasFuturesOptionsToggle);
   return createTabSection(tabId, tabTitle, blocks);
 }

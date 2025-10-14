@@ -40,7 +40,8 @@ async function populateTabSection(tabSection, tabId) {
 
     // Build dynamic content with metadata from source doc
     const tabTitle = tabSection.dataset.tabTitle || tabId;
-    const tabContent = await builder({ tabId, tabTitle });
+    const hasFuturesOptionsToggle = tabSection.dataset.futuresOptionsToggle === 'true';
+    const tabContent = await builder({ tabId, tabTitle, hasFuturesOptionsToggle });
     if (!tabContent) return;
 
     // Insert dynamic content into marker
@@ -70,15 +71,12 @@ async function populateTabSection(tabSection, tabId) {
 }
 
 /**
- * Setup toggle system for a specific tab
+ * Setup toggle system for a specific tab (metadata-driven)
  */
-async function setupToggleForTab(tabId) {
-  if (!tabId) return;
+async function setupToggleForTab(tabId, hasFuturesOptionsToggle) {
+  if (!tabId || !hasFuturesOptionsToggle) return;
 
   try {
-    const tabModule = await import(`./tabs/${tabId}.js`);
-    if (tabModule.HAS_FUTURES_OPTIONS_TOGGLE !== true) return;
-
     const { setToggleConfig, setupTabToggleIntegration } = await import('./helpers/utils.js');
     const { TOGGLE_CONSTANTS } = await import('./helpers/constants.js');
 
@@ -124,11 +122,14 @@ export default async function createProductTabs(main) {
       const hasMarker = tabSection.querySelector('.tabs-content');
       if (!hasMarker) return; // Skip static-only tabs
 
+      // Read toggle metadata
+      const hasFuturesOptionsToggle = tabSection.dataset.futuresOptionsToggle === 'true';
+
       // Populate tab content
       await populateTabSection(tabSection, tabId);
 
-      // Setup toggle if needed
-      await setupToggleForTab(tabId);
+      // Setup toggle if needed (metadata-driven)
+      await setupToggleForTab(tabId, hasFuturesOptionsToggle);
     });
 
     // Wait for all tabs to finish (independently)

@@ -8,59 +8,38 @@ import {
 } from '../helpers/utils.js';
 import { TOGGLE_CONSTANTS } from '../helpers/constants.js';
 
-export const HAS_FUTURES_OPTIONS_TOGGLE = true;
-
-// Content Functions
-async function createFuturesContent() {
-  // Authors can add content in source document
-  return [];
-}
-
-async function createOptionsContent() {
-  // Authors can add content in source document
-  return [];
-}
-
 // Main Content Functions
-async function createSettlementsContent(tabId, tabTitle) {
+async function createSettlementsContent(tabId, tabTitle, hasFuturesOptionsToggle) {
   const allBlocks = [];
 
-  // Create each block independently - if one fails, others still load
-  const blockCreators = [
-    // Toggle content (futures/options)
-    async () => {
-      try {
-        return await organizeToggleContent({
-          futuresBlocks: await createFuturesContent(),
-          optionsBlocks: await createOptionsContent(),
-          defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
-          tabId,
-        });
-      } catch (error) {
-        return createErrorMessage(tabTitle);
+  if (hasFuturesOptionsToggle) {
+    try {
+      const futuresBlocks = ['<p>Futures settlements content</p>'];
+      const optionsBlocks = ['<p>Options settlements content</p>'];
+
+      const toggleContent = await organizeToggleContent({
+        futuresBlocks,
+        optionsBlocks,
+        defaultActive: TOGGLE_CONSTANTS.toggleTypes.futures,
+        tabId,
+      });
+      if (toggleContent) {
+        allBlocks.push(toggleContent);
       }
-    },
-  ];
-
-  // Load all blocks independently using resilient pattern
-  const results = await Promise.allSettled(blockCreators.map((creator) => creator()));
-
-  // Add only successful blocks to the tab
-  results.forEach((result) => {
-    if (result.status === 'fulfilled' && result.value) {
-      allBlocks.push(result.value);
+    } catch (error) {
+      allBlocks.push(createErrorMessage(tabTitle));
     }
-  });
+  }
 
   return allBlocks;
 }
 
 export default async function buildSettlementsTab(metadata = {}) {
-  const { tabId, tabTitle } = metadata;
+  const { tabId, tabTitle, hasFuturesOptionsToggle } = metadata;
 
   let blocks = [];
   try {
-    blocks = await createSettlementsContent(tabId, tabTitle);
+    blocks = await createSettlementsContent(tabId, tabTitle, hasFuturesOptionsToggle);
   } catch (error) {
     blocks = [createErrorMessage(tabTitle)];
   }
