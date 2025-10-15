@@ -5,6 +5,8 @@ import { store } from '../../scripts/store/store.js';
 import { quizRedo, quizAnswered } from '../../scripts/actions/quiz.js';
 import { i18n } from '../../scripts/utils.js';
 
+let nextLesson = null;
+
 export function updateAdvancedNextDisabled(type, wrapper, currentIndex, questions, state, next) {
   let disable = false;
 
@@ -58,40 +60,69 @@ function addResultsButton(
 
     const resultsBtn = resultsLinkWrapper.querySelector('.results');
     resultsBtn.addEventListener('click', async () => {
-      const existingReview = block.querySelector('.review-questions');
-      if (existingReview) existingReview.remove();
-      resultsLinkWrapper.remove();
-      if (questionsWrapper) questionsWrapper.style.display = 'none';
-      if (navigation) navigation.style.display = 'none';
-      if (progressBar) progressBar.style.display = 'none';
+      const resultsLinkWrapperClosest = resultsBtn.closest('.results-link');
+      if (resultsLinkWrapperClosest) resultsLinkWrapperClosest.remove();
 
-      block.classList.remove('in-review', 'is-review');
-      block.classList.add(type === 'activity' ? 'in-activity-results' : 'in-test-results');
-
-      if (type === 'activity') {
-        await renderActivity(
-          block,
-          questionsMeta,
-          questionsWrapper,
-          progressBar,
-          navigation,
-          showIndicatorsViaReviewMode,
-        );
-      } else if (type === 'test') {
-        await renderTestResult(
-          block,
-          questionsMeta,
-          state,
-          questionsWrapper,
-          progressBar,
-          navigation,
-          testPercentage,
-          showIndicatorsViaReviewMode,
-          redoQuizLabel,
-        );
-      }
+      await showResultsView(
+        block,
+        questionsWrapper,
+        progressBar,
+        navigation,
+        testPercentage,
+        questionsMeta,
+        state,
+        type,
+        showIndicatorsViaReviewMode,
+        redoQuizLabel,
+      );
     });
   });
+}
+
+async function showResultsView(
+  block,
+  questionsWrapper,
+  progressBar,
+  navigation,
+  testPercentage,
+  questionsMeta,
+  state,
+  type,
+  showIndicatorsViaReviewMode,
+  redoQuizLabel,
+) {
+  const existingReview = block.querySelector('.review-questions');
+  if (existingReview) existingReview.remove();
+
+  if (questionsWrapper) questionsWrapper.style.display = 'none';
+  if (navigation) navigation.style.display = 'none';
+  if (progressBar) progressBar.style.display = 'none';
+
+  block.classList.remove('in-review', 'is-review');
+  block.classList.add(type === 'activity' ? 'in-activity-results' : 'in-test-results');
+
+  if (type === 'activity') {
+    await renderActivity(
+      block,
+      questionsMeta,
+      questionsWrapper,
+      progressBar,
+      navigation,
+      showIndicatorsViaReviewMode,
+    );
+  } else if (type === 'test') {
+    await renderTestResult(
+      block,
+      questionsMeta,
+      state,
+      questionsWrapper,
+      progressBar,
+      navigation,
+      testPercentage,
+      showIndicatorsViaReviewMode,
+      redoQuizLabel,
+    );
+  }
 }
 
 function addReviewQuestions(
@@ -218,22 +249,29 @@ async function renderTestResult(
     i18n('Congratulations'),
     i18n('Oops'),
     i18n('You have passed!'),
-    i18n('You did not pass'),
+    i18n('You did not score enough'),
     i18n('Next Lesson'),
     i18n('Review your Answers'),
     i18n('Redo Test'),
   ]);
 
+  const progressSvg = `
+    <svg class="progress-circular" viewBox="0 0 190 190" xmlns="http://www.w3.org/2000/svg">
+      <circle
+        cx="95"
+        cy="95"
+        r="91.5"
+        stroke-width="7"
+        fill="none"
+        class="progress-ring"
+      />
+    </svg>
+  `;
+
   const progressWrapper = div({ class: `progress-bar-wrapper ${passed ? 'passed' : 'failed'}` });
-  const progressImg = img({
-    src: passed
-      ? '/aemedge/icons/progress-circular-passed.svg'
-      : '/aemedge/icons/progress-circular-failed.svg',
-    alt: 'Progress',
-    class: 'progress-circular',
-  });
+  progressWrapper.innerHTML = progressSvg;
+
   const percentageText = span({ class: 'progress-text' }, `${percentage}%`);
-  progressWrapper.appendChild(progressImg);
   progressWrapper.appendChild(percentageText);
 
   const container = div(
@@ -244,7 +282,12 @@ async function renderTestResult(
     p({ class: 'results pt-4' }, passed
       ? `You answered ${correctCount} out of ${total} questions correctly`
       : `You answered ${total - correctCount} out of ${total} questions incorrectly`),
-    button({ type: 'button', class: 'primary btn btn-' }, span({ class: 'text' }, nextLessonLabel)),
+    nextLesson
+      ? button(
+        { type: 'button', class: 'primary btn btn-', onclick: () => { window.location.href = nextLesson; } },
+        span({ class: 'text' }, nextLessonLabel),
+      )
+      : null,
     (() => {
       const linksPara = p({ class: 'pt-4' });
       const reviewLink = a({ role: 'button', tabindex: '0', class: 'review-answers' }, reviewLabel);
@@ -707,17 +750,34 @@ export function attachFinishClick(
   completeMessage,
   testPercentage,
   showIndicatorsViaReviewMode,
+  redoQuizLabel,
 ) {
   nav.finish.addEventListener('click', async () => {
-    if (!nav.finish.disabled) {
-      const reviewContainer = block.querySelector('.review-questions');
-      if (reviewContainer) reviewContainer.remove();
+    if (nav.finish.disabled) return;
 
-      const resultsLink = block.querySelector('.results-link');
-      if (resultsLink) resultsLink.remove();
+    const reviewContainer = block.querySelector('.review-questions');
+    if (reviewContainer) reviewContainer.remove();
 
+    const resultsLink = block.querySelector('.results-link');
+    if (resultsLink) resultsLink.remove();
+
+    const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
+
+    if (isReviewMode) {
+      await showResultsView(
+        block,
+        block.querySelector('.questions-wrapper'),
+        block.querySelector('.progress-bar'),
+        block.querySelector('.quiz-navigation'),
+        testPercentage,
+        questionsMeta,
+        state,
+        type,
+        showIndicatorsViaReviewMode,
+        redoQuizLabel,
+      );
+    } else {
       block.classList.remove('is-review');
-
       await checkQuizAdvancedCompletion(
         block,
         questionsMeta,
@@ -743,7 +803,7 @@ async function checkQuizAdvancedCompletion(
 
   if (type === 'activity') {
     //  quiz completion event
-    store.dispatch(quizAnswered({ ...state, isCorrect: true, type: type.toUpperCase() }));
+    store.dispatch(quizAnswered({ ...state, isCorrect: false, type: type.toUpperCase() }));
   } else if (type === 'test') {
     const answeredQuestions = state?.questions || [];
     const correctCount = answeredQuestions.filter((question) => question.isCorrect === true).length;
@@ -793,3 +853,7 @@ export async function markQuizCompletedAdvanced(
     );
   }
 }
+
+store.subscribe(({ courseData: course }) => course, (course) => {
+  nextLesson = course?.nextLesson;
+});
