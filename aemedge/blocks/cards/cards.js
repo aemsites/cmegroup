@@ -22,6 +22,7 @@ import {
   mapLegacyArticleData,
   isLegacyContent,
   legacyOpenMarketsTemplates,
+  legacyNewsTemplates,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 
@@ -492,7 +493,16 @@ export async function createDynamicCards(block) {
   } else if (block.classList.contains('article')) {
     const articleTypeConfig = getArticleTypeConfig(block);
     const indexFilter = buildIndexFilter(config);
-    indexFilter.templates = ['article', ...legacyArticleTemplates];
+    if (!indexFilter.templates || indexFilter.templates.length === 0) {
+      indexFilter.templates = ['article', ...legacyArticleTemplates];
+    } else {
+      if (indexFilter.templates.includes('article')) {
+        indexFilter.templates = [...indexFilter.templates, ...legacyArticleTemplates];
+      }
+      if (indexFilter.templates.includes('news')) {
+        indexFilter.templates = [...indexFilter.templates, ...legacyNewsTemplates];
+      }
+    }
     if (!indexFilter.basePaths || indexFilter.basePaths.length === 0) {
       indexFilter.basePaths = ['/education', '/content/cmegroup/en'];
     }
