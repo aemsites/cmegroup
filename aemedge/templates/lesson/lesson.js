@@ -174,7 +174,7 @@ export default async function lessonTemplate() {
             },
           );
         }
-      } else if (quizStatus && !quizStatus.isCorrect) {
+      } else if (quizStatus && !quizStatus.isCorrect && quizStatus !== lesson?.quiz) {
         await updateLessonStatus(false, quizStatus?.status ? quizStatus : null);
       }
     });
