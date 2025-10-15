@@ -11,6 +11,7 @@
 
       & li {
         box-shadow: 0 0.0625rem 0.3125rem 0.0625rem hsla(0deg 0% 70% / 70%);
+        margin: 0.125rem;
         display: block;
         width: 100%;
 
@@ -107,7 +108,7 @@
           }
 
           & .cards-footer {
-            padding: 0 1.25rem 0.625rem;
+            padding: 0 1.25rem 1.25rem;
             margin-top: auto;
 
             & .cards-primary-topic {

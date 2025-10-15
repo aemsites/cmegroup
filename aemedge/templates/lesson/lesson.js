@@ -141,15 +141,19 @@ export default async function lessonTemplate() {
       //  start current lesson
       await updateLessonStatus(false);
     }
-    if (lesson?.completed) {
-      store.dispatch(quizAnswered(true));
+    if (lesson?.quiz || lesson?.completed) {
+      //  quiz prefill
+      store.dispatch(quizAnswered(lesson?.quiz || { isCorrect: true }));
     }
     //  dispatch courseData event
     store.dispatch(courseDataChange(courseData));
     //  quiz completion event subscriber
-    store.subscribe(({ quiz }) => quiz, async ({ isCorrect }) => {
-      if (isCorrect && !lesson?.completed) {
-        const updatedCourse = await updateLessonStatus(true);
+    store.subscribe(({ quiz }) => quiz, async ({ quizStatus }) => {
+      if (quizStatus?.isCorrect && !lesson?.completed) {
+        const updatedCourse = await updateLessonStatus(
+          true,
+          quizStatus?.status ? quizStatus : null,
+        );
         store.dispatch(courseDataChange(updatedCourse));
         fireTrackingLessons(
           `Lesson "${lesson.moduleTitle}" - completed`,
@@ -170,6 +174,8 @@ export default async function lessonTemplate() {
             },
           );
         }
+      } else if (quizStatus && !quizStatus.isCorrect) {
+        await updateLessonStatus(false, quizStatus?.status ? quizStatus : null);
       }
     });
     //  courseData change event

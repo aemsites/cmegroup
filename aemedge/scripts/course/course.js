@@ -372,10 +372,10 @@ export function getCurrentLesson(courseData) {
 /**
  * Updates the current lesson status
  */
-export async function updateLessonStatus(isCompleted) {
+export async function updateLessonStatus(isCompleted, quizStatus) {
   const courseData = await getCourseData();
   const lessonId = getMetadata('module-id');
-  const updatedCourse = await postLesson(courseData.moduleId, lessonId, isCompleted);
+  const updatedCourse = await postLesson(courseData.moduleId, lessonId, isCompleted, quizStatus);
   if (updatedCourse && isCompleted) {
     const { lessons: lessonsProgress, ...courseProgress } = updatedCourse;
     Object.assign(courseData, courseProgress);
