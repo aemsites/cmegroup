@@ -252,7 +252,7 @@ async function addNavigation(
   showIndicatorsViaReviewMode,
   redoQuizLabel,
 ) {
-  const [prevLabel, nextLabel, finishLabel] = await Promise.all([i18n('Prev'), i18n('Next'), i18n('Finish')]);
+  const [prevLabel, nextLabel, finishLabel, submitLabel] = await Promise.all([i18n('Prev'), i18n('Next'), i18n('Finish'), i18n('Submit')]);
   const prev = button(
     { type: 'button', class: 'arrow arrow-prev' },
     type !== 'traditional' ? prevLabel : '',
@@ -262,7 +262,7 @@ async function addNavigation(
     type !== 'traditional' ? nextLabel : '',
   );
   let finish = null;
-  if (type !== 'traditional') finish = button({ type: 'button', class: 'arrow arrow-finish', style: 'display: none;' }, finishLabel);
+  if (type !== 'traditional') finish = button({ type: 'button', class: 'arrow arrow-finish', style: 'display: none;' }, type === 'activity' ? finishLabel : submitLabel);
 
   const nav = {
     prev, next, finish, pag: null, currentIndex: 0,
