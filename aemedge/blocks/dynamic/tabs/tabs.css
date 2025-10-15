@@ -1,6 +1,7 @@
 .section.tabs {
   margin: 1rem 0;
   background: transparent;
+  padding: 0 !important;
 }
 
 .tabs .tabs-wrapper {
