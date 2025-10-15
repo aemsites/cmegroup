@@ -47,7 +47,7 @@ export default function lessonStandaloneTemplate() {
             lessonTitle: courseData.title,
           },
         );
-      } else if (quizStatus && !quizStatus.isCorrect) {
+      } else if (quizStatus && !quizStatus.isCorrect && quizStatus !== courseData?.quiz) {
         await updateLessonStatus(false, quizStatus?.status ? quizStatus : null);
       }
     });
