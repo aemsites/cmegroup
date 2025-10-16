@@ -2,6 +2,12 @@
     &.blue1-background {
         background-color: var(--blue1);
     }
+    &.blue2-background {
+        background-color: var(--blue2);
+    }
+    &.blue3-background {
+        background-color: var(--blue3);
+    }
 
     &.blue4-background {
         background-color: var(--blue4);
