@@ -9,7 +9,7 @@ import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
-import { setTracking } from '../../scripts/utils/index.js';
+import { setTracking, URIUtil } from '../../scripts/utils/index.js';
 
 const FRAGMENT_URL = '/fragments/courses-lessons/extend-your-learning';
 
@@ -52,7 +52,7 @@ function flattenLessons(courseData) {
 }
 
 function findNavigationLinks(currentPath, flatLessons) {
-  const currentIndex = flatLessons.findIndex((lesson) => currentPath.startsWith(lesson.path));
+  const currentIndex = flatLessons.findIndex((lesson) => currentPath === lesson.path);
   const prevLesson = currentIndex > 0 ? flatLessons[currentIndex - 1] : null;
   const nextLesson = currentIndex < flatLessons.length - 1 ? flatLessons[currentIndex + 1] : null;
 
@@ -118,7 +118,7 @@ async function initLateralNav(courseData) {
   if (isFeatureToggled('hideCourseNav', 'y', true) || window.location.pathname.includes('.hideCourseNav.')) {
     return null;
   }
-  const currentPath = window.location.pathname;
+  const currentPath = new URIUtil().removeSelector(1).pathname();
   const flatLessons = flattenLessons(courseData);
   const { prevHref, nextHref } = findNavigationLinks(currentPath, flatLessons);
   await addLateralNavigation(prevHref, nextHref);

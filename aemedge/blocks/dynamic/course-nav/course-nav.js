@@ -4,6 +4,7 @@ import {
   i18n,
   preserveHideParameters,
 } from '../../../scripts/utils.js';
+import { URIUtil } from '../../../scripts/utils/index.js';
 import { store } from '../../../scripts/store/store.js';
 
 function getTotalLessonsCount(courseData) {
@@ -96,7 +97,7 @@ function createLessonElement(lesson, currentPath) {
   const iconSpan = createElement('span', { class: lesson.completed ? 'icon-check' : 'icon-uncheck' });
   lessonLink.append(titleSpan, iconSpan);
   li.appendChild(lessonLink);
-  const currentLesson = currentPath.startsWith(lesson.path);
+  const currentLesson = currentPath === lesson.path;
   if (currentLesson) {
     li.classList.add('current');
   }
@@ -245,7 +246,7 @@ function renderOrderedContent(courseData, currentPath, content) {
 
 async function buildCourseNav(main, courseData, prevCourseData) {
   await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/course-nav/course-nav.css`);
-  const currentPath = window.location.pathname;
+  const currentPath = new URIUtil().removeSelector(1).pathname();
   const totalLessons = getTotalLessonsCount(courseData);
 
   let nav = main.querySelector('.course-nav');
