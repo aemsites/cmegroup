@@ -52,7 +52,7 @@ function flattenLessons(courseData) {
 }
 
 function findNavigationLinks(currentPath, flatLessons) {
-  const currentIndex = flatLessons.findIndex((lesson) => currentPath === lesson.path);
+  const currentIndex = flatLessons.findIndex((lesson) => lesson.path === currentPath);
   const prevLesson = currentIndex > 0 ? flatLessons[currentIndex - 1] : null;
   const nextLesson = currentIndex < flatLessons.length - 1 ? flatLessons[currentIndex + 1] : null;
 
