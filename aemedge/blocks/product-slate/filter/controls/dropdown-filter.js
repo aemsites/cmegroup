@@ -411,16 +411,16 @@ function createDropdowns(apiData, options = {}) {
       title: 'Asset Classes & Product Groups',
       isHierarchical: true,
     },
-    cleared: {
-      title: 'Cleared Products',
-      isHierarchical: false,
-    },
     exch: {
       title: 'Exchanges',
       isHierarchical: false,
     },
     venues: {
       title: 'Venues',
+      isHierarchical: false,
+    },
+    cleared: {
+      title: 'Cleared As',
       isHierarchical: false,
     },
   };
@@ -433,7 +433,7 @@ function createDropdowns(apiData, options = {}) {
 
     if (data && data.length > 0 && config) {
       const wrapper = createElement('div', {
-        class: 'dropdown-wrapper',
+        class: `dropdown-wrapper ${key}`,
       });
       container.appendChild(wrapper);
 
