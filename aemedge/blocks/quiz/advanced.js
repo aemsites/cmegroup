@@ -249,7 +249,7 @@ async function renderTestResult(
     i18n('Congratulations'),
     i18n('Oops'),
     i18n('You have passed!'),
-    i18n('You did not score enough'),
+    i18n('You did not score enough to pass this time'),
     i18n('Next Lesson'),
     i18n('Review your Answers'),
     i18n('Redo Test'),
@@ -287,7 +287,7 @@ async function renderTestResult(
         { type: 'button', class: 'primary btn btn-', onclick: () => { window.location.href = nextLesson; } },
         span({ class: 'text' }, nextLessonLabel),
       )
-      : null,
+      : '',
     (() => {
       const linksPara = p({ class: 'pt-4' });
       const reviewLink = a({ role: 'button', tabindex: '0', class: 'review-answers' }, reviewLabel);
@@ -751,6 +751,8 @@ export function attachFinishClick(
   testPercentage,
   showIndicatorsViaReviewMode,
   redoQuizLabel,
+  finishLabel,
+  doNotMarkLessonAsCompleted,
 ) {
   nav.finish.addEventListener('click', async () => {
     if (nav.finish.disabled) return;
@@ -784,8 +786,12 @@ export function attachFinishClick(
         type,
         state,
         testPercentage,
-        showIndicatorsViaReviewMode,
+        doNotMarkLessonAsCompleted,
       );
+      const arrowFinishBtn = block.querySelector('.arrow-finish');
+      if (arrowFinishBtn) {
+        arrowFinishBtn.textContent = finishLabel;
+      }
     }
   });
 }
