@@ -15,23 +15,24 @@
     position: relative;
 }
 
-.cards.white-variation li .cards-card-body h4{
-    color: var(--blue2);
+.cards.white-variation li .cards-card-body h4
+{
     margin: 0 0 1.25rem;
-    font-size: 1.25rem;
-    line-height: 1.625rem;
 }
 
-.cards.white-variation li .cards-card-body h4 a {
+.cards.white-variation li .cards-card-body h4 a,
+.cards.white-variation li .cards-card-body h5 a {
     color: var(--blue2);
 }
 
-.cards.white-variation li .cards-card-body h4 a:hover {
+.cards.white-variation li .cards-card-body h4 a:hover,
+.cards.white-variation li .cards-card-body h5 a:hover {
     text-decoration: none;
     color: var(--blue5);
 }
 
-.cards.white-variation li .cards-card-body h4 a::after{
+.cards.white-variation li .cards-card-body h4 a::after,
+.cards.white-variation li .cards-card-body h5 a::after{
     font-family: var(--cme-group-icons);
     content: var(--icon-chevron-right);
     color: var(--blue5);
@@ -41,7 +42,8 @@
     font-weight: 400;
 }
 
-.cards.white-variation li .cards-card-body h4 a:hover::after{
+.cards.white-variation li .cards-card-body h4 a:hover::after,
+.cards.white-variation li .cards-card-body h5 a:hover::after{
     margin-left: 0.5rem;
 }
 
@@ -74,8 +76,14 @@
     .cards.white-variation ul {
         display: flex;
     }
+}
 
-    .cards.white-variation li .cards-card-body {
-        min-height: 10rem;
-    }
+/* override margin-top for cards-wrapper in white-variation */
+main .section > .cards-wrapper:has(.cards.white-variation) {
+    margin-top: 0;
+}
+
+/* override padding when white-variation is inside tabs */
+.tabs .cards.white-variation li .cards-card-body {
+    padding: 0;
 }
