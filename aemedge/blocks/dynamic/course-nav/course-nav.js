@@ -96,10 +96,11 @@ function createLessonElement(lesson, currentPath) {
   const iconSpan = createElement('span', { class: lesson.completed ? 'icon-check' : 'icon-uncheck' });
   lessonLink.append(titleSpan, iconSpan);
   li.appendChild(lessonLink);
-  if (lesson.path === currentPath) {
+  const currentLesson = currentPath.startsWith(lesson.path);
+  if (currentLesson) {
     li.classList.add('current');
   }
-  return { li, isCurrent: lesson.path === currentPath };
+  return { li, isCurrent: currentLesson };
 }
 
 function createLessonsList(lessons, currentPath, shouldShow = false) {
