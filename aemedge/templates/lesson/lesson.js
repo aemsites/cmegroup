@@ -19,6 +19,12 @@ if (window.ga) {
   window.ga();
 }
 
+/**
+ * Flattens the course structure (lessons and chapters) into a single array
+ * based on the modulesOrder specified in the courseData.
+ * @param {Object} courseData - Course data with lessons, chapters, modulesOrder
+ * @returns {Array} Array of lesson objects with their paths and chapter info
+ */
 function flattenLessons(courseData) {
   const lessons = courseData.lessons || [];
   const chapters = courseData.chapters || [];
@@ -51,6 +57,12 @@ function flattenLessons(courseData) {
   return flatLessons;
 }
 
+/**
+ * Finds the previous and next lesson links for the current lesson.
+ * @param {string} currentPath - The current page path
+ * @param {Array} flatLessons - Flattened array of all lessons in order
+ * @returns {Object} Object containing prevHref and nextHref for navigation
+ */
 function findNavigationLinks(currentPath, flatLessons) {
   const currentIndex = flatLessons.findIndex((lesson) => lesson.path === currentPath);
   const prevLesson = currentIndex > 0 ? flatLessons[currentIndex - 1] : null;
@@ -62,9 +74,20 @@ function findNavigationLinks(currentPath, flatLessons) {
   };
 }
 
+/**
+ * Creates and appends the lateral navigation component (Previous/Next buttons)
+ * to the main content area.
+ * @param {string|null} prevHref - URL for the previous lesson, or null if none
+ * @param {string|null} nextHref - URL for the next lesson, or null if none
+ * @returns {Promise<void>}
+ */
 async function addLateralNavigation(prevHref, nextHref) {
   const main = document.querySelector('main');
-  if (!main) return;
+  if (!main) {
+    // eslint-disable-next-line no-console
+    console.warn('addLateralNavigation: main element not found');
+    return;
+  }
 
   const [previousLabel, nextLabel] = await Promise.all([
     i18n('Previous'),
@@ -114,6 +137,12 @@ async function addLateralNavigation(prevHref, nextHref) {
   preserveHideParameters(nav);
 }
 
+/**
+ * Initializes the lateral navigation for the lesson page.
+ * Determines navigation links and adds navigation component and fragment.
+ * @param {Object} courseData - The course data object
+ * @returns {Promise<Object|null>} Navigation links or null if hidden
+ */
 async function initLateralNav(courseData) {
   if (isFeatureToggled('hideCourseNav', 'y', true) || window.location.pathname.includes('.hideCourseNav.')) {
     return null;
@@ -126,6 +155,43 @@ async function initLateralNav(courseData) {
   return { prevHref, nextHref };
 }
 
+/**
+ * Creates a placeholder element for the course header to prevent CLS.
+ * Reserves space for course header (46px) and premium label (14px).
+ * @returns {void}
+ */
+function createCourseHeaderPlaceholder() {
+  const main = document.querySelector('main');
+  if (!main) {
+    // eslint-disable-next-line no-console
+    console.warn('createCourseHeaderPlaceholder: main element not found');
+    return;
+  }
+
+  const firstSection = main.querySelector('.section');
+  if (!firstSection) {
+    // eslint-disable-next-line no-console
+    console.warn('createCourseHeaderPlaceholder: first section not found');
+    return;
+  }
+
+  const defaultContentWrapper = firstSection.querySelector(
+    '.default-content-wrapper',
+  );
+
+  if (defaultContentWrapper) {
+    // Combined height: course-header (46px) + premium-label (14px)
+    const headerWrapper = createElement('div', {
+      class: 'course-header-wrapper-placeholder',
+    });
+    // Insert at the very beginning of default-content-wrapper
+    defaultContentWrapper.prepend(headerWrapper);
+  } else {
+    // eslint-disable-next-line no-console
+    console.warn('createCourseHeaderPlaceholder: wrapper not found');
+  }
+}
+
 export default async function lessonTemplate() {
   const { authenticationData } = authentication;
   authenticationData.loginPromise.then(async () => {
@@ -133,6 +199,10 @@ export default async function lessonTemplate() {
     if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
       await import('../../scripts/course/auth-modal.js');
     }
+
+    // Create placeholder for course header to prevent CLS
+    createCourseHeaderPlaceholder();
+
     const courseData = await getCourseData();
     const courseId = courseData.moduleId;
     await createCourseBaseTemplate(courseData);

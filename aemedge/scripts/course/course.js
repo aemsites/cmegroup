@@ -294,7 +294,14 @@ async function buildLanguageLinks() {
  */
 export async function createCourseBaseTemplate(courseData) {
   const main = document.querySelector('main');
-  const courseHeading = main.querySelector('.section').firstChild;
+  const firstSection = main.querySelector('.section');
+  const defaultContentWrapper = firstSection?.querySelector('.default-content-wrapper');
+  
+  // Check if wrapper placeholder exists
+  const wrapperPlaceholder = main.querySelector('.course-header-wrapper-placeholder');
+  
+  // Create wrapper div that will contain both header and premium label
+  const headerWrapper = createElement('div', { class: 'course-header-wrapper' });
   const header = createElement('div', { class: 'course-header' });
 
   // Get metadata values
@@ -345,10 +352,12 @@ export async function createCourseBaseTemplate(courseData) {
       type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${lessons.length}`;
     }
     header.appendChild(type);
+    
+    // Add premium label to wrapper if this is a premium lesson
     if (isPremium) {
       const lessonPremiumLabel = createElement('div', { class: 'premium-label' });
       lessonPremiumLabel.textContent = premiumLabel;
-      courseHeading?.nextElementSibling?.querySelector('h1')?.before(lessonPremiumLabel);
+      headerWrapper.appendChild(lessonPremiumLabel);
     }
   }
 
@@ -358,7 +367,15 @@ export async function createCourseBaseTemplate(courseData) {
   await loadBlock(languageSelector);
   header.appendChild(language);
 
-  courseHeading?.before(header);
+  // Add header to wrapper
+  headerWrapper.appendChild(header);
+
+  // Replace wrapper placeholder if it exists, otherwise insert at beginning of default-content-wrapper
+  if (wrapperPlaceholder) {
+    wrapperPlaceholder.replaceWith(headerWrapper);
+  } else if (defaultContentWrapper) {
+    defaultContentWrapper.prepend(headerWrapper);
+  }
 }
 
 export function getCurrentLesson(courseData) {

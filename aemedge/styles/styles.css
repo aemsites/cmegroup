@@ -134,6 +134,12 @@ footer .footer[data-block-status="loaded"] {
   visibility: visible;
 }
 
+/* Reserve space for footer to prevent CLS when it loads during lazy phase */
+/* Mobile: 837px | iPad: 844px | Desktop: 840px - consistent across viewports */
+footer {
+  min-height: 53rem;
+}
+
 h1,
 h2,
 h3,

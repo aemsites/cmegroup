@@ -1,5 +1,52 @@
-@import './course-base.css';
-@import "./certificate.css";
+@import url('./course-base.css');
+@import url("./certificate.css");
+
+/* Placeholders to prevent CLS */
+.course-nav-placeholder {
+  width: 100%;
+  height: 75px;
+  visibility: hidden;
+
+  @media (width > 480px) {
+    width: 18.5625rem;
+  }
+
+  @media (width > 992px) {
+    position: absolute;
+    margin-top: 3.75rem;
+    left: 0;
+    top: 6.25rem;
+    width: calc(16.66667% + 49px);
+  }
+
+  @media (width > 1200px) {
+    width: calc(16.66667% + 63.66667px);
+  }
+}
+
+.course-header-wrapper {
+  grid-row: 1 / 3; /* Spans rows 1 and 2 (premium label + course header) */
+  display: grid;
+  grid-template-rows: subgrid;
+}
+
+.course-header-wrapper .premium-label {
+  grid-row: 1; /* First row */
+}
+
+.course-header-wrapper .course-header {
+  grid-row: 2; /* Second row */
+}
+
+/* H1 goes in third row automatically */
+main > .section:first-of-type .default-content-wrapper > h1 {
+  grid-row: 3;
+}
+
+.course-header-wrapper-placeholder {
+  height: 60px;
+  visibility: hidden;
+}
 
 .begin-course-button {
   margin-top: 2rem;
