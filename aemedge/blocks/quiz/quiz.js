@@ -251,6 +251,7 @@ async function addNavigation(
   testPercentage,
   showIndicatorsViaReviewMode,
   redoQuizLabel,
+  doNotMarkLessonAsCompleted,
 ) {
   const [prevLabel, nextLabel, finishLabel, submitLabel] = await Promise.all([i18n('Prev'), i18n('Next'), i18n('Finish'), i18n('Submit')]);
   const prev = button(
@@ -321,6 +322,8 @@ async function addNavigation(
       testPercentage,
       showIndicatorsViaReviewMode,
       redoQuizLabel,
+      finishLabel,
+      doNotMarkLessonAsCompleted,
     );
   }
 
@@ -423,6 +426,7 @@ export default async function decorate(block) {
         testPercentage,
         showIndicatorsViaReviewMode,
         redoQuizLabel,
+        doNotMarkLessonAsCompleted,
       );
     }
 

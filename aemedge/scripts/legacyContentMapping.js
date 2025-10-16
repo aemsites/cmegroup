@@ -126,6 +126,10 @@ const legacyOpenMarketsTemplates = [
   '/conf/openmarkets/settings/wcm/templates/openmarkets-video-template',
 ];
 
+const legacyNewsTemplates = [
+  '/conf/cmegroupaem/settings/wcm/templates/cme-group-press-release-template',
+];
+
 export {
   legacyArticleTemplates,
   mapLegacyArticleData,
@@ -133,4 +137,5 @@ export {
   legacyEducationTemplates,
   normalizeLegacyPath,
   legacyOpenMarketsTemplates,
+  legacyNewsTemplates,
 };
