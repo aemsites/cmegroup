@@ -1,43 +1,32 @@
 /* eslint-disable max-len */
 import { getMetadata } from '../../scripts/aem.js';
-import { fetchJsonData } from '../dynamic/product-tabs/helpers/utils.js';
+import { apiGet, getResponseData } from '../../scripts/utils/index.js';
 
 const API_CONFIG = {
   reportsEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/market-recap.json',
 };
 
-/**
- * Fetch market reports data from API
- * @returns {Promise<Array|null>} Array of market reports or null if fetch fails
- */
 async function fetchMarketReports() {
-  return fetchJsonData(API_CONFIG.reportsEndpoint);
+  try {
+    const response = await apiGet(API_CONFIG.reportsEndpoint);
+    return getResponseData(response) || response.data;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('market-recap => fetchMarketReports error:', error);
+    return null;
+  }
 }
 
-/**
- * Find matching report for the current product
- * @param {Array} reportsData - Array of market reports
- * @returns {Object|null} Matching report or null if not found
- */
 function findMatchingReport(reportsData) {
   if (!reportsData || reportsData.length === 0) {
     return null;
   }
 
-  // Get product symbol from metadata and prepend O to create commodity name
   const productSymbol = getMetadata('product-symbol');
   const commodityName = `O${productSymbol}`;
-
-  // Find matching report (case-insensitive, latest entry)
-  // The API data already has the full commodity code (e.g., "OZC")
   return reportsData.find((report) => report.reportCommodity?.toLowerCase() === commodityName.toLowerCase());
 }
 
-/**
- * Format report date for display
- * @param {string} reportDate - ISO date string
- * @returns {string} Formatted date string
- */
 function formatReportDate(reportDate) {
   const date = new Date(reportDate);
   return date.toLocaleDateString('en-US', {

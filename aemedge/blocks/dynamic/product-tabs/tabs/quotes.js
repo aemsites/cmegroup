@@ -1,12 +1,10 @@
 /* eslint-disable max-len */
 /* eslint-disable import/no-cycle */
 
-// Quotes Tab - Futures and Options with Toggle System
-
 import { getMetadata } from '../../../../scripts/aem.js';
+import { apiGet, getResponseData } from '../../../../scripts/utils/index.js';
 import {
   createTabSection,
-  fetchJsonData,
   organizeToggleContent,
   buildTable,
   createErrorMessage,
@@ -20,48 +18,53 @@ import {
   QUOTES_TABLE_CONSTANTS,
 } from '../helpers/constants.js';
 
-// API Functions
 async function fetchQuotesTableData() {
-  return fetchJsonData(API_CONFIG.quotesTableEndpoint);
+  try {
+    const response = await apiGet(API_CONFIG.quotesTableEndpoint);
+    return getResponseData(response) || response.data;
+  } catch (error) {
+    return null;
+  }
 }
 
 async function fetchOptionsLabels(optionsProductId) {
-  // Get product ID from metadata
   const productId = getMetadata('product-id');
   if (!productId) {
     return null;
   }
 
-  // Using mock data for now (real API has CORS issues)
-  const expirationsData = await fetchJsonData(API_CONFIG.expirations);
+  try {
+    const response = await apiGet(API_CONFIG.expirations);
+    const expirationsData = getResponseData(response) || response.data;
 
-  if (!expirationsData || expirationsData.length === 0) {
+    if (!expirationsData || expirationsData.length === 0) {
+      return null;
+    }
+
+    const selectedOption = expirationsData.find((option) => option.productId === optionsProductId);
+    if (!selectedOption || !selectedOption.contractExpirations) {
+      return null;
+    }
+
+    return selectedOption.contractExpirations.map((contract) => ({
+      expirationMonth: contract.label,
+      quoteCode: contract.underlyingFutureContract,
+      expirationCode: contract.underlyingFutureExpirationCode,
+      selected: false,
+    }));
+  } catch (error) {
     return null;
   }
-
-  // Find the selected option by optionsProductId and extract its contractExpirations
-  const selectedOption = expirationsData.find((option) => option.productId === optionsProductId);
-  if (!selectedOption || !selectedOption.contractExpirations) {
-    return null;
-  }
-
-  // Transform contractExpirations to match the expected format
-  return selectedOption.contractExpirations.map((contract) => ({
-    expirationMonth: contract.label,
-    quoteCode: contract.underlyingFutureContract,
-    expirationCode: contract.underlyingFutureExpirationCode,
-    selected: false,
-  }));
 }
 
-/**
- * Fetch options data for specific quote code
- * @param {string} quoteCode - The quote code (e.g., 'ZCZ5')
- * @returns {Promise<Array|null>} Array of options data or null if fetch fails
- */
 async function fetchOptionsData(quoteCode) {
-  const url = `${API_CONFIG.optionsDataEndpoint}${quoteCode}.json`;
-  return fetchJsonData(url);
+  try {
+    const url = `${API_CONFIG.optionsDataEndpoint}${quoteCode}.json`;
+    const response = await apiGet(url);
+    return getResponseData(response) || response.data;
+  } catch (error) {
+    return null;
+  }
 }
 
 // Table Functions
@@ -140,14 +143,18 @@ async function createFuturesContent() {
  */
 async function createOptionsTable(optionsProductId) {
   try {
-    // If no optionsProductId provided, get the first available option from expirations API
     let productId = optionsProductId;
     if (!productId) {
-      const expirationsData = await fetchJsonData(API_CONFIG.expirations);
-      if (expirationsData && expirationsData.length > 0) {
-        productId = expirationsData[0].productId; // Use first available option
-      } else {
-        return null; // No fallback - return null if no data available
+      try {
+        const response = await apiGet(API_CONFIG.expirations);
+        const expirationsData = getResponseData(response) || response.data;
+        if (expirationsData && expirationsData.length > 0) {
+          productId = expirationsData[0].productId;
+        } else {
+          return null;
+        }
+      } catch (error) {
+        return null;
       }
     }
 

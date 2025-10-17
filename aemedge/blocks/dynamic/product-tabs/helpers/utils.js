@@ -1,55 +1,23 @@
-// External dependencies
 import { createElement } from '../../../../scripts/utils.js';
 import { getMetadata } from '../../../../scripts/aem.js';
+import { apiGet, getResponseData } from '../../../../scripts/utils/index.js';
 
-// Internal constants
 import {
   TOGGLE_CONSTANTS,
   API_CONFIG,
 } from './constants.js';
 
-/**
- * Create a standardized error message block
- * @param {string} tabTitle - Tab title to display in error message
- * @returns {string} HTML string for error display
- */
 export function createErrorMessage(tabTitle) {
   return `<div class="cards no-results"><h4>Unable to load ${tabTitle}</h4></div>`;
 }
 
-/**
- * Generic fetch utility for JSON data following project patterns
- * @param {string} url - The endpoint URL
- * @param {Object} options - Fetch options (headers, etc.)
- * @returns {Promise<Object|null>} JSON data or null if fetch fails
- */
-export async function fetchJsonData(url, options = {}) {
+export async function fetchExpirationsData() {
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    return await response.json();
+    const response = await apiGet(API_CONFIG.expirations);
+    return getResponseData(response) || response.data;
   } catch (error) {
     return null;
   }
-}
-
-/**
- * Fetch expirations data for options dropdown
- * @returns {Promise<Array|null>} Array of expiration options or null if fetch fails
- */
-export async function fetchExpirationsData() {
-  return fetchJsonData(API_CONFIG.expirations);
 }
 
 /**

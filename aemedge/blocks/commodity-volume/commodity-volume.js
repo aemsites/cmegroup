@@ -1,28 +1,23 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { fetchJsonData } from '../dynamic/product-tabs/helpers/utils.js';
+import { apiGet, getResponseData } from '../../scripts/utils/index.js';
 
 const API_CONFIG = {
   cvolEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/cvol.json',
 };
 
-/**
- * Fetch CVOL data from API
- * @returns {Promise<Array|null>} Array of CVOL data or null if fetch fails
- */
 async function fetchCvolData() {
-  return fetchJsonData(API_CONFIG.cvolEndpoint);
+  try {
+    const response = await apiGet(API_CONFIG.cvolEndpoint);
+    return getResponseData(response) || response.data;
+  } catch (error) {
+    return null;
+  }
 }
 
-/**
- * Create commodity volume content
- * @param {HTMLElement} block - The commodity-volume block element
- */
 async function createCommodityVolumeContent(block) {
-  // Fetch CVOL data
   const cvolDataArray = await fetchCvolData();
 
   if (!cvolDataArray || !Array.isArray(cvolDataArray) || cvolDataArray.length === 0) {
-    // Show fallback message when API fails
     block.innerHTML = `
       <div class="commodity-volume-card">
         <div class="commodity-volume-header">
@@ -39,7 +34,6 @@ async function createCommodityVolumeContent(block) {
     return;
   }
 
-  // Get the first object from the array
   const cvolData = cvolDataArray[0];
   const productName = getMetadata('product') || 'Product';
 
@@ -54,7 +48,6 @@ async function createCommodityVolumeContent(block) {
 
   const cvolDescription = cvolData.description || 'Corn Volatility Index measures the market\'s expectation of 30-day volatility.';
 
-  // Create the commodity volume content
   block.innerHTML = `
     <div class="commodity-volume-card">
       <div class="commodity-volume-header">
@@ -68,11 +61,6 @@ async function createCommodityVolumeContent(block) {
   `;
 }
 
-/**
- * Decorate the commodity-volume block
- * @param {HTMLElement} block - The block element
- */
 export default async function decorate(block) {
-  // Create the commodity volume content
   await createCommodityVolumeContent(block);
 }
