@@ -96,10 +96,11 @@ function createLessonElement(lesson, currentPath) {
   const iconSpan = createElement('span', { class: lesson.completed ? 'icon-check' : 'icon-uncheck' });
   lessonLink.append(titleSpan, iconSpan);
   li.appendChild(lessonLink);
-  if (lesson.path === currentPath) {
+  const currentLesson = currentPath === lesson.path;
+  if (currentLesson) {
     li.classList.add('current');
   }
-  return { li, isCurrent: lesson.path === currentPath };
+  return { li, isCurrent: currentLesson };
 }
 
 function createLessonsList(lessons, currentPath, shouldShow = false) {
@@ -244,7 +245,7 @@ function renderOrderedContent(courseData, currentPath, content) {
 
 async function buildCourseNav(main, courseData, prevCourseData) {
   await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/course-nav/course-nav.css`);
-  const currentPath = window.location.pathname;
+  const currentPath = window.location.pathname.replace(/\.html$/, '');
   const totalLessons = getTotalLessonsCount(courseData);
 
   let nav = main.querySelector('.course-nav');
