@@ -27,7 +27,8 @@ async function decorateEventPageHero(block) {
   const locationWrapper = createElement('div', { class: 'event-property-wrapper' });
   const timeWrapper = createElement('div', { class: 'event-property-wrapper' });
   const sponsoringWrapper = createElement('div', { class: 'event-property-wrapper' });
-  const lastInfo = createElement('div', { class: 'event-data' }, dateWrapper, locationWrapper, timeWrapper, sponsoringWrapper);
+  const speakerWrapper = createElement('div', { class: 'event-property-wrapper' });
+  const lastInfo = createElement('div', { class: 'event-data' }, dateWrapper, locationWrapper, timeWrapper, sponsoringWrapper, speakerWrapper);
   const contentWrapper = createElement('div', { class: 'default-content-wrapper' }, topInfo, h1, lastInfo);
   block.append(contentWrapper);
 
@@ -35,18 +36,21 @@ async function decorateEventPageHero(block) {
   const date = getMetadata('date');
   const location = getMetadata('location');
   const sponsoring = getMetadata('sponsoring');
+  const speaker = getMetadata('speaker');
   const [
     eventLabelText,
     dateLabel,
     locationLabel,
     timeLabel,
     sponsoringLabel,
+    speakerLabel
   ] = await Promise.all([
     i18n('Event'),
     i18n('Date'),
     i18n('Location'),
     i18n('Time'),
     i18n('Sponsoring Firm'),
+    i18n('Speaker'),
     setupDayjsLibs(),
   ]);
   const cdtDate = getCdtDate(date);
@@ -54,15 +58,24 @@ async function decorateEventPageHero(block) {
   const dateTag = createElement('div', { class: 'event-property-value' }, cdtDate.format('dddd DD MMM YYYY'));
   dateWrapper.textContent = `${dateLabel}: `;
   dateWrapper.append(dateTag);
-  const locationTag = createElement('div', { class: 'event-property-value' }, location);
-  locationWrapper.textContent = `${locationLabel}: `;
-  locationWrapper.append(locationTag);
+  if(location){
+    const locationTag = createElement('div', { class: 'event-property-value' }, location);
+    locationWrapper.textContent = `${locationLabel}: `;
+    locationWrapper.append(locationTag);
+  }
   const timeTag = createElement('div', { class: 'event-property-value' }, cdtDate.format('hh:mm A [CDT]'));
   timeWrapper.textContent = `${timeLabel}: `;
   timeWrapper.append(timeTag);
-  const sponsoringTag = createElement('div', { class: 'event-property-value' }, sponsoring);
-  sponsoringWrapper.textContent = `${sponsoringLabel}: `;
-  sponsoringWrapper.append(sponsoringTag);
+  if(sponsoring){
+    const sponsoringTag = createElement('div', { class: 'event-property-value' }, sponsoring);
+    sponsoringWrapper.textContent = `${sponsoringLabel}: `;
+    sponsoringWrapper.append(sponsoringTag);
+  }
+  if(speaker){
+    const speakerTag = createElement('div', { class: 'event-property-value' }, speaker);
+    speakerWrapper.textContent = `${speakerLabel}: `;
+    speakerWrapper.append(speakerTag);
+  }
 }
 
 /**
