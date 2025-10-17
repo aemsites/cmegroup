@@ -4,7 +4,6 @@ import {
   i18n,
   preserveHideParameters,
 } from '../../../scripts/utils.js';
-import { URIUtil } from '../../../scripts/utils/index.js';
 import { store } from '../../../scripts/store/store.js';
 
 function getTotalLessonsCount(courseData) {
@@ -246,7 +245,7 @@ function renderOrderedContent(courseData, currentPath, content) {
 
 async function buildCourseNav(main, courseData, prevCourseData) {
   await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/course-nav/course-nav.css`);
-  const currentPath = new URIUtil().removeSelector(1).pathname();
+  const currentPath = window.location.pathname.replace(/\.html$/, '');
   const totalLessons = getTotalLessonsCount(courseData);
 
   let nav = main.querySelector('.course-nav');
