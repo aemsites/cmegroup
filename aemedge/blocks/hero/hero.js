@@ -43,7 +43,7 @@ async function decorateEventPageHero(block) {
     locationLabel,
     timeLabel,
     sponsoringLabel,
-    speakerLabel
+    speakerLabel,
   ] = await Promise.all([
     i18n('Event'),
     i18n('Date'),
@@ -58,7 +58,7 @@ async function decorateEventPageHero(block) {
   const dateTag = createElement('div', { class: 'event-property-value' }, cdtDate.format('dddd DD MMM YYYY'));
   dateWrapper.textContent = `${dateLabel}: `;
   dateWrapper.append(dateTag);
-  if(location){
+  if (location) {
     const locationTag = createElement('div', { class: 'event-property-value' }, location);
     locationWrapper.textContent = `${locationLabel}: `;
     locationWrapper.append(locationTag);
@@ -66,12 +66,12 @@ async function decorateEventPageHero(block) {
   const timeTag = createElement('div', { class: 'event-property-value' }, cdtDate.format('hh:mm A [CDT]'));
   timeWrapper.textContent = `${timeLabel}: `;
   timeWrapper.append(timeTag);
-  if(sponsoring){
+  if (sponsoring) {
     const sponsoringTag = createElement('div', { class: 'event-property-value' }, sponsoring);
     sponsoringWrapper.textContent = `${sponsoringLabel}: `;
     sponsoringWrapper.append(sponsoringTag);
   }
-  if(speaker){
+  if (speaker) {
     const speakerTag = createElement('div', { class: 'event-property-value' }, speaker);
     speakerWrapper.textContent = `${speakerLabel}: `;
     speakerWrapper.append(speakerTag);
