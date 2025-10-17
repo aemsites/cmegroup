@@ -616,7 +616,7 @@ export async function handleActivityClick({
 }) {
   if (questionDiv.classList.contains('answered-correctly')) return;
 
-  state.status = 'COMPLETED';
+  state.status = 'PROGRESS';
   if (state.type !== 'ACTIVITY') {
     state.type = 'ACTIVITY';
     state.questions = [];
@@ -819,7 +819,7 @@ async function checkQuizAdvancedCompletion(
     state.status = passed ? 'COMPLETED' : 'PROGRESS';
     state.result = percentage;
     //  quiz completion event
-    store.dispatch(quizAnswered({ ...state, isCorrect: (type === 'test' ? passed && doNotMarkLessonAsCompleted !== 'true' : true), type: type.toUpperCase() }));
+    store.dispatch(quizAnswered({ ...state, isCorrect: (type === 'test' ? passed && doNotMarkLessonAsCompleted !== 'true' : false), type: type.toUpperCase() }));
   }
 }
 
