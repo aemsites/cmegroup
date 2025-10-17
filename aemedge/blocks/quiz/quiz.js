@@ -1,9 +1,8 @@
-import { i18n, readBlockConfig } from '../../scripts/utils.js';
+import { i18n, readBlockConfig, sha256Hash } from '../../scripts/utils.js';
 import { store } from '../../scripts/store/store.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
 import {
   updateAdvancedNextDisabled,
-  markQuizCompletedAdvanced,
   randomOrder,
   handleTestClick,
   handleActivityClick,
@@ -11,6 +10,7 @@ import {
   updateAdvancedNav,
   attachFinishClick,
   createSelectInstruction,
+  markQuizCompletedAdvanced,
 } from './advanced.js';
 import {
   div,
@@ -20,43 +20,84 @@ import {
   i as iEl,
 } from '../../scripts/dom-helpers.js';
 
-const testState = { answers: {} };
+let quizStatus = { };
 
 async function checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted) {
   const answeredCorrectlyEls = block.querySelectorAll('.answered-correctly');
   const allAnsweredCorrectly = answeredCorrectlyEls.length === questions.length;
   if (allAnsweredCorrectly && !block.querySelector('.message') && doNotMarkLessonAsCompleted !== 'true') {
     //  quiz completion event
-    store.dispatch(quizAnswered(true));
+    store.dispatch(quizAnswered({ isCorrect: true }));
   }
 }
 
-function buildQuestions(rows) {
+async function buildQuestions(courseData, rows) {
+  const parsedRows = await Promise.all(
+    rows.map(async (row) => {
+      const firstChild = row.children[0];
+      const hasQuestion = firstChild && firstChild.querySelector('p');
+      const answerText = row.children[1]?.textContent.trim() || '';
+      const correctText = row.children[2]?.textContent.trim() || '';
+      const snippetText = row.children[3]?.textContent.trim() || '';
+      const questionSnippetText = row.children[4]?.textContent.trim() || '';
+      const questionText = firstChild?.textContent.trim() || '';
+
+      let uniqueId = null;
+
+      if (hasQuestion) {
+        uniqueId = await sha256Hash(`${courseData.path}-${questionText}`);
+      }
+
+      return {
+        hasQuestion,
+        questionText,
+        questionSnippetText,
+        answerText,
+        correctText,
+        snippetText,
+        uniqueId,
+      };
+    }),
+  );
+
+  let lastUniqueId = null;
+  for (let i = 0; i < parsedRows.length; i += 1) {
+    const row = parsedRows[i];
+    if (row.uniqueId) {
+      lastUniqueId = row.uniqueId;
+    } else if (lastUniqueId) {
+      row.uniqueId = lastUniqueId;
+    }
+  }
+
+  await Promise.all(
+    parsedRows.map(async (row) => {
+      if (row.answerText && row.uniqueId) {
+        row.answerId = await sha256Hash(`${row.uniqueId}-${row.answerText}`);
+      }
+    }),
+  );
+
   const questions = [];
   let currentQuestion = null;
 
-  rows.forEach((row) => {
-    const firstChild = row.children[0];
-    const hasQuestion = firstChild && firstChild.querySelector('p');
-    const answerText = row.children[1]?.textContent.trim() || '';
-    const correctText = row.children[2]?.textContent.trim() || '';
-    const snippetText = row.children[3]?.textContent.trim() || '';
-    const questionSnippetText = row.children[4]?.textContent.trim() || '';
-
-    if (hasQuestion) {
+  parsedRows.forEach((row) => {
+    if (row.hasQuestion) {
       currentQuestion = {
-        question: firstChild.textContent.trim(),
+        question: row.questionText,
         answers: [],
-        questionSnippet: questionSnippetText,
+        questionSnippet: row.questionSnippetText,
+        uniqueId: row.uniqueId,
       };
       questions.push(currentQuestion);
     }
 
-    if (currentQuestion) {
+    if (currentQuestion && row.answerText) {
       currentQuestion.answers.push({
-        answer: answerText,
-        correct: correctText === 'true',
-        snippet: snippetText,
+        answer: row.answerText,
+        correct: row.correctText === 'true',
+        snippet: row.snippetText,
+        uniqueId: row.answerId,
       });
     }
   });
@@ -131,6 +172,7 @@ async function renderQuestions(questions, block, doNotMarkLessonAsCompleted, typ
             block,
             questions,
             state,
+            questionIndex,
           });
         }
 
@@ -209,8 +251,9 @@ async function addNavigation(
   testPercentage,
   showIndicatorsViaReviewMode,
   redoQuizLabel,
+  doNotMarkLessonAsCompleted,
 ) {
-  const [prevLabel, nextLabel, finishLabel] = await Promise.all([i18n('Prev'), i18n('Next'), i18n('Finish')]);
+  const [prevLabel, nextLabel, finishLabel, submitLabel] = await Promise.all([i18n('Prev'), i18n('Next'), i18n('Finish'), i18n('Submit')]);
   const prev = button(
     { type: 'button', class: 'arrow arrow-prev' },
     type !== 'traditional' ? prevLabel : '',
@@ -220,7 +263,7 @@ async function addNavigation(
     type !== 'traditional' ? nextLabel : '',
   );
   let finish = null;
-  if (type !== 'traditional') finish = button({ type: 'button', class: 'arrow arrow-finish', style: 'display: none;' }, finishLabel);
+  if (type !== 'traditional') finish = button({ type: 'button', class: 'arrow arrow-finish', style: 'display: none;' }, type === 'activity' ? finishLabel : submitLabel);
 
   const nav = {
     prev, next, finish, pag: null, currentIndex: 0,
@@ -235,10 +278,10 @@ async function addNavigation(
     if (type === 'traditional') {
       prev.style.display = 'block';
       next.style.display = 'block';
-      updateAdvancedNextDisabled(type, wrapper, nav.currentIndex, questions, testState, next);
+      updateAdvancedNextDisabled(type, wrapper, nav.currentIndex, questions, quizStatus, next);
       if (lastSlider) { next.disabled = true; next.classList.add('arrow-disabled'); }
     } else {
-      updateAdvancedNav(nav, wrapper, questions, type, testState);
+      updateAdvancedNav(nav, wrapper, questions, type, quizStatus);
     }
     if (type !== 'traditional') {
       if (nav.currentIndex === 0) {
@@ -274,11 +317,13 @@ async function addNavigation(
       block,
       questions,
       type,
+      quizStatus,
       completeMessage,
       testPercentage,
       showIndicatorsViaReviewMode,
       redoQuizLabel,
-      markQuizCompleted,
+      finishLabel,
+      doNotMarkLessonAsCompleted,
     );
   }
 
@@ -296,23 +341,7 @@ async function markQuizCompleted(
   questionsMeta,
   type,
   completeMessage,
-  testPercentage,
-  showIndicatorsViaReviewMode,
-  redoQuizLabel,
 ) {
-  if (type === 'activity' || type === 'test') {
-    await markQuizCompletedAdvanced(
-      block,
-      questionsMeta,
-      type,
-      testState,
-      testPercentage,
-      showIndicatorsViaReviewMode,
-      redoQuizLabel,
-    );
-    return;
-  }
-
   const [quizLabel] = await Promise.all([i18n('Lesson complete')]);
   if (block.querySelector('.message')) return;
 
@@ -340,7 +369,7 @@ async function markQuizCompleted(
 
 export default async function decorate(block) {
   const {
-    doNotMarkLessonAsCompleted,
+    doNotMarkLessonAsCompleted = 'false',
     completeMessage,
     testPercentage = 70,
     randomizeOrder = 'false',
@@ -364,7 +393,8 @@ export default async function decorate(block) {
     }
   }
 
-  const questions = buildQuestions(rows.slice(startIndex));
+  const path = window.location.pathname;
+  const questions = await buildQuestions(path, rows.slice(startIndex));
   if (randomizeOrder === 'true' && type !== 'traditional') {
     questions.forEach((question) => {
       question.answers = randomOrder(question.answers);
@@ -373,10 +403,17 @@ export default async function decorate(block) {
   }
 
   async function createQuizBlock() {
+    const quizzes = document.querySelectorAll('.quiz.block').length;
+    const quizId = await sha256Hash(`${path}-${quizzes}`);
     block.innerHTML = '';
-    testState.answers = [];
+    quizStatus = {
+      quizElementId: quizId,
+      type,
+      status: 'PROGRESS',
+      questions: [],
+    };
     const wrapper = await
-    renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, testState);
+    renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, quizStatus);
     showQuestion(0, wrapper, null, questions.length);
 
     if (questions.length > 1) {
@@ -389,6 +426,7 @@ export default async function decorate(block) {
         testPercentage,
         showIndicatorsViaReviewMode,
         redoQuizLabel,
+        doNotMarkLessonAsCompleted,
       );
     }
 
@@ -397,8 +435,26 @@ export default async function decorate(block) {
   await createQuizBlock();
 
   //  quiz completion event subscriber
-  store.subscribe(({ quiz }) => quiz, async ({ isCorrect, redo }) => {
-    if (isCorrect && type === 'traditional') await markQuizCompleted(block, questions, type, completeMessage);
+  store.subscribe(({ quiz }) => quiz, async ({ quizStatus: status, redo }) => {
+    if (status?.isCorrect && type === 'traditional') {
+      await markQuizCompleted(
+        block,
+        questions,
+        type,
+        completeMessage,
+      );
+    }
+    if (status?.type && (type === 'activity' || type === 'test')) {
+      await markQuizCompletedAdvanced(
+        block,
+        questions,
+        type,
+        status,
+        testPercentage,
+        showIndicatorsViaReviewMode,
+        redoQuizLabel,
+      );
+    }
     if (redo) await createQuizBlock();
   });
 }

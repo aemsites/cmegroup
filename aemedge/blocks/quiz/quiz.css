@@ -28,18 +28,27 @@
     width: 11.875rem;
     height: 11.875rem;
 
-    &.passed {
-      background-color: var(--notification-success-background);
-    }
-
-    &.failed {
-      background-color: var(--pink);
-    }
-
-    & img.progress-circular {
+    & svg.progress-circular {
       display: block;
       width: 100%;
       height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    & .progress-ring {
+      fill: var(--gray1);
+      stroke-width: 7;
+      stroke: var(--pink);
+    }
+
+    &.passed .progress-ring {
+      stroke: var(--forest);
+      fill: var(--notification-success-background);
+    }
+
+    &.failed .progress-ring {
+      stroke: var(--red);
+      fill: var(--pink);
     }
 
     & .progress-text {
@@ -56,6 +65,7 @@
       pointer-events: none;
     }
   }
+
 
   & .question-text {
     font-family: var(--averta);
@@ -94,7 +104,7 @@
     width: 100%;
 
     & a:hover {
-      text-decoration: none;
+      background-position: unset;
     }
 
     & .icon-positive {
@@ -518,7 +528,7 @@
       cursor: pointer;
 
       &:hover {
-        text-decoration: none;
+        background-position: unset;
       }
     }
 
@@ -529,6 +539,10 @@
     & p.results {
       margin-top: 1.5rem;
     }
+  }
+
+  & .congratulation-container {
+    background-color: var(--blue6);
   }
 }
 

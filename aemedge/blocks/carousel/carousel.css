@@ -4,12 +4,12 @@
   padding-bottom: 1.875rem;
 
   &.carousel-loading {
-    min-height: 100px;
+    min-height: 6.25rem;
     position: relative;
 
     & .slider-slide {
-      filter: blur(30px);
-      height: 500px;
+      filter: blur(1.875rem);
+      height: 31.25rem;
 
       &.placeholder {
         position: absolute;
@@ -39,7 +39,7 @@
     overflow: visible;
     margin: 0 auto;
 
-    @media (width >=480px) {
+    @media (width >= 481px) {
       width: 90%;
     }
 
@@ -94,7 +94,7 @@
     align-items: flex-start;
     justify-content: center;
     z-index: 99;
-    gap: 20px;
+    gap: 1.25rem;
     transform: translateZ(0);
     backface-visibility: hidden;
     transition: all .25s ease-out;
@@ -140,6 +140,17 @@
       user-select: none;
       margin-top: 3.75rem;
       padding: 0 10%;
+      font-family: var(--averta);
+      font-weight: 400;
+      letter-spacing: .03em;
+      margin-bottom: 1.25rem;
+      font-size: 1.125rem;
+      line-height: 1.625rem;
+
+      @media (width >= 481px) {
+        line-height: 2.25rem;
+        font-size: 1.75rem;
+      }
     }
   }
 
@@ -153,7 +164,7 @@
     align-items: center;
     justify-content: space-between;
 
-    @media (width >=480px) {
+    @media (width >= 481px) {
       width: 120%;
       left: -10%;
     }
@@ -161,14 +172,19 @@
     & .slider-arrow {
       display: block;
       font-size: 1rem;
-      height: 60px;
-      width: 60px;
+      height: 2.5rem;
+      width: 2.5rem;
       z-index: 99;
       position: relative;
       background-color: var(--blue5);
       border: 0;
       cursor: pointer;
       border-radius: 0;
+
+      @media (width >= 481px) {
+        height: 3.75rem;
+        width: 3.75rem;
+      }
 
       &:hover {
         background-color: var(--blue4);
@@ -188,11 +204,19 @@
       }
 
       &.slider-arrow-prev {
-        left: 4.5%;
+        left: 0;
+
+        @media (width >= 481px) {
+          left: 3.75rem;
+        }
       }
 
       &.slider-arrow-next {
-        right: 4%;
+        right: 0;
+
+        @media (width >= 481px) {
+          right: 3.75rem;
+        }
       }
     }
   }
@@ -201,12 +225,18 @@
     pointer-events: none;
     position: absolute;
     display: block;
-    border: 0.2em solid var(--blue2);
-    width: 1rem;
-    height: 1rem;
+    border: 0.2em solid var(--blue1);
+    width: 0.8rem;
+    height: 0.8rem;
     top: 50%;
     border-left: none;
     border-top: none;
+    font-size: 1rem !important;
+
+    @media (width >= 481px) {
+      width: 1rem;
+      height: 1rem;
+    }
   }
 
   & .slider-chevron-icon-prev {
@@ -251,15 +281,15 @@
 
 /* Spinner styles */
 .carousel-spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
+  border: 0.25rem solid #f3f3f3;
+  border-top: 0.25rem solid #3498db;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 2.5rem;
+  height: 2.5rem;
   animation: carousel-spin 1s linear infinite;
   position: absolute;
-  top: calc(50% - 20px);
-  left: calc(50% - 20px);
+  top: calc(50% - 1.25rem);
+  left: calc(50% - 1.25rem);
   transform: translate(-50%, -50%);
   z-index: 101;
 }
