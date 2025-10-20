@@ -130,7 +130,9 @@
     }
 }
 
-.video-js.vjs-playlist-enabled, .vjs-playlist.vjs-mouse.vjs-playlist-horizontal{
+.video-js.vjs-playlist-enabled,
+.vjs-playlist.vjs-mouse.vjs-playlist-horizontal,
+.video-js.vjs-playlist-enabled:not(.playlist-bottom) {
   position: static;
 }
 
