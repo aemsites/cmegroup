@@ -962,9 +962,8 @@ main {
     padding-top: 6.25rem;
   }
 
-  & > .section:not(.divider-container, .hero-container) {
+  & > .section:not(.divider-container, .hero-container, .hero) {
     margin-bottom: 1.875rem;
-    padding: 1.875rem 0;
 
     &.text-1,
     &.text-2,
@@ -1165,6 +1164,7 @@ main {
 
     &.gray6-background {
       background-color: var(--gray6);
+      padding: 1.875rem 0;
     }
 
     &.not-full-width {
@@ -1504,7 +1504,7 @@ main .fragment-wrapper .section.login-teaser-image {
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: fill;
     object-position: center;
     z-index: 0;
   }
