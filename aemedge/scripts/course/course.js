@@ -27,8 +27,8 @@ const LESSONS_BASE_PATH = '/education/lessons/';
 const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone'];
 const CACHE_KEY = 'course_data';
 // TODO: we need to review this cache timing again.
-const CACHE_EXPIRATION_PROD = 0; // 15 * 60 * 1000; // 15 minutes in milliseconds
-const CACHE_EXPIRATION_STAGE = 0; // 30 * 1000; // 30 seconds in milliseconds
+const CACHE_EXPIRATION_PROD = 15 * 60 * 1000; // 15 minutes in milliseconds
+const CACHE_EXPIRATION_STAGE = 30 * 1000; // 30 seconds in milliseconds
 
 const isLessonStandalone = (template) => template.toLowerCase() === 'lesson-standalone';
 

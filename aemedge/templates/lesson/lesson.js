@@ -130,24 +130,24 @@ export default async function lessonTemplate() {
   const { authenticationData } = authentication;
   authenticationData.loginPromise.then(async () => {
     const { isLoggedIn, loginInfo } = authenticationData;
-    if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
-      await import('../../scripts/course/auth-modal.js');
-    }
     const courseData = await getCourseData();
     const courseId = courseData.moduleId;
     await createCourseBaseTemplate(courseData);
     const navResult = await initLateralNav(courseData);
+    //  dispatch courseData event
+    store.dispatch(courseDataChange({ ...courseData, nextLesson: navResult?.nextHref }));
     const lesson = getCurrentLesson(courseData);
-    if (!lesson?.started) {
-      //  start current lesson
-      await updateLessonStatus(false);
-    }
     if (lesson?.quiz || lesson?.completed) {
       //  quiz prefill
       store.dispatch(quizAnswered(lesson?.quiz || { isCorrect: true }));
     }
-    //  dispatch courseData event
-    store.dispatch(courseDataChange({ ...courseData, nextLesson: navResult?.nextHref }));
+    if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
+      await import('../../scripts/course/auth-modal.js');
+    }
+    if (!lesson?.started) {
+      //  start current lesson
+      await updateLessonStatus(false);
+    }
     //  quiz completion event subscriber
     store.subscribe(({ quiz }) => quiz, async ({ quizStatus }) => {
       if (quizStatus?.isCorrect && !lesson?.completed) {
