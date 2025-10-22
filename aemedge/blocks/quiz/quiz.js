@@ -200,6 +200,7 @@ async function renderQuestions(questions, block, doNotMarkLessonAsCompleted, typ
             const questionsWrapper = block.querySelector('.questions-wrapper');
             const currentIndex = [...questionsWrapper.children].indexOf(questionDiv);
             updateAdvancedNextDisabled(
+              block,
               type,
               questionsWrapper,
               currentIndex,
@@ -278,10 +279,18 @@ async function addNavigation(
     if (type === 'traditional') {
       prev.style.display = 'block';
       next.style.display = 'block';
-      updateAdvancedNextDisabled(type, wrapper, nav.currentIndex, questions, quizStatus, next);
+      updateAdvancedNextDisabled(
+        block,
+        type,
+        wrapper,
+        nav.currentIndex,
+        questions,
+        quizStatus,
+        next,
+      );
       if (lastSlider) { next.disabled = true; next.classList.add('arrow-disabled'); }
     } else {
-      updateAdvancedNav(nav, wrapper, questions, type, quizStatus);
+      updateAdvancedNav(block, nav, wrapper, questions, type, quizStatus);
     }
     if (type !== 'traditional') {
       if (nav.currentIndex === 0) {
@@ -322,7 +331,6 @@ async function addNavigation(
       testPercentage,
       showIndicatorsViaReviewMode,
       redoQuizLabel,
-      finishLabel,
       doNotMarkLessonAsCompleted,
     );
   }
@@ -402,11 +410,11 @@ export default async function decorate(block) {
     randomOrder(questions);
   }
 
-  async function createQuizBlock() {
+  async function createQuizBlock(quizState = null) {
     const quizzes = document.querySelectorAll('.quiz.block').length;
     const quizId = await sha256Hash(`${path}-${quizzes}`);
     block.innerHTML = '';
-    quizStatus = {
+    quizStatus = quizState || {
       quizElementId: quizId,
       type,
       status: 'PROGRESS',
@@ -445,6 +453,7 @@ export default async function decorate(block) {
       );
     }
     if (status?.type && (type === 'activity' || type === 'test')) {
+      await createQuizBlock(status);
       await markQuizCompletedAdvanced(
         block,
         questions,
