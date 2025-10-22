@@ -1,0 +1,133 @@
+.hero-baseball {
+  position: relative;
+  background: var(--blue1) url('https://main--www--cmegroup.aem.page/drafts/kunwar/hero-baseball-1440x500.png') center/cover no-repeat;
+  color: white;
+  margin: 0;
+  overflow: hidden;
+  min-height: 300px;
+  padding: 2.5rem 1.5rem;
+}
+
+@media (width >= 993px) {
+  .hero-baseball {
+    padding: 2.5rem 2rem;
+  }
+}
+
+.hero-baseball h1 {
+  font-size: 3rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: white;
+}
+
+.hero-baseball .hero-subtitle {
+  font-size: 1.125rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  color: rgb(255 255 255 / 90%);
+}
+
+.hero-baseball .contract-data {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.hero-baseball .price-section {
+  display: flex;
+  gap: 3rem;
+  align-items: flex-start;
+}
+
+.hero-baseball .current-price,
+.hero-baseball .price-change,
+.hero-baseball .volume-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hero-baseball .label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.0625rem;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 70%);
+}
+
+.hero-baseball .value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+}
+
+.hero-baseball .change-negative {
+  color: #ff6b6b;
+}
+
+.hero-baseball .change-positive {
+  color: #51cf66;
+}
+
+.hero-baseball .trading-data {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.hero-baseball .trading-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.hero-baseball .trading-item .label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(255 255 255 / 80%);
+}
+
+.hero-baseball .trading-item .value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+}
+
+.hero-baseball .market-update {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 1rem;
+}
+
+.hero-baseball .update-time {
+  font-size: 0.875rem;
+  color: rgb(255 255 255 / 80%);
+}
+
+.hero-baseball .market-note {
+  font-size: 0.75rem;
+  color: rgb(255 255 255 / 60%);
+}
+
+@media (width < 768px) {
+  .hero-baseball {
+    padding: 1.5rem;
+  }
+
+  .hero-baseball h1 {
+    font-size: 2.25rem;
+  }
+
+  .hero-baseball .price-section {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .hero-baseball .trading-data {
+    gap: 1rem;
+  }
+}
+
+
