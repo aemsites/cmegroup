@@ -1,6 +1,6 @@
-main > .section:first-child {
+/*main > .section:first-child {
   padding-top: 8rem;
-}
+}*/
 
 main > .section {
   padding-inline: 24px;
