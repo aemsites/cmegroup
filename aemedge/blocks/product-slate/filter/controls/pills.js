@@ -85,12 +85,11 @@ function createFilterPills(options = {}) {
     }
   };
 
-  container.getPills = () =>
-    Array.from(pillsWrapper.children).map((pill) => ({
-      text: pill.querySelector('span').textContent,
-      id: pill.dataset.id,
-      type: pill.dataset.type,
-    }));
+  container.getPills = () => Array.from(pillsWrapper.children).map((pill) => ({
+    text: pill.querySelector('span').textContent,
+    id: pill.dataset.id,
+    type: pill.dataset.type,
+  }));
 
   container.getPillCount = () => pillsWrapper.children.length;
 

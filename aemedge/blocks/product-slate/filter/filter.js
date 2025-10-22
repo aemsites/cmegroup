@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-console */
 import { createElement } from '../../../scripts/utils.js';
-import { createDropdowns } from './controls/dropdown-filter.js';
+import createDropdowns from './controls/dropdown-filter.js';
 import { createSearchInput } from './controls/search-input.js';
 import { createFilterPillsFromDropdowns } from './controls/pills.js';
 import createCheckbox from './controls/checkbox.js';
@@ -18,9 +18,9 @@ function getFiltersFromURL() {
     exch: params.get('exch') ? params.get('exch').split(',') : [],
     cleared: params.get('cleared')
       ? params
-          .get('cleared')
-          .split(',')
-          .map((c) => decodeURIComponent(c))
+        .get('cleared')
+        .split(',')
+        .map((c) => decodeURIComponent(c))
       : [],
     searchTerm: params.get('search') || '',
     tags: params.get('tags') === '1',
@@ -116,7 +116,7 @@ function convertURLFiltersToSelections(urlFilters, groupData, options) {
         groupData.forEach((group) => {
           if (group.children) {
             const child = group.children.find(
-              (c) => String(c.id) === String(subgroupId)
+              (c) => String(c.id) === String(subgroupId),
             );
             if (child) {
               selections.group.push(`${child.name}_${child.id}`);
@@ -130,7 +130,7 @@ function convertURLFiltersToSelections(urlFilters, groupData, options) {
   if (urlFilters.venues && urlFilters.venues.length > 0 && options.venues) {
     urlFilters.venues.forEach((venueId) => {
       const venue = options.venues.find(
-        (v) => String(v.id) === String(venueId)
+        (v) => String(v.id) === String(venueId),
       );
       if (venue) {
         selections.venues.push(`${venue.name}_${venue.id}`);
@@ -178,7 +178,7 @@ async function fetchTableData(filters) {
     window.dispatchEvent(
       new CustomEvent('tableDataUpdated', {
         detail: { data, filters },
-      })
+      }),
     );
 
     return data;
@@ -192,7 +192,7 @@ function buildFiltersObject(
   dropdownSelections,
   searchTerm,
   checkboxValue,
-  groupData = null
+  groupData = null,
 ) {
   const filters = {
     group: [],
@@ -206,9 +206,9 @@ function buildFiltersObject(
 
   // Handle GROUP dropdown (hierarchical structure)
   if (
-    dropdownSelections.group &&
-    dropdownSelections.group.length > 0 &&
-    groupData
+    dropdownSelections.group
+    && dropdownSelections.group.length > 0
+    && groupData
   ) {
     dropdownSelections.group.forEach((itemKey) => {
       const parts = itemKey.split('_');
@@ -216,7 +216,7 @@ function buildFiltersObject(
       const name = parts.slice(0, -1).join('_');
 
       const group = groupData.find(
-        (g) => g.name === name && String(g.id) === String(id)
+        (g) => g.name === name && String(g.id) === String(id),
       );
 
       if (group && group.children && group.children.length > 0) {
@@ -314,7 +314,7 @@ export async function createFilter(options) {
         allSelections,
         currentSearchTerm,
         checkboxValue,
-        groupData
+        groupData,
       );
 
       fetchTableData(filters);
@@ -337,7 +337,7 @@ export async function createFilter(options) {
           allSelections,
           currentSearchTerm,
           checkboxValue,
-          groupData
+          groupData,
         );
 
         fetchTableData(filters);
@@ -355,7 +355,7 @@ export async function createFilter(options) {
         allSelections,
         currentSearchTerm,
         checkboxValue,
-        groupData
+        groupData,
       );
       fetchTableData(filters);
     },
@@ -378,7 +378,7 @@ export async function createFilter(options) {
           allSelections,
           value,
           checkboxValue,
-          groupData
+          groupData,
         );
         fetchTableData(filters);
       }, 500);
@@ -391,7 +391,7 @@ export async function createFilter(options) {
         allSelections,
         value,
         checkboxValue,
-        groupData
+        groupData,
       );
       fetchTableData(filters);
     },
@@ -444,7 +444,7 @@ export async function createFilter(options) {
       allSelections,
       currentSearchTerm,
       checkboxValue,
-      groupData
+      groupData,
     );
     fetchTableData(filters);
   });
@@ -494,7 +494,7 @@ export async function createFilter(options) {
       allSelections,
       currentSearchTerm,
       checkboxValue,
-      groupData
+      groupData,
     );
   };
 
@@ -520,7 +520,7 @@ export async function createFilter(options) {
     const selections = convertURLFiltersToSelections(
       urlFilters,
       groupData,
-      options
+      options,
     );
 
     // Apply selections to dropdowns
@@ -548,7 +548,7 @@ export async function createFilter(options) {
         allSelections,
         currentSearchTerm,
         checkboxValue,
-        groupData
+        groupData,
       );
       fetchTableData(filters);
     }, 100);

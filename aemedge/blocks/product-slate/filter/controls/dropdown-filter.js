@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import { createElement } from '../../../../scripts/utils.js';
 
 class UniversalDropdown {
@@ -22,20 +23,16 @@ class UniversalDropdown {
   }
 
   createDropdown() {
-    this.dropdown = createElement('div', {
-      class: 'dropdown',
-    });
+    this.dropdown = createElement('div', { class: 'dropdown' });
     this.dropdown.dataset.type = this.config.type;
-    this.header = createElement('button', {
-      class: 'dropdown-header',
-    });
+
+    this.header = createElement('button', { class: 'dropdown-header' });
     this.header.innerHTML = `
-            <span>${this.config.title}</span>
-            <span class="dropdown-arrow"></span>
-        `;
-    this.content = createElement('div', {
-      class: 'dropdown-content',
-    });
+      <span>${this.config.title}</span>
+      <span class="dropdown-arrow"></span>
+    `;
+
+    this.content = createElement('div', { class: 'dropdown-content' });
 
     if (this.config.isHierarchical) {
       this.createHierarchicalItems();
@@ -56,122 +53,96 @@ class UniversalDropdown {
 
   createFlatItems() {
     this.config.data.forEach((item) => {
-      const itemElement = this.createSimpleItem(item.name, item.id);
+      const itemElement = this.createItem(item.name, item.id, false);
       this.content.appendChild(itemElement);
     });
   }
 
+  // Unified checkbox creation
+  createCheckboxComponent(id) {
+    const checkboxComponent = createElement('div', { class: 'checkbox-component' });
+
+    const checkbox = createElement('input', { class: 'checkbox-input' });
+    checkbox.type = 'checkbox';
+    checkbox.id = id;
+
+    const checkboxCustom = document.createElement('span');
+    checkboxCustom.className = 'checkbox-custom';
+
+    const checkmark = createElement('span', { class: 'checkmark' });
+    checkmark.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <path d="M11.6666 3.5L5.24998 9.91667L2.33331 7" stroke="blue" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+
+    checkboxCustom.appendChild(checkmark);
+    checkboxComponent.appendChild(checkbox);
+    checkboxComponent.appendChild(checkboxCustom);
+
+    return { checkboxComponent, checkbox, checkmark };
+  }
+
   createGroup(groupName, groupId, children) {
-    const groupItem = createElement('div', {
-      class: 'dropdown-item group',
-    });
+    const groupItem = createElement('div', { class: 'dropdown-item group' });
+    const id = `${this.config.type}-group-${groupId}`;
+    const { checkboxComponent, checkbox, checkmark } = this.createCheckboxComponent(id);
 
-    const groupCheckbox = createElement('input', {
-      class: 'checkbox',
-    });
-    groupCheckbox.type = 'checkbox';
-    groupCheckbox.id = `${this.config.type}-group-${groupId}`;
+    const label = createElement('label', { class: 'checkbox-label item-label' });
+    label.textContent = groupName;
+    label.style.cursor = 'pointer';
 
-    groupCheckbox.style.pointerEvents = 'none';
-
-    const groupLabel = createElement('label', {
-      class: 'item-label',
-    });
-    groupLabel.htmlFor = groupCheckbox.id;
-    groupLabel.textContent = groupName;
-    groupLabel.style.pointerEvents = 'none';
-
-    groupItem.appendChild(groupCheckbox);
-    groupItem.appendChild(groupLabel);
+    groupItem.appendChild(checkboxComponent);
+    groupItem.appendChild(label);
 
     groupItem.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-
-      groupCheckbox.checked = !groupCheckbox.checked;
-
-      this.toggleGroupSelection(groupName, groupId, groupCheckbox, children);
+      checkbox.checked = !checkbox.checked;
+      this.updateCheckboxVisual(checkbox, checkmark);
+      this.toggleGroupSelection(groupName, groupId, checkbox, children);
     });
 
     this.content.appendChild(groupItem);
 
     children.forEach((child) => {
-      const childElement = this.createChildItem(
-        child.name,
-        child.id,
-        groupName,
-        groupId
-      );
+      const childElement = this.createItem(child.name, child.id, true, groupName, groupId);
       this.content.appendChild(childElement);
     });
   }
 
-  createChildItem(itemName, itemId, groupName, groupId) {
-    const item = createElement('div', {
-      class: 'dropdown-item subitem',
-    });
-    const checkbox = createElement('input', {
-      class: 'checkbox',
-    });
-    const label = createElement('label', {
-      class: 'item-label',
-    });
-    checkbox.type = 'checkbox';
-    checkbox.id = `${this.config.type}-item-${itemId}`;
+  createItem(itemName, itemId, isSubitem = false, groupName = null, groupId = null) {
+    const itemClass = isSubitem ? 'dropdown-item subitem' : 'dropdown-item';
+    const item = createElement('div', { class: itemClass });
+    const id = `${this.config.type}-item-${itemId}`;
+    const { checkboxComponent, checkbox, checkmark } = this.createCheckboxComponent(id);
 
-    checkbox.style.pointerEvents = 'none';
-    label.htmlFor = checkbox.id;
+    const label = createElement('label', { class: 'checkbox-label item-label' });
     label.textContent = itemName;
+    label.style.cursor = 'pointer';
 
-    label.style.pointerEvents = 'none';
-
-    item.appendChild(checkbox);
+    item.appendChild(checkboxComponent);
     item.appendChild(label);
 
     item.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-
       checkbox.checked = !checkbox.checked;
+      this.updateCheckboxVisual(checkbox, checkmark);
 
-      this.toggleChildItem(itemName, itemId, checkbox, groupName, groupId);
+      if (isSubitem) {
+        this.toggleChildItem(itemName, itemId, checkbox, groupName, groupId);
+      } else {
+        this.toggleSimpleItem(itemName, itemId);
+      }
     });
 
     return item;
   }
 
-  createSimpleItem(itemName, itemId) {
-    const item = createElement('div', {
-      class: 'dropdown-item',
-    });
-    const checkbox = createElement('input', {
-      class: 'checkbox',
-    });
-    const label = createElement('label', {
-      class: 'item-label',
-    });
-    checkbox.type = 'checkbox';
-    checkbox.id = `${this.config.type}-item-${itemId}`;
-
-    checkbox.style.pointerEvents = 'none';
-    label.htmlFor = checkbox.id;
-    label.textContent = itemName;
-
-    label.style.pointerEvents = 'none';
-
-    item.appendChild(checkbox);
-    item.appendChild(label);
-
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      checkbox.checked = !checkbox.checked;
-
-      this.toggleSimpleItem(itemName, itemId, checkbox);
-    });
-
-    return item;
+  updateCheckboxVisual(checkbox, checkmark) {
+    const svg = checkmark.querySelector('svg');
+    svg.style.display = checkbox.checked ? 'block' : 'none';
   }
 
   bindEvents() {
@@ -251,7 +222,7 @@ class UniversalDropdown {
     this.dispatchSelectionEvent();
   }
 
-  toggleSimpleItem(itemName, itemId, checkbox) {
+  toggleSimpleItem(itemName, itemId) {
     const itemKey = `${itemName}_${itemId}`;
 
     if (this.selectedItems.has(itemKey)) {
@@ -268,18 +239,15 @@ class UniversalDropdown {
     if (!this.config.isHierarchical) return;
 
     const group = this.config.data.find(
-      (g) => g.name === groupName && g.id === groupId
+      (g) => g.name === groupName && g.id === groupId,
     );
     if (!group || !group.children) return;
 
     const groupKey = `${groupName}_${groupId}`;
-    const selectedChildren = group.children.filter((child) =>
-      this.selectedItems.has(`${child.name}_${child.id}`)
-    );
+    const selectedChildren = group.children.filter((child) => this.selectedItems.has(`${child.name}_${child.id}`));
 
-    if (selectedChildren.length === 0) {
-      this.selectedItems.delete(groupKey);
-    } else if (selectedChildren.length === group.children.length) {
+    // Parent checked only when ALL children are selected
+    if (selectedChildren.length === group.children.length && group.children.length > 0) {
       this.selectedItems.add(groupKey);
     } else {
       this.selectedItems.delete(groupKey);
@@ -287,10 +255,9 @@ class UniversalDropdown {
   }
 
   updateAllCheckboxes() {
-    const checkboxes = this.content.querySelectorAll('.checkbox');
+    const checkboxes = this.content.querySelectorAll('.checkbox-input');
     checkboxes.forEach((checkbox) => {
-      const id = checkbox.id;
-      const isGroup = id.includes('-group-');
+      const isGroup = checkbox.id.includes('-group-');
 
       if (isGroup && this.config.isHierarchical) {
         this.updateGroupCheckbox(checkbox);
@@ -302,48 +269,36 @@ class UniversalDropdown {
 
   updateGroupCheckbox(checkbox) {
     const groupId = checkbox.id.split('-group-')[1];
-
-    const group = this.config.data.find(
-      (g) => String(g.id) === String(groupId)
-    );
+    const group = this.config.data.find((g) => String(g.id) === String(groupId));
     if (!group) return;
 
-    const groupKey = `${group.name}_${group.id}`;
-    const selectedChildren = (group.children || []).filter((child) =>
-      this.selectedItems.has(`${child.name}_${child.id}`)
-    );
+    const selectedChildren = (group.children || []).filter((child) => this.selectedItems.has(`${child.name}_${child.id}`));
 
-    if (selectedChildren.length === 0) {
-      checkbox.checked = false;
-      checkbox.indeterminate = false;
-    } else if (selectedChildren.length === (group.children || []).length) {
-      checkbox.checked = true;
-      checkbox.indeterminate = false;
-    } else {
-      checkbox.checked = false;
-      checkbox.indeterminate = true;
+    checkbox.checked = selectedChildren.length === (group.children || []).length
+      && (group.children || []).length > 0;
+
+    const checkboxComponent = checkbox.parentElement;
+    const checkmark = checkboxComponent.querySelector('.checkmark');
+    if (checkmark) {
+      this.updateCheckboxVisual(checkbox, checkmark);
     }
   }
 
   updateItemCheckbox(checkbox) {
     const itemId = checkbox.id.split('-item-')[1];
+    const items = this.config.isHierarchical
+      ? this.config.data.flatMap((g) => g.children || [])
+      : this.config.data;
 
-    if (this.config.isHierarchical) {
-      this.config.data.forEach((group) => {
-        (group.children || []).forEach((child) => {
-          if (String(child.id) === String(itemId)) {
-            checkbox.checked = this.selectedItems.has(
-              `${child.name}_${child.id}`
-            );
-          }
-        });
-      });
-    } else {
-      this.config.data.forEach((item) => {
-        if (String(item.id) === String(itemId)) {
-          checkbox.checked = this.selectedItems.has(`${item.name}_${item.id}`);
-        }
-      });
+    const item = items.find((i) => String(i.id) === String(itemId));
+    if (item) {
+      checkbox.checked = this.selectedItems.has(`${item.name}_${item.id}`);
+
+      const checkboxComponent = checkbox.parentElement;
+      const checkmark = checkboxComponent.querySelector('.checkmark');
+      if (checkmark) {
+        this.updateCheckboxVisual(checkbox, checkmark);
+      }
     }
   }
 
@@ -355,7 +310,7 @@ class UniversalDropdown {
           selectedItems: Array.from(this.selectedItems),
           selectedCount: this.selectedItems.size,
         },
-      })
+      }),
     );
   }
 
@@ -364,36 +319,32 @@ class UniversalDropdown {
   }
 
   deselectItem(itemKey) {
-    if (this.selectedItems.has(itemKey)) {
-      this.selectedItems.delete(itemKey);
+    if (!this.selectedItems.has(itemKey)) return false;
 
-      if (this.config.isHierarchical) {
-        const group = this.config.data.find(
-          (g) => `${g.name}_${g.id}` === itemKey
-        );
+    this.selectedItems.delete(itemKey);
 
-        if (group && group.children) {
-          group.children.forEach((child) => {
-            const childKey = `${child.name}_${child.id}`;
-            this.selectedItems.delete(childKey);
-          });
-        } else {
-          this.config.data.forEach((g) => {
-            const child = (g.children || []).find(
-              (c) => `${c.name}_${c.id}` === itemKey
-            );
-            if (child) {
-              this.updateGroupState(g.name, g.id);
-            }
-          });
-        }
+    if (this.config.isHierarchical) {
+      const group = this.config.data.find((g) => `${g.name}_${g.id}` === itemKey);
+
+      if (group && group.children) {
+        // Deselect all children when parent is deselected
+        group.children.forEach((child) => {
+          this.selectedItems.delete(`${child.name}_${child.id}`);
+        });
+      } else {
+        // Update parent state when child is deselected
+        this.config.data.forEach((g) => {
+          const child = (g.children || []).find((c) => `${c.name}_${c.id}` === itemKey);
+          if (child) {
+            this.updateGroupState(g.name, g.id);
+          }
+        });
       }
-
-      this.updateAllCheckboxes();
-      this.dispatchSelectionEvent();
-      return true;
     }
-    return false;
+
+    this.updateAllCheckboxes();
+    this.dispatchSelectionEvent();
+    return true;
   }
 
   deselectItems(itemKeys) {
@@ -402,39 +353,23 @@ class UniversalDropdown {
 }
 
 function createDropdowns(apiData, options = {}) {
-  const container = createElement('div', {
-    class: 'dropdowns-container',
-  });
+  const container = createElement('div', { class: 'dropdowns-container' });
 
   const dropdownConfigs = {
-    group: {
-      title: 'Asset Classes & Product Groups',
-      isHierarchical: true,
-    },
-    exch: {
-      title: 'Exchanges',
-      isHierarchical: false,
-    },
-    venues: {
-      title: 'Venues',
-      isHierarchical: false,
-    },
-    cleared: {
-      title: 'Cleared As',
-      isHierarchical: false,
-    },
+    group: { title: 'Asset Classes & Product Groups', isHierarchical: true },
+    exch: { title: 'Exchanges', isHierarchical: false },
+    venues: { title: 'Venues', isHierarchical: false },
+    cleared: { title: 'Cleared As', isHierarchical: false },
   };
 
   const dropdownInstances = new Map();
 
-  Object.keys(apiData).forEach((key) => {
+  Object.keys(dropdownConfigs).forEach((key) => {
     const data = apiData[key];
     const config = dropdownConfigs[key];
 
-    if (data && data.length > 0 && config) {
-      const wrapper = createElement('div', {
-        class: `dropdown-wrapper ${key}`,
-      });
+    if (data && data.length > 0) {
+      const wrapper = createElement('div', { class: 'dropdown-wrapper' });
       container.appendChild(wrapper);
 
       const dropdownConfig = {
@@ -456,7 +391,7 @@ function createDropdowns(apiData, options = {}) {
     }
   });
 
-  container.getSelections = function () {
+  container.getSelections = () => {
     const selections = {};
     dropdownInstances.forEach((dropdown, type) => {
       selections[type] = dropdown.getSelectedItems();
@@ -464,7 +399,7 @@ function createDropdowns(apiData, options = {}) {
     return selections;
   };
 
-  container.setSelections = function (selections) {
+  container.setSelections = (selections) => {
     dropdownInstances.forEach((dropdown, type) => {
       if (selections[type]) {
         dropdown.selectedItems = new Set(selections[type]);
@@ -473,19 +408,14 @@ function createDropdowns(apiData, options = {}) {
     });
   };
 
-  container.deselectItem = function (type, itemKey) {
+  container.deselectItem = (type, itemKey) => {
     const dropdown = dropdownInstances.get(type);
-    if (dropdown) {
-      return dropdown.deselectItem(itemKey);
-    }
-    return false;
+    return dropdown ? dropdown.deselectItem(itemKey) : false;
   };
 
-  container.getDropdownInstance = function (type) {
-    return dropdownInstances.get(type);
-  };
+  container.getDropdownInstance = (type) => dropdownInstances.get(type);
 
   return container;
 }
 
-export { createDropdowns };
+export default createDropdowns;
