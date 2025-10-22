@@ -55,7 +55,7 @@ function buildSearchRequest(filterId) {
 
   if (searchConfig.sortOptions) {
     request.orderBy = searchConfig.sortOptions.value;
-    request.sortDirection = searchConfig.sortOptions.sortType;
+    request['sort-direction'] = searchConfig.sortOptions.sortType;
   }
 
   return buildIndexFilter(request);
