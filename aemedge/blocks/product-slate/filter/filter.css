@@ -92,15 +92,28 @@
             border-radius: 0;
             line-height: 1.25rem;
             padding: 0.4375rem 0.625rem;
+            letter-spacing: normal;
 
             & span {
               text-overflow: ellipsis;
               overflow: hidden;
             }
+
+            & .dropdown-arrow {
+              border-bottom: 0;
+              border-left: 0.3rem solid transparent;
+              border-right: 0.3rem solid transparent;
+              border-top: 0.3rem solid;
+              content: "";
+              display: inline-block;
+              margin-left: 0.255rem;
+              vertical-align: 0.255rem;
+            }
           }
 
           & .dropdown-arrow {
             font-size: 0.75rem;
+
             &.open {
               transform: rotate(180deg);
             }
@@ -190,6 +203,7 @@
             font-size: 1.25rem;
           }
         }
+
         & .apply-button {
           justify-content: center;
 
@@ -197,6 +211,7 @@
             display: none;
           }
         }
+
         &.hide-modal {
           display: none;
         }
@@ -246,7 +261,6 @@
           padding: 0.625rem 2.5rem 0.625rem 0.625rem;
           width: 100%;
           height: 2.1875rem;
-
           font-size: 0.75rem;
           line-height: 0.9375rem;
           padding-right: 1.875rem;
@@ -286,6 +300,7 @@
           font-size: 0.875rem;
           box-shadow: none;
           height: 100%;
+
           &::before {
             font-family: var(--cme-group-icons);
             content: var(--icon-search);
@@ -399,6 +414,7 @@
         & .filter-pill:hover {
           border: 0.0625rem solid var(--blue5);
           color: var(--blue5);
+
           & .pill-remove-btn {
             color: var(--blue5);
           }

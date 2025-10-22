@@ -73,7 +73,7 @@ function updateURLWithFilters(filters) {
     // Join and encode special characters (like spaces)
     params.set(
       'cleared',
-      filters.cleared.map((c) => encodeURIComponent(c)).join(',')
+      filters.cleared.map((c) => encodeURIComponent(c)).join(','),
     );
   }
 

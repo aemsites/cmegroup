@@ -31,7 +31,7 @@ class UniversalDropdown {
     });
     this.header.innerHTML = `
             <span>${this.config.title}</span>
-            <span class="dropdown-arrow">▼</span>
+            <span class="dropdown-arrow"></span>
         `;
     this.content = createElement('div', {
       class: 'dropdown-content',
