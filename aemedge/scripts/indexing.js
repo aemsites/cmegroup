@@ -30,7 +30,7 @@ function buildIndexFilter(config) {
     relativeDateFrom: config['relative-date-from'], // Number in days
     relativeDateTo: config['relative-date-to'], // Number in days
     orderBy: config.orderBy,
-    sortDirection: config.sortDirection,
+    sortDirection: config['sort-direction'],
     limit: config.limit,
     page: config.page || 1,
     fullText: config.fullText || '',
