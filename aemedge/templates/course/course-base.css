@@ -1,6 +1,7 @@
-/*main > .section:first-child {
-  padding-top: 8rem;
-}*/
+main > .section:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+}
 
 main > .section {
   padding-inline: 24px;
