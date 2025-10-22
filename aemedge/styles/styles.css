@@ -1250,7 +1250,7 @@ main {
 
 main > .section:first-of-type {
   margin-top: 0;
-  padding-top: 0;
+  padding-top: 0 !important;
 }
 
 main > .section.full-width picture,
