@@ -15,7 +15,7 @@ function createUpcomingEvent(content, timeZoneLabel) {
     metadata: {
       location,
       // eslint-disable-next-line no-useless-computed-key
-      ['og:image']: image,
+      ['image']: image,
     },
   } = content;
   const cdtDate = getCdtDate(date);
