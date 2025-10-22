@@ -30,7 +30,7 @@ function createUpcomingEvent(content, timeZoneLabel) {
   const locationtag = createElement('div', { class: 'card-location' }, spanWebinar, location);
   const timeTag = createElement('div', { class: 'card-time' }, `${timeZoneLabel}: `, cdtDate.format('hh:mm a [CT]'));
   const cardBody = createElement('div', { class: 'card-body' }, dateTag, titletag, locationtag, timeTag);
-  const imagetag = createElement('img', { src: image || ogImage});
+  const imagetag = createElement('img', { src: image || ogImage });
   const cardImage = createElement('div', { class: 'card-image' }, imagetag);
   return createElement('a', { class: 'card', href: path }, cardImage, cardBody);
 }
