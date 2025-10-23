@@ -1,5 +1,5 @@
-@import url('./course-base.css');
-@import url("./certificate.css");
+@import './course-base.css';
+@import './certificate.css';
 
 /* Placeholders to prevent CLS */
 .course-nav-placeholder {
