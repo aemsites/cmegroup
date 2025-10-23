@@ -1,42 +1,103 @@
-import { createElement, i18n, readBlockConfig } from '../../scripts/utils.js';
+import { i18n, readBlockConfig, sha256Hash } from '../../scripts/utils.js';
 import { store } from '../../scripts/store/store.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
+import {
+  updateAdvancedNextDisabled,
+  randomOrder,
+  handleTestClick,
+  handleActivityClick,
+  createProgressBar,
+  updateAdvancedNav,
+  attachFinishClick,
+  createSelectInstruction,
+  markQuizCompletedAdvanced,
+} from './advanced.js';
+import {
+  div,
+  h4,
+  span,
+  button,
+  i as iEl,
+} from '../../scripts/dom-helpers.js';
+
+let quizStatus = { };
 
 async function checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted) {
   const answeredCorrectlyEls = block.querySelectorAll('.answered-correctly');
   const allAnsweredCorrectly = answeredCorrectlyEls.length === questions.length;
-
-  if (allAnsweredCorrectly && !block.querySelector('.message') && doNotMarkLessonAsCompleted !== 'True') {
+  if (allAnsweredCorrectly && !block.querySelector('.message') && doNotMarkLessonAsCompleted !== 'true') {
     //  quiz completion event
-    store.dispatch(quizAnswered(true));
+    store.dispatch(quizAnswered({ isCorrect: true }));
   }
 }
 
-function buildQuestions(rows) {
+async function buildQuestions(courseData, rows) {
+  const parsedRows = await Promise.all(
+    rows.map(async (row) => {
+      const firstChild = row.children[0];
+      const hasQuestion = firstChild && firstChild.querySelector('p');
+      const answerText = row.children[1]?.textContent.trim() || '';
+      const correctText = row.children[2]?.textContent.trim() || '';
+      const snippetText = row.children[3]?.textContent.trim() || '';
+      const questionSnippetText = row.children[4]?.textContent.trim() || '';
+      const questionText = firstChild?.textContent.trim() || '';
+
+      let uniqueId = null;
+
+      if (hasQuestion) {
+        uniqueId = await sha256Hash(`${courseData.path}-${questionText}`);
+      }
+
+      return {
+        hasQuestion,
+        questionText,
+        questionSnippetText,
+        answerText,
+        correctText,
+        snippetText,
+        uniqueId,
+      };
+    }),
+  );
+
+  let lastUniqueId = null;
+  for (let i = 0; i < parsedRows.length; i += 1) {
+    const row = parsedRows[i];
+    if (row.uniqueId) {
+      lastUniqueId = row.uniqueId;
+    } else if (lastUniqueId) {
+      row.uniqueId = lastUniqueId;
+    }
+  }
+
+  await Promise.all(
+    parsedRows.map(async (row) => {
+      if (row.answerText && row.uniqueId) {
+        row.answerId = await sha256Hash(`${row.uniqueId}-${row.answerText}`);
+      }
+    }),
+  );
+
   const questions = [];
   let currentQuestion = null;
 
-  rows.forEach((row) => {
-    const firstChild = row.children[0];
-    const hasQuestion = firstChild && firstChild.querySelector('p');
-
-    const answerText = row.children[1]?.textContent.trim() || '';
-    const correctText = row.children[2]?.textContent.trim() || '';
-    const snippetText = row.children[3]?.textContent.trim() || '';
-
-    if (hasQuestion) {
+  parsedRows.forEach((row) => {
+    if (row.hasQuestion) {
       currentQuestion = {
-        question: firstChild.textContent.trim(),
+        question: row.questionText,
         answers: [],
+        questionSnippet: row.questionSnippetText,
+        uniqueId: row.uniqueId,
       };
       questions.push(currentQuestion);
     }
 
-    if (currentQuestion) {
+    if (currentQuestion && row.answerText) {
       currentQuestion.answers.push({
-        answer: answerText,
-        correct: correctText === 'true',
-        snippet: snippetText,
+        answer: row.answerText,
+        correct: row.correctText === 'true',
+        snippet: row.snippetText,
+        uniqueId: row.answerId,
       });
     }
   });
@@ -44,54 +105,82 @@ function buildQuestions(rows) {
   return questions;
 }
 
-function showQuestion(index, wrapper, prev, next, pag, total) {
-  wrapper.style.transform = `translateX(-${index * 100}%)`;
-  if (prev) prev.classList.toggle('arrow-disabled', index === 0);
-  if (next) next.classList.toggle('arrow-disabled', index === total - 1);
-  if (pag) pag.textContent = `${index + 1} OF ${total}`;
-}
+async function renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, state) {
+  if (type !== 'traditional') {
+    const progressBar = createProgressBar();
+    block.appendChild(progressBar);
+  }
+  const [
+    selectAllLabel,
+    selectOneLabel,
+  ] = await Promise.all([
+    i18n('Select all that apply'),
+    i18n('Select one of the following'),
+  ]);
 
-function renderQuestions(questions, block, doNotMarkLessonAsCompleted) {
-  const wrapper = createElement('div', { class: 'questions-wrapper' });
+  const wrapper = div({ class: `questions-wrapper ${type}` });
 
-  questions.forEach((q) => {
-    const questionDiv = createElement('div');
-    const questionText = createElement('p', { class: 'question-text' }, q.question);
-    const optionsWrapper = createElement('div', { class: 'options-wrapper' });
+  questions.forEach((question, questionIndex) => {
+    const optionsWrapper = div({ class: 'options-wrapper' });
+    const questionDiv = div(
+      {},
+      h4({ class: 'question-text' }, question.question),
+      optionsWrapper,
+    );
 
-    q.answers.forEach(({ answer, correct, snippet }, index) => {
-      const optionButton = createElement(
-        'button',
-        {
-          type: 'button',
-          class: 'option-content-answer',
-          'data-index': index,
-        },
-        createElement('span', { class: 'option-text' }, answer),
-        createElement('span', { class: 'option-icon' }),
+    if (type !== 'traditional') {
+      const multiCorrect = question.answers.filter((ans) => ans.correct).length > 1;
+      if (multiCorrect) questionDiv.classList.add('multi-correct');
+      const selectInstruction = createSelectInstruction(multiCorrect
+        ? selectAllLabel : selectOneLabel);
+      optionsWrapper.insertBefore(selectInstruction, optionsWrapper.firstChild);
+    }
+
+    const multiCorrect = question.answers.filter((ans) => ans.correct).length > 1;
+    if (multiCorrect) questionDiv.classList.add('multi-correct');
+
+    question.answers.forEach(({ answer, correct, snippet }, index) => {
+      const messageContainer = span({ class: 'question-message' });
+
+      const optionButton = button(
+        { type: 'button', class: 'option-content-answer', 'data-index': index },
+        span({ class: 'option-text' }, answer),
+        span({ class: 'option-icon' }),
       );
 
-      const messageContainer = createElement('span', {
-        class: 'question-message',
-      });
-
-      const optionItem = createElement(
-        'div',
+      const optionItem = div(
         { class: 'option-item' },
-        createElement('div', { class: 'option-content' }, optionButton),
+        div({ class: 'option-content' }, optionButton),
         messageContainer,
       );
 
       optionButton.addEventListener('click', async () => {
-        if (questionDiv.classList.contains('answered-correctly')) return;
+        if (type === 'test') {
+          return handleTestClick({
+            questionDiv, optionButton, index, state, questionIndex, block, questions, multiCorrect,
+          });
+        }
+
+        if (type === 'activity') {
+          return handleActivityClick({
+            questionDiv,
+            optionButton,
+            correct,
+            snippet,
+            question,
+            messageContainer,
+            block,
+            questions,
+            state,
+            questionIndex,
+          });
+        }
+
+        if (questionDiv.classList.contains('answered-correctly')) return undefined;
 
         const allButtons = questionDiv.querySelectorAll('.option-content-answer');
         const allMessages = questionDiv.querySelectorAll('.question-message');
-
-        allMessages.forEach((msg) => {
-          msg.classList.remove('correct', 'incorrect', 'showed');
-        });
-
+        allMessages.forEach((msg) => msg.classList.remove('correct', 'incorrect', 'showed'));
         allButtons.forEach((btn) => btn.classList.remove('pressed', 'incorrect', 'correct'));
         optionButton.classList.add('pressed');
 
@@ -99,28 +188,43 @@ function renderQuestions(questions, block, doNotMarkLessonAsCompleted) {
           const [correctLabel] = await Promise.all([i18n('Correct')]);
           optionButton.classList.add('correct');
           questionDiv.classList.add('answered-correctly');
-          messageContainer.classList.add('correct');
-          messageContainer.innerHTML = `<span class="result">${correctLabel}</span><span class="snippet"></span>`;
-          const snippetEl = messageContainer.querySelector('.snippet');
-          snippetEl.textContent = snippet;
-          messageContainer.classList.add('showed');
-          checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted);
+          messageContainer.classList.add('correct', 'showed');
+          messageContainer.innerHTML = '';
+          messageContainer.appendChild(span({ class: 'result' }, correctLabel));
+          messageContainer.appendChild(span({ class: 'snippet' }, snippet));
+
+          if (type === 'traditional') checkQuizCompletion(block, questions, doNotMarkLessonAsCompleted);
+
+          const navNext = block.querySelector('.arrow-next');
+          if (navNext) {
+            const questionsWrapper = block.querySelector('.questions-wrapper');
+            const currentIndex = [...questionsWrapper.children].indexOf(questionDiv);
+            updateAdvancedNextDisabled(
+              block,
+              type,
+              questionsWrapper,
+              currentIndex,
+              questions,
+              state,
+              navNext,
+            );
+          }
+          if (block.updateNavigation) block.updateNavigation();
         } else {
           const [incorrectLabel] = await Promise.all([i18n('Incorrect')]);
           optionButton.classList.add('incorrect');
-          messageContainer.classList.add('incorrect');
-          messageContainer.innerHTML = `<span class="result">${incorrectLabel}</span><span class="snippet"></span>`;
-          const snippetEl = messageContainer.querySelector('.snippet');
-          snippetEl.textContent = snippet;
-          messageContainer.classList.add('showed');
+          messageContainer.classList.add('incorrect', 'showed');
+          messageContainer.innerHTML = '';
+          messageContainer.appendChild(span({ class: 'result' }, incorrectLabel));
+          messageContainer.appendChild(span({ class: 'snippet' }, snippet));
         }
+
+        return undefined;
       });
 
       optionsWrapper.appendChild(optionItem);
     });
 
-    questionDiv.appendChild(questionText);
-    questionDiv.appendChild(optionsWrapper);
     wrapper.appendChild(questionDiv);
   });
 
@@ -128,50 +232,131 @@ function renderQuestions(questions, block, doNotMarkLessonAsCompleted) {
   return wrapper;
 }
 
-async function addNavigation(questions, block, wrapper) {
+async function showQuestion(index, wrapper, pag, total) {
   const [ofLabel] = await Promise.all([i18n('OF')]);
-  let currentIndex = 0;
-
-  const prev = createElement('button', {
-    type: 'button',
-    class: 'arrow arrow-prev',
-    style: 'display: block;',
-  });
-
-  const next = createElement('button', {
-    type: 'button',
-    class: 'arrow arrow-next',
-    style: 'display: block;',
-  });
-
-  const pag = createElement('span', { class: 'custom-paging-counter' });
-  pag.textContent = `1 ${ofLabel} ${questions.length}`;
-
-  prev.addEventListener('click', () => {
-    if (currentIndex > 0) {
-      currentIndex -= 1;
-      showQuestion(currentIndex, wrapper, prev, next, pag, questions.length);
-    }
-  });
-
-  next.addEventListener('click', () => {
-    if (currentIndex < questions.length - 1) {
-      currentIndex += 1;
-      showQuestion(currentIndex, wrapper, prev, next, pag, questions.length);
-    }
-  });
-
-  const nav = createElement('div', { class: 'quiz-navigation' }, prev, pag, next);
-  block.appendChild(nav);
+  wrapper.style.transform = `translateX(-${index * 100}%)`;
+  if (pag) pag.textContent = `${index + 1} ${ofLabel} ${total}`;
+  const progress = wrapper.parentElement.querySelector('.progress-bar .progress');
+  if (progress) {
+    const percent = ((index + 1) / total) * 100;
+    progress.style.width = `${percent}%`;
+  }
 }
 
-async function markQuizCompleted(block, questionsMeta, completeMessage) {
+async function addNavigation(
+  questions,
+  block,
+  wrapper,
+  type,
+  completeMessage,
+  testPercentage,
+  showIndicatorsViaReviewMode,
+  redoQuizLabel,
+  doNotMarkLessonAsCompleted,
+) {
+  const [prevLabel, nextLabel, finishLabel, submitLabel] = await Promise.all([i18n('Prev'), i18n('Next'), i18n('Finish'), i18n('Submit')]);
+  const prev = button(
+    { type: 'button', class: 'arrow arrow-prev' },
+    type !== 'traditional' ? prevLabel : '',
+  );
+  const next = button(
+    { type: 'button', class: 'arrow arrow-next' },
+    type !== 'traditional' ? nextLabel : '',
+  );
+  let finish = null;
+  if (type !== 'traditional') finish = button({ type: 'button', class: 'arrow arrow-finish', style: 'display: none;' }, type === 'activity' ? finishLabel : submitLabel);
+
+  const nav = {
+    prev, next, finish, pag: null, currentIndex: 0,
+  };
+  block.nav = nav;
+
+  const pag = span({ class: 'custom-paging-counter' });
+  nav.pag = pag;
+
+  block.updateNavigation = function updateNavigation() {
+    const lastSlider = nav.currentIndex === questions.length - 1;
+    if (type === 'traditional') {
+      prev.style.display = 'block';
+      next.style.display = 'block';
+      updateAdvancedNextDisabled(
+        block,
+        type,
+        wrapper,
+        nav.currentIndex,
+        questions,
+        quizStatus,
+        next,
+      );
+      if (lastSlider) { next.disabled = true; next.classList.add('arrow-disabled'); }
+    } else {
+      updateAdvancedNav(block, nav, wrapper, questions, type, quizStatus);
+    }
+    if (type !== 'traditional') {
+      if (nav.currentIndex === 0) {
+        nav.prev.style.display = 'none';
+      } else {
+        nav.prev.style.display = 'flex';
+      }
+    }
+    nav.prev.classList.toggle('arrow-disabled', nav.currentIndex === 0);
+    if (pag) pag.textContent = `${nav.currentIndex + 1} / ${questions.length}`;
+    showQuestion(nav.currentIndex, wrapper, pag, questions.length);
+    const reviewContainer = block.querySelector('.review-questions');
+    if (reviewContainer) {
+      reviewContainer.querySelectorAll('.question-link').forEach((l) => l.classList.remove('selected'));
+      const link = reviewContainer.querySelector(`.question-link[data-index="${nav.currentIndex}"]`);
+      if (link) link.classList.add('selected');
+    }
+  };
+
+  prev.addEventListener('click', () => {
+    if (nav.currentIndex > 0) {
+      nav.currentIndex -= 1; block.updateNavigation();
+    }
+  });
+  next.addEventListener('click', () => {
+    if (nav.currentIndex < questions.length - 1) {
+      nav.currentIndex += 1; block.updateNavigation();
+    }
+  });
+  if (finish) {
+    attachFinishClick(
+      nav,
+      block,
+      questions,
+      type,
+      quizStatus,
+      completeMessage,
+      testPercentage,
+      showIndicatorsViaReviewMode,
+      redoQuizLabel,
+      doNotMarkLessonAsCompleted,
+    );
+  }
+
+  const navContainer = div(
+    { class: 'quiz-navigation' },
+    ...(finish ? [prev, pag, next, finish] : [prev, pag, next]),
+  );
+
+  block.appendChild(navContainer);
+  block.updateNavigation();
+}
+
+async function markQuizCompleted(
+  block,
+  questionsMeta,
+  type,
+  completeMessage,
+) {
   const [quizLabel] = await Promise.all([i18n('Lesson complete')]);
-  const completionMessage = createElement(
-    'div',
+  if (block.querySelector('.message')) return;
+
+  const completionMessage = div(
     { class: 'message' },
-    createElement('div', { class: 'message-label' }, createElement('i', { class: 'icon' })),
-    createElement('div', { class: 'message-text' }, completeMessage || quizLabel),
+    div({ class: 'message-label' }, iEl({ class: 'icon' })),
+    div({ class: 'message-text' }, completeMessage || quizLabel),
   );
   block.insertBefore(completionMessage, block.firstChild);
   block.classList.add('complete');
@@ -191,34 +376,94 @@ async function markQuizCompleted(block, questionsMeta, completeMessage) {
 }
 
 export default async function decorate(block) {
-  const { doNotMarkLessonAsCompleted, completeMessage } = readBlockConfig(block, true);
+  const {
+    doNotMarkLessonAsCompleted = 'false',
+    completeMessage,
+    testPercentage = 70,
+    randomizeOrder = 'false',
+    showIndicatorsViaReviewMode = 'false',
+    redoQuizLabel,
+  } = readBlockConfig(block, true);
+  let type = 'traditional';
+  if (block.classList.contains('activity')) {
+    type = 'activity';
+  } else if (block.classList.contains('test')) {
+    type = 'test';
+  }
+
   const rows = Array.from(block.querySelectorAll(':scope > div'));
   let startIndex = 0;
-  let i = 0;
-  while (i < rows.length) {
-    const firstCellText = rows[i].children[0]?.textContent?.trim();
-    if (firstCellText === 'Questions') {
+
+  for (let i = 0; i < rows.length; i += 1) {
+    if (rows[i].children[0]?.textContent?.trim() === 'Questions') {
       startIndex = i + 1;
       break;
     }
-    i += 1;
   }
 
-  const questions = buildQuestions(rows.slice(startIndex));
-
-  block.innerHTML = '';
-  const wrapper = renderQuestions(questions, block, doNotMarkLessonAsCompleted);
-
-  if (questions.length > 1) {
-    await addNavigation(questions, block, wrapper);
+  const path = window.location.pathname;
+  const questions = await buildQuestions(path, rows.slice(startIndex));
+  if (randomizeOrder === 'true' && type !== 'traditional') {
+    questions.forEach((question) => {
+      question.answers = randomOrder(question.answers);
+    });
+    randomOrder(questions);
   }
 
-  block.classList.add('showed');
+  async function createQuizBlock(quizState = null) {
+    const quizzes = document.querySelectorAll('.quiz.block').length;
+    const quizId = await sha256Hash(`${path}-${quizzes}`);
+    block.innerHTML = '';
+    quizStatus = quizState || {
+      quizElementId: quizId,
+      type,
+      status: 'PROGRESS',
+      questions: [],
+    };
+    const wrapper = await
+    renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, quizStatus);
+    showQuestion(0, wrapper, null, questions.length);
+
+    if (questions.length > 1) {
+      await addNavigation(
+        questions,
+        block,
+        wrapper,
+        type,
+        completeMessage,
+        testPercentage,
+        showIndicatorsViaReviewMode,
+        redoQuizLabel,
+        doNotMarkLessonAsCompleted,
+      );
+    }
+
+    block.classList.add('showed');
+  }
+  await createQuizBlock();
 
   //  quiz completion event subscriber
-  store.subscribe(({ quiz }) => quiz, async ({ isCorrect }) => {
-    if (isCorrect) {
-      markQuizCompleted(block, questions, completeMessage);
+  store.subscribe(({ quiz }) => quiz, async ({ quizStatus: status, redo }) => {
+    if (status?.isCorrect && type === 'traditional') {
+      await markQuizCompleted(
+        block,
+        questions,
+        type,
+        completeMessage,
+      );
     }
+    if (status?.type && (type === 'activity' || type === 'test')) {
+      await createQuizBlock(status);
+      await markQuizCompletedAdvanced(
+        block,
+        questions,
+        type,
+        status,
+        testPercentage,
+        showIndicatorsViaReviewMode,
+        redoQuizLabel,
+      );
+    }
+    if (redo) await createQuizBlock();
   });
 }

@@ -2,7 +2,6 @@ import {
   decorateIcons,
   decorateBlock,
   decorateTemplateAndTheme,
-  waitForFirstImage,
   loadCSS,
   toCamelCase,
   toClassName,
@@ -305,7 +304,7 @@ function isExternalImage(element) {
   // if the element is not an anchor, it's not an external image
   if (element.tagName !== 'A') return false;
   // IMPLICIT via CME Group Delivery URLs or OOTB DMOpenAPI Delivery URLs
-  return /\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/.test(element.getAttribute('href'));
+  return /\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/i.test(element.getAttribute('href'));
 }
 
 /**
@@ -436,6 +435,9 @@ function decorateLightboxImages(main) {
     // Create lightbox structure
     const wrapper = document.createElement('div');
     wrapper.className = 'lightbox-container';
+    if (strongParent.querySelector('em')) {
+      strongParent.closest('p').classList.add('center-img');
+    }
 
     img.setAttribute('data-lightbox', imageUrl);
     img.classList.add('lightbox-image');
@@ -476,6 +478,21 @@ function decorateLightboxImages(main) {
 
       // Add flag to help prevent multiple click handlers from being added
       img.setAttribute('data-lightbox-ready', 'true');
+    }
+  });
+}
+
+/**
+ * Decorates Headings
+*/
+function decorateHeadings(main) {
+  const headings = main.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  headings.forEach((heading) => {
+    const text = heading.textContent;
+    const modifierMatch = text.match(/\[([^\]]+)\]/);
+    if (modifierMatch) {
+      heading.classList.add(modifierMatch[1]);
+      heading.innerHTML = heading.innerHTML.replace(modifierMatch[0], '');
     }
   });
 }
@@ -573,17 +590,20 @@ export function decorateButtons(element) {
     // Login/Register/OneClick handling
     if (isOneClick) {
       a.addEventListener('click', (event) => {
+        event.preventDefault();
         handleOneClickForm(event, a);
       }, { capture: true });
     }
     if (isLogin) {
       a.addEventListener('click', (event) => {
+        event.preventDefault();
         handleLoginRedirection(event, a);
       }, { capture: true });
     }
 
     if (isRegistration) {
       a.addEventListener('click', (event) => {
+        event.preventDefault();
         handleRegistrationRedirection(event, a);
       }, { capture: true });
     }
@@ -647,6 +667,7 @@ function decorateTextHighlights(main) {
 export function decorateMain(main) {
   // hopefully forward compatible button decoration
   decorateButtons(main);
+  decorateHeadings(main);
   decorateIcons(main);
   enhanceIconAccessibility();
   buildAutoBlocks(main);
@@ -705,6 +726,20 @@ export async function loadTemplate(doc, templateName) {
   }
 }
 
+async function waitForFirstImage(section) {
+  const lcpCandidate = section.querySelector('img:not([data-icon-name])');
+  await new Promise((resolve) => {
+    if (lcpCandidate && !lcpCandidate.complete) {
+      lcpCandidate.setAttribute('loading', 'eager');
+      lcpCandidate.setAttribute('fetchpriority', 'high');
+      lcpCandidate.addEventListener('load', resolve);
+      lcpCandidate.addEventListener('error', resolve);
+    } else {
+      resolve();
+    }
+  });
+}
+
 /**
  * Loads everything needed to get to LCP.
  * @param {Element} doc The container element
@@ -718,11 +753,10 @@ async function loadEager(doc) {
     decorateMain(main);
     updateTitleAndMetaTags(document.title);
 
-    if (templateName) {
-      await loadTemplate(doc, templateName);
-    }
     document.body.classList.add('appear');
-    await loadSection(main.querySelector('.section'), waitForFirstImage);
+
+    const templatePromise = templateName ? loadTemplate(doc, templateName) : Promise.resolve();
+    await loadSection(main.querySelector('.section'), async (section) => Promise.all([templatePromise, waitForFirstImage(section)]));
   }
 
   try {

@@ -5,6 +5,7 @@ import {
   preserveHideParameters,
 } from '../../../scripts/utils.js';
 import { store } from '../../../scripts/store/store.js';
+import { getCourseData } from '../../../scripts/course/course.js';
 
 function getTotalLessonsCount(courseData) {
   return courseData.hasChapters
@@ -96,10 +97,11 @@ function createLessonElement(lesson, currentPath) {
   const iconSpan = createElement('span', { class: lesson.completed ? 'icon-check' : 'icon-uncheck' });
   lessonLink.append(titleSpan, iconSpan);
   li.appendChild(lessonLink);
-  if (lesson.path === currentPath) {
+  const currentLesson = currentPath === lesson.path;
+  if (currentLesson) {
     li.classList.add('current');
   }
-  return { li, isCurrent: lesson.path === currentPath };
+  return { li, isCurrent: currentLesson };
 }
 
 function createLessonsList(lessons, currentPath, shouldShow = false) {
@@ -244,7 +246,7 @@ function renderOrderedContent(courseData, currentPath, content) {
 
 async function buildCourseNav(main, courseData, prevCourseData) {
   await loadCSS(`${window.hlx.codeBasePath}/blocks/dynamic/course-nav/course-nav.css`);
-  const currentPath = window.location.pathname;
+  const currentPath = window.location.pathname.replace(/\.html$/, '');
   const totalLessons = getTotalLessonsCount(courseData);
 
   let nav = main.querySelector('.course-nav');
@@ -310,10 +312,13 @@ async function buildCourseNav(main, courseData, prevCourseData) {
 export default async function createCourseNav(main) {
   // Disable if not an allowed template
   const template = getMetadata('template');
-  if (!['course', 'lesson'].includes(template.toLowerCase())) return;
+  if (!['course', 'lesson', 'lesson-standalone'].includes(template.toLowerCase())) return;
 
+  //  init courseNav
+  const data = await getCourseData();
+  buildCourseNav(main, data);
+  let prevData = data;
   //  courseData change event
-  let prevData;
   store.subscribe(({ courseData }) => courseData, (courseData) => {
     if (courseData) {
       buildCourseNav(main, courseData, prevData);

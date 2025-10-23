@@ -284,6 +284,15 @@ function generateRandomId() {
   return Math.random().toString(36).slice(-8);
 }
 
+async function sha256Hash(str) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
 async function parseTime(time) {
   if (!time || !/^[0-9]+:[0-9]+$/.test(time)) {
     return '';
@@ -411,6 +420,7 @@ function buildSlider(
   disableOnDesktop = false,
   inverse = false,
   responsiveSlider = false,
+  refreshCallback = null,
 ) {
   if (!sliderPromise) {
     sliderPromise = loadScript('/aemedge/scripts/third-party/glider/glider.min.js');
@@ -430,7 +440,7 @@ function buildSlider(
       const nextImg = createElement('img', { 'data-icon-name': 'chevron-right', src: '/aemedge/icons/chevron-right.svg' });
       prevClass = `glider-prev-${uniqueId}`;
       nextClass = `glider-next-${uniqueId}`;
-      const prev = createElement('button', { 'aria-label': 'Previous', class: `glider-prev ${prevClass}` }, prevImg);
+      const prev = createElement('button', { 'aria-label': 'Previous', class: `glider-prev ${prevClass} ${inverse && 'inverse'}` }, prevImg);
       const next = createElement('button', { 'aria-label': 'Next', class: `glider-next ${nextClass} ${inverse && 'inverse'}` }, nextImg);
       parent.append(prev);
       parent.append(next);
@@ -448,6 +458,12 @@ function buildSlider(
         }
         // eslint-disable-next-line no-new, no-undef
         gliderInstance = new Glider(currentEl, config);
+        if (refreshCallback) {
+          gliderInstance.ele.addEventListener('glider-refresh', () => {
+            refreshCallback(gliderInstance.ele);
+          });
+          refreshCallback(gliderInstance.ele);
+        }
       }
     };
 
@@ -537,8 +553,10 @@ function checkDomain(url) {
   let result = domainCheckCache[urlToCheck.hostname];
   if (!result) {
     const isProd = PRODUCTION_DOMAINS.some((host) => urlToCheck.hostname.includes(host));
-    const isAEM = ['aem.page', 'aem.live'].some((host) => urlToCheck.hostname.includes(host));
+    const isAEM = ['aem.page', 'aem.live', 'aem.reviews'].some((host) => urlToCheck.hostname.includes(host));
     const isLocal = urlToCheck.hostname.includes('localhost');
+    const isReviews = urlToCheck.hostname.includes('aem.reviews');
+    const isLive = urlToCheck.hostname.includes('aem.live');
     const isPreview = isLocal || urlToCheck.hostname.includes('aem.page');
     const isKnown = isProd || isAEM || isLocal;
     const isExternal = !isKnown;
@@ -546,6 +564,8 @@ function checkDomain(url) {
       isProd,
       isAEM,
       isLocal,
+      isReviews,
+      isLive,
       isKnown,
       isExternal,
       isPreview,
@@ -772,6 +792,14 @@ async function addFragmentBlock(fragmentUrl) {
   await loadBlock(fragmentBlock);
 }
 
+function debounce(fn, delay) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 export {
   loadScript,
   createElement,
@@ -790,6 +818,7 @@ export {
   checkDomain,
   buildSlider,
   generateRandomId,
+  sha256Hash,
   isFeatureToggled,
   readBlockConfig,
   toStartCase,
@@ -801,4 +830,5 @@ export {
   showAuthToast,
   addFragmentBlock,
   getLanguageLabel,
+  debounce,
 };

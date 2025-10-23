@@ -17,8 +17,8 @@ export class AuthRedirectionHandler {
   }
 
   handleLoad() {
-    this.initializeLabels();
-    authentication?.setHandler('logout_redirection', () => {
+    authentication?.setHandler('logout_redirection', async () => {
+      await this.initializeLabels();
       showAuthToast(
         this.logoutToast,
         'success',

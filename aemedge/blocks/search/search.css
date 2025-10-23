@@ -427,6 +427,10 @@
         letter-spacing: 0.0938rem;
         text-transform: uppercase;
         color: var(--gray2);
+
+        &.highlight {
+          color: var(--blue4);
+        }
       }
 
       & .mobile-filter-section-toggle {

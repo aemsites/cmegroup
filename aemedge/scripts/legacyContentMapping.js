@@ -1,3 +1,6 @@
+import { checkDomain } from './utils.js';
+import { urlByEnvType } from './utils/index.js';
+
 function convertReadTimeFormat(duration) {
   let durationMin = '';
   const [minStr, secStr] = duration.split(':');
@@ -30,14 +33,24 @@ function convertMediaTypeToSubtemplate(mediaType) {
 }
 
 function normalizeLegacyPath(path) {
+  if (!path) {
+    return '';
+  }
   let newPath = path;
   if (newPath.startsWith('/content/cmegroup/en')) {
     newPath = newPath.slice('/content/cmegroup/en'.length);
   } else if (newPath.startsWith('/content/cmegroup')) {
     newPath = newPath.slice('/content/cmegroup'.length);
+  } else if (newPath.startsWith('/content/openmarkets')) {
+    newPath = newPath.replace('/content/openmarkets/en', '/openmarkets');
   }
-  if (!newPath.endsWith('.html')) {
+  if (!newPath.includes('.')) {
     newPath += '.html';
+  }
+  const domainInfo = window.location.hostname ? checkDomain(window.location)
+    : checkDomain(window.parent.location);
+  if (domainInfo.isAEM) {
+    newPath = urlByEnvType() + newPath;
   }
   return newPath;
 }
@@ -47,27 +60,37 @@ function mapLegacyArticleData(legacyData) {
     metadata: {
       thumbnailImage: image,
       primaryTopics,
+      primaryTopic: singlePrimaryTopic,
+      mediaType,
     },
     title,
     description,
     path,
     readTime,
     date,
-    mediaType,
+    author,
   } = legacyData;
   const durationMin = convertReadTimeFormat(readTime);
   const subTemplates = convertMediaTypeToSubtemplate(mediaType);
   const newPath = normalizeLegacyPath(path);
+  const newImage = normalizeLegacyPath(image);
+  let primaryTopic = (Array.isArray(primaryTopics) && primaryTopics.length > 0)
+    ? primaryTopics[0] : primaryTopics;
+  if (!primaryTopic) {
+    primaryTopic = singlePrimaryTopic || '';
+  }
+  primaryTopic = primaryTopic.includes(':') ? primaryTopic.split(':')[1] : primaryTopic;
   return {
     path: newPath,
     date,
     title,
     description,
     readTime: durationMin,
+    author,
     metadata: {
       'sub-template': subTemplates,
-      image,
-      'primary-topic': primaryTopics,
+      image: newImage,
+      'primary-topic': primaryTopic,
     },
   };
 }
@@ -97,10 +120,22 @@ const legacyEducationTemplates = [
   '/conf/cmegroupaem/settings/wcm/templates/cme-group-standalone-lesson-template',
 ];
 
+const legacyOpenMarketsTemplates = [
+  '/conf/openmarkets/settings/wcm/templates/openmarkets-standard-article',
+  '/conf/openmarkets/settings/wcm/templates/openmarkets-showcase-article',
+  '/conf/openmarkets/settings/wcm/templates/openmarkets-video-template',
+];
+
+const legacyNewsTemplates = [
+  '/conf/cmegroupaem/settings/wcm/templates/cme-group-press-release-template',
+];
+
 export {
   legacyArticleTemplates,
   mapLegacyArticleData,
   isLegacyContent,
   legacyEducationTemplates,
   normalizeLegacyPath,
+  legacyOpenMarketsTemplates,
+  legacyNewsTemplates,
 };
