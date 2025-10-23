@@ -2,8 +2,11 @@
 import { createFilter } from './filter/filter.js';
 import fullService from './full-service.js';
 
-export default async function decorate(block) {
-  const fullData = await fullService();
-  const filtro = await createFilter(fullData.filters);
-  block.append(filtro);
+export default function decorate(block) {
+  fullService().then((fullData) => {
+    const filter = createFilter(fullData.filters);
+    block.append(filter);
+  }).catch((error) => {
+    console.error('Error loading full service data:', error);
+  });
 }

@@ -1,10 +1,22 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-console */
-import { createElement } from '../../../scripts/utils.js';
+import { createElement, i18n } from '../../../scripts/utils.js';
 import createDropdowns from './controls/dropdown-filter.js';
 import { createSearchInput } from './controls/search-input.js';
 import { createFilterPillsFromDropdowns } from './controls/pills.js';
 import createCheckbox from './controls/checkbox.js';
+
+const [
+  resetText,
+  filterText,
+  filtersText,
+  applyText,
+] = await Promise.all([
+  i18n('Reset'),
+  i18n('Filter'),
+  i18n('Filters'),
+  i18n('Apply'),
+]);
 
 function getFiltersFromURL() {
   const params = new URLSearchParams(window.location.search);
@@ -262,7 +274,7 @@ function buildFiltersObject(
   return filters;
 }
 
-export async function createFilter(options) {
+export function createFilter(options) {
   let isDesktop = window.innerWidth >= 769;
   let currentSearchTerm = '';
   let searchTimeout = null;
@@ -292,7 +304,7 @@ export async function createFilter(options) {
   });
   const closeModal = createElement('button', { class: 'button-close-modal' });
   const title = createElement('h2');
-  title.textContent = 'Filters';
+  title.textContent = filtersText;
   const scrollMobileWrapper = createElement('section', {
     class: 'scroll-mobile-wrapper',
   });
@@ -361,9 +373,9 @@ export async function createFilter(options) {
     },
   });
 
-  resetButton.textContent = 'Reset';
-  filterButton.textContent = 'Filter';
-  applyButton.textContent = 'Apply';
+  resetButton.textContent = resetText;
+  filterButton.textContent = filterText;
+  applyButton.textContent = applyText;
 
   // Create search input with debounce and click handler
   const customSearch = createSearchInput({
@@ -516,30 +528,21 @@ export async function createFilter(options) {
   });
 
   if (hasURLFilters) {
-    // Convert URL filters to dropdown selections format
-    const selections = convertURLFiltersToSelections(
-      urlFilters,
-      groupData,
-      options,
-    );
+    const selections = convertURLFiltersToSelections(urlFilters, groupData, options);
 
-    // Apply selections to dropdowns
     dropdownsContainer.setSelections(selections);
 
-    // Apply search term
     if (urlFilters.searchTerm) {
       currentSearchTerm = urlFilters.searchTerm;
       customSearch.setValue(urlFilters.searchTerm);
     }
 
-    // Apply checkbox
     if (urlFilters.tags) {
       checkboxValue = true;
       checkbox.setChecked(true);
     }
 
-    // Sync pills and fetch data after a small delay
-    setTimeout(() => {
+    Promise.resolve().then(() => {
       const allSelections = dropdownsContainer.getSelections();
       pillsContainer.clear();
       pillsContainer.syncWithDropdowns(allSelections);
@@ -551,7 +554,7 @@ export async function createFilter(options) {
         groupData,
       );
       fetchTableData(filters);
-    }, 100);
+    });
   }
 
   return filter;

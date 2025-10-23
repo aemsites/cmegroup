@@ -1,4 +1,10 @@
-import { createElement } from '../../../../scripts/utils.js';
+import { createElement, i18n } from '../../../../scripts/utils.js';
+
+const [
+  placeholderText,
+] = await Promise.all([
+  i18n('Search by product name or symbol'),
+]);
 
 function createSearchInput(options = {}) {
   const searchComponent = createElement('div', {
@@ -8,7 +14,7 @@ function createSearchInput(options = {}) {
     class: 'search-input',
   });
   searchInput.type = 'text';
-  searchInput.placeholder = 'Search by product name or symbol';
+  searchInput.placeholder = placeholderText;
 
   const searchButton = createElement('button', {
     class: 'search-icon',

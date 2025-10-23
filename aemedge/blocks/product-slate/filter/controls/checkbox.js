@@ -1,4 +1,10 @@
-import { createElement } from '../../../../scripts/utils.js';
+import { createElement, i18n } from '../../../../scripts/utils.js';
+
+const [
+  checkboxLabel,
+] = await Promise.all([
+  i18n('New Products Only'),
+]);
 
 function createCheckbox(options = {}) {
   const container = createElement('div', {
@@ -45,7 +51,7 @@ function createCheckbox(options = {}) {
   const label = createElement('label', {
     class: 'checkbox-label',
   });
-  label.textContent = 'New Products Only';
+  label.textContent = checkboxLabel;
   label.style.cursor = 'pointer';
 
   // Assemble elements

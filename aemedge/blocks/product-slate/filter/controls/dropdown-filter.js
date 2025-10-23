@@ -1,6 +1,17 @@
 /* eslint-disable class-methods-use-this */
-import { createElement } from '../../../../scripts/utils.js';
+import { createElement, i18n } from '../../../../scripts/utils.js';
 
+const [
+  assetsText,
+  exchangesText,
+  venuesText,
+  clearedText,
+] = await Promise.all([
+  i18n('Asset Classes & Product Groups'),
+  i18n('Exchanges'),
+  i18n('Venues'),
+  i18n('Cleared As'),
+]);
 class UniversalDropdown {
   constructor(container, config) {
     this.container = container;
@@ -356,10 +367,10 @@ function createDropdowns(apiData, options = {}) {
   const container = createElement('div', { class: 'dropdowns-container' });
 
   const dropdownConfigs = {
-    group: { title: 'Asset Classes & Product Groups', isHierarchical: true },
-    exch: { title: 'Exchanges', isHierarchical: false },
-    venues: { title: 'Venues', isHierarchical: false },
-    cleared: { title: 'Cleared As', isHierarchical: false },
+    group: { title: assetsText, isHierarchical: true },
+    exch: { title: exchangesText, isHierarchical: false },
+    venues: { title: venuesText, isHierarchical: false },
+    cleared: { title: clearedText, isHierarchical: false },
   };
 
   const dropdownInstances = new Map();
