@@ -200,7 +200,7 @@
       }
 
       &:active .slider-chevron-icon {
-        border-color: transparent;
+        border-color: var(--white);
       }
 
       &.slider-arrow-prev {

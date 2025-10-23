@@ -590,17 +590,20 @@ export function decorateButtons(element) {
     // Login/Register/OneClick handling
     if (isOneClick) {
       a.addEventListener('click', (event) => {
+        event.preventDefault();
         handleOneClickForm(event, a);
       }, { capture: true });
     }
     if (isLogin) {
       a.addEventListener('click', (event) => {
+        event.preventDefault();
         handleLoginRedirection(event, a);
       }, { capture: true });
     }
 
     if (isRegistration) {
       a.addEventListener('click', (event) => {
+        event.preventDefault();
         handleRegistrationRedirection(event, a);
       }, { capture: true });
     }

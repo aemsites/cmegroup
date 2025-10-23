@@ -56,7 +56,7 @@ export class Authentication {
   initialize() {
     const loginProcessUrl = `${window.location.origin}/login-confirmed${isCMEEnv() ? '.html' : ''}`;
     // ToDo: the following urls must be updated before going live
-    this.loginUrl = `http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${loginProcessUrl}`;
+    this.loginUrl = `http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=${urlByEnvType()}&TARGET=${loginProcessUrl}`;
     this.registerUrl = 'https://loginnr.cmegroup.com/sso/register/';
     this.logoutProfileUrl = 'https://myprofilenr.cmegroup.com/admin/ssoflo';
     // this.loginUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${loginProcessUrl}`;
