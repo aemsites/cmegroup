@@ -296,10 +296,10 @@ export async function createCourseBaseTemplate(courseData) {
   const main = document.querySelector('main');
   const firstSection = main.querySelector('.section');
   const defaultContentWrapper = firstSection?.querySelector('.default-content-wrapper');
-  
+
   // Check if wrapper placeholder exists
   const wrapperPlaceholder = main.querySelector('.course-header-wrapper-placeholder');
-  
+
   // Create wrapper div that will contain both header and premium label
   const headerWrapper = createElement('div', { class: 'course-header-wrapper' });
   const header = createElement('div', { class: 'course-header' });
@@ -352,7 +352,7 @@ export async function createCourseBaseTemplate(courseData) {
       type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${lessons.length}`;
     }
     header.appendChild(type);
-    
+
     // Add premium label to wrapper if this is a premium lesson
     if (isPremium) {
       const lessonPremiumLabel = createElement('div', { class: 'premium-label' });
@@ -370,7 +370,7 @@ export async function createCourseBaseTemplate(courseData) {
   // Add header to wrapper
   headerWrapper.appendChild(header);
 
-  // Replace wrapper placeholder if it exists, otherwise insert at beginning of default-content-wrapper
+  // Replace placeholder if exists, otherwise prepend to default-content-wrapper
   if (wrapperPlaceholder) {
     wrapperPlaceholder.replaceWith(headerWrapper);
   } else if (defaultContentWrapper) {
