@@ -220,7 +220,7 @@ export default async function lessonTemplate() {
     }
 
     // Create placeholder for course header to prevent CLS
-    createCourseNavPlaceholder();
+    //createCourseNavPlaceholder();
     createCourseHeaderPlaceholder();
 
     const courseData = await getCourseData();
