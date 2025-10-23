@@ -509,8 +509,12 @@ export async function createDynamicCards(block) {
     if (!indexFilter.limit) {
       indexFilter.limit = articleTypeConfig.limit;
     }
-    indexFilter.orderBy = 'date';
-    indexFilter.sortDirection = 'desc';
+    if (!indexFilter.orderBy) {
+      indexFilter.orderBy = 'date';
+    }
+    if (!indexFilter.sortDirection) {
+      indexFilter.sortDirection = 'desc';
+    }
     [filteredData] = await Promise.all([
       getIndexedContent(indexFilter),
       setupDayjsLibs(),
