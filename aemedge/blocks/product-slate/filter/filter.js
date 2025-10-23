@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-console */
-import { createElement, i18n } from '../../../scripts/utils.js';
+import { createElement, i18n, debounce } from '../../../scripts/utils.js';
 import createDropdowns from './controls/dropdown-filter.js';
 import { createSearchInput } from './controls/search-input.js';
 import { createFilterPillsFromDropdowns } from './controls/pills.js';
@@ -277,7 +277,6 @@ function buildFiltersObject(
 export function createFilter(options) {
   let isDesktop = window.innerWidth >= 769;
   let currentSearchTerm = '';
-  let searchTimeout = null;
   let checkboxValue = false;
   let pillsContainer;
   let groupData;
@@ -377,23 +376,22 @@ export function createFilter(options) {
   filterButton.textContent = filterText;
   applyButton.textContent = applyText;
 
-  // Create search input with debounce and click handler
+  // Create search input with debounce
+  const debouncedFetch = debounce((value) => {
+    const allSelections = dropdownsContainer.getSelections();
+    const filters = buildFiltersObject(
+      allSelections,
+      value,
+      checkboxValue,
+      groupData,
+    );
+    fetchTableData(filters);
+  }, 500);
+
   const customSearch = createSearchInput({
     onSearch: (value) => {
       currentSearchTerm = value;
-
-      if (searchTimeout) clearTimeout(searchTimeout);
-
-      searchTimeout = setTimeout(() => {
-        const allSelections = dropdownsContainer.getSelections();
-        const filters = buildFiltersObject(
-          allSelections,
-          value,
-          checkboxValue,
-          groupData,
-        );
-        fetchTableData(filters);
-      }, 500);
+      debouncedFetch(value);
     },
 
     onSearchClick: (value) => {
