@@ -400,11 +400,24 @@ async function renderProductPath(url, productRoot) {
 
 function updateTabsActiveState(url) {
   const currPath = normalizePath(new URL(url, window.location.origin).pathname);
+
+  const isEquivalentToTab = (current, tabHref) => {
+    const linkPath = normalizePath(new URL(tabHref, window.location.origin).pathname);
+    // Base path for the tab (strip /overview if present)
+    const base = linkPath.endsWith('/overview')
+      ? normalizePath(linkPath.replace(/\/overview$/, ''))
+      : linkPath;
+    return current === base
+      || current === normalizePath(`${base}/overview`)
+      || current === normalizePath(`${base}/options`);
+  };
+
   document.querySelectorAll('.product-tabs-nav a').forEach((link) => {
-    const linkPath = normalizePath(new URL(link.getAttribute('href'), window.location.origin).pathname);
-    const isActive = currPath === linkPath || currPath === normalizePath(`${linkPath}/overview`);
-    link.classList.toggle('is-active', isActive);
+    const href = link.getAttribute('href');
+    const active = isEquivalentToTab(currPath, href);
+    link.classList.toggle('is-active', active);
   });
+
   document.querySelectorAll('.product-subtabs a').forEach((link) => {
     const linkPath = normalizePath(new URL(link.getAttribute('href'), window.location.origin).pathname);
     link.classList.toggle('is-active', currPath === linkPath);

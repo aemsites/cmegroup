@@ -116,7 +116,4 @@ export default async function decorate(block) {
     items = buildFromCanonical(window.location.pathname);
   }
   renderNav(block, items);
-
-  // SPA-like enhancement on product root for hash deep-links
-  // No template-level behavior here; nav-only block.
 }
