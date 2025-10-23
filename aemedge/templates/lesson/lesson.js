@@ -147,7 +147,7 @@ async function initLateralNav(courseData) {
   if (isFeatureToggled('hideCourseNav', 'y', true) || window.location.pathname.includes('.hideCourseNav.')) {
     return null;
   }
-  const currentPath = window.location.pathname;
+  const currentPath = window.location.pathname.replace(/\.html$/, '');
   const flatLessons = flattenLessons(courseData);
   const { prevHref, nextHref } = findNavigationLinks(currentPath, flatLessons);
   await addLateralNavigation(prevHref, nextHref);
