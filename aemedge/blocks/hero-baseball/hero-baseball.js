@@ -1,9 +1,11 @@
 import { getMetadata } from '../../scripts/aem.js';
+import { getProductMetadata } from '../../scripts/utils/product.js';
 import { createElement } from '../../scripts/utils.js';
 
 const HERO_API_CONFIG = {
   endpoint: '/aemedge/blocks/hero-baseball/mock-api/contracts-by-number.json',
 };
+
 
 function formatNumber(num) {
   if (!num && num !== 0) return '-';
@@ -66,7 +68,7 @@ function createHeroStructure() {
 
 async function populateHeroData(block) {
   try {
-    const productId = getMetadata('product-id');
+    const { productId, productName } = await getProductMetadata();
     if (!productId) return;
 
     const response = await fetch(HERO_API_CONFIG.endpoint);
@@ -78,7 +80,7 @@ async function populateHeroData(block) {
 
     const h1 = block.querySelector('h1');
     const subtitle = block.querySelector('.hero-subtitle');
-    if (h1) h1.textContent = contractData.productName || getMetadata('product') || '';
+    if (h1) h1.textContent = contractData.productName || productName || '';
     if (subtitle) subtitle.textContent = contractData.expirationMonth || '';
 
     const currentPrice = block.querySelector('.current-price .value');

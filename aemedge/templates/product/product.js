@@ -6,25 +6,11 @@ import {
   toClassName,
 } from '../../scripts/aem.js';
 
-function normalizePath(pathname) {
-  try {
-    const url = new URL(pathname, window.location.origin);
-    const p = url.pathname;
-    return p.length > 1 && p.endsWith('/') ? p.slice(0, -1) : p;
-  } catch (e) {
-    return pathname;
-  }
-}
-
-function computeProductRoot(pathname) {
-  const path = normalizePath(pathname);
-  const segs = path.split('/').filter((s) => s);
-  if (!segs.length) return '/';
-  const last = segs[segs.length - 1];
-  const TABS = ['overview', 'quotes', 'settlements', 'volume', 'specs', 'margins', 'calendar'];
-  const isTab = TABS.includes(toClassName(last));
-  return `/${(isTab ? segs.slice(0, -1) : segs).join('/')}`;
-}
+import {
+  normalizePath,
+  computeProductRoot,
+  loadProductIndex,
+} from '../../scripts/utils/product.js';
 
 function findProductTabsSection() {
   const main = document.querySelector('main');
@@ -35,6 +21,13 @@ function findHeroSection() {
   const main = document.querySelector('main');
   const hero = main?.querySelector('.hero-baseball');
   return hero ? hero.closest('.section') : null;
+}
+
+async function indexHasPath(path) {
+  const idx = await loadProductIndex();
+  if (!idx || !Array.isArray(idx.data)) return false;
+  const norm = normalizePath(path);
+  return !!idx.data.find((row) => normalizePath(row.path) === norm);
 }
 
 async function insertFragmentAfter(section, href) {
@@ -120,7 +113,28 @@ async function insertProductTabsIfMissing(productRoot) {
   const tabsSection = main.querySelector('.product-tabs-container');
   if (tabsSection) return tabsSection;
   const landingRows = await fetchLandingTabRows(productRoot);
-  const block = buildProductTabsBlock(productRoot, landingRows);
+  let rowsForBuild = landingRows;
+  if (!rowsForBuild) {
+    // filter canonical by index existence
+    await loadProductIndex();
+    const canonical = [
+      ['Overview', productRoot],
+      ['Quotes', `${productRoot}/quotes`],
+      ['Settlements', `${productRoot}/settlements`],
+      ['Volume & OI', `${productRoot}/volume`],
+      ['Contract Specs', `${productRoot}/specs`],
+      ['Margins', `${productRoot}/margins`],
+      ['Calendar', `${productRoot}/calendar`],
+    ];
+    // eslint-disable-next-line no-await-in-loop
+    const filtered = [];
+    for (let i = 0; i < canonical.length; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      if (await indexHasPath(canonical[i][1])) filtered.push(canonical[i]);
+    }
+    rowsForBuild = filtered;
+  }
+  const block = buildProductTabsBlock(productRoot, rowsForBuild);
   const section = createSectionWithBlock(block);
   const heroSection = findHeroSection();
   if (heroSection && heroSection.parentNode) {
@@ -156,6 +170,97 @@ function ensureHeroThenTabsOrder() {
   }
 }
 
+async function insertSubTabsIfApplicable(productRoot) {
+  const main = document.querySelector('main');
+  if (!main) return;
+  const tabsSection = findProductTabsSection();
+  if (!tabsSection) return;
+
+  // Determine if we are on a primary tab or its /options variant
+  const currentPath = normalizePath(window.location.pathname);
+  const rel = normalizePath(currentPath).replace(normalizePath(productRoot), '');
+  const parts = rel.split('/').filter((p) => p);
+  if (parts.length === 0) return; // on product root
+  const primaryTab = parts[0];
+  if (primaryTab === 'overview') return; // no sub-tabs on overview
+
+  const futuresPath = `${productRoot}/${primaryTab}`;
+  const optionsPath = `${futuresPath}/options`;
+
+  const [hasFutures, hasOptions] = await Promise.all([
+    indexHasPath(futuresPath),
+    indexHasPath(optionsPath),
+  ]);
+  if (!hasFutures && !hasOptions) return;
+  if (hasFutures && !hasOptions) return; // single page, no toggle
+
+  // Build sub-tabs nav
+  const nav = document.createElement('nav');
+  nav.className = 'product-subtabs';
+  nav.setAttribute('aria-label', 'Sub tabs');
+
+  const list = document.createElement('ul');
+  list.className = 'product-subtabs-list';
+
+  if (hasFutures) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = futuresPath;
+    a.textContent = 'Futures';
+    if (currentPath === normalizePath(futuresPath)) a.classList.add('is-active');
+    li.appendChild(a);
+    list.appendChild(li);
+  }
+  if (hasOptions) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = optionsPath;
+    a.textContent = 'Options';
+    if (currentPath === normalizePath(optionsPath)) a.classList.add('is-active');
+    li.appendChild(a);
+    list.appendChild(li);
+  }
+
+  nav.appendChild(list);
+
+  // Place sub-tabs inline, to the right of product-tabs within the same wrapper
+  const wrapper = tabsSection.querySelector('.product-tabs-wrapper')
+    || tabsSection.querySelector(':scope > div');
+  if (!wrapper) return;
+  // Remove any existing inline sub-tabs first
+  const existingInline = tabsSection.querySelector('.product-subtabs');
+  if (existingInline && existingInline.parentNode) {
+    existingInline.parentNode.removeChild(existingInline);
+  }
+  wrapper.appendChild(nav);
+}
+
+function ensureSubTabsContentContainer() {
+  const tabsSection = findProductTabsSection();
+  if (!tabsSection || !tabsSection.parentNode) return null;
+  let container = tabsSection.nextElementSibling;
+  if (!container || !container.classList.contains('product-subtabs-content')) {
+    container = document.createElement('div');
+    container.className = 'section product-subtabs-content';
+    const inner = document.createElement('div');
+    container.appendChild(inner);
+    tabsSection.parentNode.insertBefore(container, tabsSection.nextSibling);
+  }
+  return container.querySelector('div');
+}
+
+function moveCurrentPageContentUnderSubTabs() {
+  const container = ensureSubTabsContentContainer();
+  if (!container) return;
+  const main = document.querySelector('main');
+  const sections = [...main.querySelectorAll(':scope > .section')];
+  const movable = sections.filter((sec) => !sec.querySelector('.hero-baseball')
+    && !sec.classList.contains('product-tabs-container')
+    && !sec.classList.contains('product-subtabs-content'));
+  if (!movable.length) return;
+  movable.forEach((sec) => container.appendChild(sec));
+}
+
 export default async function productTemplate() {
   const template = (getMetadata('template') || '').toLowerCase();
   if (template !== 'product') return;
@@ -172,7 +277,13 @@ export default async function productTemplate() {
   // enforce order: hero first, then tabs
   ensureHeroThenTabsOrder();
 
+  // insert sub-tabs (e.g., Futures/Options) when applicable
+  await insertSubTabsIfApplicable(productRoot);
+  // normalize current page content to live under sub-tabs area
+  moveCurrentPageContentUnderSubTabs();
+
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
+  // Only inject fragment on true product root; not on tab or options pages
   if (onRoot) {
     const hashKey = toClassName(window.location.hash.replace('#', ''));
     const targetKey = hashKey || 'overview';
