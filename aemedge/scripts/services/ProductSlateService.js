@@ -1,11 +1,11 @@
 import {
   apiGet,
-  apiPost,
+  // apiPost,
   getResponseData,
   urlByEnvType,
 } from '../utils/index.js';
 
-export async function getProductSlateData({
+export default async function getProductSlateData({
   pageNumber,
   pageSize,
   sortField,
@@ -22,68 +22,64 @@ export async function getProductSlateData({
   excludeColumns,
   id,
   exactMatchFirst,
-}: any): any {
+}) {
   const query = [];
 
-  if (sortDirection)
-    query.push('sortAsc=' + Boolean(sortDirection === 'asc').toString());
-  if (sortField) query.push('sortField=' + sortField);
+  if (sortDirection) query.push(`sortAsc=${Boolean(sortDirection === 'asc').toString()}`);
+  if (sortField) query.push(`sortField=${sortField}`);
 
   if (pageNumber) {
-    query.push('pageNumber=' + pageNumber);
+    query.push(`pageNumber=${pageNumber}`);
   } else {
     query.push('pageNumber=1');
   }
 
-  if (pageSize) query.push('pageSize=' + pageSize.toString());
+  if (pageSize) query.push(`pageSize=${pageSize.toString()}`);
 
   if (groups) {
-    query.push('group=' + groups);
+    query.push(`group=${groups}`);
   } else {
     query.push('group=');
   }
 
   if (subGroups?.length) {
-    query.push('subGroup=' + subGroups);
+    query.push(`subGroup=${subGroups}`);
   } else {
     query.push('subGroup=');
   }
 
   if (venues) {
-    query.push('venues=' + venues);
+    query.push(`venues=${venues}`);
   } else {
     query.push('venues=');
   }
 
   if (exch?.length) {
-    query.push('exch=' + exch);
+    query.push(`exch=${exch}`);
   } else {
     query.push('exch=');
   }
 
   if (cleared?.length) {
-    query.push('cleared=' + cleared);
+    query.push(`cleared=${cleared}`);
   } else {
     query.push('cleared=');
   }
 
-  if (tags) query.push('tags=' + tags);
-  if (cat && cat.length) query.push('cat=' + cat);
-  if (subCat && subCat.length) query.push('subCat=' + subCat);
+  if (tags) query.push(`tags=${tags}`);
+  if (cat && cat.length) query.push(`cat=${cat}`);
+  if (subCat && subCat.length) query.push(`subCat=${subCat}`);
   if (search) query.push(`searchString=${encodeURIComponent(search)}`);
-  if (excludeColumns && excludeColumns.length)
-    query.push('excludeColumns=' + excludeColumns);
+  if (excludeColumns && excludeColumns.length) query.push(`excludeColumns=${excludeColumns}`);
   if (exactMatchFirst) query.push(`exactMatchFirst=${exactMatchFirst}`);
 
   if (id) {
-    query.push('id=' + id);
+    query.push(`id=${id}`);
   }
 
-  const endpoint =
-    `${urlByEnvType()}/services/product-slate` + (query.length ? '?' + query.join('&') : '');
-  const downloadExcelUrl =
-    `${urlByEnvType()}/services/product-slate-download` +
-    (query.length ? '?' + query.join('&') : '');
+  const endpoint = `${urlByEnvType()}/services/product-slate${query.length ? `?${query.join('&')}` : ''}`;
+  const downloadExcelUrl = `${urlByEnvType()}/services/product-slate-download${
+    query.length ? `?${query.join('&')}` : ''}`;
 
   try {
     const response = getResponseData(await apiGet(endpoint));
