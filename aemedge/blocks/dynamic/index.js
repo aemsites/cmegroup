@@ -1,11 +1,13 @@
 import { getMetadata } from '../../scripts/aem.js';
 import { isFeatureToggled } from '../../scripts/utils.js';
+import { getCourseData } from '../../scripts/course/course.js';
 
 const isTabsRequired = (main) => main.querySelectorAll(':scope > .section.tabs').length > 0;
-const isCourseNavRequired = () => {
+const isCourseNavRequired = async () => {
   if (isFeatureToggled('hideCourseNav', 'y', true) || window.location.pathname.includes('.hideCourseNav.')) return false;
 
-  const template = getMetadata('template');
+  const courseData = await getCourseData();
+  const template = courseData?.template;
   if (!template) return false;
   return template.toLowerCase() === 'course' || template.toLowerCase() === 'lesson';
 };
@@ -26,7 +28,8 @@ export default async function dynamicBlocks(main) {
   if (isTabsRequired(main)) {
     import('./tabs/tabs.js').then(({ default: createTabs }) => createTabs(main));
   }
-  if (isCourseNavRequired()) {
+  const courseNavRequired = await isCourseNavRequired();
+  if (courseNavRequired) {
     import('./course-nav/course-nav.js').then(({ default: createCourseNav }) => createCourseNav(main));
   }
 

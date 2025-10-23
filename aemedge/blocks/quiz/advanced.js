@@ -7,23 +7,33 @@ import { i18n } from '../../scripts/utils.js';
 
 let nextLesson = null;
 
-export function updateAdvancedNextDisabled(type, wrapper, currentIndex, questions, state, next) {
+export function updateAdvancedNextDisabled(
+  block,
+  type,
+  wrapper,
+  currentIndex,
+  questions,
+  state,
+  next,
+) {
   let disable = false;
+  const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
+  if (!isReviewMode) {
+    if (type === 'activity') {
+      const currentQuestion = wrapper.querySelectorAll(':scope > div')[currentIndex];
+      const isAnsweredCorrectly = currentQuestion.classList.contains('answered-correctly');
+      disable = !isAnsweredCorrectly && currentIndex < questions.length - 1;
+    } else if (type === 'test') {
+      const question = questions[currentIndex];
+      const questionId = question?.uniqueId;
 
-  if (type === 'activity') {
-    const currentQuestion = wrapper.querySelectorAll(':scope > div')[currentIndex];
-    const isAnsweredCorrectly = currentQuestion.classList.contains('answered-correctly');
-    disable = !isAnsweredCorrectly && currentIndex < questions.length - 1;
-  } else if (type === 'test') {
-    const question = questions[currentIndex];
-    const questionId = question?.uniqueId;
+      const questionEntry = state?.questions?.find(
+        (q) => q.questionElementId === questionId,
+      );
+      const isAnswered = !!(questionEntry && questionEntry.answers.length > 0);
 
-    const questionEntry = state?.questions?.find(
-      (q) => q.questionElementId === questionId,
-    );
-    const isAnswered = !!(questionEntry && questionEntry.answers.length > 0);
-
-    disable = !isAnswered && currentIndex < questions.length - 1;
+      disable = !isAnswered && currentIndex < questions.length - 1;
+    }
   }
 
   next.disabled = disable;
@@ -597,7 +607,7 @@ export async function handleTestClick({
   if (navNext) {
     const questionsWrapper = block.querySelector('.questions-wrapper');
     const currentIndex = [...questionsWrapper.children].indexOf(questionDiv);
-    updateAdvancedNextDisabled('test', questionsWrapper, currentIndex, questions, state, navNext);
+    updateAdvancedNextDisabled(block, 'test', questionsWrapper, currentIndex, questions, state, navNext);
   }
 
   if (block.updateNavigation) block.updateNavigation();
@@ -687,7 +697,7 @@ export async function handleActivityClick({
   if (navNext) {
     const questionsWrapper = block.querySelector('.questions-wrapper');
     const currentIndex = [...questionsWrapper.children].indexOf(questionDiv);
-    updateAdvancedNextDisabled('activity', questionsWrapper, currentIndex, questions, state, navNext);
+    updateAdvancedNextDisabled(block, 'activity', questionsWrapper, currentIndex, questions, state, navNext);
   }
   if (block.updateNavigation) block.updateNavigation();
 }
@@ -704,13 +714,17 @@ export function createSelectInstruction(title) {
   return h4({ class: 'select-instruction' }, title);
 }
 
-export function updateAdvancedNav(nav, wrapper, questions, type, state) {
+export function updateAdvancedNav(block, nav, wrapper, questions, type, state) {
   const lastSlider = nav.currentIndex === questions.length - 1;
 
   nav.next.style.display = lastSlider ? 'none' : 'flex';
   if (nav.finish) nav.finish.style.display = lastSlider ? 'block' : 'none';
 
-  if (type === 'activity') {
+  const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
+  if (isReviewMode) {
+    nav.finish.disabled = false;
+    nav.finish.classList.remove('arrow-disabled');
+  } else if (type === 'activity') {
     const currentQuestion = wrapper.querySelectorAll(':scope > div')[nav.currentIndex];
     const answeredCorrectly = currentQuestion.classList.contains('answered-correctly');
     if (lastSlider && nav.finish) {
@@ -737,7 +751,7 @@ export function updateAdvancedNav(nav, wrapper, questions, type, state) {
   }
 
   if (!lastSlider) {
-    updateAdvancedNextDisabled(type, wrapper, nav.currentIndex, questions, state, nav.next);
+    updateAdvancedNextDisabled(block, type, wrapper, nav.currentIndex, questions, state, nav.next);
   }
 }
 
@@ -751,7 +765,6 @@ export function attachFinishClick(
   testPercentage,
   showIndicatorsViaReviewMode,
   redoQuizLabel,
-  finishLabel,
   doNotMarkLessonAsCompleted,
 ) {
   nav.finish.addEventListener('click', async () => {
@@ -788,10 +801,6 @@ export function attachFinishClick(
         testPercentage,
         doNotMarkLessonAsCompleted,
       );
-      const arrowFinishBtn = block.querySelector('.arrow-finish');
-      if (arrowFinishBtn) {
-        arrowFinishBtn.textContent = finishLabel;
-      }
     }
   });
 }
@@ -857,6 +866,11 @@ export async function markQuizCompletedAdvanced(
       showIndicatorsViaReviewMode,
       redoQuizLabel,
     );
+    const [finishLabel] = await Promise.all([i18n('Finish')]);
+    const arrowFinishBtn = block.querySelector('.arrow-finish');
+    if (arrowFinishBtn) {
+      arrowFinishBtn.textContent = finishLabel;
+    }
   }
 }
 
