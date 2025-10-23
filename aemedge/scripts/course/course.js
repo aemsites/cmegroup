@@ -21,14 +21,15 @@ import {
   normalizeLegacyPath,
   legacyEducationTemplates,
 } from '../legacyContentMapping.js';
+import { authentication } from '../modules/Authentication.js';
 
 const COURSES_BASE_PATH = '/education/courses/';
 const LESSONS_BASE_PATH = '/education/lessons/';
 const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone'];
 const CACHE_KEY = 'course_data';
-// TODO: we need to review this cache timing again.
 const CACHE_EXPIRATION_PROD = 15 * 60 * 1000; // 15 minutes in milliseconds
-const CACHE_EXPIRATION_STAGE = 30 * 1000; // 30 seconds in milliseconds
+const CACHE_EXPIRATION_STAGE = 60 * 1000; // 60 seconds in milliseconds
+let loadingCourseData = null;
 
 const isLessonStandalone = (template) => template.toLowerCase() === 'lesson-standalone';
 
@@ -76,6 +77,7 @@ const parseCurrentPath = () => {
  */
 export async function getCourseData() {
   try {
+    await loadingCourseData;
     const template = getMetadata('template');
     if (!TEMPLATES.includes(template.toLowerCase())) {
       throw new Error('Not a course page');
@@ -96,6 +98,11 @@ export async function getCourseData() {
     if (cachedData) {
       return cachedData;
     }
+
+    let resolvePromise = '';
+    loadingCourseData = new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
 
     // Get entries from query-index for course content
     const indexFilter = {
@@ -123,9 +130,11 @@ export async function getCourseData() {
     // If the page is a lesson standalone, return the first entry
     // ideally there should be only one entry in this case
     if (isLessonStandalone(template) && !innerLesson) {
-      const lessonProgress = await getProgress(entries[0]?.moduleId, 'lesson');
+      const { authenticationData } = authentication;
+      const lessonProgress = await authenticationData.loginPromise.then(async () => getProgress(entries[0]?.moduleId, 'lesson'));
       Object.assign(courseData, entries[0], lessonProgress);
       addCourseDataToCache(coursePath, courseData);
+      resolvePromise();
       return courseData;
     }
 
@@ -148,7 +157,8 @@ export async function getCourseData() {
     });
 
     //  course progress for current user
-    const courseProgress = await getProgress(entries[0]?.moduleId, 'course');
+    const { authenticationData } = authentication;
+    const courseProgress = await authenticationData.loginPromise.then(async () => getProgress(entries[0]?.moduleId, 'course'));
     const { lessons: lessonsProgress, ...currentCourseProgress } = courseProgress || {};
 
     entries.forEach((entry) => {
@@ -201,6 +211,7 @@ export async function getCourseData() {
     }
 
     addCourseDataToCache(coursePath, courseData);
+    resolvePromise();
     return courseData;
   } catch (error) {
     // eslint-disable-next-line no-console
