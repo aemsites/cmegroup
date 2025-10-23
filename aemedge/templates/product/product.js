@@ -16,6 +16,7 @@ import { decorateMain } from '../../scripts/scripts.js';
 
 // Simple in-memory prefetch cache for intra-product navigation
 const PREFETCH_CACHE = new Map();
+let POPSTATE_BOUND = false;
 
 function findProductTabsSection() {
   const main = document.querySelector('main');
@@ -307,20 +308,31 @@ export default async function productTemplate() {
 function enableProductSpaNavigation(productRoot) {
   const tabsNav = document.querySelector('.product-tabs-nav');
   const subTabsNav = document.querySelector('.product-subtabs');
-  if (tabsNav) wireNavClicks(tabsNav, productRoot);
-  if (subTabsNav) wireNavClicks(subTabsNav, productRoot);
+  if (tabsNav && !tabsNav.dataset.spaBound) {
+    wireNavClicks(tabsNav, productRoot);
+    wirePrefetches(tabsNav, productRoot);
+    tabsNav.dataset.spaBound = 'y';
+  }
+  if (subTabsNav && !subTabsNav.dataset.spaBound) {
+    wireNavClicks(subTabsNav, productRoot);
+    wirePrefetches(subTabsNav, productRoot);
+    subTabsNav.dataset.spaBound = 'y';
+  }
 
-  // Prefetch on intent (hover/focus/viewport) for same-product links
-  if (tabsNav) wirePrefetches(tabsNav, productRoot);
-  if (subTabsNav) wirePrefetches(subTabsNav, productRoot);
-
-  window.addEventListener('popstate', () => {
-    const url = window.location.pathname + window.location.search + window.location.hash;
-    renderProductPath(url, productRoot);
-  });
+  if (!POPSTATE_BOUND) {
+    window.addEventListener('popstate', () => {
+      const url = window.location.pathname + window.location.search + window.location.hash;
+      renderProductPath(url, productRoot);
+    });
+    POPSTATE_BOUND = true;
+  }
 }
 
 function wireNavClicks(container, productRoot) {
+  const debouncedNavigate = ((href) => {
+    window.history.pushState({}, '', href);
+    renderProductPath(href, productRoot);
+  });
   container.querySelectorAll('a[href]')
     .forEach((a) => {
       a.addEventListener('click', (e) => {
@@ -330,8 +342,7 @@ function wireNavClicks(container, productRoot) {
         // Only intercept links within the same product
         if (normalizePath(targetRoot) !== normalizePath(productRoot)) return;
         e.preventDefault();
-        window.history.pushState({}, '', href);
-        renderProductPath(href, productRoot);
+        debouncedNavigate(href);
       });
     });
 }
@@ -339,6 +350,8 @@ function wireNavClicks(container, productRoot) {
 async function renderProductPath(url, productRoot) {
   try {
     // Avoid serving stale prefetched HTML across different tab families
+    const myToken = Date.now();
+    renderProductPath.currentToken = myToken;
     PREFETCH_CACHE.clear();
     // Update active state in product tabs immediately
     updateTabsActiveState(url);
@@ -372,13 +385,14 @@ async function renderProductPath(url, productRoot) {
         && !sec.classList.contains('product-subtabs-content')
         && !sec.classList.contains('product-subtabs'));
 
+    if (renderProductPath.currentToken !== myToken) return;
     container.innerHTML = '';
-    for (let i = 0; i < renderables.length; i += 1) {
-      const cloned = renderables[i].cloneNode(true);
+    const clones = renderables.map((sec) => {
+      const cloned = sec.cloneNode(true);
       container.appendChild(cloned);
-      // eslint-disable-next-line no-await-in-loop
-      await loadSection(cloned);
-    }
+      return cloned;
+    });
+    await Promise.all(clones.map((cl) => loadSection(cl)));
   } catch (e) {
     // On failure, allow a normal navigation fallback on next click
   }
@@ -418,8 +432,12 @@ function wirePrefetches(container, productRoot) {
     a.addEventListener('focus', () => prefetch(sibling));
   });
 
-  // Viewport intent
+  // Viewport intent (disconnect old observer to avoid stacking)
   try {
+    if (container.productIo) {
+      container.productIo.disconnect();
+      container.productIo = null;
+    }
     const io = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -430,6 +448,7 @@ function wirePrefetches(container, productRoot) {
       });
     }, { rootMargin: '200px' });
     links.forEach((a) => io.observe(a));
+    container.productIo = io;
   } catch (e) {
     // IntersectionObserver not available; best-effort via hover/focus
   }
