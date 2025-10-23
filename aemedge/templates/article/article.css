@@ -310,14 +310,20 @@ main > .section {
       }
 
       & .icon {
-        width: 0.9375rem;
-        height: 0.9375rem;
+        width: 1.5625rem;
+        height: 1.5625rem;
         color: var(--blue5);
         margin-bottom: 0.1rem;
         filter: none;
 
+        @media (width >= 481px) {
+          width: 1rem;
+          height: 1rem;
+        }
+
         & img {
           filter: var(--blue5-filter);
+          width: auto;
         }
       }
 
@@ -340,33 +346,38 @@ main > .section {
       }
 
       & .bookmark {
-        text-decoration: none;
-        cursor: pointer;
-
-        & .icon {
-          display: none;
-
-          &.show {
-            display: inline-block;
-          }
-        }
-
-        & .bookmark-icon {
-          display: flex;
+        & a {
+          text-decoration: none;
+          cursor: pointer;
           align-items: center;
-        }
+          gap: 0.5rem;
+          display: flex;
 
-        & .save-text {
-          letter-spacing: normal;
-          display: none;
+          & .icon {
+            display: none;
 
-          @media (width >= 481px) {
-            display: inline-block;
+            &.show {
+              display: inline-block;
+            }
+          }
+
+          & .bookmark-icon {
+            display: inline-flex;
+          }
+
+          & .save-text {
+            letter-spacing: normal;
+            display: none;
+
+            @media (width >= 481px) {
+              display: inline-block;
+            }
           }
         }
 
         & .tooltip {
-          top: 0.375rem;
+          top: 0.75rem;
+          cursor: default;
 
           & .icon {
             display: inline-block;
@@ -380,6 +391,14 @@ main > .section {
           }
 
           & .tooltip-content {
+            & > span {
+              display: flex;
+
+              a {
+                padding-left: 0.1875rem;
+              }
+            }
+
             @media (width < 993px) {
               left: auto;
               transform: none;

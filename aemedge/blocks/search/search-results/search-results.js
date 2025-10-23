@@ -4,7 +4,7 @@ import {
 import searchConfig from '../search-config.js';
 import { updateFilteringByUI } from '../filter-bullets/filter-bullets.js';
 import { getCards } from './cards-template.js';
-import { i18n, setupDayjsLibs } from '../../../scripts/utils.js';
+import { i18n, setupDayjsLibs, debounce } from '../../../scripts/utils.js';
 import { clearAllFilters } from '../search-utils.js';
 import { buildIndexFilter, getIndexedContent } from '../../../scripts/indexing.js';
 import renderPagination from './pagination.js';
@@ -15,11 +15,10 @@ function showSpinner(container) {
   container.appendChild(spinner);
 }
 
-const buildSearchRequest = () => {
+function buildSearchRequest(filterId) {
   const request = {
-    basePaths: searchConfig.basePaths,
     page: searchConfig.pagination?.currentPage || 1,
-    limit: searchConfig.pagination?.size || 10,
+    limit: filterId ? 0 : searchConfig.pagination?.size || 10,
     fullText: searchConfig.searchInput || '',
     languages: ['en'], // currently hardcoding languages
     getFacets: searchConfig.getFacets,
@@ -32,10 +31,12 @@ const buildSearchRequest = () => {
   const mp = {};
   searchConfig.appliedFilters.forEach((filter) => {
     const value = filter.value.endsWith('--star') ? filter.value.replace('--star', '') : filter.value;
-    if (mp[filter.filterId]) {
-      mp[filter.filterId].push(value);
-    } else {
-      mp[filter.filterId] = [value];
+    if (!filterId || filterId !== filter.filterId) {
+      if (mp[filter.filterId]) {
+        mp[filter.filterId].push(value);
+      } else {
+        mp[filter.filterId] = [value];
+      }
     }
   });
 
@@ -49,21 +50,63 @@ const buildSearchRequest = () => {
   }
 
   if (searchConfig.basePaths) {
-    request.basePaths = searchConfig.basePaths;
+    request['base-paths'] = searchConfig.basePaths;
   }
 
   if (searchConfig.sortOptions) {
     request.orderBy = searchConfig.sortOptions.value;
-    request.sortDirection = searchConfig.sortOptions.sortType;
+    request['sort-direction'] = searchConfig.sortOptions.sortType;
   }
 
   return buildIndexFilter(request);
-};
+}
 
-const searchResults = async () => {
+async function executeSearch() {
   const apiReq = buildSearchRequest();
+  if (!searchConfig.getFacets || searchConfig.appliedFilters.length === 0) {
+    const res = await getIndexedContent(apiReq);
+    return res;
+  }
+  const filters = [...new Set(searchConfig.appliedFilters.map((item) => item.filterId))];
+  const reqs = filters.map((filter) => buildSearchRequest(filter));
+  const results = await Promise.all([apiReq, ...reqs].map(getIndexedContent));
+  const res = results.shift();
+  filters.forEach((filterId, index) => {
+    const filter = document.getElementById(filterId);
+    if (filter) {
+      const localres = results[index];
+      if (localres.facets) {
+        filter.querySelectorAll('.dropdown-option, .checkbox-option').forEach((element) => {
+          const facetValue = element.querySelector('input').value;
+          const matchingFacet = localres.facets.find((f) => f.tag === facetValue);
+          if (matchingFacet) {
+            if (!res.facets) {
+              res.facets = [];
+            }
+            const resFacet = res.facets.find((f) => f.tag === facetValue);
+            if (resFacet) {
+              resFacet.count = matchingFacet.count;
+            } else {
+              res.facets.push(matchingFacet);
+            }
+          }
+        });
+      }
+    }
+  });
+  return res;
+}
+
+let lastSearch = 0;
+
+const searchResultsInternal = async () => {
+  lastSearch += 1;
+  const currentSearch = lastSearch;
   showSpinner(document.querySelector('.results-wrapper'));
-  const results = await getIndexedContent(apiReq);
+  const results = await executeSearch();
+  if (currentSearch < lastSearch) {
+    return;
+  }
 
   if (results && Object.keys(results).length > 0) {
     // Update pagination info from response
@@ -144,7 +187,7 @@ async function filterAndRender(results) {
     reset.onclick = async (e) => {
       e.preventDefault();
       clearAllFilters();
-      await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResults);
+      await updateFilteringByUI(document.querySelector('.filter-bullets'), searchResultsInternal);
     };
     resultsWrapper.appendChild(noResultsDiv);
     return;
@@ -165,10 +208,17 @@ async function filterAndRender(results) {
   // Render pagination if enabled
   if (searchConfig.pagination?.show) {
     await renderPagination(resultsWrapper, async () => {
-      await searchResults();
+      await searchResultsInternal();
     });
   }
 }
+
+const searchResultsDebounced = debounce(searchResultsInternal, 500);
+
+const searchResults = () => {
+  showSpinner(document.querySelector('.results-wrapper'));
+  searchResultsDebounced();
+};
 
 export {
   searchResults,

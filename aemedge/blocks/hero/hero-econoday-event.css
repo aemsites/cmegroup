@@ -13,7 +13,7 @@
 }
 
 .hero.econoday-event .background-image p picture {
-    height: 6.25rem;
+    height: 6.25rem !important;
 }
 
 @media (width >= 769px) {
@@ -22,7 +22,7 @@
     }
 
     .hero.econoday-event .background-image p picture {
-        height: 11.5625rem;
+        height: 11.5625rem !important;
     }
 }
 
@@ -34,7 +34,7 @@
     .hero.econoday-event .background-image p picture {
         position: initial;
         display: block;
-        height: 28.4375rem;
+        height: 28.4375rem !important;
     }
 }
 

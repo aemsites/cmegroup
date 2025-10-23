@@ -34,6 +34,7 @@
 
 .cards.full-width.background-gray li .cards-card-body p {
     margin: 1.25rem 0 1.875rem;
+    color: var(--text-color);
 }
 
 .cards.full-width.background-gray li .cards-card-body p:has(picture) {
@@ -51,6 +52,25 @@
     width: 1.625rem;
 }
 
-.cards.full-width.background-gray li .cards-card-body a {
+.cards.full-width.background-gray li .cards-card-body a:not(.button) {
     color: var(--blue4);
+
+    &:hover {
+      color: var(--blue3);
+    }
+}
+
+@media (width >= 769px) {
+  .cards.full-width.btn-on-right li .cards-card-body p:not(.button-container) {
+      width: 70%;
+      display: inline-block;
+      margin-right: 10px;
+  }
+
+  .cards.full-width.btn-on-right li .cards-card-body p.button-container {
+      width: 25%;
+      display: inline-block;
+      vertical-align: top;
+      margin-left: 10px;
+  }
 }

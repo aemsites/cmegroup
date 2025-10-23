@@ -149,6 +149,12 @@ h6,
   font-family: var(--heading-font-family);
   color: var(--title-color);
   margin-top: 0;
+
+  &.gradient {
+    background-image: linear-gradient(45deg, var(--blue5), var(--green));
+    background-clip: text;
+    color: transparent;
+  }
 }
 
 h1,
@@ -333,7 +339,7 @@ p {
     line-height: 1.5rem;
   }
 
-  & a[target="_blank"] {
+  & a {
     background-position: 0 100%;
     background-repeat: repeat-x;
     background-size: 200% 0.0625rem;
@@ -347,7 +353,12 @@ p {
     );
 
     &:hover {
+      color: var(--blue3);
       background-position: -100% 100%;
+    }
+
+    &:visited {
+      color: var(--blue4);
     }
   }
 }
@@ -482,7 +493,7 @@ a:visited code {
   font-size: inherit;
 }
 
-a[target="_blank"]::after {
+a[target="_blank"]:not([href^="mailto:"], [href$=".pdf"])::after {
   font-family: var(--cme-group-icons);
   content: var(--icon-positive);
   font-size: 0.625rem;
@@ -495,6 +506,12 @@ a {
     font-weight: 600;
     font-size: 1rem;
     line-height: 1.5rem;
+
+    &:hover {
+      color: var(--blue4);
+      background-position: 0;
+      text-decoration: underline !important;
+    }
   }
 
   &.position-right .icon {
@@ -527,6 +544,10 @@ a {
     &:hover,
     &:active {
       color: var(--blue5);
+    }
+
+    & .icon {
+      filter: var(--blue5-filter);
     }
   }
 }
@@ -569,6 +590,14 @@ main img {
   display: inline-block;
   height: 0.875rem;
   width: 0.875rem;
+
+  &.icon-envelope {
+    width: auto;
+
+    & img {
+      width: auto;
+    }
+  }
 }
 
 .icon img {
@@ -933,7 +962,7 @@ main {
     padding-top: 6.25rem;
   }
 
-  & > .section {
+  & > .section:not(.divider-container, .hero-container, .hero) {
     margin-bottom: 1.875rem;
 
     &.text-1,
@@ -1065,6 +1094,7 @@ main {
         color: inherit;
       }
 
+      h1,
       h2,
       h3,
       h4,
@@ -1089,6 +1119,34 @@ main {
       background-color: var(--blue3) !important;
     }
 
+    &.gray-gradient-background {
+      background: linear-gradient(var(--gray3), var(--gray1));
+      padding: 1.875rem 0;
+      color: var(--white);
+
+      & .default-content-wrapper {
+        color: var(--white);
+
+        & :is(h1, h2, h3, h4, h5, h6):not(.gradient) {
+          color: var(--white);
+        }
+      }
+    }
+
+    &.gray-gradient-background-reverse {
+      background: linear-gradient(var(--gray1), var(--gray3));
+      padding: 1.875rem 0;
+      color: var(--white);
+
+      & .default-content-wrapper {
+        color: var(--white);
+
+        & :is(h1, h2, h3, h4, h5, h6):not(.gradient) {
+          color: var(--white);
+        }
+      }
+    }
+
     &.gray5-background,
     &.light,
     &.highlight {
@@ -1102,6 +1160,11 @@ main {
       &:last-of-type {
         margin-bottom: 0;
       }
+    }
+
+    &.gray6-background {
+      background-color: var(--gray6);
+      padding: 1.875rem 0;
     }
 
     &.not-full-width {
@@ -1132,6 +1195,34 @@ main {
         width: 100% !important;
       }
     }
+
+    &.center {
+      & .default-content-wrapper {
+        text-align: center;
+      }
+
+      & .layout > div {
+        margin: 0 auto;
+      }
+    }
+
+    &.flush {
+      margin-top: -3.75rem;
+    }
+
+    &.no-margin-bottom {
+      margin-bottom: 0;
+    }
+
+    &.glossary-section {
+      & div {
+        & p:first-child {
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+        }
+      }
+    }
   }
 
   @media (width >= 769px) {
@@ -1140,6 +1231,7 @@ main {
       &.blue2-background,
       &.blue3-background,
       &.gray5-background,
+      &.gray6-background,
       &.light,
       &.highlight {
         padding: 3.75rem 0;
@@ -1150,14 +1242,9 @@ main {
 
 /* sections */
 
-@media (width > 768px) {
-  main .section {
-    margin-bottom: 3.75rem;
-  }
-}
-
 main > .section:first-of-type {
   margin-top: 0;
+  padding-top: 0;
 }
 
 main > .section.full-width picture,
@@ -1298,6 +1385,10 @@ main .section.divider[has-sidebar="true"] > div:nth-last-of-type(2) {
   border-bottom: 0.0625rem solid var(--gray4);
 }
 
+main .section > [class*="-wrapper"] + [class*="-wrapper"]:not(.default-content-wrapper, .hero-wrapper) {
+  margin-top: 1.875rem;
+}
+
 /* Parallax section styling */
 main .section.parallax {
   position: relative;
@@ -1395,6 +1486,63 @@ main .section.parallax {
       font-size: 1rem;
       line-height: 1.5rem;
     }
+  }
+}
+
+/* Login teaser with background image */
+main .fragment-wrapper .section.login-teaser-image {
+  position: relative;
+  min-height: 18.75rem;
+
+  @media (width >= 769px) {
+    min-height: 25rem;
+  }
+
+  /* Use image as background */
+  & .default-content-wrapper picture img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    object-position: center;
+    z-index: 0;
+  }
+
+  /* Hide the paragraph wrapper but keep the image */
+  & .default-content-wrapper {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+
+    & p {
+      margin: 0;
+      height: 100%;
+    }
+
+    & picture {
+      display: block;
+      height: 100%;
+    }
+  }
+
+  /* Position login wrapper as overlay */
+  & .login-wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 18.75rem;
+
+    @media (width >= 769px) {
+      min-height: 25rem;
+    }
+  }
+
+  /* Add margin to login block */
+  & .login {
+    margin: 3.75rem;
   }
 }
 
@@ -1622,6 +1770,11 @@ body.loading::before {
   content: var(--icon-expand-secondary);
 }
 
+/* Lightbox p parent center img */
+p.center-img {
+  text-align: center;
+}
+
 /* Lightbox Modal Styles */
 .modal dialog.lightbox-modal {
   width: fit-content;
@@ -1706,7 +1859,8 @@ body.loading::before {
 
 .highlighted-text {
   font-weight: bold;
-  color: var(--blue2);
+  font-family: var(--averta);
+  font-size: inherit;
 }
 
 /* share this overrides */
@@ -1789,7 +1943,7 @@ body.loading::before {
   max-width: 80%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 100;
+  z-index: 100001;
   border-radius: 0.25rem 0 0 0.25rem;
 
   &.fade-in {

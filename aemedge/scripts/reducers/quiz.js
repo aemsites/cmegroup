@@ -1,7 +1,8 @@
 import { QUIZ_ACTIONS } from '../constants/index.js';
 
 export const quizInitState = {
-  isCorrect: false,
+  quizStatus: null,
+  redo: false,
 };
 
 // eslint-disable-next-line default-param-last
@@ -11,7 +12,14 @@ export const quizReducer = (state = quizInitState, action) => {
     case QUIZ_ACTIONS.ANSWERED:
       return {
         ...state,
-        isCorrect: payload,
+        quizStatus: payload,
+        redo: false,
+      };
+    case QUIZ_ACTIONS.REDO:
+      return {
+        ...state,
+        redo: payload,
+        quizStatus: null,
       };
     default:
       return state;

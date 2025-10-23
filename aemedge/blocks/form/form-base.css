@@ -191,6 +191,11 @@
   line-height: .75rem;
   font-weight: 700;
   cursor: pointer;
+
+  &.alternate {
+    background-color: var(--blue2);
+    border-color: var(--blue2);
+  }
 }
 
 .form .field-wrapper button[type="submit"]:hover {
@@ -292,6 +297,10 @@
 .form p.recaptcha-disclaimer a {
   color: var(--blue4);
   text-decoration: none;
+
+  &:hover {
+    background-position: unset;
+  }
 }
 
 /* Choices.js styles */

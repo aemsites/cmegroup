@@ -14,11 +14,15 @@ import {
   readBlockConfig,
   setupDayjsLibs,
   getCdtDate,
+  getTag,
+  i18n,
 } from '../../scripts/utils.js';
 import {
   legacyArticleTemplates,
   mapLegacyArticleData,
   isLegacyContent,
+  legacyOpenMarketsTemplates,
+  legacyNewsTemplates,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 
@@ -26,6 +30,8 @@ import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
 
 async function createStaticCards(block) {
+  const size = block.children.length;
+  block.classList.add(`size-${size}`);
   const cardsContainer = document.createElement('div');
   if (block.classList.contains('links')) {
     const titleWrapper = block.querySelector('h6').closest('div');
@@ -152,12 +158,22 @@ async function createStaticCards(block) {
     }
   } else {
     const ul = document.createElement('ul');
+    const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
     [...block.children].forEach((row) => {
       const li = document.createElement('li');
       while (row.firstElementChild) li.append(row.firstElementChild);
       [...li.children].forEach((div) => {
         if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
         else div.className = 'cards-card-body';
+        if (textClass) {
+          const paragraphs = div.querySelectorAll('p');
+          paragraphs.forEach((p) => {
+            p.classList.add(textClass);
+          });
+        }
+        if (!div.hasChildNodes()) {
+          div.parentElement.classList.add('empty-card');
+        }
       });
       ul.append(li);
     });
@@ -170,7 +186,10 @@ async function createStaticCards(block) {
 
 export async function createDynamicCardCourse(contentData) {
   const {
-    metadata: { 'og:image': image },
+    metadata: {
+      'og:image': ogimage,
+      image,
+    },
     title,
     description,
     path,
@@ -178,7 +197,7 @@ export async function createDynamicCardCourse(contentData) {
   } = contentData;
   const imageWrapper = createElement('div', { class: 'cards-card-image' });
   const link = createElement('a', { href: path });
-  imageWrapper.style.backgroundImage = `url('${image}')`;
+  imageWrapper.style.backgroundImage = `url('${ogimage || image}')`;
 
   const bodyWrapper = createElement('div', { class: 'cards-card-body' });
   bodyWrapper.innerHTML = `
@@ -199,7 +218,7 @@ export async function createDynamicCardCourse(contentData) {
   return li;
 }
 
-export async function createDynamicCardArticle(content) {
+export async function createDynamicCardArticle(content, showPrimaryTopic = false) {
   const curatedContent = isLegacyContent(content) ? mapLegacyArticleData(content) : content;
   const {
     path,
@@ -209,14 +228,17 @@ export async function createDynamicCardArticle(content) {
     metadata: {
       'sub-template': subTemplates,
       image,
+      'primary-topic': primaryTopic,
     },
   } = curatedContent;
   const [
     readLabel,
     durationStr,
+    primaryTopicStr,
   ] = await Promise.all([
     getReadTimeLabel(subTemplates),
     parseTime(readTime),
+    showPrimaryTopic ? getTag(primaryTopic) : '',
   ]);
   const cardTime = createElement('span', { class: 'cards-time' }, `${durationStr} ${readLabel}`);
   cardTime.prepend(getReadTimeIcon(subTemplates));
@@ -227,10 +249,57 @@ export async function createDynamicCardArticle(content) {
   const img = createElement('img', { src: image });
   const imageContainer = createElement('div', { class: 'cards-image-container' }, img);
   const linkEl = createElement('a', { href: path }, imageContainer, mainContainer);
+  if (showPrimaryTopic && primaryTopicStr) {
+    const cardPrimaryTopic = createElement('span', { class: 'cards-primary-topic' }, primaryTopicStr.title);
+    const cardFooter = createElement('div', { class: 'cards-footer' }, cardPrimaryTopic);
+    linkEl.append(cardFooter);
+  }
   if (subTemplates.includes('video')) {
     linkEl.classList.add('video-card');
   }
   return createElement('li', null, linkEl);
+}
+
+async function createDynamicCardArticleMedium(content, index) {
+  const curatedContent = isLegacyContent(content) ? mapLegacyArticleData(content) : content;
+  const {
+    path,
+    readTime,
+    date,
+    title,
+    description,
+    author,
+    metadata: {
+      'sub-template': subTemplates,
+      image,
+    },
+  } = curatedContent;
+  const [
+    readLabel,
+    durationStr,
+    authorTag,
+    byLabel,
+  ] = await Promise.all([
+    getReadTimeLabel(subTemplates),
+    parseTime(readTime),
+    getTag(author || ''),
+    i18n('By'),
+  ]);
+  const cardTime = createElement('span', { class: 'cards-time' }, `${durationStr} ${readLabel}`);
+  cardTime.prepend(getReadTimeIcon(subTemplates));
+  const cardTitle = createElement('h3');
+  cardTitle.innerHTML = title;
+  const cardDescription = createElement('span', { class: 'cards-description' }, description);
+  const mainContainer = createElement('div', { class: 'cards-body-container' }, cardTime, cardTitle, cardDescription);
+  const cardDate = createElement('div', { class: 'cards-date' }, getCdtDate(date).format('DD MMM YYYY'));
+  let cardAuthor;
+  if (authorTag?.title) {
+    cardAuthor = createElement('div', { class: 'cards-author' }, `${byLabel} ${authorTag?.title}`);
+  }
+  const footerContainer = createElement('div', { class: 'cards-footer' }, cardDate, cardAuthor);
+  const linkEl = createElement('a', { href: path }, mainContainer, footerContainer);
+  const liAttrs = (index === 0) ? { 'data-image': image } : null;
+  return createElement('li', liAttrs, linkEl);
 }
 
 function createDynamicCardThumbnailMedium(content) {
@@ -265,6 +334,115 @@ function createDynamicCardUpcomingEvent(content) {
   return createElement('li', null, link);
 }
 
+function simpleDynamicCard(content) {
+  const curatedContent = isLegacyContent(content) ? mapLegacyArticleData(content) : content;
+  const {
+    path,
+    title,
+    metadata: {
+      'sub-template': subTemplates,
+      image,
+    },
+  } = curatedContent;
+  const cardTitle = createElement('h3');
+  cardTitle.innerHTML = title;
+  const mainContainer = createElement('div', { class: 'cards-body-container' }, cardTitle);
+  const img = createElement('img', { src: image });
+  const imageContainer = createElement('div', { class: 'cards-image-container' }, img);
+  const linkEl = createElement('a', { href: path }, imageContainer, mainContainer);
+  if (subTemplates.includes('video')) {
+    linkEl.classList.add('video-card');
+  }
+  return createElement('li', null, linkEl);
+}
+
+function getArticleTypeConfig(block) {
+  if (block.classList.contains('list')) {
+    return {
+      type: 'list',
+      limit: 3,
+      mapFunction: (content) => createDynamicCardArticle(content, false),
+      sliderConfig: null,
+      disableSliderOnDesktop: true,
+    };
+  }
+  if (block.classList.contains('thumbnail-medium')) {
+    return {
+      type: 'thumbnail-medium',
+      limit: 3,
+      mapFunction: createDynamicCardThumbnailMedium,
+      sliderConfig: null,
+      disableSliderOnDesktop: true,
+    };
+  }
+  if (block.classList.contains('card-list')) {
+    return {
+      type: 'card-list',
+      limit: 4,
+      mapFunction: (content) => {
+        const showPrimaryTopic = block.classList.contains('show-primary-topic');
+        return createDynamicCardArticle(content, showPrimaryTopic);
+      },
+      disableSliderOnDesktop: true,
+      sliderConfig: {
+        slidesToShow: 'auto',
+        slidesToScroll: 1,
+        scrollLock: false,
+        itemWidth: 255,
+        exactWidth: true,
+        draggable: true,
+        duration: 2,
+        responsive: [
+          {
+            breakpoint: 481,
+            settings: {
+              itemWidth: 292,
+            },
+          },
+        ],
+      },
+    };
+  }
+  if (block.classList.contains('medium')) {
+    return {
+      type: 'medium',
+      limit: 10,
+      mapFunction: createDynamicCardArticleMedium,
+      disableSliderOnDesktop: false,
+      sliderConfig: {
+        slidesToShow: 'auto',
+        slidesToScroll: 1,
+        scrollLock: false,
+        itemWidth: 249,
+        exactWidth: true,
+        draggable: true,
+        duration: 2,
+        responsive: [
+          {
+            breakpoint: 993,
+            settings: {
+              itemWidth: 324,
+            },
+          },
+        ],
+      },
+      refreshCallback: (el) => {
+        if (block.classList.contains('featured')) {
+          const windowWidth = window.innerWidth;
+          const firstSlide = el.querySelector('.glider-slide');
+          firstSlide.style.backgroundImage = `url('${firstSlide.dataset.image}')`;
+          if (windowWidth >= 993) {
+            firstSlide.style.width = '401px';
+            const track = el.querySelector('.glider-track');
+            track.style.width = `${track.offsetWidth + 77}px`;
+          }
+        }
+      },
+    };
+  }
+  return {};
+}
+
 function createSpinner() {
   const spinner = createElement('div', { class: 'spinner-cards' });
   spinner.innerHTML = `
@@ -283,8 +461,9 @@ export async function createDynamicCards(block) {
   let filteredData;
   let cardElements;
   let sliderConfig = null;
-  let disabledOnDesktop = false;
+  let disableSliderOnDesktop = false;
   let inverse = false;
+  let refreshCallback = null;
   if (block.classList.contains('course')) {
     const indexFilter = buildIndexFilter(config);
     indexFilter.templates = ['course'];
@@ -309,48 +488,75 @@ export async function createDynamicCards(block) {
       ],
     };
     inverse = true;
-    disabledOnDesktop = true;
+    disableSliderOnDesktop = true;
     cardElements = await Promise.all(filteredData.map(createDynamicCardCourse));
   } else if (block.classList.contains('article')) {
-    const isList = block.classList.contains('list');
-    const isThumbnailMedium = block.classList.contains('thumbnail-medium');
-    const isCardList = block.classList.contains('card-list');
+    const articleTypeConfig = getArticleTypeConfig(block);
     const indexFilter = buildIndexFilter(config);
-    indexFilter.templates = ['article', ...legacyArticleTemplates];
+    if (!indexFilter.templates || indexFilter.templates.length === 0) {
+      indexFilter.templates = ['article', ...legacyArticleTemplates];
+    } else {
+      if (indexFilter.templates.includes('article')) {
+        indexFilter.templates = [...indexFilter.templates, ...legacyArticleTemplates];
+      }
+      if (indexFilter.templates.includes('news')) {
+        indexFilter.templates = [...indexFilter.templates, ...legacyNewsTemplates];
+      }
+    }
     if (!indexFilter.basePaths || indexFilter.basePaths.length === 0) {
       indexFilter.basePaths = ['/education', '/content/cmegroup/en'];
     }
     if (!indexFilter.limit) {
-      indexFilter.limit = (isList || isThumbnailMedium) ? 3 : 4;
+      indexFilter.limit = articleTypeConfig.limit;
+    }
+    if (!indexFilter.orderBy) {
+      indexFilter.orderBy = 'date';
+    }
+    if (!indexFilter.sortDirection) {
+      indexFilter.sortDirection = 'desc';
+    }
+    [filteredData] = await Promise.all([
+      getIndexedContent(indexFilter),
+      setupDayjsLibs(),
+    ]);
+    cardElements = await Promise.all(filteredData.map(articleTypeConfig.mapFunction));
+    sliderConfig = articleTypeConfig.sliderConfig;
+    refreshCallback = articleTypeConfig.refreshCallback;
+    disableSliderOnDesktop = articleTypeConfig.disableSliderOnDesktop;
+  } else if (block.classList.contains('openmarkets')) {
+    const indexFilter = buildIndexFilter(config);
+    indexFilter.templates = legacyOpenMarketsTemplates;
+    if (!indexFilter.basePaths || indexFilter.basePaths.length === 0) {
+      indexFilter.basePaths = ['/content/openmarkets'];
+    }
+    if (!indexFilter.limit) {
+      indexFilter.limit = 2;
     }
     indexFilter.orderBy = 'date';
     indexFilter.sortDirection = 'desc';
     [filteredData] = await Promise.all([
       getIndexedContent(indexFilter),
-      setupDayjsLibs(),
     ]);
-    const mapFunction = isThumbnailMedium ? createDynamicCardThumbnailMedium : createDynamicCardArticle;
-    cardElements = await Promise.all(filteredData.map(mapFunction));
-    if (isCardList) {
-      sliderConfig = {
-        slidesToShow: 'auto',
-        slidesToScroll: 1,
-        scrollLock: false,
-        itemWidth: 255,
-        exactWidth: true,
-        draggable: true,
-        duration: 2,
-        responsive: [
-          {
-            breakpoint: 481,
-            settings: {
-              itemWidth: 426,
-            },
+    cardElements = await Promise.all(filteredData.map(simpleDynamicCard));
+    sliderConfig = {
+      slidesToShow: 'auto',
+      slidesToScroll: 1,
+      scrollLock: false,
+      itemWidth: 255,
+      exactWidth: true,
+      draggable: true,
+      duration: 2,
+      responsive: [
+        {
+          breakpoint: 481,
+          settings: {
+            itemWidth: 426,
           },
-        ],
-      };
-    }
-    disabledOnDesktop = true;
+        },
+      ],
+    };
+    disableSliderOnDesktop = true;
+    inverse = true;
   } else if (block.classList.contains('upcoming-events')) {
     if (block.classList.contains('econoday-events')) {
       [filteredData] = await Promise.all([
@@ -408,7 +614,8 @@ export async function createDynamicCards(block) {
     }
     block.appendChild(cardsContainer);
     if (sliderConfig) {
-      buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse);
+      disableSliderOnDesktop = disableSliderOnDesktop && !block.classList.contains('always-slider');
+      buildSlider(ul, sliderConfig, true, disableSliderOnDesktop, inverse, false, refreshCallback);
     }
   } else {
     const noResultsLabel = createElement('h4', null, 'No results found');

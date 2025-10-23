@@ -174,6 +174,22 @@ const createSubmit = (fd) => {
   button.textContent = fd.Label || fd.Name;
   button.type = 'submit';
 
+  let buttonText = button.textContent;
+  const bracketMatch = buttonText.match(/\[([^\]]+)\]/);
+
+  if (bracketMatch) {
+    const classes = bracketMatch[1]
+      .split(',')
+      .map((value) => value.trim());
+
+    if (classes.length > 0) {
+      button.classList.add(...classes);
+    }
+
+    buttonText = buttonText.replace(/\s*\[[^\]]*\]/, '');
+    button.textContent = buttonText;
+  }
+
   const fieldWrapper = createFieldWrapper(fd);
   fieldWrapper.append(button);
   fieldWrapper.setAttribute('data-type', 'submit');

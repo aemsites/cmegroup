@@ -1,0 +1,89 @@
+.cards.white-variation ul {
+    display: block;
+    justify-content: space-between;
+}
+
+.cards.white-variation li {
+    width: 100%;
+    background-color: var(--white);
+    border: none;
+}
+
+.cards.white-variation li .cards-card-body {
+    padding: 1.25rem;
+    margin: 0;
+    position: relative;
+}
+
+.cards.white-variation li .cards-card-body h4
+{
+    margin: 0 0 1.25rem;
+}
+
+.cards.white-variation li .cards-card-body h4 a,
+.cards.white-variation li .cards-card-body h5 a {
+    color: var(--blue2);
+}
+
+.cards.white-variation li .cards-card-body h4 a:hover,
+.cards.white-variation li .cards-card-body h5 a:hover {
+    text-decoration: none;
+    color: var(--blue5);
+}
+
+.cards.white-variation li .cards-card-body h4 a::after,
+.cards.white-variation li .cards-card-body h5 a::after{
+    font-family: var(--cme-group-icons);
+    content: var(--icon-chevron-right);
+    color: var(--blue5);
+    display: inline-block;
+    font-size: 1rem;
+    margin-left: 0.3125rem;
+    font-weight: 400;
+}
+
+.cards.white-variation li .cards-card-body h4 a:hover::after,
+.cards.white-variation li .cards-card-body h5 a:hover::after{
+    margin-left: 0.5rem;
+}
+
+.cards.white-variation li .cards-card-body p {
+    font-family: var(--averta);
+}
+
+.cards.white-variation li .cards-card-body picture {
+    height: auto !important;
+}
+
+.cards.white-variation li .cards-card-body img {
+    height: auto !important;
+}
+
+.cards.white-variation li .cards-card-body ul {
+    display: block;
+    list-style-type: disc;
+    margin-top: 0;
+    padding: inherit;
+}
+
+.cards.white-variation li .cards-card-body ul li{
+    box-shadow: none;
+    background-color: transparent;
+    font-family: var(--averta);
+}
+
+@media (width >= 769px) {
+    .cards.white-variation ul {
+        display: flex;
+    }
+}
+
+/* override margin-top for cards-wrapper in white-variation */
+main .section > .cards-wrapper:has(.cards.white-variation) {
+    margin-top: 0;
+}
+
+/* override padding when white-variation is inside tabs */
+.tabs .cards.white-variation li .cards-card-body {
+    padding: 0;
+}

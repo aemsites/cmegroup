@@ -43,9 +43,9 @@ class SyncStorage {
     }
   }
 
-  set(moduleId, status) {
+  set(progress) {
     if (!this.data) this.data = [];
-    this.data.push({ educationElementId: moduleId, status });
+    this.data.push(progress);
     localStorage.setItem(SYNC_CACHE_KEY, JSON.stringify(this.data));
     return true;
   }
@@ -69,12 +69,21 @@ const mapModule = (data) => (
       moduleId: lesson.educationElementId,
       title: lesson.title,
       completed: lesson.status === 'COMPLETED',
-      started: !!lesson.startDate,
+      started: !!lesson.startDate || lesson.status === 'PROGRESS',
       url: lesson.url,
+      ...(lesson.quiz
+        ? {
+          quiz: {
+            ...lesson.quiz,
+            isCorrect:
+              lesson.quiz.status === 'COMPLETED' && lesson.status === 'COMPLETED',
+          },
+        }
+        : {}),
     })),
     completedLessons: data.lessons?.filter(({ status }) => status === 'COMPLETED').length,
     totalLessons: data.lessons?.length || 0,
-    started: !!data.startDate,
+    started: !!data.startDate || data.status === 'PROGRESS',
     endDate: data.endDate,
     updated: data.updated,
     url: data.url,
@@ -158,11 +167,12 @@ export async function postLesson(
   courseId,
   lessonId,
   completed,
+  quizStatus,
 ) {
-  const progress = { educationElementId: lessonId, status: completed ? 'COMPLETED' : 'PROGRESS' };
+  const progress = { educationElementId: lessonId, status: completed ? 'COMPLETED' : 'PROGRESS', quizStatus };
   const { isLoggedIn } = authentication.authenticationData;
   if (!isLoggedIn) {
-    syncStorage.set(lessonId, progress.status);
+    syncStorage.set(progress);
     return getStorageProgress(courseId || lessonId);
   }
 
@@ -210,7 +220,7 @@ export async function getRecommendedCourses(maxItems) {
     const data = getResponseData(response);
     return {
       ...data,
-      userProgress: data.userProgress?.map(mapModule) || [],
+      progressItems: data.progressItems?.map(mapModule) || [],
     };
   } catch (e) {
     // eslint-disable-next-line no-console

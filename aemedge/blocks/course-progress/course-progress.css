@@ -176,10 +176,10 @@
     left: 0;
     height: 100%;
     width: 4.0625rem;
-    top: 0;
+    top: .313rem;
     box-shadow: none;
     background: linear-gradient(90deg, rgb(255 255 255 / 100%) 0%, rgb(255 255 255 / 0%) 100%) !important;
-    padding-left: 1.25rem;
+    display: block;
 
     &:hover {
       & img {
@@ -190,7 +190,7 @@
     }
 
     &.disabled {
-      opacity: 0;
+      display: none;
     }
 
     & img {
@@ -204,9 +204,10 @@
     right: 0;
     height: 100%;
     width: 4.0625rem;
-    top: 0;
+    top: .313rem;
     box-shadow: none;
     background: linear-gradient(90deg, rgb(255 255 255 / 0%) 0%, rgb(255 255 255 / 100%) 100%) !important;
+    display: block;
 
     &:hover {
       & img {
