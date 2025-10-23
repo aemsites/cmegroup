@@ -1,12 +1,12 @@
-main > .section:first-child {
-  padding-top: 8rem;
-}
-
 main > .section {
-  padding-inline: 24px;
-  padding-top: 3.75rem;
+  padding-inline: 24px; 
   width: 100%;
   box-sizing: border-box;
+  padding-top: 0 !important;
+}
+
+main > .section:not(:first-of-type) {
+  padding-top: 3.75rem;
 }
 
 main > .section > div {

@@ -1242,9 +1242,11 @@ main {
 
 /* sections */
 
+/* Target the first .section, even when preceded by non-section elements like course-nav */
+main > .section:not(.section ~ .section), 
 main > .section:first-of-type {
   margin-top: 0;
-  padding-top: 0;
+  padding-top: 0 !important;
 }
 
 main > .section.full-width picture,
