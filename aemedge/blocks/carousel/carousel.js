@@ -486,7 +486,7 @@ export default async function decorate(block) {
   block.prepend(container);
   block.prepend(placeholderImg);
 
-  waitForImagesToLoad(slidesList).then(() => {
+  waitForImagesToLoad(slidesList.querySelector('.slider-slide')).then(() => {
     spinner.remove();
     block.classList.remove('carousel-loading');
     block.querySelector('.slider-slide.placeholder').remove();
