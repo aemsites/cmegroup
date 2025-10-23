@@ -192,25 +192,6 @@ function createCourseHeaderPlaceholder() {
   }
 }
 
-/**
- * Creates a placeholder element for the course navigation to prevent CLS.
- * Reserves space for the course-nav component.
- * @returns {void}
- */
-function createCourseNavPlaceholder() {
-  const main = document.querySelector('main');
-  if (!main) {
-    // eslint-disable-next-line no-console
-    console.warn('createCourseNavPlaceholder: main element not found');
-    return;
-  }
-
-  if (!main.querySelector('.course-nav-placeholder')) {
-    const courseNavPlaceholder = createElement('div', { class: 'course-nav course-nav-placeholder' });
-    main.prepend(courseNavPlaceholder);
-  }
-}
-
 export default async function lessonTemplate() {
   const { authenticationData } = authentication;
   authenticationData.loginPromise.then(async () => {
@@ -219,8 +200,6 @@ export default async function lessonTemplate() {
       await import('../../scripts/course/auth-modal.js');
     }
 
-    // Create placeholder for course header to prevent CLS
-    //createCourseNavPlaceholder();
     createCourseHeaderPlaceholder();
 
     const courseData = await getCourseData();
