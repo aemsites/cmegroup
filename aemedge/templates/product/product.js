@@ -3,14 +3,19 @@ import {
   buildBlock,
   decorateBlock,
   loadBlock,
+  loadSection,
   toClassName,
 } from '../../scripts/aem.js';
-
 import {
   normalizePath,
   computeProductRoot,
   loadProductIndex,
 } from '../../scripts/utils/product.js';
+
+import { decorateMain } from '../../scripts/scripts.js';
+
+// Simple in-memory prefetch cache for intra-product navigation
+const PREFETCH_CACHE = new Map();
 
 function findProductTabsSection() {
   const main = document.querySelector('main');
@@ -175,6 +180,11 @@ async function insertSubTabsIfApplicable(productRoot) {
   if (!main) return;
   const tabsSection = findProductTabsSection();
   if (!tabsSection) return;
+  // Always remove any existing inline sub-tabs first so stale toggles don't linger
+  const stale = tabsSection.querySelector('.product-subtabs');
+  if (stale && stale.parentNode) {
+    stale.parentNode.removeChild(stale);
+  }
 
   // Determine if we are on a primary tab or its /options variant
   const currentPath = normalizePath(window.location.pathname);
@@ -191,8 +201,7 @@ async function insertSubTabsIfApplicable(productRoot) {
     indexHasPath(futuresPath),
     indexHasPath(optionsPath),
   ]);
-  if (!hasFutures && !hasOptions) return;
-  if (hasFutures && !hasOptions) return; // single page, no toggle
+  if (!hasFutures || !hasOptions) return; // show toggle only if both exist
 
   // Build sub-tabs nav
   const nav = document.createElement('nav');
@@ -227,11 +236,6 @@ async function insertSubTabsIfApplicable(productRoot) {
   const wrapper = tabsSection.querySelector('.product-tabs-wrapper')
     || tabsSection.querySelector(':scope > div');
   if (!wrapper) return;
-  // Remove any existing inline sub-tabs first
-  const existingInline = tabsSection.querySelector('.product-subtabs');
-  if (existingInline && existingInline.parentNode) {
-    existingInline.parentNode.removeChild(existingInline);
-  }
   wrapper.appendChild(nav);
 }
 
@@ -282,6 +286,9 @@ export default async function productTemplate() {
   // normalize current page content to live under sub-tabs area
   moveCurrentPageContentUnderSubTabs();
 
+  // Enable SPA-like navigation within the same product
+  enableProductSpaNavigation(productRoot);
+
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
   // Only inject fragment on true product root; not on tab or options pages
   if (onRoot) {
@@ -290,5 +297,140 @@ export default async function productTemplate() {
     const targetHref = targetKey === 'overview' ? `${productRoot}/overview` : `${productRoot}/${targetKey}`;
     await insertFragmentAfter(productTabsSection, targetHref);
     removeDuplicateTabs();
+  }
+}
+
+/**
+ * SPA-like navigation: intercept intra-product links (tabs and sub-tabs)
+ * and swap only the content area below tabs, keeping hero and nav stable.
+ */
+function enableProductSpaNavigation(productRoot) {
+  const tabsNav = document.querySelector('.product-tabs-nav');
+  const subTabsNav = document.querySelector('.product-subtabs');
+  if (tabsNav) wireNavClicks(tabsNav, productRoot);
+  if (subTabsNav) wireNavClicks(subTabsNav, productRoot);
+
+  // Prefetch on intent (hover/focus/viewport) for same-product links
+  if (tabsNav) wirePrefetches(tabsNav, productRoot);
+  if (subTabsNav) wirePrefetches(subTabsNav, productRoot);
+
+  window.addEventListener('popstate', () => {
+    const url = window.location.pathname + window.location.search + window.location.hash;
+    renderProductPath(url, productRoot);
+  });
+}
+
+function wireNavClicks(container, productRoot) {
+  container.querySelectorAll('a[href]')
+    .forEach((a) => {
+      a.addEventListener('click', (e) => {
+        const href = a.getAttribute('href');
+        if (!href) return;
+        const targetRoot = computeProductRoot(href);
+        // Only intercept links within the same product
+        if (normalizePath(targetRoot) !== normalizePath(productRoot)) return;
+        e.preventDefault();
+        window.history.pushState({}, '', href);
+        renderProductPath(href, productRoot);
+      });
+    });
+}
+
+async function renderProductPath(url, productRoot) {
+  try {
+    // Avoid serving stale prefetched HTML across different tab families
+    PREFETCH_CACHE.clear();
+    // Update active state in product tabs immediately
+    updateTabsActiveState(url);
+
+    // Ensure sub-tabs reflect the destination and content is placed under them
+    await insertSubTabsIfApplicable(productRoot);
+    moveCurrentPageContentUnderSubTabs();
+    // Re-wire nav clicks in case sub-tabs were re-rendered
+    enableProductSpaNavigation(productRoot);
+
+    // Fetch target page and swap renderable sections below tabs
+    let html = null;
+    const cached = PREFETCH_CACHE.get(url);
+    if (cached) {
+      html = await cached.catch(() => null);
+    }
+    if (!html) {
+      const resp = await fetch(`${url}.plain.html`);
+      if (!resp.ok) return;
+      html = await resp.text();
+    }
+    const tempMain = document.createElement('main');
+    tempMain.innerHTML = html;
+    decorateMain(tempMain);
+
+    const container = ensureSubTabsContentContainer();
+    if (!container) return;
+    const renderables = [...tempMain.querySelectorAll(':scope > .section')]
+      .filter((sec) => !sec.querySelector('.hero-baseball')
+        && !sec.classList.contains('product-tabs-container')
+        && !sec.classList.contains('product-subtabs-content')
+        && !sec.classList.contains('product-subtabs'));
+
+    container.innerHTML = '';
+    for (let i = 0; i < renderables.length; i += 1) {
+      const cloned = renderables[i].cloneNode(true);
+      container.appendChild(cloned);
+      // eslint-disable-next-line no-await-in-loop
+      await loadSection(cloned);
+    }
+  } catch (e) {
+    // On failure, allow a normal navigation fallback on next click
+  }
+}
+
+function updateTabsActiveState(url) {
+  const currPath = normalizePath(new URL(url, window.location.origin).pathname);
+  document.querySelectorAll('.product-tabs-nav a').forEach((link) => {
+    const linkPath = normalizePath(new URL(link.getAttribute('href'), window.location.origin).pathname);
+    const isActive = currPath === linkPath || currPath === normalizePath(`${linkPath}/overview`);
+    link.classList.toggle('is-active', isActive);
+  });
+  document.querySelectorAll('.product-subtabs a').forEach((link) => {
+    const linkPath = normalizePath(new URL(link.getAttribute('href'), window.location.origin).pathname);
+    link.classList.toggle('is-active', currPath === linkPath);
+  });
+}
+
+function wirePrefetches(container, productRoot) {
+  const links = [...container.querySelectorAll('a[href]')]
+    .filter((a) => normalizePath(computeProductRoot(a.getAttribute('href'))) === normalizePath(productRoot));
+
+  const prefetch = (href) => {
+    if (!href || PREFETCH_CACHE.has(href)) return;
+    const promise = fetch(`${href}.plain.html`).then((r) => (r.ok ? r.text() : null));
+    PREFETCH_CACHE.set(href, promise);
+  };
+
+  // Hover/focus intent
+  links.forEach((a) => {
+    const href = a.getAttribute('href');
+    a.addEventListener('mouseenter', () => prefetch(href));
+    a.addEventListener('focus', () => prefetch(href));
+    // Also prefetch the sibling options/futures counterpart to avoid mixing content
+    const sibling = href.endsWith('/options') ? href.replace(/\/options$/, '') : `${href}/options`;
+    a.addEventListener('mouseenter', () => prefetch(sibling));
+    a.addEventListener('focus', () => prefetch(sibling));
+  });
+
+  // Viewport intent
+  try {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const href = entry.target.getAttribute('href');
+          prefetch(href);
+          io.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '200px' });
+    links.forEach((a) => io.observe(a));
+  } catch (e) {
+    // IntersectionObserver not available; best-effort via hover/focus
   }
 }

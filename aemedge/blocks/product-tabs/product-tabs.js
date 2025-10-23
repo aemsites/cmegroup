@@ -33,18 +33,18 @@ function normalizePath(pathname) {
   }
 }
 
-function isOverviewEquivalent(currentPath, linkPath) {
-  // Treat product root and its explicit /overview as equivalent actives
+function isEquivalentToTab(currentPath, linkPath) {
+  // Treat /product, /product/overview, and /product/<tab>/options as active for the tab link
   const cur = normalizePath(currentPath);
   const link = normalizePath(linkPath);
   if (link.endsWith('/overview')) {
     const root = stripTrailingSlash(link.replace(/\/overview$/, ''));
-    return cur === root || cur === link;
+    return cur === root || cur === link || cur === `${root}/options`;
   }
-  // If link is the root, also consider /overview active
   const linkRoot = link;
-  const overviewVariant = `${linkRoot}/overview`;
-  return cur === linkRoot || cur === normalizePath(overviewVariant);
+  return cur === linkRoot
+    || cur === normalizePath(`${linkRoot}/overview`)
+    || cur === normalizePath(`${linkRoot}/options`);
 }
 
 function computeProductRoot(pathname) {
@@ -97,7 +97,7 @@ function renderNav(block, items) {
     a.textContent = item.label;
 
     const linkPath = normalizePath(item.href);
-    const active = (currentPath === linkPath) || isOverviewEquivalent(currentPath, linkPath);
+    const active = (currentPath === linkPath) || isEquivalentToTab(currentPath, linkPath);
     if (active) a.classList.add('is-active');
 
     li.appendChild(a);
