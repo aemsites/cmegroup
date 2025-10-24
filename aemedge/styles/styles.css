@@ -1311,77 +1311,99 @@ main > .section:not(.full-width) > div,
 
 /* Section Layouts */
 
-.section .layout {
-  display: flex;
-  flex-wrap: wrap;
-}
+.section {
+  & .layout {
+    display: flex;
+    flex-wrap: wrap;
 
-.section .layout > div {
-  flex: 0 0 auto;
-  width: 100%;
-  box-sizing: border-box;
-  padding-bottom: 1.25rem;
-}
+    & > div {
+      flex: 0 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+      padding-bottom: 1.25rem;
 
-.section.no-gap .layout > div {
-  padding: 0;
-}
+      @media (width > 768px) {
+        padding: 0 0.9375rem;
+      }
 
-.section.equal-height .layout {
-  align-items: stretch;
+      &:first-child {
+        @media (width > 768px) {
+          padding-left: 0;
+        }
+      }
 
-  & > div > div {
-    height: 100%;
+      &:last-child {
+        @media (width > 768px) {
+          padding-right: 0;
+        }
+      }
+    }
+
+    & .w-10 {
+      @media (width > 768px) {
+        width: 10%;
+      }
+    }
+
+    & .w-20 {
+      @media (width > 768px) {
+        width: 20%;
+      }
+    }
+
+    & .w-30 {
+      @media (width > 768px) {
+        width: 30%;
+      }
+    }
+
+    & .w-40 {
+      @media (width > 768px) {
+        width: 40%;
+      }
+    }
+
+    & .w-50 {
+      @media (width > 768px) {
+        width: 50%;
+      }
+    }
+
+    & .w-60 {
+      @media (width > 768px) {
+        width: 60%;
+      }
+    }
+
+    & .w-70 {
+      @media (width > 768px) {
+        width: 70%;
+      }
+    }
+
+    & .w-80 {
+      @media (width > 768px) {
+        width: 80%;
+      }
+    }
+
+    & .w-90 {
+      @media (width > 768px) {
+        width: 90%;
+      }
+    }
   }
-}
 
-@media (width > 768px) {
- .section .layout > div {
-    padding: 0 0.9375rem;
+  &.no-gap .layout > div {
+    padding: 0;
   }
 
- .section .layout > div:first-child {
-    padding-left: 0;
-  }
+  &.equal-height .layout {
+    align-items: stretch;
 
- .section .layout > div:last-child {
-    padding-right: 0;
-  }
-
- .section .layout .w-10 {
-    width: 10%;
-  }
-
- .section .layout .w-20 {
-    width: 20%;
-  }
-
- .section .layout .w-30 {
-    width: 30%;
-  }
-
- .section .layout .w-40 {
-    width: 40%;
-  }
-
- .section .layout .w-50 {
-    width: 50%;
-  }
-
- .section .layout .w-60 {
-    width: 60%;
-  }
-
- .section .layout .w-70 {
-    width: 70%;
-  }
-
- .section .layout .w-80 {
-    width: 80%;
-  }
-
- .section .layout .w-90 {
-    width: 90%;
+    & > div > div {
+      height: 100%;
+    }
   }
 }
 
