@@ -3,9 +3,10 @@
 
 /* Reserve space and structure for course header area to prevent CLS */
 main > .section:first-of-type {
-  & .default-content-wrapper {
+  & > .default-content-wrapper:first-of-type {
     display: grid;
-    grid-template-rows: 0.875rem 2.875rem 1fr; /* Row 1: premium (14px) | Row 2: header (46px) | Row 3: h1 (rest) */
+    grid-template-rows: 0.875rem 2.875rem auto; /* Row 1: premium (14px) | Row 2: header (46px) | Row 3: h1 */
+    grid-auto-rows: auto; /* Allow subsequent content to flow naturally */
     min-height: 7.125rem;
   }
 }
@@ -25,10 +26,15 @@ main > .section:first-of-type {
   }
 }
 
-/* H1 goes in third row automatically */
+/* H1 goes in third row */
 main > .section:first-of-type {
-  & .default-content-wrapper > h1 {
+  & > .default-content-wrapper:first-of-type > h1 {
     grid-row: 3;
+  }
+
+  /* Let h2 and subsequent content flow naturally after row 3 */
+  & > .default-content-wrapper:first-of-type > :not(.course-header-wrapper):not(h1) {
+    grid-row: auto;
   }
 }
 
