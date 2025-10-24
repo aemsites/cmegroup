@@ -3,7 +3,7 @@
 
 /* Reserve space and structure for course header area to prevent CLS */
 main > .section:first-of-type {
-  .default-content-wrapper {
+  & .default-content-wrapper {
     display: grid;
     grid-template-rows: 0.875rem 2.875rem 1fr; /* Row 1: premium (14px) | Row 2: header (46px) | Row 3: h1 (rest) */
     min-height: 7.125rem;
@@ -16,18 +16,18 @@ main > .section:first-of-type {
   display: grid;
   grid-template-rows: subgrid;
 
-  .premium-label {
+  & .premium-label {
     grid-row: 1; /* First row */
   }
 
-  .course-header {
+  & .course-header {
     grid-row: 2; /* Second row */
   }
 }
 
 /* H1 goes in third row automatically */
 main > .section:first-of-type {
-  .default-content-wrapper > h1 {
+  & .default-content-wrapper > h1 {
     grid-row: 3;
   }
 }
@@ -41,11 +41,11 @@ main > .section:first-of-type {
 .lateral-navigation {
   background-color: var(--blue2);
 
-  .lesson-nav-wrapper {
+  & .lesson-nav-wrapper {
     display: flex;
   }
 
-  .nav-btn {
+  & .nav-btn {
     width: 50%;
     padding: 1.875rem 0;
     font-family: var(--averta, sans-serif);
@@ -53,7 +53,7 @@ main > .section:first-of-type {
     font-size: 1.125rem;
     line-height: 1.625rem;
 
-    a {
+    & a {
       color: var(--white);
       text-decoration: none;
 
@@ -63,7 +63,7 @@ main > .section:first-of-type {
       }
     }
 
-    .icon {
+    & .icon {
       filter: none;
       height: auto;
       width: auto;
@@ -80,7 +80,7 @@ main > .section:first-of-type {
       }
     }
 
-    .label {
+    & .label {
       vertical-align: middle;
     }
 
@@ -101,16 +101,16 @@ main > .section:first-of-type {
 
 @media (width >= 481px) {
   .lateral-navigation {
-    .lesson-nav-wrapper {
+    & .lesson-nav-wrapper {
       flex-direction: row;
     }
 
-    .nav-btn {
+    & .nav-btn {
       padding: 5.625rem 0;
       font-size: 2.375rem;
       line-height: 3rem;
 
-      .icon::before {
+      & .icon::before {
         padding-left: 1.625rem;
         content: var(--icon-arrow-right-thin);
       }
