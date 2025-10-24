@@ -1,12 +1,13 @@
 import {
-  createCourseBaseTemplate, getCourseData, updateLessonStatus, getCurrentLesson,
+  createCourseBaseTemplate,
+  getCourseData,
+  updateLessonStatus,
+  getCurrentLesson,
 } from '../../scripts/course/course.js';
 import { addCourseCertificate } from '../../scripts/course/certificate.js';
 import {
   createElement, i18n, isFeatureToggled, addFragmentBlock,
 } from '../../scripts/utils.js';
-import { authentication } from '../../scripts/modules/Authentication.js';
-import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
 import { setTracking } from '../../scripts/utils/index.js';
@@ -126,71 +127,84 @@ async function initLateralNav(courseData) {
   return { prevHref, nextHref };
 }
 
-export default async function lessonTemplate() {
-  const { authenticationData } = authentication;
-  authenticationData.loginPromise.then(async () => {
-    const { isLoggedIn, loginInfo } = authenticationData;
-    const courseData = await getCourseData();
-    const courseId = courseData.moduleId;
-    await createCourseBaseTemplate(courseData);
-    const navResult = await initLateralNav(courseData);
-    //  dispatch courseData event
-    store.dispatch(courseDataChange({ ...courseData, nextLesson: navResult?.nextHref }));
-    const lesson = getCurrentLesson(courseData);
-    if (lesson?.quiz || lesson?.completed) {
-      //  quiz prefill
-      store.dispatch(quizAnswered(lesson?.quiz || { isCorrect: true }));
-    }
-    if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
-      await import('../../scripts/course/auth-modal.js');
-    }
-    if (!lesson?.started) {
-      //  start current lesson
-      await updateLessonStatus(false);
-    }
-    //  quiz completion event subscriber
-    store.subscribe(({ quiz }) => quiz, async ({ quizStatus }) => {
-      if (quizStatus?.isCorrect && !lesson?.completed) {
-        const updatedCourse = await updateLessonStatus(
-          true,
-          quizStatus?.status ? quizStatus : null,
-        );
-        store.dispatch(courseDataChange(updatedCourse));
-        fireTrackingLessons(
-          `Lesson "${lesson.moduleTitle}" - completed`,
+async function loadUserProgress(courseData, authenticationData) {
+  const { isLoggedIn, loginInfo } = authenticationData;
+  const { store } = await import('../../scripts/store/store.js');
+  //  dispatch courseData event
+  store.dispatch(courseDataChange(courseData));
+  const lesson = getCurrentLesson(courseData);
+  if (lesson?.quiz || lesson?.completed) {
+    //  quiz prefill
+    store.dispatch(quizAnswered(lesson?.quiz || { isCorrect: true }));
+  }
+  if (!lesson?.started) {
+    //  start lesson
+    await updateLessonStatus(false);
+  }
+  //  quiz subscriber
+  store.subscribe(({ quiz }) => quiz, async ({ quizStatus }) => {
+    if (quizStatus?.isCorrect && !lesson?.completed) {
+      const updatedCourse = await updateLessonStatus(
+        true,
+        quizStatus?.status ? quizStatus : null,
+      );
+      store.dispatch(courseDataChange(updatedCourse));
+      fireTrackingLessons(
+        `Lesson "${lesson.moduleTitle}" - completed`,
+        'completed',
+        {
+          lessonID: lesson.moduleId,
+          parentCourse: courseData.moduleId,
+          lessonTitle: lesson.moduleTitle,
+        },
+      );
+      if (updatedCourse.completed) {
+        fireTrackingCourses(
+          `Course "${updatedCourse.moduleTitle}" - completed`,
           'completed',
           {
-            lessonID: lesson.moduleId,
-            parentCourse: courseId,
-            lessonTitle: lesson.moduleTitle,
+            courseID: courseData.moduleId,
+            courseTitle: updatedCourse.moduleTitle,
           },
         );
-        if (updatedCourse.completed) {
-          fireTrackingCourses(
-            `Course "${updatedCourse.moduleTitle}" - completed`,
-            'completed',
-            {
-              courseID: courseId,
-              courseTitle: updatedCourse.moduleTitle,
-            },
-          );
-        }
-      } else if (quizStatus && !quizStatus.isCorrect && quizStatus !== lesson?.quiz) {
-        await updateLessonStatus(false, quizStatus?.status ? quizStatus : null);
       }
-    });
-    //  courseData change event
-    store.subscribe(({ courseData: course }) => course, (course) => {
-      if (course?.completed) {
-        addCourseCertificate({
-          isLoggedIn,
-          userName: loginInfo?.userName,
-          moduleId: course?.moduleId,
-          lessonTitle: course?.title,
-          completedModule: course?.endDate,
-          // the modal is opened automatically when the user completes the lesson
-          showModal: !lesson?.completed,
-        });
+    } else if (quizStatus && !quizStatus.isCorrect && quizStatus !== lesson?.quiz) {
+      await updateLessonStatus(false, quizStatus?.status ? quizStatus : null);
+    }
+  });
+  //  courseData subscriber
+  store.subscribe(({ courseData: course }) => course, (course) => {
+    if (course?.completed) {
+      addCourseCertificate({
+        isLoggedIn,
+        userName: loginInfo?.userName,
+        moduleId: course?.moduleId,
+        lessonTitle: course?.title,
+        completedModule: course?.endDate,
+        // the modal is opened automatically when the user completes the lesson
+        showModal: !lesson?.completed,
+      });
+    }
+  });
+}
+
+export default async function lessonTemplate() {
+  //  static section
+  const courseData = await getCourseData();
+  await Promise.all([
+    createCourseBaseTemplate(courseData),
+    initLateralNav(courseData),
+  ]);
+
+  //  dynamic section - user progress
+  import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
+    const { authenticationData } = authentication;
+    authenticationData.loginPromise.then(async () => {
+      const { isLoggedIn, loginInfo } = authenticationData;
+      const data = await getCourseData(loginInfo);
+      loadUserProgress(data, authenticationData);
+      if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
+        import('../../scripts/course/auth-modal.js');
       }
     });
   });
