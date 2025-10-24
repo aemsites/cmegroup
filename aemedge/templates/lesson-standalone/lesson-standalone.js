@@ -47,10 +47,8 @@ async function loadUserProgress(courseData) {
 export default async function lessonStandaloneTemplate() {
   //  static section
   const courseData = await getCourseData();
-  await Promise.all([
-    createCourseBaseTemplate(courseData),
-    addFragmentBlock(FRAGMENT_URL),
-  ]);
+  await createCourseBaseTemplate(courseData);
+  addFragmentBlock(FRAGMENT_URL);
 
   //  dynamic section - user progress
   import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
