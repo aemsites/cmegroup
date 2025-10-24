@@ -21,13 +21,6 @@
 
     &.citron-background {
         background-color: var(--citron);
-
-        & a {
-          & h3,
-          & p {
-              color: var(--black);
-          }
-        }
     }
 
     &.yellow-arrow .cards-body-container a::after {

@@ -1,11 +1,15 @@
 import { getMetadata } from '../../scripts/aem.js';
 import { createElement, i18n, setupDayjsLibs } from '../../scripts/utils.js';
+import { loadFragment } from '../fragment/fragment.js';
+import { store } from '../../scripts/store/store.js';
+import { authentication as authStatus } from '../../scripts/modules/index.js';
+import { renderSearch } from './search/search.js';
 
 const IS_OPEN = 'is-open';
 
 async function loadTabContent(fragmentPath) {
   try {
-    return import('../fragment/fragment.js').then(({ loadFragment }) => loadFragment(fragmentPath));
+    return await loadFragment(fragmentPath);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error(`Error loading fragment: ${fragmentPath}`, error);
@@ -21,24 +25,6 @@ async function getLogoSVG() {
     logoContainer.innerHTML = svgContent;
   }
   return logoContainer;
-}
-
-function handleAuthEvent(event) {
-  import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
-    switch (event) {
-      case 'login':
-        authentication.login();
-        break;
-      case 'logout':
-        authentication.logout();
-        break;
-      case 'registration':
-        authentication.registration();
-        break;
-      default:
-        break;
-    }
-  });
 }
 
 class Nav {
@@ -79,6 +65,14 @@ class Nav {
     this.navLogoutBtnMobile = createElement('button', { class: 'nav-logout secondary' });
     this.loggedIn = false;
     this.loginInfo = {};
+
+    store.subscribe(({ authentication }) => authentication, ({ isLoggedIn, loginInfo }) => {
+      if (isLoggedIn !== this.loggedIn) {
+        this.loggedIn = isLoggedIn;
+        this.loginInfo = loginInfo;
+        this.updateNavState();
+      }
+    });
   }
 
   async updateNavState() {
@@ -135,7 +129,7 @@ class Nav {
 
     this.navLoginBtn.innerHTML = this.loginLabel;
     this.navLoginBtn.addEventListener('click', async () => {
-      handleAuthEvent('login');
+      authStatus.login();
     });
     this.logBtnToRightSide();
     this.wrapper.append(this.navDesktopRight);
@@ -231,16 +225,6 @@ class Nav {
           a.setAttribute('target', '_blank');
         }
       }
-    });
-
-    import('../../scripts/store/store.js').then(({ store }) => {
-      store.subscribe(({ authentication }) => authentication, ({ isLoggedIn, loginInfo }) => {
-        if (isLoggedIn !== this.loggedIn) {
-          this.loggedIn = isLoggedIn;
-          this.loginInfo = loginInfo;
-          this.updateNavState();
-        }
-      });
     });
   };
 
@@ -457,14 +441,14 @@ class Nav {
     logLink.href = '#';
     logLink.setAttribute('role', 'button');
     logLink.addEventListener('click', async () => {
-      handleAuthEvent('login');
+      authStatus.login();
     });
     const regLink = createElement('a');
     regLink.innerHTML = this.createAccount;
     regLink.href = '#';
     regLink.setAttribute('role', 'button');
     regLink.addEventListener('click', async () => {
-      handleAuthEvent('registration');
+      authStatus.registration();
     });
     if (mobileVersion) {
       logLi.appendChild(logLink);
@@ -502,7 +486,7 @@ class Nav {
     });
     this.navLogoutBtn.innerHTML = this.logoutLabel;
     this.navLogoutBtn.addEventListener('click', async () => {
-      handleAuthEvent('logout');
+      authStatus.logout();
     });
     this.logInnerContentDesktop();
     this.logOutBtnToContDesktop();
@@ -566,7 +550,7 @@ class Nav {
     this.navItemMobile.classList.add(menuType);
     this.navLogoutBtnMobile.innerHTML = this.logoutLabel;
     this.navLogoutBtnMobile.addEventListener('click', async () => {
-      handleAuthEvent('logout');
+      authStatus.logout();
     });
     this.logInnerContentMobile();
     this.logOutBtnToContMobile();
@@ -821,14 +805,12 @@ class Nav {
     }
   };
 
-  openSearchDrawer = async () => {
+  openSearchDrawer = () => {
     document.body.classList.add('curtain-visible');
     this.searchOverlay.classList.add(IS_OPEN);
     this.searchDrawer.classList.add(IS_OPEN);
-    import('./search/search.js').then(({ renderSearch }) => {
-      const searchComponent = renderSearch();
-      this.searchDrawer.append(searchComponent);
-    });
+    const searchComponent = renderSearch();
+    this.searchDrawer.append(searchComponent);
   };
 
   closeSearchDrawer = () => {

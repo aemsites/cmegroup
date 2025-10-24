@@ -4,6 +4,7 @@ import {
   i18n,
   preserveHideParameters,
 } from '../../../scripts/utils.js';
+import { store } from '../../../scripts/store/store.js';
 import { getCourseData } from '../../../scripts/course/course.js';
 
 function getTotalLessonsCount(courseData) {
@@ -316,15 +317,12 @@ export default async function createCourseNav(main) {
   //  init courseNav
   const data = await getCourseData();
   buildCourseNav(main, data);
-
-  //  courseData change event
   let prevData = data;
-  import('../../../scripts/store/store.js').then(({ store }) => {
-    store.subscribe(({ courseData }) => courseData, (courseData) => {
-      if (courseData) {
-        buildCourseNav(main, courseData, prevData);
-        prevData = courseData;
-      }
-    });
+  //  courseData change event
+  store.subscribe(({ courseData }) => courseData, (courseData) => {
+    if (courseData) {
+      buildCourseNav(main, courseData, prevData);
+      prevData = courseData;
+    }
   });
 }

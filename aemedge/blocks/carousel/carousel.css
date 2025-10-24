@@ -138,20 +138,18 @@
     & .slide-caption {
       color: #f8f9fa;
       user-select: none;
-      margin-top: 1.875rem;
-      padding: 0 15%;
+      margin-top: 3.75rem;
+      padding: 0 10%;
       font-family: var(--averta);
       font-weight: 400;
       letter-spacing: .03em;
-      margin-bottom: 0;
+      margin-bottom: 1.25rem;
       font-size: 1.125rem;
       line-height: 1.625rem;
 
       @media (width >= 481px) {
         line-height: 2.25rem;
         font-size: 1.75rem;
-        margin-top: 3.75rem;
-        padding: 0 10%;
       }
     }
   }
@@ -182,7 +180,6 @@
       border: 0;
       cursor: pointer;
       border-radius: 0;
-      padding: 0;
 
       @media (width >= 481px) {
         height: 3.75rem;

@@ -178,16 +178,16 @@ const SliderPlugin = (function () {
       const carouselContainer = $('.carousel-container', this.elem.parentNode);
 
       // Use offsetHeight (including padding/border) to get the rendered height of the slide content
-      const contentHeight = '100%';
+      const contentHeight = currentSlide.offsetHeight;
 
       if (carouselContainer) {
-        carouselContainer.style.height = `${contentHeight}`;
+        carouselContainer.style.height = `${contentHeight}px`;
       }
 
       // Also apply to the slider element to contain other positioned elements like arrows/dots
       const sliderElement = $('.slider', this.elem.parentNode);
       if (sliderElement) {
-        sliderElement.style.height = `${contentHeight}`;
+        sliderElement.style.height = `${contentHeight}px`;
       }
     }
 
@@ -484,11 +484,12 @@ export default async function decorate(block) {
   slider.append(slidesList);
   container.append(slider);
   block.prepend(container);
+  block.prepend(placeholderImg);
 
-  waitForImagesToLoad(placeholderImg).then(() => {
+  waitForImagesToLoad(slidesList).then(() => {
     spinner.remove();
     block.classList.remove('carousel-loading');
-    block.querySelector('.slider-slide.placeholder').classList.remove('placeholder');
+    block.querySelector('.slider-slide.placeholder').remove();
 
     if (!isSingleSlide) {
       // eslint-disable-next-line no-new

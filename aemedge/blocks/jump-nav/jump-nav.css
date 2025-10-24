@@ -75,18 +75,16 @@
             color: var(--white);
             text-decoration: none;
             font-weight: 600;
-            font-size: .75rem;
+            font-size: 0.875rem;
             white-space: nowrap;
             position: relative;
             text-transform: uppercase;
-            letter-spacing: 0.1129rem;
+            letter-spacing: .15em;
             line-height: 1rem;
             padding: 1.0625rem 0.625rem;
             
             @media (width >= 993px) {
               padding: 2rem 1.25rem;
-              font-size: 0.875rem;
-              letter-spacing: 0.1313rem;
             }
 
             &::after {
@@ -108,6 +106,7 @@
 
               &::after {
                 width: calc(100% - 1.875rem);
+                display: none;
               }
             }
 
@@ -117,7 +116,13 @@
               }
             }
 
-            &.active {              
+            &.active {
+              &:hover {
+                &::after {
+                  display: block;
+                }
+              }
+              
               &::after {
                 width: calc(100% - 1.875rem);
                 opacity: 1;

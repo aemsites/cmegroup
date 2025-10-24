@@ -133,25 +133,23 @@ function scrollSection(targetElement, link, isSmooth, updateHash, nav, initialLo
   if (intersectionObserver) {
     intersectionObserver.disconnect();
 
-    targetElement.scrollIntoView({ behavior: isSmooth ? 'smooth' : 'auto' });
+    allLinks.forEach((l) => l.classList.remove('active'));
 
-    if (nav && link.parentElement) {
-      scrollToCenter(link.parentElement, nav);
+    if (initialLoad || !isSmooth) {
+      link.classList.add('active');
+      pendingActiveLink = null;
+    } else {
+      pendingActiveLink = link;
     }
 
-    setTimeout(() => {
-      allLinks.forEach((l) => l.classList.remove('active'));
-
-      if (initialLoad || isSmooth) {
-        link.classList.add('active');
-        pendingActiveLink = null;
-      } else {
-        pendingActiveLink = link;
-      }
-
-      updateBarPosition(link);
-    }, 500);
+    updateBarPosition(link);
   }
+
+  if (nav && link.parentElement) {
+    scrollToCenter(link.parentElement, nav);
+  }
+
+  targetElement.scrollIntoView({ behavior: isSmooth ? 'smooth' : 'auto' });
 
   const delay = isSmooth ? 500 : 50;
 
@@ -221,9 +219,9 @@ function setupActiveStates(nav) {
         allLinks.forEach((link) => link.classList.remove('active'));
         linkToActivate.classList.add('active');
 
-        scrollToCenter(linkToActivate.parentElement, nav);
-
         updateBarPosition(linkToActivate);
+
+        scrollToCenter(linkToActivate.parentElement, nav);
 
         const href = linkToActivate.getAttribute('href');
         if (href) {

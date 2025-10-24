@@ -231,14 +231,6 @@
         }
       }
     }
-
-    &.disabled {
-      background-color: var(--gray5-a);
-
-      & .option-icon {
-        display: none;
-      }
-    }
   }
 
   & .option-text {
