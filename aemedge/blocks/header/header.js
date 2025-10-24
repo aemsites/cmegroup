@@ -1,13 +1,11 @@
 import { getMetadata } from '../../scripts/aem.js';
 import { createElement, i18n, setupDayjsLibs } from '../../scripts/utils.js';
-import { loadFragment } from '../fragment/fragment.js';
-import { renderSearch } from './search/search.js';
 
 const IS_OPEN = 'is-open';
 
 async function loadTabContent(fragmentPath) {
   try {
-    return await loadFragment(fragmentPath);
+    return import('../fragment/fragment.js').then(({ loadFragment }) => loadFragment(fragmentPath));
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error(`Error loading fragment: ${fragmentPath}`, error);
@@ -823,12 +821,14 @@ class Nav {
     }
   };
 
-  openSearchDrawer = () => {
+  openSearchDrawer = async () => {
     document.body.classList.add('curtain-visible');
     this.searchOverlay.classList.add(IS_OPEN);
     this.searchDrawer.classList.add(IS_OPEN);
-    const searchComponent = renderSearch();
-    this.searchDrawer.append(searchComponent);
+    import('./search/search.js').then(({ renderSearch }) => {
+      const searchComponent = renderSearch();
+      this.searchDrawer.append(searchComponent);
+    });
   };
 
   closeSearchDrawer = () => {
