@@ -26,7 +26,7 @@ async function getLogoSVG() {
 }
 
 function handleAuthEvent(event) {
-  return import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
+  import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
     switch (event) {
       case 'login':
         authentication.login();
