@@ -1,7 +1,5 @@
 import { getCourseData, createCourseBaseTemplate } from '../../scripts/course/course.js';
 import { createElement, i18n, preserveHideParameters } from '../../scripts/utils.js';
-import { authentication } from '../../scripts/modules/Authentication.js';
-import { store } from '../../scripts/store/store.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { addCourseCertificate } from '../../scripts/course/certificate.js';
 
@@ -62,6 +60,7 @@ async function addBeginCourseButton(courseData) {
   const beginCourseLabel = await i18n('Begin Course');
   const beginCourseButton = createElement('a', { class: 'button primary', href: '#' }, beginCourseLabel);
   const buttonContainer = createElement('div', { class: 'button-container begin-course-button' }, beginCourseButton);
+  main.querySelector('.section')?.lastChild.after(buttonContainer);
 
   if (courseData.lessons.length > 0) {
     const firstLesson = courseData.lessons.length > 0 ? courseData.lessons[0] : null;
@@ -75,36 +74,41 @@ async function addBeginCourseButton(courseData) {
       beginCourseButton.href = firstLesson.path;
     }
   }
-
-  main.querySelector('.section')?.lastChild.after(buttonContainer);
 }
 
 export default async function courseTemplate() {
-  // Create placeholders early to prevent CLS
   createCourseNavPlaceholder();
   createCourseHeaderPlaceholder();
+  //  static section
+  const courseData = await getCourseData();
+  await Promise.all([
+    createCourseBaseTemplate(courseData),
+    addBeginCourseButton(courseData),
+  ]);
 
-  const { authenticationData } = authentication;
-  authenticationData.loginPromise.then(async () => {
-    const courseData = await getCourseData();
-    await createCourseBaseTemplate(courseData);
-    await addBeginCourseButton(courseData);
-    if (courseData.completed) {
+  // Apply hide parameters preservation after course content is loaded
+  const main = document.querySelector('main');
+  preserveHideParameters(main);
+
+  //  dynamic section - user progress
+  import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
+    const { authenticationData } = authentication;
+    authenticationData.loginPromise.then(async () => {
       const { isLoggedIn, loginInfo } = authenticationData;
-      await addCourseCertificate({
-        isLoggedIn,
-        userName: loginInfo?.userName,
-        moduleId: courseData?.moduleId,
-        lessonTitle: courseData?.title,
-        completedModule: courseData?.endDate,
+      const data = await getCourseData(loginInfo);
+      if (data.completed) {
+        addCourseCertificate({
+          isLoggedIn,
+          userName: loginInfo?.userName,
+          moduleId: data?.moduleId,
+          lessonTitle: data?.title,
+          completedModule: data?.endDate,
+        });
+      }
+      import('../../scripts/store/store.js').then(({ store }) => {
+        //  dispatch courseData event
+        store.dispatch(courseDataChange(data));
       });
-    }
-
-    // Apply hide parameters preservation after course content is loaded
-    const main = document.querySelector('main');
-    preserveHideParameters(main);
-
-    //  dispatch courseData event
-    store.dispatch(courseDataChange(courseData));
+    });
   });
 }
