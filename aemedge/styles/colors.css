@@ -28,7 +28,7 @@
     --gray4: #c2cace;
     --gray4-filter: brightness(0) saturate(100%) invert(85%) sepia(9%) saturate(174%) hue-rotate(155deg) brightness(95%) contrast(87%);
     --gray5: #ebedee;
-    --gray5-40: rgb(235 237 238 / 40%)
+    --gray5-40: rgb(235 237 238 / 40%);
     --gray5-a: #eee;
     --gray5-filter: invert(95%) sepia(3%) saturate(93%) hue-rotate(156deg) brightness(103%) contrast(89%);
     --gray6: #f1f5f7;
