@@ -192,6 +192,7 @@ export default async function lessonTemplate() {
   //  static section
   const courseData = await getCourseData();
   await createCourseBaseTemplate(courseData);
+  initLateralNav(courseData);
 
   //  dynamic section - user progress
   import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
@@ -199,7 +200,6 @@ export default async function lessonTemplate() {
     authenticationData.loginPromise.then(async () => {
       const { isLoggedIn, loginInfo } = authenticationData;
       const data = await getCourseData(loginInfo);
-      initLateralNav(courseData);
       loadUserProgress(data, authenticationData);
       if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
         import('../../scripts/course/auth-modal.js');
