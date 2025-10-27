@@ -227,7 +227,7 @@ function createCourseHeaderPlaceholder() {
 
 export default async function lessonTemplate() {
   //  static section
-  createCourseHeaderPlaceholder();
+  //createCourseHeaderPlaceholder();
   const courseData = await getCourseData();
   await createCourseBaseTemplate(courseData);
   initLateralNav(courseData);
