@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Product App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="Product Manager">
+    <link rel="stylesheet" href="/tools/product/product.css">
+    <script src="/tools/product/product.js" type="module"></script>
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="app-header">
+        <div class="header-content">
+          <div class="header-main">
+            <div class="app-icon">
+              <img src="./product/icons/product.svg" alt="Product" class="icon">
+            </div>
+            <div class="header-text">
+              <h1>CME Group - Markets - Product Manager</h1>
+              <p class="subtitle">Create and manage products</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <div class="config-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <img src="./product/icons/settings.svg" alt="Config" class="icon">
+            </div>
+            <h2>Product Details</h2>
+          </div>
+          <div class="card-content">
+            <div class="input-group">
+              <label for="product-name" class="input-label">
+                <span class="label-text">Product Name</span>
+              </label>
+              <input type="text" id="product-name" class="input-field" placeholder="e.g., Corn" />
+            </div>
+
+            <div class="input-group">
+              <label for="product-id" class="input-label">
+                <span class="label-text">Product ID</span>
+              </label>
+              <input type="text" id="product-id" class="input-field" placeholder="e.g., 300" />
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">
+                <span class="label-text">Tabs</span>
+              </label>
+              <div class="checkbox-group" id="tabs-group">
+                <div class="input-row" style="gap: 1rem; grid-template-columns: repeat(2, minmax(0,1fr));">
+                  <label class="checkbox-item"><input type="checkbox" value="overview" class="tab-checkbox" /> <span class="checkbox-label">Overview</span></label>
+                  <label class="checkbox-item"><input type="checkbox" value="quotes" class="tab-checkbox" /> <span class="checkbox-label">Quotes</span></label>
+                  <label class="checkbox-item"><input type="checkbox" value="settlements" class="tab-checkbox" /> <span class="checkbox-label">Settlements</span></label>
+                  <label class="checkbox-item"><input type="checkbox" value="volume" class="tab-checkbox" /> <span class="checkbox-label">Volume</span></label>
+                  <label class="checkbox-item"><input type="checkbox" value="specs" class="tab-checkbox" /> <span class="checkbox-label">Specs</span></label>
+                  <label class="checkbox-item"><input type="checkbox" value="margins" class="tab-checkbox" /> <span class="checkbox-label">Margins</span></label>
+                  <label class="checkbox-item"><input type="checkbox" value="calendar" class="tab-checkbox" /> <span class="checkbox-label">Calendar</span></label>
+                </div>
+                <div style="display:flex; gap:.5rem; margin-top:.5rem;">
+                  <button id="select-all-tabs" class="btn btn-outline btn-sm">Select All</button>
+                  <button id="unselect-all-tabs" class="btn btn-outline btn-sm">Unselect All</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <div class="primary-actions">
+            <button id="create-product" class="btn btn-primary">
+              <img src="./product/icons/check.svg" alt="Create" class="icon">
+              <span>Create Product</span>
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+ </html>
+
+
