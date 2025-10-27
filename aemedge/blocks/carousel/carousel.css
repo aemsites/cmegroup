@@ -151,6 +151,10 @@
         line-height: 2.25rem;
         font-size: 1.75rem;
         margin-top: 3.75rem;
+        padding: 0 22%;
+      }
+
+      @media (width >= 769px) {
         padding: 0 10%;
       }
     }
@@ -167,6 +171,10 @@
     justify-content: space-between;
 
     @media (width >= 481px) {
+      width: 100%;
+    }
+
+    @media (width >= 769px) {
       width: 120%;
       left: -10%;
     }
@@ -210,6 +218,10 @@
         left: 0;
 
         @media (width >= 481px) {
+          left: 0;
+        }
+
+        @media (width >= 769px) {
           left: 3.75rem;
         }
       }
@@ -218,6 +230,10 @@
         right: 0;
 
         @media (width >= 481px) {
+          right: 0;
+        }
+
+        @media (width >= 769px) {
           right: 3.75rem;
         }
       }
