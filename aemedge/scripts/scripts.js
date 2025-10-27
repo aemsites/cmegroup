@@ -647,7 +647,7 @@ export function decorateButtons(element) {
  */
 function decorateTextHighlights(main) {
   // Find <code> elements inside <p> elements within main
-  const codeElements = main.querySelectorAll('p code');
+  const codeElements = main.querySelectorAll('p code, ul li code, ol li code');
   codeElements.forEach((codeEl) => {
     // For each code element, find the closest section and its desired highlight color
     const sectionDiv = codeEl.closest('.section');
