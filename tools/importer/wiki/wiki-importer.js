@@ -400,7 +400,35 @@ const rewriteWikiLinks = (document, pageUrl) => {
   });
 };
 
+/**
+ * Scroll Confluence container to trigger lazy loading
+ */
+const scrollConfluencePage = async (document) => {
+  const container = document.querySelector('[role="main"]');
+
+  if (!container) return;
+
+  const maxScroll = container.scrollHeight - container.clientHeight;
+  // eslint-disable-next-line no-restricted-syntax
+  for (let pos = 0; pos <= maxScroll; pos += 500) {
+    container.scrollTop = pos;
+    container.dispatchEvent(new Event('scroll', { bubbles: true }));
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise((resolve) => { setTimeout(resolve, 200); });
+  }
+};
+
 export default {
+  /**
+   * Called before DOM is frozen - scroll to trigger lazy loading
+   */
+  onLoad: async ({ document }) => {
+    if (document.body?.id === 'com-atlassian-confluence') {
+      await scrollConfluencePage(document);
+      await new Promise((resolve) => { setTimeout(resolve, 1000); });
+    }
+  },
+
   /**
    * Apply DOM operations to the provided document and return
    * the root element to be then transformed to Markdown.
