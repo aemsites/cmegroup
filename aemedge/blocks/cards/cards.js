@@ -469,6 +469,9 @@ export async function createDynamicCards(block) {
     indexFilter.templates = ['course'];
     indexFilter.orderBy = 'lastModified';
     indexFilter.sortDirection = 'desc';
+    if (indexFilter.limit) {
+      block.classList.add(`columns-grid-${indexFilter.limit}`);
+    }
     filteredData = await getIndexedContent(indexFilter);
     sliderConfig = {
       slidesToShow: 'auto',

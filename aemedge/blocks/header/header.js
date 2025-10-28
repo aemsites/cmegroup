@@ -17,8 +17,12 @@ async function getLogoSVG() {
   const answer = await fetch('/aemedge/icons/cme-logo.svg');
   const svgContent = await answer.text();
   const logoContainer = createElement('div', { class: 'site-header-logo' });
+  const logoUrl = createElement('a', { class: 'header-logo-url' });
+  logoUrl.href = '/';
+  logoUrl.title = 'CME Group Logo';
   if (logoContainer) {
-    logoContainer.innerHTML = svgContent;
+    logoUrl.innerHTML = svgContent;
+    logoContainer.append(logoUrl);
   }
   return logoContainer;
 }
