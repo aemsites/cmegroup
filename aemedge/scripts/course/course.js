@@ -59,7 +59,7 @@ const parseCurrentPath = () => {
   const path = window.location.pathname.replace(/\.html$/, '').replace(/^\/qa/, '');
   const basePath = path.startsWith(LESSONS_BASE_PATH) ? LESSONS_BASE_PATH : COURSES_BASE_PATH;
   const relevantPath = path.split(basePath)[1];
-  return { basePath, relevantPath };
+  return { path, basePath, relevantPath };
 };
 
 /**
@@ -354,7 +354,8 @@ export async function createCourseBaseTemplate(courseData) {
     const type = createElement('div', { class: 'metadata type' });
     type.textContent = lessonLabel;
     const lessons = getOrderedLessons(courseData);
-    const lessonIndex = lessons.findIndex(({ path }) => path === window.location.pathname);
+    const { path: currentPath } = parseCurrentPath();
+    const lessonIndex = lessons.findIndex(({ path }) => path === currentPath);
     if (lessonIndex !== -1) {
       type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${lessons.length}`;
     }

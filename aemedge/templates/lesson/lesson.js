@@ -52,17 +52,6 @@ function flattenLessons(courseData) {
   return flatLessons;
 }
 
-function findNavigationLinks(currentPath, flatLessons) {
-  const currentIndex = flatLessons.findIndex((lesson) => lesson.path === currentPath);
-  const prevLesson = currentIndex > 0 ? flatLessons[currentIndex - 1] : null;
-  const nextLesson = currentIndex < flatLessons.length - 1 ? flatLessons[currentIndex + 1] : null;
-
-  return {
-    prevHref: prevLesson ? prevLesson.path : null,
-    nextHref: nextLesson ? nextLesson.path : null,
-  };
-}
-
 async function addLateralNavigation(prevHref, nextHref) {
   const main = document.querySelector('main');
   if (!main) return;
@@ -115,13 +104,24 @@ async function addLateralNavigation(prevHref, nextHref) {
   preserveHideParameters(nav);
 }
 
+function getNavLinks(courseData) {
+  const currentPath = window.location.pathname.replace(/\.html$/, '');
+  const flatLessons = flattenLessons(courseData);
+  const currentIndex = flatLessons.findIndex((lesson) => lesson.path === currentPath);
+  const prevLesson = currentIndex > 0 ? flatLessons[currentIndex - 1] : null;
+  const nextLesson = currentIndex < flatLessons.length - 1 ? flatLessons[currentIndex + 1] : null;
+
+  return {
+    prevHref: prevLesson ? prevLesson.path : null,
+    nextHref: nextLesson ? nextLesson.path : null,
+  };
+}
+
 async function initLateralNav(courseData) {
   if (isFeatureToggled('hideCourseNav', 'y', true) || window.location.pathname.includes('.hideCourseNav.')) {
     return null;
   }
-  const currentPath = window.location.pathname.replace(/\.html$/, '');
-  const flatLessons = flattenLessons(courseData);
-  const { prevHref, nextHref } = findNavigationLinks(currentPath, flatLessons);
+  const { prevHref, nextHref } = getNavLinks(courseData);
   await addLateralNavigation(prevHref, nextHref);
   await addFragmentBlock(FRAGMENT_URL);
   return { prevHref, nextHref };
@@ -130,8 +130,9 @@ async function initLateralNav(courseData) {
 async function loadUserProgress(courseData, authenticationData) {
   const { isLoggedIn, loginInfo } = authenticationData;
   const { store } = await import('../../scripts/store/store.js');
+  const { nextHref } = getNavLinks(courseData);
   //  dispatch courseData event
-  store.dispatch(courseDataChange(courseData));
+  store.dispatch(courseDataChange({ ...courseData, nextLesson: nextHref }));
   const lesson = getCurrentLesson(courseData);
   if (lesson?.quiz || lesson?.completed) {
     //  quiz prefill
@@ -191,10 +192,7 @@ async function loadUserProgress(courseData, authenticationData) {
 export default async function lessonTemplate() {
   //  static section
   const courseData = await getCourseData();
-  await Promise.all([
-    createCourseBaseTemplate(courseData),
-    initLateralNav(courseData),
-  ]);
+  await createCourseBaseTemplate(courseData);
 
   //  dynamic section - user progress
   import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
@@ -202,6 +200,7 @@ export default async function lessonTemplate() {
     authenticationData.loginPromise.then(async () => {
       const { isLoggedIn, loginInfo } = authenticationData;
       const data = await getCourseData(loginInfo);
+      initLateralNav(courseData);
       loadUserProgress(data, authenticationData);
       if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
         import('../../scripts/course/auth-modal.js');
