@@ -3,7 +3,7 @@ import { getMetadata } from '../../scripts/aem.js';
 import { apiGet, getResponseData } from '../../scripts/utils/index.js';
 
 const API_CONFIG = {
-  reportsEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/market-recap.json',
+  reportsEndpoint: '/CmeWS/mvc/Ags/Reports',
 };
 
 async function fetchMarketReports() {
