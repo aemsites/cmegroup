@@ -124,6 +124,8 @@ function decorateSections(main) {
             container.append(column);
           });
           section.append(container);
+        } else if (key === 'customid') {
+          section.setAttribute('id', meta.customid);
         } else {
           section.dataset[toCamelCase(key)] = meta[key];
         }
