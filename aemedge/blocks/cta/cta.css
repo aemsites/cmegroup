@@ -118,6 +118,16 @@
         align-items: center;
         justify-content: center;
       }
+
+      &.blue5 {
+        & .title p {
+          color: var(--blue5);
+        }
+
+        & .footer::after {
+          background-color: var(--blue5);
+        }
+      }
     }
 
     &.no-bg {
@@ -242,6 +252,16 @@
         }
       }
 
+    }
+
+    &.small-title {
+      & .title p {
+        font-size: 1rem;
+        letter-spacing: 0.09rem;
+        text-transform: uppercase;
+        line-height: 2.1875rem;
+        font-weight: 700;
+      }
     }
   }
 }
