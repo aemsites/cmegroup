@@ -227,54 +227,6 @@ async function getCourseDataProgress(courseData) {
   });
 }
 
-export function getOrderedLessons(courseData) {
-  const { modulesOrder } = courseData;
-
-  if (modulesOrder && typeof modulesOrder === 'string') {
-    const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
-
-    // Create array of items (chapters and lessons) to sort at root level
-    const rootItems = [
-      ...(courseData.chapters || []),
-      ...(courseData.lessons || []),
-    ];
-
-    // Sort chapters and lessons at root level based on modulesOrder
-    rootItems.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix || a.path)
-      - modulesOrderArray.indexOf(b.pathSuffix || b.path));
-
-    // Process the sorted items and collect lessons
-    const allLessons = [];
-
-    rootItems.forEach((item) => {
-      if (item.template && item.template.toLowerCase() === 'chapter') {
-        // Sort lessons within this chapter
-        const { lessons, modulesOrder: chModulesOrder } = item;
-        if (lessons && lessons.length > 0) {
-          if (chModulesOrder && typeof chModulesOrder === 'string') {
-            const chModulesOrderArray = chModulesOrder.split(',').map((chItem) => chItem.trim());
-            lessons.sort((a, b) => chModulesOrderArray.indexOf(a.pathSuffix || a.path)
-              - chModulesOrderArray.indexOf(b.pathSuffix || b.path));
-          }
-          // Add all lessons from this chapter to the result
-          allLessons.push(...lessons);
-        }
-      } else {
-        // This is a lesson at root level, add it directly
-        allLessons.push(item);
-      }
-    });
-
-    return allLessons;
-  }
-
-  // Fallback: if no modulesOrder, just return all lessons unsorted
-  return [
-    ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
-    ...(courseData.lessons || []),
-  ];
-}
-
 async function buildLanguageLinks() {
   const template = getMetadata('template');
   const id = getMetadata('module-id');
@@ -353,11 +305,15 @@ export async function createCourseBaseTemplate(courseData) {
   } else if (template.toLowerCase() === 'lesson' || template.toLowerCase() === 'lesson-standalone') {
     const type = createElement('div', { class: 'metadata type' });
     type.textContent = lessonLabel;
-    const lessons = getOrderedLessons(courseData);
     const { path: currentPath } = parseCurrentPath();
-    const lessonIndex = lessons.findIndex(({ path }) => path === currentPath);
-    if (lessonIndex !== -1) {
-      type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${lessons.length}`;
+    const modules = [{ lessons: courseData.lessons }, ...courseData.chapters];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const module of modules) {
+      const lessonIndex = module.lessons.findIndex(({ path }) => path === currentPath);
+      if (lessonIndex !== -1) {
+        type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${module.lessons.length}`;
+        break;
+      }
     }
     header.appendChild(type);
     if (isPremium) {
@@ -377,7 +333,7 @@ export async function createCourseBaseTemplate(courseData) {
 }
 
 export function getCurrentLesson(courseData) {
-  const currentPath = window.location.pathname;
+  const { path: currentPath } = parseCurrentPath();
   const lessons = [
     ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
     ...courseData.lessons];
