@@ -562,7 +562,7 @@ async function checkOneClickFormCookie(form, block) {
     window.CookieUtil?.remove('oneClickFormCookie');
     if (thanksMsg) {
       showAuthToast(
-        thanksMsg,
+        thanksMsg.cloneNode(true),
         'success',
         true,
       );
