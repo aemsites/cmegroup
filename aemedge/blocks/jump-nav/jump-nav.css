@@ -4,7 +4,7 @@
   position: relative;
   position: sticky;
   top: 0;
-  z-index: 999999;
+  z-index: 3;
   transition: top 0.3s ease;
   margin-bottom: 0 !important;
   padding: 0 !important;
