@@ -1351,9 +1351,21 @@ main > .section:not(.full-width) > div,
       }
     }
 
+    & .w-25 {
+      @media (width > 768px) {
+        width: 25%;
+      }
+    }
+
     & .w-30 {
       @media (width > 768px) {
         width: 30%;
+      }
+    }
+
+     & .w-33 {
+      @media (width > 768px) {
+        width: 33.33%;
       }
     }
 
@@ -1375,9 +1387,21 @@ main > .section:not(.full-width) > div,
       }
     }
 
+    & .w-66 {
+      @media (width > 768px) {
+        width: 66.66%;
+      }
+    }
+
     & .w-70 {
       @media (width > 768px) {
         width: 70%;
+      }
+    }
+
+    & .w-75 {
+      @media (width > 768px) {
+        width: 75%;
       }
     }
 

@@ -10,12 +10,9 @@ import {
 } from '../../scripts/utils.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
-import { setTracking } from '../../scripts/utils/index.js';
 
 const FRAGMENT_URL = '/fragments/courses-lessons/extend-your-learning';
 
-const fireTrackingLessons = setTracking('custom', 'lesson_complete', 'Lessons and Courses');
-const fireTrackingCourses = setTracking('custom', 'course_complete', 'Lessons and Courses');
 if (window.ga) {
   window.ga();
 }
@@ -142,6 +139,11 @@ async function loadUserProgress(courseData, authenticationData) {
     //  start lesson
     await updateLessonStatus(false);
   }
+  const { setTracking } = await import('../../scripts/gtm.js').catch(() => ({
+    setTracking: () => () => console.warn('GTM is unavailable'),
+  }));
+  const fireTrackingLessons = setTracking('custom', 'lesson_complete', 'Lessons and Courses');
+  const fireTrackingCourses = setTracking('custom', 'course_complete', 'Lessons and Courses');
   //  quiz subscriber
   store.subscribe(({ quiz }) => quiz, async ({ quizStatus }) => {
     if (quizStatus?.isCorrect && !lesson?.completed) {
