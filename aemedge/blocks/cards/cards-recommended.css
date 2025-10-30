@@ -55,9 +55,9 @@
     background-color: transparent;
     height: 12.5rem;
     left: 0;
-    padding: 20px;
+    padding: 1.25rem;
     position: absolute;
-    top: 124px;
+    top: 7.75rem;
     transition: height .5s ease-in-out 0s, top .5s ease-in-out 0s;
     opacity: .8;
     right: 0;
@@ -110,8 +110,8 @@
 }
 
 .cards.recommended .glider-track {
-    gap: 32px;
-    padding-left: 3px;
+    gap: 2rem;
+    padding-left: 0.1875rem;
 }
 
 .cards.recommended .glider-slide {
@@ -125,6 +125,6 @@
     }
 
     .cards.recommended .cards-card-body {
-        padding: 30px;
+        padding: 1.875rem;
     }
 }
