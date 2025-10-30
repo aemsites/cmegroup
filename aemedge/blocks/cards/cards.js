@@ -638,9 +638,6 @@ async function createRecommendedFromService(data) {
 
   const elements = await Promise.all(
     data.map(async (item) => {
-      const li = createElement('li', {
-        class: 'cards-card',
-      });
       const imageDiv = createElement('div', {
         class: 'cards-card-image',
       });
@@ -648,10 +645,6 @@ async function createRecommendedFromService(data) {
       imageDiv.style.backgroundImage = imgSrc ? `url('https://www.cmegroup.com/${imgSrc}')` : '';
 
       const link = createElement('a', { href: item.uri || '' });
-
-      const bodyDiv = createElement('div', {
-        class: 'cards-card-body',
-      });
 
       const subtitleDiv = createElement('div', {
         class: 'card-subtitle',
@@ -679,16 +672,21 @@ async function createRecommendedFromService(data) {
       p.textContent = item.description || '';
       descDiv.appendChild(p);
 
-      bodyDiv.appendChild(subtitleDiv);
-      bodyDiv.appendChild(titleDiv);
-      bodyDiv.appendChild(descDiv);
+      const bodyDiv = createElement('div', {
+        class: 'cards-card-body',
+      }, subtitleDiv, titleDiv, descDiv);
+
       link.appendChild(bodyDiv);
-      li.appendChild(imageDiv);
-      li.appendChild(link);
+
+      const li = createElement('li', {
+        class: 'cards-card',
+      }, imageDiv, link);
+
       ul.appendChild(li);
       return ul;
     }),
   );
+
   elements.forEach((li) => newDiv.appendChild(li));
 
   const disableSliderOnDesktop = true;
@@ -736,10 +734,6 @@ async function creatRecommendedFromAuthor(block) {
       const img = picture ? picture.querySelector('img') : null;
       const url = cardDiv.querySelector('.button-container a').href;
 
-      const li = createElement('li', {
-        class: 'cards-card',
-      });
-
       const imageDiv = createElement('div', {
         class: 'cards-card-image',
       });
@@ -747,10 +741,6 @@ async function creatRecommendedFromAuthor(block) {
       imageDiv.style.backgroundImage = `url('${imgSrc}')`;
 
       const link = createElement('a', { href: url || '' });
-
-      const bodyDiv = createElement('div', {
-        class: 'cards-card-body',
-      });
 
       const subtitleDiv = createElement('div', {
         class: 'card-subtitle',
@@ -778,12 +768,16 @@ async function creatRecommendedFromAuthor(block) {
       p.textContent = paragraphs[1] ? paragraphs[1].textContent : '';
       descDiv.appendChild(p);
 
-      bodyDiv.appendChild(subtitleDiv);
-      bodyDiv.appendChild(titleDiv);
-      bodyDiv.appendChild(descDiv);
+      const bodyDiv = createElement('div', {
+        class: 'cards-card-body',
+      }, subtitleDiv, titleDiv, descDiv);
+
       link.appendChild(bodyDiv);
-      li.appendChild(imageDiv);
-      li.appendChild(link);
+
+      const li = createElement('li', {
+        class: 'cards-card',
+      }, imageDiv, link);
+
       ul.appendChild(li);
       return ul;
     }),
