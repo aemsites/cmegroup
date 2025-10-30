@@ -34,6 +34,10 @@ export default function decorate(block) {
           content.classList.add('footer');
           linkWrapper.append(content);
           break;
+        case 'color':
+          linkWrapper.querySelector('.title p').style.color = `var(--${content.textContent.trim()})`;
+          linkWrapper.querySelector('.footer').style.setProperty('--after-background-color', `var(--${content.textContent.trim()})`);
+          break;
         default:
           break;
       }
@@ -80,6 +84,10 @@ export default function decorate(block) {
           break;
         case 'footer':
           linkWrapper.innerHTML = content.innerHTML;
+          break;
+        case 'color':
+          linkWrapper.querySelector('.title p').style.color = `var(--${content.textContent.trim()})`;
+          linkWrapper.querySelector('.footer').style.setProperty('--after-background-color', `var(--${content.textContent.trim()})`);
           break;
         default:
           break;

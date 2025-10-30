@@ -69,7 +69,7 @@ const mapModule = (data) => (
       moduleId: lesson.educationElementId,
       title: lesson.title,
       completed: lesson.status === 'COMPLETED',
-      started: !!lesson.startDate || lesson.status === 'PROGRESS',
+      started: !!lesson.startDate || lesson.status !== 'PENDING',
       url: lesson.url,
       ...(lesson.quiz
         ? {
@@ -83,7 +83,7 @@ const mapModule = (data) => (
     })),
     completedLessons: data.lessons?.filter(({ status }) => status === 'COMPLETED').length,
     totalLessons: data.lessons?.length || 0,
-    started: !!data.startDate || data.status === 'PROGRESS',
+    started: !!data.startDate || data.status !== 'PENDING',
     endDate: data.endDate,
     updated: data.updated,
     url: data.url,
