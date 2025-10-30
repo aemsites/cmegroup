@@ -16,6 +16,7 @@ import {
   getCdtDate,
   getTag,
   i18n,
+  convertMMSSToHHMM,
 } from '../../scripts/utils.js';
 import {
   legacyArticleTemplates,
@@ -652,7 +653,7 @@ async function createRecommendedFromService(data) {
       subtitleDiv.textContent = `${item.media_type || ''} `;
 
       const span = createElement('span');
-      parseTime(item.media_duration).then((i) => {
+      parseTime(convertMMSSToHHMM(item.media_duration)).then((i) => {
         span.textContent = i;
         subtitleDiv.appendChild(span);
       });
@@ -748,7 +749,7 @@ async function creatRecommendedFromAuthor(block) {
 
       subtitleDiv.textContent = `${mediaType ? mediaType.textContent : ''} `;
       const span = createElement('span');
-      parseTime(mediaTime.textContent).then((i) => {
+      parseTime(convertMMSSToHHMM(mediaTime.textContent)).then((i) => {
         span.textContent = i;
         subtitleDiv.appendChild(span);
       });
