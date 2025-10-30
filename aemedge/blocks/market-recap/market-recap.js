@@ -4,7 +4,7 @@ import { getProductMetadata } from '../../scripts/utils/product.js';
 import { apiGet, getResponseData } from '../../scripts/utils/index.js';
 
 const API_CONFIG = {
-  reportsEndpoint: 'https://beta.cmegroup.com/CmeWS/mvc/Ags/Reports',
+  reportsEndpoint: 'https://www.cmegroup.com/CmeWS/mvc/Ags/Reports',
 };
 
 async function fetchMarketReports() {
