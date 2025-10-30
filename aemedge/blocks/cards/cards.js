@@ -650,7 +650,7 @@ async function createRecommendedFromService(data) {
       const subtitleDiv = createElement('div', {
         class: 'card-subtitle',
       });
-      subtitleDiv.textContent = `${item.media_type || ''} `;
+      subtitleDiv.textContent = `${item.image_type || ''} `;
 
       const span = createElement('span');
       parseTime(convertMMSSToHHMM(item.media_duration)).then((i) => {
