@@ -78,7 +78,6 @@ export async function getCourseData(loginInfo) {
 
     const { basePath, relevantPath } = parseCurrentPath();
     const course = relevantPath.split('/')[0];
-    const innerLesson = relevantPath.split('/').length > 1;
     if (template !== 'lesson-standalone' && !course) {
       throw new Error('No course found in the path');
     }
@@ -115,7 +114,7 @@ export async function getCourseData(loginInfo) {
     }));
 
     const courseData = {
-      isLessonStandalone: isLessonStandalone(template) && !innerLesson,
+      isLessonStandalone: isLessonStandalone(template),
       hasChapters: false, // Will be determined by data
       chapters: [],
       lessons: [],
@@ -123,7 +122,7 @@ export async function getCourseData(loginInfo) {
 
     // If the page is a lesson standalone, return the first entry
     // ideally there should be only one entry in this case
-    if (isLessonStandalone(template) && !innerLesson) {
+    if (isLessonStandalone(template)) {
       Object.assign(courseData, entries[0]);
       const data = !loginInfo ? courseData : await getCourseDataProgress(courseData);
       addCourseDataToCache(coursePath, data);
