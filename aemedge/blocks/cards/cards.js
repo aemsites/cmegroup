@@ -630,7 +630,7 @@ export async function createDynamicCards(block) {
 
 async function createRecommendedFromService(data) {
   const newDiv = createElement('div', {
-    class: 'cards recommended block',
+    class: 'cards recommended-ai block',
   });
   newDiv.setAttribute('data-block-name', 'cards');
   const containerDiv = createElement('div');
@@ -718,7 +718,7 @@ async function createRecommendedFromService(data) {
 
 async function creatRecommendedFromAuthor(block) {
   const newDiv = createElement('div', {
-    class: 'cards recommended block',
+    class: 'cards recommended-ai block',
   });
   newDiv.setAttribute('data-block-name', 'cards');
 
@@ -833,7 +833,7 @@ async function createRecommendedCards(block) {
 export default async function decorate(block) {
   if (block.classList.contains('dynamic')) {
     createDynamicCards(block);
-  } else if (block.classList.contains('recommended')) {
+  } else if (block.classList.contains('recommended-ai')) {
     createRecommendedCards(block);
   } else {
     createStaticCards(block);

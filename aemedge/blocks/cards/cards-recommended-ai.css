@@ -1,4 +1,4 @@
-.cards.recommended {
+.cards.recommended-ai {
   &:has(.spinner-cards) {
     min-height: 20.875rem;
   }
