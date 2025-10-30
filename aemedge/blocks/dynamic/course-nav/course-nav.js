@@ -311,7 +311,7 @@ async function buildCourseNav(main, courseData, prevCourseData) {
 export default async function createCourseNav(main) {
   // Disable if not an allowed template
   const template = getMetadata('template');
-  if (!['course', 'lesson', 'lesson-standalone'].includes(template.toLowerCase())) return;
+  if (!['course', 'lesson'].includes(template.toLowerCase())) return;
 
   //  init courseNav
   const data = await getCourseData();

@@ -11,6 +11,7 @@
       min-height: 20.875rem !important;
 
       & .cards-card-image {
+        top: 0;
         background-position: 50%;
         background-size: cover;
         height: 100%;
