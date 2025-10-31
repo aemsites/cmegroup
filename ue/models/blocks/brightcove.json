@@ -216,11 +216,6 @@
       ]
     }
   ],
-  "filters": [
-    {
-      "id": "brightcove",
-      "components": []
-    }
-  ]
+  "filters": []
 }
 
