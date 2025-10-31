@@ -115,6 +115,10 @@ body
         & em {
           font-style: normal;
           letter-spacing: normal;
+
+          @media (width >= 993px) {
+            font-weight: 700;
+          }
         }
       }
 
