@@ -1201,6 +1201,10 @@ main {
         text-align: center;
       }
 
+      & .block {
+        margin: 0 auto;
+      }
+
       & .layout > div {
         margin: 0 auto;
       }
