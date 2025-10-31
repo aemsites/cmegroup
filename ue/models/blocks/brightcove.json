@@ -6,7 +6,7 @@
       "plugins": {
         "da": {
           "name": "brightcove",
-          "rows": 11,
+          "rows": 10,
           "columns": 2
         }
       }
@@ -19,7 +19,7 @@
         {
           "component": "text",
           "valueType": "string",
-          "name": "accountID",
+          "name": "div:nth-child(1)>div:nth-child(2)",
           "value": "49919183001",
           "label": "Account ID",
           "description": "Brightcove account ID (default in place but can be changed)"
@@ -27,7 +27,7 @@
         {
           "component": "text",
           "valueType": "string",
-          "name": "videoID",
+          "name": "div:nth-child(2)>div:nth-child(2)",
           "value": "",
           "label": "Video ID",
           "description": "Brightcove video ID (If you have a REF ID, 'ref:' is part of the actual Id!)"
@@ -35,7 +35,7 @@
         {
           "component": "text",
           "valueType": "string",
-          "name": "playlistID",
+          "name": "div:nth-child(3)>div:nth-child(2)",
           "value": "",
           "label": "Playlist ID",
           "description": "Optional playlist ID (If you have a REF ID, 'ref:' is part of the actual Id!)"
@@ -43,7 +43,7 @@
         {
           "component": "select",
           "valueType": "string",
-          "name": "playlistLocation",
+          "name": "div:nth-child(4)>div:nth-child(2)",
           "value": "",
           "label": "Playlist Location",
           "options": [
@@ -65,7 +65,7 @@
         {
           "component": "select",
           "valueType": "string",
-          "name": "aspectRatio",
+          "name": "div:nth-child(5)>div:nth-child(2)",
           "value": "",
           "label": "Aspect Ratio",
           "options": [
@@ -83,7 +83,7 @@
         {
           "component": "select",
           "valueType": "string",
-          "name": "cc",
+          "name": "div:nth-child(6)>div:nth-child(2)",
           "value": "",
           "label": "Close Captions",
           "options": [
@@ -153,7 +153,7 @@
         {
           "component": "select",
           "valueType": "string",
-          "name": "language",
+          "name": "div:nth-child(7)>div:nth-child(2)",
           "value": "",
           "label": "Language Audio",
           "options": [
@@ -181,16 +181,17 @@
           "description": "Audio language selection"
         },
         {
-          "component": "text",
+          "component": "reference",
           "valueType": "string",
-          "name": "defaultplaylistposter",
-          "label": "Default Playlist Poster",
-          "description": "Absolute URL to custom poster image to display while playlist/video loads"
+          "name": "div:nth-child(8)>div:nth-child(2)>a:nth-child(1)[href]",
+          "label": "Placeholder Image",
+          "multi": false,
+          "description": "URL to custom poster image to display while playlist/video loads"
         },
         {
           "component": "select",
           "valueType": "string",
-          "name": "playlistStyle",
+          "name": "div:nth-child(9)>div:nth-child(2)",
           "value": "",
           "label": "Playlist Style",
           "options": [
@@ -208,7 +209,7 @@
         {
           "component": "text",
           "valueType": "string",
-          "name": "alternativeUrl",
+          "name": "div:nth-child(10)>div:nth-child(2)",
           "value": "",
           "label": "Alternative URL",
           "description": "Alternative URL for the video"

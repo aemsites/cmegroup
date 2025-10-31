@@ -53,7 +53,7 @@
           "plugins": {
             "da": {
               "name": "brightcove",
-              "rows": 11,
+              "rows": 10,
               "columns": 2
             }
           }
