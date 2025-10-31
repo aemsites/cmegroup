@@ -20,7 +20,7 @@
         {
           "component": "text",
           "valueType": "string",
-          "name": "accountid",
+          "name": "accountID",
           "label": "Account ID",
           "value": "49919183001",
           "description": "Brightcove account ID (default in place but can be changed)"
@@ -28,21 +28,21 @@
         {
           "component": "text",
           "valueType": "string",
-          "name": "videoid",
+          "name": "videoID",
           "label": "Video ID",
           "description": "Brightcove video ID (If you have a REF ID, 'ref:' is part of the actual Id!)"
         },
         {
           "component": "text",
           "valueType": "string",
-          "name": "playlistid",
+          "name": "playlistID",
           "label": "Playlist ID",
           "description": "Optional playlist ID (If you have a REF ID, 'ref:' is part of the actual Id!)"
         },
         {
           "component": "select",
           "valueType": "string",
-          "name": "playlistlocation",
+          "name": "playlistLocation",
           "label": "Playlist Location",
           "options": [
             {
@@ -63,7 +63,7 @@
         {
           "component": "select",
           "valueType": "string",
-          "name": "aspectratio",
+          "name": "aspectRatio",
           "label": "Aspect Ratio",
           "options": [
             {
@@ -186,7 +186,7 @@
         {
           "component": "select",
           "valueType": "string",
-          "name": "playliststyle",
+          "name": "playlistStyle",
           "label": "Playlist Style",
           "options": [
             {
@@ -203,7 +203,7 @@
         {
           "component": "text",
           "valueType": "string",
-          "name": "alternativeurl",
+          "name": "alternativeUrl",
           "label": "Alternative URL",
           "description": "Alternative URL for the video"
         }
