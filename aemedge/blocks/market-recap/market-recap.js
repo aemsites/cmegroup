@@ -3,13 +3,28 @@ import { getMetadata } from '../../scripts/aem.js';
 import { getProductMetadata } from '../../scripts/utils/product.js';
 import { apiGet, getResponseData } from '../../scripts/utils/index.js';
 
+// Determine if we should use mock data based on environment
+const useMockData = () => {
+  const { hostname } = window.location;
+  // Use real API only on production cmegroup.com domain
+  const isProduction = hostname === 'www.cmegroup.com' || hostname === 'cmegroup.com';
+  // For now, always use mock due to CORS restrictions
+  // TODO: Enable real API once backend team configures CORS or proxy is available
+  return true; // Force mock for now
+};
+
 const API_CONFIG = {
-  reportsEndpoint: 'https://www.cmegroup.com/CmeWS/mvc/Ags/Reports',
+  mockEndpoint: '/aemedge/blocks/market-recap/mock-api/reports.json',
+  realEndpoint: 'https://www.cmegroup.com/CmeWS/mvc/Ags/Reports',
+  get reportsEndpoint() {
+    return useMockData() ? this.mockEndpoint : this.realEndpoint;
+  },
 };
 
 async function fetchMarketReports() {
   try {
-    const response = await apiGet(API_CONFIG.reportsEndpoint);
+    // Use withCredentials: false to avoid CORS issues with external APIs
+    const response = await apiGet(API_CONFIG.reportsEndpoint, {}, {}, { withCredentials: false });
     return getResponseData(response) || response.data;
   } catch (error) {
     // eslint-disable-next-line no-console
