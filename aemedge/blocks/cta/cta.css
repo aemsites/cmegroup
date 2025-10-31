@@ -29,7 +29,7 @@
         font-size: 1.5rem; 
         position: absolute;
         color: var(--blue1);
-        background-color: var(--green);
+        background-color: var(--after-background-color, var(--green));
         padding: 1rem;
         bottom: 0;
         right: 0;
@@ -242,16 +242,6 @@
         }
       }
 
-    }
-
-    &.small-title {
-      & .title p {
-        font-size: 1rem;
-        letter-spacing: 0.09rem;
-        text-transform: uppercase;
-        line-height: 2.1875rem;
-        font-weight: 700;
-      }
     }
   }
 }

@@ -34,8 +34,13 @@ export default function decorate(block) {
           content.classList.add('footer');
           linkWrapper.append(content);
           break;
-        case 'color':
+        case 'title color':
           linkWrapper.querySelector('.title p').style.color = `var(--${content.textContent.trim()})`;
+          break;
+        case 'eyebrow color':
+          linkWrapper.querySelector('.eyebrow p').style.color = `var(--${content.textContent.trim()})`;
+          break;
+        case 'arrow color':
           linkWrapper.querySelector('.footer').style.setProperty('--after-background-color', `var(--${content.textContent.trim()})`);
           break;
         default:
@@ -85,8 +90,13 @@ export default function decorate(block) {
         case 'footer':
           linkWrapper.innerHTML = content.innerHTML;
           break;
-        case 'color':
+        case 'title color':
           linkWrapper.querySelector('.title p').style.color = `var(--${content.textContent.trim()})`;
+          break;
+        case 'eyebrow color':
+          linkWrapper.querySelector('.eyebrow p').style.color = `var(--${content.textContent.trim()})`;
+          break;
+        case 'arrow color':
           linkWrapper.querySelector('.footer').style.setProperty('--after-background-color', `var(--${content.textContent.trim()})`);
           break;
         default:
