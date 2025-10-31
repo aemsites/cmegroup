@@ -21,7 +21,6 @@
           "valueType": "string",
           "name": "accountID",
           "label": "Account ID",
-          "value": "49919183001",
           "description": "Brightcove account ID (default in place but can be changed)"
         },
         {
@@ -74,7 +73,6 @@
               "value": "4:3"
             }
           ],
-          "value": "16:9",
           "description": "Video aspect ratio (Note: Hidden playlist has no aspect ratio options)"
         },
         {
