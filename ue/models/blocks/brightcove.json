@@ -20,6 +20,7 @@
           "component": "text",
           "valueType": "string",
           "name": "accountID",
+          "value": "49919183001",
           "label": "Account ID",
           "description": "Brightcove account ID (default in place but can be changed)"
         },
@@ -27,6 +28,7 @@
           "component": "text",
           "valueType": "string",
           "name": "videoID",
+          "value": "",
           "label": "Video ID",
           "description": "Brightcove video ID (If you have a REF ID, 'ref:' is part of the actual Id!)"
         },
@@ -34,6 +36,7 @@
           "component": "text",
           "valueType": "string",
           "name": "playlistID",
+          "value": "",
           "label": "Playlist ID",
           "description": "Optional playlist ID (If you have a REF ID, 'ref:' is part of the actual Id!)"
         },
@@ -41,6 +44,7 @@
           "component": "select",
           "valueType": "string",
           "name": "playlistLocation",
+          "value": "",
           "label": "Playlist Location",
           "options": [
             {
@@ -62,6 +66,7 @@
           "component": "select",
           "valueType": "string",
           "name": "aspectRatio",
+          "value": "",
           "label": "Aspect Ratio",
           "options": [
             {
@@ -79,6 +84,7 @@
           "component": "select",
           "valueType": "string",
           "name": "cc",
+          "value": "",
           "label": "Close Captions",
           "options": [
             {
@@ -148,6 +154,7 @@
           "component": "select",
           "valueType": "string",
           "name": "language",
+          "value": "",
           "label": "Language Audio",
           "options": [
             {
@@ -184,6 +191,7 @@
           "component": "select",
           "valueType": "string",
           "name": "playlistStyle",
+          "value": "",
           "label": "Playlist Style",
           "options": [
             {
@@ -201,6 +209,7 @@
           "component": "text",
           "valueType": "string",
           "name": "alternativeUrl",
+          "value": "",
           "label": "Alternative URL",
           "description": "Alternative URL for the video"
         }
