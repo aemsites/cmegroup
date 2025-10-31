@@ -11,7 +11,11 @@
     "lint:fix:css": "npm run lint:css -- --fix",
     "lint:fix": "npm run lint:fix:js && npm run lint:fix:css",
     "build:css": "node build/build-css.js",
-    "prebuild:css": "npm run lint:css"
+    "prebuild:css": "npm run lint:css",
+    "build:json": "npm-run-all -p build:json:models build:json:definitions build:json:filters",
+    "build:json:models": "merge-json-cli -i \"ue/models/component-models.json\" -o \"component-models.json\"",
+    "build:json:definitions": "merge-json-cli -i \"ue/models/component-definition.json\" -o \"component-definition.json\"",
+    "build:json:filters": "merge-json-cli -i \"ue/models/component-filters.json\" -o \"component-filters.json\""
   },
   "repository": {
     "type": "git",
@@ -33,6 +37,8 @@
     "postcss": "8.4.31",
     "postcss-import": "15.1.0",
     "glob": "10.3.10",
-    "fs-extra": "11.1.1"
+    "fs-extra": "11.1.1",
+    "merge-json-cli": "^1.0.4",
+    "npm-run-all": "^4.1.5"
   }
 }

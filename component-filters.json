@@ -1,0 +1,50 @@
+[
+  {
+    "id": "main",
+    "components": [
+      "section"
+    ]
+  },
+  {
+    "id": "section",
+    "components": [
+      "accordion",
+      "add-to-calendar",
+      "auth-toggle",
+      "brightcove",
+      "cards",
+      "carousel",
+      "columns",
+      "course-history",
+      "course-progress",
+      "cta",
+      "divider",
+      "dynamic",
+      "event-calendar",
+      "faq",
+      "footer",
+      "form",
+      "fragment",
+      "header",
+      "hero",
+      "iframe",
+      "jump-nav",
+      "language-selector",
+      "login",
+      "modal",
+      "podcast",
+      "product-chart",
+      "product-slate",
+      "quiz",
+      "search",
+      "sidebar",
+      "table",
+      "tags-cloud",
+      "tradingview"
+    ]
+  },
+  {
+    "id": "brightcove",
+    "components": []
+  }
+]

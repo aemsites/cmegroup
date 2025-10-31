@@ -1,0 +1,273 @@
+[
+  {
+    "id": "page-metadata",
+    "fields": [
+      {
+        "component": "text",
+        "name": "title",
+        "label": "Title"
+      },
+      {
+        "component": "text",
+        "name": "description",
+        "label": "Description"
+      },
+      {
+        "component": "reference",
+        "name": "image",
+        "label": "Image"
+      },
+      {
+        "component": "text",
+        "name": "robots",
+        "label": "Robots",
+        "description": "Index control via robots"
+      }
+    ]
+  },
+  {
+    "id": "image",
+    "fields": [
+      {
+        "component": "reference",
+        "name": "image",
+        "hidden": true,
+        "multi": false
+      },
+      {
+        "component": "reference",
+        "name": "img:nth-child(3)[src]",
+        "label": "Image",
+        "multi": false
+      },
+      {
+        "component": "text",
+        "name": "img:nth-child(3)[alt]",
+        "label": "Alt Text"
+      }
+    ]
+  },
+  {
+    "id": "section",
+    "fields": [
+      {
+        "component": "multiselect",
+        "name": "style",
+        "label": "Style",
+        "options": [
+          {
+            "name": "Center",
+            "value": "center"
+          },
+          {
+            "name": "Blue1 Background",
+            "value": "blue1-background"
+          },
+          {
+            "name": "Blue2 Background",
+            "value": "blue2-background"
+          },
+          {
+            "name": "Blue3 Background",
+            "value": "blue3-background"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "brightcove",
+    "fields": [
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "accountid",
+        "label": "Account ID",
+        "value": "49919183001",
+        "description": "Brightcove account ID (default in place but can be changed)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "videoid",
+        "label": "Video ID",
+        "description": "Brightcove video ID (If you have a REF ID, 'ref:' is part of the actual Id!)"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "playlistid",
+        "label": "Playlist ID",
+        "description": "Optional playlist ID (If you have a REF ID, 'ref:' is part of the actual Id!)"
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "playlistlocation",
+        "label": "Playlist Location",
+        "options": [
+          {
+            "name": "Right sidekick",
+            "value": "R"
+          },
+          {
+            "name": "Bottom",
+            "value": "B"
+          },
+          {
+            "name": "Hidden (no captions or aspect ratio options)",
+            "value": "H"
+          }
+        ],
+        "description": "Location of the playlist (R=right, B=bottom, H=hidden)"
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "aspectratio",
+        "label": "Aspect Ratio",
+        "options": [
+          {
+            "name": "16:9",
+            "value": "16:9"
+          },
+          {
+            "name": "4:3",
+            "value": "4:3"
+          }
+        ],
+        "value": "16:9",
+        "description": "Video aspect ratio (Note: Hidden playlist has no aspect ratio options)"
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "cc",
+        "label": "Close Captions",
+        "options": [
+          {
+            "name": "No Captions",
+            "value": ""
+          },
+          {
+            "name": "English Captions",
+            "value": "EC"
+          },
+          {
+            "name": "Spanish Captions",
+            "value": "SC"
+          },
+          {
+            "name": "Spanish (Spain) Captions",
+            "value": "SP"
+          },
+          {
+            "name": "French Captions",
+            "value": "FR"
+          },
+          {
+            "name": "German Captions",
+            "value": "GE"
+          },
+          {
+            "name": "Italian Captions",
+            "value": "IT"
+          },
+          {
+            "name": "Portuguese Captions",
+            "value": "PC"
+          },
+          {
+            "name": "Chinese (S) Captions",
+            "value": "CSC"
+          },
+          {
+            "name": "Chinese (T) Captions",
+            "value": "CTC"
+          },
+          {
+            "name": "Japanese Captions",
+            "value": "JC"
+          },
+          {
+            "name": "Korean Captions",
+            "value": "KC"
+          },
+          {
+            "name": "Dutch Captions",
+            "value": "DC"
+          },
+          {
+            "name": "Hebrew Captions",
+            "value": "HC"
+          },
+          {
+            "name": "Webinar with Hidden Controls",
+            "value": "WHC"
+          }
+        ],
+        "description": "Close caption language options"
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "language",
+        "label": "Language Audio",
+        "options": [
+          {
+            "name": "Default",
+            "value": ""
+          },
+          {
+            "name": "English",
+            "value": "en"
+          },
+          {
+            "name": "Korean",
+            "value": "ko"
+          },
+          {
+            "name": "Chinese",
+            "value": "zh"
+          },
+          {
+            "name": "Japanese",
+            "value": "ja"
+          }
+        ],
+        "description": "Audio language selection"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "defaultplaylistposter",
+        "label": "Default Playlist Poster",
+        "description": "Absolute URL to custom poster image to display while playlist/video loads"
+      },
+      {
+        "component": "select",
+        "valueType": "string",
+        "name": "playliststyle",
+        "label": "Playlist Style",
+        "options": [
+          {
+            "name": "None",
+            "value": ""
+          },
+          {
+            "name": "Horizontal (H)",
+            "value": "H"
+          }
+        ],
+        "description": "H for horizontal playlist - MUST also have a B (bottom) position"
+      },
+      {
+        "component": "text",
+        "valueType": "string",
+        "name": "alternativeurl",
+        "label": "Alternative URL",
+        "description": "Alternative URL for the video"
+      }
+    ]
+  }
+]

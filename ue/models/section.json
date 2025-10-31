@@ -1,0 +1,85 @@
+{
+  "definitions": [
+    {
+      "title": "Section",
+      "id": "section",
+      "plugins": {
+        "da": {
+          "unsafeHTML": "<div></div>"
+        }
+      },
+      "filter": "section",
+      "model": "section"
+    }
+  ],
+  "models": [
+    {
+      "id": "section",
+      "fields": [
+        {
+          "component": "multiselect",
+          "name": "style",
+          "label": "Style",
+          "options": [
+            {
+              "name": "Center",
+              "value": "center"
+            },
+            {
+                "name": "Blue1 Background",
+                "value": "blue1-background"
+            },
+            {
+                "name": "Blue2 Background",
+                "value": "blue2-background"
+            },
+            {
+                "name": "Blue3 Background",
+                "value": "blue3-background"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "filters": [
+    {
+      "id": "section",
+      "components": [
+        "accordion",
+        "add-to-calendar",
+        "auth-toggle",
+        "brightcove",
+        "cards",
+        "carousel",
+        "columns",
+        "course-history",
+        "course-progress",
+        "cta",
+        "divider",
+        "dynamic",
+        "event-calendar",
+        "faq",
+        "footer",
+        "form",
+        "fragment",
+        "header",
+        "hero",
+        "iframe",
+        "jump-nav",
+        "language-selector",
+        "login",
+        "modal",
+        "podcast",
+        "product-chart",
+        "product-slate",
+        "quiz",
+        "search",
+        "sidebar",
+        "table",
+        "tags-cloud",
+        "tradingview"
+      ]
+    }
+  ]
+}

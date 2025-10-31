@@ -1,0 +1,65 @@
+{
+  "groups": [
+    {
+      "title": "Default Content",
+      "id": "default",
+      "components": [
+        {
+          "title": "Text",
+          "id": "text",
+          "plugins": {
+            "da": {
+              "name": "text",
+              "type": "text"
+            }
+          }
+        },
+        {
+          "title": "Image",
+          "id": "image",
+          "plugins": {
+            "da": {
+              "name": "image",
+              "type": "image"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Sections",
+      "id": "sections",
+      "components": [
+        {
+          "title": "Section",
+          "id": "section",
+          "plugins": {
+            "da": {
+              "unsafeHTML": "<div></div>"
+            }
+          },
+          "filter": "section",
+          "model": "section"
+        }
+      ]
+    },
+    {
+      "title": "Blocks",
+      "id": "blocks",
+      "components": [
+        {
+          "title": "Brightcove Video",
+          "id": "brightcove",
+          "plugins": {
+            "da": {
+              "name": "brightcove",
+              "rows": 11,
+              "columns": 2,
+              "behaviour": "block"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
