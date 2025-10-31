@@ -107,6 +107,30 @@
       }
     }
   }
+
+  &.big-texts {
+    & h1 {
+      font-size: 4.25rem;
+      line-height: 4.875rem;
+    }
+
+    & p {
+      font-size: 1.75rem;
+      font-weight: 400;
+      letter-spacing: .03em;
+      line-height: 2.25rem;
+    }
+  }
+
+  &.gradient-transition-sections {
+    margin-bottom: 0;
+
+    & .container {
+      @media (width >= 769px) {
+        padding-bottom: 6.75rem;
+      }
+    }
+  }
 }
 
 .hero-container:has(.overlapped) {
