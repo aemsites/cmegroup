@@ -7,8 +7,7 @@
         "da": {
           "name": "brightcove",
           "rows": 11,
-          "columns": 2,
-          "behaviour": "block"
+          "columns": 2
         }
       }
     }
