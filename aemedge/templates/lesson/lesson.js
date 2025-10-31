@@ -17,7 +17,7 @@ if (window.ga) {
   window.ga();
 }
 
-function flattenLessons(courseData) {
+export function flattenLessons(courseData) {
   const lessons = courseData.lessons || [];
   const chapters = courseData.chapters || [];
   const modulesOrder = courseData.modulesOrder?.split(',').map((s) => s.trim()) || [];

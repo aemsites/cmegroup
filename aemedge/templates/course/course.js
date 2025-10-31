@@ -2,6 +2,7 @@ import { getCourseData, createCourseBaseTemplate } from '../../scripts/course/co
 import { createElement, i18n, preserveHideParameters } from '../../scripts/utils.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { addCourseCertificate } from '../../scripts/course/certificate.js';
+import { flattenLessons } from '../lesson/lesson.js';
 
 async function addBeginCourseButton(courseData) {
   const main = document.querySelector('main');
@@ -10,17 +11,11 @@ async function addBeginCourseButton(courseData) {
   const buttonContainer = createElement('div', { class: 'button-container begin-course-button' }, beginCourseButton);
   main.querySelector('.section')?.lastChild.after(buttonContainer);
 
-  if (courseData.lessons.length > 0) {
-    const firstLesson = courseData.lessons.length > 0 ? courseData.lessons[0] : null;
-    if (firstLesson) {
-      beginCourseButton.href = firstLesson.path;
-    }
-  } else if (courseData.hasChapters) {
-    const firstChapter = courseData.chapters.length > 0 ? courseData.chapters[0] : null;
-    const firstLesson = firstChapter?.lessons.length > 0 ? firstChapter.lessons[0] : null;
-    if (firstLesson) {
-      beginCourseButton.href = firstLesson.path;
-    }
+  const flatLessons = flattenLessons(courseData);
+  const firstLesson = flatLessons.length > 0 ? flatLessons[0] : null;
+
+  if (firstLesson) {
+    beginCourseButton.href = firstLesson.path;
   }
 }
 
