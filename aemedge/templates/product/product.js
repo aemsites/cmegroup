@@ -523,6 +523,7 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
     createOptionsDropdown,
     fetchExpirationsData,
     getSelectedContractFromURL,
+    prefetchOptionPages,
     TOGGLE_CONSTANTS,
   } = await import('./product-toggle-utils.js');
 
@@ -554,6 +555,11 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   const selectedContract = getSelectedContractFromURL();
   const optionsDropdown = createOptionsDropdown(expirationsData, selectedContract);
   optionsDropdown.setAttribute('data-href', optionsPath);
+  
+  // Prefetch top N option pages immediately for instant navigation
+  if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover && expirationsData.length > 0) {
+    prefetchOptionPages(optionsPath, expirationsData, TOGGLE_CONSTANTS.prefetch.optionsCount, PREFETCH_CACHE);
+  }
 
   // Mark as active if on options page
   if (normalizePath(currentPath).startsWith(normalizePath(optionsPath))) {
@@ -581,7 +587,7 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
   if (nav.dataset.handlersBound === 'true') return;
   nav.dataset.handlersBound = 'true';
 
-  const { buildContractURL } = await import('./product-toggle-utils.js');
+  const { buildContractURL, prefetchOptionPages, TOGGLE_CONSTANTS } = await import('./product-toggle-utils.js');
 
   // Handle Futures button click
   const futuresBtn = nav.querySelector('[data-toggle="futures"]');
@@ -595,6 +601,20 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
       }
     });
   }
+
+  // Handle dropdown hovered - early prefetch (highest priority)
+  nav.addEventListener('optionsDropdownHovered', (e) => {
+    const { expirationsData } = e.detail;
+    const optionsPath = `${productRoot}/${primaryTab}/options`;
+    prefetchOptionPages(optionsPath, expirationsData, TOGGLE_CONSTANTS.prefetch.optionsCount, PREFETCH_CACHE);
+  }, { once: true });
+
+  // Handle dropdown opened - backup prefetch
+  nav.addEventListener('optionsDropdownOpened', (e) => {
+    const { expirationsData } = e.detail;
+    const optionsPath = `${productRoot}/${primaryTab}/options`;
+    prefetchOptionPages(optionsPath, expirationsData, TOGGLE_CONSTANTS.prefetch.optionsCount, PREFETCH_CACHE);
+  });
 
   // Handle Options dropdown selection
   nav.addEventListener('optionContractSelected', async (e) => {
@@ -689,9 +709,37 @@ async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = fa
   const rel = normalizePath(currentPath).replace(normalizePath(productRoot), '');
   const parts = rel.split('/').filter((p) => p);
 
-  if (parts.length === 0) return; // On product root
+  // Remove any existing sub-tabs first if we're on a tab that shouldn't have them
+  const shouldHaveSubTabs = parts.length > 0 && parts[0] !== 'overview';
+  
+  if (!shouldHaveSubTabs) {
+    // Remove toggle if present (navigating to root or overview)
+    const existingNav = tabsSection.querySelector('.product-subtabs');
+    if (existingNav && existingNav.parentNode) {
+      existingNav.parentNode.removeChild(existingNav);
+    }
+    return;
+  }
+
   const primaryTab = parts[0];
-  if (primaryTab === 'overview') return; // No sub-tabs on overview
+
+  // Check if both futures and options pages exist for this tab
+  const futuresPath = `${productRoot}/${primaryTab}`;
+  const optionsPath = `${futuresPath}/options`;
+  
+  const [hasFutures, hasOptions] = await Promise.all([
+    indexHasPath(futuresPath),
+    indexHasPath(optionsPath),
+  ]);
+  
+  // If both pages don't exist, remove any existing toggle and exit
+  if (!hasFutures || !hasOptions) {
+    const existingNav = tabsSection.querySelector('.product-subtabs');
+    if (existingNav && existingNav.parentNode) {
+      existingNav.parentNode.removeChild(existingNav);
+    }
+    return;
+  }
 
   // Check if sub-tabs already exist and if we're staying on same tab
   const existingNav = tabsSection.querySelector('.product-subtabs.enhanced');
@@ -705,7 +753,7 @@ async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = fa
     return;
   }
 
-  // Remove any existing sub-tabs (only when creating fresh)
+  // Remove any existing sub-tabs from different tab (only when creating fresh)
   const stale = tabsSection.querySelector('.product-subtabs');
   if (stale && stale.parentNode) {
     stale.parentNode.removeChild(stale);
@@ -713,7 +761,7 @@ async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = fa
 
   // Build enhanced sub-tabs with dropdown
   const nav = await buildEnhancedSubTabs(productRoot, currentPath, primaryTab);
-  if (!nav) return; // Both pages don't exist
+  if (!nav) return; // Shouldn't happen since we already checked
 
   // Insert sub-tabs inline
   const wrapper = tabsSection.querySelector('.product-tabs-wrapper')

@@ -2,6 +2,22 @@
  * Product Toggle Utilities
  * Extracted from product-tabs block for use in product template
  * Handles Futures/Options dropdown and contract selection
+ * 
+ * CONFIGURATION:
+ * Modify TOGGLE_CONSTANTS.prefetch to configure prefetch behavior:
+ * 
+ * - optionsCount: Number of option pages to prefetch (default: 4)
+ *   Higher = faster navigation, more bandwidth
+ *   Lower = less bandwidth, potential delay
+ *   0 = disable prefetching
+ * 
+ * - prefetchOnHover: Prefetch when hovering over dropdown button
+ *   true = best UX (instant loading), recommended
+ *   false = prefetch only on click
+ * 
+ * - prefetchOnOpen: Prefetch when dropdown opens
+ *   true = backup prefetch, recommended
+ *   false = disable
  */
 
 import { createElement } from '../../scripts/utils.js';
@@ -24,6 +40,20 @@ export const TOGGLE_CONSTANTS = {
   toggleTypes: {
     futures: 'futures',
     options: 'options',
+  },
+  // Prefetch configuration - Developers can modify these values
+  prefetch: {
+    // Number of option pages to prefetch (default: 4)
+    // Increase for faster navigation, decrease to reduce bandwidth
+    // Set to 0 to disable option prefetching
+    optionsCount: 4,
+    
+    // Prefetch when dropdown opens (recommended: true)
+    prefetchOnOpen: true,
+    
+    // Prefetch on hover over dropdown button (recommended: true for best UX)
+    // Triggers before click, eliminates blank screen
+    prefetchOnHover: true,
   },
 };
 
@@ -189,11 +219,34 @@ export function createOptionsDropdown(expirationsData = [], selectedValue = null
   dropdown.appendChild(dropdownButton);
   dropdown.appendChild(dropdownMenu);
 
+  // Store options data for prefetching
+  dropdown.dataset.optionsData = JSON.stringify(expirationsData);
+  
+  // Prefetch on hover for even earlier loading
+  if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover) {
+    dropdownButton.addEventListener('mouseenter', () => {
+      const hoverEvent = new CustomEvent('optionsDropdownHovered', {
+        detail: { expirationsData },
+        bubbles: true,
+      });
+      dropdown.dispatchEvent(hoverEvent);
+    }, { once: true }); // Only trigger once
+  }
+  
   // Add event listener to toggle dropdown visibility
   dropdownButton.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
     dropdown.classList.toggle(TOGGLE_CONSTANTS.toggleClasses.dropdownOpen);
+    
+    // Trigger prefetch when dropdown opens (if configured)
+    if (TOGGLE_CONSTANTS.prefetch.prefetchOnOpen) {
+      const openEvent = new CustomEvent('optionsDropdownOpened', {
+        detail: { expirationsData },
+        bubbles: true,
+      });
+      dropdown.dispatchEvent(openEvent);
+    }
   });
 
   // Handle option selection
@@ -232,24 +285,54 @@ export function createOptionsDropdown(expirationsData = [], selectedValue = null
 }
 
 /**
- * Get selected contract from URL query params
- * @returns {string|null} Contract ID from URL or null
+ * Get selected option product ID from URL query params
+ * @returns {string|null} Option product ID from URL or null
  */
 export function getSelectedContractFromURL() {
   const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('contract');
+  return urlParams.get('optionProductId');
 }
 
 /**
- * Build URL with contract query parameter
+ * Build URL with option product ID query parameter
  * @param {string} baseUrl - Base URL (e.g., /corn/quotes/options)
- * @param {string} contract - Contract ID
+ * @param {string} optionProductId - Option product ID (e.g., 301, 2700)
  * @returns {string} Full URL with query param
  */
-export function buildContractURL(baseUrl, contract) {
-  if (!contract) return baseUrl;
+export function buildContractURL(baseUrl, optionProductId) {
+  if (!optionProductId) return baseUrl;
   const url = new URL(baseUrl, window.location.origin);
-  url.searchParams.set('contract', contract);
+  url.searchParams.set('optionProductId', optionProductId);
   return url.pathname + url.search;
+}
+
+/**
+ * Prefetch option pages for faster navigation
+ * @param {string} optionsBasePath - Base options path (e.g., /corn/quotes/options)
+ * @param {Array} optionsData - Array of options with productId
+ * @param {number} count - Number of options to prefetch
+ * @param {Map} cache - Prefetch cache reference
+ */
+export function prefetchOptionPages(optionsBasePath, optionsData, count, cache) {
+  if (!optionsData || !Array.isArray(optionsData) || optionsData.length === 0) return;
+  
+  const prefetchCount = Math.min(count || TOGGLE_CONSTANTS.prefetch.optionsCount, optionsData.length);
+  
+  for (let i = 0; i < prefetchCount; i += 1) {
+    const option = optionsData[i];
+    if (!option || !option.productId) continue;
+    
+    const fullUrl = buildContractURL(optionsBasePath, option.productId);
+    const urlObj = new URL(fullUrl, window.location.origin);
+    const basePath = urlObj.pathname; // Strip query params for fetching
+    
+    // Only prefetch if not already cached
+    if (!cache.has(basePath)) {
+      const promise = fetch(`${basePath}.plain.html`)
+        .then((r) => (r.ok ? r.text() : null))
+        .catch(() => null);
+      cache.set(basePath, promise);
+    }
+  }
 }
 

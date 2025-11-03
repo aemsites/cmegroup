@@ -55,14 +55,14 @@ const TABLE_FORMATTERS = {
 
 /**
  * Get current mode from URL
- * @returns {Object} { isOptions: boolean, contract: string|null }
+ * @returns {Object} { isOptions: boolean, optionProductId: string|null }
  */
 function getDisplayMode() {
   const isOptions = window.location.pathname.includes('/options');
   const urlParams = new URLSearchParams(window.location.search);
-  const contract = urlParams.get('contract');
+  const optionProductId = urlParams.get('optionProductId');
   
-  return { isOptions, contract };
+  return { isOptions, optionProductId };
 }
 
 /**
@@ -245,7 +245,7 @@ async function createOptionsTable(selectedProductId = null) {
     if (!baseProductId) return null;
     
     // IMPORTANT: Two-level selection system:
-    // 1. Top dropdown (OPTIONS ▼): Selects option TYPE (contract=301 = American Options)
+    // 1. Top dropdown (OPTIONS ▼): Selects option TYPE (optionProductId=301 = American Options)
     // 2. Month selector (in table): Selects specific CONTRACT MONTH (ZCZ5, ZCH6, etc.)
     // 
     // For now, we show contract months for the base product (300 = Corn Futures)
@@ -375,23 +375,23 @@ function setupMonthSelectorHandler(block) {
  * Render the appropriate table based on URL
  */
 async function renderTable(block) {
-  const { isOptions, contract } = getDisplayMode();
+  const { isOptions, optionProductId } = getDisplayMode();
   block.innerHTML = '<div class="loading">Loading quotes...</div>';
   
   try {
     let table = null;
     
     if (isOptions) {
-      // Options mode - use contract from URL if available
-      table = await createOptionsTable(contract);
+      // Options mode - use optionProductId from URL if available
+      table = await createOptionsTable(optionProductId);
       
       if (table) {
         block.innerHTML = '';
         
-        // Add option type header if contract is specified
-        if (contract) {
+        // Add option type header if optionProductId is specified
+        if (optionProductId) {
           const header = createElement('div', { class: 'options-type-header' });
-          header.innerHTML = `<p class="options-type-note">Showing options data (Product ID: ${contract})</p>`;
+          header.innerHTML = `<p class="options-type-note">Showing options data (Product ID: ${optionProductId})</p>`;
           block.appendChild(header);
         }
         
