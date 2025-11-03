@@ -9,4 +9,3 @@ helix-importer-ui
 .idea
 node_modules
 .env
-aemedge/blocks/market-recap/mock-api/reports.json

@@ -158,12 +158,6 @@
             }
           }
 
-          &:hover {
-            &::before {
-              background-color: rgba(17 43 74 / 90%);
-            }
-          }
-
           & > * {
             position: relative;
             z-index: 1;
