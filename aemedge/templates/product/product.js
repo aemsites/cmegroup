@@ -93,7 +93,7 @@ async function fetchLandingTabRows(productRoot) {
 function buildProductTabsBlock(productRoot, rowsOverride) {
   const rows = [];
   const TABS = rowsOverride && rowsOverride.length ? rowsOverride : [
-    ['Overview', productRoot],
+    ['Overview', `${productRoot}/overview`],
     ['Quotes', `${productRoot}/quotes`],
     ['Settlements', `${productRoot}/settlements`],
     ['Volume & OI', `${productRoot}/volume`],
@@ -291,14 +291,13 @@ export default async function productTemplate() {
   // Enable SPA-like navigation within the same product
   enableProductSpaNavigation(productRoot);
 
+  // Check if we're on the product root (redirect to overview)
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
-  // Only inject fragment on true product root; not on tab or options pages
   if (onRoot) {
-    const hashKey = toClassName(window.location.hash.replace('#', ''));
-    const targetKey = hashKey || 'overview';
-    const targetHref = targetKey === 'overview' ? `${productRoot}/overview` : `${productRoot}/${targetKey}`;
-    await insertFragmentAfter(productTabsSection, targetHref);
-    removeDuplicateTabs();
+    // Redirect root to overview page for consistency
+    const overviewUrl = `${productRoot}/overview`;
+    window.history.replaceState({}, '', overviewUrl);
+    await renderProductPath(overviewUrl, productRoot);
   }
 }
 
@@ -378,15 +377,33 @@ async function renderProductPath(url, productRoot) {
     }
     if (!html) {
       const resp = await fetch(`${basePath}.plain.html`);
-      if (!resp.ok) return;
+      
+      if (!resp.ok) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to fetch page:', basePath, 'Status:', resp.status);
+        // Show error in container
+        const errorContainer = ensureSubTabsContentContainer();
+        if (errorContainer) {
+          errorContainer.innerHTML = `
+            <div class="navigation-error">
+              <h3>Page Not Found</h3>
+              <p>Unable to load content for: <code>${basePath}</code></p>
+              <p><a href="${url}">Refresh page</a></p>
+            </div>
+          `;
+        }
+        return;
+      }
       html = await resp.text();
     }
+    
     const tempMain = document.createElement('main');
     tempMain.innerHTML = html;
     decorateMain(tempMain);
 
     const container = ensureSubTabsContentContainer();
     if (!container) return;
+    
     const renderables = [...tempMain.querySelectorAll(':scope > .section')]
       .filter((sec) => !sec.querySelector('.hero-baseball')
         && !sec.classList.contains('product-tabs-container')
@@ -394,6 +411,65 @@ async function renderProductPath(url, productRoot) {
         && !sec.classList.contains('product-subtabs'));
 
     if (renderProductPath.currentToken !== myToken) return;
+    
+    // Special handling for overview/root - might have empty sections
+    const isNavigatingToRoot = normalizePath(basePath) === normalizePath(productRoot);
+    
+    // Check if sections are empty (even if they exist)
+    const hasEmptyContent = renderables.length > 0 && renderables.every((sec) => !sec.innerHTML || sec.innerHTML.trim().length === 0);
+    
+    if ((renderables.length === 0 || hasEmptyContent) && isNavigatingToRoot) {
+      // Try fetching /overview page instead of root
+      try {
+        const overviewPath = `${productRoot}/overview`;
+        const overviewResp = await fetch(`${overviewPath}.plain.html`);
+        
+        if (overviewResp.ok) {
+          const overviewHtml = await overviewResp.text();
+          const overviewMain = document.createElement('main');
+          overviewMain.innerHTML = overviewHtml;
+          decorateMain(overviewMain);
+          
+          const overviewSections = [...overviewMain.querySelectorAll(':scope > .section')]
+            .filter((sec) => !sec.querySelector('.hero-baseball')
+              && !sec.classList.contains('product-tabs-container')
+              && !sec.classList.contains('product-subtabs-content')
+              && !sec.classList.contains('product-subtabs'));
+          
+          if (overviewSections.length > 0) {
+            container.innerHTML = '';
+            const overviewClones = overviewSections.map((sec) => {
+              const cloned = sec.cloneNode(true);
+              container.appendChild(cloned);
+              return cloned;
+            });
+            await Promise.all(overviewClones.map((cl) => loadSection(cl)));
+            return;
+          }
+        }
+      } catch (e) {
+        // Silent fail
+      }
+      
+      // Last resort: Show message that content is unavailable
+      container.innerHTML = `
+        <div class="no-content-message">
+          <h3>Overview content not available</h3>
+          <p>The overview page is empty or doesn't exist.</p>
+          <p><small>Expected: ${productRoot}/overview.plain.html</small></p>
+        </div>
+      `;
+      return;
+    }
+    
+    if (renderables.length === 0) {
+      container.innerHTML = `
+        <div class="no-content-message">
+          <p>No content available for this tab.</p>
+        </div>
+      `;
+      return;
+    }
     
     container.innerHTML = '';
     const clones = renderables.map((sec) => {
@@ -425,13 +501,19 @@ function updateTabsActiveState(url) {
 
   const isEquivalentToTab = (current, tabHref) => {
     const linkPath = normalizePath(new URL(tabHref, window.location.origin).pathname);
-    // Base path for the tab (strip /overview if present)
-    const base = linkPath.endsWith('/overview')
-      ? normalizePath(linkPath.replace(/\/overview$/, ''))
-      : linkPath;
-    return current === base
-      || current === normalizePath(`${base}/overview`)
-      || current === normalizePath(`${base}/options`);
+    const cur = normalizePath(current);
+    
+    // Exact match
+    if (cur === linkPath) return true;
+    
+    // For overview tab: /corn/overview should also match /corn (root) for backward compatibility
+    if (linkPath.endsWith('/overview')) {
+      const root = normalizePath(linkPath.replace(/\/overview$/, ''));
+      return cur === root;
+    }
+    
+    // For other tabs: /corn/quotes should also match /corn/quotes/options
+    return cur === normalizePath(`${linkPath}/options`);
   };
 
   document.querySelectorAll('.product-tabs-nav a').forEach((link) => {
