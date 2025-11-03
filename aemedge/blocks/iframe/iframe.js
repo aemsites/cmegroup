@@ -63,9 +63,11 @@ export default async function decorate(block) {
     return surveyUrl;
   }
 
+  //  Helper function to get the iframe url
   function getIframeSrc() {
     return block.classList.contains('course-survey') ? getCourseSurveyUrl() : iframeURL;
   }
+
   // Exit early if link is missing
   if (!iframeURL) {
     addWarningMessage('Warning: No URL provided for iframe source');
