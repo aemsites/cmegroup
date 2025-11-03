@@ -18,6 +18,13 @@ import { decorateMain } from '../../scripts/scripts.js';
 const PREFETCH_CACHE = new Map();
 let POPSTATE_BOUND = false;
 
+// Debounce timer for navigation
+let navigationDebounceTimer = null;
+
+// Track if toggle is being created (prevents duplicates during async operations)
+let isCreatingToggle = false;
+let currentToggleOperation = null; // Track current operation for cancellation
+
 function findProductTabsSection() {
   const main = document.querySelector('main');
   return main?.querySelector('.product-tabs-container');
@@ -330,9 +337,21 @@ function enableProductSpaNavigation(productRoot) {
 
 function wireNavClicks(container, productRoot) {
   const debouncedNavigate = ((href) => {
+    // Cancel any pending navigation
+    if (navigationDebounceTimer) {
+      clearTimeout(navigationDebounceTimer);
+    }
+    
+    // Update URL immediately for instant visual feedback
     window.history.pushState({}, '', href);
-    renderProductPath(href, productRoot);
+    
+    // Debounce the actual content rendering (prevents duplicate toggles on rapid clicks)
+    navigationDebounceTimer = setTimeout(() => {
+      renderProductPath(href, productRoot);
+      navigationDebounceTimer = null;
+    }, 100); // 100ms debounce - adjust if needed
   });
+  
   container.querySelectorAll('a[href]')
     .forEach((a) => {
       a.addEventListener('click', (e) => {
@@ -678,8 +697,20 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
       e.preventDefault();
       const href = futuresBtn.getAttribute('data-href');
       if (href) {
+        // Cancel any pending navigation
+        if (navigationDebounceTimer) {
+          clearTimeout(navigationDebounceTimer);
+          navigationDebounceTimer = null;
+        }
+        
+        // Update URL immediately
         window.history.pushState({}, '', href);
-        renderProductPath(href, productRoot);
+        
+        // Debounced rendering
+        navigationDebounceTimer = setTimeout(() => {
+          renderProductPath(href, productRoot);
+          navigationDebounceTimer = null;
+        }, 100);
       }
     });
   }
@@ -705,15 +736,24 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
     const optionsPath = `${productRoot}/${primaryTab}/options`;
     const fullUrl = buildContractURL(optionsPath, contractId);
 
+    // Cancel any pending navigation
+    if (navigationDebounceTimer) {
+      clearTimeout(navigationDebounceTimer);
+      navigationDebounceTimer = null;
+    }
+
     // Add updating class for visual feedback
     nav.classList.add('updating');
 
-    // Navigate with SPA behavior
+    // Update URL immediately
     window.history.pushState({}, '', fullUrl);
-    await renderProductPath(fullUrl, productRoot);
-
-    // Remove updating class after navigation
-    setTimeout(() => nav.classList.remove('updating'), 300);
+    
+    // Debounced rendering
+    navigationDebounceTimer = setTimeout(async () => {
+      await renderProductPath(fullUrl, productRoot);
+      nav.classList.remove('updating');
+      navigationDebounceTimer = null;
+    }, 100);
   });
 
   // Handle Options button click (without selection)
@@ -780,6 +820,10 @@ async function updateDropdownActiveState(nav) {
  * @param {boolean} forceRecreate - Force recreation instead of updating state
  */
 async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = false) {
+  // Create unique token for this operation
+  const myToken = Date.now();
+  currentToggleOperation = myToken;
+  
   const main = document.querySelector('main');
   if (!main) return;
 
@@ -791,19 +835,32 @@ async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = fa
   const rel = normalizePath(currentPath).replace(normalizePath(productRoot), '');
   const parts = rel.split('/').filter((p) => p);
 
-  // Remove any existing sub-tabs first if we're on a tab that shouldn't have them
+  // IMMEDIATE removal for ALL existing toggles (prevents duplicates)
+  const existingToggles = tabsSection.querySelectorAll('.product-subtabs');
+  existingToggles.forEach((toggle) => {
+    if (toggle.parentNode) toggle.parentNode.removeChild(toggle);
+  });
+  
+  // Check if we should have sub-tabs
   const shouldHaveSubTabs = parts.length > 0 && parts[0] !== 'overview';
   
   if (!shouldHaveSubTabs) {
-    // Remove toggle if present (navigating to root or overview)
-    const existingNav = tabsSection.querySelector('.product-subtabs');
-    if (existingNav && existingNav.parentNode) {
-      existingNav.parentNode.removeChild(existingNav);
-    }
+    // Don't create toggle for overview or root
+    isCreatingToggle = false;
+    currentToggleOperation = null;
     return;
   }
 
   const primaryTab = parts[0];
+  
+  // Prevent concurrent toggle creation
+  if (isCreatingToggle) {
+    currentToggleOperation = null;
+    return;
+  }
+
+  // Set flag to prevent concurrent creation
+  isCreatingToggle = true;
 
   // Check if both futures and options pages exist for this tab
   const futuresPath = `${productRoot}/${primaryTab}`;
@@ -814,49 +871,62 @@ async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = fa
     indexHasPath(optionsPath),
   ]);
   
-  // If both pages don't exist, remove any existing toggle and exit
+  // Check if operation was cancelled while checking paths
+  if (currentToggleOperation !== myToken) {
+    isCreatingToggle = false;
+    return;
+  }
+  
+  // If both pages don't exist, don't create toggle
   if (!hasFutures || !hasOptions) {
-    const existingNav = tabsSection.querySelector('.product-subtabs');
-    if (existingNav && existingNav.parentNode) {
-      existingNav.parentNode.removeChild(existingNav);
-    }
+    isCreatingToggle = false;
+    currentToggleOperation = null;
     return;
-  }
-
-  // Check if sub-tabs already exist and if we're staying on same tab
-  const existingNav = tabsSection.querySelector('.product-subtabs.enhanced');
-  const existingPrimaryTab = existingNav?.dataset?.primaryTab;
-
-  // If sub-tabs exist for same tab and we're not forcing recreate, just update state
-  if (existingNav && existingPrimaryTab === primaryTab && !forceRecreate) {
-    existingNav.classList.add('updating');
-    await updateDropdownActiveState(existingNav);
-    setTimeout(() => existingNav.classList.remove('updating'), 200);
-    return;
-  }
-
-  // Remove any existing sub-tabs from different tab (only when creating fresh)
-  const stale = tabsSection.querySelector('.product-subtabs');
-  if (stale && stale.parentNode) {
-    stale.parentNode.removeChild(stale);
   }
 
   // Build enhanced sub-tabs with dropdown
   const nav = await buildEnhancedSubTabs(productRoot, currentPath, primaryTab);
-  if (!nav) return; // Shouldn't happen since we already checked
+  
+  // Check if operation was cancelled while building
+  if (currentToggleOperation !== myToken) {
+    isCreatingToggle = false;
+    return;
+  }
+  
+  if (!nav) {
+    isCreatingToggle = false;
+    currentToggleOperation = null;
+    return;
+  }
 
   // Insert sub-tabs inline
   const wrapper = tabsSection.querySelector('.product-tabs-wrapper')
     || tabsSection.querySelector(':scope > div');
-  if (!wrapper) return;
+  if (!wrapper) {
+    isCreatingToggle = false;
+    currentToggleOperation = null;
+    return;
+  }
 
   wrapper.appendChild(nav);
 
   // Setup navigation handlers (only once when creating)
   await handleOptionsDropdownNavigation(nav, productRoot, primaryTab);
 
+  // Final check before updating state
+  if (currentToggleOperation !== myToken) {
+    // Operation was cancelled, remove the toggle we just created
+    if (nav.parentNode) nav.parentNode.removeChild(nav);
+    isCreatingToggle = false;
+    return;
+  }
+
   // Update active state
   await updateDropdownActiveState(nav);
+  
+  // Reset flags after toggle is fully created
+  isCreatingToggle = false;
+  currentToggleOperation = null;
 }
 
 // ==================== END OF ENHANCED TOGGLE FUNCTIONS ====================
