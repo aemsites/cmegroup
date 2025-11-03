@@ -1,0 +1,146 @@
+/* Quotes Table Block */
+
+.quotes-table {
+  margin: 2rem 0;
+}
+
+/* Loading and error states */
+.quotes-table .loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--gray3);
+  font-size: 1.125rem;
+}
+
+.quotes-table .no-results {
+  border: 1px solid #112b4a;
+  color: #112b4a;
+  font-size: 1.5rem;
+  margin: 0.9375rem auto;
+  text-align: center;
+  padding: 2rem;
+}
+
+.quotes-table .no-results h4 {
+  margin: 0;
+  padding: 1.25rem;
+}
+
+/* Table styling */
+.quotes-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 0.875rem;
+}
+
+.quotes-table table thead {
+  background: var(--gray6);
+  border-bottom: 2px solid var(--gray4);
+}
+
+.quotes-table table th {
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--gray2);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.quotes-table table tbody tr {
+  border-bottom: 1px solid var(--gray5);
+}
+
+.quotes-table table tbody tr:hover {
+  background: var(--gray6);
+}
+
+.quotes-table table td {
+  padding: 0.75rem 0.5rem;
+  color: var(--gray2);
+}
+
+/* Price change colors */
+.quotes-table .change-positive {
+  color: #008000;
+  font-weight: 500;
+}
+
+.quotes-table .change-negative {
+  color: #d00;
+  font-weight: 500;
+}
+
+/* Options month selector dropdown */
+.quotes-table .options-month-selector {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--gray4);
+  border-radius: 0.25rem;
+  background: white;
+  font-size: 0.875rem;
+  color: var(--gray2);
+  cursor: pointer;
+}
+
+.quotes-table .options-month-selector:hover {
+  border-color: var(--blue4);
+}
+
+.quotes-table .options-month-selector:focus {
+  outline: none;
+  border-color: var(--blue4);
+  box-shadow: 0 0 0 2px rgba(0, 100, 200, 0.1);
+}
+
+/* Options type header */
+.quotes-table .options-type-header {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--blue6);
+  border-left: 3px solid var(--blue4);
+  border-radius: 0.25rem;
+}
+
+.quotes-table .options-type-note {
+  margin: 0;
+  color: var(--blue2);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* About report link */
+.quotes-table .about-report-wrapper {
+  margin-top: 1rem;
+  text-align: right;
+}
+
+.quotes-table .about-report-link {
+  color: var(--blue4);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.quotes-table .about-report-link:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (width < 769px) {
+  .quotes-table table {
+    font-size: 0.75rem;
+  }
+  
+  .quotes-table table th,
+  .quotes-table table td {
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .quotes-table table th {
+    font-size: 0.65rem;
+  }
+}
+

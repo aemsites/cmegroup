@@ -283,7 +283,8 @@ export default async function productTemplate() {
   ensureHeroThenTabsOrder();
 
   // insert sub-tabs (e.g., Futures/Options) when applicable
-  await insertSubTabsIfApplicable(productRoot);
+  // ENHANCED: Using dropdown version with contract selection
+  await insertEnhancedSubTabsIfApplicable(productRoot);
   // normalize current page content to live under sub-tabs area
   moveCurrentPageContentUnderSubTabs();
 
@@ -357,19 +358,26 @@ async function renderProductPath(url, productRoot) {
     updateTabsActiveState(url);
 
     // Ensure sub-tabs reflect the destination and content is placed under them
-    await insertSubTabsIfApplicable(productRoot);
+    // ENHANCED: Using dropdown version during SPA navigation
+    // Use forceRecreate=false to just update state (no flash)
+    await insertEnhancedSubTabsIfApplicable(productRoot, false);
     moveCurrentPageContentUnderSubTabs();
-    // Re-wire nav clicks in case sub-tabs were re-rendered
+    // Re-wire nav clicks only if sub-tabs were recreated
+    // (The function checks if handlers are already bound)
     enableProductSpaNavigation(productRoot);
 
     // Fetch target page and swap renderable sections below tabs
+    // Strip query params for fetching - we only need the base page HTML
+    const urlObj = new URL(url, window.location.origin);
+    const basePath = urlObj.pathname; // Without query params
+    
     let html = null;
-    const cached = PREFETCH_CACHE.get(url);
+    const cached = PREFETCH_CACHE.get(basePath);
     if (cached) {
       html = await cached.catch(() => null);
     }
     if (!html) {
-      const resp = await fetch(`${url}.plain.html`);
+      const resp = await fetch(`${basePath}.plain.html`);
       if (!resp.ok) return;
       html = await resp.text();
     }
@@ -386,15 +394,29 @@ async function renderProductPath(url, productRoot) {
         && !sec.classList.contains('product-subtabs'));
 
     if (renderProductPath.currentToken !== myToken) return;
+    
     container.innerHTML = '';
     const clones = renderables.map((sec) => {
       const cloned = sec.cloneNode(true);
       container.appendChild(cloned);
       return cloned;
     });
+    
     await Promise.all(clones.map((cl) => loadSection(cl)));
   } catch (e) {
-    // On failure, allow a normal navigation fallback on next click
+    // eslint-disable-next-line no-console
+    console.error('SPA navigation failed:', e);
+    // On failure, show error message
+    const container = ensureSubTabsContentContainer();
+    if (container) {
+      container.innerHTML = `
+        <div class="navigation-error">
+          <h3>Failed to load content</h3>
+          <p>There was an error loading the page content.</p>
+          <p><a href="${url}">Click here to reload the page</a></p>
+        </div>
+      `;
+    }
   }
 }
 
@@ -429,9 +451,15 @@ function wirePrefetches(container, productRoot) {
     .filter((a) => normalizePath(computeProductRoot(a.getAttribute('href'))) === normalizePath(productRoot));
 
   const prefetch = (href) => {
-    if (!href || PREFETCH_CACHE.has(href)) return;
-    const promise = fetch(`${href}.plain.html`).then((r) => (r.ok ? r.text() : null));
-    PREFETCH_CACHE.set(href, promise);
+    if (!href) return;
+    // Strip query params for cache key and fetching
+    const urlObj = new URL(href, window.location.origin);
+    const basePath = urlObj.pathname;
+    
+    if (PREFETCH_CACHE.has(basePath)) return;
+    
+    const promise = fetch(`${basePath}.plain.html`).then((r) => (r.ok ? r.text() : null));
+    PREFETCH_CACHE.set(basePath, promise);
   };
 
   // Hover/focus intent
@@ -466,3 +494,239 @@ function wirePrefetches(container, productRoot) {
     // IntersectionObserver not available; best-effort via hover/focus
   }
 }
+
+// ==================== ENHANCED FUTURES/OPTIONS TOGGLE FUNCTIONS ====================
+// New functions for dropdown-based toggle (Step 2 of implementation)
+// These are separate from existing functions to avoid modifying working code
+
+/**
+ * Build enhanced sub-tabs with Futures/Options dropdown
+ * This is a NEW function - does not modify existing insertSubTabsIfApplicable()
+ * @param {string} productRoot - Product root path
+ * @param {string} currentPath - Current page path
+ * @param {string} primaryTab - Primary tab name (quotes, settlements, etc.)
+ * @returns {Promise<Element|null>} Navigation element with toggle
+ */
+async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
+  const futuresPath = `${productRoot}/${primaryTab}`;
+  const optionsPath = `${futuresPath}/options`;
+
+  const [hasFutures, hasOptions] = await Promise.all([
+    indexHasPath(futuresPath),
+    indexHasPath(optionsPath),
+  ]);
+
+  if (!hasFutures || !hasOptions) return null;
+
+  // Import utilities
+  const {
+    createOptionsDropdown,
+    fetchExpirationsData,
+    getSelectedContractFromURL,
+    TOGGLE_CONSTANTS,
+  } = await import('./product-toggle-utils.js');
+
+  // Create toggle container
+  const nav = document.createElement('nav');
+  nav.className = 'product-subtabs enhanced';
+  nav.setAttribute('aria-label', 'Sub tabs');
+  nav.dataset.primaryTab = primaryTab; // Track which tab this toggle belongs to
+
+  const container = document.createElement('div');
+  container.className = TOGGLE_CONSTANTS.toggleClasses.container;
+
+  // Create Futures button
+  const futuresBtn = document.createElement('button');
+  futuresBtn.className = TOGGLE_CONSTANTS.toggleClasses.button;
+  futuresBtn.setAttribute('data-toggle', TOGGLE_CONSTANTS.toggleTypes.futures);
+  futuresBtn.setAttribute('data-href', futuresPath);
+  futuresBtn.textContent = 'FUTURES';
+  futuresBtn.type = 'button';
+
+  if (normalizePath(currentPath) === normalizePath(futuresPath)) {
+    futuresBtn.classList.add(TOGGLE_CONSTANTS.toggleClasses.active);
+  }
+
+  container.appendChild(futuresBtn);
+
+  // Create Options dropdown
+  const expirationsData = await fetchExpirationsData();
+  const selectedContract = getSelectedContractFromURL();
+  const optionsDropdown = createOptionsDropdown(expirationsData, selectedContract);
+  optionsDropdown.setAttribute('data-href', optionsPath);
+
+  // Mark as active if on options page
+  if (normalizePath(currentPath).startsWith(normalizePath(optionsPath))) {
+    const dropdownBtn = optionsDropdown.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownButton}`);
+    if (dropdownBtn) {
+      dropdownBtn.classList.add(TOGGLE_CONSTANTS.toggleClasses.active);
+    }
+  }
+
+  container.appendChild(optionsDropdown);
+  nav.appendChild(container);
+
+  return nav;
+}
+
+/**
+ * Handle options dropdown navigation with SPA behavior
+ * This is a NEW function for dropdown event handling
+ * @param {Element} nav - Navigation element containing dropdown
+ * @param {string} productRoot - Product root path
+ * @param {string} primaryTab - Primary tab name
+ */
+async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
+  // Prevent duplicate event handlers
+  if (nav.dataset.handlersBound === 'true') return;
+  nav.dataset.handlersBound = 'true';
+
+  const { buildContractURL } = await import('./product-toggle-utils.js');
+
+  // Handle Futures button click
+  const futuresBtn = nav.querySelector('[data-toggle="futures"]');
+  if (futuresBtn) {
+    futuresBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const href = futuresBtn.getAttribute('data-href');
+      if (href) {
+        window.history.pushState({}, '', href);
+        renderProductPath(href, productRoot);
+      }
+    });
+  }
+
+  // Handle Options dropdown selection
+  nav.addEventListener('optionContractSelected', async (e) => {
+    const { contract, productId } = e.detail;
+    const contractId = contract || productId;
+    const optionsPath = `${productRoot}/${primaryTab}/options`;
+    const fullUrl = buildContractURL(optionsPath, contractId);
+
+    // Add updating class for visual feedback
+    nav.classList.add('updating');
+
+    // Navigate with SPA behavior
+    window.history.pushState({}, '', fullUrl);
+    await renderProductPath(fullUrl, productRoot);
+
+    // Remove updating class after navigation
+    setTimeout(() => nav.classList.remove('updating'), 300);
+  });
+
+  // Handle Options button click (without selection)
+  const dropdownBtn = nav.querySelector('.dropdown-btn');
+  const dropdown = nav.querySelector('.options-dropdown');
+  if (dropdownBtn && dropdown) {
+    // If clicking the button itself (not opening dropdown), navigate to options page
+    dropdownBtn.addEventListener('click', (e) => {
+      // Only navigate if dropdown is not already open
+      if (!dropdown.classList.contains('dropdown-open')) {
+        const href = dropdown.getAttribute('data-href');
+        if (href) {
+          window.history.pushState({}, '', href);
+          renderProductPath(href, productRoot);
+        }
+      }
+    });
+  }
+}
+
+/**
+ * Update dropdown active state based on current URL
+ * This is a NEW function for maintaining state during navigation
+ * @param {Element} nav - Navigation element
+ */
+async function updateDropdownActiveState(nav) {
+  if (!nav) return;
+
+  const { getSelectedContractFromURL, TOGGLE_CONSTANTS } = await import('./product-toggle-utils.js');
+  const selectedContract = getSelectedContractFromURL();
+
+  // Update selected item in dropdown
+  const dropdown = nav.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdown}`);
+  if (dropdown && selectedContract) {
+    const items = dropdown.querySelectorAll(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownItem}`);
+    items.forEach((item) => {
+      if (item.dataset.value === selectedContract) {
+        item.classList.add('selected');
+      } else {
+        item.classList.remove('selected');
+      }
+    });
+  }
+
+  // Update active button state
+  const currentPath = normalizePath(window.location.pathname);
+  const futuresBtn = nav.querySelector('[data-toggle="futures"]');
+  const dropdownBtn = nav.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownButton}`);
+
+  if (futuresBtn && dropdownBtn) {
+    const futuresPath = futuresBtn.getAttribute('data-href');
+    const isOnFutures = currentPath === normalizePath(futuresPath);
+    const isOnOptions = currentPath.includes('/options');
+
+    futuresBtn.classList.toggle(TOGGLE_CONSTANTS.toggleClasses.active, isOnFutures);
+    dropdownBtn.classList.toggle(TOGGLE_CONSTANTS.toggleClasses.active, isOnOptions);
+  }
+}
+
+/**
+ * NEW ENHANCED VERSION of insertSubTabsIfApplicable
+ * Call this instead of the original to use dropdown functionality
+ * @param {string} productRoot - Product root path
+ * @param {boolean} forceRecreate - Force recreation instead of updating state
+ */
+async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = false) {
+  const main = document.querySelector('main');
+  if (!main) return;
+
+  const tabsSection = findProductTabsSection();
+  if (!tabsSection) return;
+
+  // Determine current tab
+  const currentPath = normalizePath(window.location.pathname);
+  const rel = normalizePath(currentPath).replace(normalizePath(productRoot), '');
+  const parts = rel.split('/').filter((p) => p);
+
+  if (parts.length === 0) return; // On product root
+  const primaryTab = parts[0];
+  if (primaryTab === 'overview') return; // No sub-tabs on overview
+
+  // Check if sub-tabs already exist and if we're staying on same tab
+  const existingNav = tabsSection.querySelector('.product-subtabs.enhanced');
+  const existingPrimaryTab = existingNav?.dataset?.primaryTab;
+
+  // If sub-tabs exist for same tab and we're not forcing recreate, just update state
+  if (existingNav && existingPrimaryTab === primaryTab && !forceRecreate) {
+    existingNav.classList.add('updating');
+    await updateDropdownActiveState(existingNav);
+    setTimeout(() => existingNav.classList.remove('updating'), 200);
+    return;
+  }
+
+  // Remove any existing sub-tabs (only when creating fresh)
+  const stale = tabsSection.querySelector('.product-subtabs');
+  if (stale && stale.parentNode) {
+    stale.parentNode.removeChild(stale);
+  }
+
+  // Build enhanced sub-tabs with dropdown
+  const nav = await buildEnhancedSubTabs(productRoot, currentPath, primaryTab);
+  if (!nav) return; // Both pages don't exist
+
+  // Insert sub-tabs inline
+  const wrapper = tabsSection.querySelector('.product-tabs-wrapper')
+    || tabsSection.querySelector(':scope > div');
+  if (!wrapper) return;
+
+  wrapper.appendChild(nav);
+
+  // Setup navigation handlers (only once when creating)
+  await handleOptionsDropdownNavigation(nav, productRoot, primaryTab);
+
+  // Update active state
+  await updateDropdownActiveState(nav);
+}
+
+// ==================== END OF ENHANCED TOGGLE FUNCTIONS ====================
