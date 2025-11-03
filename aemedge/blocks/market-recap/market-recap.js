@@ -4,11 +4,31 @@ import { apiGet, getResponseData } from '../../scripts/utils/index.js';
 
 const API_CONFIG = {
   reportsEndpoint: '/CmeWS/mvc/Ags/Reports',
+import { getProductMetadata } from '../../scripts/utils/product.js';
+import { apiGet, getResponseData } from '../../scripts/utils/index.js';
+
+// Determine if we should use mock data based on environment
+const useMockData = () => {
+  const { hostname } = window.location;
+  // Use real API only on production cmegroup.com domain
+  const isProduction = hostname === 'www.cmegroup.com' || hostname === 'cmegroup.com';
+  // For now, always use mock due to CORS restrictions
+  // TODO: Enable real API once backend team configures CORS or proxy is available
+  return true; // Force mock for now
+};
+
+const API_CONFIG = {
+  mockEndpoint: '/aemedge/blocks/market-recap/mock-api/reports.json',
+  realEndpoint: 'https://www.cmegroup.com/CmeWS/mvc/Ags/Reports',
+  get reportsEndpoint() {
+    return useMockData() ? this.mockEndpoint : this.realEndpoint;
+  },
 };
 
 async function fetchMarketReports() {
   try {
-    const response = await apiGet(API_CONFIG.reportsEndpoint);
+    // Use withCredentials: false to avoid CORS issues with external APIs
+    const response = await apiGet(API_CONFIG.reportsEndpoint, {}, {}, { withCredentials: false });
     return getResponseData(response) || response.data;
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -17,12 +37,19 @@ async function fetchMarketReports() {
   }
 }
 
-function findMatchingReport(reportsData) {
+async function findMatchingReport(reportsData) {
   if (!reportsData || reportsData.length === 0) {
     return null;
   }
 
-  const productSymbol = getMetadata('product-symbol');
+  // Use v2's product utilities to get product symbol
+  const productMetadata = await getProductMetadata();
+  const productSymbol = productMetadata.productSymbol || getMetadata('product-symbol');
+  
+  if (!productSymbol) {
+    return null;
+  }
+
   const commodityName = `O${productSymbol}`;
   return reportsData.find((report) => report.reportCommodity?.toLowerCase() === commodityName.toLowerCase());
 }
@@ -43,11 +70,14 @@ function formatReportDate(reportDate) {
 async function createMarketRecapContent(block) {
   // Fetch market reports data
   const reportsData = await fetchMarketReports();
-  const matchingReport = findMatchingReport(reportsData);
+  const matchingReport = await findMatchingReport(reportsData);
+
+  // Get product name from v2 utilities or fallback to metadata
+  const productMetadata = await getProductMetadata();
+  const productName = productMetadata.productName || getMetadata('product') || 'Product';
 
   if (!matchingReport) {
     // Show fallback message when no matching report found or API fails
-    const productName = getMetadata('product') || 'Product';
     block.innerHTML = `
       <div class="market-recap-card">
         <div class="market-recap-header">
@@ -64,8 +94,7 @@ async function createMarketRecapContent(block) {
     return;
   }
 
-  // Get product name and format date
-  const productName = getMetadata('product') || 'Product';
+  // Format date
   const formattedDate = formatReportDate(matchingReport.reportDate);
 
   // Create the market recap content
