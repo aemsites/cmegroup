@@ -1,5 +1,4 @@
 import { readBlockConfig } from '../../scripts/utils.js';
-import { appendQueryParams } from '../../scripts/utils/uri.js';
 
 export default async function decorate(block) {
   const blockConfig = readBlockConfig(block);
@@ -52,6 +51,7 @@ export default async function decorate(block) {
     if (!userinfo) return iframeURL;
     const surveyUrl = new URL(iframeURL);
     const course = window.location.href.split('#')[1] || 'Unknown course';
+    const { appendQueryParams } = await import('../../scripts/utils/uri.js');
     appendQueryParams(surveyUrl, new URLSearchParams({
       course: decodeURIComponent(course),
       uid: userinfo.onePass,
