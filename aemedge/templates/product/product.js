@@ -926,10 +926,6 @@ async function prefetchProductData(productRoot, currentTab = null) {
     window.productData.productId = productId;
     window.productData.productRoot = normalizedRoot;
     window.productData.fetchedAt = Date.now();
-
-    // Display complete productData object after prefetch
-    // eslint-disable-next-line no-console
-    console.log('[prefetchProductData] ✓ Prefetch complete. window.productData:', window.productData);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('[prefetchProductData] Unexpected error:', error);
