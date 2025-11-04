@@ -542,7 +542,8 @@ a {
     color: var(--blue5);
 
     &:hover,
-    &:active {
+    &:active,
+    &:visited {
       color: var(--blue5);
     }
 
