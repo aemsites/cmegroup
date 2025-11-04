@@ -25,6 +25,9 @@ let navigationDebounceTimer = null;
 let isCreatingToggle = false;
 let currentToggleOperation = null; // Track current operation for cancellation
 
+// Cache for pre-built dropdown elements (reused across tabs)
+const prebuiltDropdownCache = new Map();
+
 function findProductTabsSection() {
   const main = document.querySelector('main');
   return main?.querySelector('.product-tabs-container');
@@ -183,70 +186,6 @@ function ensureHeroThenTabsOrder() {
   }
 }
 
-async function insertSubTabsIfApplicable(productRoot) {
-  const main = document.querySelector('main');
-  if (!main) return;
-  const tabsSection = findProductTabsSection();
-  if (!tabsSection) return;
-  // Always remove any existing inline sub-tabs first so stale toggles don't linger
-  const stale = tabsSection.querySelector('.product-subtabs');
-  if (stale && stale.parentNode) {
-    stale.parentNode.removeChild(stale);
-  }
-
-  // Determine if we are on a primary tab or its /options variant
-  const currentPath = normalizePath(window.location.pathname);
-  const rel = normalizePath(currentPath).replace(normalizePath(productRoot), '');
-  const parts = rel.split('/').filter((p) => p);
-  if (parts.length === 0) return; // on product root
-  const primaryTab = parts[0];
-  if (primaryTab === 'overview') return; // no sub-tabs on overview
-
-  const futuresPath = `${productRoot}/${primaryTab}`;
-  const optionsPath = `${futuresPath}/options`;
-
-  const [hasFutures, hasOptions] = await Promise.all([
-    indexHasPath(futuresPath),
-    indexHasPath(optionsPath),
-  ]);
-  if (!hasFutures || !hasOptions) return; // show toggle only if both exist
-
-  // Build sub-tabs nav
-  const nav = document.createElement('nav');
-  nav.className = 'product-subtabs';
-  nav.setAttribute('aria-label', 'Sub tabs');
-
-  const list = document.createElement('ul');
-  list.className = 'product-subtabs-list';
-
-  if (hasFutures) {
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = futuresPath;
-    a.textContent = 'Futures';
-    if (currentPath === normalizePath(futuresPath)) a.classList.add('is-active');
-    li.appendChild(a);
-    list.appendChild(li);
-  }
-  if (hasOptions) {
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = optionsPath;
-    a.textContent = 'Options';
-    if (currentPath === normalizePath(optionsPath)) a.classList.add('is-active');
-    li.appendChild(a);
-    list.appendChild(li);
-  }
-
-  nav.appendChild(list);
-
-  // Place sub-tabs inline, to the right of product-tabs within the same wrapper
-  const wrapper = tabsSection.querySelector('.product-tabs-wrapper')
-    || tabsSection.querySelector(':scope > div');
-  if (!wrapper) return;
-  wrapper.appendChild(nav);
-}
-
 function ensureSubTabsContentContainer() {
   const tabsSection = findProductTabsSection();
   if (!tabsSection || !tabsSection.parentNode) return null;
@@ -279,6 +218,10 @@ export default async function productTemplate() {
 
   const productRoot = computeProductRoot(window.location.pathname);
 
+  // PERFORMANCE: Prefetch options data FIRST to avoid race conditions
+  // This ensures data is available before dropdown is built
+  await prefetchProductData(productRoot);
+
   // ensure hero first
   await insertHeroIfMissing();
 
@@ -292,6 +235,7 @@ export default async function productTemplate() {
   // insert sub-tabs (e.g., Futures/Options) when applicable
   // ENHANCED: Using dropdown version with contract selection
   await insertEnhancedSubTabsIfApplicable(productRoot);
+
   // normalize current page content to live under sub-tabs area
   moveCurrentPageContentUnderSubTabs();
 
@@ -371,7 +315,7 @@ async function renderProductPath(url, productRoot) {
     // Avoid serving stale prefetched HTML across different tab families
     const myToken = Date.now();
     renderProductPath.currentToken = myToken;
-    PREFETCH_CACHE.clear();
+    PREFETCH_CACHE.clear(); // Clear HTML cache, but keep product data cache for reuse
     // Update active state in product tabs immediately
     updateTabsActiveState(url);
 
@@ -601,6 +545,112 @@ function wirePrefetches(container, productRoot) {
 // These are separate from existing functions to avoid modifying working code
 
 /**
+ * Get product ID from metadata with fallback to hardcoded value for testing
+ * @returns {string} Product ID
+ */
+function getProductId() {
+  let productId = getMetadata('product-id');
+
+  // Fallback: Use hardcoded value for corn during development/testing
+  if (!productId) {
+    productId = '300'; // Default to corn for testing
+  }
+
+  return productId;
+}
+
+/**
+ * Prefetch product data on page load for performance optimization
+ * Fetches options dropdown data once per product and stores in window.productData
+ * Clears cache when switching between products (corn -> wheat)
+ * @param {string} productRoot - Product root path
+ */
+async function prefetchProductData(productRoot) {
+  try {
+    // Get product ID from metadata with fallback
+    const productId = getProductId();
+
+    if (!productId) {
+      return; // No product ID, can't fetch data
+    }
+
+    // Normalize product root for comparison
+    const normalizedRoot = normalizePath(productRoot);
+
+    // Check if product changed (e.g., corn -> wheat)
+    if (window.productData?.productRoot &&
+        normalizePath(window.productData.productRoot) !== normalizedRoot) {
+      // Product changed - clear all caches to prevent memory bloat
+      window.productData = null;
+      prebuiltDropdownCache.clear();
+      PREFETCH_CACHE.clear();
+    }
+
+    // Initialize data store if needed
+    if (!window.productData) {
+      window.productData = {};
+    }
+
+    // Check if already fetching for this product (prevent duplicate calls)
+    if (window.productData.fetchPromise) {
+      await window.productData.fetchPromise;
+      return;
+    }
+
+    // Check if data already exists for this product
+    if (window.productData.optionsExpirations &&
+        window.productData.productId === productId) {
+      return; // Data already available
+    }
+
+    // Import utilities
+    const { fetchExpirationsData } = await import('./product-toggle-utils.js');
+
+    // Create fetch promise with fallback to local JSON
+    const fetchPromise = (async () => {
+      try {
+        const data = await fetchExpirationsData(productId);
+        return data;
+      } catch (apiError) {
+        // Fallback to local JSON file
+        try {
+          const localPath = `${window.location.origin}/templates/product/${productId}.json`;
+          const response = await fetch(localPath);
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch local JSON: ${response.status}`);
+          }
+
+          const jsonData = await response.json();
+
+          // Transform local JSON to match expected format
+          const optionsData = jsonData.optionsLabels || [];
+          return optionsData;
+        } catch (fallbackError) {
+          throw fallbackError;
+        }
+      }
+    })();
+
+    window.productData.fetchPromise = fetchPromise;
+    window.productData.productRoot = normalizedRoot;
+    window.productData.productId = productId;
+
+    // Fetch and store data
+    const optionsData = await fetchPromise;
+    window.productData.optionsExpirations = optionsData;
+    window.productData.fetchedAt = Date.now();
+    window.productData.fetchPromise = null; // Clear promise after completion
+  } catch (error) {
+    // Clear failed promise so it can be retried
+    if (window.productData) {
+      window.productData.fetchPromise = null;
+    }
+    // Silent fail - will fetch on demand if prefetch fails
+  }
+}
+
+/**
  * Build enhanced sub-tabs with Futures/Options dropdown
  * This is a NEW function - does not modify existing insertSubTabsIfApplicable()
  * @param {string} productRoot - Product root path
@@ -617,7 +667,9 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
     indexHasPath(optionsPath),
   ]);
 
-  if (!hasFutures || !hasOptions) return null;
+  if (!hasFutures || !hasOptions) {
+    return null;
+  }
 
   // Import utilities
   const {
@@ -651,12 +703,29 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
 
   container.appendChild(futuresBtn);
 
-  // Create Options dropdown
-  const expirationsData = await fetchExpirationsData();
+  // PERFORMANCE: Ensure we have data for current product
+  const productId = getProductId();
+  let expirationsData = window.productData?.optionsExpirations;
+
+  // If no data or wrong product, fetch it (should rarely happen due to prefetch)
+  if (!expirationsData || window.productData?.productRoot !== normalizePath(productRoot)) {
+    await prefetchProductData(productRoot);
+    expirationsData = window.productData?.optionsExpirations || await fetchExpirationsData(productId);
+  }
+
+  // Build dropdown fresh each time (data is cached, so this is fast)
+  // NOTE: We cannot cache the dropdown DOM element because cloneNode() doesn't copy event listeners
   const selectedContract = getSelectedContractFromURL();
   const optionsDropdown = createOptionsDropdown(expirationsData, selectedContract);
+
+  // Always update href for current context
   optionsDropdown.setAttribute('data-href', optionsPath);
-  
+  const items = optionsDropdown.querySelectorAll('.dropdown-item');
+
+  items.forEach((item) => {
+    item.classList.toggle('selected', item.dataset.productId === selectedContract);
+  });
+
   // Prefetch top N option pages immediately for instant navigation
   if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover && expirationsData.length > 0) {
     prefetchOptionPages(optionsPath, expirationsData, TOGGLE_CONSTANTS.prefetch.optionsCount, PREFETCH_CACHE);
@@ -756,22 +825,9 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
     }, 100);
   });
 
-  // Handle Options button click (without selection)
-  const dropdownBtn = nav.querySelector('.dropdown-btn');
-  const dropdown = nav.querySelector('.options-dropdown');
-  if (dropdownBtn && dropdown) {
-    // If clicking the button itself (not opening dropdown), navigate to options page
-    dropdownBtn.addEventListener('click', (e) => {
-      // Only navigate if dropdown is not already open
-      if (!dropdown.classList.contains('dropdown-open')) {
-        const href = dropdown.getAttribute('data-href');
-        if (href) {
-          window.history.pushState({}, '', href);
-          renderProductPath(href, productRoot);
-        }
-      }
-    });
-  }
+  // NOTE: Removed navigation handler for dropdown button
+  // The dropdown component manages its own open/close state via createOptionsDropdown()
+  // Navigation happens when an item is selected (via optionContractSelected event above)
 }
 
 /**
@@ -823,12 +879,16 @@ async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = fa
   // Create unique token for this operation
   const myToken = Date.now();
   currentToggleOperation = myToken;
-  
+
   const main = document.querySelector('main');
-  if (!main) return;
+  if (!main) {
+    return;
+  }
 
   const tabsSection = findProductTabsSection();
-  if (!tabsSection) return;
+  if (!tabsSection) {
+    return;
+  }
 
   // Determine current tab
   const currentPath = normalizePath(window.location.pathname);
@@ -840,10 +900,10 @@ async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = fa
   existingToggles.forEach((toggle) => {
     if (toggle.parentNode) toggle.parentNode.removeChild(toggle);
   });
-  
+
   // Check if we should have sub-tabs
   const shouldHaveSubTabs = parts.length > 0 && parts[0] !== 'overview';
-  
+
   if (!shouldHaveSubTabs) {
     // Don't create toggle for overview or root
     isCreatingToggle = false;
@@ -852,7 +912,7 @@ async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = fa
   }
 
   const primaryTab = parts[0];
-  
+
   // Prevent concurrent toggle creation
   if (isCreatingToggle) {
     currentToggleOperation = null;
@@ -865,18 +925,18 @@ async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = fa
   // Check if both futures and options pages exist for this tab
   const futuresPath = `${productRoot}/${primaryTab}`;
   const optionsPath = `${futuresPath}/options`;
-  
+
   const [hasFutures, hasOptions] = await Promise.all([
     indexHasPath(futuresPath),
     indexHasPath(optionsPath),
   ]);
-  
+
   // Check if operation was cancelled while checking paths
   if (currentToggleOperation !== myToken) {
     isCreatingToggle = false;
     return;
   }
-  
+
   // If both pages don't exist, don't create toggle
   if (!hasFutures || !hasOptions) {
     isCreatingToggle = false;
@@ -886,13 +946,13 @@ async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = fa
 
   // Build enhanced sub-tabs with dropdown
   const nav = await buildEnhancedSubTabs(productRoot, currentPath, primaryTab);
-  
+
   // Check if operation was cancelled while building
   if (currentToggleOperation !== myToken) {
     isCreatingToggle = false;
     return;
   }
-  
+
   if (!nav) {
     isCreatingToggle = false;
     currentToggleOperation = null;
@@ -923,7 +983,7 @@ async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = fa
 
   // Update active state
   await updateDropdownActiveState(nav);
-  
+
   // Reset flags after toggle is fully created
   isCreatingToggle = false;
   currentToggleOperation = null;
