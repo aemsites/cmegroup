@@ -36,13 +36,13 @@ const prebuiltDropdownCache = new Map();
  */
 const API_CONFIG = {
   optionsExpirations: {
-    apiEndpoint: (productId) => `/api/expirations/${productId}`,
+    apiEndpoint: (productId) => `/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/${productId}`,
     mockPath: (productId) => `/aemedge/templates/product/${productId}.json`,
     transform: (data) => data.optionsLabels || data,
     cacheKey: 'optionsExpirations',
   },
   quotesTable: {
-    apiEndpoint: (productId) => `/api/quotes/v2/table/${productId}`,
+    apiEndpoint: (productId) => `/CmeWS/mvc/quotes/v2/${productId}`,
     mockPath: () => '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-table.json',
     transform: (data) => data.quotes || data,
     cacheKey: 'quotesData.table',
@@ -60,13 +60,13 @@ const API_CONFIG = {
     cacheKey: 'quotesData.cvol',
   },
   marketRecap: {
-    apiEndpoint: (productId) => `/api/quotes/market-recap/${productId}`,
+    apiEndpoint: (productId) => `/CmeWS/mvc/Ags/Reports`,
     mockPath: () => '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/market-recap.json',
     transform: (data) => data,
     cacheKey: 'quotesData.marketRecap',
   },
   settlementsDates: {
-    apiEndpoint: (productId) => `/api/settlements/tradedates/${productId}`,
+    apiEndpoint: (productId) => `/CmeWS/mvc/Settlements/Futures/TradeDate/${productId}`,
     mockPath: () => '/aemedge/blocks/dynamic/product-tabs/mock-api/settlements/settlements-tradedate.json',
     transform: (data) => data,
     cacheKey: 'settlementsData.tradeDates',
