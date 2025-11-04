@@ -156,7 +156,7 @@ async function createStaticCards(block) {
       block.appendChild(cardsContainer);
       buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse, true);
     }
-  } else {
+  } else if (block.classList.contains('promo')) {
     const ul = document.createElement('ul');
     const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
     [...block.children].forEach((row) => {
@@ -185,7 +185,31 @@ async function createStaticCards(block) {
     });
     ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
     cardsContainer.append(ul);
+  } else {
+    const ul = document.createElement('ul');
+    const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
+    [...block.children].forEach((row) => {
+      const li = document.createElement('li');
+      while (row.firstElementChild) li.append(row.firstElementChild);
+      [...li.children].forEach((div) => {
+        if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
+        else div.className = 'cards-card-body';
+        if (textClass) {
+          const paragraphs = div.querySelectorAll('p');
+          paragraphs.forEach((p) => {
+            p.classList.add(textClass);
+          });
+        }
+        if (!div.hasChildNodes()) {
+          div.parentElement.classList.add('empty-card');
+        }
+      });
+      ul.append(li);
+    });
+    ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
+    cardsContainer.append(ul);
   }
+
   block.textContent = '';
   block.append(cardsContainer);
 }
