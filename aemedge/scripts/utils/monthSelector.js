@@ -1,6 +1,8 @@
 import { loadCSS } from '../aem.js';
 import { createElement, i18n } from '../utils.js';
 
+const spanYear = createElement('span', { class: 'year-content' });
+
 function toggleMonthSelector(e) {
   const button = e.target.closest('button');
   const expanded = button.getAttribute('aria-expanded');
@@ -93,8 +95,7 @@ async function buildMonthSelector(data, button, callback, prevBtn, nextBtn) {
     prevBtn.addEventListener('click', () => {
       if (data.currentMonth === 0) {
         data.currentMonth = 11;
-        data.selectedYear -= 1;
-        data.currentYear = data.selectedYear;
+        data.currentYear -= 1;
       } else {
         data.currentMonth -= 1;
       }
@@ -107,14 +108,14 @@ async function buildMonthSelector(data, button, callback, prevBtn, nextBtn) {
       month.classList.add('month-selected');
       button.querySelector('.selected-content').textContent = `${monthName} ${data.currentYear}`;
       callback(data.currentYear, data.currentMonth + 1);
+      spanYear.textContent = data.currentYear;
     });
   }
   if (nextBtn) {
     nextBtn.addEventListener('click', () => {
       if (data.currentMonth === 11) {
         data.currentMonth = 0;
-        data.selectedYear += 1;
-        data.currentYear = data.selectedYear;
+        data.currentYear += 1;
       } else {
         data.currentMonth += 1;
       }
@@ -127,13 +128,14 @@ async function buildMonthSelector(data, button, callback, prevBtn, nextBtn) {
       month.classList.add('month-selected');
       button.querySelector('.selected-content').textContent = `${monthName} ${data.currentYear}`;
       callback(data.currentYear, data.currentMonth + 1);
+      spanYear.textContent = data.currentYear;
     });
   }
   return monthsWrapper;
 }
 
 function buildYearSelector(data, changeYearCallback) {
-  const spanYear = createElement('span', { class: 'year-content' }, data.currentYear.toString());
+  spanYear.append(data.currentYear.toString());
   const chevronLeft = createElement('img', { src: '/aemedge/icons/chevron-left.svg' });
   const spanChevronLeft = createElement('span', { class: 'icon icon-chevron-left' }, chevronLeft);
   spanChevronLeft.addEventListener('click', () => {

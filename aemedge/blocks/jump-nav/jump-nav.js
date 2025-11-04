@@ -133,23 +133,25 @@ function scrollSection(targetElement, link, isSmooth, updateHash, nav, initialLo
   if (intersectionObserver) {
     intersectionObserver.disconnect();
 
-    allLinks.forEach((l) => l.classList.remove('active'));
+    targetElement.scrollIntoView({ behavior: isSmooth ? 'smooth' : 'auto' });
 
-    if (initialLoad || !isSmooth) {
-      link.classList.add('active');
-      pendingActiveLink = null;
-    } else {
-      pendingActiveLink = link;
+    if (nav && link.parentElement) {
+      scrollToCenter(link.parentElement, nav);
     }
 
-    updateBarPosition(link);
-  }
+    setTimeout(() => {
+      allLinks.forEach((l) => l.classList.remove('active'));
 
-  if (nav && link.parentElement) {
-    scrollToCenter(link.parentElement, nav);
-  }
+      if (initialLoad || isSmooth) {
+        link.classList.add('active');
+        pendingActiveLink = null;
+      } else {
+        pendingActiveLink = link;
+      }
 
-  targetElement.scrollIntoView({ behavior: isSmooth ? 'smooth' : 'auto' });
+      updateBarPosition(link);
+    }, 500);
+  }
 
   const delay = isSmooth ? 500 : 50;
 
@@ -197,37 +199,57 @@ function setupActiveStates(nav) {
   const totalStickyHeight = headerHeight + jumpToHeight;
 
   const observerOptions = {
-    rootMargin: `-${totalStickyHeight}px 0px 0px 0px`,
-    threshold: 0.01,
+    rootMargin: `-${totalStickyHeight}px 0px -${window.innerHeight - totalStickyHeight}px 0px`,
+    threshold: 0,
   };
 
   intersectionObserver = new IntersectionObserver((entries) => {
-    const intersectingEntries = entries.filter((entry) => entry.isIntersecting);
-    if (intersectingEntries.length === 0) {
-      return;
-    }
+    let currentActiveEntry = null;
+    let minDistanceFromTop = Infinity;
 
-    const highestIntersectingEntry = intersectingEntries[0];
+    entries.forEach((entry) => {
+      const rectTop = entry.boundingClientRect.top;
+      if (rectTop <= totalStickyHeight && entry.isIntersecting) {
+        const distance = totalStickyHeight - rectTop;
 
-    const section = sections.find((s) => s.element === highestIntersectingEntry.target);
+        if (distance >= 0 && distance < minDistanceFromTop) {
+          minDistanceFromTop = distance;
+          currentActiveEntry = entry;
+        }
+      }
+    });
 
-    if (section) {
-      const linkToActivate = section.link;
+    if (currentActiveEntry) {
+      const section = sections.find((s) => s.element === currentActiveEntry.target);
+
+      if (section) {
+        const linkToActivate = section.link;
+        const currentlyActive = document.querySelector('.jump-nav a.active');
+
+        if (currentlyActive !== linkToActivate) {
+          allLinks.forEach((link) => link.classList.remove('active'));
+          linkToActivate.classList.add('active');
+
+          scrollToCenter(linkToActivate.parentElement, nav);
+
+          updateBarPosition(linkToActivate);
+
+          const href = linkToActivate.getAttribute('href');
+          if (href) {
+            // eslint-disable-next-line no-restricted-globals
+            history.replaceState(null, '', href);
+          }
+        }
+      }
+    } else if (window.scrollY === 0 && sections.length > 0) {
+      const firstSectionLink = sections[0].link;
       const currentlyActive = document.querySelector('.jump-nav a.active');
 
-      if (currentlyActive !== linkToActivate) {
+      if (currentlyActive !== firstSectionLink) {
         allLinks.forEach((link) => link.classList.remove('active'));
-        linkToActivate.classList.add('active');
-
-        updateBarPosition(linkToActivate);
-
-        scrollToCenter(linkToActivate.parentElement, nav);
-
-        const href = linkToActivate.getAttribute('href');
-        if (href) {
-          // eslint-disable-next-line no-restricted-globals
-          history.replaceState(null, '', href);
-        }
+        firstSectionLink.classList.add('active');
+        scrollToCenter(firstSectionLink.parentElement, nav);
+        updateBarPosition(firstSectionLink);
       }
     }
   }, observerOptions);

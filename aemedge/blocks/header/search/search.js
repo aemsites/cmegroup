@@ -25,15 +25,6 @@ let thisLoginInfo = {};
 let searchValueVar = '';
 let timeoutId;
 
-store.subscribe(({ authentication }) => authentication, ({ isLoggedIn, loginInfo }) => {
-  if (isLoggedIn !== loggedIn) {
-    loggedIn = isLoggedIn;
-    thisLoginInfo = loginInfo;
-    // eslint-disable-next-line no-use-before-define
-    updateRecentSearches(thisLoginInfo);
-  }
-});
-
 const setSearch = (term) => updateRecentSearch(thisLoginInfo, loggedIn, term);
 
 const handleClickSuggestionSearches = async (title, page) => {
@@ -235,6 +226,14 @@ const renderSearch = () => {
   customSearch.append(searchContainer);
   customSearch.append(buildRecentSearches(recentSearchesVar));
   customSearch.append(buildPopularSearches(popularSearchesVar));
+
+  store.subscribe(({ authentication }) => authentication, ({ isLoggedIn, loginInfo }) => {
+    if (isLoggedIn !== loggedIn) {
+      loggedIn = isLoggedIn;
+      thisLoginInfo = loginInfo;
+      updateRecentSearches(thisLoginInfo);
+    }
+  });
 
   return customSearch;
 };

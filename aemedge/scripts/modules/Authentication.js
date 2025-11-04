@@ -154,6 +154,7 @@ export class Authentication {
     if (!Object.keys(cookiesData).length) {
       return;
     }
+    Authentication.removeLegacyCookies();
     const { secureFgp, userinfo } = cookiesData;
     const { userId, token } = userinfo;
     const cookies = {
@@ -186,6 +187,20 @@ export class Authentication {
       await deleteCookies(urlByEnvType(), cookies);
     }
     return !Authentication.getLoginCookie('userinfo');
+  }
+
+  static removeLegacyCookies() {
+    const { location: { hostname } } = window;
+    [
+      'userId',
+      'cmeToken',
+      '__Secure-Fgp',
+      'userinfo',
+    ].forEach((name) => {
+      window.CookieUtil?.remove(name, { domain: `.${hostname}`, path: '/' });
+      window.CookieUtil?.remove(name, { domain: `.${hostname}`, path: '' });
+      window.CookieUtil?.remove(name, { domain: `.${hostname}` });
+    });
   }
 
   static getLoginUrlSfCookie() {

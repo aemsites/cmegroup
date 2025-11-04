@@ -13,10 +13,6 @@ import {
 } from '../aem.js';
 import { getIndexedContent } from '../indexing.js';
 import {
-  getProgress,
-  postLesson,
-} from '../services/EducationTrackService.js';
-import {
   isLegacyContent,
   normalizeLegacyPath,
   legacyEducationTemplates,
@@ -26,9 +22,8 @@ const COURSES_BASE_PATH = '/education/courses/';
 const LESSONS_BASE_PATH = '/education/lessons/';
 const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone'];
 const CACHE_KEY = 'course_data';
-// TODO: we need to review this cache timing again.
-const CACHE_EXPIRATION_PROD = 0; // 15 * 60 * 1000; // 15 minutes in milliseconds
-const CACHE_EXPIRATION_STAGE = 0; // 30 * 1000; // 30 seconds in milliseconds
+const CACHE_EXPIRATION_PROD = 15 * 60 * 1000; // 15 minutes in milliseconds
+const CACHE_EXPIRATION_STAGE = 60 * 1000; // 60 seconds in milliseconds
 
 const isLessonStandalone = (template) => template.toLowerCase() === 'lesson-standalone';
 
@@ -61,15 +56,10 @@ const addCourseDataToCache = (coursePath, courseData) => {
 };
 
 const parseCurrentPath = () => {
-  const path = window.location.pathname;
-  const template = getMetadata('template');
-  let basePath = COURSES_BASE_PATH;
-  if (isLessonStandalone(template) && path.includes('lessons')) {
-    basePath = LESSONS_BASE_PATH;
-  }
+  const path = window.location.pathname.replace(/\.html$/, '').replace(/^\/qa/, '');
+  const basePath = path.startsWith(LESSONS_BASE_PATH) ? LESSONS_BASE_PATH : COURSES_BASE_PATH;
   const relevantPath = path.split(basePath)[1];
-  const preBasePath = (path.split(basePath)[0] === '' || path.split(basePath)[0] === '/') ? '' : path.split(basePath)[0];
-  return { basePath, relevantPath, preBasePath };
+  return { path, basePath, relevantPath };
 };
 
 /**
@@ -79,31 +69,30 @@ const parseCurrentPath = () => {
  * Otherwise, it fetches the data from the server and caches it
  * @returns {Object} The course data
  */
-export async function getCourseData() {
+export async function getCourseData(loginInfo) {
   try {
     const template = getMetadata('template');
     if (!TEMPLATES.includes(template.toLowerCase())) {
       throw new Error('Not a course page');
     }
 
-    const courseData = {
-      isLessonStandalone: isLessonStandalone(template),
-      hasChapters: false, // Will be determined by data
-      chapters: [],
-      lessons: [],
-    };
-
-    const { relevantPath, preBasePath } = parseCurrentPath();
-    const course = (template !== 'lesson-standalone') ? relevantPath.split('/')[0] : relevantPath;
+    const { basePath, relevantPath } = parseCurrentPath();
+    const course = relevantPath.split('/')[0];
     if (template !== 'lesson-standalone' && !course) {
       throw new Error('No course found in the path');
     }
 
     // build the full course path or lesson path in case of standalone lesson
-    const coursePath = ((template !== 'lesson-standalone') ? `${preBasePath}${COURSES_BASE_PATH}${course}` : `${preBasePath}${LESSONS_BASE_PATH}${course}`).replace(/\.html$/, '').replace(/^\/qa/, '');
+    const coursePath = `${basePath}${course}`;
 
     // Check if we have cached data for this course
     const cachedData = getCachedCourseData(coursePath);
+    if (cachedData && !cachedData.updated && loginInfo) {
+      //  courseData with user progress
+      const data = await getCourseDataProgress(cachedData);
+      addCourseDataToCache(data.path, data);
+      return data;
+    }
     if (cachedData) {
       return cachedData;
     }
@@ -124,13 +113,20 @@ export async function getCourseData() {
       modulesOrder: module.metadata['modules-order'],
     }));
 
+    const courseData = {
+      isLessonStandalone: isLessonStandalone(template),
+      hasChapters: false, // Will be determined by data
+      chapters: [],
+      lessons: [],
+    };
+
     // If the page is a lesson standalone, return the first entry
     // ideally there should be only one entry in this case
     if (isLessonStandalone(template)) {
-      const lessonProgress = await getProgress(entries[0]?.moduleId, 'lesson');
-      Object.assign(courseData, entries[0], lessonProgress);
-      addCourseDataToCache(coursePath, courseData);
-      return courseData;
+      Object.assign(courseData, entries[0]);
+      const data = !loginInfo ? courseData : await getCourseDataProgress(courseData);
+      addCourseDataToCache(coursePath, data);
+      return data;
     }
 
     // Determine if it course has chapters
@@ -151,36 +147,27 @@ export async function getCourseData() {
       return 0;
     });
 
-    //  course progress for current user
-    const courseProgress = await getProgress(entries[0]?.moduleId, 'course');
-    const { lessons: lessonsProgress, ...currentCourseProgress } = courseProgress || {};
-
     entries.forEach((entry) => {
-      if (entry.template === 'course' || entry.template === 'lesson-standalone') {
-        Object.assign(courseData, entry, currentCourseProgress);
+      if (entry.template === 'course' || entries.length === 1) {
+        Object.assign(courseData, entry);
       } else if (entry.template === 'chapter') {
         courseData.chapters.push({
           ...entry,
           lessons: [],
         });
-      } else if (entry.template === 'lesson') {
-        const lessonProgress = lessonsProgress?.find(
-          ({ moduleId }) => moduleId === entry.moduleId,
-        );
+      } else if (entry.template === 'lesson' || entry.template === 'lesson-standalone') {
         const chapter = courseData.chapters.find((ch) => entry.path.startsWith(`${ch.path}/`));
         if (chapter) {
           chapter.lessons.push({
             ...entry,
             // Split into multiple lines to reduce line length
             pathSuffix: entry.path.split(chapter.path)[1].substring(1),
-            ...lessonProgress,
           });
         } else {
           // Handling case when lesson is not part of any chapter
           courseData.lessons.push({
             ...entry,
             pathSuffix: entry.path.split(coursePath)[1].substring(1),
-            ...lessonProgress,
           });
         }
       }
@@ -204,8 +191,9 @@ export async function getCourseData() {
           - modulesOrderArray.indexOf(b.pathSuffix));
     }
 
-    addCourseDataToCache(coursePath, courseData);
-    return courseData;
+    const data = !loginInfo ? courseData : await getCourseDataProgress(courseData);
+    addCourseDataToCache(coursePath, data);
+    return data;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error loading course data: ', error);
@@ -213,52 +201,61 @@ export async function getCourseData() {
   }
 }
 
-export function getOrderedLessons(courseData) {
-  const { modulesOrder } = courseData;
+export function flattenLessons(courseData) {
+  const lessons = courseData.lessons || [];
+  const chapters = courseData.chapters || [];
+  const modulesOrder = courseData.modulesOrder?.split(',').map((s) => s.trim()) || [];
 
-  if (modulesOrder && typeof modulesOrder === 'string') {
-    const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
+  const flatLessons = [];
 
-    // Create array of items (chapters and lessons) to sort at root level
-    const rootItems = [
-      ...(courseData.chapters || []),
-      ...(courseData.lessons || []),
-    ];
+  const lessonMap = new Map(
+    lessons.map((lesson) => [lesson.pathSuffix, lesson]),
+  );
 
-    // Sort chapters and lessons at root level based on modulesOrder
-    rootItems.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix || a.path)
-      - modulesOrderArray.indexOf(b.pathSuffix || b.path));
+  const chapterMap = new Map(
+    chapters.map((chapter) => [
+      chapter.path.split('/').pop(),
+      chapter.lessons?.map((lesson) => ({
+        ...lesson,
+        chapterPath: chapter.path,
+      })) || [],
+    ]),
+  );
 
-    // Process the sorted items and collect lessons
-    const allLessons = [];
+  modulesOrder.forEach((key) => {
+    if (lessonMap.has(key)) {
+      flatLessons.push({ ...lessonMap.get(key), chapterPath: null });
+    } else if (chapterMap.has(key)) {
+      flatLessons.push(...chapterMap.get(key));
+    }
+  });
 
-    rootItems.forEach((item) => {
-      if (item.template && item.template.toLowerCase() === 'chapter') {
-        // Sort lessons within this chapter
-        const { lessons, modulesOrder: chModulesOrder } = item;
-        if (lessons && lessons.length > 0) {
-          if (chModulesOrder && typeof chModulesOrder === 'string') {
-            const chModulesOrderArray = chModulesOrder.split(',').map((chItem) => chItem.trim());
-            lessons.sort((a, b) => chModulesOrderArray.indexOf(a.pathSuffix || a.path)
-              - chModulesOrderArray.indexOf(b.pathSuffix || b.path));
-          }
-          // Add all lessons from this chapter to the result
-          allLessons.push(...lessons);
-        }
-      } else {
-        // This is a lesson at root level, add it directly
-        allLessons.push(item);
-      }
+  return flatLessons;
+}
+
+async function getCourseDataProgress(courseData) {
+  return import('../services/EducationTrackService.js').then(async ({ getProgress }) => {
+    if (isLessonStandalone(courseData.template)) {
+      //  standalone progress
+      const lessonProgress = await getProgress(courseData.moduleId, 'lesson');
+      Object.assign(courseData, lessonProgress);
+      return courseData;
+    }
+    //  course progress
+    const courseProgress = await getProgress(courseData.moduleId, 'course');
+    const { lessons: lessonsProgress, ...currentCourseProgress } = courseProgress || {};
+    Object.assign(courseData, currentCourseProgress);
+    const lessons = [
+      ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
+      ...courseData.lessons];
+    lessons.forEach((lesson) => {
+      const lessonProgress = lessonsProgress?.find(
+        ({ moduleId }) => moduleId === lesson.moduleId,
+      );
+      Object.assign(lesson, lessonProgress);
     });
-
-    return allLessons;
-  }
-
-  // Fallback: if no modulesOrder, just return all lessons unsorted
-  return [
-    ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
-    ...(courseData.lessons || []),
-  ];
+    return courseData;
+  });
 }
 
 async function buildLanguageLinks() {
@@ -339,10 +336,15 @@ export async function createCourseBaseTemplate(courseData) {
   } else if (template.toLowerCase() === 'lesson' || template.toLowerCase() === 'lesson-standalone') {
     const type = createElement('div', { class: 'metadata type' });
     type.textContent = lessonLabel;
-    const lessons = getOrderedLessons(courseData);
-    const lessonIndex = lessons.findIndex(({ path }) => path === window.location.pathname);
-    if (lessonIndex !== -1) {
-      type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${lessons.length}`;
+    const { path: currentPath } = parseCurrentPath();
+    const modules = [{ lessons: courseData.lessons }, ...courseData.chapters];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const module of modules) {
+      const lessonIndex = module.lessons.findIndex(({ path }) => path === currentPath);
+      if (lessonIndex !== -1) {
+        type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${module.lessons.length}`;
+        break;
+      }
     }
     header.appendChild(type);
     if (isPremium) {
@@ -362,40 +364,49 @@ export async function createCourseBaseTemplate(courseData) {
 }
 
 export function getCurrentLesson(courseData) {
-  const currentPath = window.location.pathname;
+  const { path: currentPath } = parseCurrentPath();
   const lessons = [
     ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
     ...courseData.lessons];
   return lessons.find(({ path }) => currentPath === path);
 }
 
+export function buildCourseSurveyLink(courseData) {
+  const link = document.querySelector('a.course-survey-link');
+  if (!link) return;
+  const surveyLink = link.getAttribute('href') || '/education/course-survey.html';
+  link.setAttribute('href', `${surveyLink}#${courseData.moduleTitle}`);
+}
+
 /**
  * Updates the current lesson status
  */
 export async function updateLessonStatus(isCompleted, quizStatus) {
-  const courseData = await getCourseData();
-  const lessonId = getMetadata('module-id');
-  const updatedCourse = await postLesson(courseData.moduleId, lessonId, isCompleted, quizStatus);
-  if (updatedCourse && isCompleted) {
-    const { lessons: lessonsProgress, ...courseProgress } = updatedCourse;
-    Object.assign(courseData, courseProgress);
-    if (!courseData.isLessonStandalone) {
-      const lessons = [
-        ...courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || [],
-        ...courseData.lessons];
-      lessonsProgress.forEach((lessonProgress) => {
-        const lesson = lessons?.find(
-          ({ moduleId }) => moduleId === lessonProgress.moduleId,
-        );
-        if (lesson) {
-          Object.assign(lesson, lessonProgress);
-        }
-      });
+  return import('../services/EducationTrackService.js').then(async ({ postLesson }) => {
+    const courseData = await getCourseData();
+    const lessonId = getMetadata('module-id');
+    const updatedCourse = await postLesson(courseData.moduleId, lessonId, isCompleted, quizStatus);
+    if (updatedCourse && isCompleted) {
+      const { lessons: lessonsProgress, ...courseProgress } = updatedCourse;
+      Object.assign(courseData, courseProgress);
+      if (!courseData.isLessonStandalone) {
+        const lessons = [
+          ...courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || [],
+          ...courseData.lessons];
+        lessonsProgress.forEach((lessonProgress) => {
+          const lesson = lessons?.find(
+            ({ moduleId }) => moduleId === lessonProgress.moduleId,
+          );
+          if (lesson) {
+            Object.assign(lesson, lessonProgress);
+          }
+        });
+      }
+    } else {
+      return courseData;
     }
-  } else {
+    //  updates cache
+    addCourseDataToCache(courseData.path, courseData);
     return courseData;
-  }
-  //  updates cache
-  addCourseDataToCache(courseData.path, courseData);
-  return courseData;
+  });
 }

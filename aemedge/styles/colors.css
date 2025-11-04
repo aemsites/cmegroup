@@ -20,6 +20,7 @@
     --blue-8: #0195e7;
     --blue-9: #357cc7;
     --blue-10: #002d74;
+    --blue11: #164285;
     --gray1: #16202a;
     --gray1-filter: brightness(0) saturate(100%) invert(10%) sepia(45%) saturate(444%) hue-rotate(169deg) brightness(98%) contrast(96%);
     --gray2: #25323c;
@@ -28,7 +29,7 @@
     --gray4: #c2cace;
     --gray4-filter: brightness(0) saturate(100%) invert(85%) sepia(9%) saturate(174%) hue-rotate(155deg) brightness(95%) contrast(87%);
     --gray5: #ebedee;
-    --gray5-40: rgb(235 237 238 / 40%)
+    --gray5-40: rgb(235 237 238 / 40%);
     --gray5-a: #eee;
     --gray5-filter: invert(95%) sepia(3%) saturate(93%) hue-rotate(156deg) brightness(103%) contrast(89%);
     --gray6: #f1f5f7;

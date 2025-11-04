@@ -4,7 +4,7 @@
   position: relative;
   position: sticky;
   top: 0;
-  z-index: 999999;
+  z-index: 3;
   transition: top 0.3s ease;
   margin-bottom: 0 !important;
   padding: 0 !important;
@@ -75,16 +75,18 @@
             color: var(--white);
             text-decoration: none;
             font-weight: 600;
-            font-size: 0.875rem;
+            font-size: .75rem;
             white-space: nowrap;
             position: relative;
             text-transform: uppercase;
-            letter-spacing: .15em;
+            letter-spacing: 0.1129rem;
             line-height: 1rem;
             padding: 1.0625rem 0.625rem;
             
             @media (width >= 993px) {
               padding: 2rem 1.25rem;
+              font-size: 0.875rem;
+              letter-spacing: 0.1313rem;
             }
 
             &::after {
@@ -106,7 +108,6 @@
 
               &::after {
                 width: calc(100% - 1.875rem);
-                display: none;
               }
             }
 
@@ -116,13 +117,7 @@
               }
             }
 
-            &.active {
-              &:hover {
-                &::after {
-                  display: block;
-                }
-              }
-              
+            &.active {              
               &::after {
                 width: calc(100% - 1.875rem);
                 opacity: 1;

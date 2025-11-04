@@ -4,7 +4,7 @@ import {
   i18n,
   preserveHideParameters,
 } from '../../../scripts/utils.js';
-import { store } from '../../../scripts/store/store.js';
+import { getCourseData } from '../../../scripts/course/course.js';
 
 function getTotalLessonsCount(courseData) {
   return courseData.hasChapters
@@ -313,12 +313,18 @@ export default async function createCourseNav(main) {
   const template = getMetadata('template');
   if (!['course', 'lesson'].includes(template.toLowerCase())) return;
 
+  //  init courseNav
+  const data = await getCourseData();
+  buildCourseNav(main, data);
+
   //  courseData change event
-  let prevData;
-  store.subscribe(({ courseData }) => courseData, (courseData) => {
-    if (courseData) {
-      buildCourseNav(main, courseData, prevData);
-      prevData = courseData;
-    }
+  let prevData = data;
+  import('../../../scripts/store/store.js').then(({ store }) => {
+    store.subscribe(({ courseData }) => courseData, (courseData) => {
+      if (courseData) {
+        buildCourseNav(main, courseData, prevData);
+        prevData = courseData;
+      }
+    });
   });
 }

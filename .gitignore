@@ -4,6 +4,8 @@ logs/*
 node_modules/*
 
 helix-importer-ui
+tools/importer/wiki/image-scraper/scraped-images/
+tools/importer/wiki/image-scraper/logs/
 .DS_Store
 *.bak
 .idea

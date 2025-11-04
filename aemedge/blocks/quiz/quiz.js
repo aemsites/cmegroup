@@ -200,6 +200,7 @@ async function renderQuestions(questions, block, doNotMarkLessonAsCompleted, typ
             const questionsWrapper = block.querySelector('.questions-wrapper');
             const currentIndex = [...questionsWrapper.children].indexOf(questionDiv);
             updateAdvancedNextDisabled(
+              block,
               type,
               questionsWrapper,
               currentIndex,
@@ -234,7 +235,13 @@ async function renderQuestions(questions, block, doNotMarkLessonAsCompleted, typ
 async function showQuestion(index, wrapper, pag, total) {
   const [ofLabel] = await Promise.all([i18n('OF')]);
   wrapper.style.transform = `translateX(-${index * 100}%)`;
-  if (pag) pag.textContent = `${index + 1} ${ofLabel} ${total}`;
+
+  if (pag && total > 1) {
+    pag.textContent = `${index + 1} ${ofLabel} ${total}`;
+  } else if (pag) {
+    pag.textContent = '';
+  }
+
   const progress = wrapper.parentElement.querySelector('.progress-bar .progress');
   if (progress) {
     const percent = ((index + 1) / total) * 100;
@@ -254,43 +261,64 @@ async function addNavigation(
   doNotMarkLessonAsCompleted,
 ) {
   const [prevLabel, nextLabel, finishLabel, submitLabel] = await Promise.all([i18n('Prev'), i18n('Next'), i18n('Finish'), i18n('Submit')]);
-  const prev = button(
+
+  const prev = questions.length > 1 ? button(
     { type: 'button', class: 'arrow arrow-prev' },
     type !== 'traditional' ? prevLabel : '',
-  );
-  const next = button(
+  ) : null;
+
+  const next = questions.length > 1 ? button(
     { type: 'button', class: 'arrow arrow-next' },
     type !== 'traditional' ? nextLabel : '',
-  );
+  ) : null;
+
   let finish = null;
-  if (type !== 'traditional') finish = button({ type: 'button', class: 'arrow arrow-finish', style: 'display: none;' }, type === 'activity' ? finishLabel : submitLabel);
+  if (type !== 'traditional') {
+    const displayStyle = questions.length === 1 ? 'display: block;' : 'display: none;';
+    finish = button({
+      type: 'button',
+      class: 'arrow arrow-finish',
+      style: displayStyle,
+    }, type === 'activity' ? finishLabel : submitLabel);
+  }
 
   const nav = {
     prev, next, finish, pag: null, currentIndex: 0,
   };
   block.nav = nav;
 
-  const pag = span({ class: 'custom-paging-counter' });
+  const pag = questions.length > 1 ? span({ class: 'custom-paging-counter' }) : null;
   nav.pag = pag;
 
   block.updateNavigation = function updateNavigation() {
     const lastSlider = nav.currentIndex === questions.length - 1;
     if (type === 'traditional') {
-      prev.style.display = 'block';
-      next.style.display = 'block';
-      updateAdvancedNextDisabled(type, wrapper, nav.currentIndex, questions, quizStatus, next);
-      if (lastSlider) { next.disabled = true; next.classList.add('arrow-disabled'); }
+      if (prev) prev.style.display = 'block';
+      if (next) next.style.display = 'block';
+      updateAdvancedNextDisabled(
+        block,
+        type,
+        wrapper,
+        nav.currentIndex,
+        questions,
+        quizStatus,
+        next,
+      );
+      if (lastSlider && next) {
+        next.disabled = true;
+        next.classList.add('arrow-disabled');
+      }
     } else {
-      updateAdvancedNav(nav, wrapper, questions, type, quizStatus);
+      updateAdvancedNav(block, nav, wrapper, questions, type, quizStatus);
     }
-    if (type !== 'traditional') {
-      if (nav.currentIndex === 0) {
+    if (type !== 'traditional' && questions.length > 1) {
+      if (nav.currentIndex === 0 && nav.prev) {
         nav.prev.style.display = 'none';
-      } else {
+      } else if (nav.prev) {
         nav.prev.style.display = 'flex';
       }
     }
-    nav.prev.classList.toggle('arrow-disabled', nav.currentIndex === 0);
+    if (prev) prev.classList.toggle('arrow-disabled', nav.currentIndex === 0);
     if (pag) pag.textContent = `${nav.currentIndex + 1} / ${questions.length}`;
     showQuestion(nav.currentIndex, wrapper, pag, questions.length);
     const reviewContainer = block.querySelector('.review-questions');
@@ -301,16 +329,22 @@ async function addNavigation(
     }
   };
 
-  prev.addEventListener('click', () => {
-    if (nav.currentIndex > 0) {
-      nav.currentIndex -= 1; block.updateNavigation();
-    }
-  });
-  next.addEventListener('click', () => {
-    if (nav.currentIndex < questions.length - 1) {
-      nav.currentIndex += 1; block.updateNavigation();
-    }
-  });
+  if (prev) {
+    prev.addEventListener('click', () => {
+      if (nav.currentIndex > 0) {
+        nav.currentIndex -= 1; block.updateNavigation();
+      }
+    });
+  }
+
+  if (next) {
+    next.addEventListener('click', () => {
+      if (nav.currentIndex < questions.length - 1) {
+        nav.currentIndex += 1; block.updateNavigation();
+      }
+    });
+  }
+
   if (finish) {
     attachFinishClick(
       nav,
@@ -322,16 +356,23 @@ async function addNavigation(
       testPercentage,
       showIndicatorsViaReviewMode,
       redoQuizLabel,
-      finishLabel,
       doNotMarkLessonAsCompleted,
     );
   }
 
-  const navContainer = div(
-    { class: 'quiz-navigation' },
-    ...(finish ? [prev, pag, next, finish] : [prev, pag, next]),
-  );
+  const navContainer = (() => {
+    const elements = [];
 
+    if (questions.length > 1) {
+      if (prev) elements.push(prev);
+      if (pag) elements.push(pag);
+      if (next) elements.push(next);
+    }
+
+    if (finish) elements.push(finish);
+
+    return div({ class: 'quiz-navigation' }, ...elements);
+  })();
   block.appendChild(navContainer);
   block.updateNavigation();
 }
@@ -402,11 +443,11 @@ export default async function decorate(block) {
     randomOrder(questions);
   }
 
-  async function createQuizBlock() {
+  async function createQuizBlock(quizState = null) {
     const quizzes = document.querySelectorAll('.quiz.block').length;
     const quizId = await sha256Hash(`${path}-${quizzes}`);
     block.innerHTML = '';
-    quizStatus = {
+    quizStatus = quizState || {
       quizElementId: quizId,
       type,
       status: 'PROGRESS',
@@ -416,7 +457,7 @@ export default async function decorate(block) {
     renderQuestions(questions, block, doNotMarkLessonAsCompleted, type, quizStatus);
     showQuestion(0, wrapper, null, questions.length);
 
-    if (questions.length > 1) {
+    if (questions.length > 1 || (type !== 'traditional' && questions.length === 1)) {
       await addNavigation(
         questions,
         block,
@@ -445,6 +486,7 @@ export default async function decorate(block) {
       );
     }
     if (status?.type && (type === 'activity' || type === 'test')) {
+      await createQuizBlock(status);
       await markQuizCompletedAdvanced(
         block,
         questions,
