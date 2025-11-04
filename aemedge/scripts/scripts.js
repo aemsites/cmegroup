@@ -305,6 +305,8 @@ export function decorateExternalLinks(main) {
 function isExternalImage(element) {
   // if the element is not an anchor, it's not an external image
   if (element.tagName !== 'A') return false;
+  // if the element is a button to open an image, it's not an external image
+  if (element.classList.contains('button')) return false;
   // IMPLICIT via CME Group Delivery URLs or OOTB DMOpenAPI Delivery URLs
   return /\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/i.test(element.getAttribute('href'));
 }
@@ -512,9 +514,11 @@ export function decorateButtons(element) {
     const oneCLickRegex = /\[[^\]]*\bone-click\b[^\]]*\]/i;
     const loginRegex = /\[[^\]]*\blogin\b[^\]]*\]/i;
     const registrationRegex = /\[[^\]]*\bregistration\b[^\]]*\]/i;
+    const downloadRegex = /\[[^\]]*\bdownload\b[^\]]*\]/i;
     const isOneClick = oneCLickRegex.test(a.textContent);
     const isLogin = loginRegex.test(a.textContent);
     const isRegistration = registrationRegex.test(a.textContent);
+    const isDownload = downloadRegex.test(a.textContent);
     let textIndex = -1;
     let iconIndex = -1;
 
@@ -602,14 +606,15 @@ export function decorateButtons(element) {
         handleLoginRedirection(event, a);
       }, { capture: true });
     }
-
     if (isRegistration) {
       a.addEventListener('click', (event) => {
         event.preventDefault();
         handleRegistrationRedirection(event, a);
       }, { capture: true });
     }
-
+    if (isDownload) {
+      a.setAttribute('download', '');
+    }
     if (domainCheck.isKnown && isFragmentLink(a)) {
       const block = buildBlock('fragment', url.pathname);
       a.replaceWith(block);
