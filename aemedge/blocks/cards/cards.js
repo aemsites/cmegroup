@@ -629,11 +629,13 @@ export async function createDynamicCards(block) {
   }
 }
 
-async function createRecommendedFromService(data) {
-  const newDiv = createElement('div', {
+async function createRecommendedFromService(data, block) {
+  const config = readBlockConfig(block);
+  const { params } = buildIndexFilter(config);
+  const blockDiv = createElement('div', {
     class: 'cards recommended-ai block',
   });
-  newDiv.setAttribute('data-block-name', 'cards');
+  blockDiv.setAttribute('data-block-name', 'cards');
   const containerDiv = createElement('div');
   const ul = createElement('ul');
 
@@ -645,12 +647,12 @@ async function createRecommendedFromService(data) {
       const imgSrc = item.image_uri;
       imageDiv.style.backgroundImage = imgSrc ? `url('https://www.cmegroup.com/${imgSrc}')` : '';
 
-      const link = createElement('a', { href: item.uri || '' });
+      const link = createElement('a', { href: params ? `${item.uri}?${params}` : item.uri });
 
       const subtitleDiv = createElement('div', {
         class: 'card-subtitle',
       });
-      subtitleDiv.textContent = `${item.image_type || ''} `;
+      subtitleDiv.textContent = `${item.image_name || ''} `;
 
       const span = createElement('span');
       parseTime(convertMMSSToHHMM(item.media_duration)).then((i) => {
@@ -688,7 +690,7 @@ async function createRecommendedFromService(data) {
     }),
   );
 
-  elements.forEach((li) => newDiv.appendChild(li));
+  elements.forEach((li) => blockDiv.appendChild(li));
 
   const disableSliderOnDesktop = true;
   const inverse = true;
@@ -713,117 +715,25 @@ async function createRecommendedFromService(data) {
   buildSlider(ul, sliderConfig, true, disableSliderOnDesktop, inverse, false, refreshCallback);
 
   containerDiv.appendChild(ul);
-  newDiv.appendChild(containerDiv);
-  return newDiv;
-}
-
-async function creatRecommendedFromAuthor(block) {
-  const newDiv = createElement('div', {
-    class: 'cards recommended-ai block',
-  });
-  newDiv.setAttribute('data-block-name', 'cards');
-
-  const containerDiv = createElement('div');
-  const ul = createElement('ul');
-
-  const elements = await Promise.all(
-    Array.from(block.children).map(async (cardDiv) => {
-      const mediaType = cardDiv.querySelector('h6');
-      const mediaTime = cardDiv.querySelector('h5');
-      const paragraphs = cardDiv.querySelectorAll('p');
-      const picture = cardDiv.querySelector('picture');
-      const img = picture ? picture.querySelector('img') : null;
-      const url = cardDiv.querySelector('.button-container a').href;
-
-      const imageDiv = createElement('div', {
-        class: 'cards-card-image',
-      });
-      const imgSrc = img && img.src ? img.src : '';
-      imageDiv.style.backgroundImage = `url('${imgSrc}')`;
-
-      const link = createElement('a', { href: url || '' });
-
-      const subtitleDiv = createElement('div', {
-        class: 'card-subtitle',
-      });
-
-      subtitleDiv.textContent = `${mediaType ? mediaType.textContent : ''} `;
-      const span = createElement('span');
-      parseTime(convertMMSSToHHMM(mediaTime.textContent)).then((i) => {
-        span.textContent = i;
-        subtitleDiv.appendChild(span);
-      });
-
-      const titleDiv = createElement('div', {
-        class: 'cards-card-title',
-      });
-
-      const title = createElement('h3');
-      title.textContent = paragraphs[0] ? paragraphs[0].textContent : '';
-      titleDiv.appendChild(title);
-
-      const descDiv = createElement('div', {
-        class: 'cards-card-description',
-      });
-      const p = createElement('p');
-      p.textContent = paragraphs[1] ? paragraphs[1].textContent : '';
-      descDiv.appendChild(p);
-
-      const bodyDiv = createElement('div', {
-        class: 'cards-card-body',
-      }, subtitleDiv, titleDiv, descDiv);
-
-      link.appendChild(bodyDiv);
-
-      const li = createElement('li', {
-        class: 'cards-card',
-      }, imageDiv, link);
-
-      ul.appendChild(li);
-      return ul;
-    }),
-  );
-
-  elements.forEach((li) => newDiv.appendChild(li));
-
-  const disableSliderOnDesktop = true;
-  const inverse = true;
-  const refreshCallback = null;
-  const sliderConfig = {
-    slidesToShow: 'auto',
-    slidesToScroll: 1,
-    scrollLock: false,
-    itemWidth: 270,
-    exactWidth: true,
-    draggable: true,
-    duration: 2,
-    responsive: [
-      {
-        breakpoint: 481,
-        settings: {
-          itemWidth: 434,
-        },
-      },
-    ],
-  };
-  buildSlider(ul, sliderConfig, true, disableSliderOnDesktop, inverse, false, refreshCallback);
-  containerDiv.appendChild(ul);
-  newDiv.appendChild(containerDiv);
-
-  return newDiv;
+  blockDiv.appendChild(containerDiv);
+  return blockDiv;
 }
 
 async function createRecommendedCards(block) {
   const blockData = block.cloneNode(true);
+
   block.textContent = '';
   block.appendChild(createSpinner());
+
   const dataAi = await getRecommendationAi();
+
   if (dataAi.length) {
-    const cardsAi = await createRecommendedFromService(dataAi);
+    const cardsAi = await createRecommendedFromService(dataAi, blockData);
     block.replaceWith(cardsAi);
   } else if (blockData) {
-    const cards = await creatRecommendedFromAuthor(blockData);
-    block.replaceWith(cards);
+    blockData.classList.remove('recommended-ai');
+    await createDynamicCards(blockData);
+    block.replaceWith(blockData);
   } else {
     const noResultsLabel = createElement('h4', null, 'No results found');
     const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
