@@ -2,19 +2,19 @@
  * Product Toggle Utilities
  * Extracted from product-tabs block for use in product template
  * Handles Futures/Options dropdown and contract selection
- * 
+ *
  * CONFIGURATION:
  * Modify TOGGLE_CONSTANTS.prefetch to configure prefetch behavior:
- * 
+ *
  * - optionsCount: Number of option pages to prefetch (default: 4)
  *   Higher = faster navigation, more bandwidth
  *   Lower = less bandwidth, potential delay
  *   0 = disable prefetching
- * 
+ *
  * - prefetchOnHover: Prefetch when hovering over dropdown button
  *   true = best UX (instant loading), recommended
  *   false = prefetch only on click
- * 
+ *
  * - prefetchOnOpen: Prefetch when dropdown opens
  *   true = backup prefetch, recommended
  *   false = disable
@@ -47,10 +47,10 @@ export const TOGGLE_CONSTANTS = {
     // Increase for faster navigation, decrease to reduce bandwidth
     // Set to 0 to disable option prefetching
     optionsCount: 4,
-    
+
     // Prefetch when dropdown opens (recommended: true)
     prefetchOnOpen: true,
-    
+
     // Prefetch on hover over dropdown button (recommended: true for best UX)
     // Triggers before click, eliminates blank screen
     prefetchOnHover: true,
@@ -82,7 +82,7 @@ async function getProductIdFromMetadata() {
     // Fallback to direct metadata
     const productId = getMetadata('product-id');
     if (productId) return productId;
-    
+
     // Last fallback to meta tag
     const meta = document.querySelector('meta[name="product-id"]');
     return meta ? meta.content : null;
@@ -126,7 +126,7 @@ export async function fetchExpirationsData(productId = null) {
       const localEndpoint = `${API_CONFIG.localFallbackEndpoint}${pid}.json`;
       const response = await fetch(localEndpoint);
       if (!response.ok) throw new Error('Local file not found');
-      
+
       const data = await response.json();
 
       if (data && data.optionsLabels && Array.isArray(data.optionsLabels)) {
@@ -183,6 +183,11 @@ export function createOptionsDropdown(expirationsData = [], selectedValue = null
   // Populate dropdown with API data
   if (expirationsData && expirationsData.length > 0) {
     expirationsData.forEach((option) => {
+      // Skip invalid items (defensive check)
+      if (!option || !option.productId || !option.label) {
+        return;
+      }
+
       const menuItem = createElement('a', {
         role: 'menuitem',
         'data-product-id': option.productId,
@@ -221,7 +226,7 @@ export function createOptionsDropdown(expirationsData = [], selectedValue = null
 
   // Store options data for prefetching
   dropdown.dataset.optionsData = JSON.stringify(expirationsData);
-  
+
   // Prefetch on hover for even earlier loading
   if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover) {
     dropdownButton.addEventListener('mouseenter', () => {
@@ -232,13 +237,13 @@ export function createOptionsDropdown(expirationsData = [], selectedValue = null
       dropdown.dispatchEvent(hoverEvent);
     }, { once: true }); // Only trigger once
   }
-  
+
   // Add event listener to toggle dropdown visibility
   dropdownButton.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
     dropdown.classList.toggle(TOGGLE_CONSTANTS.toggleClasses.dropdownOpen);
-    
+
     // Trigger prefetch when dropdown opens (if configured)
     if (TOGGLE_CONSTANTS.prefetch.prefetchOnOpen) {
       const openEvent = new CustomEvent('optionsDropdownOpened', {
@@ -315,17 +320,21 @@ export function buildContractURL(baseUrl, optionProductId) {
  */
 export function prefetchOptionPages(optionsBasePath, optionsData, count, cache) {
   if (!optionsData || !Array.isArray(optionsData) || optionsData.length === 0) return;
-  
-  const prefetchCount = Math.min(count || TOGGLE_CONSTANTS.prefetch.optionsCount, optionsData.length);
-  
+
+  const defaultCount = TOGGLE_CONSTANTS.prefetch.optionsCount;
+  const prefetchCount = Math.min(count || defaultCount, optionsData.length);
+
   for (let i = 0; i < prefetchCount; i += 1) {
     const option = optionsData[i];
-    if (!option || !option.productId) continue;
-    
+    if (!option || !option.productId) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
     const fullUrl = buildContractURL(optionsBasePath, option.productId);
     const urlObj = new URL(fullUrl, window.location.origin);
     const basePath = urlObj.pathname; // Strip query params for fetching
-    
+
     // Only prefetch if not already cached
     if (!cache.has(basePath)) {
       const promise = fetch(`${basePath}.plain.html`)
@@ -335,4 +344,3 @@ export function prefetchOptionPages(optionsBasePath, optionsData, count, cache) 
     }
   }
 }
-

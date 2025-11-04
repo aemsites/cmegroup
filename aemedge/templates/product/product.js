@@ -4,7 +4,6 @@ import {
   decorateBlock,
   loadBlock,
   loadSection,
-  toClassName,
 } from '../../scripts/aem.js';
 import {
   normalizePath,
@@ -60,7 +59,7 @@ const API_CONFIG = {
     cacheKey: 'quotesData.cvol',
   },
   marketRecap: {
-    apiEndpoint: (productId) => `/CmeWS/mvc/Ags/Reports`,
+    apiEndpoint: () => '/CmeWS/mvc/Ags/Reports',
     mockPath: () => '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/market-recap.json',
     transform: (data) => data,
     cacheKey: 'quotesData.marketRecap',
@@ -239,7 +238,7 @@ async function fetchWithFallback(apiName, productId) {
  */
 async function fetchAndCache(apiName, productId) {
   const config = API_CONFIG[apiName];
-  const cacheKey = config.cacheKey;
+  const { cacheKey } = config;
 
   // Initialize fetchPromises object if needed
   if (!window.productData.fetchPromises) {
@@ -248,7 +247,7 @@ async function fetchAndCache(apiName, productId) {
 
   // Check if already fetching (promise deduplication)
   if (window.productData.fetchPromises[apiName]) {
-    return await window.productData.fetchPromises[apiName];
+    return window.productData.fetchPromises[apiName];
   }
 
   // Check if data already cached
@@ -271,7 +270,7 @@ async function fetchAndCache(apiName, productId) {
   })();
 
   window.productData.fetchPromises[apiName] = fetchPromise;
-  return await fetchPromise;
+  return fetchPromise;
 }
 
 // ==================== END OF UTILITY FUNCTIONS ====================
@@ -294,6 +293,7 @@ async function indexHasPath(path) {
   return !!idx.data.find((row) => normalizePath(row.path) === norm);
 }
 
+// eslint-disable-next-line no-unused-vars
 async function insertFragmentAfter(section, href) {
   const a = document.createElement('a');
   a.setAttribute('href', href);
@@ -304,6 +304,7 @@ async function insertFragmentAfter(section, href) {
   await loadBlock(frag);
 }
 
+// eslint-disable-next-line no-unused-vars
 function removeDuplicateTabs() {
   const containers = document.querySelectorAll('.product-tabs-container');
   if (containers.length <= 1) return;
@@ -474,8 +475,9 @@ export default async function productTemplate() {
   await insertHeroIfMissing();
 
   // ensure tabs exist on both landing and tab pages
-  const productTabsSection = findProductTabsSection()
-    || await insertProductTabsIfMissing(productRoot);
+  if (!findProductTabsSection()) {
+    await insertProductTabsIfMissing(productRoot);
+  }
 
   // enforce order: hero first, then tabs
   ensureHeroThenTabsOrder();
@@ -533,17 +535,17 @@ function wireNavClicks(container, productRoot) {
     if (navigationDebounceTimer) {
       clearTimeout(navigationDebounceTimer);
     }
-    
+
     // Update URL immediately for instant visual feedback
     window.history.pushState({}, '', href);
-    
+
     // Debounce the actual content rendering (prevents duplicate toggles on rapid clicks)
     navigationDebounceTimer = setTimeout(() => {
       renderProductPath(href, productRoot);
       navigationDebounceTimer = null;
     }, 100); // 100ms debounce - adjust if needed
   });
-  
+
   container.querySelectorAll('a[href]')
     .forEach((a) => {
       a.addEventListener('click', (e) => {
@@ -591,7 +593,7 @@ async function renderProductPath(url, productRoot) {
 
     // Fetch target page and swap renderable sections below tabs
     // Strip query params for fetching - we only need the base page HTML
-    
+
     let html = null;
     const cached = PREFETCH_CACHE.get(basePath);
     if (cached) {
@@ -599,7 +601,7 @@ async function renderProductPath(url, productRoot) {
     }
     if (!html) {
       const resp = await fetch(`${basePath}.plain.html`);
-      
+
       if (!resp.ok) {
         // eslint-disable-next-line no-console
         console.error('Failed to fetch page:', basePath, 'Status:', resp.status);
@@ -618,14 +620,14 @@ async function renderProductPath(url, productRoot) {
       }
       html = await resp.text();
     }
-    
+
     const tempMain = document.createElement('main');
     tempMain.innerHTML = html;
     decorateMain(tempMain);
 
     const container = ensureSubTabsContentContainer();
     if (!container) return;
-    
+
     const renderables = [...tempMain.querySelectorAll(':scope > .section')]
       .filter((sec) => !sec.querySelector('.hero-baseball')
         && !sec.classList.contains('product-tabs-container')
@@ -633,31 +635,32 @@ async function renderProductPath(url, productRoot) {
         && !sec.classList.contains('product-subtabs'));
 
     if (renderProductPath.currentToken !== myToken) return;
-    
+
     // Special handling for overview/root - might have empty sections
     const isNavigatingToRoot = normalizePath(basePath) === normalizePath(productRoot);
-    
+
     // Check if sections are empty (even if they exist)
-    const hasEmptyContent = renderables.length > 0 && renderables.every((sec) => !sec.innerHTML || sec.innerHTML.trim().length === 0);
-    
+    const hasEmptyContent = renderables.length > 0
+      && renderables.every((sec) => !sec.innerHTML || sec.innerHTML.trim().length === 0);
+
     if ((renderables.length === 0 || hasEmptyContent) && isNavigatingToRoot) {
       // Try fetching /overview page instead of root
       try {
         const overviewPath = `${productRoot}/overview`;
         const overviewResp = await fetch(`${overviewPath}.plain.html`);
-        
+
         if (overviewResp.ok) {
           const overviewHtml = await overviewResp.text();
           const overviewMain = document.createElement('main');
           overviewMain.innerHTML = overviewHtml;
           decorateMain(overviewMain);
-          
+
           const overviewSections = [...overviewMain.querySelectorAll(':scope > .section')]
             .filter((sec) => !sec.querySelector('.hero-baseball')
               && !sec.classList.contains('product-tabs-container')
               && !sec.classList.contains('product-subtabs-content')
               && !sec.classList.contains('product-subtabs'));
-          
+
           if (overviewSections.length > 0) {
             container.innerHTML = '';
             const overviewClones = overviewSections.map((sec) => {
@@ -672,7 +675,7 @@ async function renderProductPath(url, productRoot) {
       } catch (e) {
         // Silent fail
       }
-      
+
       // Last resort: Show message that content is unavailable
       container.innerHTML = `
         <div class="no-content-message">
@@ -683,7 +686,7 @@ async function renderProductPath(url, productRoot) {
       `;
       return;
     }
-    
+
     if (renderables.length === 0) {
       container.innerHTML = `
         <div class="no-content-message">
@@ -692,14 +695,14 @@ async function renderProductPath(url, productRoot) {
       `;
       return;
     }
-    
+
     container.innerHTML = '';
     const clones = renderables.map((sec) => {
       const cloned = sec.cloneNode(true);
       container.appendChild(cloned);
       return cloned;
     });
-    
+
     await Promise.all(clones.map((cl) => loadSection(cl)));
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -724,16 +727,16 @@ function updateTabsActiveState(url) {
   const isEquivalentToTab = (current, tabHref) => {
     const linkPath = normalizePath(new URL(tabHref, window.location.origin).pathname);
     const cur = normalizePath(current);
-    
+
     // Exact match
     if (cur === linkPath) return true;
-    
+
     // For overview tab: /corn/overview should also match /corn (root) for backward compatibility
     if (linkPath.endsWith('/overview')) {
       const root = normalizePath(linkPath.replace(/\/overview$/, ''));
       return cur === root;
     }
-    
+
     // For other tabs: /corn/quotes should also match /corn/quotes/options
     return cur === normalizePath(`${linkPath}/options`);
   };
@@ -759,9 +762,9 @@ function wirePrefetches(container, productRoot) {
     // Strip query params for cache key and fetching
     const urlObj = new URL(href, window.location.origin);
     const basePath = urlObj.pathname;
-    
+
     if (PREFETCH_CACHE.has(basePath)) return;
-    
+
     const promise = fetch(`${basePath}.plain.html`).then((r) => (r.ok ? r.text() : null));
     PREFETCH_CACHE.set(basePath, promise);
   };
@@ -876,8 +879,8 @@ async function prefetchProductData(productRoot, currentTab = null) {
     const normalizedRoot = normalizePath(productRoot);
 
     // Check if product changed (e.g., corn -> wheat)
-    if (window.productData?.productRoot &&
-        normalizePath(window.productData.productRoot) !== normalizedRoot) {
+    if (window.productData?.productRoot
+        && normalizePath(window.productData.productRoot) !== normalizedRoot) {
       // Product changed - clear all caches to prevent memory bloat
       window.productData = null;
       prebuiltDropdownCache.clear();
@@ -895,17 +898,18 @@ async function prefetchProductData(productRoot, currentTab = null) {
     }
 
     // Auto-detect current tab from URL if not provided
-    if (!currentTab) {
+    let activeTab = currentTab;
+    if (!activeTab) {
       const currentPath = normalizePath(window.location.pathname);
       const rel = currentPath.replace(normalizedRoot, '');
       const parts = rel.split('/').filter((p) => p);
-      currentTab = parts[0] || 'overview';
+      activeTab = parts[0] || 'overview';
     }
 
     // Determine which APIs to prefetch
     const apisToFetch = [
       ...PREFETCH_STRATEGIES.initial,
-      ...(PREFETCH_STRATEGIES[currentTab] || []),
+      ...(PREFETCH_STRATEGIES[activeTab] || []),
     ];
 
     // Fetch all APIs in parallel (Promise.allSettled won't fail if one API fails)
@@ -991,9 +995,11 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
 
   // If no data or wrong product, fetch it on-demand
   // This handles cases where dropdown is built before idle prefetch completes
-  if (!expirationsData || window.productData?.productRoot !== normalizePath(productRoot)) {
+  const isWrongProduct = window.productData?.productRoot !== normalizePath(productRoot);
+  if (!expirationsData || isWrongProduct) {
     await prefetchProductData(productRoot);
-    expirationsData = window.productData?.optionsExpirations || await fetchExpirationsData(productId);
+    const fallbackData = await fetchExpirationsData(productId);
+    expirationsData = window.productData?.optionsExpirations || fallbackData;
   }
 
   // Build dropdown fresh each time (data is cached, so this is fast)
@@ -1006,12 +1012,14 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   const items = optionsDropdown.querySelectorAll('.dropdown-item');
 
   items.forEach((item) => {
-    item.classList.toggle('selected', item.dataset.productId === selectedContract);
+    const isSelected = item.dataset.productId === selectedContract;
+    item.classList.toggle('selected', isSelected);
   });
 
   // Prefetch top N option pages immediately for instant navigation
   if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover && expirationsData.length > 0) {
-    prefetchOptionPages(optionsPath, expirationsData, TOGGLE_CONSTANTS.prefetch.optionsCount, PREFETCH_CACHE);
+    const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
+    prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
   }
 
   // Mark as active if on options page
@@ -1054,10 +1062,10 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
           clearTimeout(navigationDebounceTimer);
           navigationDebounceTimer = null;
         }
-        
+
         // Update URL immediately
         window.history.pushState({}, '', href);
-        
+
         // Debounced rendering
         navigationDebounceTimer = setTimeout(() => {
           renderProductPath(href, productRoot);
@@ -1071,14 +1079,16 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
   nav.addEventListener('optionsDropdownHovered', (e) => {
     const { expirationsData } = e.detail;
     const optionsPath = `${productRoot}/${primaryTab}/options`;
-    prefetchOptionPages(optionsPath, expirationsData, TOGGLE_CONSTANTS.prefetch.optionsCount, PREFETCH_CACHE);
+    const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
+    prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
   }, { once: true });
 
   // Handle dropdown opened - backup prefetch
   nav.addEventListener('optionsDropdownOpened', (e) => {
     const { expirationsData } = e.detail;
     const optionsPath = `${productRoot}/${primaryTab}/options`;
-    prefetchOptionPages(optionsPath, expirationsData, TOGGLE_CONSTANTS.prefetch.optionsCount, PREFETCH_CACHE);
+    const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
+    prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
   });
 
   // Handle Options dropdown selection
@@ -1099,7 +1109,7 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
 
     // Update URL immediately
     window.history.pushState({}, '', fullUrl);
-    
+
     // Debounced rendering
     navigationDebounceTimer = setTimeout(async () => {
       await renderProductPath(fullUrl, productRoot);
@@ -1156,9 +1166,8 @@ async function updateDropdownActiveState(nav) {
  * NEW ENHANCED VERSION of insertSubTabsIfApplicable
  * Call this instead of the original to use dropdown functionality
  * @param {string} productRoot - Product root path
- * @param {boolean} forceRecreate - Force recreation instead of updating state
  */
-async function insertEnhancedSubTabsIfApplicable(productRoot, forceRecreate = false) {
+async function insertEnhancedSubTabsIfApplicable(productRoot) {
   // Create unique token for this operation
   const myToken = Date.now();
   currentToggleOperation = myToken;

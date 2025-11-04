@@ -37,16 +37,16 @@ function isEquivalentToTab(currentPath, linkPath) {
   // Check if current path matches the tab link or its variants
   const cur = normalizePath(currentPath);
   const link = normalizePath(linkPath);
-  
+
   // Exact match
   if (cur === link) return true;
-  
+
   // For overview tab: /corn/overview should also match /corn (root)
   if (link.endsWith('/overview')) {
     const root = stripTrailingSlash(link.replace(/\/overview$/, ''));
     return cur === root || cur === link;
   }
-  
+
   // For other tabs: /corn/quotes should also match /corn/quotes/options
   return cur === normalizePath(`${link}/options`);
 }
@@ -65,43 +65,40 @@ function computeProductRoot(pathname) {
 function parseAuthoredRows(block) {
   const rows = [...block.querySelectorAll(':scope > div')];
   const productRoot = computeProductRoot(window.location.pathname);
-  
+
   const items = rows.map((row) => {
     const cols = row.children ? [...row.children] : [];
     const label = cols[0] ? cols[0].textContent.trim() : '';
-    
+
     if (!label || !cols[1]) return null;
-    
+
     // Get value from second column - could be anchor link or plain text
     const a = cols[1].querySelector('a');
     const rawValue = a ? (a.getAttribute('href') || a.textContent.trim()) : cols[1].textContent.trim();
-    
+
     if (!rawValue) return null;
-    
+
     // Determine if it's a relative path
     const isRelative = !rawValue.startsWith('/') && !rawValue.includes('://');
-    
+
     let href = '';
     if (isRelative) {
       // Relative path like "quotes", "settlements", or "overview"
       const relativePath = toClassName(rawValue);
       // All tabs including overview get their own page path
       href = `${productRoot}/${relativePath}`;
-    } else {
-      // Absolute path or full URL
-      if (rawValue.includes('://')) {
-        // Full URL - extract pathname
-        try {
-          href = new URL(rawValue).pathname;
-        } catch (e) {
-          href = rawValue;
-        }
-      } else {
-        // Absolute path starting with /
+    } else if (rawValue.includes('://')) {
+      // Full URL - extract pathname
+      try {
+        href = new URL(rawValue).pathname;
+      } catch (e) {
         href = rawValue;
       }
+    } else {
+      // Absolute path starting with /
+      href = rawValue;
     }
-    
+
     const key = toClassName(label);
     return label && href ? { key, label, href: normalizePath(href) } : null;
   }).filter(Boolean);

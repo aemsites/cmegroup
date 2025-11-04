@@ -19,7 +19,7 @@ async function fetchCvolData() {
 
 async function createCommodityVolumeContent(block) {
   const cvolDataArray = await fetchCvolData();
-  
+
   // Use v2's product utilities to get product name
   const productMetadata = await getProductMetadata();
   const productName = productMetadata.productName || getMetadata('product') || 'Product';
@@ -70,4 +70,3 @@ async function createCommodityVolumeContent(block) {
 export default async function decorate(block) {
   await createCommodityVolumeContent(block);
 }
-

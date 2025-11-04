@@ -7,6 +7,7 @@ import { apiGet, getResponseData } from '../../scripts/utils/index.js';
 const useMockData = () => {
   const { hostname } = window.location;
   // Use real API only on production cmegroup.com domain
+  // eslint-disable-next-line no-unused-vars
   const isProduction = hostname === 'www.cmegroup.com' || hostname === 'cmegroup.com';
   // For now, always use mock due to CORS restrictions
   // TODO: Enable real API once backend team configures CORS or proxy is available
@@ -41,7 +42,7 @@ async function findMatchingReport(reportsData) {
   // Use v2's product utilities to get product symbol
   const productMetadata = await getProductMetadata();
   const productSymbol = productMetadata.productSymbol || getMetadata('product-symbol');
-  
+
   if (!productSymbol) {
     return null;
   }

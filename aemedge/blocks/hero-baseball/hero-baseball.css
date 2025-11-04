@@ -131,11 +131,11 @@
 }
 
 
-/*======================================================================
+/* ======================================================================
  * PRODUCT PAGE SPECIFIC STYLES
  * Adapted from original CME site baseball card component
  * These styles only apply on product template pages
- ======================================================================*/
+ ====================================================================== */
 
 .product .hero-baseball {
   background-color: var(--blue2);
@@ -187,7 +187,7 @@
   font-family: var(--averta), arial, sans-serif;
   font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.09375rem;
+  letter-spacing: 0.0938rem;
   line-height: 0.875rem;
   margin-bottom: 0.625rem;
   text-transform: uppercase;
@@ -265,17 +265,17 @@
 
 /* Positive/Negative change colors - original CME colors */
 .product .hero-baseball .change-positive {
-  color: rgb(42, 227, 3);
+  color: rgb(42 227 3);
 }
 
 .product .hero-baseball .change-negative {
-  color: rgb(223, 0, 53);
+  color: rgb(223 0 53);
 }
 
 /* Trading item labels and values */
 .product .hero-baseball .trading-item .label {
   font-size: 0.6875rem;
-  letter-spacing: 0.09375rem;
+  letter-spacing: 0.0938rem;
   margin-bottom: 0;
 }
 

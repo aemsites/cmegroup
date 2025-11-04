@@ -6,7 +6,6 @@ const HERO_API_CONFIG = {
   endpoint: '/aemedge/blocks/hero-baseball/mock-api/contracts-by-number.json',
 };
 
-
 function formatNumber(num) {
   if (!num && num !== 0) return '-';
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -126,5 +125,3 @@ export default async function decorate(block) {
   }
   await populateHeroData(block);
 }
-
-

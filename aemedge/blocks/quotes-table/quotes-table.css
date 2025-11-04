@@ -92,7 +92,7 @@
 .quotes-table .options-month-selector:focus {
   outline: none;
   border-color: var(--blue4);
-  box-shadow: 0 0 0 2px rgba(0, 100, 200, 0.1);
+  box-shadow: 0 0 0 2px rgb(0 100 200 / 10%);
 }
 
 /* Options type header */
