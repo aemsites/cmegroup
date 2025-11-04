@@ -55,7 +55,7 @@ export default async function decorate(block) {
     appendQueryParams(surveyUrl, new URLSearchParams({
       course: decodeURIComponent(course),
       uid: userinfo.onePass,
-      companytype: userinfo.companytype,
+      companytype: userinfo.companyType,
       company: userinfo.company,
       country: userinfo.country,
       jobRole: userinfo.jobRole,
