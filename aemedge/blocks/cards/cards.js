@@ -161,10 +161,16 @@ async function createStaticCards(block) {
     const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
     [...block.children].forEach((row) => {
       const li = document.createElement('li');
-      while (row.firstElementChild) li.append(row.firstElementChild);
-      [...li.children].forEach((div) => {
+      const link = document.createElement('a');
+      const linkSrc = row.firstElementChild.querySelector('p a').href;
+      link.href = linkSrc;
+      li.append(link);
+      while (row.firstElementChild) link.append(row.firstElementChild);
+      [...li.children].forEach((anchor) => {
+        const div = anchor.querySelector('div');
         if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
         else div.className = 'cards-card-body';
+
         if (textClass) {
           const paragraphs = div.querySelectorAll('p');
           paragraphs.forEach((p) => {
