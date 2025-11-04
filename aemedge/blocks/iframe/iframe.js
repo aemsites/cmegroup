@@ -44,6 +44,30 @@ export default async function decorate(block) {
       : iframeTitle;
   }
 
+  // Helper function to get the course survey iframe url
+  async function getCourseSurveyUrl() {
+    const { CookieUtil } = await import('../../scripts/utils/index.js');
+    const userinfo = CookieUtil?.get('userinfo', true);
+    if (!userinfo) return iframeURL;
+    const surveyUrl = new URL(iframeURL);
+    const course = window.location.href.split('#')[1] || 'Unknown course';
+    const { appendQueryParams } = await import('../../scripts/utils/uri.js');
+    appendQueryParams(surveyUrl, new URLSearchParams({
+      course: decodeURIComponent(course),
+      uid: userinfo.onePass,
+      companytype: userinfo.companytype,
+      company: userinfo.company,
+      country: userinfo.country,
+      jobRole: userinfo.jobRole,
+    }));
+    return surveyUrl;
+  }
+
+  //  Helper function to get the iframe url
+  function getIframeSrc() {
+    return block.classList.contains('course-survey') ? getCourseSurveyUrl() : iframeURL;
+  }
+
   // Exit early if link is missing
   if (!iframeURL) {
     addWarningMessage('Warning: No URL provided for iframe source');
@@ -56,17 +80,18 @@ export default async function decorate(block) {
     return;
   }
 
-  if (iframefixedHeight && !iframefixedHeight.match(/^(\d+)(px)?$/)) {
+  if (!iframefixedHeight?.match(/^(\d+)(px)?$/)) {
     addWarningMessage('Invalid height value. Please use a number followed by "px".');
     return;
   }
 
   // Create iframe element
   const iframe = document.createElement('iframe');
+  const iframeSrc = await getIframeSrc();
   if (iframefixedHeight) {
     iframe.height = iframefixedHeight;
   }
-  iframe.src = iframeURL;
+  iframe.src = iframeSrc;
   iframe.setAttribute('title', getMeaningfulTitle());
   iframe.setAttribute('frameborder', 0);
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
