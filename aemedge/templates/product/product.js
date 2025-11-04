@@ -28,6 +28,254 @@ let currentToggleOperation = null; // Track current operation for cancellation
 // Cache for pre-built dropdown elements (reused across tabs)
 const prebuiltDropdownCache = new Map();
 
+// ==================== UNIFIED API CONFIGURATION ====================
+/**
+ * API Configuration Map
+ * Maps API names to their endpoints and fallback paths
+ * This enables automatic fallback to mock APIs when main endpoints are blocked (CORS)
+ */
+const API_CONFIG = {
+  optionsExpirations: {
+    apiEndpoint: (productId) => `/api/expirations/${productId}`,
+    mockPath: (productId) => `/aemedge/templates/product/${productId}.json`,
+    transform: (data) => data.optionsLabels || data,
+    cacheKey: 'optionsExpirations',
+  },
+  quotesTable: {
+    apiEndpoint: (productId) => `/api/quotes/v2/table/${productId}`,
+    mockPath: () => '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-table.json',
+    transform: (data) => data.quotes || data,
+    cacheKey: 'quotesData.table',
+  },
+  quotesLabels: {
+    apiEndpoint: (productId) => `/api/quotes/v2/getlabels/${productId}`,
+    mockPath: () => '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-v2-getlabels.json',
+    transform: (data) => data,
+    cacheKey: 'quotesData.labels',
+  },
+  cvol: {
+    apiEndpoint: (productId) => `/api/quotes/cvol/${productId}`,
+    mockPath: () => '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/cvol.json',
+    transform: (data) => data,
+    cacheKey: 'quotesData.cvol',
+  },
+  marketRecap: {
+    apiEndpoint: (productId) => `/api/quotes/market-recap/${productId}`,
+    mockPath: () => '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/market-recap.json',
+    transform: (data) => data,
+    cacheKey: 'quotesData.marketRecap',
+  },
+  settlementsDates: {
+    apiEndpoint: (productId) => `/api/settlements/tradedates/${productId}`,
+    mockPath: () => '/aemedge/blocks/dynamic/product-tabs/mock-api/settlements/settlements-tradedate.json',
+    transform: (data) => data,
+    cacheKey: 'settlementsData.tradeDates',
+  },
+  contractsMetadata: {
+    apiEndpoint: (productId) => `/api/contracts/${productId}`,
+    mockPath: () => '/aemedge/blocks/dynamic/product-tabs/mock-api/contracts-by-number.json',
+    transform: (data) => data,
+    cacheKey: 'contractsMetadata',
+  },
+};
+
+/**
+ * Prefetch strategies based on current page/tab
+ * Determines which APIs to prefetch for optimal performance
+ */
+const PREFETCH_STRATEGIES = {
+  // On initial page load - PREFETCH ALL APIs immediately
+  initial: [
+    'optionsExpirations',
+    'contractsMetadata',
+    'quotesTable',
+    'quotesLabels',
+    'cvol',
+    'marketRecap',
+    'settlementsDates',
+  ],
+
+  // Tab-specific strategies (already loaded from initial, but kept for clarity)
+  quotes: [],
+  settlements: [],
+
+  // Overview and other tabs use initial strategy only
+  overview: [],
+  volume: [],
+  specs: [],
+  margins: [],
+  calendar: [],
+};
+
+// ==================== END OF API CONFIGURATION ====================
+
+/**
+ * Development helper: Test API configuration from console
+ * Usage: window.testAPIConfig('quotesTable', '300')
+ */
+window.testAPIConfig = (apiName, productId = '300') => {
+  const config = API_CONFIG[apiName];
+  if (!config) {
+    // eslint-disable-next-line no-console
+    console.error(`Unknown API: ${apiName}. Available:`, Object.keys(API_CONFIG));
+    return;
+  }
+  // eslint-disable-next-line no-console
+  console.log(`[API Config Test] ${apiName}:`);
+  // eslint-disable-next-line no-console
+  console.log('  - API Endpoint:', config.apiEndpoint(productId));
+  // eslint-disable-next-line no-console
+  console.log('  - Mock Path:', config.mockPath(productId));
+  // eslint-disable-next-line no-console
+  console.log('  - Cache Key:', config.cacheKey);
+  // eslint-disable-next-line no-console
+  console.log('  - Transform:', config.transform.toString().substring(0, 100));
+};
+
+/**
+ * Development helper: Inspect current window.productData structure
+ * Usage: window.inspectProductData()
+ */
+window.inspectProductData = () => {
+  // eslint-disable-next-line no-console
+  console.log('=== Current window.productData ===');
+  // eslint-disable-next-line no-console
+  console.log('Full object:', window.productData);
+  // eslint-disable-next-line no-console
+  console.log('Top-level keys:', Object.keys(window.productData || {}));
+  if (window.productData) {
+    // eslint-disable-next-line no-console
+    console.log('Product ID:', window.productData.productId);
+    // eslint-disable-next-line no-console
+    console.log('Product Root:', window.productData.productRoot);
+    // eslint-disable-next-line no-console
+    console.log('Has optionsExpirations:', !!window.productData.optionsExpirations);
+    // eslint-disable-next-line no-console
+    console.log('Has quotesData:', !!window.productData.quotesData);
+    // eslint-disable-next-line no-console
+    console.log('Has settlementsData:', !!window.productData.settlementsData);
+  }
+};
+
+// ==================== UTILITY FUNCTIONS ====================
+
+/**
+ * Get nested object value by path string
+ * @param {Object} obj - Object to traverse
+ * @param {string} path - Dot-separated path (e.g., 'quotesData.table')
+ * @returns {*} Value at path or undefined
+ */
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((curr, key) => curr?.[key], obj);
+}
+
+/**
+ * Set nested object value by path string
+ * Creates intermediate objects as needed
+ * @param {Object} obj - Object to modify
+ * @param {string} path - Dot-separated path (e.g., 'quotesData.table')
+ * @param {*} value - Value to set
+ */
+function setNestedValue(obj, path, value) {
+  const keys = path.split('.');
+  const lastKey = keys.pop();
+  const target = keys.reduce((curr, key) => {
+    if (!curr[key]) curr[key] = {};
+    return curr[key];
+  }, obj);
+  target[lastKey] = value;
+}
+
+/**
+ * Universal API fetch with automatic fallback to mock data
+ * Tries main API endpoint first, falls back to local mock JSON on failure
+ * @param {string} apiName - Name from API_CONFIG
+ * @param {string} productId - Product ID
+ * @returns {Promise<any>} Transformed API data
+ */
+async function fetchWithFallback(apiName, productId) {
+  const config = API_CONFIG[apiName];
+  if (!config) {
+    throw new Error(`Unknown API: ${apiName}`);
+  }
+
+  try {
+    // Try main API endpoint
+    const apiUrl = config.apiEndpoint(productId);
+    const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      throw new Error(`API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return config.transform(data);
+  } catch (apiError) {
+    // Fallback to mock API
+    try {
+      const mockUrl = `${window.location.origin}${config.mockPath(productId)}`;
+      const response = await fetch(mockUrl);
+
+      if (!response.ok) {
+        throw new Error(`Mock API failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return config.transform(data);
+    } catch (fallbackError) {
+      // eslint-disable-next-line no-console
+      console.error(`[fetchWithFallback] ✗ Both API and mock failed for ${apiName}:`, fallbackError);
+      throw fallbackError;
+    }
+  }
+}
+
+/**
+ * Fetch and cache API data with promise deduplication
+ * Prevents duplicate fetches for the same API
+ * @param {string} apiName - Name from API_CONFIG
+ * @param {string} productId - Product ID
+ * @returns {Promise<any>} Cached or fetched data
+ */
+async function fetchAndCache(apiName, productId) {
+  const config = API_CONFIG[apiName];
+  const cacheKey = config.cacheKey;
+
+  // Initialize fetchPromises object if needed
+  if (!window.productData.fetchPromises) {
+    window.productData.fetchPromises = {};
+  }
+
+  // Check if already fetching (promise deduplication)
+  if (window.productData.fetchPromises[apiName]) {
+    return await window.productData.fetchPromises[apiName];
+  }
+
+  // Check if data already cached
+  const cachedData = getNestedValue(window.productData, cacheKey);
+  if (cachedData) {
+    return cachedData;
+  }
+
+  // Create fetch promise
+  const fetchPromise = (async () => {
+    try {
+      const data = await fetchWithFallback(apiName, productId);
+      setNestedValue(window.productData, cacheKey, data);
+      window.productData.fetchPromises[apiName] = null;
+      return data;
+    } catch (error) {
+      window.productData.fetchPromises[apiName] = null;
+      throw error;
+    }
+  })();
+
+  window.productData.fetchPromises[apiName] = fetchPromise;
+  return await fetchPromise;
+}
+
+// ==================== END OF UTILITY FUNCTIONS ====================
+
 function findProductTabsSection() {
   const main = document.querySelector('main');
   return main?.querySelector('.product-tabs-container');
@@ -218,9 +466,9 @@ export default async function productTemplate() {
 
   const productRoot = computeProductRoot(window.location.pathname);
 
-  // PERFORMANCE: Prefetch options data FIRST to avoid race conditions
-  // This ensures data is available before dropdown is built
-  await prefetchProductData(productRoot);
+  // PERFORMANCE: Defer API prefetching until after page load to avoid blocking TBT
+  // Use requestIdleCallback to prefetch during browser idle time
+  schedulePrefetch(productRoot);
 
   // ensure hero first
   await insertHeroIfMissing();
@@ -319,6 +567,19 @@ async function renderProductPath(url, productRoot) {
     // Update active state in product tabs immediately
     updateTabsActiveState(url);
 
+    // Detect destination tab and prefetch tab-specific APIs
+    const urlObj = new URL(url, window.location.origin);
+    const basePath = urlObj.pathname;
+    const normalizedRoot = normalizePath(productRoot);
+    const rel = normalizePath(basePath).replace(normalizedRoot, '');
+    const parts = rel.split('/').filter((p) => p && p !== 'options'); // Remove 'options' subfolder
+    const destinationTab = parts[0] || 'overview';
+
+    // Prefetch APIs for destination tab (runs in background, doesn't block navigation)
+    prefetchProductData(productRoot, destinationTab).catch(() => {
+      // Silent fail - prefetch is best-effort
+    });
+
     // Ensure sub-tabs reflect the destination and content is placed under them
     // ENHANCED: Using dropdown version during SPA navigation
     // Use forceRecreate=false to just update state (no flash)
@@ -330,8 +591,6 @@ async function renderProductPath(url, productRoot) {
 
     // Fetch target page and swap renderable sections below tabs
     // Strip query params for fetching - we only need the base page HTML
-    const urlObj = new URL(url, window.location.origin);
-    const basePath = urlObj.pathname; // Without query params
     
     let html = null;
     const cached = PREFETCH_CACHE.get(basePath);
@@ -560,12 +819,51 @@ function getProductId() {
 }
 
 /**
- * Prefetch product data on page load for performance optimization
- * Fetches options dropdown data once per product and stores in window.productData
- * Clears cache when switching between products (corn -> wheat)
+ * Schedule API prefetching to happen after page load during idle time
+ * This prevents blocking the main thread and impacting TBT/Core Web Vitals
  * @param {string} productRoot - Product root path
  */
-async function prefetchProductData(productRoot) {
+function schedulePrefetch(productRoot) {
+  // Wait for page load event
+  if (document.readyState === 'complete') {
+    // Page already loaded, schedule immediately
+    scheduleIdlePrefetch(productRoot);
+  } else {
+    // Wait for page to finish loading
+    window.addEventListener('load', () => {
+      scheduleIdlePrefetch(productRoot);
+    }, { once: true });
+  }
+}
+
+/**
+ * Schedule prefetch during browser idle time using requestIdleCallback
+ * Falls back to setTimeout if requestIdleCallback is not supported
+ * @param {string} productRoot - Product root path
+ */
+function scheduleIdlePrefetch(productRoot) {
+  if ('requestIdleCallback' in window) {
+    // Use requestIdleCallback for better performance
+    window.requestIdleCallback(() => {
+      prefetchProductData(productRoot);
+    }, { timeout: 2000 }); // Fallback timeout of 2s
+  } else {
+    // Fallback for browsers without requestIdleCallback
+    setTimeout(() => {
+      prefetchProductData(productRoot);
+    }, 1000); // Start after 1s
+  }
+}
+
+/**
+ * Prefetch product data on page load for performance optimization
+ * UNIFIED VERSION: Fetches multiple APIs based on current tab
+ * Stores all data in window.productData with organized structure
+ * Clears cache when switching between products (corn -> wheat)
+ * @param {string} productRoot - Product root path
+ * @param {string} currentTab - Current tab (optional, auto-detected if not provided)
+ */
+async function prefetchProductData(productRoot, currentTab = null) {
   try {
     // Get product ID from metadata with fallback
     const productId = getProductId();
@@ -588,65 +886,49 @@ async function prefetchProductData(productRoot) {
 
     // Initialize data store if needed
     if (!window.productData) {
-      window.productData = {};
+      window.productData = {
+        productId,
+        productRoot: normalizedRoot,
+        fetchedAt: Date.now(),
+        fetchPromises: {},
+      };
     }
 
-    // Check if already fetching for this product (prevent duplicate calls)
-    if (window.productData.fetchPromise) {
-      await window.productData.fetchPromise;
-      return;
+    // Auto-detect current tab from URL if not provided
+    if (!currentTab) {
+      const currentPath = normalizePath(window.location.pathname);
+      const rel = currentPath.replace(normalizedRoot, '');
+      const parts = rel.split('/').filter((p) => p);
+      currentTab = parts[0] || 'overview';
     }
 
-    // Check if data already exists for this product
-    if (window.productData.optionsExpirations &&
-        window.productData.productId === productId) {
-      return; // Data already available
-    }
+    // Determine which APIs to prefetch
+    const apisToFetch = [
+      ...PREFETCH_STRATEGIES.initial,
+      ...(PREFETCH_STRATEGIES[currentTab] || []),
+    ];
 
-    // Import utilities
-    const { fetchExpirationsData } = await import('./product-toggle-utils.js');
+    // Fetch all APIs in parallel (Promise.allSettled won't fail if one API fails)
+    const results = await Promise.allSettled(
+      apisToFetch.map((apiName) => fetchAndCache(apiName, productId)),
+    );
 
-    // Create fetch promise with fallback to local JSON
-    const fetchPromise = (async () => {
-      try {
-        const data = await fetchExpirationsData(productId);
-        return data;
-      } catch (apiError) {
-        // Fallback to local JSON file
-        try {
-          const localPath = `${window.location.origin}/templates/product/${productId}.json`;
-          const response = await fetch(localPath);
-
-          if (!response.ok) {
-            throw new Error(`Failed to fetch local JSON: ${response.status}`);
-          }
-
-          const jsonData = await response.json();
-
-          // Transform local JSON to match expected format
-          const optionsData = jsonData.optionsLabels || [];
-          return optionsData;
-        } catch (fallbackError) {
-          throw fallbackError;
-        }
+    // Log any failures for debugging
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        const apiName = apisToFetch[index];
+        // eslint-disable-next-line no-console
+        console.warn(`[prefetchProductData] Failed to fetch ${apiName}:`, result.reason);
       }
-    })();
+    });
 
-    window.productData.fetchPromise = fetchPromise;
-    window.productData.productRoot = normalizedRoot;
+    // Update metadata
     window.productData.productId = productId;
-
-    // Fetch and store data
-    const optionsData = await fetchPromise;
-    window.productData.optionsExpirations = optionsData;
+    window.productData.productRoot = normalizedRoot;
     window.productData.fetchedAt = Date.now();
-    window.productData.fetchPromise = null; // Clear promise after completion
   } catch (error) {
-    // Clear failed promise so it can be retried
-    if (window.productData) {
-      window.productData.fetchPromise = null;
-    }
-    // Silent fail - will fetch on demand if prefetch fails
+    // eslint-disable-next-line no-console
+    console.error('[prefetchProductData] Unexpected error:', error);
   }
 }
 
@@ -707,7 +989,8 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   const productId = getProductId();
   let expirationsData = window.productData?.optionsExpirations;
 
-  // If no data or wrong product, fetch it (should rarely happen due to prefetch)
+  // If no data or wrong product, fetch it on-demand
+  // This handles cases where dropdown is built before idle prefetch completes
   if (!expirationsData || window.productData?.productRoot !== normalizePath(productRoot)) {
     await prefetchProductData(productRoot);
     expirationsData = window.productData?.optionsExpirations || await fetchExpirationsData(productId);
