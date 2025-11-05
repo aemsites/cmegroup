@@ -96,6 +96,7 @@ async function buildMonthSelector(data, button, callback, prevBtn, nextBtn) {
       if (data.currentMonth === 0) {
         data.currentMonth = 11;
         data.currentYear -= 1;
+        data.selectedYear -= 1;
       } else {
         data.currentMonth -= 1;
       }
@@ -116,6 +117,7 @@ async function buildMonthSelector(data, button, callback, prevBtn, nextBtn) {
       if (data.currentMonth === 11) {
         data.currentMonth = 0;
         data.currentYear += 1;
+        data.selectedYear += 1;
       } else {
         data.currentMonth += 1;
       }
