@@ -800,6 +800,23 @@ function debounce(fn, delay) {
   };
 }
 
+function convertMMSSToHHMM(timeStr) {
+  const [minutes, seconds] = timeStr.split(':').map(Number);
+
+  let totalMinutes = minutes;
+  if (seconds > 30) {
+    totalMinutes += 1;
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const remainingMinutes = totalMinutes % 60;
+
+  const hh = String(hours).padStart(2, '0');
+  const mm = String(remainingMinutes).padStart(2, '0');
+
+  return `${hh}:${mm}`;
+}
+
 export {
   loadScript,
   createElement,
@@ -831,4 +848,5 @@ export {
   addFragmentBlock,
   getLanguageLabel,
   debounce,
+  convertMMSSToHHMM,
 };
