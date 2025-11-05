@@ -610,7 +610,18 @@ export async function createDynamicCards(block) {
   if (cardElements && cardElements.length) {
     const ul = createElement('ul', null, ...cardElements);
     const cardsContainer = createElement('div', null, ul);
+    const paramsFallback = config['params-fallback'];
     block.textContent = '';
+    if (config['params-fallback']) {
+      cardElements.map((item) => {
+        const childrenArray = Array.from(item.children || []);
+        const anchor = childrenArray.find((child) => child.tagName === 'A');
+        if (anchor) {
+          anchor.href = `${anchor.href}?${paramsFallback}`;
+        }
+        return item;
+      });
+    }
     if (config.title) {
       const listCardTitle = document.createElement('h4');
       listCardTitle.textContent = config.title;
@@ -630,8 +641,7 @@ export async function createDynamicCards(block) {
 }
 
 async function createRecommendedFromService(data, block) {
-  const config = readBlockConfig(block);
-  const { params } = buildIndexFilter(config);
+  const { params } = readBlockConfig(block);
   const blockDiv = createElement('div', {
     class: 'cards recommended-ai block',
   });

@@ -41,8 +41,6 @@ function buildIndexFilter(config) {
     metadataAnd: config.metadataAnd,
     metadataOr: config.metadataOr,
     metadataNot: config.metadataNot,
-    params: config.params,
-    paramsFallback: config['params-fallback'],
   };
 }
 
@@ -68,8 +66,6 @@ function buildIndexFilter(config) {
  *   metadataAnd: { "moduleId": "G-IF-Course" }, // The page must match all of these metadata key-value pairs
  *   metadataOr: { "mediaType": "course" }, // The page must match at least one of these metadata key-value pairs
  *   metadataNot: { "subNavShow": "show" }, // The page must not match any of these metadata key-value pairs
- *   params: 'itm_medium=homepage_promo&itm_campaign=gold_2025' // String to add on each link as parameter, only for recommended-ai service
- *   paramsFallback: 'itm_medium=homepage_promo&itm_campaign=gold_2025' // String to add on each link as parameter, only for fallback cards
  * });
  */
 async function getIndexedContent(indexFilter) {
@@ -121,12 +117,6 @@ async function getIndexedContent(indexFilter) {
     if (indexFilter.customTagObjArr && indexFilter.customTagObjArr.length > 0) {
       postData.query.tags = indexFilter.customTagObjArr;
     }
-    if (indexFilter.params) {
-      postData.query.params = indexFilter.params;
-    }
-    if (indexFilter.paramsFallback) {
-      postData.query.paramsFallback = indexFilter.paramsFallback;
-    }
     if (hasValue(indexFilter.relativeDateFrom) || hasValue(indexFilter.relativeDateTo)) {
       const dateRange = {};
       await setupDayjsLibs();
@@ -153,12 +143,6 @@ async function getIndexedContent(indexFilter) {
     const responseData = getResponseData(response);
     if (indexFilter.getFacets) {
       return responseData;
-    }
-    if (indexFilter.paramsFallback) {
-      return responseData.data.map((item) => ({
-        ...item,
-        path: `${item.path}?${indexFilter.paramsFallback}`,
-      }));
     }
     return responseData && responseData.data ? responseData.data : responseData;
   } catch (error) {
