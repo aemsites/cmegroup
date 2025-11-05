@@ -151,7 +151,7 @@ h6,
   margin-top: 0;
 
   &.gradient {
-    background-image: linear-gradient(45deg, var(--blue5), var(--green));
+    background-image: linear-gradient(-45deg, var(--blue5), var(--green));
     background-clip: text;
     color: transparent;
   }
@@ -339,7 +339,7 @@ p {
     line-height: 1.5rem;
   }
 
-  & a {
+  &:not(.button-container) a {
     background-position: 0 100%;
     background-repeat: repeat-x;
     background-size: 200% 0.0625rem;
@@ -542,7 +542,8 @@ a {
     color: var(--blue5);
 
     &:hover,
-    &:active {
+    &:active,
+    &:visited {
       color: var(--blue5);
     }
 
@@ -658,14 +659,6 @@ button {
       }
     }
   }
-}
-
-a.button,
-a.button:active,
-a.button:focus,
-button:active,
-button:focus {
-  box-shadow: none;
 }
 
 a.button.primary,
@@ -1199,6 +1192,10 @@ main {
     &.center {
       & .default-content-wrapper {
         text-align: center;
+      }
+
+      & .block {
+        margin: 0 auto;
       }
 
       & .layout > div {
