@@ -27,6 +27,14 @@ let currentToggleOperation = null; // Track current operation for cancellation
 // Cache for pre-built dropdown elements (reused across tabs)
 const prebuiltDropdownCache = new Map();
 
+// Per-tab options state storage
+// Stores which contract is selected for each tab
+// Example: { quotes: '301', settlements: '302' }
+// This allows each tab to remember its own options selection
+if (!window.productTabSelections) {
+  window.productTabSelections = {};
+}
+
 // ==================== UNIFIED API CONFIGURATION ====================
 /**
  * API Configuration Map
@@ -154,6 +162,19 @@ window.inspectProductData = () => {
     // eslint-disable-next-line no-console
     console.log('Has settlementsData:', !!window.productData.settlementsData);
   }
+};
+
+/**
+ * Development helper: Inspect per-tab selections
+ * Usage: window.inspectTabSelections()
+ */
+window.inspectTabSelections = () => {
+  // eslint-disable-next-line no-console
+  console.log('=== Per-Tab Options Selections ===');
+  // eslint-disable-next-line no-console
+  console.log('Current selections:', window.productTabSelections);
+  // eslint-disable-next-line no-console
+  console.log('Tabs with selections:', Object.keys(window.productTabSelections || {}));
 };
 
 // ==================== UTILITY FUNCTIONS ====================
@@ -536,12 +557,57 @@ function wireNavClicks(container, productRoot) {
       clearTimeout(navigationDebounceTimer);
     }
 
+    const currentPath = window.location.pathname;
+    const currentSearch = window.location.search;
+
+    // ENHANCEMENT: Per-tab options state persistence
+    // Store current tab's selection before navigating
+    const currentRel = normalizePath(currentPath).replace(normalizePath(productRoot), '');
+    const currentParts = currentRel.split('/').filter((p) => p && p !== 'options');
+    const currentTab = currentParts[0];
+    
+    // If currently viewing options with a contract, save it for this tab
+    if (currentPath.includes('/options') && (currentSearch.includes('productId=') || currentSearch.includes('optionProductId='))) {
+      const urlParams = new URLSearchParams(currentSearch);
+      const selectedContract = urlParams.get('optionProductId') || urlParams.get('productId');
+      if (selectedContract && currentTab) {
+        window.productTabSelections[currentTab] = selectedContract;
+      }
+    } else if (currentTab && !currentPath.includes('/options')) {
+      // If on futures view (no /options in path), clear any stored selection for this tab
+      // This ensures explicit futures selection is remembered
+      if (window.productTabSelections[currentTab]) {
+        delete window.productTabSelections[currentTab];
+      }
+    }
+
+    // Determine target tab from href
+    const targetUrl = new URL(href, window.location.origin);
+    const targetPath = targetUrl.pathname;
+    const targetRel = normalizePath(targetPath).replace(normalizePath(productRoot), '');
+    const targetParts = targetRel.split('/').filter((p) => p && p !== 'options');
+    const targetTab = targetParts[0];
+
+    let finalHref = href;
+
+    // Check if target tab has a stored selection (and is not overview/root)
+    if (targetTab && targetTab !== 'overview' && window.productTabSelections[targetTab]) {
+      const storedContract = window.productTabSelections[targetTab];
+      
+      // Build options URL with stored contract
+      if (!targetPath.includes('/options')) {
+        finalHref = `${href}/options?optionProductId=${storedContract}`;
+      } else {
+        finalHref = targetUrl.search ? href : `${href}?optionProductId=${storedContract}`;
+      }
+    }
+
     // Update URL immediately for instant visual feedback
-    window.history.pushState({}, '', href);
+    window.history.pushState({}, '', finalHref);
 
     // Debounce the actual content rendering (prevents duplicate toggles on rapid clicks)
     navigationDebounceTimer = setTimeout(() => {
-      renderProductPath(href, productRoot);
+      renderProductPath(finalHref, productRoot);
       navigationDebounceTimer = null;
     }, 100); // 100ms debounce - adjust if needed
   });
@@ -885,6 +951,8 @@ async function prefetchProductData(productRoot, currentTab = null) {
       window.productData = null;
       prebuiltDropdownCache.clear();
       PREFETCH_CACHE.clear();
+      // Clear per-tab selections (they're specific to the previous product)
+      window.productTabSelections = {};
     }
 
     // Initialize data store if needed
@@ -983,7 +1051,9 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   futuresBtn.textContent = 'FUTURES';
   futuresBtn.type = 'button';
 
-  if (normalizePath(currentPath) === normalizePath(futuresPath)) {
+  const isFuturesActive = normalizePath(currentPath) === normalizePath(futuresPath);
+  
+  if (isFuturesActive) {
     futuresBtn.classList.add(TOGGLE_CONSTANTS.toggleClasses.active);
   }
 
@@ -1005,6 +1075,7 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   // Build dropdown fresh each time (data is cached, so this is fast)
   // NOTE: We cannot cache the dropdown DOM element because cloneNode() doesn't copy event listeners
   const selectedContract = getSelectedContractFromURL();
+  
   const optionsDropdown = createOptionsDropdown(expirationsData, selectedContract);
 
   // Always update href for current context
@@ -1057,6 +1128,9 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
       e.preventDefault();
       const href = futuresBtn.getAttribute('data-href');
       if (href) {
+        // CLEAR stored selection for this tab (user explicitly chose Futures)
+        delete window.productTabSelections[primaryTab];
+
         // Cancel any pending navigation
         if (navigationDebounceTimer) {
           clearTimeout(navigationDebounceTimer);
@@ -1098,6 +1172,9 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
     const optionsPath = `${productRoot}/${primaryTab}/options`;
     const fullUrl = buildContractURL(optionsPath, contractId);
 
+    // SAVE selection for this tab
+    window.productTabSelections[primaryTab] = contractId;
+
     // Cancel any pending navigation
     if (navigationDebounceTimer) {
       clearTimeout(navigationDebounceTimer);
@@ -1129,7 +1206,9 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
  * @param {Element} nav - Navigation element
  */
 async function updateDropdownActiveState(nav) {
-  if (!nav) return;
+  if (!nav) {
+    return;
+  }
 
   const { getSelectedContractFromURL, TOGGLE_CONSTANTS } = await import('./product-toggle-utils.js');
   const selectedContract = getSelectedContractFromURL();
@@ -1139,11 +1218,8 @@ async function updateDropdownActiveState(nav) {
   if (dropdown && selectedContract) {
     const items = dropdown.querySelectorAll(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownItem}`);
     items.forEach((item) => {
-      if (item.dataset.value === selectedContract) {
-        item.classList.add('selected');
-      } else {
-        item.classList.remove('selected');
-      }
+      const isSelected = item.dataset.value === selectedContract;
+      item.classList.toggle('selected', isSelected);
     });
   }
 
@@ -1184,6 +1260,7 @@ async function insertEnhancedSubTabsIfApplicable(productRoot) {
 
   // Determine current tab
   const currentPath = normalizePath(window.location.pathname);
+  const currentSearch = window.location.search;
   const rel = normalizePath(currentPath).replace(normalizePath(productRoot), '');
   const parts = rel.split('/').filter((p) => p);
 
@@ -1204,6 +1281,15 @@ async function insertEnhancedSubTabsIfApplicable(productRoot) {
   }
 
   const primaryTab = parts[0];
+
+  // Save initial state if page loaded with an options contract selected
+  if (currentPath.includes('/options') && (currentSearch.includes('productId=') || currentSearch.includes('optionProductId='))) {
+    const urlParams = new URLSearchParams(currentSearch);
+    const selectedContract = urlParams.get('optionProductId') || urlParams.get('productId');
+    if (selectedContract && primaryTab && !window.productTabSelections[primaryTab]) {
+      window.productTabSelections[primaryTab] = selectedContract;
+    }
+  }
 
   // Prevent concurrent toggle creation
   if (isCreatingToggle) {
