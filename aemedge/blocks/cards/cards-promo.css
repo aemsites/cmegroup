@@ -11,67 +11,74 @@
       width: 100%;
       border: none;
 
-      & .cards-card-body {
-        padding: 1.875rem;
-        margin: 0;
-        position: relative;
-
-        &::after{
-          height: 3.75rem;
-          width: 3.75rem;
-          font-family: var(--cme-group-icons);
-          content: var(--icon-arrow-right-thin);
-          position: absolute;
-          top: 0;
-          right: 0;
-          color: var(--blue4);
-          font-size: 1.5rem;
-          display: flex;
-          justify-content: center;
-          align-items: center;
+      & a {
+        &:hover {
+          text-decoration: none;
         }
 
-        & h4 {
-          font-size: 1.25rem;
-          line-height: 2.1875rem;
-          letter-spacing: 0.0125rem;
-          font-weight: 600;
-          font-family: var(--averta);
+        & .cards-card-body {
+          padding: 1.875rem;
           margin: 0;
-
-          & strong {
+          position: relative;
+  
+          &::after{
+            height: 3.75rem;
+            width: 3.75rem;
+            font-family: var(--cme-group-icons);
+            content: var(--icon-arrow-right-thin);
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: var(--blue4);
+            font-size: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+  
+          & h4 {
+            font-size: 1.25rem;
+            line-height: 2.1875rem;
+            letter-spacing: 0.0125rem;
             font-weight: 600;
-
+            font-family: var(--averta);
+            margin: 0;
+  
+            & strong {
+              font-weight: 600;
+  
+              & a {
+                color: var(--blue2);
+                display: block;
+  
+                &:hover {
+                  text-decoration: none;
+                }
+              }
+            }
+          }
+  
+          & p {
+            margin-bottom: 0;
+  
             & a {
-              color: var(--blue2);
-              display: block;
-
+              color: var(--gray3);
+              padding: 0;
+              font-size: 0.875rem;
+              line-height: 24px;
+              text-transform: none;
+              font-weight: 400;
+              letter-spacing: normal;
+  
               &:hover {
                 text-decoration: none;
+                background-position: unset;
               }
             }
           }
         }
-
-        & p {
-          margin-bottom: 0;
-
-          & a {
-            color: var(--gray3);
-            padding: 0;
-            font-size: 0.875rem;
-            line-height: 24px;
-            text-transform: none;
-            font-weight: 400;
-            letter-spacing: normal;
-
-            &:hover {
-              text-decoration: none;
-              background-position: unset;
-            }
-          }
-        }
       }
+
     }
   }
 
