@@ -257,9 +257,10 @@
 
 .form p.recaptcha-disclaimer {
   color: var(--gray4);
-  font-size: 0.75rem;
-  margin: 0;
+  font-size: 0.75rem !important;
+  margin: 0 !important;
   padding-top: 0.3125rem;
+  line-height: 1.25rem !important;
 }
 
 /* Custom validation styles */
@@ -396,6 +397,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 85%;
+  line-height: 0.875rem;
 }
 
 .form .choices .choices__list--single .choices__placeholder {

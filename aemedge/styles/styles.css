@@ -339,7 +339,7 @@ p {
     line-height: 1.5rem;
   }
 
-  & a {
+  &:not(.button-container) a {
     background-position: 0 100%;
     background-repeat: repeat-x;
     background-size: 200% 0.0625rem;
@@ -659,14 +659,6 @@ button {
       }
     }
   }
-}
-
-a.button,
-a.button:active,
-a.button:focus,
-button:active,
-button:focus {
-  box-shadow: none;
 }
 
 a.button.primary,
