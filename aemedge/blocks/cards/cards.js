@@ -1,5 +1,3 @@
-/* eslint-disable max-len */
-import { getRecommendationAi } from '../../scripts/services/RecommendationAiService.js';
 import {
   buildIndexFilter,
   getIndexedContent,
@@ -734,10 +732,16 @@ async function createRecommendedCards(block) {
   const { limit } = readBlockConfig(block);
   block.textContent = '';
   block.appendChild(createSpinner());
+  let dataAi = [];
 
-  const dataAi = await getRecommendationAi();
+  try {
+    const { getRecommendationAi } = await import('../../scripts/services/RecommendationAiService.js');
+    dataAi = await getRecommendationAi();
+  } catch (error) {
+    dataAi = [];
+  }
   const result = limit ? dataAi.slice(0, limit) : dataAi;
-  if (dataAi.length) {
+  if (dataAi && dataAi.length > 0) {
     const cardsAi = await createRecommendedFromService(result, blockData);
     block.replaceWith(cardsAi);
   } else if (blockData) {
