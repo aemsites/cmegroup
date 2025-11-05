@@ -154,6 +154,7 @@ export class Authentication {
     if (!Object.keys(cookiesData).length) {
       return;
     }
+    Authentication.removeLegacyCookies();
     const { secureFgp, userinfo } = cookiesData;
     const { userId, token } = userinfo;
     const cookies = {
@@ -186,6 +187,20 @@ export class Authentication {
       await deleteCookies(urlByEnvType(), cookies);
     }
     return !Authentication.getLoginCookie('userinfo');
+  }
+
+  static removeLegacyCookies() {
+    const { location: { hostname } } = window;
+    [
+      'userId',
+      'cmeToken',
+      '__Secure-Fgp',
+      'userinfo',
+    ].forEach((name) => {
+      window.CookieUtil?.remove(name, { domain: `.${hostname}`, path: '/' });
+      window.CookieUtil?.remove(name, { domain: `.${hostname}`, path: '' });
+      window.CookieUtil?.remove(name, { domain: `.${hostname}` });
+    });
   }
 
   static getLoginUrlSfCookie() {
@@ -432,14 +447,15 @@ export class Authentication {
       this.processUserData(_userinfo);
     } else {
       const redirectionCookie = Authentication.getRedirectionCookie();
-      const xAuthToken = this.uriUtil.getQuery('X-Auth-Token');
-      if (!redirectionCookie || !xAuthToken) {
-        this.resolveLoginPromise();
-        return false;
-      }
       if (redirectionCookie?.flow === 'logout') {
         this.resolveLoginPromise();
         this.checkRedirection(redirectionCookie);
+        return false;
+      }
+      const xAuthToken = this.uriUtil.getQuery('X-Auth-Token');
+      if (!xAuthToken) {
+        this.resolveLoginPromise();
+        return false;
       }
       const user = await getLoginData(xAuthToken);
       if (!user?.userinfo?.userId) {
