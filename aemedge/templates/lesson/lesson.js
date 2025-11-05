@@ -4,6 +4,7 @@ import {
   updateLessonStatus,
   getCurrentLesson,
   flattenLessons,
+  buildCourseSurveyLink,
 } from '../../scripts/course/course.js';
 import { addCourseCertificate } from '../../scripts/course/certificate.js';
 import {
@@ -173,6 +174,7 @@ export default async function lessonTemplate() {
       const data = await getCourseData(loginInfo);
       initLateralNav(courseData);
       loadUserProgress(data, authenticationData);
+      buildCourseSurveyLink(courseData);
       if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
         import('../../scripts/course/auth-modal.js');
       }
