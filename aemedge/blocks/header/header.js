@@ -734,7 +734,9 @@ class Nav {
     subNavLink.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.toggleMenu(subNavItem);
+      if (window.innerWidth <= 992) {
+        this.toggleMenu(subNavItem);
+      }
     });
 
     const linksInNav = subMenu.querySelectorAll('li a');

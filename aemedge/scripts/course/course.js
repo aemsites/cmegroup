@@ -371,6 +371,13 @@ export function getCurrentLesson(courseData) {
   return lessons.find(({ path }) => currentPath === path);
 }
 
+export function buildCourseSurveyLink(courseData) {
+  const link = document.querySelector('a.course-survey-link');
+  if (!link) return;
+  const surveyLink = link.getAttribute('href') || '/education/course-survey.html';
+  link.setAttribute('href', `${surveyLink}#${courseData.moduleTitle}`);
+}
+
 /**
  * Updates the current lesson status
  */
