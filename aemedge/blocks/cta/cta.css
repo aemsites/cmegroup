@@ -178,7 +178,9 @@
 
       & .description {
         & p {
-          margin-left: 0.625rem;
+          &::before {
+            content: ' ';
+          }
         }
       }
     }
