@@ -43,7 +43,7 @@ function insertPopupIntoDOM(popup) {
     popupSection.style.backgroundColor = `${popup.backgroundColor}`;
   }
   if (popup.backgroundType === 'IMAGE') {
-    popupSection.style.backgroundImage = `url("${popup.urlBackgroundImage}")`;
+    popupSection.style.backgroundImage = `url("${popup.backgroundImage}")`;
     popupSection.style.backgroundRepeat = 'no-repeat';
     popupSection.style.backgroundSize = 'cover';
   }

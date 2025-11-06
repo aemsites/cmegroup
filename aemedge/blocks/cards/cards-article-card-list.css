@@ -160,6 +160,17 @@
           }
         }
       }
+
+      &.rounded-corners {
+        & li {
+          border-radius: .625rem;
+
+          & img {
+            border-top-left-radius: .625rem;
+            border-top-right-radius: .625rem;
+          }
+        }
+      }
     }
   }
 }
