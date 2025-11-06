@@ -1,13 +1,14 @@
 /* eslint-disable max-len */
 /**
- * Quotes Table Block
+ * Quotes Table Block - STORE PATTERN VERSION
  * Displays futures or options quotes based on URL
  * Adapted from v1 tabs/quotes.js for v3 URL-based architecture
  *
- * PERFORMANCE OPTIMIZATION:
- * - Leverages window.productData cache populated by product.js template
- * - Falls back to direct API fetch only when cache unavailable
- * - Provides instant rendering when data is prefetched
+ * STORE PATTERN OPTIMIZATION:
+ * - Uses productStore from product.js for centralized state management
+ * - Immutable state updates via store.dispatch()
+ * - Observable state changes via store.subscribe()
+ * - Perfect for real-time data updates (e.g., pricing every few minutes)
  */
 
 import { getMetadata } from '../../scripts/aem.js';
@@ -15,13 +16,15 @@ import { getProductMetadata } from '../../scripts/utils/product.js';
 import { apiGet, getResponseData } from '../../scripts/utils/index.js';
 import { createElement } from '../../scripts/utils.js';
 
+// Import store and actions from centralized store
+import { store as productStore } from '../../scripts/store/store.js';
+import { updateProductField } from '../../scripts/actions/product.js';
+
 // API Configuration
 const API_CONFIG = {
   quotesTableEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-table.json',
   optionsLabelsEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-v2-getlabels.json',
   optionsDataEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-v2-300-',
-  productOptionsEndpoint: 'https://www.cmegroup.com/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/',
-  localProductFallback: '/aemedge/templates/product/',
 };
 
 // Cache tracking for performance metrics
@@ -34,7 +37,7 @@ let cacheMisses = 0;
  */
 window.getQuotesTableMetrics = () => {
   // eslint-disable-next-line no-console
-  console.log('=== Quotes Table Performance Metrics ===');
+  console.log('=== Quotes Table Performance Metrics (Store Pattern) ===');
   // eslint-disable-next-line no-console
   console.log('Cache Hits:', cacheHits);
   // eslint-disable-next-line no-console
@@ -93,78 +96,94 @@ function getDisplayMode() {
 
 /**
  * Fetch quotes table data for futures
- * OPTIMIZED: Checks window.productData cache first, falls back to API
+ * STORE PATTERN: Reads from productStore, dispatches updates to store
  */
 async function fetchQuotesTableData() {
-  // Try window.productData cache first (prefetched by product.js)
-  if (window.productData?.quotesData?.table) {
+  // Try productStore cache first (prefetched by product.js)
+  const state = productStore.getState();
+  const cachedData = state.productData?.quotesData?.table;
+  
+  if (cachedData) {
     cacheHits += 1;
+    // eslint-disable-next-line no-console
+    console.log('[quotes-table-store] ✓ Futures quotes loaded from store cache');
 
     // Transform cached data to expected format
-    const cachedData = window.productData.quotesData.table;
     return Array.isArray(cachedData) ? { quotes: cachedData } : cachedData;
   }
 
   // Cache miss - fetch from API
   cacheMisses += 1;
+  // eslint-disable-next-line no-console
+  console.log('[quotes-table-store] → Fetching futures quotes from mock API:', API_CONFIG.quotesTableEndpoint);
 
   try {
     const response = await apiGet(API_CONFIG.quotesTableEndpoint);
     const data = getResponseData(response) || response.data;
 
-    // Store in cache for future use
-    if (data && window.productData) {
-      if (!window.productData.quotesData) {
-        window.productData.quotesData = {};
-      }
-      window.productData.quotesData.table = data.quotes || data;
+    // Store in cache via store dispatch (immutable update)
+    if (data) {
+      const tableData = data.quotes || data;
+      
+      // Dispatch to store instead of direct mutation
+      productStore.dispatch(updateProductField('quotesData.table', tableData));
+      
+      // eslint-disable-next-line no-console
+      console.log('[quotes-table-store] ✓ Futures quotes stored in productStore');
     }
 
     return data;
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('[quotes-table] Failed to fetch quotes table:', error);
+    console.error('[quotes-table-store] Failed to fetch quotes table:', error);
     return null;
   }
 }
 
 /**
  * Fetch options labels for a specific product
- * OPTIMIZED: Checks window.productData cache first, falls back to API
+ * STORE PATTERN: Reads from productStore, dispatches updates to store
  */
 async function fetchOptionsLabels(productId) {
   // IMPORTANT: Use separate cache key to avoid collision with product toggle dropdown
-  // - window.productData.optionsExpirations = OPTIONS LABELS (for product toggle)
-  // - window.productData.contractExpirations = CONTRACT MONTHS (for quotes-table)
+  // - productData.optionsExpirations = OPTIONS LABELS (for product toggle)
+  // - productData.contractExpirations = CONTRACT MONTHS (for quotes-table)
 
-  // Try window.productData cache first (prefetched by product.js)
-  if (window.productData?.contractExpirations) {
+  // Try productStore cache first (prefetched by product.js)
+  const state = productStore.getState();
+  const contractExpirations = state.productData?.contractExpirations;
+  
+  if (contractExpirations) {
     cacheHits += 1;
-    return window.productData.contractExpirations;
+    // eslint-disable-next-line no-console
+    console.log('[quotes-table-store] ✓ Options labels loaded from store (contractExpirations)');
+    return contractExpirations;
   }
 
   // Also check if we can extract from optionsExpirations (optionsLabels)
-  if (window.productData?.optionsExpirations) {
+  const optionsExpirations = state.productData?.optionsExpirations;
+  if (optionsExpirations) {
     cacheHits += 1;
-
-    const cachedData = window.productData.optionsExpirations;
+    // eslint-disable-next-line no-console
+    console.log('[quotes-table-store] ✓ Options labels loaded from store (optionsExpirations)');
 
     // Transform cached data to expected format
     // product.js stores optionsLabels directly from the API
-    if (Array.isArray(cachedData) && cachedData.length > 0) {
+    if (Array.isArray(optionsExpirations) && optionsExpirations.length > 0) {
       // Check if it's already in the right format
-      if (cachedData[0]?.contractExpirations) {
+      if (optionsExpirations[0]?.contractExpirations) {
         // From real API - needs transformation
-        const transformed = cachedData[0].contractExpirations.map((contract) => ({
+        const transformed = optionsExpirations[0].contractExpirations.map((contract) => ({
           expirationMonth: contract.label,
           quoteCode: contract.underlyingFutureContract,
           expirationCode: contract.underlyingFutureExpirationCode,
         }));
 
-        // Store in separate cache key
-        if (window.productData) {
-          window.productData.contractExpirations = transformed;
-        }
+        // Store in separate cache key via dispatch
+        productStore.dispatch(updateProductField('contractExpirations', transformed));
+        
+        // eslint-disable-next-line no-console
+        console.log('[quotes-table-store] ✓ Contract expirations transformed and stored');
 
         return transformed;
       }
@@ -173,40 +192,10 @@ async function fetchOptionsLabels(productId) {
 
   // Cache miss - fetch from API
   cacheMisses += 1;
+  // eslint-disable-next-line no-console
+  console.log('[quotes-table-store] → Fetching options labels from mock API:', API_CONFIG.optionsLabelsEndpoint);
 
-  try {
-    // Try real API first
-    const endpoint = `${API_CONFIG.productOptionsEndpoint}${productId}`;
-    const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
-    const data = getResponseData(response) || response.data;
-
-    if (data && data.optionsLabels && Array.isArray(data.optionsLabels)) {
-      const firstOption = data.optionsLabels[0];
-      if (firstOption && firstOption.contractExpirations) {
-        const transformed = firstOption.contractExpirations.map((contract) => ({
-          expirationMonth: contract.label,
-          quoteCode: contract.underlyingFutureContract,
-          expirationCode: contract.underlyingFutureExpirationCode,
-        }));
-
-        // Store in SEPARATE cache keys (don't overwrite optionsExpirations!)
-        if (window.productData) {
-          // Keep optionsLabels for product toggle dropdown
-          if (!window.productData.optionsExpirations) {
-            window.productData.optionsExpirations = data.optionsLabels;
-          }
-          // Store contract expirations separately for quotes-table
-          window.productData.contractExpirations = transformed;
-        }
-
-        return transformed;
-      }
-    }
-  } catch (error) {
-    // Try mock fallback
-  }
-
-  // Fallback to simple mock data (contract expirations for options)
+  // Skip real API (causes 404s) - use mock data directly
   try {
     const mockEndpoint = API_CONFIG.optionsLabelsEndpoint;
     const response = await fetch(mockEndpoint);
@@ -222,16 +211,17 @@ async function fetchOptionsLabels(productId) {
         expirationCode: item.expirationCode,
       }));
 
-      // Store in SEPARATE cache key (not optionsExpirations)
-      if (window.productData) {
-        window.productData.contractExpirations = transformed;
-      }
+      // Store in SEPARATE cache key via dispatch (not optionsExpirations)
+      productStore.dispatch(updateProductField('contractExpirations', transformed));
+      
+      // eslint-disable-next-line no-console
+      console.log('[quotes-table-store] ✓ Options labels stored in productStore');
 
       return transformed;
     }
   } catch (fallbackError) {
     // eslint-disable-next-line no-console
-    console.error('[quotes-table] Failed to fetch options labels:', fallbackError);
+    console.error('[quotes-table-store] Failed to fetch options labels:', fallbackError);
   }
 
   return null;
@@ -242,12 +232,18 @@ async function fetchOptionsLabels(productId) {
  */
 async function fetchOptionsData(quoteCode) {
   const url = `${API_CONFIG.optionsDataEndpoint}${quoteCode}.json`;
+  // eslint-disable-next-line no-console
+  console.log(`[quotes-table-store] → Fetching options data for ${quoteCode} from mock API:`, url);
 
   try {
     const response = await apiGet(url);
     const data = getResponseData(response) || response.data;
+    // eslint-disable-next-line no-console
+    console.log(`[quotes-table-store] ✓ Options data for ${quoteCode} loaded successfully`);
     return data;
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn(`[quotes-table-store] ⚠ No data available for ${quoteCode}, using placeholders`);
     // Return placeholder data structure when data unavailable
     return {
       quotes: [{
@@ -487,11 +483,12 @@ function setupMonthSelectorHandler(block) {
 /**
  * Render the appropriate table based on URL
  *
- * PERFORMANCE FLOW:
- * 1. Check window.productData cache (populated by product.js during idle time)
+ * STORE PATTERN FLOW:
+ * 1. Check productStore cache (populated by product.js during idle time)
  * 2. If cache hit -> instant render (0ms data fetch)
- * 3. If cache miss -> fetch from API and populate cache
- * 4. Subsequent renders use cached data
+ * 3. If cache miss -> fetch from API and dispatch to store
+ * 4. Subsequent renders use cached data from store
+ * 5. Real-time updates: dispatch new data to store, subscribed components auto-update
  */
 async function renderTable(block) {
   const { isOptions, optionProductId } = getDisplayMode();
@@ -579,51 +576,63 @@ function handleAboutReportModal(block) {
 }
 
 /**
- * Listen for contract selection from dropdown (SPA navigation)
- * When URL changes via SPA, the block will re-render
- * NOTE: Currently unused but kept for future SPA navigation enhancements
+ * Setup real-time data subscription (for future CME pricing updates)
+ * 
+ * USAGE FOR REAL-TIME UPDATES:
+ * 1. Call this function to setup subscription
+ * 2. When pricing data updates (every few minutes), dispatch to store:
+ *    productStore.dispatch(updateProductField('quotesData.table', newPricingData))
+ * 3. Subscribed blocks automatically re-render with new data
+ * 
+ * This is the key advantage of the store pattern for real-time data!
  */
-// function listenForContractChanges(block) {
-//   // Listen for SPA navigation completing
-//   const observer = new MutationObserver(() => {
-//     const { isOptions } = getDisplayMode();
-//     const currentTableId = isOptions ? 'options-quotes-table' : 'futures-quotes-table';
-//     const existingTable = block.querySelector(`#${currentTableId}`);
-//
-//     // If URL changed but table doesn't match, re-render
-//     if (!existingTable) {
-//       renderTable(block);
-//     }
-//   });
-//
-//   // Observe URL changes (SPA navigation updates document)
-//   observer.observe(document.body, { childList: true, subtree: true });
-// }
+function setupRealtimeSubscription(block) {
+  // Subscribe to quotes data changes in store
+  const unsubscribe = productStore.subscribe(
+    (state) => state.productData?.quotesData?.table,
+    (quotesData) => {
+      if (quotesData) {
+        // eslint-disable-next-line no-console
+        console.log('[quotes-table-store] 🔄 Quotes data updated in store, re-rendering...');
+        
+        // Re-render table with new data
+        renderTable(block);
+      }
+    }
+  );
+
+  // Return unsubscribe function for cleanup
+  return unsubscribe;
+}
 
 /**
  * Main block decorator
  * This is called when block is first loaded AND when page content is swapped via SPA
  *
- * CACHE INTEGRATION:
- * This block leverages window.productData cache populated by product.js template.
+ * STORE PATTERN INTEGRATION:
+ * This block uses productStore from product.js for centralized state management.
  *
- * Cache Structure:
- * - window.productData.quotesData.table -> Futures quotes data
- * - window.productData.optionsExpirations -> Options contract expirations
+ * Benefits over direct window.productData:
+ * - ✅ Immutable state updates (no accidental mutations)
+ * - ✅ Observable changes (auto re-render on data updates)
+ * - ✅ Centralized state (single source of truth)
+ * - ✅ Perfect for real-time updates (dispatch new data, all subscribers update)
+ * - ✅ Better debugging (track all state changes)
  *
- * Benefits:
- * - Instant render when data is prefetched (0ms data fetch)
- * - Graceful fallback to API when cache unavailable
- * - Bi-directional caching (block can populate cache for other consumers)
+ * Real-time Updates Example:
+ * ```javascript
+ * // Every 5 minutes, fetch new pricing data
+ * setInterval(async () => {
+ *   const newData = await fetchLatestPricing();
+ *   productStore.dispatch(updateProductField('quotesData.table', newData));
+ *   // All subscribed components automatically re-render!
+ * }, 5 * 60 * 1000);
+ * ```
  *
  * Debug:
  * - window.getQuotesTableMetrics() -> View cache hit/miss statistics
- * - window.inspectProductData() -> View current cache state (from product.js)
- *
- * INHERITANCE:
- * - Inherits all table.css styles via @import in quotes-table.css
- * - Add 'table' class to enable base table styles
- * - Add 'fixed-row-header' by default for sticky header behavior
+ * - window.inspectProductStore() -> View current store state (from product.js)
+ * - productStore.getState().productData.quotesData -> View quotes data in store
  */
 export default async function decorate(block) {
   // Add 'table' class to inherit table.css styles
@@ -636,25 +645,40 @@ export default async function decorate(block) {
 
   await renderTable(block);
   handleAboutReportModal(block);
+
+  // Setup real-time subscription (for CME pricing updates)
+  // Enable auto re-rendering when store data updates
+  const unsubscribe = setupRealtimeSubscription(block);
+  
+  // Store unsubscribe function for cleanup (if needed)
+  block.dataset.unsubscribe = unsubscribe;
 }
 
-// ==================== CACHE INTEGRATION NOTES ====================
+// ==================== STORE PATTERN INTEGRATION NOTES ====================
 //
-// This block is optimized to work with the unified caching system in product.js
+// This block demonstrates the Store/Actions/Reducers pattern for state management
 //
 // Data Flow:
-// 1. product.js prefetches data during idle time -> stores in window.productData
-// 2. quotes-table checks cache first -> instant render if available
-// 3. On cache miss -> fetches from API and backfills cache
-// 4. Other blocks/components can reuse the same cached data
+// 1. product.js prefetches data -> stores in productStore via dispatch()
+// 2. quotes-table reads from productStore.getState()
+// 3. On cache miss -> fetches from API and dispatch() to store
+// 4. Real-time updates -> dispatch() new data, subscribers auto-update
 //
-// Cache Keys Used:
-// - quotesData.table: Futures quotes table data
-// - optionsExpirations: Options contract expirations/labels
+// Key Differences from Baseline (window.productData):
+// - READ:   productStore.getState().productData instead of window.productData
+// - WRITE:  productStore.dispatch(updateProductField(...)) instead of window.productData.x = y
+// - WATCH:  productStore.subscribe() for reactive updates
+//
+// Real-time Update Flow (for CME pricing use case):
+// 1. Background job fetches new pricing every N minutes
+// 2. Dispatch to store: productStore.dispatch(updateProductField('quotesData.table', newData))
+// 3. All subscribed blocks automatically detect change and re-render
+// 4. No manual cache invalidation needed!
 //
 // Performance Impact:
-// - Cache hit: 0ms data fetch time (instant render)
-// - Cache miss: 100-500ms API fetch time (network dependent)
-// - Typical cache hit rate after first tab load: 90%+
+// - Same as baseline for initial render
+// - Better for real-time updates (no manual re-rendering needed)
+// - Observable pattern enables sophisticated update strategies
 //
-// ==================== END OF CACHE INTEGRATION NOTES ====================
+// ==================== END OF STORE PATTERN INTEGRATION NOTES ====================
+
