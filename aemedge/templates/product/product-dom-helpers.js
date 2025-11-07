@@ -54,35 +54,35 @@ export async function fetchLandingTabRows(productRoot) {
     const url = `${productRoot}.plain.html`;
     const resp = await fetch(url);
     if (!resp.ok) return null;
-    
+
     const html = await resp.text();
     const temp = document.createElement('div');
     temp.innerHTML = html;
     const block = temp.querySelector('.product-tabs');
-    
+
     if (!block) return null;
-    
+
     const rows = [];
     const blockChildren = block.querySelectorAll(':scope > div');
-    
+
     // Detect structure type: flat (alternating divs) vs nested (row/column)
     const firstChild = blockChildren[0];
     const firstChildColCount = firstChild ? firstChild.children.length : 0;
     const isFlatStructure = firstChildColCount < 2;
-    
+
     if (isFlatStructure) {
       // Flat: <div>Label</div><div>path</div>...
       for (let i = 0; i < blockChildren.length; i += 2) {
         const labelDiv = blockChildren[i];
         const pathDiv = blockChildren[i + 1];
-        
+
         if (labelDiv && pathDiv) {
           const label = labelDiv.textContent.trim();
           const path = pathDiv.textContent.trim();
-          
+
           if (label && path) {
-            const href = path.startsWith('http') || path.startsWith('/') 
-              ? path 
+            const href = path.startsWith('http') || path.startsWith('/')
+              ? path
               : `${productRoot}/${path}`;
             rows.push([label, href]);
           }
@@ -92,26 +92,26 @@ export async function fetchLandingTabRows(productRoot) {
       // Nested: <div><div>Label</div><div><a>...</a></div></div>...
       blockChildren.forEach((row) => {
         const cols = row.children ? [...row.children] : [];
-        
+
         if (cols.length === 2) {
           const label = cols[0].textContent.trim();
           const a = cols[1].querySelector('a');
           let href = a ? a.getAttribute('href') : '';
-          
+
           if (!href) {
             const path = cols[1].textContent.trim();
-            href = path.startsWith('http') || path.startsWith('/') 
-              ? path 
+            href = path.startsWith('http') || path.startsWith('/')
+              ? path
               : `${productRoot}/${path}`;
           }
-          
+
           if (label && href) {
             rows.push([label, href]);
           }
         }
       });
     }
-    
+
     return rows.length ? rows : null;
   } catch (e) {
     return null;
@@ -134,7 +134,7 @@ export async function getDefaultTab(productRoot) {
   } catch (e) {
     // Silent fail - use fallback
   }
-  
+
   return 'overview';
 }
 
@@ -152,7 +152,7 @@ export function buildProductTabsBlock(productRoot, rowsOverride) {
     ['Margins', `${productRoot}/margins`],
     ['Calendar', `${productRoot}/calendar`],
   ];
-  
+
   TABS.forEach(([label, href]) => {
     const a = document.createElement('a');
     a.setAttribute('href', href);
@@ -161,7 +161,7 @@ export function buildProductTabsBlock(productRoot, rowsOverride) {
     rows[rows.length - 1][0].elems[0].textContent = label;
     rows[rows.length - 1][1].elems[0].appendChild(a);
   });
-  
+
   return buildBlock('product-tabs', rows);
 }
 
@@ -171,13 +171,13 @@ export function buildProductTabsBlock(productRoot, rowsOverride) {
 export async function insertProductTabsIfMissing(productRoot) {
   const main = document.querySelector('main');
   if (!main) return null;
-  
+
   const tabsSection = main.querySelector('.product-tabs-container');
   if (tabsSection) return tabsSection;
-  
+
   const landingRows = await fetchLandingTabRows(productRoot);
   let rowsForBuild = landingRows;
-  
+
   if (!rowsForBuild) {
     await loadProductIndex();
     const canonical = [
@@ -189,7 +189,7 @@ export async function insertProductTabsIfMissing(productRoot) {
       ['Margins', `${productRoot}/margins`],
       ['Calendar', `${productRoot}/calendar`],
     ];
-    
+
     const filtered = [];
     for (let i = 0; i < canonical.length; i += 1) {
       // eslint-disable-next-line no-await-in-loop
@@ -197,21 +197,21 @@ export async function insertProductTabsIfMissing(productRoot) {
     }
     rowsForBuild = filtered;
   }
-  
+
   const block = buildProductTabsBlock(productRoot, rowsForBuild);
   const section = createSectionWithBlock(block);
   const heroSection = findHeroSection();
-  
+
   if (heroSection && heroSection.parentNode) {
     heroSection.parentNode.insertBefore(section, heroSection.nextSibling);
   } else {
     main.insertBefore(section, main.firstChild);
   }
-  
+
   const { decorateBlock, loadBlock } = await import('../../scripts/aem.js');
   decorateBlock(block);
   await loadBlock(block);
-  
+
   return section;
 }
 
@@ -221,12 +221,12 @@ export async function insertProductTabsIfMissing(productRoot) {
 export async function insertHeroIfMissing() {
   const main = document.querySelector('main');
   if (!main) return;
-  
+
   const existing = main.querySelector('.hero-baseball');
   if (existing) return;
-  
-  const { buildBlock, decorateBlock, loadBlock } = await import('../../scripts/aem.js');
-  const hero = buildBlock('hero-baseball', '');
+
+  const { buildBlock: createBlock, decorateBlock, loadBlock } = await import('../../scripts/aem.js');
+  const hero = createBlock('hero-baseball', '');
   const section = createSectionWithBlock(hero);
   section.classList.add('full-width');
   main.insertBefore(section, main.firstChild);
@@ -241,7 +241,7 @@ export function ensureHeroThenTabsOrder() {
   const heroSection = findHeroSection();
   const tabsSection = findProductTabsSection();
   if (!heroSection || !tabsSection) return;
-  
+
   const next = heroSection.nextElementSibling;
   if (next !== tabsSection) {
     heroSection.parentNode.insertBefore(tabsSection, heroSection.nextSibling);
@@ -254,7 +254,7 @@ export function ensureHeroThenTabsOrder() {
 export function ensureSubTabsContentContainer() {
   const tabsSection = findProductTabsSection();
   if (!tabsSection || !tabsSection.parentNode) return null;
-  
+
   let container = tabsSection.nextElementSibling;
   if (!container || !container.classList.contains('product-subtabs-content')) {
     container = document.createElement('div');
@@ -263,7 +263,7 @@ export function ensureSubTabsContentContainer() {
     container.appendChild(inner);
     tabsSection.parentNode.insertBefore(container, tabsSection.nextSibling);
   }
-  
+
   return container.querySelector('div');
 }
 
@@ -273,14 +273,13 @@ export function ensureSubTabsContentContainer() {
 export function moveCurrentPageContentUnderSubTabs() {
   const container = ensureSubTabsContentContainer();
   if (!container) return;
-  
+
   const main = document.querySelector('main');
   const sections = [...main.querySelectorAll(':scope > .section')];
   const movable = sections.filter((sec) => !sec.querySelector('.hero-baseball')
     && !sec.classList.contains('product-tabs-container')
     && !sec.classList.contains('product-subtabs-content'));
-  
+
   if (!movable.length) return;
   movable.forEach((sec) => container.appendChild(sec));
 }
-

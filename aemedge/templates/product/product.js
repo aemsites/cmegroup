@@ -1,7 +1,7 @@
 /**
  * Product Template - Main Entry Point
  * Orchestrates product page functionality
- * 
+ *
  * REFACTORED ARCHITECTURE:
  * - product.js (this file) - Main coordination & exports
  * - product-dom-helpers.js - DOM manipulation & tab discovery
@@ -134,7 +134,7 @@ export default async function productTemplate() {
   // If on root path, render default tab (without changing URL)
   const { normalizePath } = await import('../../scripts/utils/product.js');
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
-  
+
   if (onRoot) {
     const defaultTab = await getDefaultTab(productRoot);
     const defaultUrl = `${productRoot}/${defaultTab}`;
@@ -147,7 +147,8 @@ export default async function productTemplate() {
 // To enable auto-updating of product data (quotes, settlements, etc.):
 //
 // PRODUCTION (real APIs):
-// import { startAutoUpdates, AUTO_UPDATE_CONFIG } from '../../scripts/services/ProductAutoUpdateService.js';
+// import { startAutoUpdates, AUTO_UPDATE_CONFIG }
+//   from '../../scripts/services/ProductAutoUpdateService.js';
 // const productId = getProductId();
 // const updateTimers = startAutoUpdates(productId, AUTO_UPDATE_CONFIG);
 //
@@ -167,4 +168,3 @@ export default async function productTemplate() {
 // To stop (in console): window.stopAutoUpdates(updateTimers);
 //
 // ==================== END OF AUTO-UPDATE CONFIGURATION ====================
-

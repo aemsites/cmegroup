@@ -3,6 +3,10 @@
  * Handles futures/options toggle building and management
  */
 
+/* eslint-disable import/no-cycle */
+// Circular dependency with product-navigation.js is intentional and safe
+// Uses dynamic imports to avoid initialization issues
+
 import { normalizePath } from '../../scripts/utils/product.js';
 import { store } from '../../scripts/store/store.js';
 import {
@@ -13,7 +17,11 @@ import {
 } from '../../scripts/actions/product.js';
 import { indexHasPath, findProductTabsSection } from './product-dom-helpers.js';
 import { getProductId, prefetchProductData } from './product-data.js';
-import { renderProductPath, PREFETCH_CACHE, navigationDebounceTimer } from './product-navigation.js';
+import { renderProductPath, PREFETCH_CACHE } from './product-navigation.js';
+/* eslint-enable import/no-cycle */
+
+// Local debounce timer for toggle navigation
+let toggleDebounceTimer = null;
 
 /**
  * Build enhanced subtabs (futures/options toggle)
@@ -55,7 +63,7 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   futuresBtn.type = 'button';
 
   const isFuturesActive = normalizePath(currentPath) === normalizePath(futuresPath);
-  
+
   if (isFuturesActive) {
     futuresBtn.classList.add(TOGGLE_CONSTANTS.toggleClasses.active);
   }
@@ -75,7 +83,7 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   }
 
   const selectedContract = getSelectedContractFromURL();
-  
+
   const optionsDropdown = createOptionsDropdown(expirationsData, selectedContract);
 
   optionsDropdown.setAttribute('data-href', optionsPath);
@@ -121,16 +129,16 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
       if (href) {
         store.dispatch(clearTabSelection(primaryTab));
 
-        if (navigationDebounceTimer) {
-          clearTimeout(navigationDebounceTimer);
-          navigationDebounceTimer = null;
+        if (toggleDebounceTimer) {
+          clearTimeout(toggleDebounceTimer);
+          toggleDebounceTimer = null;
         }
 
         window.history.pushState({}, '', href);
 
-        navigationDebounceTimer = setTimeout(() => {
+        toggleDebounceTimer = setTimeout(() => {
           renderProductPath(href, productRoot);
-          navigationDebounceTimer = null;
+          toggleDebounceTimer = null;
         }, 100);
       }
     });
@@ -158,19 +166,19 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
 
     store.dispatch(setTabSelection(primaryTab, contractId));
 
-    if (navigationDebounceTimer) {
-      clearTimeout(navigationDebounceTimer);
-      navigationDebounceTimer = null;
+    if (toggleDebounceTimer) {
+      clearTimeout(toggleDebounceTimer);
+      toggleDebounceTimer = null;
     }
 
     nav.classList.add('updating');
 
     window.history.pushState({}, '', fullUrl);
 
-    navigationDebounceTimer = setTimeout(async () => {
+    toggleDebounceTimer = setTimeout(async () => {
       await renderProductPath(fullUrl, productRoot);
       nav.classList.remove('updating');
-      navigationDebounceTimer = null;
+      toggleDebounceTimer = null;
     }, 100);
   });
 }
@@ -251,19 +259,19 @@ export async function toggleSubTabsVisibility(productRoot) {
   if (existingToggle) {
     existingToggle.style.display = '';
     existingToggle.dataset.primaryTab = primaryTab;
-    
+
     // ✅ UPDATE DATA-HREF: Point futures button to current tab
     const futuresBtn = existingToggle.querySelector('[data-toggle="futures"]');
     if (futuresBtn) {
       futuresBtn.setAttribute('data-href', futuresPath);
     }
-    
+
     // ✅ UPDATE OPTIONS DATA-HREF: Point to current tab's options
     const optionsBtn = existingToggle.querySelector('[data-toggle="options"]');
     if (optionsBtn) {
       optionsBtn.setAttribute('data-href', optionsPath);
     }
-    
+
     // Update active state and selected option
     await updateDropdownActiveState(existingToggle);
   } else {
@@ -382,4 +390,3 @@ export async function insertEnhancedSubTabsIfApplicable(productRoot) {
   store.dispatch(setCreatingToggle(false));
   store.dispatch(setToggleOperation(null));
 }
-

@@ -1,7 +1,7 @@
 /**
  * Product Auto-Update Service
  * Handles periodic fetching and updating of product data (quotes, settlements, etc.)
- * 
+ *
  * USAGE:
  * import { startAutoUpdates, stopAutoUpdates } from './ProductAutoUpdateService.js';
  * const timers = startAutoUpdates(productId, config);
@@ -16,13 +16,13 @@ import { updateProductField } from '../actions/product.js';
  */
 export function parseDelayToMs(delayString) {
   if (!delayString || typeof delayString !== 'string') return null;
-  
+
   const match = delayString.toLowerCase().match(/(\d+)\s*(min|minute|minutes|m|sec|second|seconds|s|hour|hours|h)?/);
   if (!match) return null;
-  
+
   const value = parseInt(match[1], 10);
   const unit = match[2] || 'minutes';
-  
+
   const multipliers = {
     s: 1000,
     sec: 1000,
@@ -36,7 +36,7 @@ export function parseDelayToMs(delayString) {
     hour: 60 * 60 * 1000,
     hours: 60 * 60 * 1000,
   };
-  
+
   return value * (multipliers[unit] || 60 * 1000);
 }
 
@@ -79,13 +79,13 @@ export const AUTO_UPDATE_CONFIG = {
 
 /**
  * Start auto-updating product data
- * 
+ *
  * @param {string} productId - Product ID to fetch data for
  * @param {object} config - Configuration object (defaults to AUTO_UPDATE_CONFIG)
  * @returns {object} - Object containing timers for each data source (for cleanup)
- * 
+ *
  * EXAMPLE (Demo with sample.json):
- * 
+ *
  * const demoConfig = {
  *   quotes: {
  *     endpoint: () => '/aemedge/blocks/quotes-table/sample.json',
@@ -95,32 +95,32 @@ export const AUTO_UPDATE_CONFIG = {
  *     enabled: true,
  *   },
  * };
- * 
+ *
  * const timers = startAutoUpdates('300', demoConfig);
  */
 export function startAutoUpdates(productId, config = AUTO_UPDATE_CONFIG) {
   const timers = {};
   const intervals = {};
-  
+
   Object.entries(config).forEach(([name, settings]) => {
     if (!settings.enabled) {
       return;
     }
-    
+
     const update = async () => {
       try {
         const response = await fetch(settings.endpoint(productId));
-        
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
-        
+
         const data = await response.json();
         const transformed = settings.transform(data);
-        
+
         // Dispatch to store - all subscribed blocks auto-update!
         store.dispatch(updateProductField(settings.storeKey, transformed));
-        
+
         // If interval is 'auto', extract delay from response
         if (settings.interval === 'auto' && settings.extractDelay && !intervals[name]) {
           const delayString = settings.extractDelay(data);
@@ -128,7 +128,7 @@ export function startAutoUpdates(productId, config = AUTO_UPDATE_CONFIG) {
             const parsedDelay = parseDelayToMs(delayString);
             if (parsedDelay) {
               intervals[name] = parsedDelay;
-              
+
               // Restart with new interval
               if (timers[name]) {
                 clearInterval(timers[name]);
@@ -141,24 +141,24 @@ export function startAutoUpdates(productId, config = AUTO_UPDATE_CONFIG) {
         // Silent fail - auto-update errors are non-critical
       }
     };
-    
+
     // Initial fetch
     update();
-    
+
     // Schedule periodic updates
-    const updateInterval = settings.interval === 'auto' 
-      ? settings.fallbackInterval 
+    const updateInterval = settings.interval === 'auto'
+      ? settings.fallbackInterval
       : settings.interval;
-      
+
     timers[name] = setInterval(update, updateInterval);
   });
-  
+
   return timers;
 }
 
 /**
  * Stop all auto-updates
- * 
+ *
  * @param {object} timers - Timer object returned from startAutoUpdates()
  */
 export function stopAutoUpdates(timers) {
@@ -192,4 +192,3 @@ export function stopAutoUpdates(timers) {
 // window.stopAutoUpdates(window.updateTimers);
 //
 // ==================== END OF AUTO-UPDATE SYSTEM ====================
-

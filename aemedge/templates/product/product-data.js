@@ -28,14 +28,14 @@ export const API_CONFIG = {
     transform: (data) => data,
     cacheKey: 'optionsExpirations',
   },
-  
+
   // ✅ FUTURES: Quotes table
   quotesTable: {
     apiEndpoint: (productId) => `/CmeWS/mvc/quotes/v2/${productId}`,
     transform: (data) => data.quotes || data,
     cacheKey: 'quotesData.table',
   },
-  
+
   // ✅ OPTIONS: ATM (At The Money) strike prices table
   atmTable: {
     apiEndpoint: (productId, year, month) => {
@@ -48,28 +48,28 @@ export const API_CONFIG = {
     transform: (data) => data,
     cacheKey: 'optionsData.atmTable',
   },
-  
+
   // ✅ CVOL: Index card (separate block)
   cvol: {
-    apiEndpoint: () => `/services/cvol?symbol=CVL`,
+    apiEndpoint: () => '/services/cvol?symbol=CVL',
     transform: (data) => data,
     cacheKey: 'quotesData.cvol',
   },
-  
+
   // ✅ MARKET RECAP: Report (separate block)
   marketRecap: {
     apiEndpoint: () => '/CmeWS/mvc/Ags/Reports',
     transform: (data) => data,
     cacheKey: 'quotesData.marketRecap',
   },
-  
+
   // ✅ SETTLEMENTS: Trade dates
   settlementsDates: {
     apiEndpoint: (productId) => `/CmeWS/mvc/Settlements/Futures/TradeDate/${productId}`,
     transform: (data) => data,
     cacheKey: 'settlementsData.tradeDates',
   },
-  
+
   // ✅ METADATA: Contracts info
   contractsMetadata: {
     apiEndpoint: (productId) => `/api/contracts/${productId}`,
@@ -84,11 +84,11 @@ export const API_CONFIG = {
  */
 export const TAB_API_MAPPING = {
   quotes: [
-    'quotesTable',      // Futures quotes
-    'atmTable',         // Options ATM table
-    'cvol',             // CVOL index card
-    'marketRecap',      // Market recap report
-    'contractsMetadata' // Contract metadata
+    'quotesTable', // Futures quotes
+    'atmTable', // Options ATM table
+    'cvol', // CVOL index card
+    'marketRecap', // Market recap report
+    'contractsMetadata', // Contract metadata
   ],
   settlements: ['settlementsDates', 'contractsMetadata'],
   volume: ['contractsMetadata'],
@@ -234,7 +234,8 @@ export async function fetchTabData(productRoot, tabName) {
       store.dispatch(clearProductData());
       store.dispatch(clearAllTabSelections());
       prebuiltDropdownCache.clear();
-      
+
+      // eslint-disable-next-line import/no-cycle
       const { PREFETCH_CACHE } = await import('./product-navigation.js');
       PREFETCH_CACHE.clear();
     }
@@ -250,7 +251,7 @@ export async function fetchTabData(productRoot, tabName) {
 
     // ✅ FETCH ONLY WHAT THIS TAB NEEDS
     const apisToFetch = TAB_API_MAPPING[tabName] || [];
-    
+
     if (apisToFetch.length === 0) {
       return; // No APIs needed for this tab
     }
@@ -260,7 +261,7 @@ export async function fetchTabData(productRoot, tabName) {
       apisToFetch.map((apiName) => fetchAndCache(apiName, productId)),
     );
 
-    results.forEach((result, index) => {
+    results.forEach((result) => {
       if (result.status === 'rejected') {
         // Silent fail - API failures are non-critical
       }
@@ -290,7 +291,8 @@ export async function prefetchProductData(productRoot, currentTab = null) {
       store.dispatch(clearProductData());
       store.dispatch(clearAllTabSelections());
       prebuiltDropdownCache.clear();
-      
+
+      // eslint-disable-next-line import/no-cycle
       const { PREFETCH_CACHE } = await import('./product-navigation.js');
       PREFETCH_CACHE.clear();
     }
@@ -321,7 +323,7 @@ export async function prefetchProductData(productRoot, currentTab = null) {
       apisToFetch.map((apiName) => fetchAndCache(apiName, productId)),
     );
 
-    results.forEach((result, index) => {
+    results.forEach((result) => {
       if (result.status === 'rejected') {
         // Silent fail - API failures are non-critical
       }
@@ -332,4 +334,3 @@ export async function prefetchProductData(productRoot, currentTab = null) {
     // Silent fail - prefetch errors are non-critical
   }
 }
-

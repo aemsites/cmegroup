@@ -15,9 +15,11 @@ import {
 import { getDefaultTab } from './product-dom-helpers.js';
 
 // Export for use in other modules
-export let PREFETCH_CACHE = new Map();
-export let navigationDebounceTimer = null;
-export let POPSTATE_BOUND = false;
+export const PREFETCH_CACHE = new Map();
+// Note: navigationDebounceTimer is not exported to avoid mutation issues
+let navigationDebounceTimer = null;
+// Note: POPSTATE_BOUND is not exported to avoid mutation issues
+let POPSTATE_BOUND = false;
 
 // Tab options support cache
 const TAB_OPTIONS_SUPPORT_CACHE = {};
@@ -27,7 +29,9 @@ let cachedModules = null;
 async function getModules() {
   if (!cachedModules) {
     cachedModules = await Promise.all([
+      // eslint-disable-next-line import/no-cycle
       import('./product-data.js'),
+      // eslint-disable-next-line import/no-cycle
       import('./product-toggle-manager.js'),
       import('./product-dom-helpers.js'),
     ]);
@@ -50,7 +54,7 @@ export async function checkTabSupportsOptions(productRoot, tabName) {
   }
 
   const optionsPath = `${productRoot}/${tabName}/options.plain.html`;
-  
+
   try {
     const response = await fetch(optionsPath, { method: 'HEAD' });
     const supportsOptions = response.ok;
@@ -76,13 +80,13 @@ export function getCachedTabOptionsSupport(productRoot, tabName) {
 export function enableProductSpaNavigation(productRoot) {
   const tabsNav = document.querySelector('.product-tabs-nav');
   const subTabsNav = document.querySelector('.product-subtabs');
-  
+
   if (tabsNav && !tabsNav.dataset.spaBound) {
     wireNavClicks(tabsNav, productRoot);
     wirePrefetches(tabsNav, productRoot);
     tabsNav.dataset.spaBound = 'y';
   }
-  
+
   if (subTabsNav && !subTabsNav.dataset.spaBound) {
     wireNavClicks(subTabsNav, productRoot);
     wirePrefetches(subTabsNav, productRoot);
@@ -125,14 +129,14 @@ function wireNavClicks(container, productRoot) {
       const currentRel = normalizePath(currentPath).replace(normalizePath(productRoot), '');
       const currentParts = currentRel.split('/').filter((p) => p);
       const currentTab = currentParts[0];
-      
+
       let currentTabSupportsOpts = getCachedTabOptionsSupport(productRoot, currentTab);
-      
+
       if (currentTabSupportsOpts === null && currentTab) {
         checkTabSupportsOptions(productRoot, currentTab);
         currentTabSupportsOpts = null;
       }
-      
+
       if (currentTabSupportsOpts === true && state.globalOptionSelection.selectedContract) {
         store.dispatch(clearGlobalOptionSelection());
       }
@@ -150,10 +154,10 @@ function wireNavClicks(container, productRoot) {
     // Apply global selection to target tab (if exists)
     const updatedState = store.getState();
     const globalContract = updatedState.globalOptionSelection.selectedContract;
-    
+
     if (targetTab && targetTab !== 'overview' && globalContract) {
       const tabSupportsOptions = await checkTabSupportsOptions(productRoot, targetTab);
-      
+
       if (tabSupportsOptions) {
         if (!targetPath.includes('/options')) {
           finalHref = `${href}/options?optionProductId=${globalContract}`;
@@ -192,10 +196,10 @@ export async function renderProductPath(url, productRoot) {
   try {
     const myToken = Date.now();
     store.dispatch(setNavigationToken(myToken));
-    
+
     // ✅ PRESERVE PREFETCH: Don't clear cache to use hover-prefetched content
     // PREFETCH_CACHE.clear(); // Removed - wastes prefetch work!
-    
+
     // Active state already updated in wireNavClicks for immediate feedback
     // updateTabsActiveState(url); // Removed - already done on click
 
@@ -205,7 +209,7 @@ export async function renderProductPath(url, productRoot) {
     const rel = normalizePath(basePath).replace(normalizedRoot, '');
     const parts = rel.split('/').filter((p) => p && p !== 'options');
     let destinationTab = parts[0];
-    
+
     if (!destinationTab) {
       destinationTab = await getDefaultTab(productRoot);
     }
@@ -220,7 +224,7 @@ export async function renderProductPath(url, productRoot) {
 
     // ✅ LAZY LOADING: Fetch only the data this tab needs (on-demand)
     fetchTabData(productRoot, destinationTab).catch(() => {});
-    
+
     // ✅ RUN IN PARALLEL: Don't await DOM operations, let them run while we fetch content
     const domOpsPromise = toggleSubTabsVisibility(productRoot).then(() => {
       moveCurrentPageContentUnderSubTabs();
@@ -254,7 +258,7 @@ export async function renderProductPath(url, productRoot) {
     // ✅ GET CONTAINER FIRST: Start fade transition early
     const container = ensureSubTabsContentContainer();
     if (!container) return;
-    
+
     // ✅ FADE OUT: Smooth visual transition
     container.style.transition = 'opacity 0.15s ease-out';
     container.style.opacity = '0.3';
@@ -338,16 +342,16 @@ export async function renderProductPath(url, productRoot) {
 
     // ✅ ENSURE TOGGLE READY: Wait for futures/options dropdown before showing content
     await domOpsPromise;
-    
+
     // ✅ FADE IN: Now show everything together (content + toggle)
     container.style.opacity = '1';
-    
+
     // ✅ BACKGROUND LOADING: Load blocks in background after content is visible
     Promise.all(clones.map((cl) => loadSection(cl))).catch(() => {});
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('SPA navigation failed:', e);
-    
+
     const { ensureSubTabsContentContainer } = await import('./product-dom-helpers.js');
     const container = ensureSubTabsContentContainer();
     if (container) {
@@ -441,4 +445,3 @@ function wirePrefetches(container, productRoot) {
     // IntersectionObserver not available
   }
 }
-

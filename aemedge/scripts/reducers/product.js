@@ -47,35 +47,35 @@ export function productDataReducer(state = productDataInitState, action) {
         ...state,
         ...action.payload,
       };
-    
+
     case PRODUCT_ACTIONS.UPDATE_PRODUCT_FIELD: {
       const { field, value } = action.payload;
       const newState = { ...state };
-      
+
       // Handle nested paths like 'quotesData.table'
       if (field.includes('.')) {
         const keys = field.split('.');
         const lastKey = keys.pop();
         let target = newState;
-        
+
         keys.forEach((key) => {
           if (!target[key]) target[key] = {};
           else target[key] = { ...target[key] }; // Clone for immutability
           target = target[key];
         });
-        
+
         target[lastKey] = value;
       } else {
         // Simple top-level field
         newState[field] = value;
       }
-      
+
       return newState;
     }
-    
+
     case PRODUCT_ACTIONS.CLEAR_PRODUCT_DATA:
       return { ...productDataInitState };
-    
+
     case PRODUCT_ACTIONS.SET_API_DATA: {
       const { apiName, data } = action.payload;
       // Handle nested keys like 'quotesData.table'
@@ -94,7 +94,7 @@ export function productDataReducer(state = productDataInitState, action) {
         [apiName]: data,
       };
     }
-    
+
     case PRODUCT_ACTIONS.SET_FETCH_PROMISE:
       return {
         ...state,
@@ -103,7 +103,7 @@ export function productDataReducer(state = productDataInitState, action) {
           [action.payload.apiName]: action.payload.promise,
         },
       };
-    
+
     case PRODUCT_ACTIONS.CLEAR_FETCH_PROMISE: {
       const newPromises = { ...state.fetchPromises };
       delete newPromises[action.payload.apiName];
@@ -112,7 +112,7 @@ export function productDataReducer(state = productDataInitState, action) {
         fetchPromises: newPromises,
       };
     }
-    
+
     default:
       return state;
   }
@@ -130,16 +130,16 @@ export function tabSelectionsReducer(state = tabSelectionsInitState, action) {
         ...state,
         [action.payload.tab]: action.payload.contractId,
       };
-    
+
     case PRODUCT_ACTIONS.CLEAR_TAB_SELECTION: {
       const newState = { ...state };
       delete newState[action.payload.tab];
       return newState;
     }
-    
+
     case PRODUCT_ACTIONS.CLEAR_ALL_TAB_SELECTIONS:
       return {};
-    
+
     default:
       return state;
   }
@@ -157,13 +157,13 @@ export function globalOptionSelectionReducer(state = globalOptionSelectionInitSt
         ...state,
         selectedContract: action.payload.contractId,
       };
-    
+
     case PRODUCT_ACTIONS.CLEAR_GLOBAL_OPTION_SELECTION:
       return {
         ...state,
         selectedContract: null,
       };
-    
+
     default:
       return state;
   }
@@ -181,21 +181,20 @@ export function navigationReducer(state = navigationInitState, action) {
         ...state,
         currentToken: action.payload.token,
       };
-    
+
     case PRODUCT_ACTIONS.SET_CREATING_TOGGLE:
       return {
         ...state,
         isCreatingToggle: action.payload.isCreating,
       };
-    
+
     case PRODUCT_ACTIONS.SET_TOGGLE_OPERATION:
       return {
         ...state,
         currentToggleOperation: action.payload.token,
       };
-    
+
     default:
       return state;
   }
 }
-

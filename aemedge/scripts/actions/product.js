@@ -104,4 +104,3 @@ export function setToggleOperation(token) {
     payload: { token },
   };
 }
-

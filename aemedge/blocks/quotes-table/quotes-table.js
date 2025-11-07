@@ -102,7 +102,7 @@ async function fetchQuotesTableData() {
   // Try productStore cache first (prefetched by product.js)
   const state = productStore.getState();
   const cachedData = state.productData?.quotesData?.table;
-  
+
   if (cachedData) {
     cacheHits += 1;
     // eslint-disable-next-line no-console
@@ -124,10 +124,10 @@ async function fetchQuotesTableData() {
     // Store in cache via store dispatch (immutable update)
     if (data) {
       const tableData = data.quotes || data;
-      
+
       // Dispatch to store instead of direct mutation
       productStore.dispatch(updateProductField('quotesData.table', tableData));
-      
+
       // eslint-disable-next-line no-console
       console.log('[quotes-table-store] ✓ Futures quotes stored in productStore');
     }
@@ -144,7 +144,7 @@ async function fetchQuotesTableData() {
  * Fetch options labels for a specific product
  * STORE PATTERN: Reads from productStore, dispatches updates to store
  */
-async function fetchOptionsLabels(productId) {
+async function fetchOptionsLabels() {
   // IMPORTANT: Use separate cache key to avoid collision with product toggle dropdown
   // - productData.optionsExpirations = OPTIONS LABELS (for product toggle)
   // - productData.contractExpirations = CONTRACT MONTHS (for quotes-table)
@@ -152,7 +152,7 @@ async function fetchOptionsLabels(productId) {
   // Try productStore cache first (prefetched by product.js)
   const state = productStore.getState();
   const contractExpirations = state.productData?.contractExpirations;
-  
+
   if (contractExpirations) {
     cacheHits += 1;
     // eslint-disable-next-line no-console
@@ -181,7 +181,7 @@ async function fetchOptionsLabels(productId) {
 
         // Store in separate cache key via dispatch
         productStore.dispatch(updateProductField('contractExpirations', transformed));
-        
+
         // eslint-disable-next-line no-console
         console.log('[quotes-table-store] ✓ Contract expirations transformed and stored');
 
@@ -213,7 +213,7 @@ async function fetchOptionsLabels(productId) {
 
       // Store in SEPARATE cache key via dispatch (not optionsExpirations)
       productStore.dispatch(updateProductField('contractExpirations', transformed));
-      
+
       // eslint-disable-next-line no-console
       console.log('[quotes-table-store] ✓ Options labels stored in productStore');
 
@@ -361,7 +361,7 @@ async function createOptionsTable() {
     //
     // Future enhancement: Filter contract months based on selectedProductId
 
-    const labelsData = await fetchOptionsLabels(baseProductId);
+    const labelsData = await fetchOptionsLabels();
     if (!labelsData || labelsData.length === 0) return null;
 
     // Use first available quote code (ZCZ5, ZCH6, etc.)
@@ -577,13 +577,13 @@ function handleAboutReportModal(block) {
 
 /**
  * Setup real-time data subscription (for future CME pricing updates)
- * 
+ *
  * USAGE FOR REAL-TIME UPDATES:
  * 1. Call this function to setup subscription
  * 2. When pricing data updates (every few minutes), dispatch to store:
  *    productStore.dispatch(updateProductField('quotesData.table', newPricingData))
  * 3. Subscribed blocks automatically re-render with new data
- * 
+ *
  * This is the key advantage of the store pattern for real-time data!
  */
 function setupRealtimeSubscription(block) {
@@ -594,11 +594,11 @@ function setupRealtimeSubscription(block) {
       if (quotesData) {
         // eslint-disable-next-line no-console
         console.log('[quotes-table-store] 🔄 Quotes data updated in store, re-rendering...');
-        
+
         // Re-render table with new data
         renderTable(block);
       }
-    }
+    },
   );
 
   // Return unsubscribe function for cleanup
@@ -649,7 +649,7 @@ export default async function decorate(block) {
   // Setup real-time subscription (for CME pricing updates)
   // Enable auto re-rendering when store data updates
   const unsubscribe = setupRealtimeSubscription(block);
-  
+
   // Store unsubscribe function for cleanup (if needed)
   block.dataset.unsubscribe = unsubscribe;
 }
@@ -681,4 +681,3 @@ export default async function decorate(block) {
 // - Observable pattern enables sophisticated update strategies
 //
 // ==================== END OF STORE PATTERN INTEGRATION NOTES ====================
-
