@@ -22,6 +22,24 @@ export let POPSTATE_BOUND = false;
 // Tab options support cache
 const TAB_OPTIONS_SUPPORT_CACHE = {};
 
+// ✅ PERFORMANCE: Cache dynamic imports to avoid repeated async loading
+let cachedModules = null;
+async function getModules() {
+  if (!cachedModules) {
+    cachedModules = await Promise.all([
+      import('./product-data.js'),
+      import('./product-toggle-manager.js'),
+      import('./product-dom-helpers.js'),
+    ]);
+  }
+  return {
+    prefetchProductData: cachedModules[0].prefetchProductData,
+    toggleSubTabsVisibility: cachedModules[1].toggleSubTabsVisibility,
+    moveCurrentPageContentUnderSubTabs: cachedModules[2].moveCurrentPageContentUnderSubTabs,
+    ensureSubTabsContentContainer: cachedModules[2].ensureSubTabsContentContainer,
+  };
+}
+
 /**
  * Check if a tab supports options by checking for /options.plain.html file
  */
@@ -89,6 +107,9 @@ function wireNavClicks(container, productRoot) {
       clearTimeout(navigationDebounceTimer);
     }
 
+    // ✅ IMMEDIATE FEEDBACK: Update active state right away for instant visual response
+    updateTabsActiveState(href);
+
     const currentPath = window.location.pathname;
     const currentSearch = window.location.search;
     const state = store.getState();
@@ -144,10 +165,11 @@ function wireNavClicks(container, productRoot) {
 
     window.history.pushState({}, '', finalHref);
 
+    // ✅ REDUCED DEBOUNCE: 100ms → 10ms for faster perceived navigation
     navigationDebounceTimer = setTimeout(() => {
       renderProductPath(finalHref, productRoot);
       navigationDebounceTimer = null;
-    }, 100);
+    }, 10);
   });
 
   container.querySelectorAll('a[href]')
@@ -170,9 +192,12 @@ export async function renderProductPath(url, productRoot) {
   try {
     const myToken = Date.now();
     store.dispatch(setNavigationToken(myToken));
-    PREFETCH_CACHE.clear();
     
-    updateTabsActiveState(url);
+    // ✅ PRESERVE PREFETCH: Don't clear cache to use hover-prefetched content
+    // PREFETCH_CACHE.clear(); // Removed - wastes prefetch work!
+    
+    // Active state already updated in wireNavClicks for immediate feedback
+    // updateTabsActiveState(url); // Removed - already done on click
 
     const urlObj = new URL(url, window.location.origin);
     const basePath = urlObj.pathname;
@@ -185,16 +210,20 @@ export async function renderProductPath(url, productRoot) {
       destinationTab = await getDefaultTab(productRoot);
     }
 
-    // Import on demand to avoid circular dependencies
-    const { prefetchProductData } = await import('./product-data.js');
-    const { insertEnhancedSubTabsIfApplicable } = await import('./product-toggle-manager.js');
-    const { moveCurrentPageContentUnderSubTabs, ensureSubTabsContentContainer } = await import('./product-dom-helpers.js');
+    // ✅ USE CACHED IMPORTS: Much faster than dynamic import every time
+    const {
+      prefetchProductData,
+      toggleSubTabsVisibility,
+      moveCurrentPageContentUnderSubTabs,
+      ensureSubTabsContentContainer,
+    } = await getModules();
 
+    // ✅ RUN IN PARALLEL: Don't await DOM operations, let them run while we fetch content
     prefetchProductData(productRoot, destinationTab).catch(() => {});
-
-    await insertEnhancedSubTabsIfApplicable(productRoot, false);
-    moveCurrentPageContentUnderSubTabs();
-    enableProductSpaNavigation(productRoot);
+    const domOpsPromise = toggleSubTabsVisibility(productRoot).then(() => {
+      moveCurrentPageContentUnderSubTabs();
+      enableProductSpaNavigation(productRoot);
+    });
 
     let html = null;
     const cached = PREFETCH_CACHE.get(basePath);
@@ -220,12 +249,17 @@ export async function renderProductPath(url, productRoot) {
       html = await resp.text();
     }
 
+    // ✅ GET CONTAINER FIRST: Start fade transition early
+    const container = ensureSubTabsContentContainer();
+    if (!container) return;
+    
+    // ✅ FADE OUT: Smooth visual transition
+    container.style.transition = 'opacity 0.15s ease-out';
+    container.style.opacity = '0.3';
+
     const tempMain = document.createElement('main');
     tempMain.innerHTML = html;
     decorateMain(tempMain);
-
-    const container = ensureSubTabsContentContainer();
-    if (!container) return;
 
     const renderables = [...tempMain.querySelectorAll(':scope > .section')]
       .filter((sec) => !sec.querySelector('.hero-baseball')
@@ -300,7 +334,14 @@ export async function renderProductPath(url, productRoot) {
       return cloned;
     });
 
-    await Promise.all(clones.map((cl) => loadSection(cl)));
+    // ✅ ENSURE TOGGLE READY: Wait for futures/options dropdown before showing content
+    await domOpsPromise;
+    
+    // ✅ FADE IN: Now show everything together (content + toggle)
+    container.style.opacity = '1';
+    
+    // ✅ BACKGROUND LOADING: Load blocks in background after content is visible
+    Promise.all(clones.map((cl) => loadSection(cl))).catch(() => {});
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('SPA navigation failed:', e);

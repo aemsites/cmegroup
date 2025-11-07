@@ -208,7 +208,73 @@ async function updateDropdownActiveState(nav) {
 }
 
 /**
+ * ✅ FAST: Just show/hide existing toggle (no rebuild)
+ * Called on navigation after initial load
+ */
+export async function toggleSubTabsVisibility(productRoot) {
+  const tabsSection = findProductTabsSection();
+  if (!tabsSection) return;
+
+  const currentPath = normalizePath(window.location.pathname);
+  const rel = normalizePath(currentPath).replace(normalizePath(productRoot), '');
+  const parts = rel.split('/').filter((p) => p);
+
+  const existingToggle = tabsSection.querySelector('.product-subtabs.enhanced');
+  const shouldShowSubTabs = parts.length > 0 && parts[0] !== 'overview';
+
+  if (!shouldShowSubTabs) {
+    // Hide toggle for overview
+    if (existingToggle) {
+      existingToggle.style.display = 'none';
+    }
+    return;
+  }
+
+  const primaryTab = parts[0];
+  const futuresPath = `${productRoot}/${primaryTab}`;
+  const optionsPath = `${futuresPath}/options`;
+
+  const [hasFutures, hasOptions] = await Promise.all([
+    indexHasPath(futuresPath),
+    indexHasPath(optionsPath),
+  ]);
+
+  if (!hasFutures || !hasOptions) {
+    // Tab doesn't support options - hide toggle
+    if (existingToggle) {
+      existingToggle.style.display = 'none';
+    }
+    return;
+  }
+
+  // Tab supports options - show toggle
+  if (existingToggle) {
+    existingToggle.style.display = '';
+    existingToggle.dataset.primaryTab = primaryTab;
+    
+    // ✅ UPDATE DATA-HREF: Point futures button to current tab
+    const futuresBtn = existingToggle.querySelector('[data-toggle="futures"]');
+    if (futuresBtn) {
+      futuresBtn.setAttribute('data-href', futuresPath);
+    }
+    
+    // ✅ UPDATE OPTIONS DATA-HREF: Point to current tab's options
+    const optionsBtn = existingToggle.querySelector('[data-toggle="options"]');
+    if (optionsBtn) {
+      optionsBtn.setAttribute('data-href', optionsPath);
+    }
+    
+    // Update active state and selected option
+    await updateDropdownActiveState(existingToggle);
+  } else {
+    // First time on a tab with options - build it
+    await insertEnhancedSubTabsIfApplicable(productRoot);
+  }
+}
+
+/**
  * Insert enhanced subtabs if applicable for current tab
+ * ONLY called on initial load or first time visiting options tab
  */
 export async function insertEnhancedSubTabsIfApplicable(productRoot) {
   const myToken = Date.now();
