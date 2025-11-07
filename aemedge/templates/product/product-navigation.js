@@ -33,7 +33,7 @@ async function getModules() {
     ]);
   }
   return {
-    prefetchProductData: cachedModules[0].prefetchProductData,
+    fetchTabData: cachedModules[0].fetchTabData,
     toggleSubTabsVisibility: cachedModules[1].toggleSubTabsVisibility,
     moveCurrentPageContentUnderSubTabs: cachedModules[2].moveCurrentPageContentUnderSubTabs,
     ensureSubTabsContentContainer: cachedModules[2].ensureSubTabsContentContainer,
@@ -212,14 +212,16 @@ export async function renderProductPath(url, productRoot) {
 
     // ✅ USE CACHED IMPORTS: Much faster than dynamic import every time
     const {
-      prefetchProductData,
+      fetchTabData,
       toggleSubTabsVisibility,
       moveCurrentPageContentUnderSubTabs,
       ensureSubTabsContentContainer,
     } = await getModules();
 
+    // ✅ LAZY LOADING: Fetch only the data this tab needs (on-demand)
+    fetchTabData(productRoot, destinationTab).catch(() => {});
+    
     // ✅ RUN IN PARALLEL: Don't await DOM operations, let them run while we fetch content
-    prefetchProductData(productRoot, destinationTab).catch(() => {});
     const domOpsPromise = toggleSubTabsVisibility(productRoot).then(() => {
       moveCurrentPageContentUnderSubTabs();
       enableProductSpaNavigation(productRoot);

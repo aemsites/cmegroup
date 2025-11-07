@@ -19,38 +19,58 @@ import {
 /**
  * API Configuration
  * Maps API names to endpoints, transformations, and cache keys
+ * ✅ UPDATED: Using correct CME Group API endpoints
  */
 export const API_CONFIG = {
+  // ✅ OPTIONS: Expirations dropdown data
   optionsExpirations: {
-    apiEndpoint: (productId) => `/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/${productId}`,
-    transform: (data) => data.optionsLabels || data,
+    apiEndpoint: (productId) => `/CmeWS/mvc/atm/expirations/${productId}`,
+    transform: (data) => data,
     cacheKey: 'optionsExpirations',
   },
+  
+  // ✅ FUTURES: Quotes table
   quotesTable: {
     apiEndpoint: (productId) => `/CmeWS/mvc/quotes/v2/${productId}`,
     transform: (data) => data.quotes || data,
     cacheKey: 'quotesData.table',
   },
-  quotesLabels: {
-    apiEndpoint: (productId) => `/api/quotes/v2/getlabels/${productId}`,
+  
+  // ✅ OPTIONS: ATM (At The Money) strike prices table
+  atmTable: {
+    apiEndpoint: (productId, year, month) => {
+      // Default to current month if not provided
+      const now = new Date();
+      const y = year || now.getFullYear();
+      const m = month || (now.getMonth() + 1);
+      return `/CmeWS/mvc/atm/strike-prices/${productId}/${y}/${m}/ATM`;
+    },
     transform: (data) => data,
-    cacheKey: 'quotesData.labels',
+    cacheKey: 'optionsData.atmTable',
   },
+  
+  // ✅ CVOL: Index card (separate block)
   cvol: {
-    apiEndpoint: (productId) => `/api/quotes/cvol/${productId}`,
+    apiEndpoint: () => `/services/cvol?symbol=CVL`,
     transform: (data) => data,
     cacheKey: 'quotesData.cvol',
   },
+  
+  // ✅ MARKET RECAP: Report (separate block)
   marketRecap: {
     apiEndpoint: () => '/CmeWS/mvc/Ags/Reports',
     transform: (data) => data,
     cacheKey: 'quotesData.marketRecap',
   },
+  
+  // ✅ SETTLEMENTS: Trade dates
   settlementsDates: {
     apiEndpoint: (productId) => `/CmeWS/mvc/Settlements/Futures/TradeDate/${productId}`,
     transform: (data) => data,
     cacheKey: 'settlementsData.tradeDates',
   },
+  
+  // ✅ METADATA: Contracts info
   contractsMetadata: {
     apiEndpoint: (productId) => `/api/contracts/${productId}`,
     transform: (data) => data,
@@ -59,17 +79,32 @@ export const API_CONFIG = {
 };
 
 /**
+ * ✅ LAZY LOADING: Map tabs to their required APIs
+ * Data is fetched on-demand when user clicks a tab
+ */
+export const TAB_API_MAPPING = {
+  quotes: [
+    'quotesTable',      // Futures quotes
+    'atmTable',         // Options ATM table
+    'cvol',             // CVOL index card
+    'marketRecap',      // Market recap report
+    'contractsMetadata' // Contract metadata
+  ],
+  settlements: ['settlementsDates', 'contractsMetadata'],
+  volume: ['contractsMetadata'],
+  specs: ['contractsMetadata'],
+  margins: ['contractsMetadata'],
+  calendar: ['contractsMetadata'],
+  overview: ['contractsMetadata'],
+};
+
+/**
  * Prefetch strategies per tab
+ * ✅ MINIMAL INITIAL LOAD: Only fetch what's needed for options dropdown
  */
 const PREFETCH_STRATEGIES = {
   initial: [
-    'optionsExpirations',
-    'contractsMetadata',
-    'quotesTable',
-    'quotesLabels',
-    'cvol',
-    'marketRecap',
-    'settlementsDates',
+    'optionsExpirations', // ✅ ONLY fetch options dropdown data on initial load
   ],
   quotes: [],
   settlements: [],
@@ -182,7 +217,64 @@ function scheduleIdlePrefetch(productRoot) {
 }
 
 /**
+ * ✅ LAZY LOADING: Fetch data for specific tab on-demand
+ * Called when user clicks a tab
+ */
+export async function fetchTabData(productRoot, tabName) {
+  try {
+    const productId = getProductId();
+    if (!productId) return;
+
+    const normalizedRoot = normalizePath(productRoot);
+    const state = store.getState();
+
+    // Check if product changed
+    if (state.productData.productRoot
+        && normalizePath(state.productData.productRoot) !== normalizedRoot) {
+      store.dispatch(clearProductData());
+      store.dispatch(clearAllTabSelections());
+      prebuiltDropdownCache.clear();
+      
+      const { PREFETCH_CACHE } = await import('./product-navigation.js');
+      PREFETCH_CACHE.clear();
+    }
+
+    // Initialize data store if needed
+    if (!state.productData.productId) {
+      store.dispatch(setProductData({
+        productId,
+        productRoot: normalizedRoot,
+        fetchedAt: Date.now(),
+      }));
+    }
+
+    // ✅ FETCH ONLY WHAT THIS TAB NEEDS
+    const apisToFetch = TAB_API_MAPPING[tabName] || [];
+    
+    if (apisToFetch.length === 0) {
+      return; // No APIs needed for this tab
+    }
+
+    // Fetch all APIs for this tab in parallel
+    const results = await Promise.allSettled(
+      apisToFetch.map((apiName) => fetchAndCache(apiName, productId)),
+    );
+
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        // Silent fail - API failures are non-critical
+      }
+    });
+
+    store.dispatch(updateProductField('fetchedAt', Date.now()));
+  } catch (error) {
+    // Silent fail - fetch errors are non-critical
+  }
+}
+
+/**
  * Prefetch product data for current tab
+ * ✅ DEPRECATED: Use fetchTabData() instead for lazy loading
  */
 export async function prefetchProductData(productRoot, currentTab = null) {
   try {
