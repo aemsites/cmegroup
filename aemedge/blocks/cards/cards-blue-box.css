@@ -96,3 +96,13 @@
 .cards.blue-box.no-icon-btn li .cards-card-body .button-container a::before {
   display: none;
 }
+
+.cards.blue-box.blue6 li {
+  background-color: var(--blue6);
+}
+
+.cards.blue-box.right-footer .cards-card-body > *:last-child { 
+  text-align: right;
+  border-top: 0.0625rem solid var(--gray3);
+  padding: 1.25rem 0 0;
+}
