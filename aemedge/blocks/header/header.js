@@ -171,7 +171,8 @@ class Nav {
 
     function updateHeaderState() {
       const currentScrollPosition = window.scrollY;
-      const scrollingDown = currentScrollPosition > previousScrollPosition;
+      const scrollingDown = currentScrollPosition > 0
+        && currentScrollPosition > previousScrollPosition;
       if (scrollingDown) {
         if (isHomePage) {
           header.classList.remove('transparent');

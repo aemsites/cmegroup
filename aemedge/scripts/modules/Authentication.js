@@ -447,14 +447,15 @@ export class Authentication {
       this.processUserData(_userinfo);
     } else {
       const redirectionCookie = Authentication.getRedirectionCookie();
-      const xAuthToken = this.uriUtil.getQuery('X-Auth-Token');
-      if (!redirectionCookie || !xAuthToken) {
-        this.resolveLoginPromise();
-        return false;
-      }
       if (redirectionCookie?.flow === 'logout') {
         this.resolveLoginPromise();
         this.checkRedirection(redirectionCookie);
+        return false;
+      }
+      const xAuthToken = this.uriUtil.getQuery('X-Auth-Token');
+      if (!xAuthToken) {
+        this.resolveLoginPromise();
+        return false;
       }
       const user = await getLoginData(xAuthToken);
       if (!user?.userinfo?.userId) {

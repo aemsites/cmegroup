@@ -524,8 +524,21 @@ export function decorateButtons(element) {
 
     // Button decoration
     if (a.href !== text && !a.querySelector('img')) {
-      const up = a.parentElement || null;
-      const twoup = up?.parentElement || null;
+      let up = a.parentElement || null;
+      let twoup = up?.parentElement || null;
+
+      // Normalize mark order for DA preview (https://github.com/adobe/da-live/issues/627)
+      if (a.children.length === 1 && a.firstElementChild) {
+        const child = a.firstElementChild;
+        if (child.tagName === 'STRONG' || child.tagName === 'EM') {
+          const wrapper = child.cloneNode(false);
+          a.innerHTML = child.innerHTML;
+          a.parentElement.insertBefore(wrapper, a);
+          wrapper.appendChild(a);
+          up = a.parentElement;
+          twoup = up?.parentElement || null;
+        }
+      }
 
       if (up?.childNodes.length === 1 && (up.tagName === 'P' || up.tagName === 'DIV')) {
         up.classList.add('button-container');
