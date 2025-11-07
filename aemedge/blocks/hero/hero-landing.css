@@ -38,7 +38,7 @@
       font-size: 1.25rem;
     }
 
-    & a:not(.button, .hero-link) {
+    & a:not(.button, .hero-link, .link-bold) {
       color: var(--white);
       font-family: var(--averta);
       font-size: .875rem;
@@ -58,6 +58,14 @@
           width: 0.75rem;
           height: 0.75rem;
           filter: var(--white-filter);
+        }
+      }
+    }
+
+    & .link-bold {
+      & .icon {
+        img {
+          width: 100%;
         }
       }
     }
