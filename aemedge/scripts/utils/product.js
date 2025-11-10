@@ -1,4 +1,5 @@
 import { getMetadata } from '../aem.js';
+import { getIndexedContent } from '../indexing.js';
 
 let PRODUCT_INDEX_CACHE = null;
 
@@ -27,15 +28,41 @@ export function computeProductRoot(pathname) {
   return `/${trimmed.join('/')}`;
 }
 
+/**
+ * Load product index using universal search API
+ * Fetches all product pages dynamically instead of static JSON
+ * Returns: { data: [{ path, productId, product, productSymbol }] }
+ */
 export async function loadProductIndex() {
   if (PRODUCT_INDEX_CACHE) return PRODUCT_INDEX_CACHE;
+  
   try {
-    const resp = await fetch('/product-index.json');
-    if (!resp.ok) return null;
-    const json = await resp.json();
-    PRODUCT_INDEX_CACHE = json;
+    // Query for all product pages using universal search API
+    const indexFilter = {
+      templates: ['Product'],
+      basePaths: ['/markets'],
+      limit: 1000,
+      orderBy: 'path',
+      sortDirection: 'asc',
+    };
+    
+    const results = await getIndexedContent(indexFilter);
+    
+    // Transform search API response to match expected format
+    const transformedData = {
+      data: results.map((item) => ({
+        path: item.path,
+        productId: item.metadata?.['product-id'] || '',
+        product: item.metadata?.product || item.title || '',
+        // productSymbol not in search results - falls back to HTML meta tags
+        productSymbol: item.metadata?.['product-symbol'] || '',
+      })),
+    };
+    
+    PRODUCT_INDEX_CACHE = transformedData;
     return PRODUCT_INDEX_CACHE;
   } catch (e) {
+    // Silent fail - return null to allow fallback behavior
     return null;
   }
 }
@@ -57,5 +84,6 @@ export async function getProductMetadata() {
     context.productName = context.productName || row.product || '';
     context.productSymbol = context.productSymbol || row.productSymbol || '';
   }
+  
   return context;
 }
