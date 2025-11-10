@@ -77,9 +77,15 @@ export function getCachedTabOptionsSupport(productRoot, tabName) {
 /**
  * Enable SPA navigation for product pages
  */
-export function enableProductSpaNavigation(productRoot) {
+export function enableProductSpaNavigation(productRoot, retryCount = 0) {
   const tabsNav = document.querySelector('.product-tabs-nav');
   const subTabsNav = document.querySelector('.product-subtabs');
+
+  // If tabs nav doesn't exist yet and we haven't tried too many times, retry
+  if (!tabsNav && retryCount < 10) {
+    setTimeout(() => enableProductSpaNavigation(productRoot, retryCount + 1), 50);
+    return;
+  }
 
   if (tabsNav && !tabsNav.dataset.spaBound) {
     wireNavClicks(tabsNav, productRoot);
@@ -87,10 +93,16 @@ export function enableProductSpaNavigation(productRoot) {
     tabsNav.dataset.spaBound = 'y';
   }
 
-  if (subTabsNav && !subTabsNav.dataset.spaBound) {
-    wireNavClicks(subTabsNav, productRoot);
-    wirePrefetches(subTabsNav, productRoot);
-    subTabsNav.dataset.spaBound = 'y';
+  if (subTabsNav) {
+    const hasLinks = subTabsNav.querySelectorAll('a[href]').length > 0;
+    const alreadyBound = subTabsNav.dataset.spaBound === 'y';
+
+    // Wire clicks if: (1) not bound yet, OR (2) bound but has new links (dropdown populated)
+    if (!alreadyBound || (alreadyBound && hasLinks)) {
+      wireNavClicks(subTabsNav, productRoot);
+      wirePrefetches(subTabsNav, productRoot);
+      subTabsNav.dataset.spaBound = 'y';
+    }
   }
 
   if (!POPSTATE_BOUND) {
@@ -176,17 +188,19 @@ function wireNavClicks(container, productRoot) {
     }, 10);
   });
 
-  container.querySelectorAll('a[href]')
-    .forEach((a) => {
-      a.addEventListener('click', (e) => {
-        const href = a.getAttribute('href');
-        if (!href) return;
-        const targetRoot = computeProductRoot(href);
-        if (normalizePath(targetRoot) !== normalizePath(productRoot)) return;
-        e.preventDefault();
-        debouncedNavigate(href);
-      });
+  const links = container.querySelectorAll('a[href]');
+
+  links.forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const href = a.getAttribute('href');
+      if (!href) return;
+      const targetRoot = computeProductRoot(href);
+      if (normalizePath(targetRoot) !== normalizePath(productRoot)) return;
+
+      e.preventDefault();
+      debouncedNavigate(href);
     });
+  });
 }
 
 /**
@@ -222,15 +236,24 @@ export async function renderProductPath(url, productRoot) {
       ensureSubTabsContentContainer,
     } = await getModules();
 
-    // ✅ LAZY LOADING: Fetch only the data this tab needs (on-demand)
-    fetchTabData(productRoot, destinationTab).catch(() => {});
+    // ✅ SHOW LOADING STATE IMMEDIATELY
+    const container = ensureSubTabsContentContainer();
+    if (!container) return;
 
-    // ✅ RUN IN PARALLEL: Don't await DOM operations, let them run while we fetch content
+    // Start fade out immediately for smooth transition
+    container.style.transition = 'opacity 0.2s ease-out';
+    container.style.opacity = '0.5';
+
+    // ✅ RUN EVERYTHING IN PARALLEL (non-blocking)
     const domOpsPromise = toggleSubTabsVisibility(productRoot).then(() => {
       moveCurrentPageContentUnderSubTabs();
       enableProductSpaNavigation(productRoot);
     });
 
+    // Fetch data in background
+    fetchTabData(productRoot, destinationTab).catch(() => {});
+
+    // Fetch HTML (check cache first)
     let html = null;
     const cached = PREFETCH_CACHE.get(basePath);
     if (cached) {
@@ -240,28 +263,18 @@ export async function renderProductPath(url, productRoot) {
       const resp = await fetch(`${basePath}.plain.html`);
 
       if (!resp.ok) {
-        const errorContainer = ensureSubTabsContentContainer();
-        if (errorContainer) {
-          errorContainer.innerHTML = `
-            <div class="navigation-error">
-              <h3>Page Not Found</h3>
-              <p>Unable to load content for: <code>${basePath}</code></p>
-              <p><a href="${url}">Refresh page</a></p>
-            </div>
-          `;
-        }
+        container.innerHTML = `
+          <div class="navigation-error">
+            <h3>Page Not Found</h3>
+            <p>Unable to load content for: <code>${basePath}</code></p>
+            <p><a href="${url}">Refresh page</a></p>
+          </div>
+        `;
+        container.style.opacity = '1';
         return;
       }
       html = await resp.text();
     }
-
-    // ✅ GET CONTAINER FIRST: Start fade transition early
-    const container = ensureSubTabsContentContainer();
-    if (!container) return;
-
-    // ✅ FADE OUT: Smooth visual transition
-    container.style.transition = 'opacity 0.15s ease-out';
-    container.style.opacity = '0.3';
 
     const tempMain = document.createElement('main');
     tempMain.innerHTML = html;
@@ -340,14 +353,16 @@ export async function renderProductPath(url, productRoot) {
       return cloned;
     });
 
-    // ✅ ENSURE TOGGLE READY: Wait for futures/options dropdown before showing content
-    await domOpsPromise;
+    // ✅ SMOOTH FADE IN: Use requestAnimationFrame for smooth rendering
+    requestAnimationFrame(() => {
+      container.style.opacity = '1';
+    });
 
-    // ✅ FADE IN: Now show everything together (content + toggle)
-    container.style.opacity = '1';
-
-    // ✅ BACKGROUND LOADING: Load blocks in background after content is visible
-    Promise.all(clones.map((cl) => loadSection(cl))).catch(() => {});
+    // ✅ BACKGROUND LOADING: Load blocks and toggle asynchronously
+    Promise.all([
+      ...clones.map((cl) => loadSection(cl)),
+      domOpsPromise, // Let toggle populate in background
+    ]).catch(() => {});
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('SPA navigation failed:', e);

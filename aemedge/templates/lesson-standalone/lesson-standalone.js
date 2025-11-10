@@ -20,6 +20,7 @@ async function loadUserProgress(courseData) {
     await updateLessonStatus(false);
   }
   const { setTracking } = await import('../../scripts/gtm.js').catch(() => ({
+    // eslint-disable-next-line no-console
     setTracking: () => () => console.warn('GTM is unavailable'),
   }));
   const fireTrackingLessonStandalone = setTracking('custom', 'lesson_complete', 'Lessons and Courses');
