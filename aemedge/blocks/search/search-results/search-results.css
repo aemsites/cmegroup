@@ -91,7 +91,7 @@
     & .result-desc {
       font-size: 0.875rem;
       color: var(--gray3);
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
       letter-spacing: 0;
       line-height: 1.25rem;
       height: 3.75rem;
