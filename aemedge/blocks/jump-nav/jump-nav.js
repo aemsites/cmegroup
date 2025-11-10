@@ -116,9 +116,10 @@ function setupHeaderSync(container) {
 
 function scrollSection(targetElement, link, isSmooth, updateHash, nav, initialLoad = false) {
   const headerHeight = document.querySelector('.header')?.offsetHeight || 0;
+  const alertsHeight = document.querySelector('#alerts-container')?.offsetHeight || 0;
   const jumpToHeight = document.querySelector('.jump-nav')?.offsetHeight || 0;
 
-  const totalOffset = headerHeight + jumpToHeight;
+  const totalOffset = headerHeight + alertsHeight + jumpToHeight;
 
   targetElement.style.scrollMarginTop = `${totalOffset}px`;
 
@@ -195,8 +196,9 @@ function setupActiveStates(nav) {
   }
 
   const headerHeight = document.querySelector('.header')?.offsetHeight || 0;
+  const alertsHeight = document.querySelector('#alerts-container')?.offsetHeight || 0;
   const jumpToHeight = document.querySelector('.jump-nav')?.offsetHeight || 0;
-  const totalStickyHeight = headerHeight + jumpToHeight;
+  const totalStickyHeight = headerHeight + alertsHeight + jumpToHeight;
 
   const observerOptions = {
     rootMargin: `-${totalStickyHeight}px 0px -${window.innerHeight - totalStickyHeight}px 0px`,
