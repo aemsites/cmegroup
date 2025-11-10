@@ -196,6 +196,7 @@ export default async function initFloatingElements(doc, header) {
   const alerts = doc.querySelectorAll('.alert-item');
   const rootStyle = document.documentElement.style;
   rootStyle.setProperty('--navbar-height', '100px');
+  rootStyle.setProperty('--header-offset-height', `${header.offsetHeight}px`);
 
   if (alertsFetched.length) {
     const updatePositions = () => {
@@ -221,6 +222,12 @@ export default async function initFloatingElements(doc, header) {
       const menuOpen = doc.querySelector('.nav-overlay.is-open');
       if (menuOpen) {
         menuOpen.style.top = `${offsetTop}px`;
+      }
+
+      const jumpNav = doc.querySelector('.jump-nav-container');
+      if (jumpNav) {
+        rootStyle.setProperty('--alerts-height', `${visibleAlertsHeight - 1}px`);
+        rootStyle.setProperty('--jump-to-position', `${offsetTop - 1}px`);
       }
     };
 
