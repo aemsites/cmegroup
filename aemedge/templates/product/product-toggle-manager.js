@@ -114,6 +114,7 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
 
 /**
  * Handle options dropdown navigation events
+ * ✅ FIX: Use current tab from nav.dataset.primaryTab instead of stale parameter
  */
 async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
   if (nav.dataset.handlersBound === 'true') return;
@@ -127,7 +128,9 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
       e.preventDefault();
       const href = futuresBtn.getAttribute('data-href');
       if (href) {
-        store.dispatch(clearTabSelection(primaryTab));
+        // ✅ Use current tab from dataset
+        const currentTab = nav.dataset.primaryTab || primaryTab;
+        store.dispatch(clearTabSelection(currentTab));
 
         if (toggleDebounceTimer) {
           clearTimeout(toggleDebounceTimer);
@@ -146,14 +149,18 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
 
   nav.addEventListener('optionsDropdownHovered', (e) => {
     const { expirationsData } = e.detail;
-    const optionsPath = `${productRoot}/${primaryTab}/options`;
+    // ✅ Use current tab from dataset
+    const currentTab = nav.dataset.primaryTab || primaryTab;
+    const optionsPath = `${productRoot}/${currentTab}/options`;
     const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
     prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
   }, { once: true });
 
   nav.addEventListener('optionsDropdownOpened', (e) => {
     const { expirationsData } = e.detail;
-    const optionsPath = `${productRoot}/${primaryTab}/options`;
+    // ✅ Use current tab from dataset
+    const currentTab = nav.dataset.primaryTab || primaryTab;
+    const optionsPath = `${productRoot}/${currentTab}/options`;
     const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
     prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
   });
@@ -161,10 +168,12 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
   nav.addEventListener('optionContractSelected', async (e) => {
     const { contract, productId } = e.detail;
     const contractId = contract || productId;
-    const optionsPath = `${productRoot}/${primaryTab}/options`;
+    // ✅ Use current tab from dataset - THIS IS THE KEY FIX
+    const currentTab = nav.dataset.primaryTab || primaryTab;
+    const optionsPath = `${productRoot}/${currentTab}/options`;
     const fullUrl = buildContractURL(optionsPath, contractId);
 
-    store.dispatch(setTabSelection(primaryTab, contractId));
+    store.dispatch(setTabSelection(currentTab, contractId));
 
     if (toggleDebounceTimer) {
       clearTimeout(toggleDebounceTimer);
