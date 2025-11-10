@@ -3,17 +3,17 @@
   background-color: var(--blue1);
   position: relative;
   position: sticky;
-  top: 0;
+  top: var(--alerts-height, 0);
   z-index: 3;
   transition: top 0.3s ease;
   margin-bottom: 0 !important;
   padding: 0 !important;
 
   &.below-header {
-    top: 3rem;
+    top: var(--jump-to-position, 3.0625rem);
 
     @media (width >= 993px) {
-      top: 6.25rem;
+      top: var(--jump-to-position, 6.3125rem);
     }
   }
 
