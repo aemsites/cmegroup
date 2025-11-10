@@ -78,8 +78,8 @@ function createSearchInput(options = {}) {
 
 function createQuickSearch() {
   return createSearchInput({
-    onSearch: () => {},
-    onSearchClick: () => {},
+    onSearch: (value) => console.log('Typing:', value),
+    onSearchClick: (value) => console.log('Clicked search:', value),
   });
 }
 

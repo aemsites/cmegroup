@@ -240,15 +240,12 @@ export async function fetchTabData(productRoot, tabName) {
       PREFETCH_CACHE.clear();
     }
 
-    // Initialize data store if needed (but preserve existing productName/productSymbol)
+    // Initialize data store if needed
     if (!state.productData.productId) {
       store.dispatch(setProductData({
         productId,
         productRoot: normalizedRoot,
         fetchedAt: Date.now(),
-        // Preserve existing metadata if present
-        productName: state.productData.productName,
-        productSymbol: state.productData.productSymbol,
       }));
     }
 
@@ -300,15 +297,12 @@ export async function prefetchProductData(productRoot, currentTab = null) {
       PREFETCH_CACHE.clear();
     }
 
-    // Initialize data store if needed (but preserve existing productName/productSymbol)
+    // Initialize data store if needed
     if (!state.productData.productId) {
       store.dispatch(setProductData({
         productId,
         productRoot: normalizedRoot,
         fetchedAt: Date.now(),
-        // Preserve existing metadata if present
-        productName: state.productData.productName,
-        productSymbol: state.productData.productSymbol,
       }));
     }
 

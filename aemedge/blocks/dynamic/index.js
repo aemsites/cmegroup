@@ -47,6 +47,6 @@ export default async function dynamicBlocks(main) {
   }
 
   if (isProductTabsRequired(main)) {
-    import('../product-tabs/product-tabs.js').then(({ default: createProductTabs }) => createProductTabs(main));
+    import('./product-tabs/product-tabs.js').then(({ default: createProductTabs }) => createProductTabs(main));
   }
 }
