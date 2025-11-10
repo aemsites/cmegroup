@@ -75,7 +75,7 @@
         overflow: auto;
         max-width: 95vw;
         border-radius: 0.375rem;
-        z-index: 1000;
+        z-index: 20;
 
         @media (width >= 481px) {
             inset: 0.1875rem auto auto 0;
