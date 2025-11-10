@@ -35,7 +35,7 @@ export function computeProductRoot(pathname) {
  */
 export async function loadProductIndex() {
   if (PRODUCT_INDEX_CACHE) return PRODUCT_INDEX_CACHE;
-  
+
   try {
     // Query for all product pages using universal search API
     const indexFilter = {
@@ -45,9 +45,9 @@ export async function loadProductIndex() {
       orderBy: 'path',
       sortDirection: 'asc',
     };
-    
+
     const results = await getIndexedContent(indexFilter);
-    
+
     // Transform search API response to match expected format
     const transformedData = {
       data: results.map((item) => ({
@@ -58,7 +58,7 @@ export async function loadProductIndex() {
         productSymbol: item.metadata?.['product-symbol'] || '',
       })),
     };
-    
+
     PRODUCT_INDEX_CACHE = transformedData;
     return PRODUCT_INDEX_CACHE;
   } catch (e) {
@@ -84,6 +84,6 @@ export async function getProductMetadata() {
     context.productName = context.productName || row.product || '';
     context.productSymbol = context.productSymbol || row.productSymbol || '';
   }
-  
+
   return context;
 }
