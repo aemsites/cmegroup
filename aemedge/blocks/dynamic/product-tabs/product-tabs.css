@@ -168,7 +168,7 @@
   border: 1px solid var(--gray4);
   border-radius: 0.25rem;
   box-shadow: 0 4px 6px rgb(0 0 0 / 10%);
-  z-index: 1000;
+  z-index: 20;
   display: none;
 }
 
@@ -260,7 +260,7 @@ main .section > [class*="-wrapper"] + [class*="-wrapper"]:not(.default-content-w
   border: 1px solid var(--gray4);
   border-radius: 0.25rem;
   box-shadow: 0 4px 6px rgb(0 0 0 / 10%);
-  z-index: 1000;
+  z-index: 20;
   max-height: 200px;
   overflow-y: auto;
   display: none;
