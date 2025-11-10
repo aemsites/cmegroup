@@ -1,7 +1,7 @@
 import { getMetadata } from '../aem.js';
 import { getIndexedContent } from '../indexing.js';
-
-let PRODUCT_INDEX_CACHE = null;
+import { store } from '../store/store.js';
+import { setProductData } from '../actions/product.js';
 
 export function normalizePath(pathname) {
   try {
@@ -29,60 +29,113 @@ export function computeProductRoot(pathname) {
 }
 
 /**
- * Load product index using universal search API
- * Fetches all product pages dynamically instead of static JSON
- * Returns: { data: [{ path, productId, product, productSymbol }] }
+ * Get product page metadata from search API for a specific product path
+ * @param {string} productPath - The product root path (e.g., '/markets/corn')
+ * @returns {Promise<Object>} Product metadata {productId, productName, productSymbol}
  */
-export async function loadProductIndex() {
-  if (PRODUCT_INDEX_CACHE) return PRODUCT_INDEX_CACHE;
-
+async function getProductFromSearchAPI(productPath) {
   try {
-    // Query for all product pages using universal search API
+    // Determine base path (e.g., /markets or /drafts)
+    const basePath = productPath.split('/')[1];
+
     const indexFilter = {
-      templates: ['Product'],
-      basePaths: ['/markets'],
+      templates: ['product'],
+      basePaths: [`/${basePath}`],
       limit: 1000,
-      orderBy: 'path',
-      sortDirection: 'asc',
     };
 
     const results = await getIndexedContent(indexFilter);
 
-    // Transform search API response to match expected format
-    const transformedData = {
-      data: results.map((item) => ({
-        path: item.path,
-        productId: item.metadata?.['product-id'] || '',
-        product: item.metadata?.product || item.title || '',
-        // productSymbol not in search results - falls back to HTML meta tags
-        productSymbol: item.metadata?.['product-symbol'] || '',
-      })),
+    if (!results || results.length === 0) {
+      return null;
+    }
+
+    // Find the specific product page
+    const normalizedPath = normalizePath(productPath);
+    const productPage = results.find((item) => normalizePath(item.path) === normalizedPath);
+
+    if (!productPage) {
+      return null;
+    }
+
+    // Extract metadata from search API response
+    const metadata = {
+      productId: productPage.metadata?.['product-id'] || '',
+      productName: productPage.metadata?.product || productPage.title || '',
+      productSymbol: productPage.metadata?.['product-symbol'] || '',
     };
 
-    PRODUCT_INDEX_CACHE = transformedData;
-    return PRODUCT_INDEX_CACHE;
+    return metadata;
   } catch (e) {
-    // Silent fail - return null to allow fallback behavior
     return null;
   }
 }
 
+/**
+ * Get product metadata with persistent caching across SPA navigation
+ * Uses Redux store to persist metadata when navigating between tabs
+ * that may not have metadata tags (prevents hero/blocks from going blank)
+ */
 export async function getProductMetadata() {
+  const productRoot = computeProductRoot(window.location.pathname);
+  const state = store.getState();
+  const { productData } = state;
+
+  // Check if we already have cached metadata in store for this product
+  if (productData.productRoot === productRoot
+      && productData.productId
+      && productData.productName) {
+    return {
+      productId: productData.productId,
+      productName: productData.productName,
+      productSymbol: productData.productSymbol || '',
+    };
+  }
+
+  // Try to get metadata from HTML meta tags
   const context = {
     productId: getMetadata('product-id') || '',
     productName: getMetadata('product') || '',
     productSymbol: getMetadata('product-symbol') || '',
   };
-  if (context.productId && context.productName) return context;
 
-  const index = await loadProductIndex();
-  if (!index || !Array.isArray(index.data)) return context;
-  const productRoot = computeProductRoot(window.location.pathname);
-  const row = index.data.find((r) => normalizePath(r.path) === normalizePath(productRoot));
-  if (row) {
-    context.productId = context.productId || row.productId || '';
-    context.productName = context.productName || row.product || '';
-    context.productSymbol = context.productSymbol || row.productSymbol || '';
+  // If we have complete metadata from tags, cache in store and return it
+  if (context.productId && context.productName) {
+    store.dispatch(setProductData({
+      productRoot,
+      productId: context.productId,
+      productName: context.productName,
+      productSymbol: context.productSymbol,
+    }));
+
+    return context;
+  }
+
+  // Fallback: try to get metadata from search API
+  const searchMetadata = await getProductFromSearchAPI(productRoot);
+
+  if (searchMetadata) {
+    context.productId = context.productId || searchMetadata.productId || '';
+    context.productName = context.productName || searchMetadata.productName || '';
+    context.productSymbol = context.productSymbol || searchMetadata.productSymbol || '';
+  }
+
+  // Only save to store if we have at least productId or productName
+  // Don't overwrite existing data with empty values
+  if (context.productId || context.productName) {
+    store.dispatch(setProductData({
+      productRoot,
+      productId: context.productId || productData.productId,
+      productName: context.productName || productData.productName,
+      productSymbol: context.productSymbol || productData.productSymbol,
+    }));
+  } else if (productData.productId || productData.productName) {
+    // Return existing store data if available, otherwise empty context
+    return {
+      productId: productData.productId || '',
+      productName: productData.productName || '',
+      productSymbol: productData.productSymbol || '',
+    };
   }
 
   return context;

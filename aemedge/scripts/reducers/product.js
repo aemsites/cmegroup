@@ -5,6 +5,8 @@ import { PRODUCT_ACTIONS } from '../constants/index.js';
 export const productDataInitState = {
   productId: null,
   productRoot: null,
+  productName: null,
+  productSymbol: null,
   fetchedAt: null,
   fetchPromises: {},
   // API data will be stored here dynamically

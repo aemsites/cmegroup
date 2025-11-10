@@ -22,9 +22,10 @@ import { updateProductField } from '../../scripts/actions/product.js';
 
 // API Configuration
 const API_CONFIG = {
-  quotesTableEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-table.json',
-  optionsLabelsEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-v2-getlabels.json',
-  optionsDataEndpoint: '/aemedge/blocks/dynamic/product-tabs/mock-api/quotes/quotes-v2-300-',
+  realQuotesEndpoint: 'https://www.cmegroup.com/CmeWS/mvc/quotes/v2',
+  betaQuotesEndpoint: 'https://beta.cmegroup.com/CmeWS/mvc/quotes/v2',
+  realOptionsLabelsEndpoint: 'https://www.cmegroup.com/CmeWS/mvc/quotes/v2/contract',
+  betaOptionsLabelsEndpoint: 'https://beta.cmegroup.com/CmeWS/mvc/quotes/v2/contract',
 };
 
 // Cache tracking for performance metrics
@@ -98,53 +99,55 @@ function getDisplayMode() {
  * Fetch quotes table data for futures
  * STORE PATTERN: Reads from productStore, dispatches updates to store
  */
-async function fetchQuotesTableData() {
+async function fetchQuotesTableData(productId) {
   // Try productStore cache first (prefetched by product.js)
   const state = productStore.getState();
   const cachedData = state.productData?.quotesData?.table;
 
   if (cachedData) {
     cacheHits += 1;
-    // eslint-disable-next-line no-console
-    console.log('[quotes-table-store] ✓ Futures quotes loaded from store cache');
-
-    // Transform cached data to expected format
     return Array.isArray(cachedData) ? { quotes: cachedData } : cachedData;
   }
 
-  // Cache miss - fetch from API
+  // Cache miss - fetch from API with fallback
   cacheMisses += 1;
-  // eslint-disable-next-line no-console
-  console.log('[quotes-table-store] → Fetching futures quotes from mock API:', API_CONFIG.quotesTableEndpoint);
 
+  // Try real endpoint first
   try {
-    const response = await apiGet(API_CONFIG.quotesTableEndpoint);
+    const realUrl = `${API_CONFIG.realQuotesEndpoint}/${productId}`;
+    const response = await apiGet(realUrl);
     const data = getResponseData(response) || response.data;
 
-    // Store in cache via store dispatch (immutable update)
     if (data) {
       const tableData = data.quotes || data;
-
-      // Dispatch to store instead of direct mutation
       productStore.dispatch(updateProductField('quotesData.table', tableData));
-
-      // eslint-disable-next-line no-console
-      console.log('[quotes-table-store] ✓ Futures quotes stored in productStore');
+      return data;
     }
-
-    return data;
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[quotes-table-store] Failed to fetch quotes table:', error);
-    return null;
+    // Try beta endpoint as fallback
+    try {
+      const betaUrl = `${API_CONFIG.betaQuotesEndpoint}/${productId}`;
+      const response = await apiGet(betaUrl);
+      const data = getResponseData(response) || response.data;
+
+      if (data) {
+        const tableData = data.quotes || data;
+        productStore.dispatch(updateProductField('quotesData.table', tableData));
+        return data;
+      }
+    } catch (betaError) {
+      return null;
+    }
   }
+
+  return null;
 }
 
 /**
  * Fetch options labels for a specific product
  * STORE PATTERN: Reads from productStore, dispatches updates to store
  */
-async function fetchOptionsLabels() {
+async function fetchOptionsLabels(productId) {
   // IMPORTANT: Use separate cache key to avoid collision with product toggle dropdown
   // - productData.optionsExpirations = OPTIONS LABELS (for product toggle)
   // - productData.contractExpirations = CONTRACT MONTHS (for quotes-table)
@@ -155,8 +158,6 @@ async function fetchOptionsLabels() {
 
   if (contractExpirations) {
     cacheHits += 1;
-    // eslint-disable-next-line no-console
-    console.log('[quotes-table-store] ✓ Options labels loaded from store (contractExpirations)');
     return contractExpirations;
   }
 
@@ -164,8 +165,6 @@ async function fetchOptionsLabels() {
   const optionsExpirations = state.productData?.optionsExpirations;
   if (optionsExpirations) {
     cacheHits += 1;
-    // eslint-disable-next-line no-console
-    console.log('[quotes-table-store] ✓ Options labels loaded from store (optionsExpirations)');
 
     // Transform cached data to expected format
     // product.js stores optionsLabels directly from the API
@@ -182,46 +181,50 @@ async function fetchOptionsLabels() {
         // Store in separate cache key via dispatch
         productStore.dispatch(updateProductField('contractExpirations', transformed));
 
-        // eslint-disable-next-line no-console
-        console.log('[quotes-table-store] ✓ Contract expirations transformed and stored');
-
         return transformed;
       }
     }
   }
 
-  // Cache miss - fetch from API
+  // Cache miss - fetch from API with fallback
   cacheMisses += 1;
-  // eslint-disable-next-line no-console
-  console.log('[quotes-table-store] → Fetching options labels from mock API:', API_CONFIG.optionsLabelsEndpoint);
 
-  // Skip real API (causes 404s) - use mock data directly
+  // Try real endpoint first
   try {
-    const mockEndpoint = API_CONFIG.optionsLabelsEndpoint;
-    const response = await fetch(mockEndpoint);
-    if (!response.ok) throw new Error('Mock file not found');
+    const realUrl = `${API_CONFIG.realOptionsLabelsEndpoint}/${productId}`;
+    const response = await apiGet(realUrl);
+    const data = getResponseData(response) || response.data;
 
-    const data = await response.json();
-
-    // Mock data is already in the format we need
-    if (Array.isArray(data)) {
+    if (data && Array.isArray(data)) {
       const transformed = data.map((item) => ({
-        expirationMonth: item.expirationMonth,
-        quoteCode: item.quoteCode,
-        expirationCode: item.expirationCode,
+        expirationMonth: item.expirationMonth || item.label,
+        quoteCode: item.quoteCode || item.underlyingFutureContract,
+        expirationCode: item.expirationCode || item.underlyingFutureExpirationCode,
       }));
 
-      // Store in SEPARATE cache key via dispatch (not optionsExpirations)
       productStore.dispatch(updateProductField('contractExpirations', transformed));
-
-      // eslint-disable-next-line no-console
-      console.log('[quotes-table-store] ✓ Options labels stored in productStore');
-
       return transformed;
     }
-  } catch (fallbackError) {
-    // eslint-disable-next-line no-console
-    console.error('[quotes-table-store] Failed to fetch options labels:', fallbackError);
+  } catch (error) {
+    // Try beta endpoint as fallback
+    try {
+      const betaUrl = `${API_CONFIG.betaOptionsLabelsEndpoint}/${productId}`;
+      const response = await apiGet(betaUrl);
+      const data = getResponseData(response) || response.data;
+
+      if (data && Array.isArray(data)) {
+        const transformed = data.map((item) => ({
+          expirationMonth: item.expirationMonth || item.label,
+          quoteCode: item.quoteCode || item.underlyingFutureContract,
+          expirationCode: item.expirationCode || item.underlyingFutureExpirationCode,
+        }));
+
+        productStore.dispatch(updateProductField('contractExpirations', transformed));
+        return transformed;
+      }
+    } catch (betaError) {
+      return null;
+    }
   }
 
   return null;
@@ -230,35 +233,37 @@ async function fetchOptionsLabels() {
 /**
  * Fetch options data for a specific quote code
  */
-async function fetchOptionsData(quoteCode) {
-  const url = `${API_CONFIG.optionsDataEndpoint}${quoteCode}.json`;
-  // eslint-disable-next-line no-console
-  console.log(`[quotes-table-store] → Fetching options data for ${quoteCode} from mock API:`, url);
-
+async function fetchOptionsData(productId, quoteCode) {
+  // Try real endpoint first
   try {
-    const response = await apiGet(url);
+    const realUrl = `${API_CONFIG.realQuotesEndpoint}/${productId}/${quoteCode}`;
+    const response = await apiGet(realUrl);
     const data = getResponseData(response) || response.data;
-    // eslint-disable-next-line no-console
-    console.log(`[quotes-table-store] ✓ Options data for ${quoteCode} loaded successfully`);
     return data;
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.warn(`[quotes-table-store] ⚠ No data available for ${quoteCode}, using placeholders`);
-    // Return placeholder data structure when data unavailable
-    return {
-      quotes: [{
-        last: '--',
-        change: '--',
-        percentageChange: '--',
-        priorSettle: '--',
-        high: '--',
-        low: '--',
-        volume: '0',
-        updated: null,
-      }],
-      _placeholder: true,
-      _quoteCode: quoteCode,
-    };
+    // Try beta endpoint as fallback
+    try {
+      const betaUrl = `${API_CONFIG.betaQuotesEndpoint}/${productId}/${quoteCode}`;
+      const response = await apiGet(betaUrl);
+      const data = getResponseData(response) || response.data;
+      return data;
+    } catch (betaError) {
+      // Return placeholder data structure when data unavailable
+      return {
+        quotes: [{
+          last: '--',
+          change: '--',
+          percentageChange: '--',
+          priorSettle: '--',
+          high: '--',
+          low: '--',
+          volume: '0',
+          updated: null,
+        }],
+        _placeholder: true,
+        _quoteCode: quoteCode,
+      };
+    }
   }
 }
 
@@ -305,7 +310,12 @@ function buildTable(headers, data, tableId = '') {
  * Create futures quotes table
  */
 async function createFuturesTable() {
-  const quotesData = await fetchQuotesTableData();
+  const productMetadata = await getProductMetadata();
+  const productId = productMetadata.productId || getMetadata('product-id');
+
+  if (!productId) return null;
+
+  const quotesData = await fetchQuotesTableData(productId);
 
   if (!quotesData || !quotesData.quotes || quotesData.quotes.length === 0) {
     return null;
@@ -361,12 +371,12 @@ async function createOptionsTable() {
     //
     // Future enhancement: Filter contract months based on selectedProductId
 
-    const labelsData = await fetchOptionsLabels();
+    const labelsData = await fetchOptionsLabels(baseProductId);
     if (!labelsData || labelsData.length === 0) return null;
 
     // Use first available quote code (ZCZ5, ZCH6, etc.)
     const defaultQuoteCode = labelsData[0].quoteCode;
-    const optionsData = await fetchOptionsData(defaultQuoteCode);
+    const optionsData = await fetchOptionsData(baseProductId, defaultQuoteCode);
 
     // eslint-disable-next-line no-underscore-dangle
     const isPlaceholder = optionsData && optionsData._placeholder;
@@ -439,9 +449,9 @@ async function createOptionsTable() {
 /**
  * Update options table when month is selected
  */
-async function updateOptionsTable(quoteCode) {
+async function updateOptionsTable(productId, quoteCode) {
   try {
-    const newData = await fetchOptionsData(quoteCode);
+    const newData = await fetchOptionsData(productId, quoteCode);
     if (!newData || !newData.quotes || newData.quotes.length === 0) return;
 
     const quote = newData.quotes[0];
@@ -470,13 +480,13 @@ async function updateOptionsTable(quoteCode) {
 /**
  * Setup month selector change handler
  */
-function setupMonthSelectorHandler(block) {
+function setupMonthSelectorHandler(block, productId) {
   const select = block.querySelector('#options-month-selector');
   if (!select) return;
 
   select.addEventListener('change', async (e) => {
     const quoteCode = e.target.value;
-    await updateOptionsTable(quoteCode);
+    await updateOptionsTable(productId, quoteCode);
   });
 }
 
@@ -493,6 +503,20 @@ function setupMonthSelectorHandler(block) {
 async function renderTable(block) {
   const { isOptions, optionProductId } = getDisplayMode();
   block.innerHTML = '<div class="loading">Loading quotes...</div>';
+
+  // Get productId for API calls
+  const productMetadata = await getProductMetadata();
+  const productId = productMetadata.productId || getMetadata('product-id');
+
+  if (!productId) {
+    block.innerHTML = `
+      <div class="no-results">
+        <h4>Unable to load quotes</h4>
+        <p>Product ID not found.</p>
+      </div>
+    `;
+    return;
+  }
 
   try {
     let table = null;
@@ -512,7 +536,7 @@ async function renderTable(block) {
         }
 
         block.appendChild(table);
-        setupMonthSelectorHandler(block);
+        setupMonthSelectorHandler(block, productId);
 
         // Add "About this Report" link
         const aboutLink = createElement('p', { class: 'about-report-wrapper' });

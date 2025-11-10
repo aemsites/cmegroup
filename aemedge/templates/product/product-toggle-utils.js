@@ -63,8 +63,8 @@ const API_CONFIG = {
   mockExpirations: '/aemedge/blocks/dynamic/product-tabs/mock-api/expirations.json',
   // New real endpoint - requires productId parameter
   realExpirationsEndpoint: 'https://www.cmegroup.com/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/',
-  // Local fallback for testing (avoids CORS)
-  localFallbackEndpoint: '/aemedge/templates/product/',
+  // Beta fallback endpoint
+  betaExpirationsEndpoint: 'https://beta.cmegroup.com/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/',
 };
 
 /**
@@ -87,6 +87,7 @@ async function getProductIdFromMetadata() {
     const meta = document.querySelector('meta[name="product-id"]');
     return meta ? meta.content : null;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error getting product ID:', error);
     return null;
   }
@@ -101,7 +102,7 @@ export async function fetchExpirationsData(productId = null) {
   const pid = productId || await getProductIdFromMetadata();
   if (!pid) return [];
 
-  // Try real API first, fallback to local JSON if CORS error
+  // Try production API first, fallback to beta if it fails
   try {
     const endpoint = `${API_CONFIG.realExpirationsEndpoint}${pid}`;
     const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
@@ -121,13 +122,11 @@ export async function fetchExpirationsData(productId = null) {
 
     throw new Error('No optionsLabels in response');
   } catch (error) {
-    // Fallback to local JSON file
+    // Fallback to beta API
     try {
-      const localEndpoint = `${API_CONFIG.localFallbackEndpoint}${pid}.json`;
-      const response = await fetch(localEndpoint);
-      if (!response.ok) throw new Error('Local file not found');
-
-      const data = await response.json();
+      const betaEndpoint = `${API_CONFIG.betaExpirationsEndpoint}${pid}`;
+      const response = await apiGet(betaEndpoint, {}, {}, { withCredentials: false });
+      const data = getResponseData(response) || response.data;
 
       if (data && data.optionsLabels && Array.isArray(data.optionsLabels)) {
         return data.optionsLabels.map((option) => ({
@@ -144,7 +143,7 @@ export async function fetchExpirationsData(productId = null) {
       return [];
     } catch (fallbackError) {
       // eslint-disable-next-line no-console
-      console.error('Failed to fetch expirations data:', fallbackError);
+      console.error('Failed to fetch expirations data from both production and beta:', fallbackError);
       return [];
     }
   }

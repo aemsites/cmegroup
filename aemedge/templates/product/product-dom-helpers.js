@@ -3,8 +3,12 @@
  * Handles DOM manipulation, section building, and tab discovery
  */
 
-import { loadProductIndex, normalizePath } from '../../scripts/utils/product.js';
+import { normalizePath } from '../../scripts/utils/product.js';
 import { buildBlock } from '../../scripts/aem.js';
+import { getIndexedContent } from '../../scripts/indexing.js';
+
+// Cache for indexed paths to avoid repeated API calls
+let pathIndexCache = null;
 
 /**
  * Find the product tabs section in the DOM
@@ -24,13 +28,52 @@ export function findHeroSection() {
 }
 
 /**
- * Check if a path exists in the product index
+ * Preload the path index cache to avoid delays during user interactions
+ */
+export async function preloadPathIndex() {
+  if (pathIndexCache) return; // Already loaded
+
+  try {
+    // Determine base path from current location
+    const currentPath = window.location.pathname;
+    const basePath = currentPath.split('/')[1];
+
+    const indexFilter = {
+      templates: ['product'],
+      basePaths: [`/${basePath}`],
+      limit: 1000,
+    };
+
+    const results = await getIndexedContent(indexFilter);
+
+    if (!results || results.length === 0) {
+      pathIndexCache = [];
+      return;
+    }
+
+    // Cache the normalized paths
+    pathIndexCache = results.map((item) => normalizePath(item.path));
+  } catch (e) {
+    pathIndexCache = [];
+  }
+}
+
+/**
+ * Check if a path exists using the search API
  */
 export async function indexHasPath(path) {
-  const idx = await loadProductIndex();
-  if (!idx || !Array.isArray(idx.data)) return false;
-  const norm = normalizePath(path);
-  return !!idx.data.find((row) => normalizePath(row.path) === norm);
+  try {
+    // Load index if not cached
+    if (!pathIndexCache) {
+      await preloadPathIndex();
+    }
+
+    // Check if the specific path exists in cache
+    const normalizedPath = normalizePath(path);
+    return pathIndexCache.includes(normalizedPath);
+  } catch (e) {
+    return false;
+  }
 }
 
 /**
@@ -179,7 +222,6 @@ export async function insertProductTabsIfMissing(productRoot) {
   let rowsForBuild = landingRows;
 
   if (!rowsForBuild) {
-    await loadProductIndex();
     const canonical = [
       ['Overview', productRoot],
       ['Quotes', `${productRoot}/quotes`],
