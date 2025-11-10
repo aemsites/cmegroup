@@ -11,12 +11,12 @@
 /* Main content area - light gray background like original */
 main {
   background-color: var(--gray5);
-}
 
-/* Hero section - keep dark blue, no background override needed */
-main .section.full-width:has(.hero-baseball) {
-  margin: 0;
-  padding: 0;
+  /* Hero section - keep dark blue, no background override needed */
+  & .section.full-width:has(.hero-baseball) {
+    margin: 0;
+    padding: 0;
+  }
 }
 
 /* Product tabs container - white background */
@@ -26,19 +26,19 @@ main .section.full-width:has(.hero-baseball) {
   position: relative;
   z-index: 10;
   margin-bottom: 0;
-}
 
-/* Inline sub-tabs to the right of product tabs */
-.product-tabs-container .product-tabs-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
+  /* Inline sub-tabs to the right of product tabs */
+  & .product-tabs-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
 
-.product-tabs-container .product-tabs-nav {
-  flex: 1 1 auto;
+  & .product-tabs-nav {
+    flex: 1 1 auto;
+  }
 }
 
 /* Sub-tabs (Futures/Options toggle) */
@@ -46,6 +46,29 @@ main .section.full-width:has(.hero-baseball) {
   margin-left: auto;
   display: flex;
   align-items: center;
+
+  /* Enhanced sub-tabs container - replaces old list style */
+  &.enhanced {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+
+    /* Prevent flash during state updates */
+    &.updating {
+      opacity: 0.7;
+    }
+
+    /* Futures/Options Toggle Container */
+    & .futures-options-toggle {
+      display: flex;
+      gap: 0;
+      z-index: 10;
+      align-items: stretch;
+    }
+  }
 }
 
 .product-subtabs-list {
@@ -54,32 +77,32 @@ main .section.full-width:has(.hero-baseball) {
   list-style: none;
   margin: 0 0 0 1rem;
   padding: 0.75rem 0;
-}
 
-.product-subtabs-list a {
-  display: inline-block;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: var(--gray3);
-  border: 0.0625rem solid var(--gray4);
-  border-radius: 0.25rem;
-  background-color: white;
-  transition: all 0.2s ease;
-}
+  & a {
+    display: inline-block;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--gray3);
+    border: 0.0625rem solid var(--gray4);
+    border-radius: 0.25rem;
+    background-color: white;
+    transition: all 0.2s ease;
 
-.product-subtabs-list a:hover {
-  color: var(--blue4);
-  border-color: var(--blue4);
-}
+    &:hover {
+      color: var(--blue4);
+      border-color: var(--blue4);
+    }
 
-.product-subtabs-list a.is-active {
-  color: white;
-  background-color: var(--blue4);
-  border-color: var(--blue4);
+    &.is-active {
+      color: white;
+      background-color: var(--blue4);
+      border-color: var(--blue4);
+    }
+  }
 }
 
 /* Content area below tabs - gray background */
@@ -87,59 +110,49 @@ main .section.full-width:has(.hero-baseball) {
   background-color: var(--gray5);
   padding: 2rem 1.5rem;
   min-height: 50vh;
-}
 
-@media (width >= 769px) {
-  .product-subtabs-content {
+  @media (width >= 769px) {
     padding: 2.5rem 3.375rem;
   }
-}
 
-@media (width >= 993px) {
-  .product-subtabs-content {
+  @media (width >= 993px) {
     padding: 3rem 4.125rem;
   }
-}
 
-@media (width >= 1201px) {
-  .product-subtabs-content {
+  @media (width >= 1201px) {
     padding: 3rem 5.5rem;
   }
-}
 
-/* Inner wrapper for content with max-width */
-.product-subtabs-content > div {
-  max-width: var(--container-xxl-max);
-  margin: 0 auto;
-}
-
-/* White content cards with shadow on gray background */
-.product-subtabs-content .section {
-  background-color: white;
-  border-radius: 0.25rem;
-  box-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 6%);
-  padding: 2rem 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-@media (width >= 769px) {
-  .product-subtabs-content .section {
-    padding: 2.5rem;
+  /* Inner wrapper for content with max-width */
+  & > div {
+    max-width: var(--container-xxl-max);
+    margin: 0 auto;
   }
-}
 
-@media (width >= 993px) {
-  .product-subtabs-content .section {
-    padding: 3rem;
+  /* White content cards with shadow on gray background */
+  & .section {
+    background-color: white;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 6%);
+    padding: 2rem 1.5rem;
+    margin-bottom: 1.5rem;
+
+    @media (width >= 769px) {
+      padding: 2.5rem;
+    }
+
+    @media (width >= 993px) {
+      padding: 3rem;
+    }
+
+    /* Remove background/shadow from nested sections to avoid double-boxing */
+    & .section {
+      background-color: transparent;
+      box-shadow: none;
+      padding: 0;
+      margin-bottom: 1rem;
+    }
   }
-}
-
-/* Remove background/shadow from nested sections to avoid double-boxing */
-.product-subtabs-content .section .section {
-  background-color: transparent;
-  box-shadow: none;
-  padding: 0;
-  margin-bottom: 1rem;
 }
 
 /* Responsive adjustments for mobile */
@@ -159,11 +172,11 @@ main .section.full-width:has(.hero-baseball) {
     width: 100%;
     justify-content: flex-start;
     margin-left: 0;
-  }
 
-  .product-subtabs-list a {
-    flex: 1;
-    text-align: center;
+    & a {
+      flex: 1;
+      text-align: center;
+    }
   }
 }
 
@@ -172,197 +185,175 @@ main .section.full-width:has(.hero-baseball) {
    Added for Step 4 of toggle enhancement
    ============================================ */
 
-/* Enhanced sub-tabs container - replaces old list style */
-.product-subtabs.enhanced {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  padding: 0;
-  opacity: 1;
-  transition: opacity 0.2s ease;
-}
-
-/* Prevent flash during state updates */
-.product-subtabs.enhanced.updating {
-  opacity: 0.7;
-}
-
 /* Futures/Options Toggle Container */
-.product-subtabs.enhanced .futures-options-toggle {
-  display: flex;
-  gap: 0;
-  z-index: 10;
-  align-items: stretch;
-}
+.futures-options-toggle {
+  /* Toggle Button Base Styles */
+  & .toggle-btn {
+    background: var(--gray6);
+    border: 0.0625rem solid var(--gray4);
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: var(--gray3);
+    transition: all 0.2s ease;
+    font-family: Averta, "Helvetica Neue", arial, sans-serif;
+    letter-spacing: 0.0938rem;
+    min-width: 80px;
 
-/* Toggle Button Base Styles */
-.futures-options-toggle .toggle-btn {
-  background: var(--gray6);
-  border: 1px solid var(--gray4);
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
-  font-weight: 500;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  color: var(--gray3);
-  transition: all 0.2s ease;
-  font-family: Averta, "Helvetica Neue", arial, sans-serif;
-  letter-spacing: 0.0938rem;
-  min-width: 80px;
-}
+    /* First button (Futures) - rounded left */
+    &:first-child {
+      border-radius: 0.25rem 0 0 0.25rem;
+    }
 
-/* First button (Futures) - rounded left */
-.futures-options-toggle .toggle-btn:first-child {
-  border-radius: 0.25rem 0 0 0.25rem;
-}
+    /* Active toggle button styling */
+    &.active {
+      background: var(--blue2);
+      color: white;
+      border-color: var(--blue2);
+    }
 
-/* Last button/dropdown - rounded right */
-.futures-options-toggle > *:last-child .toggle-btn {
-  border-radius: 0 0.25rem 0.25rem 0;
-}
+    /* Inactive toggle button styling */
+    &:not(.active) {
+      background: transparent;
+      color: var(--gray3);
+      border-color: var(--gray4);
 
-/* Dropdown button should connect to Futures button */
-.futures-options-toggle .options-dropdown .dropdown-btn {
-  border-left: 0;
-  border-radius: 0 0.25rem 0.25rem 0;
-}
-
-/* Active toggle button styling */
-.futures-options-toggle .toggle-btn.active {
-  background: var(--blue2);
-  color: white;
-  border-color: var(--blue2);
-}
-
-/* Inactive toggle button styling */
-.futures-options-toggle .toggle-btn:not(.active) {
-  background: transparent;
-  color: var(--gray3);
-  border-color: var(--gray4);
-}
-
-.futures-options-toggle .toggle-btn:not(.active):hover {
-  background: var(--gray6);
-}
-
-/* Options Dropdown Container */
-.futures-options-toggle .options-dropdown {
-  position: relative;
-  display: inline-flex;
-  align-items: stretch;
-}
-
-/* Dropdown Button */
-.futures-options-toggle .dropdown-btn {
-  background: transparent;
-  color: var(--gray3);
-  border-color: var(--gray4);
-  border: 1px solid var(--gray4);
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
-  font-weight: 500;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  font-family: Averta, "Helvetica Neue", arial, sans-serif;
-  letter-spacing: 0.0938rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  min-width: 100px;
-  transition: all 0.2s ease;
-}
-
-.futures-options-toggle .dropdown-btn:hover {
-  background: var(--gray6);
-  color: var(--gray3);
-}
-
-.futures-options-toggle .dropdown-btn.active {
-  background: var(--blue2);
-  color: white;
-  border-color: var(--blue2);
-}
-
-/* Dropdown Arrow */
-.futures-options-toggle .dropdown-arrow {
-  font-size: 0.625rem;
-  transition: transform 0.2s ease;
-  margin-left: 0.25rem;
-}
-
-.futures-options-toggle .options-dropdown.dropdown-open .dropdown-arrow {
-  transform: rotate(180deg);
-}
-
-/* Dropdown Menu - HIDDEN by default */
-.futures-options-toggle .dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  min-width: 280px;
-  max-height: 300px;
-  overflow-y: auto;
-  background: white;
-  border: 1px solid var(--gray4);
-  border-radius: 0.25rem;
-  box-shadow: 0 4px 6px rgb(0 0 0 / 10%);
-  z-index: 1000;
-  margin-top: 0.25rem;
-  display: none; /* HIDDEN by default - this is the key! */
-}
-
-/* Show dropdown menu when open */
-.futures-options-toggle .options-dropdown.dropdown-open .dropdown-menu {
-  display: block;
-}
-
-/* Dropdown Items */
-.futures-options-toggle .dropdown-item {
-  display: block;
-  padding: 0.75rem 1rem;
-  color: var(--gray2);
-  text-decoration: none;
-  border-bottom: 1px solid var(--gray5);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.futures-options-toggle .dropdown-item:last-child {
-  border-bottom: none;
-}
-
-.futures-options-toggle .dropdown-item:hover {
-  background: var(--gray6);
-  color: var(--gray1);
-}
-
-.futures-options-toggle .dropdown-item.selected {
-  background: var(--blue6);
-  color: var(--blue2);
-  font-weight: 600;
-}
-
-.futures-options-toggle .dropdown-item .link {
-  font-size: 0.875rem;
-  font-weight: 500;
-  display: block;
-}
-
-/* Mobile Responsive */
-@media (width < 769px) {
-  .futures-options-toggle {
-    width: 100%;
+      &:hover {
+        background: var(--gray6);
+      }
+    }
   }
 
-  .futures-options-toggle .toggle-btn {
-    flex: 1;
-    justify-content: center;
+  /* Last button/dropdown - rounded right */
+  & > *:last-child .toggle-btn {
+    border-radius: 0 0.25rem 0.25rem 0;
   }
 
-  .futures-options-toggle .dropdown-menu {
+  /* Options Dropdown Container */
+  & .options-dropdown {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+
+    /* Dropdown button should connect to Futures button */
+    & .dropdown-btn {
+      border-left: 0;
+      border-radius: 0 0.25rem 0.25rem 0;
+    }
+
+    /* Dropdown Arrow */
+    & .dropdown-arrow {
+      font-size: 0.625rem;
+      transition: transform 0.2s ease;
+      margin-left: 0.25rem;
+    }
+
+    &.dropdown-open .dropdown-arrow {
+      transform: rotate(180deg);
+    }
+
+    /* Show dropdown menu when open */
+    &.dropdown-open .dropdown-menu {
+      display: block;
+    }
+  }
+
+  /* Dropdown Button */
+  & .dropdown-btn {
+    background: transparent;
+    color: var(--gray3);
+    border-color: var(--gray4);
+    border: 0.0625rem solid var(--gray4);
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-family: Averta, "Helvetica Neue", arial, sans-serif;
+    letter-spacing: 0.0938rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 100px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--gray6);
+      color: var(--gray3);
+    }
+
+    &.active {
+      background: var(--blue2);
+      color: white;
+      border-color: var(--blue2);
+    }
+  }
+
+  /* Dropdown Menu - HIDDEN by default */
+  & .dropdown-menu {
+    position: absolute;
+    top: 100%;
     right: 0;
-    left: auto;
-    min-width: 240px;
+    min-width: 280px;
+    max-height: 300px;
+    overflow-y: auto;
+    background: white;
+    border: 0.0625rem solid var(--gray4);
+    border-radius: 0.25rem;
+    box-shadow: 0 0.25rem 0.375rem rgb(0 0 0 / 10%);
+    z-index: 1000;
+    margin-top: 0.25rem;
+    display: none; /* HIDDEN by default - this is the key! */
+  }
+
+  /* Dropdown Items */
+  & .dropdown-item {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: var(--gray2);
+    text-decoration: none;
+    border-bottom: 0.0625rem solid var(--gray5);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: var(--gray6);
+      color: var(--gray1);
+    }
+
+    &.selected {
+      background: var(--blue6);
+      color: var(--blue2);
+      font-weight: 600;
+    }
+
+    & .link {
+      font-size: 0.875rem;
+      font-weight: 500;
+      display: block;
+    }
+  }
+
+  /* Mobile Responsive */
+  @media (width < 769px) {
+    width: 100%;
+
+    & .toggle-btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    & .dropdown-menu {
+      right: 0;
+      left: auto;
+      min-width: 240px;
+    }
   }
 }
 
@@ -373,25 +364,24 @@ main .section.full-width:has(.hero-baseball) {
   padding: 3rem 2rem;
   text-align: center;
   box-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 6%);
-}
 
-.navigation-error h3 {
-  color: var(--gray1);
-  margin-bottom: 1rem;
-}
+  & h3 {
+    color: var(--gray1);
+    margin-bottom: 1rem;
+  }
 
-.navigation-error p {
-  color: var(--gray3);
-  margin: 0.5rem 0;
-}
+  & p {
+    color: var(--gray3);
+    margin: 0.5rem 0;
+  }
 
-.navigation-error a {
-  color: var(--blue4);
-  text-decoration: none;
-  font-weight: 500;
-}
+  & a {
+    color: var(--blue4);
+    text-decoration: none;
+    font-weight: 500;
 
-.navigation-error a:hover {
-  text-decoration: underline;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
-
