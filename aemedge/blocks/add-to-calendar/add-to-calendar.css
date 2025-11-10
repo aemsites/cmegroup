@@ -213,7 +213,7 @@
   }
   
   .atcb-button.atcb-active:not(.atcb-modal-style, .atcb-dropoverlay) {
-    z-index: 15000000;
+    z-index: 92;
   }
   
   .atcb-button.atcb-active:not(.atcb-modal-style, .atcb-dropoverlay),
@@ -227,7 +227,7 @@
   }
   
   .atcb-button.atcb-active.atcb-dropoverlay {
-    z-index: 14000090;
+    z-index: 91;
   }
   
   /******************************
@@ -279,11 +279,11 @@
     box-sizing: border-box;
     padding: 0 4px;
     position: absolute;
-    z-index: 14000090;
+    z-index: 91;
   }
   
   .atcb-list-wrapper.atcb-dropoverlay {
-    z-index: 15000000;
+    z-index: 92;
     max-width: -moz-max-content;
     max-width: max-content;
   }
@@ -410,7 +410,7 @@
     min-width: 250px;
     width: auto;
     position: relative;
-    z-index: 14000090;
+    z-index: 91;
   }
   
   .atcb-modal-box {
@@ -791,7 +791,7 @@
     padding: 20px 20px 130px;
     position: fixed;
     width: 100vw;
-    z-index: 14000000;
+    z-index: 90;
   }
   
   #atcb-bgoverlay:not(dialog) {
