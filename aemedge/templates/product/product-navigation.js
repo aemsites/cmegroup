@@ -40,7 +40,6 @@ async function getModules() {
     fetchTabData: cachedModules[0].fetchTabData,
     toggleSubTabsVisibility: cachedModules[1].toggleSubTabsVisibility,
     moveCurrentPageContentUnderSubTabs: cachedModules[2].moveCurrentPageContentUnderSubTabs,
-    ensureSubTabsContentContainer: cachedModules[2].ensureSubTabsContentContainer,
   };
 }
 
@@ -233,7 +232,6 @@ export async function renderProductPath(url, productRoot) {
       fetchTabData,
       toggleSubTabsVisibility,
       moveCurrentPageContentUnderSubTabs,
-      ensureSubTabsContentContainer,
     } = await getModules();
 
     // ✅ SHOW LOADING STATE IMMEDIATELY
