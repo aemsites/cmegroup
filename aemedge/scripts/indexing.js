@@ -2,6 +2,7 @@
 /* eslint-disable no-console */
 /* eslint-disable max-len */
 import { apiPost, getResponseData, urlByEnvType } from './utils/index.js';
+import { setupDayjsLibs } from './utils.js';
 
 const QUERY_INDEX_ENDPOINT = '/services/query-index/search';
 
@@ -116,21 +117,20 @@ async function getIndexedContent(indexFilter) {
     if (indexFilter.customTagObjArr && indexFilter.customTagObjArr.length > 0) {
       postData.query.tags = indexFilter.customTagObjArr;
     }
-    const dateRange = {};
-    if (hasValue(indexFilter.relativeDateFrom)) {
-      const dateFrom = new Date();
-      dateFrom.setDate(dateFrom.getDate() + indexFilter.relativeDateFrom);
-      dateFrom.setHours(0, 0, 0, 0);
-      dateRange.from = dateFrom.toISOString();
-    }
-    if (hasValue(indexFilter.relativeDateTo)) {
-      const dateTo = new Date();
-      dateTo.setDate(dateTo.getDate() + indexFilter.relativeDateTo);
-      dateTo.setHours(23, 59, 59, 0);
-      dateRange.to = dateTo.toISOString();
-    }
-    if (dateRange.from || dateRange.to) {
-      postData.query.dateRange = dateRange;
+    if (hasValue(indexFilter.relativeDateFrom) || hasValue(indexFilter.relativeDateTo)) {
+      const dateRange = {};
+      await setupDayjsLibs();
+      if (hasValue(indexFilter.relativeDateFrom)) {
+        const dateFrom = dayjs.utc().add(indexFilter.relativeDateFrom, 'day').startOf('day');
+        dateRange.from = dateFrom.toISOString();
+      }
+      if (hasValue(indexFilter.relativeDateTo)) {
+        const dateTo = dayjs.utc().add(indexFilter.relativeDateTo, 'day').endOf('day');
+        dateRange.to = dateTo.toISOString();
+      }
+      if (dateRange.from || dateRange.to) {
+        postData.query.dateRange = dateRange;
+      }
     }
     if (indexFilter.orderBy) {
       postData.sort = {

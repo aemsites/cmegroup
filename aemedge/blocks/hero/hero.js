@@ -62,6 +62,8 @@ async function decorateEventPageHero(block) {
     const locationTag = createElement('div', { class: 'event-property-value' }, location);
     locationWrapper.textContent = `${locationLabel}: `;
     locationWrapper.append(locationTag);
+  } else {
+    locationWrapper.remove();
   }
   const timeTag = createElement('div', { class: 'event-property-value' }, cdtDate.format('hh:mm A [CDT]'));
   timeWrapper.textContent = `${timeLabel}: `;
@@ -70,11 +72,15 @@ async function decorateEventPageHero(block) {
     const sponsoringTag = createElement('div', { class: 'event-property-value' }, sponsoring);
     sponsoringWrapper.textContent = `${sponsoringLabel}: `;
     sponsoringWrapper.append(sponsoringTag);
+  } else {
+    sponsoringWrapper.remove();
   }
   if (speaker) {
     const speakerTag = createElement('div', { class: 'event-property-value' }, speaker);
     speakerWrapper.textContent = `${speakerLabel}: `;
     speakerWrapper.append(speakerTag);
+  } else {
+    speakerWrapper.remove();
   }
 }
 

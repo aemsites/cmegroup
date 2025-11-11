@@ -298,9 +298,11 @@ async function parseTime(time) {
     return '';
   }
   const [
+    hourLabel,
     hrLabel,
     minLabel,
   ] = await Promise.all([
+    i18n('Hour'),
     i18n('Hr'),
     i18n('Min'),
   ]);
@@ -308,7 +310,7 @@ async function parseTime(time) {
   const minutes = parseInt(minStr, 10);
   const hours = parseInt(hrStr, 10);
   if (hours > 0) {
-    return `${hours} ${hrLabel}${minutes ? ` ${minutes} ${minLabel}` : ''}`;
+    return `${hours} ${minutes ? hrLabel : hourLabel}${minutes ? ` ${minutes} ${minLabel}` : ''}`;
   }
   return `${minutes} ${minLabel}`;
 }
@@ -800,6 +802,23 @@ function debounce(fn, delay) {
   };
 }
 
+function convertMMSSToHHMM(timeStr) {
+  const [minutes, seconds] = timeStr.split(':').map(Number);
+
+  let totalMinutes = minutes;
+  if (seconds > 30) {
+    totalMinutes += 1;
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const remainingMinutes = totalMinutes % 60;
+
+  const hh = String(hours).padStart(2, '0');
+  const mm = String(remainingMinutes).padStart(2, '0');
+
+  return `${hh}:${mm}`;
+}
+
 export {
   loadScript,
   createElement,
@@ -831,4 +850,5 @@ export {
   addFragmentBlock,
   getLanguageLabel,
   debounce,
+  convertMMSSToHHMM,
 };

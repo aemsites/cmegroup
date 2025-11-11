@@ -42,6 +42,14 @@ export async function createPagination({
     render();
   };
 
+  function getPageRange() {
+    const range = window.matchMedia('(min-width: 993px)').matches ? 5 : 2;
+    // Calculate start and end pages with max range limit
+    const startPage = Math.max(1, Math.min(currentPage - range));
+    const endPage = Math.min(totalPages, Math.max(currentPage + range));
+    return { startPage, endPage };
+  }
+
   const render = () => {
     const nav = createElement('nav', { 'aria-label': 'Page navigation' });
     const pagination = createElement('ul', { class: 'pagination' });
@@ -71,8 +79,9 @@ export async function createPagination({
       update(true);
     }));
 
-    Array.from({ length: totalPages }).forEach((_, index) => {
-      const page = index + 1;
+    const { startPage, endPage } = getPageRange();
+    Array.from({ length: endPage - startPage + 1 }).forEach((_, index) => {
+      const page = startPage + index;
       const li = createElement(
         'li',
         { class: `page-item ${page === currentPage ? 'disabled' : ''}` },
