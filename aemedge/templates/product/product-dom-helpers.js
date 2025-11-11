@@ -3,12 +3,8 @@
  * Handles DOM manipulation, section building, and tab discovery
  */
 
-import { normalizePath } from '../../scripts/utils/product.js';
+import { normalizePath, loadProductIndex, indexHasPath } from '../../scripts/utils/product.js';
 import { buildBlock, decorateBlock, loadBlock } from '../../scripts/aem.js';
-import { getIndexedContent } from '../../scripts/indexing.js';
-
-// Cache for indexed paths to avoid repeated API calls
-let pathIndexCache = null;
 
 /**
  * Find the product tabs section in the DOM
@@ -29,52 +25,23 @@ export function findHeroSection() {
 
 /**
  * Preload the path index cache to avoid delays during user interactions
+ * ✅ REFACTORED: Now uses shared cache from utils/product.js
  */
 export async function preloadPathIndex() {
-  if (pathIndexCache) return; // Already loaded
-
   try {
     // Determine base path from current location
     const currentPath = window.location.pathname;
-    const basePath = currentPath.split('/')[1];
+    const basePath = `/${currentPath.split('/')[1]}`;
 
-    const indexFilter = {
-      templates: ['product'],
-      basePaths: [`/${basePath}`],
-      limit: 1000,
-    };
-
-    const results = await getIndexedContent(indexFilter);
-
-    if (!results || results.length === 0) {
-      pathIndexCache = [];
-      return;
-    }
-
-    // Cache the normalized paths
-    pathIndexCache = results.map((item) => normalizePath(item.path));
+    // Load the shared product index (will use cache if already loaded)
+    await loadProductIndex(basePath);
   } catch (e) {
-    pathIndexCache = [];
+    // Silent fail
   }
 }
 
-/**
- * Check if a path exists using the search API
- */
-export async function indexHasPath(path) {
-  try {
-    // Load index if not cached
-    if (!pathIndexCache) {
-      await preloadPathIndex();
-    }
-
-    // Check if the specific path exists in cache
-    const normalizedPath = normalizePath(path);
-    return pathIndexCache.includes(normalizedPath);
-  } catch (e) {
-    return false;
-  }
-}
+// Note: indexHasPath is now imported from utils/product.js
+// No need to re-export it here, just import directly where needed
 
 /**
  * Create a section wrapper with a block inside

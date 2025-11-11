@@ -7,7 +7,7 @@
 // Circular dependency with product-navigation.js is intentional and safe
 // Uses dynamic imports to avoid initialization issues
 
-import { normalizePath } from '../../scripts/utils/product.js';
+import { normalizePath, indexHasPath } from '../../scripts/utils/product.js';
 import { store } from '../../scripts/store/store.js';
 import {
   setToggleOperation,
@@ -15,7 +15,7 @@ import {
   setTabSelection,
   clearTabSelection,
 } from '../../scripts/actions/product.js';
-import { indexHasPath, findProductTabsSection } from './product-dom-helpers.js';
+import { findProductTabsSection } from './product-dom-helpers.js';
 import { getProductId, prefetchProductData } from './product-data.js';
 import { renderProductPath, PREFETCH_CACHE } from './product-navigation.js';
 import {
