@@ -89,10 +89,6 @@ export default async function productTemplate() {
   // Enable SPA navigation (initial setup)
   enableProductSpaNavigation(productRoot);
 
-  // Re-enable after subtabs are populated (to wire up dropdown links)
-  // This ensures options dropdown links have click handlers
-  enableProductSpaNavigation(productRoot);
-
   // If on root path, render default tab (without changing URL)
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
 
