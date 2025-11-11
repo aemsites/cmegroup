@@ -632,7 +632,7 @@ a {
   }
 
   &.breadcrumb {
-    color: var(--white);
+    color: var(--white) !important;
     font-family: var(--averta);
     font-size: 0.875rem;
     font-weight: 400;
@@ -640,6 +640,10 @@ a {
     line-height: 1.25rem;
     padding: 0px;
     background-image: none !important;
+
+    & .icon {
+      filter: var(--white-filter) !important;
+    }
 
     &:hover {
       color: var(--white) !important;
