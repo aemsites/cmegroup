@@ -48,7 +48,7 @@
       font-size: 1.125rem;
       font-weight: 700;
       line-height: 1.5rem;
-      margin-bottom: 0.688rem;
+      margin-bottom: 0.388rem;
 
       @media (width >= 769px) {
         span {
