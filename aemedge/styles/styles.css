@@ -115,7 +115,7 @@ body.header-hidden main {
   left: 0;
   position: fixed;
   right: 0;
-  z-index: 100000;
+  z-index: 80;
 }
 
 @media (width >= 993px) {
@@ -155,6 +155,29 @@ h6,
     background-clip: text;
     color: transparent;
   }
+
+  & a {
+    color: initial;
+    position: relative;
+
+    &:hover {
+      color: var(--blue5);
+      text-decoration: none;
+
+      &::after {
+        margin-left: .75rem;
+        transition: 0.1s;
+      }
+    }
+
+    &::after {
+      font-family: var(--cme-group-icons);
+      content: var(--icon-chevron-right);
+      color: var(--blue5);
+      margin-left: .5rem;
+      font-size: 80%;
+    }
+  }
 }
 
 h1,
@@ -169,6 +192,18 @@ h2,
   font-size: 1.375rem;
   line-height: 1.75rem;
   letter-spacing: 0.02rem;
+
+  & a {
+    &:hover {
+      &::after {
+        margin-left: .625rem;
+      }
+    }
+
+    &::after {
+      margin-left: .375rem;
+    }
+  }
 }
 
 h3,
@@ -176,6 +211,18 @@ h3,
   font-size: 1.25rem;
   line-height: 1.625rem;
   letter-spacing: 0.0163rem;
+
+  & a {
+    &:hover {
+      &::after {
+        margin-left: .5625rem;
+      }
+    }
+
+    &::after {
+      margin-left: .375rem;
+    }
+  }
 }
 
 h4,
@@ -183,6 +230,18 @@ h4,
   font-size: 1.125rem;
   line-height: 1.5rem;
   letter-spacing: 0.0262rem;
+
+  & a {
+    &:hover {
+      &::after {
+        margin-left: .5rem;
+      }
+    }
+
+    &::after {
+      margin-left: .3125rem;
+    }
+  }
 }
 
 h5,
@@ -191,6 +250,18 @@ h5,
   font-size: 0.875rem;
   line-height: 1.25rem;
   letter-spacing: 0.0788rem;
+
+  & a {
+    &:hover {
+      &::after {
+        margin-left: .375rem;
+      }
+    }
+
+    &::after {
+      margin-left: .1875rem;
+    }
+  }
 }
 
 h6,
@@ -200,6 +271,18 @@ h6,
   line-height: 0.875rem;
   letter-spacing: 0.0206rem;
   margin-bottom: 0.625rem;
+
+  & a {
+    &:hover {
+      &::after {
+        margin-left: .25rem;
+      }
+    }
+
+    &::after {
+      margin-left: .125rem;
+    }
+  }
 }
 
 h1,
@@ -285,6 +368,19 @@ h6,
   h5,
   .h5 {
     margin-bottom: 1.25rem;
+  }
+}
+
+.reverse {
+  & h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    & a {
+      color: var(--white);
+    }
   }
 }
 
@@ -1619,7 +1715,7 @@ body::after {
   inset: 0;
   background: rgb(0 0 0 / 30%);
   display: none;
-  z-index: 1000;
+  z-index: 90;
 }
 
 /* Loading spinner */
@@ -1635,7 +1731,7 @@ body::before {
   border-top-color: transparent;
   border-radius: 50%;
   display: none;
-  z-index: 1001;
+  z-index: 91;
 }
 
 /* Show overlay and spinner when loading */
@@ -1654,7 +1750,7 @@ body.loading::before {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 1030;
+  z-index: 80;
 }
 
 .alerts .alert-item {
@@ -1818,7 +1914,7 @@ body.loading::before {
   font-family: var(--cme-group-icons);
   font-size: 0.875rem;
   pointer-events: none;
-  z-index: 10;
+  z-index: 1;
 }
 
 .lightbox-expand-icon::before {
@@ -1930,7 +2026,7 @@ p.center-img {
 }
 
 #st-2.st-right {
-  z-index: 100000 !important;
+  z-index: 70 !important;
 }
 
 /* general classes */
@@ -1998,7 +2094,7 @@ p.center-img {
   max-width: 80%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 100001;
+  z-index: 100;
   border-radius: 0.25rem 0 0 0.25rem;
 
   &.fade-in {

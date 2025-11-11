@@ -3,7 +3,7 @@ export function getEnv() {
   if (!hostname && window.parent && window.parent !== window) {
     ({ parent: { location: { hostname } = {} } } = window);
   }
-  return hostname.match(/(preview|beta|www)(-www|\.cmegroup)?/)?.[1] ?? 'www';
+  return hostname.match(/(?:^|--)([^-]+)(?:-www)?(?:--|\.)(?:cmegroup|aem)/)?.[1] ?? 'www';
 }
 
 export function isCMEEnv() {

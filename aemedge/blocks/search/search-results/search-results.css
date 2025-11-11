@@ -48,7 +48,7 @@
       font-size: 1.125rem;
       font-weight: 700;
       line-height: 1.5rem;
-      margin-bottom: 0.688rem;
+      margin-bottom: 0.388rem;
 
       @media (width >= 769px) {
         span {
@@ -91,7 +91,7 @@
     & .result-desc {
       font-size: 0.875rem;
       color: var(--gray3);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0;
       letter-spacing: 0;
       line-height: 1.25rem;
       height: 3.75rem;
