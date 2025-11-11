@@ -640,6 +640,7 @@
     line-height: 1;
     text-transform: none;
     font-variant: normal;
+    pointer-events: none;
 }
 
 .event-calendar-container .event-calendar-datepicker {
@@ -656,6 +657,7 @@
     border-radius: 0;
     width: 100%;
     box-sizing: border-box;
+    cursor: pointer;
 }
 
 .event-calendar-container .event-calendar-datepicker.datepicker-open {

@@ -630,6 +630,25 @@ a {
       width: 0.7188rem;
     }
   }
+
+  &.breadcrumb {
+    color: var(--white) !important;
+    font-family: var(--averta);
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: normal;
+    line-height: 1.25rem;
+    background-image: none !important;
+
+    & .icon {
+      filter: var(--white-filter) !important;
+    }
+
+    &:hover {
+      color: var(--white) !important;
+      text-decoration: underline !important;
+    }
+  }
 }
 
 /* stylelint-disable-next-line no-duplicate-selectors */
