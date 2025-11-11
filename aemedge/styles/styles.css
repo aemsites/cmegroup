@@ -115,7 +115,7 @@ body.header-hidden main {
   left: 0;
   position: fixed;
   right: 0;
-  z-index: 100000;
+  z-index: 80;
 }
 
 @media (width >= 993px) {
@@ -1715,7 +1715,7 @@ body::after {
   inset: 0;
   background: rgb(0 0 0 / 30%);
   display: none;
-  z-index: 1000;
+  z-index: 90;
 }
 
 /* Loading spinner */
@@ -1731,7 +1731,7 @@ body::before {
   border-top-color: transparent;
   border-radius: 50%;
   display: none;
-  z-index: 1001;
+  z-index: 91;
 }
 
 /* Show overlay and spinner when loading */
@@ -1750,7 +1750,7 @@ body.loading::before {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 1030;
+  z-index: 80;
 }
 
 .alerts .alert-item {
@@ -1914,7 +1914,7 @@ body.loading::before {
   font-family: var(--cme-group-icons);
   font-size: 0.875rem;
   pointer-events: none;
-  z-index: 10;
+  z-index: 1;
 }
 
 .lightbox-expand-icon::before {
@@ -2026,7 +2026,7 @@ p.center-img {
 }
 
 #st-2.st-right {
-  z-index: 100000 !important;
+  z-index: 70 !important;
 }
 
 /* general classes */
@@ -2094,7 +2094,7 @@ p.center-img {
   max-width: 80%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 100001;
+  z-index: 100;
   border-radius: 0.25rem 0 0 0.25rem;
 
   &.fade-in {
