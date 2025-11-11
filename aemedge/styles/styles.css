@@ -638,7 +638,6 @@ a {
     font-weight: 400;
     letter-spacing: normal;
     line-height: 1.25rem;
-    padding: 0px;
     background-image: none !important;
 
     & .icon {
