@@ -10,7 +10,7 @@ function createHeader() {
   const header = createElement('div', { class: 'cards-header' });
   const h3 = createElement('h3', {}, 'Related Courses');
   header.appendChild(h3);
-  const coursesLink = createElement('a', { href: '/education/courses/' }, 'View Course Catalog');
+  const coursesLink = createElement('a', { href: '/education/courses' }, 'View Course Catalog');
   header.appendChild(coursesLink);
   return header;
 }
