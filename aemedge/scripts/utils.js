@@ -298,9 +298,11 @@ async function parseTime(time) {
     return '';
   }
   const [
+    hourLabel,
     hrLabel,
     minLabel,
   ] = await Promise.all([
+    i18n('Hour'),
     i18n('Hr'),
     i18n('Min'),
   ]);
@@ -308,7 +310,7 @@ async function parseTime(time) {
   const minutes = parseInt(minStr, 10);
   const hours = parseInt(hrStr, 10);
   if (hours > 0) {
-    return `${hours} ${hrLabel}${minutes ? ` ${minutes} ${minLabel}` : ''}`;
+    return `${hours} ${minutes ? hrLabel : hourLabel}${minutes ? ` ${minutes} ${minLabel}` : ''}`;
   }
   return `${minutes} ${minLabel}`;
 }
