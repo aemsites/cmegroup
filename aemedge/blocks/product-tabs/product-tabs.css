@@ -1,62 +1,60 @@
+/* Product Tabs Block - Follows DOM structure from product-tabs.js */
+
 .product-tabs-nav {
   display: block;
   width: 100%;
   overflow: auto hidden;
   -webkit-overflow-scrolling: touch;
-}
 
-.product-tabs-list {
-  display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  gap: 1.5rem;
-  align-items: center;
-  flex-wrap: nowrap;
-  min-height: 3.5rem;
-}
+  & .product-tabs-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: nowrap;
+    min-height: 3.5rem;
 
-@media (width >= 769px) {
-  .product-tabs-list {
-    gap: 2rem;
+    @media (width >= 769px) {
+      gap: 2rem;
+    }
+
+    & .product-tabs-item {
+      flex-shrink: 0;
+
+      & a {
+        display: inline-block;
+        padding: 1.0625rem 0.625rem;
+        text-decoration: none;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.129em;
+        color: var(--gray3);
+        font-weight: 500;
+        transition: color 0.2s ease;
+        white-space: nowrap;
+        position: relative;
+
+        @media (width >= 769px) {
+          font-size: 0.875rem;
+          letter-spacing: 0.108em;
+          line-height: 1rem;
+          padding: 1.25rem 0.625rem;
+        }
+
+        &.is-active {
+          font-weight: 700;
+          color: var(--blue2);
+          border-bottom: 0.1875rem solid var(--blue4);
+        }
+
+        &:hover {
+          color: var(--blue4);
+        }
+      }
+    }
   }
-}
-
-.product-tabs-item {
-  flex-shrink: 0;
-}
-
-.product-tabs-item a {
-  display: inline-block;
-  padding: 1.0625rem 0.625rem;
-  text-decoration: none;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.129em;
-  color: var(--gray3);
-  font-weight: 500;
-  transition: color 0.2s ease;
-  white-space: nowrap;
-  position: relative;
-}
-
-@media (width >= 769px) {
-  .product-tabs-item a {
-    font-size: 0.875rem;
-    letter-spacing: 0.108em;
-    line-height: 1rem;
-    padding: 1.25rem 0.625rem;
-  }
-}
-
-.product-tabs-item a.is-active {
-  font-weight: 700;
-  color: var(--blue2);
-  border-bottom: 0.1875rem solid var(--blue4);
-}
-
-.product-tabs-item a:hover {
-  color: var(--blue4);
 }
 
 
