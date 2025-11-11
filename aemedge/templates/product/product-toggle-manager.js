@@ -18,6 +18,14 @@ import {
 import { indexHasPath, findProductTabsSection } from './product-dom-helpers.js';
 import { getProductId, prefetchProductData } from './product-data.js';
 import { renderProductPath, PREFETCH_CACHE } from './product-navigation.js';
+import {
+  createOptionsDropdown,
+  fetchExpirationsData,
+  getSelectedContractFromURL,
+  prefetchOptionPages,
+  buildContractURL,
+  TOGGLE_CONSTANTS,
+} from './product-toggle-utils.js';
 /* eslint-enable import/no-cycle */
 
 // Local debounce timer for toggle navigation
@@ -38,14 +46,6 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   if (!hasFutures || !hasOptions) {
     return null;
   }
-
-  const {
-    createOptionsDropdown,
-    fetchExpirationsData,
-    getSelectedContractFromURL,
-    prefetchOptionPages,
-    TOGGLE_CONSTANTS,
-  } = await import('./product-toggle-utils.js');
 
   const nav = document.createElement('nav');
   nav.className = 'product-subtabs enhanced';
@@ -119,8 +119,6 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
 async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
   if (nav.dataset.handlersBound === 'true') return;
   nav.dataset.handlersBound = 'true';
-
-  const { buildContractURL, prefetchOptionPages, TOGGLE_CONSTANTS } = await import('./product-toggle-utils.js');
 
   const futuresBtn = nav.querySelector('[data-toggle="futures"]');
   if (futuresBtn) {
@@ -198,7 +196,6 @@ async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
 async function updateDropdownActiveState(nav) {
   if (!nav) return;
 
-  const { getSelectedContractFromURL, TOGGLE_CONSTANTS } = await import('./product-toggle-utils.js');
   const selectedContract = getSelectedContractFromURL();
 
   const dropdown = nav.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdown}`);

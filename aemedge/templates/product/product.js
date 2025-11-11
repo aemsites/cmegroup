@@ -12,11 +12,12 @@
  */
 
 import { getMetadata } from '../../scripts/aem.js';
-import { computeProductRoot } from '../../scripts/utils/product.js';
+import { computeProductRoot, normalizePath } from '../../scripts/utils/product.js';
 import { store } from '../../scripts/store/store.js';
 import {
   updateProductField,
   setAPIData,
+  setProductData,
   setGlobalOptionSelection,
   clearGlobalOptionSelection,
 } from '../../scripts/actions/product.js';
@@ -46,6 +47,10 @@ import {
 import {
   insertEnhancedSubTabsIfApplicable,
 } from './product-toggle-manager.js';
+
+import {
+  fetchExpirationsData,
+} from './product-toggle-utils.js';
 
 // Export store and actions for use by blocks (backwards compatibility)
 export { store as productStore, updateProductField, setAPIData };
@@ -114,8 +119,6 @@ export default async function productTemplate() {
 
   // Prefetch options dropdown data immediately (don't wait for idle)
   // This ensures dropdown is ready when user clicks any tab
-  const { fetchExpirationsData } = await import('./product-toggle-utils.js');
-  const { setProductData } = await import('../../scripts/actions/product.js');
   fetchExpirationsData().then((data) => {
     if (data && data.length > 0) {
       store.dispatch(setProductData({ optionsExpirations: data }));
@@ -150,7 +153,6 @@ export default async function productTemplate() {
   enableProductSpaNavigation(productRoot);
 
   // If on root path, render default tab (without changing URL)
-  const { normalizePath } = await import('../../scripts/utils/product.js');
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
 
   if (onRoot) {

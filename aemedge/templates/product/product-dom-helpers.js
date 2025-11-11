@@ -4,7 +4,7 @@
  */
 
 import { normalizePath } from '../../scripts/utils/product.js';
-import { buildBlock } from '../../scripts/aem.js';
+import { buildBlock, decorateBlock, loadBlock } from '../../scripts/aem.js';
 import { getIndexedContent } from '../../scripts/indexing.js';
 
 // Cache for indexed paths to avoid repeated API calls
@@ -250,7 +250,6 @@ export async function insertProductTabsIfMissing(productRoot) {
     main.insertBefore(section, main.firstChild);
   }
 
-  const { decorateBlock, loadBlock } = await import('../../scripts/aem.js');
   decorateBlock(block);
   await loadBlock(block);
 
@@ -267,8 +266,7 @@ export async function insertHeroIfMissing() {
   const existing = main.querySelector('.hero-baseball');
   if (existing) return;
 
-  const { buildBlock: createBlock, decorateBlock, loadBlock } = await import('../../scripts/aem.js');
-  const hero = createBlock('hero-baseball', '');
+  const hero = buildBlock('hero-baseball', '');
   const section = createSectionWithBlock(hero);
   section.classList.add('full-width');
   main.insertBefore(section, main.firstChild);

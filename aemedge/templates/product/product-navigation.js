@@ -12,7 +12,7 @@ import {
   setGlobalOptionSelection,
   clearGlobalOptionSelection,
 } from '../../scripts/actions/product.js';
-import { getDefaultTab } from './product-dom-helpers.js';
+import { getDefaultTab, ensureSubTabsContentContainer } from './product-dom-helpers.js';
 
 // Export for use in other modules
 export const PREFETCH_CACHE = new Map();
@@ -367,7 +367,6 @@ export async function renderProductPath(url, productRoot) {
     // eslint-disable-next-line no-console
     console.error('SPA navigation failed:', e);
 
-    const { ensureSubTabsContentContainer } = await import('./product-dom-helpers.js');
     const container = ensureSubTabsContentContainer();
     if (container) {
       container.innerHTML = `

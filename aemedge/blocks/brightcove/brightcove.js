@@ -122,7 +122,6 @@ async function setPlayerReady(block, language, videoId, randomNumber, autoplayOp
     });
   }
   const { setTracking } = await import('../../scripts/gtm.js').catch(() => ({
-    // eslint-disable-next-line no-console
     setTracking: () => () => console.warn('GTM is unavailable'),
   }));
   const fireTracking = setTracking('custom', 'media', 'BrightcoveVideo');
