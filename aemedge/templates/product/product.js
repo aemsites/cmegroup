@@ -8,7 +8,6 @@
  * - product-navigation.js - SPA navigation & prefetching
  * - product-data.js - API configuration & data fetching
  * - product-toggle-manager.js - Futures/options toggle management
- * - scripts/services/ProductAutoUpdateService.js - Real-time data updates
  */
 
 import { getMetadata } from '../../scripts/aem.js';
@@ -91,17 +90,6 @@ window.checkTabSupportsOptions = checkTabSupportsOptions;
 window.getDefaultTab = getDefaultTab;
 window.getProductId = getProductId;
 
-// Auto-update service (exposed for manual control)
-window.startAutoUpdates = async (...args) => {
-  const { startAutoUpdates } = await import('../../scripts/services/ProductAutoUpdateService.js');
-  return startAutoUpdates(...args);
-};
-
-window.stopAutoUpdates = async (timers) => {
-  const { stopAutoUpdates } = await import('../../scripts/services/ProductAutoUpdateService.js');
-  stopAutoUpdates(timers);
-};
-
 // ==================== MAIN TEMPLATE FUNCTION ====================
 
 /**
@@ -161,30 +149,3 @@ export default async function productTemplate() {
     await renderProductPath(defaultUrl, productRoot);
   }
 }
-
-// ==================== AUTO-UPDATE CONFIGURATION ====================
-//
-// To enable auto-updating of product data (quotes, settlements, etc.):
-//
-// PRODUCTION (real APIs):
-// import { startAutoUpdates, AUTO_UPDATE_CONFIG }
-//   from '../../scripts/services/ProductAutoUpdateService.js';
-// const productId = getProductId();
-// const updateTimers = startAutoUpdates(productId, AUTO_UPDATE_CONFIG);
-//
-// DEMO (using sample.json):
-// import { startAutoUpdates } from '../../scripts/services/ProductAutoUpdateService.js';
-// const demoConfig = {
-//   quotes: {
-//     endpoint: () => '/aemedge/blocks/quotes-table/sample.json',
-//     storeKey: 'quotesData.table',
-//     interval: 30 * 1000, // 30 seconds
-//     transform: (data) => data.quotes,
-//     enabled: true,
-//   },
-// };
-// const updateTimers = startAutoUpdates('300', demoConfig);
-//
-// To stop (in console): window.stopAutoUpdates(updateTimers);
-//
-// ==================== END OF AUTO-UPDATE CONFIGURATION ====================
