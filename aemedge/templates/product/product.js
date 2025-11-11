@@ -13,13 +13,7 @@
 import { getMetadata } from '../../scripts/aem.js';
 import { computeProductRoot, normalizePath } from '../../scripts/utils/product.js';
 import { store } from '../../scripts/store/store.js';
-import {
-  updateProductField,
-  setAPIData,
-  setProductData,
-  setGlobalOptionSelection,
-  clearGlobalOptionSelection,
-} from '../../scripts/actions/product.js';
+import { setProductData } from '../../scripts/actions/product.js';
 
 // Import module functions
 import {
@@ -35,12 +29,10 @@ import {
 import {
   enableProductSpaNavigation,
   renderProductPath,
-  checkTabSupportsOptions,
 } from './product-navigation.js';
 
 import {
   schedulePrefetch,
-  getProductId,
 } from './product-data.js';
 
 import {
@@ -50,45 +42,6 @@ import {
 import {
   fetchExpirationsData,
 } from './product-toggle-utils.js';
-
-// Export store and actions for use by blocks (backwards compatibility)
-export { store as productStore, updateProductField, setAPIData };
-
-// ==================== DEVELOPMENT HELPERS ====================
-
-window.inspectProductStore = () => {
-  const state = store.getState();
-  // eslint-disable-next-line no-console
-  console.log('=== Product Store State ===');
-  // eslint-disable-next-line no-console
-  console.log('Product Data:', state.productData);
-  // eslint-disable-next-line no-console
-  console.log('Tab Selections:', state.tabSelections);
-  // eslint-disable-next-line no-console
-  console.log('Global Option Selection:', state.globalOptionSelection);
-  // eslint-disable-next-line no-console
-  console.log('Navigation:', state.navigation);
-};
-
-window.inspectTabSelections = () => {
-  const state = store.getState();
-  // eslint-disable-next-line no-console
-  console.log('=== Options Selections ===');
-  // eslint-disable-next-line no-console
-  console.log('GLOBAL Selection:', state.globalOptionSelection.selectedContract || 'None (Futures)');
-  // eslint-disable-next-line no-console
-  console.log('Per-Tab Selections (legacy):', state.tabSelections);
-};
-
-// Expose for debugging
-window.productStore = store;
-window.updateProductField = updateProductField;
-window.setAPIData = setAPIData;
-window.setGlobalOptionSelection = setGlobalOptionSelection;
-window.clearGlobalOptionSelection = clearGlobalOptionSelection;
-window.checkTabSupportsOptions = checkTabSupportsOptions;
-window.getDefaultTab = getDefaultTab;
-window.getProductId = getProductId;
 
 // ==================== MAIN TEMPLATE FUNCTION ====================
 

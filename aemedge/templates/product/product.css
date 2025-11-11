@@ -2,6 +2,7 @@
  * PRODUCT PAGE TEMPLATE STYLES - CME Group
  * Merged from original site extraction + custom enhancements
  * Date: 2025-10-31
+ * Restructured to match actual DOM hierarchy
  ======================================================================*/
 
 /* ============================================
@@ -17,342 +18,333 @@ main {
     margin: 0;
     padding: 0;
   }
-}
 
-/* Product tabs container - white background */
-.product-tabs-container {
-  background-color: white;
-  box-shadow: 0 0.0625rem 0.25rem rgb(0 0 0 / 8%);
-  position: relative;
-  z-index: 10;
-  margin-bottom: 0;
+  /* Product tabs container - white background */
+  & .product-tabs-container {
+    background-color: white;
+    box-shadow: 0 0.0625rem 0.25rem rgb(0 0 0 / 8%);
+    position: relative;
+    z-index: 10;
+    margin-bottom: 0;
 
-  /* Inline sub-tabs to the right of product tabs */
-  & .product-tabs-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  & .product-tabs-nav {
-    flex: 1 1 auto;
-  }
-}
-
-/* Sub-tabs (Futures/Options toggle) */
-.product-subtabs {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-
-  /* Enhanced sub-tabs container - replaces old list style */
-  &.enhanced {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    padding: 0;
-    opacity: 1;
-    transition: opacity 0.2s ease;
-
-    /* Prevent flash during state updates */
-    &.updating {
-      opacity: 0.7;
-    }
-
-    /* Futures/Options Toggle Container */
-    & .futures-options-toggle {
+    /* Tabs wrapper - contains both nav and subtabs */
+    & .product-tabs-wrapper {
       display: flex;
-      gap: 0;
-      z-index: 10;
-      align-items: stretch;
-    }
-  }
-}
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
 
-.product-subtabs-list {
-  display: flex;
-  gap: 0.5rem;
-  list-style: none;
-  margin: 0 0 0 1rem;
-  padding: 0.75rem 0;
+      @media (width < 769px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
 
-  & a {
-    display: inline-block;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    color: var(--gray3);
-    border: 0.0625rem solid var(--gray4);
-    border-radius: 0.25rem;
-    background-color: white;
-    transition: all 0.2s ease;
+      /* Main tabs navigation */
+      & .product-tabs-nav {
+        flex: 1 1 auto;
+      }
 
-    &:hover {
-      color: var(--blue4);
-      border-color: var(--blue4);
-    }
+      /* Sub-tabs container (Futures/Options toggle OR list) */
+      & .product-subtabs {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
 
-    &.is-active {
-      color: white;
-      background-color: var(--blue4);
-      border-color: var(--blue4);
-    }
-  }
-}
+        @media (width < 769px) {
+          margin-left: 0;
+          width: 100%;
+        }
 
-/* Content area below tabs - gray background */
-.product-subtabs-content {
-  background-color: var(--gray5);
-  padding: 2rem 1.5rem;
-  min-height: 50vh;
+        /* Enhanced sub-tabs with futures/options toggle */
+        &.enhanced {
+          margin-left: auto;
+          display: flex;
+          align-items: center;
+          padding: 0;
+          opacity: 1;
+          transition: opacity 0.2s ease;
 
-  @media (width >= 769px) {
-    padding: 2.5rem 3.375rem;
-  }
+          @media (width < 769px) {
+            width: 100%;
+          }
 
-  @media (width >= 993px) {
-    padding: 3rem 4.125rem;
-  }
+          /* Prevent flash during state updates */
+          &.updating {
+            opacity: 0.7;
+          }
 
-  @media (width >= 1201px) {
-    padding: 3rem 5.5rem;
-  }
+          /* Futures/Options Toggle Container */
+          & .futures-options-toggle {
+            display: flex;
+            gap: 0;
+            z-index: 10;
+            align-items: stretch;
 
-  /* Inner wrapper for content with max-width */
-  & > div {
-    max-width: var(--container-xxl-max);
-    margin: 0 auto;
-  }
+            @media (width < 769px) {
+              width: 100%;
+            }
 
-  /* White content cards with shadow on gray background */
-  & .section {
-    background-color: white;
-    border-radius: 0.25rem;
-    box-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 6%);
-    padding: 2rem 1.5rem;
-    margin-bottom: 1.5rem;
+            /* Toggle Button Base Styles */
+            & .toggle-btn {
+              background: var(--gray6);
+              border: 0.0625rem solid var(--gray4);
+              padding: 0.5rem 0.75rem;
+              cursor: pointer;
+              font-weight: 500;
+              text-transform: uppercase;
+              font-size: 0.75rem;
+              color: var(--gray3);
+              transition: all 0.2s ease;
+              font-family: Averta, "Helvetica Neue", arial, sans-serif;
+              letter-spacing: 0.0938rem;
+              min-width: 80px;
 
-    @media (width >= 769px) {
-      padding: 2.5rem;
-    }
+              @media (width < 769px) {
+                flex: 1;
+                justify-content: center;
+              }
 
-    @media (width >= 993px) {
-      padding: 3rem;
-    }
+              /* First button (Futures) - rounded left */
+              &:first-child {
+                border-radius: 0.25rem 0 0 0.25rem;
+              }
 
-    /* Remove background/shadow from nested sections to avoid double-boxing */
-    & .section {
-      background-color: transparent;
-      box-shadow: none;
-      padding: 0;
-      margin-bottom: 1rem;
-    }
-  }
-}
+              /* Active toggle button styling */
+              &.active {
+                background: var(--blue2);
+                color: white;
+                border-color: var(--blue2);
+              }
 
-/* Responsive adjustments for mobile */
-@media (width < 769px) {
-  .product-tabs-container .product-tabs-wrapper {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
+              /* Inactive toggle button styling */
+              &:not(.active) {
+                background: transparent;
+                color: var(--gray3);
+                border-color: var(--gray4);
 
-  .product-subtabs {
-    margin-left: 0;
-    width: 100%;
-  }
+                &:hover {
+                  background: var(--gray6);
+                }
+              }
+            }
 
-  .product-subtabs-list {
-    width: 100%;
-    justify-content: flex-start;
-    margin-left: 0;
+            /* Last button/dropdown - rounded right */
+            & > *:last-child .toggle-btn {
+              border-radius: 0 0.25rem 0.25rem 0;
+            }
 
-    & a {
-      flex: 1;
-      text-align: center;
-    }
-  }
-}
+            /* Options Dropdown Container */
+            & .options-dropdown {
+              position: relative;
+              display: inline-flex;
+              align-items: stretch;
 
-/* ============================================
-   ENHANCED FUTURES/OPTIONS TOGGLE DROPDOWN
-   Added for Step 4 of toggle enhancement
-   ============================================ */
+              /* Dropdown Button */
+              & .dropdown-btn {
+                background: transparent;
+                color: var(--gray3);
+                border: 0.0625rem solid var(--gray4);
+                border-left: 0;
+                border-radius: 0 0.25rem 0.25rem 0;
+                padding: 0.5rem 0.75rem;
+                cursor: pointer;
+                font-weight: 500;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+                font-family: Averta, "Helvetica Neue", arial, sans-serif;
+                letter-spacing: 0.0938rem;
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                min-width: 100px;
+                transition: all 0.2s ease;
 
-/* Futures/Options Toggle Container */
-.futures-options-toggle {
-  /* Toggle Button Base Styles */
-  & .toggle-btn {
-    background: var(--gray6);
-    border: 0.0625rem solid var(--gray4);
-    padding: 0.5rem 0.75rem;
-    cursor: pointer;
-    font-weight: 500;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    color: var(--gray3);
-    transition: all 0.2s ease;
-    font-family: Averta, "Helvetica Neue", arial, sans-serif;
-    letter-spacing: 0.0938rem;
-    min-width: 80px;
+                &:hover {
+                  background: var(--gray6);
+                  color: var(--gray3);
+                }
 
-    /* First button (Futures) - rounded left */
-    &:first-child {
-      border-radius: 0.25rem 0 0 0.25rem;
-    }
+                &.active {
+                  background: var(--blue2);
+                  color: white;
+                  border-color: var(--blue2);
+                }
+              }
 
-    /* Active toggle button styling */
-    &.active {
-      background: var(--blue2);
-      color: white;
-      border-color: var(--blue2);
-    }
+              /* Dropdown Arrow */
+              & .dropdown-arrow {
+                font-size: 0.625rem;
+                transition: transform 0.2s ease;
+                margin-left: 0.25rem;
+              }
 
-    /* Inactive toggle button styling */
-    &:not(.active) {
-      background: transparent;
-      color: var(--gray3);
-      border-color: var(--gray4);
+              /* Dropdown Menu - HIDDEN by default */
+              & .dropdown-menu {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                min-width: 280px;
+                max-height: 300px;
+                overflow-y: auto;
+                background: white;
+                border: 0.0625rem solid var(--gray4);
+                border-radius: 0.25rem;
+                box-shadow: 0 0.25rem 0.375rem rgb(0 0 0 / 10%);
+                z-index: 20;
+                margin-top: 0.25rem;
+                display: none;
 
-      &:hover {
-        background: var(--gray6);
+                @media (width < 769px) {
+                  right: 0;
+                  left: auto;
+                  min-width: 240px;
+                }
+              }
+
+              /* Dropdown Items */
+              & .dropdown-item {
+                display: block;
+                padding: 0.75rem 1rem;
+                color: var(--gray2);
+                text-decoration: none;
+                border-bottom: 0.0625rem solid var(--gray5);
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+
+                &:last-child {
+                  border-bottom: none;
+                }
+
+                &:hover {
+                  background: var(--gray6);
+                  color: var(--gray1);
+                }
+
+                &.selected {
+                  background: var(--blue6);
+                  color: var(--blue2);
+                  font-weight: 600;
+                }
+
+                & .link {
+                  font-size: 0.875rem;
+                  font-weight: 500;
+                  display: block;
+                }
+              }
+
+              /* Dropdown open state */
+              &.dropdown-open {
+                & .dropdown-arrow {
+                  transform: rotate(180deg);
+                }
+
+                & .dropdown-menu {
+                  display: block;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      /* Legacy sub-tabs list (non-enhanced) */
+      & .product-subtabs-list {
+        display: flex;
+        gap: 0.5rem;
+        list-style: none;
+        margin: 0 0 0 1rem;
+        padding: 0.75rem 0;
+
+        @media (width < 769px) {
+          width: 100%;
+          justify-content: flex-start;
+          margin-left: 0;
+        }
+
+        & a {
+          display: inline-block;
+          text-decoration: none;
+          padding: 0.5rem 1rem;
+          text-transform: uppercase;
+          font-size: 0.75rem;
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          color: var(--gray3);
+          border: 0.0625rem solid var(--gray4);
+          border-radius: 0.25rem;
+          background-color: white;
+          transition: all 0.2s ease;
+
+          @media (width < 769px) {
+            flex: 1;
+            text-align: center;
+          }
+
+          &:hover {
+            color: var(--blue4);
+            border-color: var(--blue4);
+          }
+
+          &.is-active {
+            color: white;
+            background-color: var(--blue4);
+            border-color: var(--blue4);
+          }
+        }
       }
     }
   }
 
-  /* Last button/dropdown - rounded right */
-  & > *:last-child .toggle-btn {
-    border-radius: 0 0.25rem 0.25rem 0;
-  }
+  /* Content area below tabs - gray background */
+  & .product-subtabs-content {
+    background-color: var(--gray5);
+    padding: 2rem 1.5rem;
+    min-height: 50vh;
 
-  /* Options Dropdown Container */
-  & .options-dropdown {
-    position: relative;
-    display: inline-flex;
-    align-items: stretch;
-
-    /* Dropdown button should connect to Futures button */
-    & .dropdown-btn {
-      border-left: 0;
-      border-radius: 0 0.25rem 0.25rem 0;
+    @media (width >= 769px) {
+      padding: 2.5rem 3.375rem;
     }
 
-    /* Dropdown Arrow */
-    & .dropdown-arrow {
-      font-size: 0.625rem;
-      transition: transform 0.2s ease;
-      margin-left: 0.25rem;
+    @media (width >= 993px) {
+      padding: 3rem 4.125rem;
     }
 
-    &.dropdown-open .dropdown-arrow {
-      transform: rotate(180deg);
+    @media (width >= 1201px) {
+      padding: 3rem 5.5rem;
     }
 
-    /* Show dropdown menu when open */
-    &.dropdown-open .dropdown-menu {
-      display: block;
-    }
-  }
-
-  /* Dropdown Button */
-  & .dropdown-btn {
-    background: transparent;
-    color: var(--gray3);
-    border-color: var(--gray4);
-    border: 0.0625rem solid var(--gray4);
-    padding: 0.5rem 0.75rem;
-    cursor: pointer;
-    font-weight: 500;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    font-family: Averta, "Helvetica Neue", arial, sans-serif;
-    letter-spacing: 0.0938rem;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    min-width: 100px;
-    transition: all 0.2s ease;
-
-    &:hover {
-      background: var(--gray6);
-      color: var(--gray3);
+    /* Inner wrapper for content with max-width */
+    & > div {
+      max-width: var(--container-xxl-max);
+      margin: 0 auto;
     }
 
-    &.active {
-      background: var(--blue2);
-      color: white;
-      border-color: var(--blue2);
-    }
-  }
+    /* White content cards with shadow on gray background */
+    & .section {
+      background-color: white;
+      border-radius: 0.25rem;
+      box-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 6%);
+      padding: 2rem 1.5rem;
+      margin-bottom: 1.5rem;
 
-  /* Dropdown Menu - HIDDEN by default */
-  & .dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    min-width: 280px;
-    max-height: 300px;
-    overflow-y: auto;
-    background: white;
-    border: 0.0625rem solid var(--gray4);
-    border-radius: 0.25rem;
-    box-shadow: 0 0.25rem 0.375rem rgb(0 0 0 / 10%);
-    z-index: 20;
-    margin-top: 0.25rem;
-    display: none; /* HIDDEN by default - this is the key! */
-  }
+      @media (width >= 769px) {
+        padding: 2.5rem;
+      }
 
-  /* Dropdown Items */
-  & .dropdown-item {
-    display: block;
-    padding: 0.75rem 1rem;
-    color: var(--gray2);
-    text-decoration: none;
-    border-bottom: 0.0625rem solid var(--gray5);
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+      @media (width >= 993px) {
+        padding: 3rem;
+      }
 
-    &:last-child {
-      border-bottom: none;
-    }
-
-    &:hover {
-      background: var(--gray6);
-      color: var(--gray1);
-    }
-
-    &.selected {
-      background: var(--blue6);
-      color: var(--blue2);
-      font-weight: 600;
-    }
-
-    & .link {
-      font-size: 0.875rem;
-      font-weight: 500;
-      display: block;
-    }
-  }
-
-  /* Mobile Responsive */
-  @media (width < 769px) {
-    width: 100%;
-
-    & .toggle-btn {
-      flex: 1;
-      justify-content: center;
-    }
-
-    & .dropdown-menu {
-      right: 0;
-      left: auto;
-      min-width: 240px;
+      /* Remove background/shadow from nested sections to avoid double-boxing */
+      & .section {
+        background-color: transparent;
+        box-shadow: none;
+        padding: 0;
+        margin-bottom: 1rem;
+      }
     }
   }
 }
