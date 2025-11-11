@@ -3,7 +3,6 @@ export * from './dataCache.js';
 export * from './dom.js';
 export * from './env.js';
 export * from './fetch.js';
-export * from './gtm.js';
 export * from './misc.js';
 export * from './site.js';
 export * from './storage.js';

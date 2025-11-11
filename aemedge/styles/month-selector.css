@@ -51,7 +51,7 @@
         transform: translate3d(0, 2.0625rem, 0);
         overflow: auto;
         width: calc(100% - 2.75rem);
-        z-index: 1000;
+        z-index: 20;
 
         @media (width >= 481px) {
             inset: 0.1875rem 0 auto auto;

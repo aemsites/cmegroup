@@ -62,7 +62,7 @@
     top: 0;
     transition: visibility .2s linear, opacity .2s linear;
     width: 100%;
-    z-index: 100001;
+    z-index: 90;
 }
 
 /* filter section container */
@@ -415,7 +415,7 @@
     position: fixed;
     top: 0;
     width: 21.875rem;
-    z-index: 100002;
+    z-index: 91;
     display: flex;
     flex-direction: column;
 }
@@ -671,7 +671,7 @@
     font-family: sans-serif;
     color: var(--white);
     position: absolute;
-    z-index: 100002;
+    z-index: 90;
     user-select: none;
     overflow: hidden;
     background: var(--white);
@@ -686,7 +686,7 @@
 }
 
 .event-calendar-container .qs-datepicker-container.on-top {
-    top: -355px !important;
+    top: var(--date-input-top, -355px) !important;
 }
 
 @media (width >=1201px) {

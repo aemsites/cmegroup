@@ -10,32 +10,43 @@ export default function decorate(block) {
       const type = row.querySelector(':scope > div:first-child')?.textContent?.trim().toLowerCase();
       const content = row.querySelector(':scope > div:last-child');
 
-      switch (type) {
-        case 'url':
-          linkWrapper.href = content.textContent.trim();
-          break;
-        case 'background':
-          content.classList.add('background-image');
-          linkWrapper.append(content);
-          break;
-        case 'eyebrow':
-          content.classList.add('eyebrow');
-          contentWrapper.append(content);
-          break;
-        case 'title':
-          content.classList.add('title');
-          contentWrapper.append(content);
-          break;
-        case 'description':
-          content.classList.add('description');
-          contentWrapper.append(content);
-          break;
-        case 'footer':
-          content.classList.add('footer');
-          linkWrapper.append(content);
-          break;
-        default:
-          break;
+      if (content.children.length !== 0) {
+        switch (type) {
+          case 'url':
+            linkWrapper.href = content.textContent.trim();
+            break;
+          case 'background':
+            content.classList.add('background-image');
+            linkWrapper.append(content);
+            break;
+          case 'eyebrow':
+            content.classList.add('eyebrow');
+            contentWrapper.append(content);
+            break;
+          case 'title':
+            content.classList.add('title');
+            contentWrapper.append(content);
+            break;
+          case 'description':
+            content.classList.add('description');
+            contentWrapper.append(content);
+            break;
+          case 'footer':
+            content.classList.add('footer');
+            linkWrapper.append(content);
+            break;
+          case 'title color':
+            linkWrapper.querySelector('.title p').style.color = `var(--${content.textContent.trim()})`;
+            break;
+          case 'eyebrow color':
+            linkWrapper.querySelector('.eyebrow p').style.color = `var(--${content.textContent.trim()})`;
+            break;
+          case 'arrow color':
+            linkWrapper.querySelector('.footer').style.setProperty('--after-background-color', `var(--${content.textContent.trim()})`);
+            break;
+          default:
+            break;
+        }
       }
     });
 
@@ -58,31 +69,42 @@ export default function decorate(block) {
       const type = row.querySelector(':scope > div:first-child')?.textContent?.trim().toLowerCase();
       const content = row.querySelector(':scope > div:last-child');
 
-      switch (type) {
-        case 'url':
-          linkWrapper.href = content.textContent.trim();
-          break;
-        case 'background':
-          content.classList.add('background-image');
-          promoWrapper.append(content);
-          break;
-        case 'eyebrow':
-          content.classList.add('eyebrow');
-          leftContentWrapper.append(content);
-          break;
-        case 'title':
-          content.classList.add('title');
-          leftContentWrapper.append(content);
-          break;
-        case 'description':
-          content.classList.add('description');
-          rightContentWrapper.append(content);
-          break;
-        case 'footer':
-          linkWrapper.innerHTML = content.innerHTML;
-          break;
-        default:
-          break;
+      if (content.children.length !== 0) {
+        switch (type) {
+          case 'url':
+            linkWrapper.href = content.textContent.trim();
+            break;
+          case 'background':
+            content.classList.add('background-image');
+            promoWrapper.append(content);
+            break;
+          case 'eyebrow':
+            content.classList.add('eyebrow');
+            leftContentWrapper.append(content);
+            break;
+          case 'title':
+            content.classList.add('title');
+            leftContentWrapper.append(content);
+            break;
+          case 'description':
+            content.classList.add('description');
+            rightContentWrapper.append(content);
+            break;
+          case 'footer':
+            linkWrapper.innerHTML = content.innerHTML;
+            break;
+          case 'title color':
+            linkWrapper.querySelector('.title p').style.color = `var(--${content.textContent.trim()})`;
+            break;
+          case 'eyebrow color':
+            linkWrapper.querySelector('.eyebrow p').style.color = `var(--${content.textContent.trim()})`;
+            break;
+          case 'arrow color':
+            linkWrapper.querySelector('.footer').style.setProperty('--after-background-color', `var(--${content.textContent.trim()})`);
+            break;
+          default:
+            break;
+        }
       }
     });
 

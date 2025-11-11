@@ -716,18 +716,28 @@ export function createSelectInstruction(title) {
 
 export function updateAdvancedNav(block, nav, wrapper, questions, type, state) {
   const lastSlider = nav.currentIndex === questions.length - 1;
+  const singleQuestion = questions.length === 1;
 
-  nav.next.style.display = lastSlider ? 'none' : 'flex';
-  if (nav.finish) nav.finish.style.display = lastSlider ? 'block' : 'none';
+  if (singleQuestion) {
+    if (nav.next) nav.next.style.display = 'none';
+    if (nav.finish) nav.finish.style.display = 'block';
+  } else {
+    if (nav.next) nav.next.style.display = lastSlider ? 'none' : 'flex';
+    if (nav.finish) nav.finish.style.display = lastSlider ? 'block' : 'none';
+  }
 
   const isReviewMode = block.classList.contains('is-review') || block.classList.contains('in-review');
+
   if (isReviewMode) {
-    nav.finish.disabled = false;
-    nav.finish.classList.remove('arrow-disabled');
+    if (nav.finish) {
+      nav.finish.disabled = false;
+      nav.finish.classList.remove('arrow-disabled');
+    }
   } else if (type === 'activity') {
     const currentQuestion = wrapper.querySelectorAll(':scope > div')[nav.currentIndex];
     const answeredCorrectly = currentQuestion.classList.contains('answered-correctly');
-    if (lastSlider && nav.finish) {
+
+    if ((singleQuestion || lastSlider) && nav.finish) {
       nav.finish.disabled = !answeredCorrectly;
       nav.finish.classList.toggle('arrow-disabled', !answeredCorrectly);
     }
@@ -741,7 +751,7 @@ export function updateAdvancedNav(block, nav, wrapper, questions, type, state) {
 
     const isAnswered = !!(questionEntry && questionEntry.answers.length > 0);
 
-    if (lastSlider && nav.finish) {
+    if ((singleQuestion || lastSlider) && nav.finish) {
       nav.finish.disabled = !isAnswered;
       nav.finish.classList.toggle('arrow-disabled', !isAnswered);
     }
@@ -750,7 +760,7 @@ export function updateAdvancedNav(block, nav, wrapper, questions, type, state) {
     nav.finish.classList.remove('arrow-disabled');
   }
 
-  if (!lastSlider) {
+  if (!lastSlider && !singleQuestion && nav.next) {
     updateAdvancedNextDisabled(block, type, wrapper, nav.currentIndex, questions, state, nav.next);
   }
 }

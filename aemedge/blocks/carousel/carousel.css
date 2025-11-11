@@ -15,7 +15,7 @@
         position: absolute;
         top: 0;
         left: 0;
-        z-index: 100;
+        z-index: 10;
       }
     }
 
@@ -93,7 +93,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    z-index: 99;
+    z-index: 9;
     gap: 1.25rem;
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -138,18 +138,24 @@
     & .slide-caption {
       color: #f8f9fa;
       user-select: none;
-      margin-top: 3.75rem;
-      padding: 0 10%;
+      margin-top: 1.875rem;
+      padding: 0 15%;
       font-family: var(--averta);
       font-weight: 400;
       letter-spacing: .03em;
-      margin-bottom: 1.25rem;
+      margin-bottom: 0;
       font-size: 1.125rem;
       line-height: 1.625rem;
 
       @media (width >= 481px) {
         line-height: 2.25rem;
         font-size: 1.75rem;
+        margin-top: 3.75rem;
+        padding: 0 22%;
+      }
+
+      @media (width >= 769px) {
+        padding: 0 10%;
       }
     }
   }
@@ -165,6 +171,10 @@
     justify-content: space-between;
 
     @media (width >= 481px) {
+      width: 100%;
+    }
+
+    @media (width >= 769px) {
       width: 120%;
       left: -10%;
     }
@@ -174,12 +184,13 @@
       font-size: 1rem;
       height: 2.5rem;
       width: 2.5rem;
-      z-index: 99;
+      z-index: 9;
       position: relative;
       background-color: var(--blue5);
       border: 0;
       cursor: pointer;
       border-radius: 0;
+      padding: 0;
 
       @media (width >= 481px) {
         height: 3.75rem;
@@ -207,6 +218,10 @@
         left: 0;
 
         @media (width >= 481px) {
+          left: 0;
+        }
+
+        @media (width >= 769px) {
           left: 3.75rem;
         }
       }
@@ -215,6 +230,10 @@
         right: 0;
 
         @media (width >= 481px) {
+          right: 0;
+        }
+
+        @media (width >= 769px) {
           right: 3.75rem;
         }
       }
@@ -257,7 +276,7 @@
     justify-content: center;
     width: 100%;
     list-style: none;
-    z-index: 99;
+    z-index: 9;
     padding: 0;
 
     & .slider-dot {
@@ -291,7 +310,7 @@
   top: calc(50% - 1.25rem);
   left: calc(50% - 1.25rem);
   transform: translate(-50%, -50%);
-  z-index: 101;
+  z-index: 11;
 }
 
 @keyframes carousel-spin {
