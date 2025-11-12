@@ -21,7 +21,7 @@
  */
 
 import { createElement } from '../../scripts/utils.js';
-import { apiGet, getResponseData } from '../../scripts/utils/index.js';
+import { apiGet, getResponseData, urlByEnvType } from '../../scripts/utils/index.js';
 import { getMetadata } from '../../scripts/aem.js';
 import { getProductMetadata } from '../../scripts/utils/product.js';
 
@@ -61,10 +61,9 @@ export const TOGGLE_CONSTANTS = {
 const API_CONFIG = {
   // Old mock endpoint
   mockExpirations: '/aemedge/blocks/dynamic/product-tabs/mock-api/expirations.json',
-  // New real endpoint - requires productId parameter
-  realExpirationsEndpoint: 'https://www.cmegroup.com/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/',
-  // Beta fallback endpoint
-  betaExpirationsEndpoint: 'https://beta.cmegroup.com/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/',
+  // Real endpoint - requires productId parameter
+  // Uses urlByEnvType() to automatically select correct environment
+  expirationsEndpoint: '/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/',
 };
 
 /**
@@ -102,9 +101,8 @@ export async function fetchExpirationsData(productId = null) {
   const pid = productId || await getProductIdFromMetadata();
   if (!pid) return [];
 
-  // Try production API first, fallback to beta if it fails
   try {
-    const endpoint = `${API_CONFIG.realExpirationsEndpoint}${pid}`;
+    const endpoint = `${urlByEnvType()}${API_CONFIG.expirationsEndpoint}${pid}`;
     const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
     const data = getResponseData(response) || response.data;
 
@@ -120,32 +118,11 @@ export async function fetchExpirationsData(productId = null) {
       }));
     }
 
-    throw new Error('No optionsLabels in response');
+    return [];
   } catch (error) {
-    // Fallback to beta API
-    try {
-      const betaEndpoint = `${API_CONFIG.betaExpirationsEndpoint}${pid}`;
-      const response = await apiGet(betaEndpoint, {}, {}, { withCredentials: false });
-      const data = getResponseData(response) || response.data;
-
-      if (data && data.optionsLabels && Array.isArray(data.optionsLabels)) {
-        return data.optionsLabels.map((option) => ({
-          productId: option.productId,
-          label: option.label,
-          name: option.name,
-          optionType: option.optionType,
-          productIds: option.productIds,
-          weekly: option.weekly === 'true' || option.weekly === true,
-          daily: option.daily === 'true' || option.daily === true,
-        }));
-      }
-
-      return [];
-    } catch (fallbackError) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to fetch expirations data from both production and beta:', fallbackError);
-      return [];
-    }
+    // eslint-disable-next-line no-console
+    console.error('Failed to fetch expirations data:', error);
+    return [];
   }
 }
 

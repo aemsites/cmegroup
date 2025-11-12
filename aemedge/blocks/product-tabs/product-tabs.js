@@ -7,17 +7,9 @@
  */
 
 import { toClassName } from '../../scripts/aem.js';
+import { i18n } from '../../scripts/utils.js';
 
 const CANONICAL_ORDER = ['overview', 'quotes', 'settlements', 'volume', 'specs', 'margins', 'calendar'];
-const CANONICAL_LABELS = {
-  overview: 'Overview',
-  quotes: 'Quotes',
-  settlements: 'Settlements',
-  volume: 'Volume',
-  specs: 'Contract Specs',
-  margins: 'Margins',
-  calendar: 'Calendar',
-};
 
 function stripTrailingSlash(pathname) {
   if (!pathname) return '';
@@ -105,12 +97,27 @@ function parseAuthoredRows(block) {
   return items;
 }
 
-function buildFromCanonical(pathname) {
+async function buildFromCanonical(pathname) {
   const root = computeProductRoot(pathname);
+
+  const [overview, quotes, settlements, volume, specs, margins, calendar] = await Promise.all([
+    i18n('Overview'),
+    i18n('Quotes'),
+    i18n('Settlements'),
+    i18n('Volume'),
+    i18n('Contract Specs'),
+    i18n('Margins'),
+    i18n('Calendar'),
+  ]);
+
+  const labels = {
+    overview, quotes, settlements, volume, specs, margins, calendar,
+  };
+
   const items = CANONICAL_ORDER.map((key) => {
     // All tabs including overview should have their own page path
     const href = `${root}/${key}`;
-    return { key, label: CANONICAL_LABELS[key] || key, href: normalizePath(href) };
+    return { key, label: labels[key] || key, href: normalizePath(href) };
   });
   return items;
 }
@@ -148,7 +155,7 @@ export default async function decorate(block) {
   // Try authored rows first
   let items = parseAuthoredRows(block);
   if (!items.length) {
-    items = buildFromCanonical(window.location.pathname);
+    items = await buildFromCanonical(window.location.pathname);
   }
   renderNav(block, items);
 }
