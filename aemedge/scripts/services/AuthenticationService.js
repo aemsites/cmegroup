@@ -5,7 +5,6 @@ import {
 } from '../utils/index.js';
 
 export async function getIsLoggedIn(payload) {
-  
   console.log('Running AuthenticationService - Beta');
   const isLoggedInService = `${urlByEnvType()}/services/login/validate`;
   try {
