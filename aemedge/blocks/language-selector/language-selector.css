@@ -136,4 +136,12 @@
         }
 
     }
+
+    &.right-align {
+      text-align: right;
+
+      & .language-selector-dropdown {
+        inset: 0.1875rem 0 auto auto;
+      }
+    }
 }

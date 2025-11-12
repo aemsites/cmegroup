@@ -12,12 +12,15 @@ const [
   i18n('Venues'),
   i18n('Cleared As'),
 ]);
+
 class UniversalDropdown {
   constructor(container, config) {
     this.container = container;
     this.config = config;
     this.isOpen = false;
     this.selectedItems = new Set(config.selectedItems || []);
+    this.focusedIndex = -1;
+    this.focusableElements = [];
 
     if (!window.activeDropdowns) {
       window.activeDropdowns = [];
@@ -37,7 +40,10 @@ class UniversalDropdown {
     this.dropdown = createElement('div', { class: 'dropdown' });
     this.dropdown.dataset.type = this.config.type;
 
-    this.header = createElement('button', { class: 'dropdown-header' });
+    this.header = createElement('button', {
+      class: 'dropdown-header',
+      type: 'button',
+    });
     this.header.innerHTML = `
       <span>${this.config.title}</span>
       <span class="dropdown-arrow"></span>
@@ -69,13 +75,15 @@ class UniversalDropdown {
     });
   }
 
-  // Unified checkbox creation
   createCheckboxComponent(id) {
-    const checkboxComponent = createElement('div', { class: 'checkbox-component' });
+    const checkboxComponent = createElement('div', {
+      class: 'checkbox-component',
+    });
 
     const checkbox = createElement('input', { class: 'checkbox-input' });
     checkbox.type = 'checkbox';
     checkbox.id = id;
+    checkbox.tabIndex = -1;
 
     const checkboxCustom = document.createElement('span');
     checkboxCustom.className = 'checkbox-custom';
@@ -95,7 +103,10 @@ class UniversalDropdown {
   }
 
   createGroup(groupName, groupId, children) {
-    const groupItem = createElement('div', { class: 'dropdown-item group' });
+    const groupItem = createElement('div', {
+      class: 'dropdown-item group',
+      tabindex: '-1',
+    });
     const id = `${this.config.type}-group-${groupId}`;
     const { checkboxComponent, checkbox, checkmark } = this.createCheckboxComponent(id);
 
@@ -106,12 +117,21 @@ class UniversalDropdown {
     groupItem.appendChild(checkboxComponent);
     groupItem.appendChild(label);
 
-    groupItem.addEventListener('click', (e) => {
+    const handleToggle = (e) => {
       e.preventDefault();
       e.stopPropagation();
       checkbox.checked = !checkbox.checked;
       this.updateCheckboxVisual(checkbox, checkmark);
       this.toggleGroupSelection(groupName, groupId, checkbox, children);
+    };
+
+    groupItem.addEventListener('click', handleToggle);
+
+    groupItem.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        handleToggle(e);
+      }
     });
 
     this.content.appendChild(groupItem);
@@ -124,7 +144,10 @@ class UniversalDropdown {
 
   createItem(itemName, itemId, isSubitem = false, groupName = null, groupId = null) {
     const itemClass = isSubitem ? 'dropdown-item subitem' : 'dropdown-item';
-    const item = createElement('div', { class: itemClass });
+    const item = createElement('div', {
+      class: itemClass,
+      tabindex: '-1',
+    });
     const id = `${this.config.type}-item-${itemId}`;
     const { checkboxComponent, checkbox, checkmark } = this.createCheckboxComponent(id);
 
@@ -135,7 +158,7 @@ class UniversalDropdown {
     item.appendChild(checkboxComponent);
     item.appendChild(label);
 
-    item.addEventListener('click', (e) => {
+    const handleToggle = (e) => {
       e.preventDefault();
       e.stopPropagation();
       checkbox.checked = !checkbox.checked;
@@ -145,6 +168,15 @@ class UniversalDropdown {
         this.toggleChildItem(itemName, itemId, checkbox, groupName, groupId);
       } else {
         this.toggleSimpleItem(itemName, itemId);
+      }
+    };
+
+    item.addEventListener('click', handleToggle);
+
+    item.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        handleToggle(e);
       }
     });
 
@@ -156,10 +188,49 @@ class UniversalDropdown {
     svg.style.display = checkbox.checked ? 'block' : 'none';
   }
 
+  updateFocusableElements() {
+    this.focusableElements = Array.from(
+      this.content.querySelectorAll('.dropdown-item'),
+    );
+  }
+
   bindEvents() {
     this.header.addEventListener('click', (e) => {
       e.stopPropagation();
       this.toggle();
+    });
+
+    this.header.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.toggle();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!this.isOpen) {
+          this.open();
+        }
+        this.focusFirstItem();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!this.isOpen) {
+          this.open();
+        }
+        this.focusLastItem();
+      }
+    });
+
+    this.content.addEventListener('keydown', (e) => {
+      this.handleContentKeyboard(e);
+    });
+
+    this.dropdown.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab' && this.isOpen) {
+        setTimeout(() => {
+          if (!this.dropdown.contains(document.activeElement)) {
+            this.close();
+          }
+        }, 0);
+      }
     });
 
     document.addEventListener('click', (e) => {
@@ -167,6 +238,77 @@ class UniversalDropdown {
         this.close();
       }
     });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) {
+        e.preventDefault();
+        this.close();
+        this.header.focus();
+      }
+    });
+  }
+
+  handleContentKeyboard(e) {
+    if (!this.isOpen) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        this.focusNext();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        this.focusPrevious();
+        break;
+      case 'Home':
+        e.preventDefault();
+        this.focusFirstItem();
+        break;
+      case 'End':
+        e.preventDefault();
+        this.focusLastItem();
+        break;
+      default:
+        break;
+    }
+  }
+
+  focusNext() {
+    if (this.focusableElements.length === 0) return;
+
+    this.focusedIndex += 1;
+    if (this.focusedIndex >= this.focusableElements.length) {
+      this.focusedIndex = 0;
+    }
+
+    const el = this.focusableElements[this.focusedIndex];
+    if (el) el.focus();
+  }
+
+  focusPrevious() {
+    if (this.focusableElements.length === 0) return;
+
+    this.focusedIndex -= 1;
+    if (this.focusedIndex < 0) {
+      this.focusedIndex = this.focusableElements.length - 1;
+    }
+
+    const el = this.focusableElements[this.focusedIndex];
+    if (el) el.focus();
+  }
+
+  focusFirstItem() {
+    if (this.focusableElements.length === 0) return;
+
+    this.focusedIndex = 0;
+    this.focusableElements[0]?.focus();
+  }
+
+  focusLastItem() {
+    if (this.focusableElements.length === 0) return;
+
+    this.focusedIndex = this.focusableElements.length - 1;
+    this.focusableElements[this.focusedIndex]?.focus();
   }
 
   toggle() {
@@ -192,12 +334,14 @@ class UniversalDropdown {
     this.isOpen = true;
     this.content.classList.add('open');
     this.header.querySelector('.dropdown-arrow').classList.add('open');
+    this.updateFocusableElements();
   }
 
   close() {
     this.isOpen = false;
     this.content.classList.remove('open');
     this.header.querySelector('.dropdown-arrow').classList.remove('open');
+    this.focusedIndex = -1;
   }
 
   toggleGroupSelection(groupName, groupId, checkbox, children) {
@@ -257,7 +401,6 @@ class UniversalDropdown {
     const groupKey = `${groupName}_${groupId}`;
     const selectedChildren = group.children.filter((child) => this.selectedItems.has(`${child.name}_${child.id}`));
 
-    // Parent checked only when ALL children are selected
     if (selectedChildren.length === group.children.length && group.children.length > 0) {
       this.selectedItems.add(groupKey);
     } else {
@@ -338,12 +481,10 @@ class UniversalDropdown {
       const group = this.config.data.find((g) => `${g.name}_${g.id}` === itemKey);
 
       if (group && group.children) {
-        // Deselect all children when parent is deselected
         group.children.forEach((child) => {
           this.selectedItems.delete(`${child.name}_${child.id}`);
         });
       } else {
-        // Update parent state when child is deselected
         this.config.data.forEach((g) => {
           const child = (g.children || []).find((c) => `${c.name}_${c.id}` === itemKey);
           if (child) {
