@@ -7,16 +7,16 @@
 // Circular dependency with product-navigation.js is intentional and safe
 // Uses dynamic imports to avoid initialization issues
 
-import { normalizePath, indexHasPath } from '../../scripts/utils/product.js';
+import { normalizePath, indexHasPath, getProductMetadata } from '../../scripts/utils/product.js';
 import { store } from '../../scripts/store/store.js';
 import {
   setToggleOperation,
   setCreatingToggle,
   setTabSelection,
   clearTabSelection,
+  setProductData,
 } from '../../scripts/actions/product.js';
 import { findProductTabsSection } from './product-dom-helpers.js';
-import { getProductId, prefetchProductData } from './product-data.js';
 import { renderProductPath, PREFETCH_CACHE } from './product-navigation.js';
 import {
   createOptionsDropdown,
@@ -70,16 +70,23 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
 
   container.appendChild(futuresBtn);
 
-  const productId = getProductId();
+  const productMetadata = await getProductMetadata();
+  const productId = productMetadata?.productId;
+  if (!productId) {
+    // eslint-disable-next-line no-console
+    console.warn('Unable to determine product ID for options dropdown');
+    return container;
+  }
+
   const state = store.getState();
   let expirationsData = state.productData.optionsExpirations;
 
   const isWrongProduct = state.productData.productRoot !== normalizePath(productRoot);
   if (!expirationsData || isWrongProduct) {
-    await prefetchProductData(productRoot);
-    const fallbackData = await fetchExpirationsData(productId);
-    const updatedState = store.getState();
-    expirationsData = updatedState.productData.optionsExpirations || fallbackData;
+    expirationsData = await fetchExpirationsData(productId);
+    if (expirationsData && expirationsData.length > 0) {
+      store.dispatch(setProductData({ optionsExpirations: expirationsData }));
+    }
   }
 
   const selectedContract = getSelectedContractFromURL();

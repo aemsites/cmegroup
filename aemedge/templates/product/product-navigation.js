@@ -30,16 +30,13 @@ async function getModules() {
   if (!cachedModules) {
     cachedModules = await Promise.all([
       // eslint-disable-next-line import/no-cycle
-      import('./product-data.js'),
-      // eslint-disable-next-line import/no-cycle
       import('./product-toggle-manager.js'),
       import('./product-dom-helpers.js'),
     ]);
   }
   return {
-    fetchTabData: cachedModules[0].fetchTabData,
-    toggleSubTabsVisibility: cachedModules[1].toggleSubTabsVisibility,
-    moveCurrentPageContentUnderSubTabs: cachedModules[2].moveCurrentPageContentUnderSubTabs,
+    toggleSubTabsVisibility: cachedModules[0].toggleSubTabsVisibility,
+    moveCurrentPageContentUnderSubTabs: cachedModules[1].moveCurrentPageContentUnderSubTabs,
   };
 }
 
@@ -229,7 +226,6 @@ export async function renderProductPath(url, productRoot) {
 
     // ✅ USE CACHED IMPORTS: Much faster than dynamic import every time
     const {
-      fetchTabData,
       toggleSubTabsVisibility,
       moveCurrentPageContentUnderSubTabs,
     } = await getModules();
@@ -247,9 +243,6 @@ export async function renderProductPath(url, productRoot) {
       moveCurrentPageContentUnderSubTabs();
       enableProductSpaNavigation(productRoot);
     });
-
-    // Fetch data in background
-    fetchTabData(productRoot, destinationTab).catch(() => {});
 
     // Fetch HTML (check cache first)
     let html = null;

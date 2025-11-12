@@ -59,9 +59,7 @@ export const TOGGLE_CONSTANTS = {
 
 // API Configuration
 const API_CONFIG = {
-  // Old mock endpoint
-  mockExpirations: '/aemedge/blocks/dynamic/product-tabs/mock-api/expirations.json',
-  // Real endpoint - requires productId parameter
+  // Expirations endpoint - requires productId parameter
   // Uses urlByEnvType() to automatically select correct environment
   expirationsEndpoint: '/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/',
 };
