@@ -10,7 +10,7 @@
 }
 
 .cards.white-variation li .cards-card-body {
-    padding: 1.25rem;
+    padding: 0 0 1.25rem;
     margin: 0;
     position: relative;
 }
