@@ -176,6 +176,7 @@ h6,
       color: var(--blue5);
       margin-left: .5rem;
       font-size: 80%;
+      font-weight: 400;
     }
   }
 }
@@ -1206,8 +1207,17 @@ main {
       h2,
       h3,
       h4,
-      h5 {
+      h5,
+      h6 {
         color: var(--white);
+
+        & a {
+          color: var(--white);
+
+          &:hover {
+            color: var(--blue5);
+          }
+        }
       }
 
       &:last-of-type {

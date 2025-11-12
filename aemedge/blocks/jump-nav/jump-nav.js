@@ -44,10 +44,21 @@ export default function decorate(block) {
     setupHeaderSync(container);
   }
 
-  setupActiveStates(nav);
   setupDraggableScroll(nav);
 
-  handleInitialHashScroll(nav);
+  let attempts = 0;
+  const maxAttempts = 20;
+  const interval = 200;
+
+  const intervalId = setInterval(() => {
+    if (setupActiveStates(nav) || attempts >= maxAttempts) {
+      clearInterval(intervalId);
+      if (attempts < maxAttempts) {
+        handleInitialHashScroll(nav);
+      }
+    }
+    attempts += 1;
+  }, interval);
 }
 
 function handleInitialHashScroll(nav) {
@@ -192,7 +203,7 @@ function setupActiveStates(nav) {
   });
 
   if (!sections.length) {
-    return;
+    return false;
   }
 
   const headerHeight = document.querySelector('.header')?.offsetHeight || 0;
@@ -259,6 +270,8 @@ function setupActiveStates(nav) {
   sections.forEach((section) => {
     intersectionObserver.observe(section.element);
   });
+
+  return true;
 }
 
 function setupDraggableScroll(nav) {
