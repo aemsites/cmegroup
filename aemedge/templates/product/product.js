@@ -51,6 +51,11 @@ export default async function productTemplate() {
 
   const productRoot = computeProductRoot(window.location.pathname);
 
+  // Expose store to window for debugging (dev console access)
+  if (!window.productStore) {
+    window.productStore = store;
+  }
+
   // Ensure product metadata (including product ID) is available
   // If missing from page metadata, fetch from search API
   const productMetadata = await getProductMetadata();
@@ -63,13 +68,19 @@ export default async function productTemplate() {
   // Preload path index cache to avoid delays during user interactions
   preloadPathIndex();
 
-  // Prefetch options dropdown data immediately (don't wait for idle)
-  // This ensures dropdown is ready when user clicks any tab
+  // Fetch options dropdown data and product metadata in background
+  // Promise caching ensures no duplicate calls even if accessed before completion
   fetchExpirationsData().then((data) => {
-    if (data && data.length > 0) {
-      store.dispatch(setProductData({ optionsExpirations: data }));
+    if (data && data.expirations && data.expirations.length > 0) {
+      const payload = { optionsExpirations: data.expirations };
+      // Also store product metadata if available from API
+      if (data.productSymbol) payload.productSymbol = data.productSymbol;
+      if (data.productName) payload.productName = data.productName;
+      store.dispatch(setProductData(payload));
     }
-  }).catch(() => {});
+  }).catch(() => {
+    // Non-critical - continue without options data
+  });
 
   // Insert hero if missing
   await insertHeroIfMissing();

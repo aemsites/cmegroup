@@ -83,9 +83,16 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
 
   const isWrongProduct = state.productData.productRoot !== normalizePath(productRoot);
   if (!expirationsData || isWrongProduct) {
-    expirationsData = await fetchExpirationsData(productId);
+    // Fetch data - promise caching prevents duplicate API calls
+    // If already fetching in product.js, this returns the same promise
+    const result = await fetchExpirationsData(productId);
+    expirationsData = result.expirations;
     if (expirationsData && expirationsData.length > 0) {
-      store.dispatch(setProductData({ optionsExpirations: expirationsData }));
+      const payload = { optionsExpirations: expirationsData };
+      // Also store product metadata if available from API
+      if (result.productSymbol) payload.productSymbol = result.productSymbol;
+      if (result.productName) payload.productName = result.productName;
+      store.dispatch(setProductData(payload));
     }
   }
 

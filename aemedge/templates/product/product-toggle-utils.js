@@ -90,38 +90,72 @@ async function getProductIdFromMetadata() {
   }
 }
 
+// Cache for fetch promise to prevent duplicate API calls
+let fetchExpirationsPromise = null;
+let cachedProductId = null;
+
 /**
  * Fetch expirations data from CME API
+ * Implements promise caching to prevent duplicate calls
  * @param {string} productId - Optional product ID override
- * @returns {Promise<Array>} Array of expiration options
+ * @returns {Promise<Object>} Object containing expirations array and product metadata
+ * @returns {Promise<Object>} { expirations: Array, productSymbol: string, productName: string }
  */
 export async function fetchExpirationsData(productId = null) {
   const pid = productId || await getProductIdFromMetadata();
-  if (!pid) return [];
+  if (!pid) return { expirations: [], productSymbol: null, productName: null };
 
-  try {
-    const endpoint = `${urlByEnvType()}${API_CONFIG.expirationsEndpoint}${pid}`;
-    const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
-    const data = getResponseData(response) || response.data;
-
-    if (data && data.optionsLabels && Array.isArray(data.optionsLabels)) {
-      return data.optionsLabels.map((option) => ({
-        productId: option.productId,
-        label: option.label,
-        name: option.name,
-        optionType: option.optionType,
-        productIds: option.productIds,
-        weekly: option.weekly === 'true' || option.weekly === true,
-        daily: option.daily === 'true' || option.daily === true,
-      }));
-    }
-
-    return [];
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to fetch expirations data:', error);
-    return [];
+  // Return cached promise if already fetching for same product
+  if (fetchExpirationsPromise && cachedProductId === pid) {
+    return fetchExpirationsPromise;
   }
+
+  // Cache the product ID and promise
+  cachedProductId = pid;
+  fetchExpirationsPromise = (async () => {
+    try {
+      const endpoint = `${urlByEnvType()}${API_CONFIG.expirationsEndpoint}${pid}`;
+      const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+      const data = getResponseData(response) || response.data;
+
+      if (data && data.optionsLabels && Array.isArray(data.optionsLabels)) {
+        const expirations = data.optionsLabels.map((option) => ({
+          productId: option.productId,
+          label: option.label,
+          name: option.name,
+          optionType: option.optionType,
+          productIds: option.productIds,
+          weekly: option.weekly === 'true' || option.weekly === true,
+          daily: option.daily === 'true' || option.daily === true,
+        }));
+
+        const result = {
+          expirations,
+          productSymbol: data.shortName || null,
+          productName: data.productName || null,
+        };
+
+        // Clear cache after successful fetch
+        fetchExpirationsPromise = null;
+        cachedProductId = null;
+        return result;
+      }
+
+      // Clear cache on empty response
+      fetchExpirationsPromise = null;
+      cachedProductId = null;
+      return { expirations: [], productSymbol: null, productName: null };
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to fetch expirations data:', error);
+      // Clear cache on error
+      fetchExpirationsPromise = null;
+      cachedProductId = null;
+      return { expirations: [], productSymbol: null, productName: null };
+    }
+  })();
+
+  return fetchExpirationsPromise;
 }
 
 /**
