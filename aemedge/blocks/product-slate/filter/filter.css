@@ -51,7 +51,7 @@
               width: 100%;
 
               @media (width >= 481px) {
-                width: calc(50% - 10px);
+                width: calc(50% - 0.625rem);
               }
 
               @media (width >= 1201px) {
@@ -93,6 +93,15 @@
             padding: 0.4375rem 0.625rem;
             letter-spacing: normal;
 
+            &:focus {
+              outline: 0.125rem solid var(--blue5);
+              outline-offset: 0.125rem;
+            }
+
+            &:focus:not(:focus-visible) {
+              outline: none;
+            }
+
             & span {
               text-overflow: ellipsis;
               overflow: hidden;
@@ -132,13 +141,19 @@
             &.open {
               max-height: 25rem;
               opacity: 1;
+              overflow-y: auto;
+              overflow-x: hidden;
+            }
+
+            &:focus-within {
+              box-shadow: inset 0 0 0 0.0625rem var(--blue5);
             }
           }
 
           & .dropdown-item {
             display: flex;
             align-items: center;
-            padding: 10px 1rem;
+            padding: 0.625rem 1rem;
             color: var(--white);
             font-size: 0.875rem;
             cursor: pointer;
@@ -148,6 +163,10 @@
             text-align: left;
 
             &:hover {
+              background-color: var(--navy2);
+            }
+
+            &:focus-within {
               background-color: var(--navy2);
             }
 
@@ -199,6 +218,7 @@
             font-family: var(--cme-group-icons);
             content: var(--icon-menu-close);
             font-size: 1.25rem;
+            cursor: pointer;
           }
         }
 
@@ -302,6 +322,7 @@
           &::before {
             font-family: var(--cme-group-icons);
             content: var(--icon-search);
+            cursor: pointer;
           }
 
           &:hover {
@@ -316,6 +337,16 @@
         gap: 0.625rem;
         cursor: pointer;
         user-select: none;
+
+        &:focus {
+          outline: 0.125rem solid var(--blue5);
+          outline-offset: 0.0625rem;
+          border-radius: 0.125rem;
+        }
+
+        &:focus:not(:focus-visible) {
+          outline: none;
+        }
 
         & .checkbox-input {
           position: absolute;
@@ -339,7 +370,7 @@
           display: inline-block;
           width: 0.75rem;
           height: 0.75rem;
-          border: 1px solid var(--gray4);
+          border: 0.0625rem solid var(--gray4);
 
           & svg {
             display: none;
@@ -383,9 +414,9 @@
           align-items: center;
           gap: 0.5rem;
           background-color: transparent;
-          border: 1px solid var(--white);
+          border: 0.0625rem solid var(--white);
           border-radius: 1.25rem;
-          padding: 6px 0.5rem;
+          padding: 0.375rem 0.5rem;
           color: var(--white);
 
           & span {
