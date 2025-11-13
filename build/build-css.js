@@ -4,6 +4,38 @@ const { glob } = require('glob');
 const fs = require('fs-extra');
 const path = require('path');
 
+async function buildGlobalStyles() {
+  const stylesPath = path.join('aemedge', 'styles', 'styles.css');
+  if (!fs.existsSync(stylesPath)) {
+    console.error(`Global styles not found at ${stylesPath}`);
+    return;
+  }
+
+  try {
+    const css = fs.readFileSync(stylesPath, 'utf8');
+
+    if (!css.includes('@import')) {
+      console.log('Skipping global styles - no @import found');
+      return;
+    }
+
+    const bundled = await postcss([
+      postcssImport({
+        filter: (filename) => !filename.includes('/external/'),
+      }),
+    ]).process(css, {
+      from: stylesPath,
+      to: stylesPath,
+    });
+
+    // Write flattened CSS back to styles.css
+    await fs.writeFile(stylesPath, bundled.css);
+    console.log('Built global styles.css');
+  } catch (error) {
+    console.error('Error processing global styles:', error);
+  }
+}
+
 async function buildBlockCSS(specificBlocks = []) {
   const blockFolders = specificBlocks.length > 0
     ? specificBlocks.map(block => `aemedge/blocks/${block}`)
@@ -13,27 +45,36 @@ async function buildBlockCSS(specificBlocks = []) {
     const mainCssFile = path.join(blockFolder, `${path.basename(blockFolder)}.css`);
     const importsFile = path.join(blockFolder, `${path.basename(blockFolder)}.imports.css`);
     
-    if (!fs.existsSync(importsFile)) {
-      console.log(`Skipping ${blockFolder} - imports file not found`);
-      continue;
-    }
-
     try {
-      const css = fs.readFileSync(importsFile, 'utf8');
-      
-      if (!css.includes('@import')) {
-        console.log(`Skipping ${blockFolder} - no imports found`);
+      let sourceFile = null;
+      let css = '';
+
+      // Prefer explicit *.imports.css if present
+      if (fs.existsSync(importsFile)) {
+        sourceFile = importsFile;
+        css = fs.readFileSync(importsFile, 'utf8');
+      } else if (fs.existsSync(mainCssFile)) {
+        // Fallback: flatten @import directly inside <block>.css
+        sourceFile = mainCssFile;
+        css = fs.readFileSync(mainCssFile, 'utf8');
+      } else {
+        console.log(`Skipping ${blockFolder} - no CSS found`);
         continue;
       }
-      
-      // Process with PostCSS
+
+      if (!css.includes('@import')) {
+        console.log(`Skipping ${blockFolder} - no @import found`);
+        continue;
+      }
+
+      // Process with PostCSS (inline imports)
       const bundled = await postcss([
         postcssImport({
           filter: (filename) => !filename.includes('/external/'),
-        })
+        }),
       ]).process(css, {
-        from: importsFile,
-        to: mainCssFile
+        from: sourceFile,
+        to: mainCssFile,
       });
 
       // Remove any existing stylelint comments
@@ -46,13 +87,21 @@ async function buildBlockCSS(specificBlocks = []) {
 
       await fs.writeFile(mainCssFile, finalCSS);
       
-      console.log(`Built CSS for ${blockFolder}`);
+      console.log(`Built CSS for ${blockFolder} (${path.basename(sourceFile)} -> ${path.basename(mainCssFile)})`);
     } catch (error) {
       console.error(`Error processing ${blockFolder}:`, error);
     }
   }
 }
 
-// Get block names from command line arguments
-const blockNames = process.argv.slice(2);
-buildBlockCSS(blockNames).catch(console.error); 
+// CLI
+const args = process.argv.slice(2);
+const doGlobal = args.includes('--global');
+const blockNames = args.filter((a) => a !== '--global');
+
+(async () => {
+  if (doGlobal) {
+    await buildGlobalStyles();
+  }
+  await buildBlockCSS(blockNames);
+})().catch(console.error);

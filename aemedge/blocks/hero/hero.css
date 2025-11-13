@@ -1,4 +1,628 @@
-@import url("hero-base.css");
-@import url("hero-landing.css");
-@import url("hero-econoday-event.css");
-@import url("hero-event.css");
+/* stylelint-disable */
+.hero {
+  position: relative;
+  padding: 2.5rem 1.5rem;
+
+  @media (width >= 993px) {
+    padding: 2.5rem 2rem;
+  }
+
+  & h1 {
+    max-width: 75rem;
+    margin-left: auto;
+    margin-right: auto;
+    color: var(--background-color);
+  }
+
+  & picture {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    object-fit: cover;
+    box-sizing: border-box;
+    height: 100% !important;
+  }
+
+  & img {
+    object-fit: cover;
+    width: 100%;
+    height: 100% !important;
+    object-position: 0 0;
+  }
+}
+.hero.leadspace {
+  padding: 0;
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: cover;
+
+  & .container {
+    padding-top: 3.125rem;
+    padding-bottom: 1.875rem;
+
+    @media (width >=769px) {
+      padding-top: 5.625rem;
+      padding-bottom: 5.625rem;
+    }
+
+    & > div {
+      @media (width >=769px) {
+        width: 60%;
+      }
+    }
+  }
+
+  & h5 {
+    margin-top: 0;
+    margin-bottom: 1.25rem;
+    color: var(--white);
+  }
+
+  & p, & h6 {
+    margin-top: 0;
+    margin-bottom: 1.875rem;
+    font-size: 1rem;
+    line-height: 1.75rem;
+    letter-spacing: 0.0375rem;
+    color: var(--white);
+
+    @media (width >=481px) {
+      font-size: 1.25rem;
+    }
+
+    & a:not(.button, .hero-link, .link-bold) {
+      color: var(--white);
+      font-family: var(--averta);
+      font-size: .875rem;
+      font-weight: 400;
+      letter-spacing: normal;
+      line-height: 1.25rem;
+      padding: 0;
+
+      & .icon {
+        width: 0.75rem;
+        height: 0.75rem;
+        padding-right: 0.25rem;
+        margin-top: -0.375rem;
+        filter: none;
+
+        &>img {
+          width: 0.75rem;
+          height: 0.75rem;
+          filter: var(--white-filter);
+        }
+      }
+    }
+
+    & .link-bold {
+      color: var(--blue5);
+
+      & .icon {
+        filter: var(--blue5-filter);
+
+        img {
+          width: 100%;
+        }
+      }
+    }
+
+    & a.hero-link {
+      color: var(--blue5);
+
+      &:hover {
+        color: var(--blue5);
+        background-image: linear-gradient(90deg, rgb(255 255 255 / 0%) 50%, var(--blue5) 0%);
+      }
+    }
+  }
+
+  &.col-2-btn {
+    & p.button-container {
+      display: inline-block;
+  
+      &:nth-of-type(3) {
+        margin-right: 3.125rem;
+      }
+    }
+  }
+
+  & h6 {
+    text-transform: none;
+    font-weight: normal;
+    font-size: 0.875rem;
+
+    @media (width >=481px) {
+      font-size: 1rem;
+    }
+
+    a.hero-link:hover {
+      background-image: none;
+    }
+  }
+
+  &.small {
+    & .container {
+      padding-top: 1.875rem;
+      padding-bottom: 1.875rem;
+
+      @media (width >=769px) {
+        padding-top: 3.75rem;
+        padding-bottom: 3.75rem;
+      }
+
+      & > div {
+        & > *:first-child {
+          margin-top: 0;
+        }
+
+        & > *:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+
+  &.big-texts {
+    & h1 {
+      font-size: 4.25rem;
+      line-height: 4.875rem;
+    }
+
+    & p {
+      font-size: 1.75rem;
+      font-weight: 400;
+      letter-spacing: .03em;
+      line-height: 2.25rem;
+    }
+  }
+
+  &.gradient-transition-sections {
+    margin-bottom: 0;
+
+    & .container {
+      @media (width >= 769px) {
+        padding-bottom: 6.75rem;
+      }
+    }
+  }
+}
+.hero-container:has(.overlapped) {
+  margin-bottom: -3.125rem;
+
+  @media (width >=481px) {
+    margin-bottom: -4.375rem;
+  }
+
+  @media (width >=769px) {
+    margin-bottom: -5.625rem;
+  }
+
+  & .container {
+    padding-bottom: 3.75rem;
+
+    @media (width >=481px) {
+      padding-bottom: 4.6875rem;
+    }
+
+    @media (width >=769px) {
+      padding-bottom: 8.75rem;
+    }
+  }
+
+  & + .section {
+    position: relative;
+    z-index: 1;
+  }
+}
+.hero.econoday-event {
+    display: flex;
+    align-items: center;
+    flex-flow: column wrap;
+    justify-content: center;
+    padding: 0;
+    position: initial;
+    box-sizing: border-box;
+}
+.hero.econoday-event .background-image {
+    height: 6.25rem;
+}
+.hero.econoday-event .background-image p picture {
+    height: 6.25rem !important;
+}
+@media (width >= 769px) {
+    .hero.econoday-event .background-image {
+        height: 11.5625rem;
+    }
+
+    .hero.econoday-event .background-image p picture {
+        height: 11.5625rem !important;
+    }
+}
+@media (width >= 1201px) {
+    .hero.econoday-event .background-image {
+        height: 7.5rem;
+    }
+
+    .hero.econoday-event .background-image p picture {
+        position: initial;
+        display: block;
+        height: 28.4375rem !important;
+    }
+}
+.hero.econoday-event .background-image p {
+    text-align: center;
+    margin: 0;
+    position: absolute;
+    z-index: -1;
+    padding: 0;
+    left: 0;
+    width: 100%;
+}
+.hero.econoday-event .default-content-wrapper {
+    padding-inline: 1.5rem;
+    width: calc(100% - 3rem);
+}
+@media (width >= 481px) {
+    .hero.econoday-event .default-content-wrapper {
+        padding-inline: 2rem;
+        width: calc(100% - 4rem);
+    }
+}
+@media (width >= 769px) {
+    .hero.econoday-event .default-content-wrapper {
+        padding-inline: 3.375rem;
+        width: calc(100% - 6.75rem);
+    }
+}
+@media (width >= 993px) {
+    .hero.econoday-event .default-content-wrapper {
+        padding-inline: 4.125rem;
+        width: calc(100% - 8.25rem);
+    }
+
+    .hero.econoday-event .default-content-wrapper h1 {
+        margin-bottom: 2.6875rem;
+    }
+}
+@media (width >= 1201px) {
+    .hero.econoday-event .background-image .shadow-wrapper {
+        display: block;
+    }
+
+    .hero.econoday-event .background-image .shadow-wrapper .content-area {
+        width: calc(70.5% - 24.625rem);
+        max-width: 45.0625rem;
+        padding: 0 6.8125rem;
+        margin-left: auto;
+        margin-right: auto;
+        background-color: var(--white);
+        height: 21rem;
+        margin-top: -20.9375rem;
+        display: block;
+        position: relative;
+    }
+
+    .hero.econoday-event .background-image .shadow-wrapper .shadow {
+        box-shadow: 0 0.0625rem 0.125rem 0 rgb(60 64 67 / 30%), 0 0.125rem 0.375rem 0.125rem rgba(60 64 67 / 15%);
+        height: 4.0625rem;
+        width: calc(70.5% - 24.625rem);
+        max-width: 45.0625rem;
+        padding: 0 6.8125rem;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+    }
+
+    .hero.econoday-event .background-image .shadow-wrapper .fade {
+        background: linear-gradient(180deg, hsl(0deg 0% 100% / 0%), #fff);
+        height: 4.0625rem;
+        margin: -4.0625rem -.75rem 0;
+        width: calc(70.5% - 23.075rem);
+        max-width: 45.0625rem;
+        padding: 0 6.8125rem;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+        border-bottom: 10px solid white;
+    }
+
+    .hero.econoday-event .default-content-wrapper {
+        width: calc(70.5% - 24.625rem);
+        max-width: 45.0625rem;
+        background-color: var(--white);
+        padding: 0 6.8125rem;
+    }
+}
+.hero.econoday-event .economic-release-info {
+    padding-top: 2.4375rem;
+    margin-bottom: 1.3125rem;
+    color: var(--gray3);
+    font-size: .875rem;
+    line-height: 1.25rem;
+}
+@media (width >= 993px) {
+    .hero.econoday-event .economic-release-info {
+        margin-bottom: 1.8125rem;
+    }
+}
+@media (width >= 1201px) {
+    .hero.econoday-event .economic-release-info {
+        padding-top: 3.6875rem;
+    }
+}
+.hero.econoday-event .economic-release-info a {
+    color: var(--blue4);
+    font-family: var(--body-font-family);
+    font-weight: 400;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    text-transform: none;
+    padding: 0;
+    margin-bottom: 1.25rem;
+}
+@media (width >= 769px) {
+    .hero.econoday-event .economic-release-info a {
+        font-size: .875rem;
+        line-height: 1.25rem;
+        position: absolute;
+        margin-bottom: 0;
+        letter-spacing: normal;
+        font-family: var(--averta);
+    }
+}
+.hero.econoday-event .economic-release-info a:hover {
+    color: var(--blue5);
+    cursor: pointer;
+    text-decoration: none;
+}
+.hero.econoday-event .economic-release-info a .icon {
+    height: 0.5625rem;
+    width: 0.5625rem;
+    margin-top: -0.5rem;
+}
+@media (width >= 769px) {
+    .hero.econoday-event .economic-release-info a .icon {
+        margin-top: -0.625rem;
+    }
+}
+.hero.econoday-event .economic-release-info a .icon img {
+    filter: brightness(0) saturate(100%) invert(24%) sepia(93%) saturate(1704%) hue-rotate(182deg) brightness(97%) contrast(107%);
+}
+.hero.econoday-event .economic-release-info a:hover .icon img {
+    filter: brightness(0) saturate(100%) invert(66%) sepia(57%) saturate(1301%) hue-rotate(167deg) brightness(99%) contrast(108%);
+}
+.hero.econoday-event .economic-release-info .economic-release-featured-tag {
+    flex: 0 0 auto;
+    color: var(--blue4);
+    letter-spacing: .0906rem;
+    text-transform: uppercase;
+}
+@media (width >= 769px) {
+    .hero.econoday-event .economic-release-info .economic-release-featured-tag {
+        text-align: center;
+    }
+}
+.hero.econoday-event h1 {
+    color: var(--title-color);
+}
+.hero.econoday-event .economic-release-data {
+    display: flex;
+    flex-wrap: wrap;
+    color: var(--gray3);
+    font-family: var(--heading-font-family);
+    font-size: .875rem;
+    font-weight: 400;
+    line-height: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+@media (width >= 769px) {
+    .hero.econoday-event .economic-release-data {
+        margin-bottom: 1.875rem;
+    }
+}
+.hero.econoday-event .economic-release-data .economic-release-data-date-wrapper {
+    color: var(--gray3);
+    font-family: var(--averta);
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+.hero.econoday-event .economic-release-data .economic-release-data-date-value {
+    display: block;
+    font-weight: 400;
+}
+@media (width >= 993px) {
+    .hero.econoday-event .economic-release-data .economic-release-data-date-value {
+        display: inline;
+    }
+}
+.hero.event {
+    display: flex;
+    align-items: center;
+    flex-flow: column wrap;
+    justify-content: center;
+    padding: 0;
+    position: initial;
+    box-sizing: border-box;
+
+    & .background-image {
+        height: 6.25rem;
+
+        @media (width >= 769px) {
+            height: 11.5625rem;
+        }
+
+        @media (width >= 1201px) {
+            height: 7.5rem;
+        }
+
+        & .shadow-wrapper {
+            @media (width >= 1201px) {
+                display: block;
+            }
+        
+            & .content-area {
+                @media (width >= 1201px) {
+                    width: calc(70.5% - 24.625rem);
+                    max-width: 45.0625rem;
+                    padding: 0 6.8125rem;
+                    margin-left: auto;
+                    margin-right: auto;
+                    background-color: var(--white);
+                    height: 21rem;
+                    margin-top: -20.9375rem;
+                    display: block;
+                    position: relative;
+                }
+            }
+
+            & .shadow {
+                @media (width >= 1201px) {
+                    box-shadow: var(--gray8-shadow);
+                    height: 4.0625rem;
+                    width: calc(70.5% - 24.625rem);
+                    max-width: 45.0625rem;
+                    padding: 0 6.8125rem;
+                    margin-left: auto;
+                    margin-right: auto;
+                    display: block;
+                }
+            }
+
+            & .fade {
+                @media (width >= 1201px) {
+                    background: var(--fade-transparent-white);
+                    height: 4.0625rem;
+                    margin: -4.0625rem -.75rem 0;
+                    width: calc(70.5% - 23.075rem);
+                    max-width: 45.0625rem;
+                    padding: 0 6.8125rem;
+                    margin-left: auto;
+                    margin-right: auto;
+                    display: block;
+                    border-bottom: 10px solid white;
+                }
+            }
+        }
+
+        & p {
+            text-align: center;
+            margin: 0;
+            position: absolute;
+            z-index: -1;
+            padding: 0;
+            left: 0;
+            width: 100%;
+
+            & picture {
+                height: 6.25rem !important;
+
+                @media (width >= 769px) {
+                    height: 11.5625rem !important;
+                }
+
+                @media (width >= 1201px) {
+                    position: initial;
+                    display: block;
+                    height: 28.4375rem !important;
+                }
+            }
+        }
+    }
+
+    & .default-content-wrapper {
+        padding-inline: 1.5rem;
+        width: calc(100% - 3rem);
+
+        @media (width >= 481px) {
+            padding-inline: 2rem;
+            width: calc(100% - 4rem);
+        }
+
+        @media (width >= 769px) {
+            padding-inline: 3.375rem;
+            width: calc(100% - 6.75rem);
+        }
+
+        @media (width >= 993px) {
+            padding-inline: 4.125rem;
+            width: calc(100% - 8.25rem);
+
+            & h1 {
+                margin-bottom: 2.6875rem;
+            }
+        }
+
+        @media (width >= 1201px) {
+            width: calc(70.5% - 24.625rem);
+            max-width: 45.0625rem;
+            background-color: var(--white);
+            padding: 0 6.8125rem;
+        }
+
+        & .top-info {
+            padding-top: 2.4375rem;
+            margin-bottom: 1.3125rem;
+            color: var(--gray3);
+            font-size: .875rem;
+            line-height: 1.25rem;
+
+            @media (width >= 993px) {
+                margin-bottom: 1.8125rem;
+            }
+
+            @media (width >= 1201px) {
+                padding-top: 3.6875rem;
+            }
+
+            & .event-label {
+                flex: 0 0 auto;
+                color: var(--blue4);
+                letter-spacing: .0906rem;
+                text-transform: uppercase;
+
+                @media (width >= 769px) {
+                    text-align: center;
+                }
+            }
+        }
+
+        & h1 {
+            color: var(--title-color);
+        }
+
+        & .event-data {
+            display: flex;
+            flex-flow: column wrap;
+            gap: 0.625rem;
+            color: var(--gray3);
+            font-family: var(--heading-font-family);
+            font-size: .875rem;
+            font-weight: 400;
+            line-height: 1.25rem;
+            margin-bottom: 1.25rem;
+
+            @media (width >= 769px) {
+                margin-bottom: 1.875rem;
+            }
+
+            & .event-property-wrapper {
+                color: var(--gray3);
+                font-family: var(--averta);
+                font-weight: 700;
+                font-size: 1rem;
+                line-height: 1.5rem;
+
+                & .event-property-value {
+                    display: block;
+                    font-weight: 400;
+
+                    @media (width >= 993px) {
+                        display: inline;
+                    }
+                }
+            }
+        }
+    }
+}
+/* stylelint-enable */
