@@ -93,10 +93,8 @@ export default async function productTemplate() {
   // Ensure correct order (hero → tabs)
   ensureHeroThenTabsOrder();
 
-  // TESTING: Enable SPA navigation immediately (no retries, no i18n delay)
-  // This should wire up tabs instantly since decorate() is now synchronous
-  // eslint-disable-next-line no-console
-  console.log('[PRODUCT] Calling enableProductSpaNavigation (1st call - main tabs)');
+  // Enable SPA navigation for main tabs early (before toggle/content moves)
+  // Uses retry logic to wait for async block decoration
   enableProductSpaNavigation(productRoot);
 
   // Insert futures/options toggle if applicable

@@ -72,11 +72,10 @@ export function getCachedTabOptionsSupport(productRoot, tabName) {
 
 /**
  * Enable SPA navigation for product pages
- * TESTING: No retries - should find tabs immediately
  */
-export function enableProductSpaNavigation(productRoot) {
+export function enableProductSpaNavigation(productRoot, retryCount = 0) {
   // eslint-disable-next-line no-console
-  console.log('[NAV] enableProductSpaNavigation called (NO RETRIES)');
+  console.log('[NAV] enableProductSpaNavigation called, retryCount:', retryCount);
   
   const tabsNav = document.querySelector('.product-tabs-nav');
   const subTabsNav = document.querySelector('.product-subtabs');
@@ -84,9 +83,17 @@ export function enableProductSpaNavigation(productRoot) {
   // eslint-disable-next-line no-console
   console.log('[NAV] Found elements:', { tabsNav: !!tabsNav, subTabsNav: !!subTabsNav });
 
+  // If tabs nav doesn't exist yet and we haven't tried too many times, retry
+  if (!tabsNav && retryCount < 20) {
+    // eslint-disable-next-line no-console
+    console.log('[NAV] Tabs nav not found, retrying in 50ms... (attempt', retryCount + 1, 'of 20)');
+    setTimeout(() => enableProductSpaNavigation(productRoot, retryCount + 1), 50);
+    return;
+  }
+  
   if (!tabsNav) {
     // eslint-disable-next-line no-console
-    console.error('[NAV] ERROR: Tabs nav not found! Cannot wire navigation.');
+    console.error('[NAV] ERROR: Tabs nav still not found after 20 retries! Product tabs may not have loaded correctly.');
     return;
   }
 

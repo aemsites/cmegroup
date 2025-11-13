@@ -120,6 +120,9 @@ function buildFromCanonical(pathname) {
 }
 
 function renderNav(block, items) {
+  // eslint-disable-next-line no-console
+  console.log('[PRODUCT-TABS] renderNav called');
+  
   const currentPath = normalizePath(window.location.pathname);
   const nav = document.createElement('nav');
   nav.className = 'product-tabs-nav';
@@ -144,13 +147,27 @@ function renderNav(block, items) {
   });
 
   nav.appendChild(list);
+  
+  // ⚠️ CRITICAL: This wipes out the block and replaces it!
+  // If decorate() is called twice, this destroys any event listeners
+  // eslint-disable-next-line no-console
+  console.log('[PRODUCT-TABS] ⚠️ About to replace block.innerHTML - this will destroy any attached event listeners!');
   block.innerHTML = '';
   block.appendChild(nav);
+  // eslint-disable-next-line no-console
+  console.log('[PRODUCT-TABS] Nav DOM replaced');
 }
 
 export default function decorate(block) {
   // eslint-disable-next-line no-console
   console.log('[PRODUCT-TABS] decorate() called, blockStatus:', block.dataset.blockStatus);
+  
+  // Protect against multiple decoration calls
+  if (block.dataset.decorated === 'true') {
+    // eslint-disable-next-line no-console
+    console.warn('[PRODUCT-TABS] ⚠️ Block already decorated! Skipping to preserve event listeners.');
+    return;
+  }
   
   // Try authored rows first
   let items = parseAuthoredRows(block);
@@ -163,6 +180,9 @@ export default function decorate(block) {
   // eslint-disable-next-line no-console
   console.log('[PRODUCT-TABS] Rendering nav with', items.length, 'items');
   renderNav(block, items);
+  
+  // Mark as decorated
+  block.dataset.decorated = 'true';
   
   // eslint-disable-next-line no-console
   console.log('[PRODUCT-TABS] ✅ Decoration complete, nav rendered');
