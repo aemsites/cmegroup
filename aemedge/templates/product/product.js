@@ -95,6 +95,8 @@ export default async function productTemplate() {
 
   // Enable SPA navigation for main tabs early (before toggle/content moves)
   // This ensures click handlers are attached before any DOM mutations
+  // eslint-disable-next-line no-console
+  console.log('[PRODUCT] Calling enableProductSpaNavigation (1st call - main tabs)');
   enableProductSpaNavigation(productRoot);
 
   // Insert futures/options toggle if applicable
@@ -104,6 +106,8 @@ export default async function productTemplate() {
   moveCurrentPageContentUnderSubTabs();
 
   // Wire up subtabs navigation after toggle is inserted
+  // eslint-disable-next-line no-console
+  console.log('[PRODUCT] Calling enableProductSpaNavigation (2nd call - subtabs)');
   enableProductSpaNavigation(productRoot);
 
   // If on root path, render default tab (without changing URL)

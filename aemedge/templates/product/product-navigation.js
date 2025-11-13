@@ -74,27 +74,45 @@ export function getCachedTabOptionsSupport(productRoot, tabName) {
  * Enable SPA navigation for product pages
  */
 export function enableProductSpaNavigation(productRoot, retryCount = 0) {
+  // eslint-disable-next-line no-console
+  console.log('[NAV] enableProductSpaNavigation called, retryCount:', retryCount);
+  
   const tabsNav = document.querySelector('.product-tabs-nav');
   const subTabsNav = document.querySelector('.product-subtabs');
 
+  // eslint-disable-next-line no-console
+  console.log('[NAV] Found elements:', { tabsNav: !!tabsNav, subTabsNav: !!subTabsNav });
+
   // If tabs nav doesn't exist yet and we haven't tried too many times, retry
   if (!tabsNav && retryCount < 10) {
+    // eslint-disable-next-line no-console
+    console.log('[NAV] Tabs nav not found, retrying in 50ms...');
     setTimeout(() => enableProductSpaNavigation(productRoot, retryCount + 1), 50);
     return;
   }
 
   if (tabsNav && !tabsNav.dataset.spaBound) {
+    // eslint-disable-next-line no-console
+    console.log('[NAV] Wiring clicks for tabsNav');
     wireNavClicks(tabsNav, productRoot);
     wirePrefetches(tabsNav, productRoot);
     tabsNav.dataset.spaBound = 'y';
+  } else if (tabsNav) {
+    // eslint-disable-next-line no-console
+    console.log('[NAV] Tabs nav already bound, skipping');
   }
 
   if (subTabsNav) {
     const hasLinks = subTabsNav.querySelectorAll('a[href]').length > 0;
     const alreadyBound = subTabsNav.dataset.spaBound === 'y';
 
+    // eslint-disable-next-line no-console
+    console.log('[NAV] SubTabs check:', { hasLinks, alreadyBound });
+
     // Wire clicks if: (1) not bound yet, OR (2) bound but has new links (dropdown populated)
     if (!alreadyBound || (alreadyBound && hasLinks)) {
+      // eslint-disable-next-line no-console
+      console.log('[NAV] Wiring clicks for subTabsNav');
       wireNavClicks(subTabsNav, productRoot);
       wirePrefetches(subTabsNav, productRoot);
       subTabsNav.dataset.spaBound = 'y';
@@ -102,6 +120,8 @@ export function enableProductSpaNavigation(productRoot, retryCount = 0) {
   }
 
   if (!POPSTATE_BOUND) {
+    // eslint-disable-next-line no-console
+    console.log('[NAV] Binding popstate handler');
     window.addEventListener('popstate', () => {
       const url = window.location.pathname + window.location.search + window.location.hash;
       renderProductPath(url, productRoot);
@@ -114,7 +134,13 @@ export function enableProductSpaNavigation(productRoot, retryCount = 0) {
  * Wire navigation clicks with global options persistence
  */
 function wireNavClicks(container, productRoot) {
+  // eslint-disable-next-line no-console
+  console.log('[NAV] wireNavClicks called for container:', container.className);
+  
   const debouncedNavigate = (async (href) => {
+    // eslint-disable-next-line no-console
+    console.log('[NAV] debouncedNavigate called with href:', href);
+    
     if (navigationDebounceTimer) {
       clearTimeout(navigationDebounceTimer);
     }
@@ -185,14 +211,34 @@ function wireNavClicks(container, productRoot) {
   });
 
   const links = container.querySelectorAll('a[href]');
+  
+  // eslint-disable-next-line no-console
+  console.log('[NAV] Found', links.length, 'links to wire up');
 
-  links.forEach((a) => {
+  links.forEach((a, index) => {
     a.addEventListener('click', (e) => {
       const href = a.getAttribute('href');
-      if (!href) return;
+      // eslint-disable-next-line no-console
+      console.log('[NAV] Click handler fired for link', index, 'href:', href);
+      
+      if (!href) {
+        // eslint-disable-next-line no-console
+        console.log('[NAV] No href, allowing default');
+        return;
+      }
+      
       const targetRoot = computeProductRoot(href);
-      if (normalizePath(targetRoot) !== normalizePath(productRoot)) return;
+      // eslint-disable-next-line no-console
+      console.log('[NAV] targetRoot:', targetRoot, 'productRoot:', productRoot);
+      
+      if (normalizePath(targetRoot) !== normalizePath(productRoot)) {
+        // eslint-disable-next-line no-console
+        console.log('[NAV] Different product root, allowing default navigation');
+        return;
+      }
 
+      // eslint-disable-next-line no-console
+      console.log('[NAV] Preventing default and calling SPA navigation');
       e.preventDefault();
       debouncedNavigate(href);
     });
