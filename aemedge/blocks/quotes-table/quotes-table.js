@@ -634,7 +634,19 @@ export default async function decorate(block) {
     block.classList.add('fixed-row-header');
   }
 
-  await renderTable(block);
+  // Show loading state immediately (non-blocking)
+  block.innerHTML = '<div class="loading">Loading quotes...</div>';
+
+  // Load table data in background (non-blocking)
+  renderTable(block).catch((error) => {
+    block.innerHTML = `
+      <div class="no-results">
+        <h4>Error loading quotes data</h4>
+        <p>${error.message}</p>
+      </div>
+    `;
+  });
+
   handleAboutReportModal(block);
 
   // Setup real-time subscription (for CME pricing updates)

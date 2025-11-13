@@ -1,6 +1,6 @@
 import { getMetadata } from '../../scripts/aem.js';
 import { getProductMetadata } from '../../scripts/utils/product.js';
-import { createElement } from '../../scripts/utils.js';
+import { createElement, i18n } from '../../scripts/utils.js';
 
 const HERO_API_CONFIG = {
   endpoint: '/aemedge/blocks/hero-baseball/mock-api/contracts-by-number.json',
@@ -11,7 +11,29 @@ function formatNumber(num) {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-function createHeroStructure() {
+async function createHeroStructure() {
+  const [
+    currentPriceLabel,
+    changeLabel,
+    volumeLabel,
+    openLabel,
+    highLabel,
+    lowLabel,
+    priorSettleLabel,
+    updatedLabel,
+    marketNoteLabel,
+  ] = await Promise.all([
+    i18n('Current Price'),
+    i18n('Change'),
+    i18n('Volume'),
+    i18n('Open'),
+    i18n('High'),
+    i18n('Low'),
+    i18n('Prior Settle'),
+    i18n('Updated'),
+    i18n('All times are local exchange time'),
+  ]);
+
   const container = createElement('div', { class: 'container' });
 
   const h1 = createElement('h1', {}, getMetadata('product') || 'Product Name');
@@ -22,17 +44,17 @@ function createHeroStructure() {
   const priceSection = createElement('div', { class: 'price-section' });
 
   const currentPrice = createElement('div', { class: 'current-price' }, [
-    createElement('div', { class: 'label' }, 'Current Price'),
+    createElement('div', { class: 'label' }, currentPriceLabel),
     createElement('div', { class: 'value' }, '-'),
   ]);
 
   const priceChange = createElement('div', { class: 'price-change' }, [
-    createElement('div', { class: 'label' }, 'Change'),
+    createElement('div', { class: 'label' }, changeLabel),
     createElement('div', { class: 'value' }, '-'),
   ]);
 
   const volumeInfo = createElement('div', { class: 'volume-info' }, [
-    createElement('div', { class: 'label' }, 'Volume'),
+    createElement('div', { class: 'label' }, volumeLabel),
     createElement('div', { class: 'value' }, '-'),
   ]);
 
@@ -40,10 +62,10 @@ function createHeroStructure() {
 
   const tradingData = createElement('div', { class: 'trading-data' });
   const tradingItems = [
-    { field: 'open', label: 'Open' },
-    { field: 'high', label: 'High' },
-    { field: 'low', label: 'Low' },
-    { field: 'priorSettle', label: 'Prior Settle' },
+    { field: 'open', label: openLabel },
+    { field: 'high', label: highLabel },
+    { field: 'low', label: lowLabel },
+    { field: 'priorSettle', label: priorSettleLabel },
   ];
 
   tradingItems.forEach(({ field, label }) => {
@@ -55,8 +77,8 @@ function createHeroStructure() {
   });
 
   const marketUpdate = createElement('div', { class: 'market-update' }, [
-    createElement('div', { class: 'update-time' }, 'Updated: -'),
-    createElement('div', { class: 'market-note' }, 'All times are local exchange time'),
+    createElement('div', { class: 'update-time' }, `${updatedLabel}: -`),
+    createElement('div', { class: 'market-note' }, marketNoteLabel),
   ]);
 
   contractData.append(priceSection, tradingData, marketUpdate);
@@ -108,8 +130,9 @@ async function populateHeroData(block) {
 
     const updateTime = block.querySelector('.update-time');
     if (updateTime && contractData.updated) {
+      const updatedLabel = await i18n('Updated');
       const date = new Date(contractData.updated);
-      updateTime.textContent = `Updated: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+      updateTime.textContent = `${updatedLabel}: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
     }
   } catch (e) {
     // Silent fail
@@ -120,7 +143,7 @@ export default async function decorate(block) {
   const hasContainer = block.querySelector('.container');
   if (!hasContainer) {
     block.innerHTML = '';
-    const container = createHeroStructure();
+    const container = await createHeroStructure();
     block.append(container);
   }
   await populateHeroData(block);

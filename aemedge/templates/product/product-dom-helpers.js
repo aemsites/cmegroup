@@ -5,6 +5,7 @@
 
 import { normalizePath, loadProductIndex, indexHasPath } from '../../scripts/utils/product.js';
 import { buildBlock, decorateBlock, loadBlock } from '../../scripts/aem.js';
+import { i18n } from '../../scripts/utils.js';
 
 /**
  * Find the product tabs section in the DOM
@@ -151,17 +152,40 @@ export async function getDefaultTab(productRoot) {
 /**
  * Build product tabs block from rows
  */
-export function buildProductTabsBlock(productRoot, rowsOverride) {
+export async function buildProductTabsBlock(productRoot, rowsOverride) {
   const rows = [];
-  const TABS = rowsOverride && rowsOverride.length ? rowsOverride : [
-    ['Overview', `${productRoot}/overview`],
-    ['Quotes', `${productRoot}/quotes`],
-    ['Settlements', `${productRoot}/settlements`],
-    ['Volume & OI', `${productRoot}/volume`],
-    ['Contract Specs', `${productRoot}/specs`],
-    ['Margins', `${productRoot}/margins`],
-    ['Calendar', `${productRoot}/calendar`],
-  ];
+  let TABS = rowsOverride;
+
+  // If no override provided, build canonical tabs with i18n
+  if (!rowsOverride || !rowsOverride.length) {
+    const [
+      overviewLabel,
+      quotesLabel,
+      settlementsLabel,
+      volumeLabel,
+      specsLabel,
+      marginsLabel,
+      calendarLabel,
+    ] = await Promise.all([
+      i18n('Overview'),
+      i18n('Quotes'),
+      i18n('Settlements'),
+      i18n('Volume'),
+      i18n('Contract Specs'),
+      i18n('Margins'),
+      i18n('Calendar'),
+    ]);
+
+    TABS = [
+      [overviewLabel, `${productRoot}/overview`],
+      [quotesLabel, `${productRoot}/quotes`],
+      [settlementsLabel, `${productRoot}/settlements`],
+      [volumeLabel, `${productRoot}/volume`],
+      [specsLabel, `${productRoot}/specs`],
+      [marginsLabel, `${productRoot}/margins`],
+      [calendarLabel, `${productRoot}/calendar`],
+    ];
+  }
 
   TABS.forEach(([label, href]) => {
     const a = document.createElement('a');
@@ -189,14 +213,32 @@ export async function insertProductTabsIfMissing(productRoot) {
   let rowsForBuild = landingRows;
 
   if (!rowsForBuild) {
+    const [
+      overviewLabel,
+      quotesLabel,
+      settlementsLabel,
+      volumeLabel,
+      specsLabel,
+      marginsLabel,
+      calendarLabel,
+    ] = await Promise.all([
+      i18n('Overview'),
+      i18n('Quotes'),
+      i18n('Settlements'),
+      i18n('Volume'),
+      i18n('Contract Specs'),
+      i18n('Margins'),
+      i18n('Calendar'),
+    ]);
+
     const canonical = [
-      ['Overview', productRoot],
-      ['Quotes', `${productRoot}/quotes`],
-      ['Settlements', `${productRoot}/settlements`],
-      ['Volume & OI', `${productRoot}/volume`],
-      ['Contract Specs', `${productRoot}/specs`],
-      ['Margins', `${productRoot}/margins`],
-      ['Calendar', `${productRoot}/calendar`],
+      [overviewLabel, productRoot],
+      [quotesLabel, `${productRoot}/quotes`],
+      [settlementsLabel, `${productRoot}/settlements`],
+      [volumeLabel, `${productRoot}/volume`],
+      [specsLabel, `${productRoot}/specs`],
+      [marginsLabel, `${productRoot}/margins`],
+      [calendarLabel, `${productRoot}/calendar`],
     ];
 
     const filtered = [];
@@ -207,7 +249,7 @@ export async function insertProductTabsIfMissing(productRoot) {
     rowsForBuild = filtered;
   }
 
-  const block = buildProductTabsBlock(productRoot, rowsForBuild);
+  const block = await buildProductTabsBlock(productRoot, rowsForBuild);
   const section = createSectionWithBlock(block);
   const heroSection = findHeroSection();
 
