@@ -182,8 +182,14 @@ export default async function decorate(block) {
     return;
   }
   
-  // Try authored rows first
-  let items = parseAuthoredRows(block);
+  // TEMPORARY: Force i18n path for testing performance
+  // eslint-disable-next-line no-console
+  console.log('[PRODUCT-TABS] 🧪 TESTING MODE: Forcing i18n path (ignoring authored content)');
+  let items = []; // Force empty to test i18n
+  
+  // ORIGINAL CODE (commented out for testing):
+  // let items = parseAuthoredRows(block);
+  
   if (!items.length) {
     // eslint-disable-next-line no-console
     console.log('[PRODUCT-TABS] No authored rows, building from canonical with i18n...');
