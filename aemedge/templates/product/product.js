@@ -69,7 +69,10 @@ export default async function productTemplate() {
   preloadPathIndex();
 
   // Insert hero if missing
-  await insertHeroIfMissing();
+  const heroExists = document.querySelector('.hero-baseball');
+  if (!heroExists) {
+    await insertHeroIfMissing();
+  }
 
   // Insert product tabs if missing
   if (!findProductTabsSection()) {
@@ -80,7 +83,7 @@ export default async function productTemplate() {
   ensureHeroThenTabsOrder();
 
   // Enable SPA navigation for main tabs early (before toggle/content moves)
-  // Uses retry logic to wait for async block decoration
+  // Uses MutationObserver to wait for async block decoration (no polling!)
   enableProductSpaNavigation(productRoot);
 
   // Fetch options data in background (non-blocking)

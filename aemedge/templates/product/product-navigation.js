@@ -72,10 +72,11 @@ export function getCachedTabOptionsSupport(productRoot, tabName) {
 
 /**
  * Enable SPA navigation for product pages
+ * Uses MutationObserver to wait for tabs nav to appear (no polling!)
  */
-export function enableProductSpaNavigation(productRoot, retryCount = 0) {
+export function enableProductSpaNavigation(productRoot) {
   // eslint-disable-next-line no-console
-  console.log('[NAV] enableProductSpaNavigation called, retryCount:', retryCount);
+  console.log('[NAV] enableProductSpaNavigation called');
   
   const tabsNav = document.querySelector('.product-tabs-nav');
   const subTabsNav = document.querySelector('.product-subtabs');
@@ -83,17 +84,45 @@ export function enableProductSpaNavigation(productRoot, retryCount = 0) {
   // eslint-disable-next-line no-console
   console.log('[NAV] Found elements:', { tabsNav: !!tabsNav, subTabsNav: !!subTabsNav });
 
-  // If tabs nav doesn't exist yet and we haven't tried too many times, retry
-  if (!tabsNav && retryCount < 20) {
-    // eslint-disable-next-line no-console
-    console.log('[NAV] Tabs nav not found, retrying in 50ms... (attempt', retryCount + 1, 'of 20)');
-    setTimeout(() => enableProductSpaNavigation(productRoot, retryCount + 1), 50);
-    return;
-  }
-  
+  // If tabs nav doesn't exist yet, use MutationObserver to wait for it
   if (!tabsNav) {
     // eslint-disable-next-line no-console
-    console.error('[NAV] ERROR: Tabs nav still not found after 20 retries! Product tabs may not have loaded correctly.');
+    console.log('[NAV] Tabs nav not found, setting up observer to wait for it...');
+    
+    const startTime = performance.now();
+    
+    const observer = new MutationObserver((mutations, obs) => {
+      const foundTabsNav = document.querySelector('.product-tabs-nav');
+      if (foundTabsNav) {
+        const elapsed = (performance.now() - startTime).toFixed(2);
+        // eslint-disable-next-line no-console
+        console.log(`[NAV] ✅ Tabs nav appeared after ${elapsed}ms! Wiring navigation now...`);
+        obs.disconnect();
+        // Call this function again now that tabs exist
+        enableProductSpaNavigation(productRoot);
+      }
+    });
+    
+    // Watch the main element for child additions
+    const main = document.querySelector('main');
+    if (main) {
+      observer.observe(main, {
+        childList: true,
+        subtree: true,
+      });
+      
+      // Safety timeout: stop observing after 2 seconds
+      setTimeout(() => {
+        observer.disconnect();
+        if (!document.querySelector('.product-tabs-nav')) {
+          // eslint-disable-next-line no-console
+          console.error('[NAV] ERROR: Tabs nav still not found after 2s timeout!');
+        }
+      }, 2000);
+    } else {
+      // eslint-disable-next-line no-console
+      console.error('[NAV] ERROR: Main element not found!');
+    }
     return;
   }
 
