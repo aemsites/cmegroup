@@ -103,10 +103,6 @@ export default async function productTemplate() {
   // Move current page content under subtabs
   moveCurrentPageContentUnderSubTabs();
 
-  // Wire up subtabs navigation after toggle is inserted
-  // eslint-disable-next-line no-console
-  console.log('[PRODUCT] Calling enableProductSpaNavigation (2nd call - subtabs)');
-  enableProductSpaNavigation(productRoot);
 
   // If on root path, render default tab (without changing URL)
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
