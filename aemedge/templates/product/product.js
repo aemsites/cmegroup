@@ -100,7 +100,13 @@ export default async function productTemplate() {
   moveCurrentPageContentUnderSubTabs();
 
   // Enable SPA navigation (initial setup)
-  enableProductSpaNavigation(productRoot);
+  // Use requestAnimationFrame to ensure DOM has fully settled after all mutations
+  await new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      enableProductSpaNavigation(productRoot);
+      resolve();
+    });
+  });
 
   // If on root path, render default tab (without changing URL)
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
