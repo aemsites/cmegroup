@@ -68,20 +68,6 @@ export default async function productTemplate() {
   // Preload path index cache to avoid delays during user interactions
   preloadPathIndex();
 
-  // Fetch options dropdown data and product metadata in background
-  // Promise caching ensures no duplicate calls even if accessed before completion
-  fetchExpirationsData().then((data) => {
-    if (data && data.expirations && data.expirations.length > 0) {
-      const payload = { optionsExpirations: data.expirations };
-      // Also store product metadata if available from API
-      if (data.productSymbol) payload.productSymbol = data.productSymbol;
-      if (data.productName) payload.productName = data.productName;
-      store.dispatch(setProductData(payload));
-    }
-  }).catch(() => {
-    // Non-critical - continue without options data
-  });
-
   // Insert hero if missing
   await insertHeroIfMissing();
 
@@ -94,8 +80,28 @@ export default async function productTemplate() {
   ensureHeroThenTabsOrder();
 
   // Enable SPA navigation for main tabs early (before toggle/content moves)
-  // Uses retry logic to wait for async block decoration
+  // NO RETRIES - tabs must already be decorated at this point
   enableProductSpaNavigation(productRoot);
+
+  // Wait briefly for navigation handlers to settle, then fetch options data
+  // This prevents API call from interfering with click handler attachment
+  setTimeout(() => {
+    // eslint-disable-next-line no-console
+    console.log('[PRODUCT] Loading options data (after navigation wired)...');
+    fetchExpirationsData().then((data) => {
+      if (data && data.expirations && data.expirations.length > 0) {
+        const payload = { optionsExpirations: data.expirations };
+        if (data.productSymbol) payload.productSymbol = data.productSymbol;
+        if (data.productName) payload.productName = data.productName;
+        store.dispatch(setProductData(payload));
+        // eslint-disable-next-line no-console
+        console.log('[PRODUCT] ✅ Options data loaded:', data.expirations.length, 'expirations');
+      }
+    }).catch((error) => {
+      // eslint-disable-next-line no-console
+      console.warn('[PRODUCT] Failed to load options data (non-critical):', error);
+    });
+  }, 150);
 
   // Insert futures/options toggle if applicable
   await insertEnhancedSubTabsIfApplicable(productRoot);
