@@ -93,20 +93,18 @@ export default async function productTemplate() {
   // Ensure correct order (hero → tabs)
   ensureHeroThenTabsOrder();
 
+  // Enable SPA navigation for main tabs early (before toggle/content moves)
+  // This ensures click handlers are attached before any DOM mutations
+  enableProductSpaNavigation(productRoot);
+
   // Insert futures/options toggle if applicable
   await insertEnhancedSubTabsIfApplicable(productRoot);
 
   // Move current page content under subtabs
   moveCurrentPageContentUnderSubTabs();
 
-  // Enable SPA navigation (initial setup)
-  // Use requestAnimationFrame to ensure DOM has fully settled after all mutations
-  await new Promise((resolve) => {
-    requestAnimationFrame(() => {
-      enableProductSpaNavigation(productRoot);
-      resolve();
-    });
-  });
+  // Wire up subtabs navigation after toggle is inserted
+  enableProductSpaNavigation(productRoot);
 
   // If on root path, render default tab (without changing URL)
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
