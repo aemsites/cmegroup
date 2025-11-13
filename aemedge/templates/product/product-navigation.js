@@ -84,19 +84,52 @@ export function enableProductSpaNavigation(productRoot, retryCount = 0) {
   console.log('[NAV] Found elements:', { tabsNav: !!tabsNav, subTabsNav: !!subTabsNav });
 
   // If tabs nav doesn't exist yet and we haven't tried too many times, retry
-  if (!tabsNav && retryCount < 10) {
+  if (!tabsNav && retryCount < 20) {
     // eslint-disable-next-line no-console
-    console.log('[NAV] Tabs nav not found, retrying in 50ms...');
+    console.log('[NAV] Tabs nav not found, retrying in 50ms... (attempt', retryCount + 1, 'of 20)');
     setTimeout(() => enableProductSpaNavigation(productRoot, retryCount + 1), 50);
+    return;
+  }
+  
+  if (!tabsNav) {
+    // eslint-disable-next-line no-console
+    console.error('[NAV] ERROR: Tabs nav still not found after 20 retries! Product tabs may not have loaded correctly.');
     return;
   }
 
   if (tabsNav && !tabsNav.dataset.spaBound) {
     // eslint-disable-next-line no-console
-    console.log('[NAV] Wiring clicks for tabsNav');
+    console.log('[NAV] ✅ SUCCESS: Wiring clicks for tabsNav');
     wireNavClicks(tabsNav, productRoot);
     wirePrefetches(tabsNav, productRoot);
     tabsNav.dataset.spaBound = 'y';
+    // eslint-disable-next-line no-console
+    console.log('[NAV] ✅ Main tabs navigation fully wired and ready!');
+    
+    // Set up a mutation observer to detect if tabs nav gets replaced
+    try {
+      const tabsContainer = tabsNav.closest('.product-tabs-container');
+      if (tabsContainer && !tabsContainer.dataset.mutationObserverSet) {
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' && mutation.removedNodes.length > 0) {
+              Array.from(mutation.removedNodes).forEach((node) => {
+                if (node.classList && node.classList.contains('product-tabs-nav')) {
+                  // eslint-disable-next-line no-console
+                  console.error('[NAV] ⚠️ CRITICAL: product-tabs-nav was REMOVED from DOM! Handlers lost!');
+                }
+              });
+            }
+          });
+        });
+        observer.observe(tabsContainer, { childList: true, subtree: true });
+        tabsContainer.dataset.mutationObserverSet = 'true';
+        // eslint-disable-next-line no-console
+        console.log('[NAV] Mutation observer set on tabs container');
+      }
+    } catch (e) {
+      // Silent fail - mutation observer not critical
+    }
   } else if (tabsNav) {
     // eslint-disable-next-line no-console
     console.log('[NAV] Tabs nav already bound, skipping');
@@ -216,18 +249,26 @@ function wireNavClicks(container, productRoot) {
   console.log('[NAV] Found', links.length, 'links to wire up');
 
   links.forEach((a, index) => {
+    const href = a.getAttribute('href');
+    // eslint-disable-next-line no-console
+    console.log('[NAV] Wiring link', index, '- text:', a.textContent.trim(), 'href:', href);
+    
+    // Mark the link so we can verify handlers are attached
+    a.dataset.spaWired = 'true';
+    a.dataset.spaIndex = index;
+    
     a.addEventListener('click', (e) => {
-      const href = a.getAttribute('href');
+      const clickedHref = a.getAttribute('href');
       // eslint-disable-next-line no-console
-      console.log('[NAV] Click handler fired for link', index, 'href:', href);
+      console.log('[NAV] 🔥 Click handler fired for link', index, 'href:', clickedHref);
       
-      if (!href) {
+      if (!clickedHref) {
         // eslint-disable-next-line no-console
         console.log('[NAV] No href, allowing default');
         return;
       }
       
-      const targetRoot = computeProductRoot(href);
+      const targetRoot = computeProductRoot(clickedHref);
       // eslint-disable-next-line no-console
       console.log('[NAV] targetRoot:', targetRoot, 'productRoot:', productRoot);
       
@@ -238,11 +279,25 @@ function wireNavClicks(container, productRoot) {
       }
 
       // eslint-disable-next-line no-console
-      console.log('[NAV] Preventing default and calling SPA navigation');
+      console.log('[NAV] ✋ Preventing default and calling SPA navigation');
       e.preventDefault();
-      debouncedNavigate(href);
+      debouncedNavigate(clickedHref);
     });
   });
+  
+  // Verify handlers were attached
+  // eslint-disable-next-line no-console
+  console.log('[NAV] ✅ All', links.length, 'links wired. Verifying...');
+  setTimeout(() => {
+    const currentLinks = container.querySelectorAll('a[href]');
+    const wiredCount = Array.from(currentLinks).filter((a) => a.dataset.spaWired === 'true').length;
+    // eslint-disable-next-line no-console
+    console.log('[NAV] Verification:', wiredCount, 'of', currentLinks.length, 'links have data-spa-wired attribute');
+    if (wiredCount < currentLinks.length) {
+      // eslint-disable-next-line no-console
+      console.warn('[NAV] ⚠️ WARNING: Some links lost their handlers! DOM may have been replaced.');
+    }
+  }, 100);
 }
 
 /**
@@ -287,7 +342,8 @@ export async function renderProductPath(url, productRoot) {
     // ✅ RUN EVERYTHING IN PARALLEL (non-blocking)
     const domOpsPromise = toggleSubTabsVisibility(productRoot).then(() => {
       moveCurrentPageContentUnderSubTabs();
-      enableProductSpaNavigation(productRoot);
+      // NOTE: Don't call enableProductSpaNavigation here - it's already wired up
+      // from product.js and calling it repeatedly creates unnecessary retry chains
     });
 
     // Fetch HTML (check cache first)

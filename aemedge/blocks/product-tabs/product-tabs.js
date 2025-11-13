@@ -152,10 +152,21 @@ function renderNav(block, items) {
 }
 
 export default async function decorate(block) {
+  // eslint-disable-next-line no-console
+  console.log('[PRODUCT-TABS] decorate() called, blockStatus:', block.dataset.blockStatus);
+  
   // Try authored rows first
   let items = parseAuthoredRows(block);
   if (!items.length) {
+    // eslint-disable-next-line no-console
+    console.log('[PRODUCT-TABS] No authored rows, building from canonical with i18n...');
     items = await buildFromCanonical(window.location.pathname);
   }
+  
+  // eslint-disable-next-line no-console
+  console.log('[PRODUCT-TABS] Rendering nav with', items.length, 'items');
   renderNav(block, items);
+  
+  // eslint-disable-next-line no-console
+  console.log('[PRODUCT-TABS] ✅ Decoration complete, nav rendered');
 }
