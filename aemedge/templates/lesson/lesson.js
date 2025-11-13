@@ -3,6 +3,8 @@ import {
   getCourseData,
   updateLessonStatus,
   getCurrentLesson,
+  flattenLessons,
+  buildCourseSurveyLink,
 } from '../../scripts/course/course.js';
 import { addCourseCertificate } from '../../scripts/course/certificate.js';
 import {
@@ -15,38 +17,6 @@ const FRAGMENT_URL = '/fragments/courses-lessons/extend-your-learning';
 
 if (window.ga) {
   window.ga();
-}
-
-function flattenLessons(courseData) {
-  const lessons = courseData.lessons || [];
-  const chapters = courseData.chapters || [];
-  const modulesOrder = courseData.modulesOrder?.split(',').map((s) => s.trim()) || [];
-
-  const flatLessons = [];
-
-  const lessonMap = new Map(
-    lessons.map((lesson) => [lesson.pathSuffix, lesson]),
-  );
-
-  const chapterMap = new Map(
-    chapters.map((chapter) => [
-      chapter.path.split('/').pop(),
-      chapter.lessons?.map((lesson) => ({
-        ...lesson,
-        chapterPath: chapter.path,
-      })) || [],
-    ]),
-  );
-
-  modulesOrder.forEach((key) => {
-    if (lessonMap.has(key)) {
-      flatLessons.push({ ...lessonMap.get(key), chapterPath: null });
-    } else if (chapterMap.has(key)) {
-      flatLessons.push(...chapterMap.get(key));
-    }
-  });
-
-  return flatLessons;
 }
 
 async function addLateralNavigation(prevHref, nextHref) {
@@ -204,6 +174,7 @@ export default async function lessonTemplate() {
       const data = await getCourseData(loginInfo);
       initLateralNav(courseData);
       loadUserProgress(data, authenticationData);
+      buildCourseSurveyLink(courseData);
       if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
         import('../../scripts/course/auth-modal.js');
       }

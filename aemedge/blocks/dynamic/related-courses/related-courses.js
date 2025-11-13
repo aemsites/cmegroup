@@ -4,13 +4,17 @@ import {
   loadBlock,
   getMetadata,
 } from '../../../scripts/aem.js';
-import { createElement } from '../../../scripts/utils.js';
+import { createElement, i18n } from '../../../scripts/utils.js';
 
-function createHeader() {
+async function createHeader() {
+  const [title, linkText] = await Promise.all([
+    i18n('Related Courses'),
+    i18n('View Course Catalog'),
+  ]);
   const header = createElement('div', { class: 'cards-header' });
-  const h3 = createElement('h3', {}, 'Related Courses');
+  const h3 = createElement('h3', {}, title);
   header.appendChild(h3);
-  const coursesLink = createElement('a', { href: '/education/courses/' }, 'View Course Catalog');
+  const coursesLink = createElement('a', { href: '/education/courses' }, linkText);
   header.appendChild(coursesLink);
   return header;
 }
@@ -20,7 +24,7 @@ export default async function createRelatedCourses(main) {
   const wrapper = createElement('div');
   container.appendChild(wrapper);
 
-  const header = createHeader();
+  const header = await createHeader();
   wrapper.appendChild(header);
 
   const tags = getMetadata('article:tag');

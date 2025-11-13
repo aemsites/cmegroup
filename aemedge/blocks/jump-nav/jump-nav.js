@@ -44,10 +44,21 @@ export default function decorate(block) {
     setupHeaderSync(container);
   }
 
-  setupActiveStates(nav);
   setupDraggableScroll(nav);
 
-  handleInitialHashScroll(nav);
+  let attempts = 0;
+  const maxAttempts = 20;
+  const interval = 200;
+
+  const intervalId = setInterval(() => {
+    if (setupActiveStates(nav) || attempts >= maxAttempts) {
+      clearInterval(intervalId);
+      if (attempts < maxAttempts) {
+        handleInitialHashScroll(nav);
+      }
+    }
+    attempts += 1;
+  }, interval);
 }
 
 function handleInitialHashScroll(nav) {
@@ -116,9 +127,10 @@ function setupHeaderSync(container) {
 
 function scrollSection(targetElement, link, isSmooth, updateHash, nav, initialLoad = false) {
   const headerHeight = document.querySelector('.header')?.offsetHeight || 0;
+  const alertsHeight = document.querySelector('#alerts-container')?.offsetHeight || 0;
   const jumpToHeight = document.querySelector('.jump-nav')?.offsetHeight || 0;
 
-  const totalOffset = headerHeight + jumpToHeight;
+  const totalOffset = headerHeight + alertsHeight + jumpToHeight;
 
   targetElement.style.scrollMarginTop = `${totalOffset}px`;
 
@@ -191,12 +203,13 @@ function setupActiveStates(nav) {
   });
 
   if (!sections.length) {
-    return;
+    return false;
   }
 
   const headerHeight = document.querySelector('.header')?.offsetHeight || 0;
+  const alertsHeight = document.querySelector('#alerts-container')?.offsetHeight || 0;
   const jumpToHeight = document.querySelector('.jump-nav')?.offsetHeight || 0;
-  const totalStickyHeight = headerHeight + jumpToHeight;
+  const totalStickyHeight = headerHeight + alertsHeight + jumpToHeight;
 
   const observerOptions = {
     rootMargin: `-${totalStickyHeight}px 0px -${window.innerHeight - totalStickyHeight}px 0px`,
@@ -257,6 +270,8 @@ function setupActiveStates(nav) {
   sections.forEach((section) => {
     intersectionObserver.observe(section.element);
   });
+
+  return true;
 }
 
 function setupDraggableScroll(nav) {
