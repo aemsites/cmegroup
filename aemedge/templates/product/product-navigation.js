@@ -281,6 +281,27 @@ function wireNavClicks(container, productRoot) {
   // Verify handlers were attached
   // eslint-disable-next-line no-console
   console.log('[NAV] ✅ All', links.length, 'links wired. Verifying...');
+  
+  // TEST: Manually trigger a click on the first link to verify handler works
+  // eslint-disable-next-line no-console
+  console.log('[NAV] 🧪 TEST: About to manually click link 1 (Quotes) to verify handler...');
+  setTimeout(() => {
+    const quotesLink = Array.from(container.querySelectorAll('a[href]'))
+      .find((a) => a.textContent.trim() === 'Quotes');
+    if (quotesLink) {
+      // eslint-disable-next-line no-console
+      console.log('[NAV] 🧪 Found Quotes link, simulating click...');
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      });
+      const prevented = !quotesLink.dispatchEvent(clickEvent);
+      // eslint-disable-next-line no-console
+      console.log('[NAV] 🧪 Click dispatched, preventDefault was called:', prevented);
+    }
+  }, 200);
+  
   setTimeout(() => {
     const currentLinks = container.querySelectorAll('a[href]');
     const wiredCount = Array.from(currentLinks).filter((a) => a.dataset.spaWired === 'true').length;

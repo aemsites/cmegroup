@@ -93,6 +93,27 @@ export default async function productTemplate() {
   // Ensure correct order (hero → tabs)
   ensureHeroThenTabsOrder();
 
+  // Wait for product-tabs block to be fully decorated before wiring navigation
+  // This handles both authored tabs (already in DOM) and programmatically inserted tabs
+  const tabsBlock = document.querySelector('.product-tabs');
+  if (tabsBlock) {
+    // eslint-disable-next-line no-console
+    console.log('[PRODUCT] Waiting for product-tabs block to be decorated...');
+    await new Promise((resolve) => {
+      const checkDecorated = () => {
+        const nav = tabsBlock.querySelector('.product-tabs-nav');
+        if (nav) {
+          // eslint-disable-next-line no-console
+          console.log('[PRODUCT] ✅ Product-tabs block is decorated and ready');
+          resolve();
+        } else {
+          setTimeout(checkDecorated, 10);
+        }
+      };
+      checkDecorated();
+    });
+  }
+
   // TESTING: Enable SPA navigation immediately (no retries, no i18n delay)
   // This should wire up tabs instantly since decorate() is now synchronous
   // eslint-disable-next-line no-console
