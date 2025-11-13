@@ -100,10 +100,6 @@ function parseAuthoredRows(block) {
 async function buildFromCanonical(pathname) {
   const root = computeProductRoot(pathname);
 
-  // eslint-disable-next-line no-console
-  console.log('[PRODUCT-TABS] Starting i18n API calls...');
-  const i18nStartTime = performance.now();
-
   const [overview, quotes, settlements, volume, specs, margins, calendar] = await Promise.all([
     i18n('Overview'),
     i18n('Quotes'),
@@ -113,10 +109,6 @@ async function buildFromCanonical(pathname) {
     i18n('Margins'),
     i18n('Calendar'),
   ]);
-
-  const i18nElapsed = (performance.now() - i18nStartTime).toFixed(2);
-  // eslint-disable-next-line no-console
-  console.log(`[PRODUCT-TABS] ✅ i18n API calls completed in ${i18nElapsed}ms`);
 
   const labels = {
     overview, quotes, settlements, volume, specs, margins, calendar,
@@ -131,9 +123,6 @@ async function buildFromCanonical(pathname) {
 }
 
 function renderNav(block, items) {
-  // eslint-disable-next-line no-console
-  console.log('[PRODUCT-TABS] renderNav called');
-  
   const currentPath = normalizePath(window.location.pathname);
   const nav = document.createElement('nav');
   nav.className = 'product-tabs-nav';
@@ -159,51 +148,26 @@ function renderNav(block, items) {
 
   nav.appendChild(list);
   
-  // ⚠️ CRITICAL: This wipes out the block and replaces it!
-  // If decorate() is called twice, this destroys any event listeners
-  // eslint-disable-next-line no-console
-  console.log('[PRODUCT-TABS] ⚠️ About to replace block.innerHTML - this will destroy any attached event listeners!');
+  // Replace block content with nav
+  // Safe because decorate() is protected by dataset.decorated check
   block.innerHTML = '';
   block.appendChild(nav);
-  // eslint-disable-next-line no-console
-  console.log('[PRODUCT-TABS] Nav DOM replaced');
 }
 
 export default async function decorate(block) {
-  const decorateStartTime = performance.now();
-  
-  // eslint-disable-next-line no-console
-  console.log('[PRODUCT-TABS] decorate() called, blockStatus:', block.dataset.blockStatus);
-  
   // Protect against multiple decoration calls
   if (block.dataset.decorated === 'true') {
-    // eslint-disable-next-line no-console
-    console.warn('[PRODUCT-TABS] ⚠️ Block already decorated! Skipping to preserve event listeners.');
     return;
   }
   
-  // TEMPORARY: Force i18n path for testing performance
-  // eslint-disable-next-line no-console
-  console.log('[PRODUCT-TABS] 🧪 TESTING MODE: Forcing i18n path (ignoring authored content)');
-  let items = []; // Force empty to test i18n
-  
-  // ORIGINAL CODE (commented out for testing):
-  // let items = parseAuthoredRows(block);
-  
+  // Try authored rows first
+  let items = parseAuthoredRows(block);
   if (!items.length) {
-    // eslint-disable-next-line no-console
-    console.log('[PRODUCT-TABS] No authored rows, building from canonical with i18n...');
     items = await buildFromCanonical(window.location.pathname);
   }
   
-  // eslint-disable-next-line no-console
-  console.log('[PRODUCT-TABS] Rendering nav with', items.length, 'items');
   renderNav(block, items);
   
   // Mark as decorated
   block.dataset.decorated = 'true';
-  
-  const decorateElapsed = (performance.now() - decorateStartTime).toFixed(2);
-  // eslint-disable-next-line no-console
-  console.log(`[PRODUCT-TABS] ✅ Decoration complete in ${decorateElapsed}ms total (nav rendered)`);
 }

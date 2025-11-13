@@ -75,28 +75,14 @@ export function getCachedTabOptionsSupport(productRoot, tabName) {
  * Uses MutationObserver to wait for tabs nav to appear (no polling!)
  */
 export function enableProductSpaNavigation(productRoot) {
-  // eslint-disable-next-line no-console
-  console.log('[NAV] enableProductSpaNavigation called');
-  
   const tabsNav = document.querySelector('.product-tabs-nav');
   const subTabsNav = document.querySelector('.product-subtabs');
 
-  // eslint-disable-next-line no-console
-  console.log('[NAV] Found elements:', { tabsNav: !!tabsNav, subTabsNav: !!subTabsNav });
-
   // If tabs nav doesn't exist yet, use MutationObserver to wait for it
   if (!tabsNav) {
-    // eslint-disable-next-line no-console
-    console.log('[NAV] Tabs nav not found, setting up observer to wait for it...');
-    
-    const startTime = performance.now();
-    
     const observer = new MutationObserver((mutations, obs) => {
       const foundTabsNav = document.querySelector('.product-tabs-nav');
       if (foundTabsNav) {
-        const elapsed = (performance.now() - startTime).toFixed(2);
-        // eslint-disable-next-line no-console
-        console.log(`[NAV] ✅ Tabs nav appeared after ${elapsed}ms! Wiring navigation now...`);
         obs.disconnect();
         // Call this function again now that tabs exist
         enableProductSpaNavigation(productRoot);
@@ -127,13 +113,9 @@ export function enableProductSpaNavigation(productRoot) {
   }
 
   if (tabsNav && !tabsNav.dataset.spaBound) {
-    // eslint-disable-next-line no-console
-    console.log('[NAV] ✅ SUCCESS: Wiring clicks for tabsNav');
     wireNavClicks(tabsNav, productRoot);
     wirePrefetches(tabsNav, productRoot);
     tabsNav.dataset.spaBound = 'y';
-    // eslint-disable-next-line no-console
-    console.log('[NAV] ✅ Main tabs navigation fully wired and ready!');
     
     // Set up a mutation observer to detect if tabs nav gets replaced
     try {
@@ -153,28 +135,18 @@ export function enableProductSpaNavigation(productRoot) {
         });
         observer.observe(tabsContainer, { childList: true, subtree: true });
         tabsContainer.dataset.mutationObserverSet = 'true';
-        // eslint-disable-next-line no-console
-        console.log('[NAV] Mutation observer set on tabs container');
       }
     } catch (e) {
       // Silent fail - mutation observer not critical
     }
-  } else if (tabsNav) {
-    // eslint-disable-next-line no-console
-    console.log('[NAV] Tabs nav already bound, skipping');
   }
 
   if (subTabsNav) {
     const hasLinks = subTabsNav.querySelectorAll('a[href]').length > 0;
     const alreadyBound = subTabsNav.dataset.spaBound === 'y';
 
-    // eslint-disable-next-line no-console
-    console.log('[NAV] SubTabs check:', { hasLinks, alreadyBound });
-
     // Wire clicks if: (1) not bound yet, OR (2) bound but has new links (dropdown populated)
     if (!alreadyBound || (alreadyBound && hasLinks)) {
-      // eslint-disable-next-line no-console
-      console.log('[NAV] Wiring clicks for subTabsNav');
       wireNavClicks(subTabsNav, productRoot);
       wirePrefetches(subTabsNav, productRoot);
       subTabsNav.dataset.spaBound = 'y';
@@ -182,8 +154,6 @@ export function enableProductSpaNavigation(productRoot) {
   }
 
   if (!POPSTATE_BOUND) {
-    // eslint-disable-next-line no-console
-    console.log('[NAV] Binding popstate handler');
     window.addEventListener('popstate', () => {
       const url = window.location.pathname + window.location.search + window.location.hash;
       renderProductPath(url, productRoot);
@@ -196,12 +166,7 @@ export function enableProductSpaNavigation(productRoot) {
  * Wire navigation clicks with global options persistence
  */
 function wireNavClicks(container, productRoot) {
-  // eslint-disable-next-line no-console
-  console.log('[NAV] wireNavClicks called for container:', container.className);
-  
   const debouncedNavigate = (async (href) => {
-    // eslint-disable-next-line no-console
-    console.log('[NAV] debouncedNavigate called with href:', href);
     
     if (navigationDebounceTimer) {
       clearTimeout(navigationDebounceTimer);
@@ -273,14 +238,9 @@ function wireNavClicks(container, productRoot) {
   });
 
   const links = container.querySelectorAll('a[href]');
-  
-  // eslint-disable-next-line no-console
-  console.log('[NAV] Found', links.length, 'links to wire up');
 
   links.forEach((a, index) => {
     const href = a.getAttribute('href');
-    // eslint-disable-next-line no-console
-    console.log('[NAV] Wiring link', index, '- text:', a.textContent.trim(), 'href:', href);
     
     // Mark the link so we can verify handlers are attached
     a.dataset.spaWired = 'true';
@@ -288,40 +248,26 @@ function wireNavClicks(container, productRoot) {
     
     a.addEventListener('click', (e) => {
       const clickedHref = a.getAttribute('href');
-      // eslint-disable-next-line no-console
-      console.log('[NAV] 🔥 Click handler fired for link', index, 'href:', clickedHref);
       
       if (!clickedHref) {
-        // eslint-disable-next-line no-console
-        console.log('[NAV] No href, allowing default');
         return;
       }
       
       const targetRoot = computeProductRoot(clickedHref);
-      // eslint-disable-next-line no-console
-      console.log('[NAV] targetRoot:', targetRoot, 'productRoot:', productRoot);
       
       if (normalizePath(targetRoot) !== normalizePath(productRoot)) {
-        // eslint-disable-next-line no-console
-        console.log('[NAV] Different product root, allowing default navigation');
         return;
       }
 
-      // eslint-disable-next-line no-console
-      console.log('[NAV] ✋ Preventing default and calling SPA navigation');
       e.preventDefault();
       debouncedNavigate(clickedHref);
     });
   });
   
   // Verify handlers were attached
-  // eslint-disable-next-line no-console
-  console.log('[NAV] ✅ All', links.length, 'links wired. Verifying...');
   setTimeout(() => {
     const currentLinks = container.querySelectorAll('a[href]');
     const wiredCount = Array.from(currentLinks).filter((a) => a.dataset.spaWired === 'true').length;
-    // eslint-disable-next-line no-console
-    console.log('[NAV] Verification:', wiredCount, 'of', currentLinks.length, 'links have data-spa-wired attribute');
     if (wiredCount < currentLinks.length) {
       // eslint-disable-next-line no-console
       console.warn('[NAV] ⚠️ WARNING: Some links lost their handlers! DOM may have been replaced.');
