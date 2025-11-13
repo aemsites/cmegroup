@@ -97,18 +97,21 @@ function parseAuthoredRows(block) {
   return items;
 }
 
-function buildFromCanonical(pathname) {
+async function buildFromCanonical(pathname) {
   const root = computeProductRoot(pathname);
 
-  // TESTING: Hardcoded labels instead of i18n to test performance
+  const [overview, quotes, settlements, volume, specs, margins, calendar] = await Promise.all([
+    i18n('Overview'),
+    i18n('Quotes'),
+    i18n('Settlements'),
+    i18n('Volume'),
+    i18n('Contract Specs'),
+    i18n('Margins'),
+    i18n('Calendar'),
+  ]);
+
   const labels = {
-    overview: 'Overview',
-    quotes: 'Quotes',
-    settlements: 'Settlements',
-    volume: 'Volume & OI',
-    specs: 'Contract Specs',
-    margins: 'Margins',
-    calendar: 'Calendar',
+    overview, quotes, settlements, volume, specs, margins, calendar,
   };
 
   const items = CANONICAL_ORDER.map((key) => {
@@ -158,7 +161,7 @@ function renderNav(block, items) {
   console.log('[PRODUCT-TABS] Nav DOM replaced');
 }
 
-export default function decorate(block) {
+export default async function decorate(block) {
   // eslint-disable-next-line no-console
   console.log('[PRODUCT-TABS] decorate() called, blockStatus:', block.dataset.blockStatus);
   
@@ -173,8 +176,8 @@ export default function decorate(block) {
   let items = parseAuthoredRows(block);
   if (!items.length) {
     // eslint-disable-next-line no-console
-    console.log('[PRODUCT-TABS] No authored rows, building from canonical (NO i18n for testing)...');
-    items = buildFromCanonical(window.location.pathname);
+    console.log('[PRODUCT-TABS] No authored rows, building from canonical with i18n...');
+    items = await buildFromCanonical(window.location.pathname);
   }
   
   // eslint-disable-next-line no-console
