@@ -80,28 +80,25 @@ export default async function productTemplate() {
   ensureHeroThenTabsOrder();
 
   // Enable SPA navigation for main tabs early (before toggle/content moves)
-  // NO RETRIES - tabs must already be decorated at this point
+  // Uses retry logic to wait for async block decoration
   enableProductSpaNavigation(productRoot);
 
-  // Wait briefly for navigation handlers to settle, then fetch options data
-  // This prevents API call from interfering with click handler attachment
-  setTimeout(() => {
-    // eslint-disable-next-line no-console
-    console.log('[PRODUCT] Loading options data (after navigation wired)...');
-    fetchExpirationsData().then((data) => {
-      if (data && data.expirations && data.expirations.length > 0) {
-        const payload = { optionsExpirations: data.expirations };
-        if (data.productSymbol) payload.productSymbol = data.productSymbol;
-        if (data.productName) payload.productName = data.productName;
-        store.dispatch(setProductData(payload));
-        // eslint-disable-next-line no-console
-        console.log('[PRODUCT] ✅ Options data loaded:', data.expirations.length, 'expirations');
-      }
-    }).catch((error) => {
+  // Fetch options data in background (non-blocking)
+  // eslint-disable-next-line no-console
+  console.log('[PRODUCT] Loading options data in background...');
+  fetchExpirationsData().then((data) => {
+    if (data && data.expirations && data.expirations.length > 0) {
+      const payload = { optionsExpirations: data.expirations };
+      if (data.productSymbol) payload.productSymbol = data.productSymbol;
+      if (data.productName) payload.productName = data.productName;
+      store.dispatch(setProductData(payload));
       // eslint-disable-next-line no-console
-      console.warn('[PRODUCT] Failed to load options data (non-critical):', error);
-    });
-  }, 150);
+      console.log('[PRODUCT] ✅ Options data loaded:', data.expirations.length, 'expirations');
+    }
+  }).catch((error) => {
+    // eslint-disable-next-line no-console
+    console.warn('[PRODUCT] Failed to load options data (non-critical):', error);
+  });
 
   // Insert futures/options toggle if applicable
   await insertEnhancedSubTabsIfApplicable(productRoot);
