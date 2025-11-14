@@ -279,6 +279,8 @@ async function decorateArticleHero(main) {
 }
 
 export default function articleTemplate() {
-  const main = document.querySelector('main');
-  decorateArticleHero(main);
+  (async () => {
+    const main = document.querySelector('main');
+    await decorateArticleHero(main);
+  })();
 }
