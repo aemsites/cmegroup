@@ -36,16 +36,36 @@
   min-height: 22.125rem;
 }
 
+.brightcove-player .playlist-right-sidekick {
+  &.ratio43 {
+    & video {
+      aspect-ratio: 4 / 3;
+      margin: auto;
+      width: auto;
+    }
+  }
+  &.ratio169 {
+    & video {
+      aspect-ratio: 16 / 9;
+      margin: auto;
+      height: auto;
+      object-fit: scale-down;
+    }
+  }
+}
+
 .brightcove-video,
 .vjs-playlist-player-container {
   position: relative;
 
   &.aspect-ratio43 {
     padding-top: 75%;
+    height: 0;
   }
 
   &.aspect-ratio169 {
     padding-top: 56.25%;
+    height: 0;
   }
 }
 

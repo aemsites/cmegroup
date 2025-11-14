@@ -91,7 +91,11 @@ function calculateStyles(aspectRatio, playlistLocation) {
   const is43 = aspectRatio === '4:3';
   // it is a playlist ?
   if (playlistLocation === 'R') {
-    return 'playlist-right-sidekick';
+    if (is43) {
+      return 'playlist-right-sidekick ratio43';
+    }
+
+    return 'playlist-right-sidekick ratio169';
   }
   // is it a video ?
   if (is43) {
