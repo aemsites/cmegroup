@@ -267,6 +267,12 @@ function wireNavClicks(container, productRoot) {
     a.dataset.spaIndex = index;
     
     a.addEventListener('click', (e) => {
+      // ✅ UX: Prevent clicking on already active tab
+      if (a.classList.contains('is-active')) {
+        e.preventDefault();
+        return;
+      }
+
       const clickedHref = a.getAttribute('href');
       
       if (!clickedHref) {

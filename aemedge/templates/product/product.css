@@ -44,6 +44,12 @@ main {
       /* Main tabs navigation */
       & .product-tabs-nav {
         flex: 1 1 auto;
+
+        /* ✅ UX: Active tab not clickable */
+        & a.is-active {
+          cursor: default;
+          pointer-events: none;
+        }
       }
 
       /* Sub-tabs container (Futures/Options toggle OR list) */
