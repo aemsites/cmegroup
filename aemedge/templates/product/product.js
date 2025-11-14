@@ -13,7 +13,6 @@
 import { getMetadata } from '../../scripts/aem.js';
 import { computeProductRoot, normalizePath, getProductMetadata } from '../../scripts/utils/product.js';
 import { store } from '../../scripts/store/store.js';
-import { setProductData } from '../../scripts/actions/product.js';
 
 // Import module functions
 import {
@@ -35,10 +34,6 @@ import {
   insertEnhancedSubTabsIfApplicable,
 } from './product-toggle-manager.js';
 
-import {
-  fetchExpirationsData,
-} from './product-toggle-utils.js';
-
 // ==================== MAIN TEMPLATE FUNCTION ====================
 
 /**
@@ -58,7 +53,7 @@ export default async function productTemplate() {
 
   // Ensure product metadata (including product ID) is available
   // If missing from page metadata, fetch from search API
-  const productMetadata = await getProductMetadata();
+  await getProductMetadata();
   // Continue anyway - some functionality may be limited even without product ID
 
   // Preload path index cache to avoid delays during user interactions
@@ -92,7 +87,6 @@ export default async function productTemplate() {
 
   // Move current page content under subtabs
   moveCurrentPageContentUnderSubTabs();
-
 
   // If on root path, render default tab (without changing URL)
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);

@@ -2,16 +2,10 @@ import { getMetadata } from '../../scripts/aem.js';
 import { getProductMetadata } from '../../scripts/utils/product.js';
 import { apiPost, getResponseData, urlByEnvType } from '../../scripts/utils/index.js';
 import { createElement, i18n } from '../../scripts/utils.js';
-import { store as productStore } from '../../scripts/store/store.js';
-import { updateProductField } from '../../scripts/actions/product.js';
 
 const HERO_API_CONFIG = {
   endpoint: '/CmeWS/mvc/quotes/v2/contracts-by-number',
 };
-
-// Cache tracking
-let cacheHits = 0;
-let cacheMisses = 0;
 
 function formatNumber(num) {
   if (!num && num !== 0) return '-';
@@ -141,7 +135,7 @@ async function populateHeroData(block) {
     const volume = block.querySelector('.volume-info .value');
 
     updateElement(currentPrice, contractData.last || '-');
-    
+
     if (priceChange) {
       const change = contractData.change || '-';
       const changePercent = contractData.percentageChange || '-';
@@ -149,7 +143,7 @@ async function populateHeroData(block) {
       const className = `value ${isNegative ? 'change-negative' : 'change-positive'}`;
       updateElement(priceChange, `${change} (${changePercent})`, className);
     }
-    
+
     updateElement(volume, formatNumber(contractData.volume));
 
     const open = block.querySelector('[data-field="open"] .value');
@@ -180,7 +174,7 @@ export default async function decorate(block) {
     const container = await createHeroStructure();
     block.append(container);
   }
-  
+
   // Non-blocking: Load data in background after render
   // This ensures the block appears immediately, then populates smoothly
   setTimeout(() => {

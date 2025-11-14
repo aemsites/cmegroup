@@ -86,7 +86,7 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   const optionsDropdown = createOptionsDropdown(expirationsData || [], selectedContract);
 
   optionsDropdown.setAttribute('data-href', optionsPath);
-  
+
   // Mark as active if on options path
   if (normalizePath(currentPath).startsWith(normalizePath(optionsPath))) {
     const dropdownBtn = optionsDropdown.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownButton}`);
@@ -98,26 +98,15 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   container.appendChild(optionsDropdown);
   nav.appendChild(container);
 
-  // ⏱️ PERFORMANCE TRACKING: Record dropdown render time
-  const dropdownRenderTime = Date.now();
-
   // ✅ LAZY FETCH: Load data in background AFTER rendering (non-blocking)
   const isWrongProduct = state.productData.productRoot !== normalizePath(productRoot);
   if (!expirationsData || isWrongProduct) {
     // Use setTimeout to defer fetch until after render completes
     setTimeout(async () => {
       try {
-        // ⏱️ PERFORMANCE TRACKING: Record API fetch start time
-        const fetchStartTime = Date.now();
-        
         const result = await fetchExpirationsData(productId);
         expirationsData = result.expirations;
-        
-        // ⏱️ PERFORMANCE TRACKING: Calculate timings
-        const fetchEndTime = Date.now();
-        const fetchDuration = fetchEndTime - fetchStartTime;
-        const totalTimeFromRender = fetchEndTime - dropdownRenderTime;
-        
+
         if (expirationsData && expirationsData.length > 0) {
           const payload = { optionsExpirations: expirationsData };
           if (result.productSymbol) payload.productSymbol = result.productSymbol;

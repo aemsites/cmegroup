@@ -147,7 +147,7 @@ function renderNav(block, items) {
   });
 
   nav.appendChild(list);
-  
+
   // Replace block content with nav
   // Safe because decorate() is protected by dataset.decorated check
   block.innerHTML = '';
@@ -159,15 +159,15 @@ export default async function decorate(block) {
   if (block.dataset.decorated === 'true') {
     return;
   }
-  
+
   // Try authored rows first
   let items = parseAuthoredRows(block);
   if (!items.length) {
     items = await buildFromCanonical(window.location.pathname);
   }
-  
+
   renderNav(block, items);
-  
+
   // Mark as decorated
   block.dataset.decorated = 'true';
 }

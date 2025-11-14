@@ -103,7 +103,7 @@ export function enableProductSpaNavigation(productRoot) {
         enableProductSpaNavigation(productRoot);
       }
     });
-    
+
     // Watch the main element for child additions
     const main = document.querySelector('main');
     if (main) {
@@ -111,7 +111,7 @@ export function enableProductSpaNavigation(productRoot) {
         childList: true,
         subtree: true,
       });
-      
+
       // ✅ CRITICAL: No timeout - wait as long as needed for tabs to appear
       // The observer will automatically disconnect when tabs are found
       // Store observer reference for debugging
@@ -126,7 +126,7 @@ export function enableProductSpaNavigation(productRoot) {
     wireNavClicks(tabsNav, productRoot);
     wirePrefetches(tabsNav, productRoot);
     tabsNav.dataset.spaBound = 'y';
-    
+
     // Set up a mutation observer to detect if tabs nav gets replaced
     try {
       const tabsContainer = tabsNav.closest('.product-tabs-container');
@@ -168,7 +168,6 @@ export function enableProductSpaNavigation(productRoot) {
  */
 function wireNavClicks(container, productRoot) {
   const debouncedNavigate = (async (href) => {
-    
     if (navigationDebounceTimer) {
       clearTimeout(navigationDebounceTimer);
     }
@@ -241,12 +240,10 @@ function wireNavClicks(container, productRoot) {
   const links = container.querySelectorAll('a[href]');
 
   links.forEach((a, index) => {
-    const href = a.getAttribute('href');
-    
     // Mark the link so we can verify handlers are attached
     a.dataset.spaWired = 'true';
     a.dataset.spaIndex = index;
-    
+
     a.addEventListener('click', (e) => {
       // ✅ UX: Prevent clicking on already active tab
       if (a.classList.contains('is-active')) {
@@ -255,13 +252,13 @@ function wireNavClicks(container, productRoot) {
       }
 
       const clickedHref = a.getAttribute('href');
-      
+
       if (!clickedHref) {
         return;
       }
-      
+
       const targetRoot = computeProductRoot(clickedHref);
-      
+
       if (normalizePath(targetRoot) !== normalizePath(productRoot)) {
         return;
       }
@@ -270,7 +267,6 @@ function wireNavClicks(container, productRoot) {
       debouncedNavigate(clickedHref);
     });
   });
-  
 }
 
 /**
