@@ -3,6 +3,12 @@
 <script src="/aemedge/scripts/scripts.js" type="module"></script>
 <link rel="stylesheet" href="/aemedge/styles/styles.css"/>
 
+<!-- Preload fonts only on desktop to avoid competing with LCP image on mobile -->
+<link rel="preload" href="/aemedge/fonts/37E93D_A_0.woff2" as="font" type="font/woff2" crossorigin media="(min-width: 900px)">
+<link rel="preload" href="/aemedge/fonts/37E93D_0_0.woff2" as="font" type="font/woff2" crossorigin media="(min-width: 900px)">
+<link rel="preload" href="/aemedge/fonts/37E93D_C_0.woff2" as="font" type="font/woff2" crossorigin media="(min-width: 900px)">
+<link rel="preload" href="/aemedge/fonts/37E93D_B_0.woff2" as="font" type="font/woff2" crossorigin media="(min-width: 900px)">
+
 <!-- Preload scripts that are dependent on the scripts.js file -->
 <link rel="modulepreload" href="/aemedge/scripts/utils.js">
 <link rel="modulepreload" href="/aemedge/scripts/utils/picture.js">
