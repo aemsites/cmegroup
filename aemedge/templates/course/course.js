@@ -19,36 +19,38 @@ async function addBeginCourseButton(courseData) {
 }
 
 export default async function courseTemplate() {
-  //  static section
-  const courseData = await getCourseData();
-  await Promise.all([
-    createCourseBaseTemplate(courseData),
-    addBeginCourseButton(courseData),
-  ]);
+  (async () => {
+    //  static section
+    const courseData = await getCourseData();
+    await Promise.all([
+      createCourseBaseTemplate(courseData),
+      addBeginCourseButton(courseData),
+    ]);
 
-  // Apply hide parameters preservation after course content is loaded
-  const main = document.querySelector('main');
-  preserveHideParameters(main);
+    // Apply hide parameters preservation after course content is loaded
+    const main = document.querySelector('main');
+    preserveHideParameters(main);
 
-  //  dynamic section - user progress
-  import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
-    const { authenticationData } = authentication;
-    authenticationData.loginPromise.then(async () => {
-      const { isLoggedIn, loginInfo } = authenticationData;
-      const data = await getCourseData(loginInfo);
-      if (data.completed) {
-        addCourseCertificate({
-          isLoggedIn,
-          userName: loginInfo?.userName,
-          moduleId: data?.moduleId,
-          lessonTitle: data?.title,
-          completedModule: data?.endDate,
+    //  dynamic section - user progress
+    import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
+      const { authenticationData } = authentication;
+      authenticationData.loginPromise.then(async () => {
+        const { isLoggedIn, loginInfo } = authenticationData;
+        const data = await getCourseData(loginInfo);
+        if (data.completed) {
+          addCourseCertificate({
+            isLoggedIn,
+            userName: loginInfo?.userName,
+            moduleId: data?.moduleId,
+            lessonTitle: data?.title,
+            completedModule: data?.endDate,
+          });
+        }
+        import('../../scripts/store/store.js').then(({ store }) => {
+          //  dispatch courseData event
+          store.dispatch(courseDataChange(data));
         });
-      }
-      import('../../scripts/store/store.js').then(({ store }) => {
-        //  dispatch courseData event
-        store.dispatch(courseDataChange(data));
       });
     });
-  });
+  })();
 }
