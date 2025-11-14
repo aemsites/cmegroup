@@ -41,6 +41,21 @@ async function getModules() {
 }
 
 /**
+ * ✅ EXTRACTED: Check if a section is product content (not hero, tabs, or container)
+ * Filters out sections that are displayed separately from the main content area:
+ * - hero-baseball: Product hero section (shown at top)
+ * - product-tabs-container: Navigation tabs (shown separately)
+ * - product-subtabs-content: The container we render INTO (avoid recursion)
+ * - product-subtabs: Futures/options toggle (shown separately)
+ * @param {Element} sec - Section element to check
+ * @returns {boolean} True if section should be rendered as product content
+ */
+const isProductContentSection = (sec) => !sec.querySelector('.hero-baseball')
+  && !sec.classList.contains('product-tabs-container')
+  && !sec.classList.contains('product-subtabs-content')
+  && !sec.classList.contains('product-subtabs');
+
+/**
  * Check if a tab supports options by checking for /options.plain.html file
  */
 export async function checkTabSupportsOptions(productRoot, tabName) {
@@ -348,11 +363,9 @@ export async function renderProductPath(url, productRoot) {
     tempMain.innerHTML = html;
     decorateMain(tempMain);
 
+    // ✅ REFACTORED: Use extracted filter function for better maintainability
     const renderables = [...tempMain.querySelectorAll(':scope > .section')]
-      .filter((sec) => !sec.querySelector('.hero-baseball')
-        && !sec.classList.contains('product-tabs-container')
-        && !sec.classList.contains('product-subtabs-content')
-        && !sec.classList.contains('product-subtabs'));
+      .filter(isProductContentSection);
 
     const currentState = store.getState();
     if (currentState.navigation.currentToken !== myToken) return;
@@ -373,11 +386,9 @@ export async function renderProductPath(url, productRoot) {
           defaultMain.innerHTML = defaultHtml;
           decorateMain(defaultMain);
 
+          // ✅ REFACTORED: Use extracted filter function for better maintainability
           const defaultSections = [...defaultMain.querySelectorAll(':scope > .section')]
-            .filter((sec) => !sec.querySelector('.hero-baseball')
-              && !sec.classList.contains('product-tabs-container')
-              && !sec.classList.contains('product-subtabs-content')
-              && !sec.classList.contains('product-subtabs'));
+            .filter(isProductContentSection);
 
           if (defaultSections.length > 0) {
             container.innerHTML = '';
@@ -482,6 +493,7 @@ function updateTabsActiveState(url) {
 
 /**
  * Wire prefetch behavior for links
+ * ✅ FIX: Proper cleanup for IntersectionObserver to prevent memory leaks
  */
 function wirePrefetches(container, productRoot) {
   const links = [...container.querySelectorAll('a[href]')]
@@ -498,20 +510,38 @@ function wirePrefetches(container, productRoot) {
     PREFETCH_CACHE.set(basePath, promise);
   };
 
+  // ✅ FIX: Use AbortController for hover/focus event cleanup
+  const abortController = new AbortController();
+  const { signal } = abortController;
+
   links.forEach((a) => {
     const href = a.getAttribute('href');
-    a.addEventListener('mouseenter', () => prefetch(href));
-    a.addEventListener('focus', () => prefetch(href));
+    a.addEventListener('mouseenter', () => prefetch(href), { signal });
+    a.addEventListener('focus', () => prefetch(href), { signal });
     const sibling = href.endsWith('/options') ? href.replace(/\/options$/, '') : `${href}/options`;
-    a.addEventListener('mouseenter', () => prefetch(sibling));
-    a.addEventListener('focus', () => prefetch(sibling));
+    a.addEventListener('mouseenter', () => prefetch(sibling), { signal });
+    a.addEventListener('focus', () => prefetch(sibling), { signal });
   });
 
   try {
+    // ✅ FIX: Disconnect previous IntersectionObserver if exists
     if (container.productIo) {
       container.productIo.disconnect();
       container.productIo = null;
     }
+
+    // ✅ FIX: Cleanup previous MutationObserver if exists
+    if (container.productMutationObserver) {
+      container.productMutationObserver.disconnect();
+      container.productMutationObserver = null;
+    }
+
+    // ✅ FIX: Cleanup previous AbortController if exists
+    if (container.productAbortController) {
+      container.productAbortController.abort();
+      container.productAbortController = null;
+    }
+
     const io = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -523,7 +553,37 @@ function wirePrefetches(container, productRoot) {
     }, { rootMargin: '200px' });
     links.forEach((a) => io.observe(a));
     container.productIo = io;
+    container.productAbortController = abortController;
+
+    // ✅ FIX: Auto-cleanup when container is removed from DOM
+    const cleanupObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.removedNodes.forEach((node) => {
+          if (node === container || (node.contains && node.contains(container))) {
+            // Cleanup IntersectionObserver
+            if (container.productIo) {
+              container.productIo.disconnect();
+              container.productIo = null;
+            }
+            // Cleanup AbortController
+            if (container.productAbortController) {
+              container.productAbortController.abort();
+              container.productAbortController = null;
+            }
+            // Cleanup this observer
+            cleanupObserver.disconnect();
+          }
+        });
+      });
+    });
+
+    // Observe parent for removal
+    if (container.parentNode) {
+      cleanupObserver.observe(container.parentNode, { childList: true, subtree: true });
+      container.productMutationObserver = cleanupObserver;
+    }
   } catch (e) {
-    // IntersectionObserver not available
+    // IntersectionObserver not available - cleanup AbortController
+    abortController.abort();
   }
 }

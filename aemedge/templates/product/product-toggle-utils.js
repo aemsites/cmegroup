@@ -235,6 +235,44 @@ export function createOptionsDropdown(expirationsData = [], selectedValue = null
   // Store options data for prefetching
   dropdown.dataset.optionsData = JSON.stringify(expirationsData);
 
+  // ✅ FIX: Use AbortController for proper cleanup to prevent memory leaks
+  const abortController = new AbortController();
+  const { signal } = abortController;
+
+  // Store controller for cleanup when dropdown is removed
+  dropdown.dataset.hasCleanup = 'true';
+
+  // Cleanup function to remove all event listeners
+  const cleanup = () => {
+    abortController.abort();
+  };
+
+  // Auto-cleanup when dropdown is removed from DOM
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.removedNodes.forEach((node) => {
+        if (node === dropdown || (node.contains && node.contains(dropdown))) {
+          cleanup();
+          observer.disconnect();
+        }
+      });
+    });
+  });
+
+  // Observe parent for removal
+  if (dropdown.parentNode) {
+    observer.observe(dropdown.parentNode, { childList: true });
+  } else {
+    // If not yet attached, observe once it is
+    const attachObserver = new MutationObserver(() => {
+      if (dropdown.parentNode) {
+        observer.observe(dropdown.parentNode, { childList: true });
+        attachObserver.disconnect();
+      }
+    });
+    attachObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
   // Prefetch on hover for even earlier loading
   if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover) {
     dropdownButton.addEventListener('mouseenter', () => {
@@ -243,7 +281,7 @@ export function createOptionsDropdown(expirationsData = [], selectedValue = null
         bubbles: true,
       });
       dropdown.dispatchEvent(hoverEvent);
-    }, { once: true }); // Only trigger once
+    }, { once: true, signal }); // Add signal for cleanup
   }
 
   // Add event listener to toggle dropdown visibility
@@ -260,7 +298,7 @@ export function createOptionsDropdown(expirationsData = [], selectedValue = null
       });
       dropdown.dispatchEvent(openEvent);
     }
-  });
+  }, { signal }); // Add signal for cleanup
 
   // Handle option selection
   dropdownMenu.addEventListener('click', (event) => {
@@ -285,14 +323,17 @@ export function createOptionsDropdown(expirationsData = [], selectedValue = null
       });
       dropdown.dispatchEvent(customEvent);
     }
-  });
+  }, { signal }); // Add signal for cleanup
 
-  // Close dropdown if clicked outside
+  // ✅ FIX: Use AbortController signal to automatically cleanup this global listener
   document.addEventListener('click', (event) => {
     if (!dropdown.contains(event.target)) {
       dropdown.classList.remove(TOGGLE_CONSTANTS.toggleClasses.dropdownOpen);
     }
-  });
+  }, { signal }); // This prevents memory leaks
+
+  // Expose cleanup method for manual cleanup if needed
+  dropdown.cleanup = cleanup;
 
   return dropdown;
 }

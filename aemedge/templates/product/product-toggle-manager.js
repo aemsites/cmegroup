@@ -33,6 +33,7 @@ let toggleDebounceTimer = null;
 
 /**
  * Build enhanced subtabs (futures/options toggle)
+ * ✅ OPTIMIZED: Renders dropdown immediately, fetches data in background after render
  */
 async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   const futuresPath = `${productRoot}/${primaryTab}`;
@@ -80,39 +81,15 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
 
   const state = store.getState();
   let expirationsData = state.productData.optionsExpirations;
-
-  const isWrongProduct = state.productData.productRoot !== normalizePath(productRoot);
-  if (!expirationsData || isWrongProduct) {
-    // Fetch data - promise caching prevents duplicate API calls
-    // If already fetching in product.js, this returns the same promise
-    const result = await fetchExpirationsData(productId);
-    expirationsData = result.expirations;
-    if (expirationsData && expirationsData.length > 0) {
-      const payload = { optionsExpirations: expirationsData };
-      // Also store product metadata if available from API
-      if (result.productSymbol) payload.productSymbol = result.productSymbol;
-      if (result.productName) payload.productName = result.productName;
-      store.dispatch(setProductData(payload));
-    }
-  }
-
   const selectedContract = getSelectedContractFromURL();
 
-  const optionsDropdown = createOptionsDropdown(expirationsData, selectedContract);
+  // ✅ OPTIMIZED: Create dropdown immediately with existing data (or empty)
+  // Don't wait for API - render first, fetch after
+  const optionsDropdown = createOptionsDropdown(expirationsData || [], selectedContract);
 
   optionsDropdown.setAttribute('data-href', optionsPath);
-  const items = optionsDropdown.querySelectorAll('.dropdown-item');
-
-  items.forEach((item) => {
-    const isSelected = item.dataset.productId === selectedContract;
-    item.classList.toggle('selected', isSelected);
-  });
-
-  if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover && expirationsData.length > 0) {
-    const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
-    prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
-  }
-
+  
+  // Mark as active if on options path
   if (normalizePath(currentPath).startsWith(normalizePath(optionsPath))) {
     const dropdownBtn = optionsDropdown.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownButton}`);
     if (dropdownBtn) {
@@ -123,7 +100,120 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   container.appendChild(optionsDropdown);
   nav.appendChild(container);
 
+  // ⏱️ PERFORMANCE TRACKING: Record dropdown render time
+  const dropdownRenderTime = Date.now();
+  // eslint-disable-next-line no-console
+  console.log(`[TIMING] 📊 Tab navigation completed - Dropdown rendered (${primaryTab})`);
+
+  // ✅ LAZY FETCH: Load data in background AFTER rendering (non-blocking)
+  const isWrongProduct = state.productData.productRoot !== normalizePath(productRoot);
+  if (!expirationsData || isWrongProduct) {
+    // Use setTimeout to defer fetch until after render completes
+    setTimeout(async () => {
+      try {
+        // eslint-disable-next-line no-console
+        console.log('[TOGGLE] 🔄 Loading options data in background...');
+        
+        // ⏱️ PERFORMANCE TRACKING: Record API fetch start time
+        const fetchStartTime = Date.now();
+        
+        const result = await fetchExpirationsData(productId);
+        expirationsData = result.expirations;
+        
+        // ⏱️ PERFORMANCE TRACKING: Calculate timings
+        const fetchEndTime = Date.now();
+        const fetchDuration = fetchEndTime - fetchStartTime;
+        const totalTimeFromRender = fetchEndTime - dropdownRenderTime;
+        
+        if (expirationsData && expirationsData.length > 0) {
+          const payload = { optionsExpirations: expirationsData };
+          if (result.productSymbol) payload.productSymbol = result.productSymbol;
+          if (result.productName) payload.productName = result.productName;
+          store.dispatch(setProductData(payload));
+
+          // Update the dropdown that's already rendered
+          updateDropdownWithData(optionsDropdown, expirationsData, selectedContract);
+
+          // Prefetch option pages if configured
+          if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover && expirationsData.length > 0) {
+            const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
+            prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
+          }
+
+          // ⏱️ PERFORMANCE TRACKING: Log detailed timing
+          // eslint-disable-next-line no-console
+          console.log(`[TIMING] ✅ Options data loaded - ${expirationsData.length} expirations`);
+          // eslint-disable-next-line no-console
+          console.log(`[TIMING] ⏱️  API fetch time: ${fetchDuration}ms`);
+          // eslint-disable-next-line no-console
+          console.log(`[TIMING] ⏱️  Total time from render: ${totalTimeFromRender}ms`);
+          // eslint-disable-next-line no-console
+          console.log(`[TIMING] 🎯 User saw dropdown immediately, data loaded in background`);
+        } else {
+          // eslint-disable-next-line no-console
+          console.log(`[TIMING] ⚠️  API returned empty data (${fetchDuration}ms)`);
+        }
+      } catch (error) {
+        // ⏱️ PERFORMANCE TRACKING: Log error timing
+        const errorTime = Date.now();
+        const timeSinceRender = errorTime - dropdownRenderTime;
+        // eslint-disable-next-line no-console
+        console.warn(`[TIMING] ❌ Failed to load options data after ${timeSinceRender}ms:`, error);
+      }
+    }, 0); // Execute after current call stack clears
+  } else if (expirationsData && expirationsData.length > 0) {
+    // Data already exists, update selection state
+    const items = optionsDropdown.querySelectorAll('.dropdown-item');
+    items.forEach((item) => {
+      const isSelected = item.dataset.productId === selectedContract;
+      item.classList.toggle('selected', isSelected);
+    });
+
+    // Prefetch option pages if configured
+    if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover) {
+      const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
+      prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
+    }
+  }
+
   return nav;
+}
+
+/**
+ * ✅ NEW: Update an already-rendered dropdown with fetched data
+ */
+function updateDropdownWithData(dropdown, expirationsData, selectedContract) {
+  const dropdownMenu = dropdown.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownMenu}`);
+  if (!dropdownMenu) return;
+
+  // Clear existing items (loading state or empty placeholder)
+  dropdownMenu.innerHTML = '';
+
+  // Populate with real data
+  expirationsData.forEach((option) => {
+    if (!option || !option.productId || !option.label) return;
+
+    const menuItem = document.createElement('a');
+    menuItem.setAttribute('role', 'menuitem');
+    menuItem.setAttribute('data-product-id', option.productId);
+    menuItem.setAttribute('data-option-type', option.optionType || '');
+    menuItem.setAttribute('tabindex', '0');
+    menuItem.className = TOGGLE_CONSTANTS.toggleClasses.dropdownItem;
+
+    if (selectedContract && option.productId === selectedContract) {
+      menuItem.classList.add('selected');
+    }
+
+    const linkSpan = document.createElement('span');
+    linkSpan.className = 'link';
+    linkSpan.textContent = option.label;
+    menuItem.appendChild(linkSpan);
+
+    dropdownMenu.appendChild(menuItem);
+  });
+
+  // Update stored data
+  dropdown.dataset.optionsData = JSON.stringify(expirationsData);
 }
 
 /**

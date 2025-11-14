@@ -86,22 +86,10 @@ export default async function productTemplate() {
   // Uses MutationObserver to wait for async block decoration (no polling!)
   enableProductSpaNavigation(productRoot);
 
-  // Fetch options data in background (non-blocking)
-  // eslint-disable-next-line no-console
-  console.log('[PRODUCT] Loading options data in background...');
-  fetchExpirationsData().then((data) => {
-    if (data && data.expirations && data.expirations.length > 0) {
-      const payload = { optionsExpirations: data.expirations };
-      if (data.productSymbol) payload.productSymbol = data.productSymbol;
-      if (data.productName) payload.productName = data.productName;
-      store.dispatch(setProductData(payload));
-      // eslint-disable-next-line no-console
-      console.log('[PRODUCT] ✅ Options data loaded:', data.expirations.length, 'expirations');
-    }
-  }).catch((error) => {
-    // eslint-disable-next-line no-console
-    console.warn('[PRODUCT] Failed to load options data (non-critical):', error);
-  });
+  // ✅ OPTIMIZATION: Don't fetch options data on page load
+  // Instead, fetch after tab with options dropdown finishes loading (lazy background fetch)
+  // This prevents blocking UI while still having data ready when user needs it
+  // See product-toggle-manager.js for the lazy fetch implementation
 
   // Insert futures/options toggle if applicable
   await insertEnhancedSubTabsIfApplicable(productRoot);
