@@ -95,10 +95,15 @@ export function enableProductSpaNavigation(productRoot) {
 
   // If tabs nav doesn't exist yet, use MutationObserver to wait for it
   if (!tabsNav) {
+    // eslint-disable-next-line no-console
+    console.log('[NAV] ⏳ Tabs nav not found, waiting for block decoration...');
+    
     const observer = new MutationObserver((mutations, obs) => {
       const foundTabsNav = document.querySelector('.product-tabs-nav');
       if (foundTabsNav) {
         obs.disconnect();
+        // eslint-disable-next-line no-console
+        console.log('[NAV] ✅ Tabs nav found! Enabling SPA navigation...');
         // Call this function again now that tabs exist
         enableProductSpaNavigation(productRoot);
       }
@@ -112,17 +117,17 @@ export function enableProductSpaNavigation(productRoot) {
         subtree: true,
       });
       
-      // Safety timeout: stop observing after 2 seconds
-      setTimeout(() => {
-        observer.disconnect();
-        if (!document.querySelector('.product-tabs-nav')) {
-          // eslint-disable-next-line no-console
-          console.error('[NAV] ERROR: Tabs nav still not found after 2s timeout!');
-        }
-      }, 2000);
+      // ✅ CRITICAL: No timeout - wait as long as needed for tabs to appear
+      // The observer will automatically disconnect when tabs are found
+      // Store observer reference for debugging
+      if (!window.productTabsObserver) {
+        window.productTabsObserver = observer;
+        // eslint-disable-next-line no-console
+        console.log('[NAV] 🔍 MutationObserver active - waiting for .product-tabs-nav (no timeout)');
+      }
     } else {
       // eslint-disable-next-line no-console
-      console.error('[NAV] ERROR: Main element not found!');
+      console.error('[NAV] ❌ CRITICAL: Main element not found! Cannot observe for tabs.');
     }
     return;
   }
