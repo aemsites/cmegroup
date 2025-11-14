@@ -11,4 +11,3 @@ tools/importer/wiki/image-scraper/logs/
 .idea
 node_modules
 .env
-aemedge/blocks/market-recap/mock-api/reports.json
