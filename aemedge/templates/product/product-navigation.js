@@ -95,15 +95,10 @@ export function enableProductSpaNavigation(productRoot) {
 
   // If tabs nav doesn't exist yet, use MutationObserver to wait for it
   if (!tabsNav) {
-    // eslint-disable-next-line no-console
-    console.log('[NAV] ⏳ Tabs nav not found, waiting for block decoration...');
-    
     const observer = new MutationObserver((mutations, obs) => {
       const foundTabsNav = document.querySelector('.product-tabs-nav');
       if (foundTabsNav) {
         obs.disconnect();
-        // eslint-disable-next-line no-console
-        console.log('[NAV] ✅ Tabs nav found! Enabling SPA navigation...');
         // Call this function again now that tabs exist
         enableProductSpaNavigation(productRoot);
       }
@@ -122,12 +117,7 @@ export function enableProductSpaNavigation(productRoot) {
       // Store observer reference for debugging
       if (!window.productTabsObserver) {
         window.productTabsObserver = observer;
-        // eslint-disable-next-line no-console
-        console.log('[NAV] 🔍 MutationObserver active - waiting for .product-tabs-nav (no timeout)');
       }
-    } else {
-      // eslint-disable-next-line no-console
-      console.error('[NAV] ❌ CRITICAL: Main element not found! Cannot observe for tabs.');
     }
     return;
   }
@@ -141,17 +131,8 @@ export function enableProductSpaNavigation(productRoot) {
     try {
       const tabsContainer = tabsNav.closest('.product-tabs-container');
       if (tabsContainer && !tabsContainer.dataset.mutationObserverSet) {
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            if (mutation.type === 'childList' && mutation.removedNodes.length > 0) {
-              Array.from(mutation.removedNodes).forEach((node) => {
-                if (node.classList && node.classList.contains('product-tabs-nav')) {
-                  // eslint-disable-next-line no-console
-                  console.error('[NAV] ⚠️ CRITICAL: product-tabs-nav was REMOVED from DOM! Handlers lost!');
-                }
-              });
-            }
-          });
+        const observer = new MutationObserver(() => {
+          // Monitor for removed tabs nav
         });
         observer.observe(tabsContainer, { childList: true, subtree: true });
         tabsContainer.dataset.mutationObserverSet = 'true';
@@ -290,15 +271,6 @@ function wireNavClicks(container, productRoot) {
     });
   });
   
-  // Verify handlers were attached
-  setTimeout(() => {
-    const currentLinks = container.querySelectorAll('a[href]');
-    const wiredCount = Array.from(currentLinks).filter((a) => a.dataset.spaWired === 'true').length;
-    if (wiredCount < currentLinks.length) {
-      // eslint-disable-next-line no-console
-      console.warn('[NAV] ⚠️ WARNING: Some links lost their handlers! DOM may have been replaced.');
-    }
-  }, 100);
 }
 
 /**
@@ -454,9 +426,6 @@ export async function renderProductPath(url, productRoot) {
       domOpsPromise, // Let toggle populate in background
     ]).catch(() => {});
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error('SPA navigation failed:', e);
-
     const container = ensureSubTabsContentContainer();
     if (container) {
       container.innerHTML = `

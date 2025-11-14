@@ -1,10 +1,17 @@
 import { getMetadata } from '../../scripts/aem.js';
 import { getProductMetadata } from '../../scripts/utils/product.js';
+import { apiPost, getResponseData, urlByEnvType } from '../../scripts/utils/index.js';
 import { createElement, i18n } from '../../scripts/utils.js';
+import { store as productStore } from '../../scripts/store/store.js';
+import { updateProductField } from '../../scripts/actions/product.js';
 
 const HERO_API_CONFIG = {
-  endpoint: '/aemedge/blocks/hero-baseball/mock-api/contracts-by-number.json',
+  endpoint: '/CmeWS/mvc/quotes/v2/contracts-by-number',
 };
+
+// Cache tracking
+let cacheHits = 0;
+let cacheMisses = 0;
 
 function formatNumber(num) {
   if (!num && num !== 0) return '-';
@@ -37,7 +44,7 @@ async function createHeroStructure() {
   const container = createElement('div', { class: 'container' });
 
   const h1 = createElement('h1', {}, getMetadata('product') || 'Product Name');
-  const subtitle = createElement('div', { class: 'hero-subtitle' }, 'Loading...');
+  const subtitle = createElement('div', { class: 'hero-subtitle' }, '\u00A0');
 
   const contractData = createElement('div', { class: 'contract-data' });
 
@@ -92,47 +99,74 @@ async function populateHeroData(block) {
     const { productId, productName } = await getProductMetadata();
     if (!productId) return;
 
-    const response = await fetch(HERO_API_CONFIG.endpoint);
-    if (!response.ok) throw new Error('Failed to fetch hero data');
+    const url = `${urlByEnvType()}${HERO_API_CONFIG.endpoint}`;
+    const payload = {
+      productIds: [productId],
+      contractsNumber: [1],
+      type: 'VOLUME',
+      showQuarterly: [0],
+    };
 
-    const data = await response.json();
-    const contractData = data.find((item) => item.productId === parseInt(productId, 10));
-    if (!contractData) return;
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    const response = await apiPost(url, payload, headers);
+    const data = getResponseData(response) || response.data;
+
+    if (!data || !Array.isArray(data) || data.length === 0) return;
+
+    const contractData = data[0];
+
+    // Smooth update: fade out, update content, fade in
+    const updateElement = (element, content, className) => {
+      if (!element) return;
+      element.style.opacity = '0.3';
+      setTimeout(() => {
+        if (className) {
+          element.className = className;
+        }
+        element.textContent = content;
+        element.style.opacity = '1';
+      }, 150);
+    };
 
     const h1 = block.querySelector('h1');
     const subtitle = block.querySelector('.hero-subtitle');
-    if (h1) h1.textContent = contractData.productName || productName || '';
-    if (subtitle) subtitle.textContent = contractData.expirationMonth || '';
+    updateElement(h1, contractData.productName || productName || '');
+    updateElement(subtitle, contractData.expirationMonth || '');
 
     const currentPrice = block.querySelector('.current-price .value');
     const priceChange = block.querySelector('.price-change .value');
     const volume = block.querySelector('.volume-info .value');
 
-    if (currentPrice) currentPrice.textContent = contractData.last || '-';
+    updateElement(currentPrice, contractData.last || '-');
+    
     if (priceChange) {
       const change = contractData.change || '-';
       const changePercent = contractData.percentageChange || '-';
       const isNegative = change.toString().startsWith('-');
-      priceChange.textContent = `${change} (${changePercent})`;
-      priceChange.className = `value ${isNegative ? 'change-negative' : 'change-positive'}`;
+      const className = `value ${isNegative ? 'change-negative' : 'change-positive'}`;
+      updateElement(priceChange, `${change} (${changePercent})`, className);
     }
-    if (volume) volume.textContent = formatNumber(contractData.volume);
+    
+    updateElement(volume, formatNumber(contractData.volume));
 
     const open = block.querySelector('[data-field="open"] .value');
     const high = block.querySelector('[data-field="high"] .value');
     const low = block.querySelector('[data-field="low"] .value');
     const priorSettle = block.querySelector('[data-field="priorSettle"] .value');
 
-    if (open) open.textContent = contractData.open || '-';
-    if (high) high.textContent = contractData.high || '-';
-    if (low) low.textContent = contractData.low || '-';
-    if (priorSettle) priorSettle.textContent = contractData.priorSettle || '-';
+    updateElement(open, contractData.open || '-');
+    updateElement(high, contractData.high || '-');
+    updateElement(low, contractData.low || '-');
+    updateElement(priorSettle, contractData.priorSettle || '-');
 
     const updateTime = block.querySelector('.update-time');
     if (updateTime && contractData.updated) {
       const updatedLabel = await i18n('Updated');
       const date = new Date(contractData.updated);
-      updateTime.textContent = `${updatedLabel}: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+      updateElement(updateTime, `${updatedLabel}: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`);
     }
   } catch (e) {
     // Silent fail
@@ -146,5 +180,10 @@ export default async function decorate(block) {
     const container = await createHeroStructure();
     block.append(container);
   }
-  await populateHeroData(block);
+  
+  // Non-blocking: Load data in background after render
+  // This ensures the block appears immediately, then populates smoothly
+  setTimeout(() => {
+    populateHeroData(block);
+  }, 0);
 }

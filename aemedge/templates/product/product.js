@@ -59,11 +59,7 @@ export default async function productTemplate() {
   // Ensure product metadata (including product ID) is available
   // If missing from page metadata, fetch from search API
   const productMetadata = await getProductMetadata();
-  if (!productMetadata.productId) {
-    // eslint-disable-next-line no-console
-    console.warn('Product template: Unable to determine product ID for path:', window.location.pathname);
-    // Continue anyway - some functionality may be limited
-  }
+  // Continue anyway - some functionality may be limited even without product ID
 
   // Preload path index cache to avoid delays during user interactions
   preloadPathIndex();

@@ -74,8 +74,6 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   const productMetadata = await getProductMetadata();
   const productId = productMetadata?.productId;
   if (!productId) {
-    // eslint-disable-next-line no-console
-    console.warn('Unable to determine product ID for options dropdown');
     return container;
   }
 
@@ -102,8 +100,6 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
 
   // ⏱️ PERFORMANCE TRACKING: Record dropdown render time
   const dropdownRenderTime = Date.now();
-  // eslint-disable-next-line no-console
-  console.log(`[TIMING] 📊 Tab navigation completed - Dropdown rendered (${primaryTab})`);
 
   // ✅ LAZY FETCH: Load data in background AFTER rendering (non-blocking)
   const isWrongProduct = state.productData.productRoot !== normalizePath(productRoot);
@@ -111,9 +107,6 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
     // Use setTimeout to defer fetch until after render completes
     setTimeout(async () => {
       try {
-        // eslint-disable-next-line no-console
-        console.log('[TOGGLE] 🔄 Loading options data in background...');
-        
         // ⏱️ PERFORMANCE TRACKING: Record API fetch start time
         const fetchStartTime = Date.now();
         
@@ -139,26 +132,9 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
             const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
             prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
           }
-
-          // ⏱️ PERFORMANCE TRACKING: Log detailed timing
-          // eslint-disable-next-line no-console
-          console.log(`[TIMING] ✅ Options data loaded - ${expirationsData.length} expirations`);
-          // eslint-disable-next-line no-console
-          console.log(`[TIMING] ⏱️  API fetch time: ${fetchDuration}ms`);
-          // eslint-disable-next-line no-console
-          console.log(`[TIMING] ⏱️  Total time from render: ${totalTimeFromRender}ms`);
-          // eslint-disable-next-line no-console
-          console.log(`[TIMING] 🎯 User saw dropdown immediately, data loaded in background`);
-        } else {
-          // eslint-disable-next-line no-console
-          console.log(`[TIMING] ⚠️  API returned empty data (${fetchDuration}ms)`);
         }
       } catch (error) {
-        // ⏱️ PERFORMANCE TRACKING: Log error timing
-        const errorTime = Date.now();
-        const timeSinceRender = errorTime - dropdownRenderTime;
-        // eslint-disable-next-line no-console
-        console.warn(`[TIMING] ❌ Failed to load options data after ${timeSinceRender}ms:`, error);
+        // Silent fail
       }
     }, 0); // Execute after current call stack clears
   } else if (expirationsData && expirationsData.length > 0) {

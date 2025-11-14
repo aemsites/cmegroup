@@ -84,8 +84,6 @@ async function getProductIdFromMetadata() {
     const meta = document.querySelector('meta[name="product-id"]');
     return meta ? meta.content : null;
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error getting product ID:', error);
     return null;
   }
 }
@@ -146,8 +144,6 @@ export async function fetchExpirationsData(productId = null) {
       cachedProductId = null;
       return { expirations: [], productSymbol: null, productName: null };
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to fetch expirations data:', error);
       // Clear cache on error
       fetchExpirationsPromise = null;
       cachedProductId = null;

@@ -2,7 +2,7 @@
 
 .hero-baseball {
   position: relative;
-  background: var(--blue1) url('https://main--www--cmegroup.aem.page/drafts/kunwar/hero-baseball-1440x500.png') center/cover no-repeat;
+  background: var(--blue1) url('../../images/hero-baseball-bg-image.png') center/cover no-repeat;
   color: white;
   margin: 0;
   overflow: hidden;
@@ -150,11 +150,17 @@
   margin-top: -3.125rem;
   padding-bottom: 1.875rem;
   padding-top: 5rem;
+  min-height: 25rem;
 
   @media (width >= 769px) {
     margin-top: -6.25rem;
     padding-bottom: 1.5625rem;
     padding-top: 8.125rem;
+    min-height: 28.125rem;
+  }
+
+  @media (width >= 993px) {
+    min-height: 31.25rem;
   }
 
   /* Container max-width */
@@ -167,6 +173,7 @@
   & h1 {
     margin-bottom: 0;
     padding-bottom: 0.625rem;
+    transition: opacity 0.2s ease-in-out;
 
     @media (width >= 769px) {
       padding-bottom: 0;
@@ -180,6 +187,9 @@
     font-weight: 400;
     margin-bottom: 0;
     text-transform: none;
+    min-width: 6.25rem;
+    min-height: 1.375rem;
+    transition: opacity 0.2s ease-in-out;
   }
 
   /* Data title (labels like CURRENT PRICE, CHANGE, VOLUME) */
@@ -219,6 +229,14 @@
     @media (width >= 769px) {
       margin-bottom: 1.875rem;
     }
+
+    & .value {
+      min-width: 6.25rem;
+
+      @media (width >= 769px) {
+        min-width: 7.5rem;
+      }
+    }
   }
 
   & .price-change {
@@ -229,10 +247,12 @@
     & .value {
       font-size: 1.25rem;
       line-height: 1.25rem;
+      min-width: 9.375rem;
 
       @media (width >= 769px) {
         font-size: 1.75rem;
         line-height: 2.5rem;
+        min-width: 12.5rem;
       }
     }
   }
@@ -240,6 +260,14 @@
   & .volume-info {
     @media (width >= 993px) {
       margin-bottom: 1.375rem;
+    }
+
+    & .value {
+      min-width: 6.25rem;
+
+      @media (width >= 769px) {
+        min-width: 7.5rem;
+      }
     }
   }
 
@@ -250,10 +278,13 @@
     font-weight: 300;
     font-size: 1.25rem;
     line-height: 1.25rem;
+    min-width: 5rem;
+    transition: opacity 0.2s ease-in-out;
 
     @media (width >= 769px) {
       font-size: 1.75rem;
       line-height: 2.5rem;
+      min-width: 6.25rem;
     }
   }
 
