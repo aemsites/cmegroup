@@ -38,6 +38,10 @@
     color: var(--citron);
   }
 
+  &.white-arrow .cards-body-container a::after {
+    color: var(--white);
+  }
+
   & .cards-body-container {
     background-repeat: repeat;
     background-position: center bottom;

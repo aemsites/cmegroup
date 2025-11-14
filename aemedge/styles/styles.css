@@ -2239,3 +2239,10 @@ p.center-img {
     }
   }
 }
+
+.min-height-400,
+.min-height-400 .cards-body-container {
+  @media (width >=993px) {
+    min-height: 25rem;
+  }
+}
