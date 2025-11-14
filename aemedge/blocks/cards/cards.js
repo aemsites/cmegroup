@@ -24,9 +24,13 @@ import {
   legacyNewsTemplates,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
-
+import {
+  urlByEnvType,
+} from '../../scripts/utils/index.js';
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
+
+const fallbackImage = `url(${urlByEnvType()}/content/dam/cmegroup/images/common/default/article-940x600.jpg)`;
 
 async function createStaticCards(block) {
   const size = block.children.length;
@@ -226,7 +230,7 @@ export async function createDynamicCardCourse(contentData) {
   } = contentData;
   const imageWrapper = createElement('div', { class: 'cards-card-image' });
   const link = createElement('a', { href: path });
-  imageWrapper.style.backgroundImage = `url('${ogimage || image}')`;
+  imageWrapper.style.backgroundImage = `url('${ogimage || image || fallbackImage}')`;
 
   const bodyWrapper = createElement('div', { class: 'cards-card-body' });
   bodyWrapper.innerHTML = `
@@ -676,6 +680,7 @@ async function createRecommendedFromService(data, block) {
   blockDiv.setAttribute('data-block-name', 'cards');
   const containerDiv = createElement('div');
   const ul = createElement('ul');
+  ul.style.setProperty('--columns', Math.min(data.length, 4));
 
   const elements = await Promise.all(
     data.map(async (item) => {
@@ -683,7 +688,7 @@ async function createRecommendedFromService(data, block) {
         class: 'cards-card-image',
       });
       const imgSrc = item.image_uri;
-      imageDiv.style.backgroundImage = imgSrc ? `url('https://www.cmegroup.com/${imgSrc}')` : '';
+      imageDiv.style.backgroundImage = imgSrc ? `url('https://www.cmegroup.com/${imgSrc}')` : fallbackImage;
 
       const link = createElement('a', { href: params ? `${item.uri}?${params}` : item.uri });
 
