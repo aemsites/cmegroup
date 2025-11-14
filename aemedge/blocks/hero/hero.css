@@ -1,4 +1,31 @@
-@import url("hero-base.css");
-@import url("hero-landing.css");
-@import url("hero-econoday-event.css");
-@import url("hero-event.css");
+.hero {
+  position: relative;
+  padding: 2.5rem 1.5rem;
+
+  @media (width >= 993px) {
+    padding: 2.5rem 2rem;
+  }
+
+  & h1 {
+    max-width: 75rem;
+    margin-left: auto;
+    margin-right: auto;
+    color: var(--background-color);
+  }
+
+  & picture {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    object-fit: cover;
+    box-sizing: border-box;
+    height: 100% !important;
+  }
+
+  & img {
+    object-fit: cover;
+    width: 100%;
+    height: 100% !important;
+    object-position: 0 0;
+  }
+}

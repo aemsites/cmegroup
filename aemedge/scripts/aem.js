@@ -9,6 +9,7 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+import getCustomCss from './custom-css.js';
 
 /* eslint-env browser */
 function sampleRUM(checkpoint, data) {
@@ -594,6 +595,8 @@ async function loadBlock(block) {
     const { blockName } = block.dataset;
     try {
       const cssLoaded = loadCSS(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`);
+      const customCss = getCustomCss(block);
+      const customCssLoaded = customCss ? loadCSS(`${window.hlx.codeBasePath}${customCss}`) : null;
       const decorationComplete = new Promise((resolve) => {
         (async () => {
           try {
@@ -610,7 +613,7 @@ async function loadBlock(block) {
           resolve();
         })();
       });
-      await Promise.all([cssLoaded, decorationComplete]);
+      await Promise.all([cssLoaded, customCssLoaded, decorationComplete]);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log(`failed to load block ${blockName}`, error);
