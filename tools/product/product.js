@@ -1,81 +1,127 @@
-// Minimal Product App MVP logic
+/**
+ * Product Manager - Main Application
+ * Modular, tabbed architecture for managing product pages
+ */
 
-function $(selector) {
-  return document.querySelector(selector);
-}
+import DA_SDK from 'https://da.live/nx/utils/sdk.js';
+import {
+  $, loadActivityLog, renderActivityLog, clearActivityLog, showToast,
+} from './shared/ui.js';
+import { setAuth, setCurrentTab } from './shared/state.js';
+import { setupCreateListeners } from './modules/create.js';
 
-function $all(selector) {
-  return Array.from(document.querySelectorAll(selector));
-}
+/**
+ * Switch between tabs
+ */
+function switchTab(tabName) {
+  // Update tab buttons
+  document.querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.classList.remove('active');
+    if (btn.dataset.tab === tabName) {
+      btn.classList.add('active');
+    }
+  });
 
-function showToast(message) {
-  // Use existing toast styles from search app if present; otherwise fallback to alert
-  const existingToast = document.getElementById('toast');
-  if (existingToast) {
-    existingToast.querySelector('.toast-message').textContent = message;
-    existingToast.classList.remove('hidden');
-    setTimeout(() => existingToast.classList.add('hidden'), 2500);
-    return;
+  // Update tab content
+  document.querySelectorAll('.tab-content').forEach((content) => {
+    content.classList.remove('active');
+  });
+  const activeContent = $(`#tab-${tabName}`);
+  if (activeContent) {
+    activeContent.classList.add('active');
   }
-  // Simple fallback
-  alert(message);
+
+  // Update state
+  setCurrentTab(tabName);
 }
 
-function setAllTabs(checked) {
-  $all('.tab-checkbox').forEach((cb) => {
-    cb.checked = checked;
+/**
+ * Setup global event listeners
+ */
+function setupGlobalListeners() {
+  // Tab navigation
+  document.querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!btn.disabled) {
+        switchTab(btn.dataset.tab);
+      }
+    });
+  });
+
+  // Toast close
+  const toastClose = $('.toast-close');
+  toastClose?.addEventListener('click', () => {
+    const toast = $('#toast');
+    if (toast) {
+      toast.classList.add('hidden');
+    }
+  });
+
+  // Activity log modal
+  const activityLogBtn = $('.activity-log-btn');
+  activityLogBtn?.addEventListener('click', () => {
+    renderActivityLog();
+    const modal = $('#activity-log-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+    }
+  });
+
+  const modalClose = $('.modal-close');
+  modalClose?.addEventListener('click', () => {
+    const modal = $('#activity-log-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+  });
+
+  // Clear log button
+  const clearLogBtn = $('#clear-log-btn');
+  clearLogBtn?.addEventListener('click', () => {
+    // eslint-disable-next-line no-alert
+    if (confirm('Are you sure you want to clear the activity log?')) {
+      clearActivityLog();
+    }
+  });
+
+  // Close modal when clicking outside
+  const activityModal = $('#activity-log-modal');
+  activityModal?.addEventListener('click', (e) => {
+    if (e.target === activityModal) {
+      activityModal.classList.add('hidden');
+    }
   });
 }
 
-function getSelectedTabs() {
-  return $all('.tab-checkbox')
-    .filter((cb) => cb.checked)
-    .map((cb) => cb.value);
+/**
+ * Initialize the application
+ */
+async function initApp() {
+  // Load activity log from localStorage
+  loadActivityLog();
+
+  try {
+    // Initialize DA SDK
+    const { context, token, actions } = await DA_SDK;
+    setAuth(context, token, actions);
+
+    // Setup event listeners
+    setupGlobalListeners();
+    setupCreateListeners();
+
+    // eslint-disable-next-line no-console
+    console.log('Product Manager initialized successfully');
+    showToast('Product Manager is ready!', 'success');
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to initialize app:', error);
+    showToast('Failed to initialize app. Please reload the page.', 'error');
+  }
 }
 
-function onCreateProduct() {
-  const name = $('#product-name')?.value?.trim() || '';
-  const id = $('#product-id')?.value?.trim() || '';
-  const tabs = getSelectedTabs();
-
-  if (!name) {
-    showToast('Please enter Product Name');
-    return;
-  }
-  if (!id) {
-    showToast('Please enter Product ID');
-    return;
-  }
-  if (tabs.length === 0) {
-    showToast('Please select at least one tab');
-    return;
-  }
-
-  // MVP: just echo the payload for now
-  const payload = { name, id, tabs };
-  console.log('Create Product payload:', payload);
-  showToast(`Product created: ${JSON.stringify(payload)}`);
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
 }
-
-function init() {
-  const selectAllBtn = $('#select-all-tabs');
-  const unselectAllBtn = $('#unselect-all-tabs');
-  const createBtn = $('#create-product');
-
-  selectAllBtn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    setAllTabs(true);
-  });
-
-  unselectAllBtn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    setAllTabs(false);
-  });
-
-  createBtn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    onCreateProduct();
-  });
-}
-
-document.addEventListener('DOMContentLoaded', init);

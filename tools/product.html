@@ -20,49 +20,229 @@
               <p class="subtitle">Create and manage products</p>
             </div>
           </div>
+          <div class="header-actions">
+            <button class="activity-log-btn btn-icon" type="button" aria-label="View Activity Log" title="View Activity Log">
+              <img src="./product/icons/settings.svg" alt="Activity Log" class="icon">
+              <span class="btn-label">Activity Log</span>
+            </button>
+          </div>
         </div>
       </header>
 
+      <!-- Tab Navigation -->
+      <nav class="tab-navigation">
+        <button class="tab-btn active" data-tab="create">Create</button>
+        <button class="tab-btn" data-tab="move">Move</button>
+        <button class="tab-btn" data-tab="update">Update</button>
+        <button class="tab-btn" data-tab="delete">Delete</button>
+      </nav>
+
       <main class="app-main">
-        <div class="config-card">
-          <div class="card-header">
-            <div class="card-icon">
-              <img src="./product/icons/settings.svg" alt="Config" class="icon">
-            </div>
-            <h2>Product Details</h2>
-          </div>
-          <div class="card-content">
-            <div class="input-group">
-              <label for="product-name" class="input-label">
-                <span class="label-text">Product Name</span>
-              </label>
-              <input type="text" id="product-name" class="input-field" placeholder="e.g., Corn" />
-            </div>
-
-            <div class="input-group">
-              <label for="product-id" class="input-label">
-                <span class="label-text">Product ID</span>
-              </label>
-              <input type="text" id="product-id" class="input-field" placeholder="e.g., 300" />
-            </div>
-
-            <div class="input-group">
-              <label class="input-label">
-                <span class="label-text">Tabs</span>
-              </label>
-              <div class="checkbox-group" id="tabs-group">
-                <div class="input-row" style="gap: 1rem; grid-template-columns: repeat(2, minmax(0,1fr));">
-                  <label class="checkbox-item"><input type="checkbox" value="overview" class="tab-checkbox" /> <span class="checkbox-label">Overview</span></label>
-                  <label class="checkbox-item"><input type="checkbox" value="quotes" class="tab-checkbox" /> <span class="checkbox-label">Quotes</span></label>
-                  <label class="checkbox-item"><input type="checkbox" value="settlements" class="tab-checkbox" /> <span class="checkbox-label">Settlements</span></label>
-                  <label class="checkbox-item"><input type="checkbox" value="volume" class="tab-checkbox" /> <span class="checkbox-label">Volume</span></label>
-                  <label class="checkbox-item"><input type="checkbox" value="specs" class="tab-checkbox" /> <span class="checkbox-label">Specs</span></label>
-                  <label class="checkbox-item"><input type="checkbox" value="margins" class="tab-checkbox" /> <span class="checkbox-label">Margins</span></label>
-                  <label class="checkbox-item"><input type="checkbox" value="calendar" class="tab-checkbox" /> <span class="checkbox-label">Calendar</span></label>
+        <!-- Create Product Tab -->
+        <div id="tab-create" class="tab-content active">
+        <div class="config-container">
+          <!-- Main Product Details Section -->
+          <div class="main-config-section">
+            <!-- SEO Metadata Group -->
+            <div class="config-card">
+              <div class="card-header">
+                <div class="card-icon">
+                  <img src="./product/icons/settings.svg" alt="SEO" class="icon">
                 </div>
-                <div style="display:flex; gap:.5rem; margin-top:.5rem;">
-                  <button id="select-all-tabs" class="btn btn-outline btn-sm">Select All</button>
-                  <button id="unselect-all-tabs" class="btn btn-outline btn-sm">Unselect All</button>
+                <h2>SEO Metadata</h2>
+              </div>
+              <div class="card-content">
+                <div class="input-group">
+                  <label for="product-title" class="input-label">
+                    <span class="label-text">Title <span class="required">*</span></span>
+                    <span class="label-hint">Page title for SEO and browser tab</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="product-title" 
+                    class="input-field" 
+                    placeholder="e.g., Corn Futures"
+                    required 
+                  />
+                </div>
+
+                <div class="input-group">
+                  <label for="product-description" class="input-label">
+                    <span class="label-text">Description <span class="required">*</span></span>
+                    <span class="label-hint">Meta description for search engines</span>
+                  </label>
+                  <textarea 
+                    id="product-description" 
+                    class="input-field" 
+                    rows="3" 
+                    placeholder="e.g., Trade corn futures and options..."
+                    required
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product Information Group -->
+            <div class="config-card">
+              <div class="card-header">
+                <div class="card-icon">
+                  <img src="./product/icons/settings.svg" alt="Product" class="icon">
+                </div>
+                <h2>Product Information</h2>
+              </div>
+              <div class="card-content">
+                <div class="input-group">
+                  <label for="product-name" class="input-label">
+                    <span class="label-text">Product Name <span class="required">*</span></span>
+                    <span class="label-hint">Display name for the product</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="product-name" 
+                    class="input-field" 
+                    placeholder="e.g., Corn"
+                    required 
+                  />
+                </div>
+
+                <div class="input-group">
+                  <label for="product-id" class="input-label">
+                    <span class="label-text">Product ID <span class="required">*</span></span>
+                    <span class="label-hint">Unique identifier for the product</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="product-id" 
+                    class="input-field" 
+                    placeholder="e.g., 300"
+                    required 
+                  />
+                </div>
+
+                <div class="input-group">
+                  <label for="product-slug" class="input-label">
+                    <span class="label-text">Product Slug <span class="required">*</span></span>
+                    <span class="label-hint">URL-friendly name (becomes filename)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="product-slug" 
+                    class="input-field" 
+                    placeholder="e.g., corn or soybean-oil"
+                    required 
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Template Selection Group -->
+            <div class="config-card">
+              <div class="card-header">
+                <div class="card-icon">
+                  <img src="./product/icons/settings.svg" alt="Template" class="icon">
+                </div>
+                <h2>Template Selection</h2>
+              </div>
+              <div class="card-content">
+                <div class="input-group">
+                  <label class="input-label">
+                    <span class="label-text">Product Tabs <span class="required">*</span></span>
+                    <span class="label-hint">Select which tab folders to copy from template</span>
+                  </label>
+                  <div class="checkbox-group" id="tabs-group">
+                    <div class="tabs-grid">
+                      <label class="checkbox-item">
+                        <input type="checkbox" value="overview" class="tab-checkbox" />
+                        <span class="checkbox-label">Overview</span>
+                      </label>
+                      <label class="checkbox-item">
+                        <input type="checkbox" value="quotes" class="tab-checkbox" />
+                        <span class="checkbox-label">Quotes</span>
+                      </label>
+                      <label class="checkbox-item">
+                        <input type="checkbox" value="settlements" class="tab-checkbox" />
+                        <span class="checkbox-label">Settlements</span>
+                      </label>
+                      <label class="checkbox-item">
+                        <input type="checkbox" value="volume" class="tab-checkbox" />
+                        <span class="checkbox-label">Volume</span>
+                      </label>
+                      <label class="checkbox-item">
+                        <input type="checkbox" value="specs" class="tab-checkbox" />
+                        <span class="checkbox-label">Specs</span>
+                      </label>
+                      <label class="checkbox-item">
+                        <input type="checkbox" value="margins" class="tab-checkbox" />
+                        <span class="checkbox-label">Margins</span>
+                      </label>
+                      <label class="checkbox-item">
+                        <input type="checkbox" value="calendar" class="tab-checkbox" />
+                        <span class="checkbox-label">Calendar</span>
+                      </label>
+                    </div>
+                    <div class="tabs-actions">
+                      <button id="select-all-tabs" class="btn btn-outline btn-sm">Select All</button>
+                      <button id="unselect-all-tabs" class="btn btn-outline btn-sm">Unselect All</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuration Sidebar -->
+          <div class="filters-sidebar">
+            <div class="config-card config-priority">
+              <div class="card-header">
+                <div class="card-icon">
+                  <img src="./product/icons/settings.svg" alt="Configuration" class="icon">
+                </div>
+                <h2>Configuration</h2>
+              </div>
+              
+              <div class="card-content">
+                <div class="input-group">
+                  <label for="org-site-path" class="input-label">
+                    <span class="label-text">Organization/Site <span class="required">*</span></span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="org-site-path" 
+                    class="input-field" 
+                    placeholder="/org/site" 
+                    value="/cmegroup/www"
+                    required 
+                  />
+                </div>
+
+                <div class="input-group">
+                  <label for="source-path" class="input-label">
+                    <span class="label-text">Source <span class="required">*</span></span>
+                    <span class="label-hint">Template to copy from</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="source-path" 
+                    class="input-field" 
+                    placeholder="/drafts/kunwar/markets/corn" 
+                    value="/drafts/kunwar/markets/corn"
+                    required 
+                  />
+                </div>
+
+                <div class="input-group">
+                  <label for="destination-folder" class="input-label">
+                    <span class="label-text">Destination <span class="required">*</span></span>
+                    <span class="label-hint">Folder to copy to</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="destination-folder" 
+                    class="input-field" 
+                    placeholder="/drafts/kunwar/product-app/markets" 
+                    value="/drafts/kunwar/product-app/markets"
+                    required 
+                  />
                 </div>
               </div>
             </div>
@@ -77,9 +257,72 @@
             </button>
           </div>
         </div>
+
+        <!-- Activity Log Modal -->
+        <div id="activity-log-modal" class="modal-overlay hidden">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>Activity Log</h2>
+              <button class="modal-close" aria-label="Close activity log">
+                <img src="./product/icons/check.svg" alt="Close" class="icon">
+              </button>
+            </div>
+            
+            <div class="modal-body">
+              <div class="log-controls">
+                <button id="clear-log-btn" class="btn btn-outline btn-sm">Clear Log</button>
+              </div>
+              <div class="log-container" id="log-container">
+                <div class="log-empty">No activity yet. Create a product to see the activity log.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toast Messages -->
+        <div class="toast-container">
+          <div class="toast hidden" id="toast">
+            <div class="toast-content">
+              <div class="toast-icon">
+                <img src="./product/icons/check.svg" alt="Success" class="icon">
+              </div>
+              <div class="toast-message"></div>
+              <button class="toast-close" aria-label="Close notification">
+                <img src="./product/icons/check.svg" alt="Close" class="icon icon-sm">
+              </button>
+            </div>
+          </div>
+        </div>
+        </div>
+        <!-- End Create Tab -->
+
+        <!-- Move Tab -->
+        <div id="tab-move" class="tab-content">
+          <div class="placeholder-content">
+            <h2>Move Products</h2>
+            <p>Coming soon</p>
+          </div>
+        </div>
+
+        <!-- Update Tab -->
+        <div id="tab-update" class="tab-content">
+          <div class="placeholder-content">
+            <h2>Update Product</h2>
+            <p>Coming soon</p>
+          </div>
+        </div>
+
+        <!-- Delete Tab -->
+        <div id="tab-delete" class="tab-content">
+          <div class="placeholder-content">
+            <h2>Delete Product</h2>
+            <p>Coming soon</p>
+          </div>
+        </div>
+
       </main>
     </div>
   </body>
- </html>
+</html>
 
 
