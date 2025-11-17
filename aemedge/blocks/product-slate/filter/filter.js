@@ -32,7 +32,6 @@ function getFiltersFromURL() {
       ? params
         .get('cleared')
         .split(',')
-        .map((c) => decodeURIComponent(c))
       : [],
     searchTerm: params.get('search') || '',
     tags: params.get('tags') === '1',
@@ -44,14 +43,10 @@ function getFiltersFromURL() {
 function updateURLWithFilters(filters) {
   const params = new URLSearchParams();
 
-  // Add parameters in the same order as the React component for consistency
-
-  // subGroups first (note: capital G)
   if (filters.subgroup && filters.subgroup.length > 0) {
     params.set('subGroups', filters.subgroup.join(','));
   }
 
-  // sortDirection and sortField (if they exist)
   if (filters.sortDirection) {
     params.set('sortDirection', filters.sortDirection);
   }
@@ -60,43 +55,38 @@ function updateURLWithFilters(filters) {
     params.set('sortField', filters.sortField);
   }
 
-  // groups (parent groups)
   if (filters.group && filters.group.length > 0) {
     params.set('groups', filters.group.join(','));
   }
 
-  // search term
   if (filters.searchTerm) {
     params.set('search', filters.searchTerm);
   }
 
-  // exch (exchanges)
   if (filters.exch && filters.exch.length > 0) {
     params.set('exch', filters.exch.join(','));
   }
 
-  // venues
   if (filters.venues && filters.venues.length > 0) {
     params.set('venues', filters.venues.join(','));
   }
 
-  // cleared (URL encoded for spaces)
   if (filters.cleared && filters.cleared.length > 0) {
-    // Join and encode special characters (like spaces)
-    params.set(
-      'cleared',
-      filters.cleared.map((c) => encodeURIComponent(c)).join(','),
-    );
+    params.set('cleared', filters.cleared.join(','));
   }
 
-  // tags
   if (filters.tags === 1) {
     params.set('tags', '1');
   }
 
-  // Update URL without page reload using pushState
-  const newURL = params.toString()
-    ? `${window.location.pathname}?${params.toString()}`
+  const entries = [...params.entries()].map(([key, value]) => (key === 'search'
+    ? `${key}=${value}`
+    : `${key}=${value.replace(/%2C/g, ',')}`));
+
+  const query = entries.join('&');
+
+  const newURL = query
+    ? `${window.location.pathname}?${query}`
     : window.location.pathname;
 
   window.history.pushState({}, '', newURL);
