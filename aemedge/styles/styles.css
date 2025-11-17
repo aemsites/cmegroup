@@ -157,7 +157,7 @@ h6,
   }
 
   & a {
-    color: initial;
+    color: var(--blue2);
     position: relative;
 
     &:hover {
@@ -2237,5 +2237,12 @@ p.center-img {
     & .alert-close {
       color: var(--blue2);
     }
+  }
+}
+
+.min-height-400,
+.min-height-400 .cards-body-container {
+  @media (width >=993px) {
+    min-height: 25rem;
   }
 }

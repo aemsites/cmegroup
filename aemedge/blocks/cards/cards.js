@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {
   buildIndexFilter,
   getIndexedContent,
@@ -768,25 +769,32 @@ async function createRecommendedCards(block) {
   block.textContent = '';
   block.appendChild(createSpinner());
   let dataAi = [];
+  let useAiData = false;
 
   try {
     const { getRecommendationAi } = await import('../../scripts/services/RecommendationAiService.js');
     dataAi = await getRecommendationAi();
+
+    if (dataAi && dataAi.length > 0) {
+      const result = limit ? dataAi.slice(0, limit) : dataAi;
+      const cardsAi = await createRecommendedFromService(result, blockData);
+      block.replaceWith(cardsAi);
+      useAiData = true;
+    }
   } catch (error) {
-    dataAi = [];
+    console.log('Error fetching Recommendation AI service:', error);
   }
-  const result = limit ? dataAi.slice(0, limit) : dataAi;
-  if (dataAi && dataAi.length > 0) {
-    const cardsAi = await createRecommendedFromService(result, blockData);
-    block.replaceWith(cardsAi);
-  } else if (blockData) {
-    blockData.classList.remove('recommended-ai');
-    await createDynamicCards(blockData);
-    block.replaceWith(blockData);
-  } else {
-    const noResultsLabel = createElement('h4', null, 'No results found');
-    const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
-    block.replaceWith(noResults);
+
+  if (!useAiData) {
+    if (blockData) {
+      blockData.classList.remove('recommended-ai');
+      await createDynamicCards(blockData);
+      block.replaceWith(blockData);
+    } else {
+      const noResultsLabel = createElement('h4', null, 'No results found');
+      const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
+      block.replaceWith(noResults);
+    }
   }
 }
 
