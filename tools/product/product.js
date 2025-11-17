@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 /**
  * Product Manager - Main Application
  * Modular, tabbed architecture for managing product pages
@@ -78,10 +79,7 @@ function setupGlobalListeners() {
   // Clear log button
   const clearLogBtn = $('#clear-log-btn');
   clearLogBtn?.addEventListener('click', () => {
-    // eslint-disable-next-line no-alert
-    if (confirm('Are you sure you want to clear the activity log?')) {
-      clearActivityLog();
-    }
+    clearActivityLog();
   });
 
   // Close modal when clicking outside
