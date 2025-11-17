@@ -562,7 +562,7 @@ async function checkOneClickFormCookie(form, block) {
     window.CookieUtil?.remove('oneClickFormCookie');
     if (thanksMsg) {
       showAuthToast(
-        thanksMsg,
+        thanksMsg.cloneNode(true),
         'success',
         true,
       );
@@ -588,7 +588,11 @@ async function decorateForm(formData, block) {
       const computedStyle = window.getComputedStyle(wrapper);
       return computedStyle.display !== 'none' && !wrapper.classList.contains('hide');
     });
-    const valid = visibleFields.every((field) => field.checkValidity());
+
+    const valid = visibleFields.reduce((isValid, field) => {
+      const result = field.checkValidity();
+      return isValid && result;
+    }, true);
 
     if (valid) {
       handleSubmit(form, block);
@@ -597,11 +601,16 @@ async function decorateForm(formData, block) {
       const invalidFields = form.querySelectorAll(':invalid');
       invalidFields.forEach((field) => {
         const wrapper = field.closest('.field-wrapper:not(.hide)');
-        if (wrapper && !wrapper.querySelector('.error-message')) {
-          const errorMsg = createElement('div', { class: 'error-message' });
-          errorMsg.className = 'error-message';
-          errorMsg.textContent = field.validationMessage || 'This field is required';
-          wrapper.appendChild(errorMsg);
+        if (wrapper) {
+          const errorMessage = wrapper.querySelector('.error-message');
+          if (!errorMessage) {
+            const errorMsg = createElement('div', { class: 'error-message' });
+            errorMsg.className = 'error-message';
+            errorMsg.textContent = field.validationMessage;
+            wrapper.appendChild(errorMsg);
+          } else {
+            errorMessage.textContent = field.validationMessage;
+          }
         }
       });
 

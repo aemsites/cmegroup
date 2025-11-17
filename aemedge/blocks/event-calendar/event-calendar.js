@@ -617,7 +617,7 @@ function getDatePickerVerticalPosition(inputElement) {
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
   // Estimate datepicker height
-  const estimatedDatepickerHeight = 355;
+  const estimatedDatepickerHeight = inputRect.height;
   // Calculate space below the input
   const spaceBelow = viewportHeight - (inputRect.top + inputRect.height);
   // Calculate space above the input
@@ -627,6 +627,7 @@ function getDatePickerVerticalPosition(inputElement) {
     inputElement.classList.remove('on-top');
   } else if (spaceAbove >= estimatedDatepickerHeight) {
     inputElement.classList.add('on-top');
+    inputElement.style.setProperty('--date-input-top', `-${inputRect.height}px`);
   }
 }
 
@@ -1336,7 +1337,11 @@ function initFilters() {
   const impactIds = getUrlFilterParam(params.attributeParam);
   filtersArray['input-impact'] = createFilterPillsArrayFromUrl('impact', impactIds);
   const date = getUrlFilterParam(params.tradeDateParam);
-  tradeDate = dayjs.utc(date.length ? date : Date.now()).tz('America/Chicago', true).$d;
+  let tradeDateRaw = dayjs.utc(date.length ? date : Date.now());
+  if (!tradeDateRaw.isValid()) {
+    tradeDateRaw = dayjs.utc(Date.now());
+  }
+  tradeDate = dayjs.utc(tradeDateRaw).tz('America/Chicago', true).$d;
   filtersArray.tradeDate = [{ id: dayjs.utc(tradeDate).format('YYYY-MM-DD') }];
 
   // render pills

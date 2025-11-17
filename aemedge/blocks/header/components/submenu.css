@@ -112,9 +112,17 @@ body
         align-items: center;
         transition: background-color 0.1s ease;
 
+        @media (width >= 993px) {
+          cursor: default;
+        }
+
         & em {
           font-style: normal;
           letter-spacing: normal;
+
+          @media (width >= 993px) {
+            font-weight: 700;
+          }
         }
       }
 

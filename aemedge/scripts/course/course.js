@@ -59,7 +59,7 @@ const parseCurrentPath = () => {
   const path = window.location.pathname.replace(/\.html$/, '').replace(/^\/qa/, '');
   const basePath = path.startsWith(LESSONS_BASE_PATH) ? LESSONS_BASE_PATH : COURSES_BASE_PATH;
   const relevantPath = path.split(basePath)[1];
-  return { basePath, relevantPath };
+  return { path, basePath, relevantPath };
 };
 
 /**
@@ -78,7 +78,6 @@ export async function getCourseData(loginInfo) {
 
     const { basePath, relevantPath } = parseCurrentPath();
     const course = relevantPath.split('/')[0];
-    const innerLesson = relevantPath.split('/').length > 1;
     if (template !== 'lesson-standalone' && !course) {
       throw new Error('No course found in the path');
     }
@@ -115,7 +114,7 @@ export async function getCourseData(loginInfo) {
     }));
 
     const courseData = {
-      isLessonStandalone: isLessonStandalone(template) && !innerLesson,
+      isLessonStandalone: isLessonStandalone(template),
       hasChapters: false, // Will be determined by data
       chapters: [],
       lessons: [],
@@ -123,7 +122,7 @@ export async function getCourseData(loginInfo) {
 
     // If the page is a lesson standalone, return the first entry
     // ideally there should be only one entry in this case
-    if (isLessonStandalone(template) && !innerLesson) {
+    if (isLessonStandalone(template)) {
       Object.assign(courseData, entries[0]);
       const data = !loginInfo ? courseData : await getCourseDataProgress(courseData);
       addCourseDataToCache(coursePath, data);
@@ -202,6 +201,38 @@ export async function getCourseData(loginInfo) {
   }
 }
 
+export function flattenLessons(courseData) {
+  const lessons = courseData.lessons || [];
+  const chapters = courseData.chapters || [];
+  const modulesOrder = courseData.modulesOrder?.split(',').map((s) => s.trim()) || [];
+
+  const flatLessons = [];
+
+  const lessonMap = new Map(
+    lessons.map((lesson) => [lesson.pathSuffix, lesson]),
+  );
+
+  const chapterMap = new Map(
+    chapters.map((chapter) => [
+      chapter.path.split('/').pop(),
+      chapter.lessons?.map((lesson) => ({
+        ...lesson,
+        chapterPath: chapter.path,
+      })) || [],
+    ]),
+  );
+
+  modulesOrder.forEach((key) => {
+    if (lessonMap.has(key)) {
+      flatLessons.push({ ...lessonMap.get(key), chapterPath: null });
+    } else if (chapterMap.has(key)) {
+      flatLessons.push(...chapterMap.get(key));
+    }
+  });
+
+  return flatLessons;
+}
+
 async function getCourseDataProgress(courseData) {
   return import('../services/EducationTrackService.js').then(async ({ getProgress }) => {
     if (isLessonStandalone(courseData.template)) {
@@ -225,54 +256,6 @@ async function getCourseDataProgress(courseData) {
     });
     return courseData;
   });
-}
-
-export function getOrderedLessons(courseData) {
-  const { modulesOrder } = courseData;
-
-  if (modulesOrder && typeof modulesOrder === 'string') {
-    const modulesOrderArray = modulesOrder.split(',').map((item) => item.trim());
-
-    // Create array of items (chapters and lessons) to sort at root level
-    const rootItems = [
-      ...(courseData.chapters || []),
-      ...(courseData.lessons || []),
-    ];
-
-    // Sort chapters and lessons at root level based on modulesOrder
-    rootItems.sort((a, b) => modulesOrderArray.indexOf(a.pathSuffix || a.path)
-      - modulesOrderArray.indexOf(b.pathSuffix || b.path));
-
-    // Process the sorted items and collect lessons
-    const allLessons = [];
-
-    rootItems.forEach((item) => {
-      if (item.template && item.template.toLowerCase() === 'chapter') {
-        // Sort lessons within this chapter
-        const { lessons, modulesOrder: chModulesOrder } = item;
-        if (lessons && lessons.length > 0) {
-          if (chModulesOrder && typeof chModulesOrder === 'string') {
-            const chModulesOrderArray = chModulesOrder.split(',').map((chItem) => chItem.trim());
-            lessons.sort((a, b) => chModulesOrderArray.indexOf(a.pathSuffix || a.path)
-              - chModulesOrderArray.indexOf(b.pathSuffix || b.path));
-          }
-          // Add all lessons from this chapter to the result
-          allLessons.push(...lessons);
-        }
-      } else {
-        // This is a lesson at root level, add it directly
-        allLessons.push(item);
-      }
-    });
-
-    return allLessons;
-  }
-
-  // Fallback: if no modulesOrder, just return all lessons unsorted
-  return [
-    ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
-    ...(courseData.lessons || []),
-  ];
 }
 
 async function buildLanguageLinks() {
@@ -353,10 +336,15 @@ export async function createCourseBaseTemplate(courseData) {
   } else if (template.toLowerCase() === 'lesson' || template.toLowerCase() === 'lesson-standalone') {
     const type = createElement('div', { class: 'metadata type' });
     type.textContent = lessonLabel;
-    const lessons = getOrderedLessons(courseData);
-    const lessonIndex = lessons.findIndex(({ path }) => path === window.location.pathname);
-    if (lessonIndex !== -1) {
-      type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${lessons.length}`;
+    const { path: currentPath } = parseCurrentPath();
+    const modules = [{ lessons: courseData.lessons }, ...courseData.chapters];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const module of modules) {
+      const lessonIndex = module.lessons.findIndex(({ path }) => path === currentPath);
+      if (lessonIndex !== -1) {
+        type.textContent += ` ${lessonIndex + 1} ${ofLabel} ${module.lessons.length}`;
+        break;
+      }
     }
     header.appendChild(type);
     if (isPremium) {
@@ -376,11 +364,18 @@ export async function createCourseBaseTemplate(courseData) {
 }
 
 export function getCurrentLesson(courseData) {
-  const currentPath = window.location.pathname;
+  const { path: currentPath } = parseCurrentPath();
   const lessons = [
     ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
     ...courseData.lessons];
   return lessons.find(({ path }) => currentPath === path);
+}
+
+export function buildCourseSurveyLink(courseData) {
+  const link = document.querySelector('a.course-survey-link');
+  if (!link) return;
+  const surveyLink = link.getAttribute('href') || '/education/course-survey.html';
+  link.setAttribute('href', `${surveyLink}#${courseData.moduleTitle}`);
 }
 
 /**

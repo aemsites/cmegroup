@@ -1,10 +1,7 @@
 import { getMetadata } from '../../scripts/aem.js';
 import { readBlockConfig, loadScript } from '../../scripts/utils.js';
-import {
-  setTracking,
-  LocalStorageUtil,
-  getRandomNumber,
-} from '../../scripts/utils/index.js';
+import { LocalStorageUtil, getRandomNumber } from '../../scripts/utils/index.js';
+
 /*
  * For more info about the video's options please read:
  * https://github.com/brightcove/player-loader
@@ -21,7 +18,6 @@ import {
 
 const BRIGHTCOVE_POSTER_CACHE_KEY = 'brightcovePosterCache';
 const BRIGHTCOVE_POSTER_CACHE_LIMIT = 10;
-const fireTracking = setTracking('custom', 'media', 'BrightcoveVideo');
 
 function calculateDataPlayerId(
   aspectRatio,
@@ -95,7 +91,11 @@ function calculateStyles(aspectRatio, playlistLocation) {
   const is43 = aspectRatio === '4:3';
   // it is a playlist ?
   if (playlistLocation === 'R') {
-    return 'playlist-right-sidekick';
+    if (is43) {
+      return 'playlist-right-sidekick ratio43';
+    }
+
+    return 'playlist-right-sidekick ratio169';
   }
   // is it a video ?
   if (is43) {
@@ -117,7 +117,7 @@ function loadLanguage(videoPlayer, language) {
   }
 }
 
-function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions) {
+async function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions) {
   block.setAttribute('data-video-status', 'loaded');
   const languageVideoPlayer = videojs(document.getElementById(`cmeVideo${videoId}_${randomNumber}`));
   if (language) {
@@ -125,6 +125,10 @@ function setPlayerReady(block, language, videoId, randomNumber, autoplayOptions)
       loadLanguage(languageVideoPlayer, language);
     });
   }
+  const { setTracking } = await import('../../scripts/gtm.js').catch(() => ({
+    setTracking: () => () => console.warn('GTM is unavailable'),
+  }));
+  const fireTracking = setTracking('custom', 'media', 'BrightcoveVideo');
   languageVideoPlayer.on('loadstart', () => fireTracking('videojsloaded'));
   // eslint-disable-next-line no-underscore-dangle
   if (languageVideoPlayer.isReady_) {

@@ -17,8 +17,12 @@ async function getLogoSVG() {
   const answer = await fetch('/aemedge/icons/cme-logo.svg');
   const svgContent = await answer.text();
   const logoContainer = createElement('div', { class: 'site-header-logo' });
+  const logoUrl = createElement('a', { class: 'header-logo-url' });
+  logoUrl.href = '/';
+  logoUrl.title = 'CME Group Logo';
   if (logoContainer) {
-    logoContainer.innerHTML = svgContent;
+    logoUrl.innerHTML = svgContent;
+    logoContainer.append(logoUrl);
   }
   return logoContainer;
 }
@@ -167,7 +171,8 @@ class Nav {
 
     function updateHeaderState() {
       const currentScrollPosition = window.scrollY;
-      const scrollingDown = currentScrollPosition > previousScrollPosition;
+      const scrollingDown = currentScrollPosition > 0
+        && currentScrollPosition > previousScrollPosition;
       if (scrollingDown) {
         if (isHomePage) {
           header.classList.remove('transparent');
@@ -731,7 +736,9 @@ class Nav {
     subNavLink.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.toggleMenu(subNavItem);
+      if (window.innerWidth <= 992) {
+        this.toggleMenu(subNavItem);
+      }
     });
 
     const linksInNav = subMenu.querySelectorAll('li a');

@@ -3,6 +3,8 @@ import {
   getCourseData,
   updateLessonStatus,
   getCurrentLesson,
+  flattenLessons,
+  buildCourseSurveyLink,
 } from '../../scripts/course/course.js';
 import { addCourseCertificate } from '../../scripts/course/certificate.js';
 import {
@@ -10,57 +12,11 @@ import {
 } from '../../scripts/utils.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
-import { setTracking } from '../../scripts/utils/index.js';
 
 const FRAGMENT_URL = '/fragments/courses-lessons/extend-your-learning';
 
-const fireTrackingLessons = setTracking('custom', 'lesson_complete', 'Lessons and Courses');
-const fireTrackingCourses = setTracking('custom', 'course_complete', 'Lessons and Courses');
 if (window.ga) {
   window.ga();
-}
-
-function flattenLessons(courseData) {
-  const lessons = courseData.lessons || [];
-  const chapters = courseData.chapters || [];
-  const modulesOrder = courseData.modulesOrder?.split(',').map((s) => s.trim()) || [];
-
-  const flatLessons = [];
-
-  const lessonMap = new Map(
-    lessons.map((lesson) => [lesson.pathSuffix, lesson]),
-  );
-
-  const chapterMap = new Map(
-    chapters.map((chapter) => [
-      chapter.path.split('/').pop(),
-      chapter.lessons?.map((lesson) => ({
-        ...lesson,
-        chapterPath: chapter.path,
-      })) || [],
-    ]),
-  );
-
-  modulesOrder.forEach((key) => {
-    if (lessonMap.has(key)) {
-      flatLessons.push({ ...lessonMap.get(key), chapterPath: null });
-    } else if (chapterMap.has(key)) {
-      flatLessons.push(...chapterMap.get(key));
-    }
-  });
-
-  return flatLessons;
-}
-
-function findNavigationLinks(currentPath, flatLessons) {
-  const currentIndex = flatLessons.findIndex((lesson) => lesson.path === currentPath);
-  const prevLesson = currentIndex > 0 ? flatLessons[currentIndex - 1] : null;
-  const nextLesson = currentIndex < flatLessons.length - 1 ? flatLessons[currentIndex + 1] : null;
-
-  return {
-    prevHref: prevLesson ? prevLesson.path : null,
-    nextHref: nextLesson ? nextLesson.path : null,
-  };
 }
 
 async function addLateralNavigation(prevHref, nextHref) {
@@ -115,13 +71,24 @@ async function addLateralNavigation(prevHref, nextHref) {
   preserveHideParameters(nav);
 }
 
+function getNavLinks(courseData) {
+  const currentPath = window.location.pathname.replace(/\.html$/, '');
+  const flatLessons = flattenLessons(courseData);
+  const currentIndex = flatLessons.findIndex((lesson) => lesson.path === currentPath);
+  const prevLesson = currentIndex > 0 ? flatLessons[currentIndex - 1] : null;
+  const nextLesson = currentIndex < flatLessons.length - 1 ? flatLessons[currentIndex + 1] : null;
+
+  return {
+    prevHref: prevLesson ? prevLesson.path : null,
+    nextHref: nextLesson ? nextLesson.path : null,
+  };
+}
+
 async function initLateralNav(courseData) {
   if (isFeatureToggled('hideCourseNav', 'y', true) || window.location.pathname.includes('.hideCourseNav.')) {
     return null;
   }
-  const currentPath = window.location.pathname.replace(/\.html$/, '');
-  const flatLessons = flattenLessons(courseData);
-  const { prevHref, nextHref } = findNavigationLinks(currentPath, flatLessons);
+  const { prevHref, nextHref } = getNavLinks(courseData);
   await addLateralNavigation(prevHref, nextHref);
   await addFragmentBlock(FRAGMENT_URL);
   return { prevHref, nextHref };
@@ -130,8 +97,9 @@ async function initLateralNav(courseData) {
 async function loadUserProgress(courseData, authenticationData) {
   const { isLoggedIn, loginInfo } = authenticationData;
   const { store } = await import('../../scripts/store/store.js');
+  const { nextHref } = getNavLinks(courseData);
   //  dispatch courseData event
-  store.dispatch(courseDataChange(courseData));
+  store.dispatch(courseDataChange({ ...courseData, nextLesson: nextHref }));
   const lesson = getCurrentLesson(courseData);
   if (lesson?.quiz || lesson?.completed) {
     //  quiz prefill
@@ -141,6 +109,11 @@ async function loadUserProgress(courseData, authenticationData) {
     //  start lesson
     await updateLessonStatus(false);
   }
+  const { setTracking } = await import('../../scripts/gtm.js').catch(() => ({
+    setTracking: () => () => console.warn('GTM is unavailable'),
+  }));
+  const fireTrackingLessons = setTracking('custom', 'lesson_complete', 'Lessons and Courses');
+  const fireTrackingCourses = setTracking('custom', 'course_complete', 'Lessons and Courses');
   //  quiz subscriber
   store.subscribe(({ quiz }) => quiz, async ({ quizStatus }) => {
     if (quizStatus?.isCorrect && !lesson?.completed) {
@@ -192,7 +165,6 @@ export default async function lessonTemplate() {
   //  static section
   const courseData = await getCourseData();
   await createCourseBaseTemplate(courseData);
-  initLateralNav(courseData);
 
   //  dynamic section - user progress
   import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
@@ -200,7 +172,9 @@ export default async function lessonTemplate() {
     authenticationData.loginPromise.then(async () => {
       const { isLoggedIn, loginInfo } = authenticationData;
       const data = await getCourseData(loginInfo);
+      initLateralNav(courseData);
       loadUserProgress(data, authenticationData);
+      buildCourseSurveyLink(courseData);
       if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
         import('../../scripts/course/auth-modal.js');
       }

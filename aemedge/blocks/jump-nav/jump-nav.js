@@ -44,10 +44,21 @@ export default function decorate(block) {
     setupHeaderSync(container);
   }
 
-  setupActiveStates(nav);
   setupDraggableScroll(nav);
 
-  handleInitialHashScroll(nav);
+  let attempts = 0;
+  const maxAttempts = 20;
+  const interval = 200;
+
+  const intervalId = setInterval(() => {
+    if (setupActiveStates(nav) || attempts >= maxAttempts) {
+      clearInterval(intervalId);
+      if (attempts < maxAttempts) {
+        handleInitialHashScroll(nav);
+      }
+    }
+    attempts += 1;
+  }, interval);
 }
 
 function handleInitialHashScroll(nav) {
@@ -116,9 +127,10 @@ function setupHeaderSync(container) {
 
 function scrollSection(targetElement, link, isSmooth, updateHash, nav, initialLoad = false) {
   const headerHeight = document.querySelector('.header')?.offsetHeight || 0;
+  const alertsHeight = document.querySelector('#alerts-container')?.offsetHeight || 0;
   const jumpToHeight = document.querySelector('.jump-nav')?.offsetHeight || 0;
 
-  const totalOffset = headerHeight + jumpToHeight;
+  const totalOffset = headerHeight + alertsHeight + jumpToHeight;
 
   targetElement.style.scrollMarginTop = `${totalOffset}px`;
 
@@ -191,45 +203,66 @@ function setupActiveStates(nav) {
   });
 
   if (!sections.length) {
-    return;
+    return false;
   }
 
   const headerHeight = document.querySelector('.header')?.offsetHeight || 0;
+  const alertsHeight = document.querySelector('#alerts-container')?.offsetHeight || 0;
   const jumpToHeight = document.querySelector('.jump-nav')?.offsetHeight || 0;
-  const totalStickyHeight = headerHeight + jumpToHeight;
+  const totalStickyHeight = headerHeight + alertsHeight + jumpToHeight;
 
   const observerOptions = {
-    rootMargin: `-${totalStickyHeight}px 0px 0px 0px`,
-    threshold: 0.01,
+    rootMargin: `-${totalStickyHeight}px 0px -${window.innerHeight - totalStickyHeight}px 0px`,
+    threshold: 0,
   };
 
   intersectionObserver = new IntersectionObserver((entries) => {
-    const intersectingEntries = entries.filter((entry) => entry.isIntersecting);
-    if (intersectingEntries.length === 0) {
-      return;
-    }
+    let currentActiveEntry = null;
+    let minDistanceFromTop = Infinity;
 
-    const highestIntersectingEntry = intersectingEntries[0];
+    entries.forEach((entry) => {
+      const rectTop = entry.boundingClientRect.top;
+      if (rectTop <= totalStickyHeight && entry.isIntersecting) {
+        const distance = totalStickyHeight - rectTop;
 
-    const section = sections.find((s) => s.element === highestIntersectingEntry.target);
+        if (distance >= 0 && distance < minDistanceFromTop) {
+          minDistanceFromTop = distance;
+          currentActiveEntry = entry;
+        }
+      }
+    });
 
-    if (section) {
-      const linkToActivate = section.link;
+    if (currentActiveEntry) {
+      const section = sections.find((s) => s.element === currentActiveEntry.target);
+
+      if (section) {
+        const linkToActivate = section.link;
+        const currentlyActive = document.querySelector('.jump-nav a.active');
+
+        if (currentlyActive !== linkToActivate) {
+          allLinks.forEach((link) => link.classList.remove('active'));
+          linkToActivate.classList.add('active');
+
+          scrollToCenter(linkToActivate.parentElement, nav);
+
+          updateBarPosition(linkToActivate);
+
+          const href = linkToActivate.getAttribute('href');
+          if (href) {
+            // eslint-disable-next-line no-restricted-globals
+            history.replaceState(null, '', href);
+          }
+        }
+      }
+    } else if (window.scrollY === 0 && sections.length > 0) {
+      const firstSectionLink = sections[0].link;
       const currentlyActive = document.querySelector('.jump-nav a.active');
 
-      if (currentlyActive !== linkToActivate) {
+      if (currentlyActive !== firstSectionLink) {
         allLinks.forEach((link) => link.classList.remove('active'));
-        linkToActivate.classList.add('active');
-
-        scrollToCenter(linkToActivate.parentElement, nav);
-
-        updateBarPosition(linkToActivate);
-
-        const href = linkToActivate.getAttribute('href');
-        if (href) {
-          // eslint-disable-next-line no-restricted-globals
-          history.replaceState(null, '', href);
-        }
+        firstSectionLink.classList.add('active');
+        scrollToCenter(firstSectionLink.parentElement, nav);
+        updateBarPosition(firstSectionLink);
       }
     }
   }, observerOptions);
@@ -237,6 +270,8 @@ function setupActiveStates(nav) {
   sections.forEach((section) => {
     intersectionObserver.observe(section.element);
   });
+
+  return true;
 }
 
 function setupDraggableScroll(nav) {

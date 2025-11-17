@@ -1,9 +1,8 @@
-/* eslint-disable max-len */
+/* eslint-disable no-console */
 import {
   buildIndexFilter,
   getIndexedContent,
 } from '../../scripts/indexing.js';
-
 import {
   createElement,
   parseTime,
@@ -16,6 +15,7 @@ import {
   getCdtDate,
   getTag,
   i18n,
+  convertMMSSToHHMM,
 } from '../../scripts/utils.js';
 import {
   legacyArticleTemplates,
@@ -25,9 +25,13 @@ import {
   legacyNewsTemplates,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
-
+import {
+  urlByEnvType,
+} from '../../scripts/utils/index.js';
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
+
+const fallbackImage = `url(${urlByEnvType()}/content/dam/cmegroup/images/common/default/article-940x600.jpg)`;
 
 async function createStaticCards(block) {
   const size = block.children.length;
@@ -156,6 +160,35 @@ async function createStaticCards(block) {
       block.appendChild(cardsContainer);
       buildSlider(ul, sliderConfig, true, disabledOnDesktop, inverse, true);
     }
+  } else if (block.classList.contains('promo')) {
+    const ul = document.createElement('ul');
+    const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
+    [...block.children].forEach((row) => {
+      const li = document.createElement('li');
+      const link = document.createElement('a');
+      const linkSrc = row.firstElementChild.querySelector('p a').href;
+      link.href = linkSrc;
+      li.append(link);
+      while (row.firstElementChild) link.append(row.firstElementChild);
+      [...li.children].forEach((anchor) => {
+        const div = anchor.querySelector('div');
+        if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
+        else div.className = 'cards-card-body';
+
+        if (textClass) {
+          const paragraphs = div.querySelectorAll('p');
+          paragraphs.forEach((p) => {
+            p.classList.add(textClass);
+          });
+        }
+        if (!div.hasChildNodes()) {
+          div.parentElement.classList.add('empty-card');
+        }
+      });
+      ul.append(li);
+    });
+    ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
+    cardsContainer.append(ul);
   } else {
     const ul = document.createElement('ul');
     const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
@@ -180,6 +213,7 @@ async function createStaticCards(block) {
     ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
     cardsContainer.append(ul);
   }
+
   block.textContent = '';
   block.append(cardsContainer);
 }
@@ -197,7 +231,7 @@ export async function createDynamicCardCourse(contentData) {
   } = contentData;
   const imageWrapper = createElement('div', { class: 'cards-card-image' });
   const link = createElement('a', { href: path });
-  imageWrapper.style.backgroundImage = `url('${ogimage || image}')`;
+  imageWrapper.style.backgroundImage = `url('${ogimage || image || fallbackImage}')`;
 
   const bodyWrapper = createElement('div', { class: 'cards-card-body' });
   bodyWrapper.innerHTML = `
@@ -469,6 +503,9 @@ export async function createDynamicCards(block) {
     indexFilter.templates = ['course'];
     indexFilter.orderBy = 'lastModified';
     indexFilter.sortDirection = 'desc';
+    if (indexFilter.limit) {
+      block.classList.add(`columns-grid-${indexFilter.limit}`);
+    }
     filteredData = await getIndexedContent(indexFilter);
     sliderConfig = {
       slidesToShow: 'auto',
@@ -606,7 +643,18 @@ export async function createDynamicCards(block) {
   if (cardElements && cardElements.length) {
     const ul = createElement('ul', null, ...cardElements);
     const cardsContainer = createElement('div', null, ul);
+    const paramsFallback = config['params-fallback'];
     block.textContent = '';
+    if (config['params-fallback']) {
+      cardElements.map((item) => {
+        const childrenArray = Array.from(item.children || []);
+        const anchor = childrenArray.find((child) => child.tagName === 'A');
+        if (anchor) {
+          anchor.href = `${anchor.href}?${paramsFallback}`;
+        }
+        return item;
+      });
+    }
     if (config.title) {
       const listCardTitle = document.createElement('h4');
       listCardTitle.textContent = config.title;
@@ -625,9 +673,136 @@ export async function createDynamicCards(block) {
   }
 }
 
+async function createRecommendedFromService(data, block) {
+  const { params } = readBlockConfig(block);
+  const blockDiv = createElement('div', {
+    class: 'cards recommended-ai block',
+  });
+  blockDiv.setAttribute('data-block-name', 'cards');
+  const containerDiv = createElement('div');
+  const ul = createElement('ul');
+  ul.style.setProperty('--columns', Math.min(data.length, 4));
+
+  const elements = await Promise.all(
+    data.map(async (item) => {
+      const imageDiv = createElement('div', {
+        class: 'cards-card-image',
+      });
+      const imgSrc = item.image_uri;
+      imageDiv.style.backgroundImage = imgSrc ? `url('https://www.cmegroup.com/${imgSrc}')` : fallbackImage;
+
+      const link = createElement('a', { href: params ? `${item.uri}?${params}` : item.uri });
+
+      const subtitleDiv = createElement('div', {
+        class: 'card-subtitle',
+      });
+      subtitleDiv.textContent = `${item.image_name || ''} `;
+
+      const span = createElement('span');
+      parseTime(convertMMSSToHHMM(item.media_duration)).then((i) => {
+        span.textContent = i;
+        subtitleDiv.appendChild(span);
+      });
+
+      const titleDiv = createElement('div', {
+        class: 'cards-card-title',
+      });
+      const h3 = createElement('h3');
+      h3.textContent = item.title || '';
+      titleDiv.appendChild(h3);
+
+      const descDiv = createElement('div', {
+        class: 'cards-card-description',
+      });
+
+      const p = createElement('p');
+      p.textContent = item.description || '';
+      descDiv.appendChild(p);
+
+      const bodyDiv = createElement('div', {
+        class: 'cards-card-body',
+      }, subtitleDiv, titleDiv, descDiv);
+
+      link.appendChild(bodyDiv);
+
+      const li = createElement('li', {
+        class: 'cards-card',
+      }, imageDiv, link);
+
+      ul.appendChild(li);
+      return ul;
+    }),
+  );
+
+  elements.forEach((li) => blockDiv.appendChild(li));
+
+  const disableSliderOnDesktop = true;
+  const inverse = true;
+  const refreshCallback = null;
+  const sliderConfig = {
+    slidesToShow: 'auto',
+    slidesToScroll: 1,
+    scrollLock: false,
+    itemWidth: 270,
+    exactWidth: true,
+    draggable: true,
+    duration: 2,
+    responsive: [
+      {
+        breakpoint: 481,
+        settings: {
+          itemWidth: 434,
+        },
+      },
+    ],
+  };
+  buildSlider(ul, sliderConfig, true, disableSliderOnDesktop, inverse, false, refreshCallback);
+
+  containerDiv.appendChild(ul);
+  blockDiv.appendChild(containerDiv);
+  return blockDiv;
+}
+
+async function createRecommendedCards(block) {
+  const blockData = block.cloneNode(true);
+  const { limit } = readBlockConfig(block);
+  block.textContent = '';
+  block.appendChild(createSpinner());
+  let dataAi = [];
+  let useAiData = false;
+
+  try {
+    const { getRecommendationAi } = await import('../../scripts/services/RecommendationAiService.js');
+    dataAi = await getRecommendationAi();
+
+    if (dataAi && dataAi.length > 0) {
+      const result = limit ? dataAi.slice(0, limit) : dataAi;
+      const cardsAi = await createRecommendedFromService(result, blockData);
+      block.replaceWith(cardsAi);
+      useAiData = true;
+    }
+  } catch (error) {
+    console.log('Error fetching Recommendation AI service:', error);
+  }
+
+  if (!useAiData) {
+    if (blockData) {
+      blockData.classList.remove('recommended-ai');
+      await createDynamicCards(blockData);
+      block.replaceWith(blockData);
+    } else {
+      const noResultsLabel = createElement('h4', null, 'No results found');
+      const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
+      block.replaceWith(noResults);
+    }
+  }
+}
+
 export default async function decorate(block) {
   if (block.classList.contains('dynamic')) {
     createDynamicCards(block);
+  } else if (block.classList.contains('recommended-ai')) {
+    createRecommendedCards(block);
   } else {
     createStaticCards(block);
   }
