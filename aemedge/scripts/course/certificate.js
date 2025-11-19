@@ -18,6 +18,7 @@ async function createCertificateModal({
   lessonTitle,
   userName,
   completedModule,
+  certificateTitle,
 }) {
   const [
     modalTitleLabel,
@@ -83,7 +84,7 @@ async function createCertificateModal({
           { class: 'certificate-header' },
           createElement('p', { class: 'eyebrow' }, 'Cme Group Institute'),
           createElement('p', { class: 'divider' }),
-          createElement('p', { class: 'title' }, certificateTitleLabel),
+          createElement('p', { class: 'title' }, certificateTitle || certificateTitleLabel),
         ),
         createElement(
           'div',
@@ -224,6 +225,7 @@ async function openCertificateModal({
   moduleId,
   lessonTitle,
   completedModule,
+  certificateTitle,
 }) {
   const scriptPromises = [
     loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js'),
@@ -237,6 +239,7 @@ async function openCertificateModal({
     lessonTitle,
     userName,
     completedModule,
+    certificateTitle,
   });
 
   const downloadBtn = block.querySelectorAll('.print-pdf')[0];
@@ -262,6 +265,7 @@ export async function addCourseCertificate({
   showModal,
   container,
   isFromHistory = false,
+  certificateTitle,
 }) {
   // Disable if educationIframe query parameter is set
   if (isFeatureToggled('educationIframe')) return;
@@ -290,6 +294,7 @@ export async function addCourseCertificate({
         moduleId,
         lessonTitle,
         completedModule,
+        certificateTitle,
       });
     }
   };
