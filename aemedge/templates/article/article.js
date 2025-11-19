@@ -151,6 +151,8 @@ async function buildBookmark(bookmark, bookmarkIcons, saveText) {
         savedArticle = true;
         saveText.textContent = savedLabel;
         showBookmarkTooltip(bookmarkIcons);
+        showSaveIcon(saveIcons, !savedArticle);
+        toggleSaveIcon(bookmark, saveIcons, !savedArticle);
       }
       localStorage.removeItem('save-article-pending');
     }
