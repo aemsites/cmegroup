@@ -660,6 +660,16 @@
     cursor: pointer;
 }
 
+.event-calendar-container .event-calendar-datepicker-button {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: transparent;
+    border-radius: 0;
+}
+
 .event-calendar-container .event-calendar-datepicker.datepicker-open {
     border: var(--blue5) solid 0.0625rem;
 }
