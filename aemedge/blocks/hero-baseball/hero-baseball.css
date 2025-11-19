@@ -1,0 +1,335 @@
+/* Hero Baseball Block - Follows DOM structure from hero-baseball.js */
+
+.hero-baseball {
+  position: relative;
+  background: var(--blue1) url('../../images/hero-baseball-bg-image.png') center/cover no-repeat;
+  color: white;
+  margin: 0;
+  overflow: hidden;
+  min-height: 300px;
+  padding: 2.5rem 1.5rem;
+
+  @media (width < 768px) {
+    padding: 1.5rem;
+  }
+
+  @media (width >= 993px) {
+    padding: 2.5rem 2rem;
+  }
+
+  /* Title */
+  & h1 {
+    font-size: 3rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: white;
+
+    @media (width < 768px) {
+      font-size: 2.25rem;
+    }
+  }
+
+  /* Subtitle */
+  & .hero-subtitle {
+    font-size: 1.125rem;
+    font-weight: 400;
+    margin-bottom: 2rem;
+    color: rgb(255 255 255 / 90%);
+  }
+
+  /* Contract data container */
+  & .contract-data {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    /* Price section row */
+    & .price-section {
+      display: flex;
+      gap: 3rem;
+      align-items: flex-start;
+
+      @media (width < 768px) {
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      /* Price columns */
+      & .current-price,
+      & .price-change,
+      & .volume-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+    }
+
+    /* Trading data row */
+    & .trading-data {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+
+      @media (width < 768px) {
+        gap: 1rem;
+      }
+
+      & .trading-item {
+        display: flex;
+        gap: 0.5rem;
+        align-items: baseline;
+
+        & .label {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: rgb(255 255 255 / 80%);
+        }
+
+        & .value {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: white;
+        }
+      }
+    }
+
+    /* Market update timestamp */
+    & .market-update {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      margin-top: 1rem;
+
+      & .update-time {
+        font-size: 0.875rem;
+        color: rgb(255 255 255 / 80%);
+      }
+
+      & .market-note {
+        font-size: 0.75rem;
+        color: rgb(255 255 255 / 60%);
+      }
+    }
+  }
+
+  /* Common labels */
+  & .label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.0625rem;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 70%);
+  }
+
+  /* Common values */
+  & .value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  /* Price change states */
+  & .change-negative {
+    color: #ff6b6b;
+  }
+
+  & .change-positive {
+    color: #51cf66;
+  }
+}
+
+
+/* ======================================================================
+ * PRODUCT PAGE SPECIFIC STYLES
+ * Adapted from original CME site baseball card component
+ * These styles only apply on product template pages
+ ====================================================================== */
+
+.product .hero-baseball {
+  background-color: var(--blue2);
+  margin-top: -3.125rem;
+  padding-bottom: 1.875rem;
+  padding-top: 5rem;
+  min-height: 25rem;
+
+  @media (width >= 769px) {
+    margin-top: -6.25rem;
+    padding-bottom: 1.5625rem;
+    padding-top: 8.125rem;
+    min-height: 28.125rem;
+  }
+
+  @media (width >= 993px) {
+    min-height: 31.25rem;
+  }
+
+  /* Container max-width */
+  & .container {
+    max-width: var(--container-xxl-max);
+    margin: 0 auto;
+  }
+
+  /* Headline section */
+  & h1 {
+    margin-bottom: 0;
+    padding-bottom: 0.625rem;
+    transition: opacity 0.2s ease-in-out;
+
+    @media (width >= 769px) {
+      padding-bottom: 0;
+    }
+  }
+
+  /* Subtitle */
+  & .hero-subtitle {
+    color: var(--gray4);
+    font-family: var(--averta), arial, sans-serif;
+    font-weight: 400;
+    margin-bottom: 0;
+    text-transform: none;
+    min-width: 6.25rem;
+    min-height: 1.375rem;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  /* Data title (labels like CURRENT PRICE, CHANGE, VOLUME) */
+  & .label {
+    align-items: flex-start;
+    color: var(--gray4);
+    display: flex;
+    font-family: var(--averta), arial, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.0938rem;
+    line-height: 0.875rem;
+    margin-bottom: 0.625rem;
+    text-transform: uppercase;
+
+    @media (width >= 769px) {
+      margin-bottom: 0.75rem;
+    }
+  }
+
+  /* Data row */
+  & .contract-data {
+    margin-bottom: 1.25rem;
+    padding-top: 1.875rem;
+
+    @media (width >= 769px) {
+      padding-top: 4.1875rem;
+    }
+
+    @media (width >= 993px) {
+      margin-bottom: 0.625rem;
+    }
+  }
+
+  /* Price section columns */
+  & .current-price {
+    @media (width >= 769px) {
+      margin-bottom: 1.875rem;
+    }
+
+    & .value {
+      min-width: 6.25rem;
+
+      @media (width >= 769px) {
+        min-width: 7.5rem;
+      }
+    }
+  }
+
+  & .price-change {
+    @media (width >= 993px) {
+      margin-bottom: 0;
+    }
+
+    & .value {
+      font-size: 1.25rem;
+      line-height: 1.25rem;
+      min-width: 9.375rem;
+
+      @media (width >= 769px) {
+        font-size: 1.75rem;
+        line-height: 2.5rem;
+        min-width: 12.5rem;
+      }
+    }
+  }
+
+  & .volume-info {
+    @media (width >= 993px) {
+      margin-bottom: 1.375rem;
+    }
+
+    & .value {
+      min-width: 6.25rem;
+
+      @media (width >= 769px) {
+        min-width: 7.5rem;
+      }
+    }
+  }
+
+  /* Values - use Roboto Mono font */
+  & .value {
+    color: white;
+    font-family: var(--roboto-mono), monospace;
+    font-weight: 300;
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+    min-width: 5rem;
+    transition: opacity 0.2s ease-in-out;
+
+    @media (width >= 769px) {
+      font-size: 1.75rem;
+      line-height: 2.5rem;
+      min-width: 6.25rem;
+    }
+  }
+
+  /* Positive/Negative change colors - original CME colors */
+  & .change-positive {
+    color: rgb(42 227 3);
+  }
+
+  & .change-negative {
+    color: rgb(223 0 53);
+  }
+
+  /* Trading item labels and values */
+  & .trading-item {
+    & .label {
+      font-size: 0.6875rem;
+      letter-spacing: 0.0938rem;
+      margin-bottom: 0;
+    }
+
+    & .value {
+      font-family: var(--roboto-mono), monospace;
+      font-weight: 300;
+    }
+  }
+
+  /* Timestamp */
+  & .update-time {
+    color: var(--gray4);
+    font-family: var(--averta), arial, sans-serif;
+    font-size: 0.75rem;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0.0125rem;
+    line-height: 1rem;
+  }
+
+  & .market-note {
+    color: var(--gray4);
+    font-family: var(--averta), arial, sans-serif;
+    font-size: 0.75rem;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0.0125rem;
+    line-height: 1rem;
+  }
+}
+
