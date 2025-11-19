@@ -1,11 +1,6 @@
-import { getMetadata } from '../../scripts/aem.js';
-import { getProductMetadata } from '../../scripts/utils/product.js';
-import { apiPost, getResponseData, urlByEnvType } from '../../scripts/utils/index.js';
+import { getProductMetadata, getContractsByNumber } from '../../scripts/utils/product.js';
 import { createElement, i18n } from '../../scripts/utils.js';
-
-const HERO_API_CONFIG = {
-  endpoint: '/CmeWS/mvc/quotes/v2/contracts-by-number',
-};
+import { store } from '../../scripts/store/store.js';
 
 function formatNumber(num) {
   if (!num && num !== 0) return '-';
@@ -37,7 +32,7 @@ async function createHeroStructure() {
 
   const container = createElement('div', { class: 'container' });
 
-  const h1 = createElement('h1', {}, getMetadata('product') || 'Product Name');
+  const h1 = createElement('h1', {}, '');
   const subtitle = createElement('div', { class: 'hero-subtitle' }, '\u00A0');
 
   const contractData = createElement('div', { class: 'contract-data' });
@@ -88,25 +83,12 @@ async function createHeroStructure() {
   return container;
 }
 
-async function populateHeroData(block) {
+async function populateHeroData(productData, block) {
   try {
-    const { productId, productName } = await getProductMetadata();
+    const { productName, isActive } = productData;
+    const { productId, productName: metaProductName } = await getProductMetadata();
     if (!productId) return;
-
-    const url = `${urlByEnvType()}${HERO_API_CONFIG.endpoint}`;
-    const payload = {
-      productIds: [productId],
-      contractsNumber: [1],
-      type: 'VOLUME',
-      showQuarterly: [0],
-    };
-
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-
-    const response = await apiPost(url, payload, headers);
-    const data = getResponseData(response) || response.data;
+    const data = await getContractsByNumber(productId);
 
     if (!data || !Array.isArray(data) || data.length === 0) return;
 
@@ -126,8 +108,9 @@ async function populateHeroData(block) {
     };
 
     const h1 = block.querySelector('h1');
+    updateElement(h1, productName || metaProductName || '');
+
     const subtitle = block.querySelector('.hero-subtitle');
-    updateElement(h1, contractData.productName || productName || '');
     updateElement(subtitle, contractData.expirationMonth || '');
 
     const currentPrice = block.querySelector('.current-price .value');
@@ -156,11 +139,13 @@ async function populateHeroData(block) {
     updateElement(low, contractData.low || '-');
     updateElement(priorSettle, contractData.priorSettle || '-');
 
-    const updateTime = block.querySelector('.update-time');
-    if (updateTime && contractData.updated) {
-      const updatedLabel = await i18n('Updated');
-      const date = new Date(contractData.updated);
-      updateElement(updateTime, `${updatedLabel}: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`);
+    if (isActive) {
+      const updateTime = block.querySelector('.update-time');
+      if (updateTime && contractData.updated) {
+        const updatedLabel = await i18n('Updated');
+        const date = new Date(contractData.updated);
+        updateElement(updateTime, `${updatedLabel}: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`);
+      }
     }
   } catch (e) {
     // Silent fail
@@ -175,9 +160,9 @@ export default async function decorate(block) {
     block.append(container);
   }
 
-  // Non-blocking: Load data in background after render
-  // This ensures the block appears immediately, then populates smoothly
-  setTimeout(() => {
-    populateHeroData(block);
-  }, 0);
+  store.subscribe(({ productData }) => productData, (productData) => {
+    if (productData.loaded) {
+      populateHeroData(productData, block);
+    }
+  });
 }

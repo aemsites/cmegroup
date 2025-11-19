@@ -7,20 +7,23 @@
 // Circular dependency with product-navigation.js is intentional and safe
 // Uses dynamic imports to avoid initialization issues
 
-import { normalizePath, indexHasPath, getProductMetadata } from '../../scripts/utils/product.js';
+import {
+  normalizePath,
+  indexHasPath,
+  getProductMetadata,
+  loadProductData,
+} from '../../scripts/utils/product.js';
 import { store } from '../../scripts/store/store.js';
 import {
   setToggleOperation,
   setCreatingToggle,
   setTabSelection,
   clearTabSelection,
-  setProductData,
 } from '../../scripts/actions/product.js';
 import { findProductTabsSection } from './product-dom-helpers.js';
 import { renderProductPath, PREFETCH_CACHE } from './product-navigation.js';
 import {
   createOptionsDropdown,
-  fetchExpirationsData,
   getSelectedContractFromURL,
   prefetchOptionPages,
   buildContractURL,
@@ -104,14 +107,13 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
     // Use setTimeout to defer fetch until after render completes
     setTimeout(async () => {
       try {
-        const result = await fetchExpirationsData(productId);
-        expirationsData = result.expirations;
+        const result = await loadProductData(productId);
+        expirationsData = result.optionsLabels;
 
         if (expirationsData && expirationsData.length > 0) {
           const payload = { optionsExpirations: expirationsData };
           if (result.productSymbol) payload.productSymbol = result.productSymbol;
           if (result.productName) payload.productName = result.productName;
-          store.dispatch(setProductData(payload));
 
           // Update the dropdown that's already rendered
           updateDropdownWithData(optionsDropdown, expirationsData, selectedContract);

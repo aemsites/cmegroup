@@ -2,10 +2,16 @@ import { getMetadata } from '../aem.js';
 import { getIndexedContent } from '../indexing.js';
 import { store } from '../store/store.js';
 import { setProductData } from '../actions/product.js';
+import { apiGet, apiPost, getResponseData } from './fetch.js';
+import { urlByEnvType } from './env.js';
+import { loadScript, setupDayjsLibs, getCdtDate } from '../utils.js';
 
-// Shared cache for product index results
-// Stores full search API results to avoid duplicate calls
-let productIndexCache = null;
+// API Configuration
+const API_CONFIG = {
+  // Expirations endpoint - requires productId parameter
+  fullProductWithOptionsEndpoint: '/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/',
+  contractsByNumberEndpoint: '/CmeWS/mvc/quotes/v2/contracts-by-number',
+};
 
 export function normalizePath(pathname) {
   try {
@@ -32,6 +38,8 @@ export function computeProductRoot(pathname) {
   return `/${trimmed.join('/')}`;
 }
 
+let productSearchApiPromise = null;
+
 /**
  * Load product index from search API and cache results
  * ✅ CONSOLIDATED: Single source of truth, eliminates duplicate API calls
@@ -39,27 +47,24 @@ export function computeProductRoot(pathname) {
  * @returns {Promise<Array>} Array of indexed product pages
  */
 export async function loadProductIndex(basePath) {
-  // Return cached results if already loaded
-  if (productIndexCache) {
-    return productIndexCache;
+  if (!productSearchApiPromise) {
+    productSearchApiPromise = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const indexFilter = {
+            templates: ['product'],
+            basePaths: [basePath],
+            limit: 1000,
+          };
+          const results = await getIndexedContent(indexFilter);
+          resolve(results);
+        } catch (e) {
+          reject(e);
+        }
+      })();
+    });
   }
-
-  try {
-    const indexFilter = {
-      templates: ['product'],
-      basePaths: [basePath],
-      limit: 1000,
-    };
-
-    const results = await getIndexedContent(indexFilter);
-
-    // Cache the full results (not just paths)
-    productIndexCache = results || [];
-    return productIndexCache;
-  } catch (e) {
-    productIndexCache = [];
-    return [];
-  }
+  return productSearchApiPromise;
 }
 
 /**
@@ -91,11 +96,8 @@ export async function indexHasPath(path) {
  */
 async function getProductFromSearchAPI(productPath) {
   try {
-    // Determine base path (e.g., /markets or /drafts)
-    const basePath = `/${productPath.split('/')[1]}`;
-
     // Use shared cache - no duplicate API call!
-    const results = await loadProductIndex(basePath);
+    const results = await loadProductIndex(productPath);
 
     if (!results || results.length === 0) {
       return null;
@@ -113,7 +115,6 @@ async function getProductFromSearchAPI(productPath) {
     const metadata = {
       productId: productPage.metadata?.['product-id'] || '',
       productName: productPage.metadata?.product || productPage.title || '',
-      productSymbol: productPage.metadata?.['product-symbol'] || '',
     };
 
     return metadata;
@@ -122,72 +123,109 @@ async function getProductFromSearchAPI(productPath) {
   }
 }
 
-/**
- * Get product metadata with persistent caching across SPA navigation
- * Uses Redux store to persist metadata when navigating between tabs
- * that may not have metadata tags (prevents hero/blocks from going blank)
- */
+let productMetaDataPromise = null;
+
 export async function getProductMetadata() {
-  const productRoot = computeProductRoot(window.location.pathname);
-  const state = store.getState();
-  const { productData } = state;
-
-  // Check if we already have cached metadata in store for this product
-  if (productData.productRoot === productRoot
-      && productData.productId
-      && productData.productName) {
-    return {
-      productId: productData.productId,
-      productName: productData.productName,
-      productSymbol: productData.productSymbol || '',
-    };
+  if (!productMetaDataPromise) {
+    productMetaDataPromise = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          // Try to get metadata from HTML meta tags
+          const context = {
+            productId: getMetadata('product-id') || '',
+            productName: getMetadata('product') || '',
+          };
+          // If we have complete metadata from tags
+          if (context.productId && context.productName) {
+            resolve(context);
+          }
+          // Fallback: try to get metadata from search API
+          const productRoot = computeProductRoot(window.location.pathname);
+          const searchMetadata = await getProductFromSearchAPI(productRoot);
+          if (searchMetadata) {
+            context.productId = context.productId || searchMetadata.productId || '';
+            context.productName = context.productName || searchMetadata.productName || '';
+          }
+          resolve(context);
+        } catch (e) {
+          reject(e);
+        }
+      })();
+    });
   }
+  return productMetaDataPromise;
+}
 
-  // Try to get metadata from HTML meta tags
-  const context = {
-    productId: getMetadata('product-id') || '',
-    productName: getMetadata('product') || '',
-    productSymbol: getMetadata('product-symbol') || '',
+export function isValidTradeDate(date, hoursToSubtract) {
+  const today = getCdtDate(Date.now());
+  const prevDay = getCdtDate(date).subtract(hoursToSubtract, 'hour');
+  return today.isSameOrAfter(prevDay, 'hour');
+}
+
+let productDataPromise = null;
+
+export async function loadProductData(productId) {
+  if (!productId) {
+    store.dispatch(setProductData({
+      loaded: true,
+      isTrading: false,
+    }));
+  }
+  if (!productDataPromise) {
+    productDataPromise = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const endpoint = `${urlByEnvType()}${API_CONFIG.fullProductWithOptionsEndpoint}${productId}`;
+          const [response] = await Promise.all([
+            apiGet(endpoint, {}, {}, { withCredentials: false }),
+            setupDayjsLibs(),
+            loadScript('/aemedge/scripts/third-party/dayjs/isSameOrAfter.js'),
+          ]);
+          /* eslint-disable no-undef */
+          dayjs.extend(dayjs_plugin_isSameOrAfter);
+          const data = getResponseData(response) || response.data;
+          if (data && data.optionsLabels && Array.isArray(data.optionsLabels)) {
+            data.optionsLabels = data.optionsLabels.map((option) => ({
+              ...option,
+              weekly: option.weekly === 'true' || option.weekly === true,
+              daily: option.daily === 'true' || option.daily === true,
+              isActive: option.listDate ? isValidTradeDate(option.listDate, 24) : true,
+              isTrading: option.listDate ? isValidTradeDate(option.listDate, 8) : true,
+            }));
+          }
+          store.dispatch(setProductData({
+            loaded: true,
+            ...data,
+            productSymbol: data.shortName,
+            isActive: data.listDate ? isValidTradeDate(data.listDate, 24) : true,
+            isTrading: data.listDate ? isValidTradeDate(data.listDate, 8) : true,
+          }));
+          resolve(data);
+        } catch (e) {
+          store.dispatch(setProductData({
+            loaded: true,
+            isTrading: false,
+          }));
+          reject(e);
+        }
+      })();
+    });
+  }
+  return productDataPromise;
+}
+
+export async function getContractsByNumber(productId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.contractsByNumberEndpoint}`;
+  const payload = {
+    productIds: [productId],
+    contractsNumber: [1],
+    type: 'VOLUME',
+    showQuarterly: [0],
   };
-
-  // If we have complete metadata from tags, cache in store and return it
-  if (context.productId && context.productName) {
-    store.dispatch(setProductData({
-      productRoot,
-      productId: context.productId,
-      productName: context.productName,
-      productSymbol: context.productSymbol,
-    }));
-
-    return context;
-  }
-
-  // Fallback: try to get metadata from search API
-  const searchMetadata = await getProductFromSearchAPI(productRoot);
-
-  if (searchMetadata) {
-    context.productId = context.productId || searchMetadata.productId || '';
-    context.productName = context.productName || searchMetadata.productName || '';
-    context.productSymbol = context.productSymbol || searchMetadata.productSymbol || '';
-  }
-
-  // Only save to store if we have at least productId or productName
-  // Don't overwrite existing data with empty values
-  if (context.productId || context.productName) {
-    store.dispatch(setProductData({
-      productRoot,
-      productId: context.productId || productData.productId,
-      productName: context.productName || productData.productName,
-      productSymbol: context.productSymbol || productData.productSymbol,
-    }));
-  } else if (productData.productId || productData.productName) {
-    // Return existing store data if available, otherwise empty context
-    return {
-      productId: productData.productId || '',
-      productName: productData.productName || '',
-      productSymbol: productData.productSymbol || '',
-    };
-  }
-
-  return context;
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  const response = await apiPost(endpoint, payload, headers);
+  const data = getResponseData(response) || response.data;
+  return data;
 }
