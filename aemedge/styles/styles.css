@@ -1060,9 +1060,8 @@ main {
     padding-top: 6.25rem;
   }
 
-  & > .section:not(.divider-container, .hero-container, .hero) {
-    margin-bottom: 1.875rem;
-
+  & > .section:not(.divider-container, .hero-container, .hero),
+  & .columns {
     &.text-1,
     &.text-2,
     &.text-3,
@@ -1334,6 +1333,10 @@ main {
         }
       }
     }
+  }
+
+  & > .section:not(.divider-container, .hero-container, .hero) {
+    margin-bottom: 1.875rem;
   }
 
   @media (width >= 769px) {
