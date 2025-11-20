@@ -11,7 +11,6 @@ import {
   normalizePath,
   indexHasPath,
   getProductMetadata,
-  loadProductData,
 } from '../../scripts/utils/product.js';
 import { store } from '../../scripts/store/store.js';
 import {
@@ -80,13 +79,11 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
     return container;
   }
 
-  const state = store.getState();
-  let expirationsData = state.productData.optionsExpirations;
   const selectedContract = getSelectedContractFromURL();
 
   // ✅ OPTIMIZED: Create dropdown immediately with existing data (or empty)
   // Don't wait for API - render first, fetch after
-  const optionsDropdown = createOptionsDropdown(expirationsData || [], selectedContract);
+  const optionsDropdown = createOptionsDropdown([], selectedContract);
 
   optionsDropdown.setAttribute('data-href', optionsPath);
 
@@ -101,47 +98,22 @@ async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
   container.appendChild(optionsDropdown);
   nav.appendChild(container);
 
-  // ✅ LAZY FETCH: Load data in background AFTER rendering (non-blocking)
-  const isWrongProduct = state.productData.productRoot !== normalizePath(productRoot);
-  if (!expirationsData || isWrongProduct) {
-    // Use setTimeout to defer fetch until after render completes
-    setTimeout(async () => {
-      try {
-        const result = await loadProductData(productId);
-        expirationsData = result.optionsLabels;
+  store.subscribe(({ productData }) => productData, (productData) => {
+    if (productData.loaded) {
+      const { optionsLabels } = productData;
 
-        if (expirationsData && expirationsData.length > 0) {
-          const payload = { optionsExpirations: expirationsData };
-          if (result.productSymbol) payload.productSymbol = result.productSymbol;
-          if (result.productName) payload.productName = result.productName;
+      if (optionsLabels && optionsLabels.length > 0) {
+        // Update the dropdown that's already rendered
+        updateDropdownWithData(optionsDropdown, optionsLabels, selectedContract);
 
-          // Update the dropdown that's already rendered
-          updateDropdownWithData(optionsDropdown, expirationsData, selectedContract);
-
-          // Prefetch option pages if configured
-          if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover && expirationsData.length > 0) {
-            const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
-            prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
-          }
+        // Prefetch option pages if configured
+        if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover && optionsLabels.length > 0) {
+          const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
+          prefetchOptionPages(optionsPath, optionsLabels, count, PREFETCH_CACHE);
         }
-      } catch (error) {
-        // Silent fail
       }
-    }, 0); // Execute after current call stack clears
-  } else if (expirationsData && expirationsData.length > 0) {
-    // Data already exists, update selection state
-    const items = optionsDropdown.querySelectorAll('.dropdown-item');
-    items.forEach((item) => {
-      const isSelected = item.dataset.productId === selectedContract;
-      item.classList.toggle('selected', isSelected);
-    });
-
-    // Prefetch option pages if configured
-    if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover) {
-      const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
-      prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
     }
-  }
+  });
 
   return nav;
 }
