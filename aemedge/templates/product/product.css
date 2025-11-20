@@ -27,6 +27,10 @@ main {
     z-index: 10;
     margin-bottom: 0;
 
+    @media (width < 769px) {
+      padding: 0;
+    }
+
     /* Tabs wrapper - contains both nav and subtabs */
     & .product-tabs-wrapper {
       display: flex;
@@ -34,16 +38,29 @@ main {
       justify-content: space-between;
       gap: 1rem;
       flex-wrap: wrap;
+      padding: 0 1rem;
 
       @media (width < 769px) {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
+        padding: 0;
       }
 
       /* Main tabs navigation */
       & .product-tabs-nav {
         flex: 1 1 auto;
+
+        @media (width < 769px) {
+          width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+
+          &::-webkit-scrollbar {
+            display: none;
+          }
+        }
 
         /* ✅ UX: Active tab not clickable */
         & a.is-active {
@@ -61,6 +78,7 @@ main {
         @media (width < 769px) {
           margin-left: 0;
           width: 100%;
+          padding: 0 1rem 0.75rem;
         }
 
         /* Enhanced sub-tabs with futures/options toggle */
@@ -310,7 +328,7 @@ main {
     padding: 1.875rem 0;
     min-height: 50vh;
 
-    @media (width >= 993px) {
+    @media (width >= 769px) {
       padding: 3.75rem 0;
     }
 
