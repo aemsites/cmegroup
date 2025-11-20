@@ -184,7 +184,9 @@ export async function loadProductData(productId) {
           /* eslint-disable no-undef */
           dayjs.extend(dayjs_plugin_isSameOrAfter);
           const data = getResponseData(response) || response.data;
+          let hasOptions = false;
           if (data && data.optionsLabels && Array.isArray(data.optionsLabels)) {
+            hasOptions = true;
             data.optionsLabels = data.optionsLabels.map((option) => ({
               ...option,
               weekly: option.weekly === 'true' || option.weekly === true,
@@ -193,9 +195,13 @@ export async function loadProductData(productId) {
               isTrading: option.listDate ? isValidTradeDate(option.listDate, 8) : true,
             }));
           }
+          data.fullProductName = data.productName;
+          data.productName = data.productName.replace('futures', '').trim();
           store.dispatch(setProductData({
-            loaded: true,
             ...data,
+            loaded: true,
+            hasOptions,
+            productSubtitle: hasOptions ? 'Futures and Options' : 'Futures',
             productSymbol: data.shortName,
             isActive: data.listDate ? isValidTradeDate(data.listDate, 24) : true,
             isTrading: data.listDate ? isValidTradeDate(data.listDate, 8) : true,
