@@ -196,7 +196,7 @@ export async function loadProductData(productId) {
             }));
           }
           data.fullProductName = data.productName;
-          data.productName = data.productName.replace('futures', '').trim();
+          data.productName = data.productName.replace(/futures/ig, '').trim();
           store.dispatch(setProductData({
             ...data,
             loaded: true,
