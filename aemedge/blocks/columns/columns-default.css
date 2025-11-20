@@ -24,8 +24,6 @@
     }
 
     & > div {
-      order: 1;
-
       @media (width >= 769px) {
         flex: 1;
         order: unset;
@@ -34,8 +32,6 @@
     }
 
     & > .columns-img-col {
-      order: 0;
-
       & img {
         display: block;
       }
