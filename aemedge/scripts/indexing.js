@@ -4,7 +4,9 @@
 import { apiPost, getResponseData, urlByEnvType } from './utils/index.js';
 import { setupDayjsLibs } from './utils.js';
 
-const QUERY_INDEX_ENDPOINT = '/services/query-index/search';
+// TODO: Beta testing endpoint for markets development, please rollback to the
+// original endpoint once education go live
+const QUERY_INDEX_ENDPOINT = '/services/query-index-beta/search';
 
 function hasValue(value) {
   return value !== null && value !== undefined && value !== '' && !Number.isNaN(value);

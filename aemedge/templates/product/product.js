@@ -11,13 +11,17 @@
  */
 
 import { getMetadata } from '../../scripts/aem.js';
-import { computeProductRoot, normalizePath, getProductMetadata } from '../../scripts/utils/product.js';
+import {
+  computeProductRoot,
+  normalizePath,
+  getProductMetadata,
+  loadProductData,
+} from '../../scripts/utils/product.js';
 import { store } from '../../scripts/store/store.js';
 
 // Import module functions
 import {
   insertHeroIfMissing,
-  ensureHeroThenTabsOrder,
   insertProductTabsIfMissing,
   moveCurrentPageContentUnderSubTabs,
   getDefaultTab,
@@ -53,7 +57,9 @@ export default async function productTemplate() {
 
   // Ensure product metadata (including product ID) is available
   // If missing from page metadata, fetch from search API
-  await getProductMetadata();
+  getProductMetadata().then(({ productId }) => {
+    loadProductData(productId);
+  });
   // Continue anyway - some functionality may be limited even without product ID
 
   // Preload path index cache to avoid delays during user interactions
@@ -62,16 +68,13 @@ export default async function productTemplate() {
   // Insert hero if missing
   const heroExists = document.querySelector('.hero-baseball');
   if (!heroExists) {
-    await insertHeroIfMissing();
+    await insertHeroIfMissing(productRoot);
   }
 
   // Insert product tabs if missing
   if (!findProductTabsSection()) {
     await insertProductTabsIfMissing(productRoot);
   }
-
-  // Ensure correct order (hero → tabs)
-  ensureHeroThenTabsOrder();
 
   // Enable SPA navigation for main tabs early (before toggle/content moves)
   // Uses MutationObserver to wait for async block decoration (no polling!)
