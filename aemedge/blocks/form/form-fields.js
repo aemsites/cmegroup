@@ -1,5 +1,5 @@
 import { toClassName } from '../../scripts/aem.js';
-import { createElement } from '../../scripts/utils.js';
+import { createElement, i18n } from '../../scripts/utils.js';
 
 function createFieldWrapper(fd) {
   const fieldWrapper = createElement('div');
@@ -54,7 +54,7 @@ function createLabel(fd) {
   return label;
 }
 
-function setCommonAttributes(field, fd) {
+async function setCommonAttributes(field, fd) {
   field.id = fd.Id;
   field.name = fd.Name;
   field.required = fd.Mandatory?.toLowerCase() === 'true' || fd.Mandatory?.toLowerCase() === 'x';
@@ -63,29 +63,43 @@ function setCommonAttributes(field, fd) {
   field.submitName = fd.SubmitName;
   field.prefillInput = fd.PrefillInput;
   field.prefillSelfInput = fd.PrefillSelfInput;
+  if (fd.MinLength) field.minLength = fd.MinLength;
+  if (fd.MaxLength) field.maxLength = fd.MaxLength;
 
-  // Set validation message (empty if not provided)
-  const validationMessage = fd.ValidationMessage || '';
-  field.dataset.customError = validationMessage;
+  // default validation messages
+  const [requiredText, shortText, longText] = await Promise.all([
+    i18n('This field is required'),
+    i18n('Text too short'),
+    i18n('Text too long'),
+  ]);
 
-  // Set initial validation state
-  if (field.required && !field.value) {
-    field.setCustomValidity(validationMessage);
-  }
+  const checkCustomValidity = () => {
+    if (field.validity.valueMissing) {
+      field.setCustomValidity(fd.ValidationMessage || requiredText);
+    } else if (field.validity.tooShort) {
+      field.setCustomValidity(fd.ShortErrorMessage || shortText);
+    } else if (field.validity.tooLong) {
+      field.setCustomValidity(fd.LongErrorMessage || longText);
+    } else {
+      field.setCustomValidity('');
+    }
+  };
 
   const handler = () => {
-    if (field.required) {
-      field.setCustomValidity(field.value ? '' : field.dataset.customError);
-    }
-    if (field.value) {
+    field.setCustomValidity('');
+    if (field.checkValidity()) {
       const wrapper = field.closest('.field-wrapper');
       const errorMsg = wrapper.querySelector('.error-message');
       errorMsg?.remove();
     }
   };
 
+  // Set initial validation state
+  checkCustomValidity();
+
   field.addEventListener('input', handler);
   field.addEventListener('change', handler);
+  field.addEventListener('invalid', checkCustomValidity);
 }
 
 const createHeading = (fd) => {
