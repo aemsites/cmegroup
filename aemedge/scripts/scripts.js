@@ -776,7 +776,10 @@ async function loadEager(doc) {
     document.body.classList.add('appear');
 
     const templatePromise = templateName ? loadTemplate(doc, templateName) : Promise.resolve();
-    await loadSection(main.querySelector('.section'), async (section) => Promise.all([templatePromise, waitForFirstImage(section)]));
+    await loadSection(main.querySelector('.section'), async (section) => {
+      await templatePromise;
+      waitForFirstImage(section);
+    });
   }
 
   try {
