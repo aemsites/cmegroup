@@ -47,21 +47,23 @@ async function loadUserProgress(courseData) {
 }
 
 export default async function lessonStandaloneTemplate() {
-  //  static section
-  const courseData = await getCourseData();
-  await createCourseBaseTemplate(courseData);
-  addFragmentBlock(FRAGMENT_URL);
+  (async () => {
+    //  static section
+    const courseData = await getCourseData();
+    await createCourseBaseTemplate(courseData);
+    addFragmentBlock(FRAGMENT_URL);
 
-  //  dynamic section - user progress
-  import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
-    const { authenticationData } = authentication;
-    authenticationData.loginPromise.then(async () => {
-      const { isLoggedIn, loginInfo } = authenticationData;
-      const data = await getCourseData(loginInfo);
-      loadUserProgress(data);
-      if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
-        import('../../scripts/course/auth-modal.js');
-      }
+    //  dynamic section - user progress
+    import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
+      const { authenticationData } = authentication;
+      authenticationData.loginPromise.then(async () => {
+        const { isLoggedIn, loginInfo } = authenticationData;
+        const data = await getCourseData(loginInfo);
+        loadUserProgress(data);
+        if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
+          import('../../scripts/course/auth-modal.js');
+        }
+      });
     });
-  });
+  })();
 }
