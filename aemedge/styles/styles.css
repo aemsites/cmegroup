@@ -121,7 +121,7 @@ body.header-hidden main {
 @media (width >= 993px) {
   .header {
     /* background-color: var(--white); */
-    background-image: linear-gradient(-59.88deg, white 0%, white 35%, #ff0000 35%, #ff0000 65%, white 65%, white 100%);
+    background-image: linear-gradient(-59.88deg, white 0%, white 35%, #f00 35%, #f00 65%, white 65%, white 100%);
   }
 }
 
