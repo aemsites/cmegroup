@@ -265,32 +265,6 @@ export async function getContractsByNumber(productId) {
 }
 
 /**
- * Get author override content for a block
- * Allows authors to override API-driven blocks with manually authored content
- * @param {string} dataAttribute - The data attribute to match (e.g., 'options', 'settlement')
- * @param {string} value - The value to match
- * @returns {Array|null} Array of DOM nodes or null if no override found
- *
- * @example
- * // For options override:
- * const nodes = getAuthorOverride('options', '2701');
- * // Looks for: <div class="section" data-options="2701" data-override="true">
- *
- * @example
- * // For settlement override:
- * const nodes = getAuthorOverride('settlement', 'ZCZ24');
- * // Looks for: <div class="section" data-settlement="ZCZ24" data-override="true">
- */
-export function getAuthorOverride(dataAttribute, value) {
-  if (!value) return null;
-
-  const section = document.querySelector(`main .section[data-${dataAttribute}="${value}"][data-override="true"]`);
-  if (!section) return null;
-
-  return Array.from(section.children);
-}
-
-/**
  * Apply author override content to a block
  * @param {Element} block - The block element to replace content
  * @param {string} dataAttribute - The data attribute to match
@@ -303,12 +277,42 @@ export function getAuthorOverride(dataAttribute, value) {
  *   return; // Override applied, skip API fetch
  * }
  */
-export function applyAuthorOverride(block, dataAttribute, value) {
-  const overrideNodes = getAuthorOverride(dataAttribute, value);
-  if (overrideNodes) {
-    block.innerHTML = '';
-    overrideNodes.forEach((node) => block.appendChild(node));
-    return true;
+export async function applyAuthorOverride(block, dataAttribute, value) {
+  if (!value) {
+    block.classList.remove('override-active');
+    return false;
   }
-  return false;
+
+  let section = document.querySelector(`.product-subtabs-content .section[data-${dataAttribute}="${value}"][data-override="true"]`);
+  if (!section) {
+    section = document.querySelector(`main .section[data-${dataAttribute}="${value}"][data-override="true"]`);
+  }
+
+  if (!section || !section.innerHTML.trim()) {
+    block.classList.remove('override-active');
+    return false;
+  }
+
+  block.innerHTML = '';
+  section.childNodes.forEach((node) => {
+    block.appendChild(node.cloneNode(true));
+  });
+
+  const blocks = block.querySelectorAll('.block');
+  const blocksNeedingDecoration = Array.from(blocks).filter(
+    (innerBlock) => innerBlock.dataset.blockStatus !== 'loaded',
+  );
+
+  if (blocksNeedingDecoration.length) {
+    const { decorateBlock, loadBlock } = await import('../aem.js');
+    // eslint-disable-next-line no-restricted-syntax
+    for (const innerBlock of blocksNeedingDecoration) {
+      decorateBlock(innerBlock);
+      // eslint-disable-next-line no-await-in-loop
+      await loadBlock(innerBlock);
+    }
+  }
+
+  block.classList.add('override-active');
+  return true;
 }
