@@ -5,6 +5,7 @@ import { setProductData } from '../actions/product.js';
 import { apiGet, apiPost, getResponseData } from './fetch.js';
 import { urlByEnvType } from './env.js';
 import { loadScript, setupDayjsLibs, getCdtDate } from '../utils.js';
+import { getMockProductData, getMockIndexHasPath, getMockProductMetadata } from '../mock-data.js';
 
 // API Configuration
 const API_CONFIG = {
@@ -73,6 +74,11 @@ export async function loadProductIndex(basePath) {
  * @returns {Promise<boolean>} True if path exists
  */
 export async function indexHasPath(path) {
+  // Mock mode starts
+  const mockResult = getMockIndexHasPath();
+  if (mockResult !== null) return mockResult;
+  // Mock mode ends
+
   try {
     // Determine base path from the path being checked
     const basePath = `/${path.split('/')[1]}`;
@@ -130,6 +136,14 @@ export async function getProductMetadata() {
     productMetaDataPromise = new Promise((resolve, reject) => {
       (async () => {
         try {
+          // Mock mode starts
+          const mockMetadata = getMockProductMetadata();
+          if (mockMetadata) {
+            resolve(mockMetadata);
+            return;
+          }
+          // Mock mode ends
+
           // Try to get metadata from HTML meta tags
           const context = {
             productId: getMetadata('product-id') || '',
@@ -175,15 +189,29 @@ export async function loadProductData(productId) {
     productDataPromise = new Promise((resolve, reject) => {
       (async () => {
         try {
-          const endpoint = `${urlByEnvType()}${API_CONFIG.fullProductWithOptionsEndpoint}${productId}`;
-          const [response] = await Promise.all([
-            apiGet(endpoint, {}, {}, { withCredentials: false }),
-            setupDayjsLibs(),
-            loadScript('/aemedge/scripts/third-party/dayjs/isSameOrAfter.js'),
-          ]);
+          let data;
+
+          // Mock mode starts
+          const mockData = getMockProductData();
+          if (mockData) {
+            await Promise.all([
+              setupDayjsLibs(),
+              loadScript('/aemedge/scripts/third-party/dayjs/isSameOrAfter.js'),
+            ]);
+            data = mockData;
+          } else {
+          // Mock mode ends
+            const endpoint = `${urlByEnvType()}${API_CONFIG.fullProductWithOptionsEndpoint}${productId}`;
+            const [response] = await Promise.all([
+              apiGet(endpoint, {}, {}, { withCredentials: false }),
+              setupDayjsLibs(),
+              loadScript('/aemedge/scripts/third-party/dayjs/isSameOrAfter.js'),
+            ]);
+            data = getResponseData(response) || response.data;
+          }
+
           /* eslint-disable no-undef */
           dayjs.extend(dayjs_plugin_isSameOrAfter);
-          const data = getResponseData(response) || response.data;
           let hasOptions = false;
           if (data && data.optionsLabels && Array.isArray(data.optionsLabels)) {
             hasOptions = true;
@@ -234,4 +262,53 @@ export async function getContractsByNumber(productId) {
   const response = await apiPost(endpoint, payload, headers);
   const data = getResponseData(response) || response.data;
   return data;
+}
+
+/**
+ * Get author override content for a block
+ * Allows authors to override API-driven blocks with manually authored content
+ * @param {string} dataAttribute - The data attribute to match (e.g., 'options', 'settlement')
+ * @param {string} value - The value to match
+ * @returns {Array|null} Array of DOM nodes or null if no override found
+ *
+ * @example
+ * // For options override:
+ * const nodes = getAuthorOverride('options', '2701');
+ * // Looks for: <div class="section" data-options="2701" data-override="true">
+ *
+ * @example
+ * // For settlement override:
+ * const nodes = getAuthorOverride('settlement', 'ZCZ24');
+ * // Looks for: <div class="section" data-settlement="ZCZ24" data-override="true">
+ */
+export function getAuthorOverride(dataAttribute, value) {
+  if (!value) return null;
+
+  const section = document.querySelector(`main .section[data-${dataAttribute}="${value}"][data-override="true"]`);
+  if (!section) return null;
+
+  return Array.from(section.children);
+}
+
+/**
+ * Apply author override content to a block
+ * @param {Element} block - The block element to replace content
+ * @param {string} dataAttribute - The data attribute to match
+ * @param {string} value - The value to match
+ * @returns {boolean} True if override was applied, false otherwise
+ *
+ * @example
+ * // In your block's decorate function:
+ * if (applyAuthorOverride(block, 'options', optionProductId)) {
+ *   return; // Override applied, skip API fetch
+ * }
+ */
+export function applyAuthorOverride(block, dataAttribute, value) {
+  const overrideNodes = getAuthorOverride(dataAttribute, value);
+  if (overrideNodes) {
+    block.innerHTML = '';
+    overrideNodes.forEach((node) => block.appendChild(node));
+    return true;
+  }
+  return false;
 }
