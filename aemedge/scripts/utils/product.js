@@ -265,17 +265,7 @@ export async function getContractsByNumber(productId) {
 }
 
 /**
- * Apply author override content to a block
- * @param {Element} block - The block element to replace content
- * @param {string} dataAttribute - The data attribute to match
- * @param {string} value - The value to match
- * @returns {boolean} True if override was applied, false otherwise
- *
- * @example
- * // In your block's decorate function:
- * if (applyAuthorOverride(block, 'options', optionProductId)) {
- *   return; // Override applied, skip API fetch
- * }
+ * Replace block content with matching authored override section (if any).
  */
 export async function applyAuthorOverride(block, dataAttribute, value) {
   if (!value) {
