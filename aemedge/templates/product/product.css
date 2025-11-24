@@ -1,9 +1,9 @@
-/* ======================================================================
+/*======================================================================
  * PRODUCT PAGE TEMPLATE STYLES - CME Group
  * Merged from original site extraction + custom enhancements
  * Date: 2025-10-31
  * Restructured to match actual DOM hierarchy
- ====================================================================== */
+ ======================================================================*/
 
 /* ============================================
    Product Template Styles
@@ -27,10 +27,6 @@ main {
     z-index: 10;
     margin-bottom: 0;
 
-    @media (width < 769px) {
-      padding: 0;
-    }
-
     /* Tabs wrapper - contains both nav and subtabs */
     & .product-tabs-wrapper {
       display: flex;
@@ -38,29 +34,16 @@ main {
       justify-content: space-between;
       gap: 1rem;
       flex-wrap: wrap;
-      padding: 0 1rem;
 
       @media (width < 769px) {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
-        padding: 0;
       }
 
       /* Main tabs navigation */
       & .product-tabs-nav {
         flex: 1 1 auto;
-
-        @media (width < 769px) {
-          width: 100%;
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-
-          &::-webkit-scrollbar {
-            display: none;
-          }
-        }
 
         /* ✅ UX: Active tab not clickable */
         & a.is-active {
@@ -78,7 +61,6 @@ main {
         @media (width < 769px) {
           margin-left: 0;
           width: 100%;
-          padding: 0 1rem 0.75rem;
         }
 
         /* Enhanced sub-tabs with futures/options toggle */
@@ -325,11 +307,19 @@ main {
   /* Content area below tabs - gray background */
   & .product-subtabs-content {
     background-color: var(--gray5);
-    padding: 1.875rem 0;
+    padding: 2rem 1.5rem;
     min-height: 50vh;
 
     @media (width >= 769px) {
-      padding: 3.75rem 0;
+      padding: 2.5rem 3.375rem;
+    }
+
+    @media (width >= 993px) {
+      padding: 3rem 4.125rem;
+    }
+
+    @media (width >= 1201px) {
+      padding: 3rem 5.5rem;
     }
 
     /* Inner wrapper for content with max-width */
@@ -343,11 +333,15 @@ main {
       background-color: white;
       border-radius: 0.25rem;
       box-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 6%);
-      padding: 1.875rem 0;
+      padding: 2rem 1.5rem;
       margin-bottom: 1.5rem;
 
       @media (width >= 769px) {
-        padding: 3.75rem 0;
+        padding: 2.5rem;
+      }
+
+      @media (width >= 993px) {
+        padding: 3rem;
       }
 
       /* Remove background/shadow from nested sections to avoid double-boxing */
