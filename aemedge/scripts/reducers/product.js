@@ -3,6 +3,7 @@ import { PRODUCT_ACTIONS } from '../constants/index.js';
 // ==================== INITIAL STATES ====================
 
 export const productDataInitState = {
+  loaded: false,
   productId: null,
   productRoot: null,
   productName: null,

@@ -56,19 +56,41 @@ export function createSectionWithBlock(blockEl) {
   return section;
 }
 
+let productRootPromise = null;
+
+/**
+ * Fetch the product root document
+ */
+export async function fetchProductRoot(productRoot) {
+  if (!productRootPromise) {
+    productRootPromise = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const url = `${productRoot}.plain.html`;
+          const resp = await fetch(url);
+          if (!resp.ok) {
+            resolve();
+          }
+          const html = await resp.text();
+          const temp = document.createElement('div');
+          temp.innerHTML = html;
+          resolve(temp);
+        } catch (e) {
+          reject(e);
+        }
+      })();
+    });
+  }
+  return productRootPromise;
+}
+
 /**
  * Fetch tab rows from the parent product page
  * Handles both flat and nested HTML structures
  */
 export async function fetchLandingTabRows(productRoot) {
   try {
-    const url = `${productRoot}.plain.html`;
-    const resp = await fetch(url);
-    if (!resp.ok) return null;
-
-    const html = await resp.text();
-    const temp = document.createElement('div');
-    temp.innerHTML = html;
+    const temp = await fetchProductRoot(productRoot);
     const block = temp.querySelector('.product-tabs');
 
     if (!block) return null;
@@ -265,36 +287,29 @@ export async function insertProductTabsIfMissing(productRoot) {
   return section;
 }
 
-/**
- * Insert hero if missing
- */
-export async function insertHeroIfMissing() {
-  const main = document.querySelector('main');
-  if (!main) return;
-
-  const existing = main.querySelector('.hero-baseball');
-  if (existing) return;
-
-  const hero = buildBlock('hero-baseball', '');
-  const section = createSectionWithBlock(hero);
-  section.classList.add('full-width');
-  main.insertBefore(section, main.firstChild);
-  decorateBlock(hero);
-  await loadBlock(hero);
+export async function fetchHero(productRoot) {
+  const temp = await fetchProductRoot(productRoot);
+  const block = temp.querySelector('.hero-baseball');
+  return block;
 }
 
 /**
- * Ensure hero appears before tabs
+ * Insert hero if missing
  */
-export function ensureHeroThenTabsOrder() {
-  const heroSection = findHeroSection();
-  const tabsSection = findProductTabsSection();
-  if (!heroSection || !tabsSection) return;
-
-  const next = heroSection.nextElementSibling;
-  if (next !== tabsSection) {
-    heroSection.parentNode.insertBefore(tabsSection, heroSection.nextSibling);
+export async function insertHeroIfMissing(productRoot) {
+  const main = document.querySelector('main');
+  if (!main) return;
+  const existing = main.querySelector('.hero-baseball');
+  if (existing) return;
+  let hero = await fetchHero(productRoot);
+  if (!hero) {
+    hero = buildBlock('hero-baseball', '');
   }
+  const rootHero = createSectionWithBlock(hero);
+  rootHero.classList.add('full-width');
+  main.insertBefore(rootHero, main.firstChild);
+  decorateBlock(hero);
+  await loadBlock(hero);
 }
 
 /**
