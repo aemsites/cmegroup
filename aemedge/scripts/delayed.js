@@ -9,6 +9,20 @@ function loadShareThis() {
   loadScript('https://platform-api.sharethis.com/js/sharethis.js#property=644646a57ac381001a304496&product=sticky-share-buttons&source=platform');
 }
 
+async function trackIframedPage() {
+  const { self, top } = window;
+  if (self === top) {
+    return;
+  }
+  const { trackGA4Event } = await import('./gtm.js');
+  const {
+    location: { origin, href },
+  } = self;
+  trackGA4Event(origin, 'iframe_view', {
+    url: href,
+  });
+}
+
 async function loadOneTrust() {
   const ONETRUST_CONFIG = {
     stubScript: {
@@ -41,6 +55,7 @@ export default function loadPage() {
   }
 
   loadOneTrust();
+  trackIframedPage();
 }
 
 loadPage();
