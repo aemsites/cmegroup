@@ -122,92 +122,6 @@ async function buildFromCanonical(pathname) {
   return items;
 }
 
-/**
- * Scrolls the active tab into view with smooth behavior
- * Positions the active tab to show 2-3 neighboring tabs on each side
- */
-function scrollActiveTabIntoView(nav, callback) {
-  const activeLink = nav.querySelector('.is-active');
-  if (!activeLink) return;
-
-  // Get measurements
-  const navRect = nav.getBoundingClientRect();
-  const linkRect = activeLink.getBoundingClientRect();
-
-  // Get padding from the tabs list to account for it in scroll calculation
-  const list = nav.querySelector('.product-tabs-list');
-  const listStyles = window.getComputedStyle(list);
-  const leftPadding = parseFloat(listStyles.paddingLeft) || 0;
-  const rightPadding = parseFloat(listStyles.paddingRight) || 0;
-
-  // Right gradient width (1rem = 16px)
-  const rightGradientWidth = 16;
-
-  // Calculate where the link currently is in the viewport
-  const currentLinkLeft = linkRect.left - navRect.left;
-  const currentLinkRight = linkRect.right - navRect.left;
-  const linkWidth = linkRect.width;
-
-  // Target: center the active tab's center at ~35% from the left edge
-  // This shows 1-2 tabs on the left and 3-4 tabs on the right
-  // Add left padding to ensure tabs don't get cut off by the padding
-  const targetPosition = navRect.width * 0.35 + leftPadding;
-  const linkCenter = currentLinkLeft + (linkWidth / 2);
-
-  // Calculate how much we need to scroll
-  let scrollOffset = linkCenter - targetPosition;
-
-  // Check if the link would be too close to the right edge (gradient area)
-  // If so, adjust scroll to keep it clear of the right gradient + padding
-  const linkRightAfterScroll = currentLinkRight - scrollOffset;
-  const rightEdgeClearance = navRect.width - rightGradientWidth - rightPadding;
-
-  if (linkRightAfterScroll > rightEdgeClearance) {
-    // Adjust scroll to keep the link's right edge clear of the gradient
-    const excessOverlap = linkRightAfterScroll - rightEdgeClearance;
-    scrollOffset += excessOverlap;
-  }
-
-  // Calculate target scroll position
-  let targetScrollLeft = nav.scrollLeft + scrollOffset;
-
-  // Clamp to valid scroll range
-  const maxScrollLeft = nav.scrollWidth - nav.clientWidth;
-  targetScrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScrollLeft));
-
-  // Only scroll if we're more than 10px away from target
-  if (Math.abs(nav.scrollLeft - targetScrollLeft) > 10) {
-    nav.scrollTo({
-      left: targetScrollLeft,
-      behavior: 'smooth',
-    });
-
-    // Wait for scroll animation to complete, then update indicators and force repaint
-    // Use requestAnimationFrame to ensure the browser has updated the scroll position
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (callback) callback();
-      });
-    });
-  } else if (callback) {
-    // If no scroll needed, call callback immediately
-    callback();
-  }
-}
-
-/**
- * Updates CSS classes to show/hide gradient indicators based on scroll position
- * - .scrolled: Shows left gradient when scrolled away from start
- * - .scrolled-end: Hides right gradient when scrolled to end
- */
-function updateScrollIndicators(nav) {
-  const isScrolled = nav.scrollLeft > 10;
-  const isScrolledEnd = (nav.scrollWidth - nav.scrollLeft - nav.clientWidth) < 10;
-
-  nav.classList.toggle('scrolled', isScrolled);
-  nav.classList.toggle('scrolled-end', isScrolledEnd);
-}
-
 function renderNav(block, items) {
   const currentPath = normalizePath(window.location.pathname);
   const nav = document.createElement('nav');
@@ -238,102 +152,20 @@ function renderNav(block, items) {
   // Safe because decorate() is protected by dataset.decorated check
   block.innerHTML = '';
   block.appendChild(nav);
-
-  // Scroll active tab into view and setup scroll indicators
-  // Use setTimeout to ensure DOM is fully rendered before scrolling
-  setTimeout(() => {
-    scrollActiveTabIntoView(nav, () => {
-      // Force style recalculation and repaint after scroll completes
-      updateScrollIndicators(nav);
-      // Trigger reflow to ensure gradients are refreshed
-      nav.offsetHeight; // eslint-disable-line no-unused-expressions
-    });
-    // Initial indicator update
-    updateScrollIndicators(nav);
-  }, 100);
-
-  // Update gradient indicators on scroll
-  nav.addEventListener('scroll', () => {
-    updateScrollIndicators(nav);
-  });
-
-  // Listen for SPA navigation (URL changes without page reload)
-  // Update active state and scroll position when navigating between tabs
-  const handleNavigation = () => {
-    const newPath = normalizePath(window.location.pathname);
-    const links = nav.querySelectorAll('a');
-
-    links.forEach((link) => {
-      const linkPath = normalizePath(new URL(link.href).pathname);
-      if (linkPath === newPath) {
-        link.classList.add('is-active');
-      } else {
-        link.classList.remove('is-active');
-      }
-    });
-
-    // Scroll the newly active tab into view
-    setTimeout(() => {
-      scrollActiveTabIntoView(nav, () => {
-        // Force style recalculation and repaint after scroll completes
-        updateScrollIndicators(nav);
-        // Trigger reflow to ensure gradients are refreshed
-        nav.offsetHeight; // eslint-disable-line no-unused-expressions
-      });
-      // Initial indicator update
-      updateScrollIndicators(nav);
-    }, 50);
-  };
-
-  // Listen for browser back/forward navigation
-  window.addEventListener('popstate', handleNavigation);
-
-  // Listen for link clicks within the nav (for SPA navigation)
-  nav.addEventListener('click', (e) => {
-    const link = e.target.closest('a');
-    if (link) {
-      // Wait for the SPA framework to update the URL and active state
-      setTimeout(handleNavigation, 50);
-    }
-  });
 }
 
 export default async function decorate(block) {
+  // Protect against multiple decoration calls
+  if (block.dataset.decorated === 'true') {
+    return;
+  }
+
   // Try authored rows first
   let items = parseAuthoredRows(block);
   if (!items.length) {
     items = await buildFromCanonical(window.location.pathname);
   }
 
-  // If already rendered, just update active state and scroll
-  const nav = block.querySelector('.product-tabs-nav');
-  if (nav && block.dataset.decorated === 'true') {
-    const currentPath = normalizePath(window.location.pathname);
-    const links = nav.querySelectorAll('a');
-
-    links.forEach((link) => {
-      const linkPath = normalizePath(new URL(link.href).pathname);
-      if (linkPath === currentPath) {
-        link.classList.add('is-active');
-        // Scroll active tab into view
-        setTimeout(() => {
-          scrollActiveTabIntoView(nav, () => {
-            // Force style recalculation and repaint after scroll completes
-            updateScrollIndicators(nav);
-            // Trigger reflow to ensure gradients are refreshed
-            nav.offsetHeight; // eslint-disable-line no-unused-expressions
-          });
-          // Initial indicator update
-          updateScrollIndicators(nav);
-        }, 100);
-      } else {
-        link.classList.remove('is-active');
-      }
-    });
-    return;
-  }
-
-  // First time render
   renderNav(block, items);
 
   // Mark as decorated

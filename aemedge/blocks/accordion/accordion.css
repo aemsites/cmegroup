@@ -49,115 +49,28 @@
     }
   }
 
-  &.links {
-    background-color: var(--white);
-    box-shadow: 0 0.0625rem 0.3125rem 0.0625rem rgb(179 179 179 / 70%);
+  &.white-background-icon-raised {
+    box-shadow: 0 .0625rem .3125rem .0625rem hsla(0deg 0% 70% / 70%);
 
-    & .accordion-card {
-      border-bottom: 0.0625rem solid var(--gray4);
+    & details {
+      border-top: none;
+      border-bottom: .0625rem solid var(--gray4);
+      padding: 0.9375rem 1.625rem 0.9375rem 1.25rem ;
 
-      &:last-child {
-        border-bottom: none;
-      }
-
-      & .card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.9375rem 1.625rem 0.9375rem 1.25rem;
-        cursor: pointer;
-        font-family: var(--averta);
+      & summary {
+        padding: 0;
         font-size: 1.25rem;
         line-height: 1.75rem;
         font-weight: 400;
-        color: var(--gray1);
-        background-color: transparent;
-        -webkit-tap-highlight-color: transparent;
 
-        &:active,
-        &:focus {
-          background-color: transparent;
-          outline: none;
-        }
-
-        & .card-header-icon {
-          position: relative;
-          width: 1rem;
-          height: 1rem;
-          flex-shrink: 0;
-
-          &::after {
-            content: var(--icon-plus);
-            font-family: var(--cme-group-icons);
-            font-size: 0.875rem;
-            color: var(--blue4);
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-          }
-        }
-
-        &.open {
-          & .card-header-icon::after {
-            content: var(--icon-minus);
-          }
+        &::after {
+          color: var(--blue4);
+          font-size: .875rem;
         }
       }
 
-      & .collapse {
-        display: none;
-        overflow: hidden;
-
-        &.show {
-          display: block;
-        }
-
-        &.collapsing {
-          display: block;
-          height: 0;
-          overflow: hidden;
-          transition: height 0.35s ease;
-        }
-      }
-
-      & .card-body {
-        padding: 0 2.6875rem 1.4375rem 1.25rem;
-
-        & ul {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-
-          & li {
-            margin-bottom: 0.625rem;
-
-            &:last-child {
-              margin-bottom: 0;
-            }
-          }
-        }
-
-          & a {
-            color: var(--blue4);
-            text-decoration: none;
-            font-size: 1rem;
-            line-height: 1.5;
-            font-weight: 600;
-            font-family: var(--averta);
-
-            &:hover {
-              text-decoration: underline;
-            }
-          }
-
-        & p {
-          margin-bottom: 0.625rem;
-
-          &:last-child {
-            margin-bottom: 0;
-          }
-        }
+      & .accordion-item-body {
+        padding: 1rem 0 0;
       }
     }
   }
