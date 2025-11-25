@@ -169,7 +169,7 @@ footer .footer .footer-languages .language-selector-button:focus {
 }
 
 footer .footer .footer-disclaimer-wrapper {
-    background-color: var(--gray1);
+    background-color: var(--gray7);
     padding-top: 3.75rem;
     padding-bottom: 6.5rem;
     color: var(--white);
