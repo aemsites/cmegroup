@@ -489,7 +489,7 @@ async function renderTable(block) {
     let table = null;
 
     if (isOptions) {
-      if (optionProductId && await applyAuthorOverride(block, 'options', optionProductId)) {
+      if (optionProductId && await applyAuthorOverride(block, 'option-product-id', optionProductId)) {
         return;
       }
 
