@@ -32,6 +32,10 @@
     opacity: 1;
     transition: opacity 0.3s ease;
     z-index: 1;
+
+    @media (width >= 769px) {
+      width: 3rem;
+    }
   }
 
   /* Hide right gradient when scrolled to the end */
@@ -66,7 +70,11 @@
 
     @media (width >= 769px) {
       gap: 2rem;
-      padding: 0 1.5rem;
+      padding: 0 3.375rem 0 3.375rem;
+    }
+
+    @media (width >= 993px) {
+      padding: 0 3.375rem 0 0;
     }
 
     & .product-tabs-item {
