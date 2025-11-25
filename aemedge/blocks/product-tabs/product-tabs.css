@@ -70,7 +70,7 @@
 
     @media (width >= 769px) {
       gap: 2rem;
-      padding: 0 3.375rem 0 3.375rem;
+      padding: 0 3.375rem;
     }
 
     @media (width >= 993px) {
