@@ -1543,6 +1543,22 @@ main > .section:not(.full-width) > div,
       height: 100%;
     }
   }
+
+  &.sub-string-red {
+    sub {
+      vertical-align: baseline;
+      font-size: inherit;
+      color: var(--active-red);
+    }
+  }
+
+  &.sup-string-green {
+    sup {
+      vertical-align: baseline;
+      font-size: inherit;
+      color: var(--green3);
+    }
+  }
 }
 
 main .section.divider > div:last-of-type {
