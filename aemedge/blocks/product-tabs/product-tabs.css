@@ -1,8 +1,15 @@
 /* Product Tabs Block - Follows DOM structure from product-tabs.js */
 
+.product-tabs {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .product-tabs-nav {
   display: block;
   width: 100%;
+  max-width: 100%;
   overflow: auto hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -55,7 +62,7 @@
     display: flex;
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: 0 1rem;
     gap: 1.5rem;
     align-items: center;
     flex-wrap: nowrap;
@@ -75,16 +82,17 @@
 
       & a {
         display: inline-block;
-        padding: 1.0625rem 0.625rem;
+        padding: 0.875rem 0.375rem;
         text-decoration: none;
         text-transform: uppercase;
-        font-size: 0.75rem;
+        font-size: 0.6875rem;
         letter-spacing: 0.129em;
         color: var(--gray3);
         font-weight: 500;
         transition: color 0.2s ease;
         white-space: nowrap;
         position: relative;
+        line-height: 1;
 
         @media (width >= 769px) {
           font-size: 0.875rem;
@@ -97,6 +105,11 @@
           font-weight: 700;
           color: var(--blue2);
           border-bottom: 0.1875rem solid var(--blue4);
+          padding-bottom: 0.6875rem;
+
+          @media (width >= 769px) {
+            padding-bottom: 1.0625rem;
+          }
         }
 
         &:hover {
@@ -106,5 +119,3 @@
     }
   }
 }
-
-
