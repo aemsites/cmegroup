@@ -12,7 +12,7 @@
  */
 
 import { getMetadata } from '../../scripts/aem.js';
-import { getProductMetadata } from '../../scripts/utils/product.js';
+import { getProductMetadata, applyAuthorOverride } from '../../scripts/utils/product.js';
 import { apiGet, getResponseData, urlByEnvType } from '../../scripts/utils/index.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 
@@ -489,7 +489,11 @@ async function renderTable(block) {
     let table = null;
 
     if (isOptions) {
-      // Options mode - use optionProductId from URL if available
+      if (optionProductId && await applyAuthorOverride(block, 'options-product-id', optionProductId)) {
+        return;
+      }
+
+      // Normal flow: fetch from API
       table = await createOptionsTable(optionProductId);
 
       if (table) {

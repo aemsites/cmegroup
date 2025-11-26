@@ -170,6 +170,7 @@ export async function loadProductData(productId) {
       loaded: true,
       isTrading: false,
     }));
+    return null;
   }
   if (!productDataPromise) {
     productDataPromise = new Promise((resolve, reject) => {
@@ -181,9 +182,10 @@ export async function loadProductData(productId) {
             setupDayjsLibs(),
             loadScript('/aemedge/scripts/third-party/dayjs/isSameOrAfter.js'),
           ]);
+          const data = getResponseData(response) || response.data;
+
           /* eslint-disable no-undef */
           dayjs.extend(dayjs_plugin_isSameOrAfter);
-          const data = getResponseData(response) || response.data;
           let hasOptions = false;
           if (data && data.optionsLabels && Array.isArray(data.optionsLabels)) {
             hasOptions = true;
@@ -234,4 +236,47 @@ export async function getContractsByNumber(productId) {
   const response = await apiPost(endpoint, payload, headers);
   const data = getResponseData(response) || response.data;
   return data;
+}
+
+/**
+ * Replace block content with matching authored override section (if any).
+ */
+export async function applyAuthorOverride(block, dataAttribute, value) {
+  if (!value) {
+    block.classList.remove('override-active');
+    return false;
+  }
+
+  let section = document.querySelector(`.product-subtabs-content .section[data-${dataAttribute}="${value}"][data-override="true"]`);
+  if (!section) {
+    section = document.querySelector(`main .section[data-${dataAttribute}="${value}"][data-override="true"]`);
+  }
+
+  if (!section || !section.innerHTML.trim()) {
+    block.classList.remove('override-active');
+    return false;
+  }
+
+  block.innerHTML = '';
+  section.childNodes.forEach((node) => {
+    block.appendChild(node.cloneNode(true));
+  });
+
+  const blocks = block.querySelectorAll('.block');
+  const blocksNeedingDecoration = Array.from(blocks).filter(
+    (innerBlock) => innerBlock.dataset.blockStatus !== 'loaded',
+  );
+
+  if (blocksNeedingDecoration.length) {
+    const { decorateBlock, loadBlock } = await import('../aem.js');
+    // eslint-disable-next-line no-restricted-syntax
+    for (const innerBlock of blocksNeedingDecoration) {
+      decorateBlock(innerBlock);
+      // eslint-disable-next-line no-await-in-loop
+      await loadBlock(innerBlock);
+    }
+  }
+
+  block.classList.add('override-active');
+  return true;
 }
