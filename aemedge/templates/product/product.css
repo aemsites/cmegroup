@@ -11,6 +11,13 @@
 
 /* Main content area */
 main {
+  background-color: var(--gray5);
+
+  /* Author override sections - hidden by default */
+  & .section[data-override="true"] {
+    display: none !important;
+  }
+
   /* Hero section - keep dark blue, no background override needed */
   & .section.full-width:has(.hero-baseball) {
     margin: 0;
