@@ -138,7 +138,13 @@ const updatePopularSearches = async () => {
     if (customSearch.contains(popularSearchesContainer)) {
       popularSearchesContainer.remove();
     }
-    customSearch.append(buildPopularSearches(popularSearchesVar));
+    const builtPopularSearches = buildPopularSearches(popularSearchesVar);
+
+    if (customSearch.contains(suggestionSearchesContainer)) {
+      customSearch.insertBefore(builtPopularSearches, suggestionSearchesContainer);
+    } else {
+      customSearch.append(builtPopularSearches);
+    }
   }
 };
 
@@ -148,7 +154,13 @@ const updateRecentSearches = async (loginInfo) => {
     if (customSearch.contains(recentSearchesContainer)) {
       recentSearchesContainer.remove();
     }
-    customSearch.append(buildRecentSearches(recentSearchesVar));
+    const builtRecentSearches = buildRecentSearches(recentSearchesVar);
+
+    if (customSearch.contains(popularSearchesContainer)) {
+      customSearch.insertBefore(builtRecentSearches, popularSearchesContainer);
+    } else {
+      customSearch.append(builtRecentSearches);
+    }
   }
 };
 
@@ -180,8 +192,12 @@ const handleChange = (e) => {
       getSuggestions(searchValueVar);
     }, 400);
   } else {
-    customSearch.append(buildRecentSearches(recentSearchesVar));
-    customSearch.append(buildPopularSearches(popularSearchesVar));
+    if (recentSearchesVar && recentSearchesVar.length > 0) {
+      customSearch.append(buildRecentSearches(recentSearchesVar));
+    }
+    if (popularSearchesVar && popularSearchesVar.length > 0) {
+      customSearch.append(buildPopularSearches(popularSearchesVar));
+    }
   }
 };
 
@@ -224,8 +240,6 @@ const renderSearch = () => {
   searchContainer.append(inputSearch);
   searchContainer.append(buttonSearch);
   customSearch.append(searchContainer);
-  customSearch.append(buildRecentSearches(recentSearchesVar));
-  customSearch.append(buildPopularSearches(popularSearchesVar));
 
   store.subscribe(({ authentication }) => authentication, ({ isLoggedIn, loginInfo }) => {
     if (isLoggedIn !== loggedIn) {
