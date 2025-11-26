@@ -92,21 +92,26 @@ export default async function productTemplate() {
   // This prevents blocking UI while still having data ready when user needs it
   // See product-toggle-manager.js for the lazy fetch implementation
 
-  // ✅ Await product tabs before operations that depend on them
-  await productTabsPromise;
-
-  // Insert futures/options toggle if applicable
-  await insertEnhancedSubTabsIfApplicable(productRoot);
-
-  // Move current page content under subtabs
-  moveCurrentPageContentUnderSubTabs();
-
-  // If on root path, render default tab (without changing URL)
+  // ✅ CRITICAL OPTIMIZATION: Chain tab-dependent operations in background
+  // This allows page content to render immediately without waiting
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
 
   if (onRoot) {
+    // On root path: Must wait for tabs to render default content
+    await productTabsPromise;
+    await insertEnhancedSubTabsIfApplicable(productRoot);
+    moveCurrentPageContentUnderSubTabs();
     const defaultTab = await getDefaultTab(productRoot);
     const defaultUrl = `${productRoot}/${defaultTab}`;
     await renderProductPath(defaultUrl, productRoot);
+  } else {
+    // On specific path (e.g., /quotes): Let content show immediately!
+    // Organize structure in background without blocking
+    productTabsPromise
+      .then(() => insertEnhancedSubTabsIfApplicable(productRoot))
+      .then(() => moveCurrentPageContentUnderSubTabs())
+      .catch(() => {
+        // Silent fail - page still functional even if organization fails
+      });
   }
 }
