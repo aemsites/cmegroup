@@ -5,7 +5,6 @@ import { setProductData } from '../actions/product.js';
 import { apiGet, apiPost, getResponseData } from './fetch.js';
 import { urlByEnvType } from './env.js';
 import { loadScript, setupDayjsLibs, getCdtDate } from '../utils.js';
-import { getMockProductData, getMockIndexHasPath, getMockProductMetadata } from '../mock-data.js';
 
 // API Configuration
 const API_CONFIG = {
@@ -74,11 +73,6 @@ export async function loadProductIndex(basePath) {
  * @returns {Promise<boolean>} True if path exists
  */
 export async function indexHasPath(path) {
-  // Mock mode starts
-  const mockResult = getMockIndexHasPath();
-  if (mockResult !== null) return mockResult;
-  // Mock mode ends
-
   try {
     // Determine base path from the path being checked
     const basePath = `/${path.split('/')[1]}`;
@@ -136,14 +130,6 @@ export async function getProductMetadata() {
     productMetaDataPromise = new Promise((resolve, reject) => {
       (async () => {
         try {
-          // Mock mode starts
-          const mockMetadata = getMockProductMetadata();
-          if (mockMetadata) {
-            resolve(mockMetadata);
-            return;
-          }
-          // Mock mode ends
-
           // Try to get metadata from HTML meta tags
           const context = {
             productId: getMetadata('product-id') || '',
@@ -184,31 +170,19 @@ export async function loadProductData(productId) {
       loaded: true,
       isTrading: false,
     }));
+    return;
   }
   if (!productDataPromise) {
     productDataPromise = new Promise((resolve, reject) => {
       (async () => {
         try {
-          let data;
-
-          // Mock mode starts
-          const mockData = getMockProductData();
-          if (mockData) {
-            await Promise.all([
-              setupDayjsLibs(),
-              loadScript('/aemedge/scripts/third-party/dayjs/isSameOrAfter.js'),
-            ]);
-            data = mockData;
-          } else {
-          // Mock mode ends
-            const endpoint = `${urlByEnvType()}${API_CONFIG.fullProductWithOptionsEndpoint}${productId}`;
-            const [response] = await Promise.all([
-              apiGet(endpoint, {}, {}, { withCredentials: false }),
-              setupDayjsLibs(),
-              loadScript('/aemedge/scripts/third-party/dayjs/isSameOrAfter.js'),
-            ]);
-            data = getResponseData(response) || response.data;
-          }
+          const endpoint = `${urlByEnvType()}${API_CONFIG.fullProductWithOptionsEndpoint}${productId}`;
+          const [response] = await Promise.all([
+            apiGet(endpoint, {}, {}, { withCredentials: false }),
+            setupDayjsLibs(),
+            loadScript('/aemedge/scripts/third-party/dayjs/isSameOrAfter.js'),
+          ]);
+          const data = getResponseData(response) || response.data;
 
           /* eslint-disable no-undef */
           dayjs.extend(dayjs_plugin_isSameOrAfter);

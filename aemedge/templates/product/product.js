@@ -39,10 +39,6 @@ import {
 } from './product-toggle-manager.js';
 
 // Initialize mock data for localhost (no VPN needed for local dev)
-import { initMockData } from '../../scripts/mock-data.js';
-
-initMockData();
-
 // ==================== MAIN TEMPLATE FUNCTION ====================
 
 /**
