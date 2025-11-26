@@ -66,15 +66,21 @@ export default async function productTemplate() {
   // Preload path index cache to avoid delays during user interactions
   preloadPathIndex();
 
-  // Insert hero if missing
+  // ✅ OPTIMIZATION: Start hero insertion in background (non-blocking)
+  // Hero is independent and populates via store subscription
   const heroExists = document.querySelector('.hero-baseball');
   if (!heroExists) {
-    await insertHeroIfMissing(productRoot);
+    // Fire and forget - don't block page initialization
+    insertHeroIfMissing(productRoot).catch(() => {
+      // Silent fail - hero is non-critical for page functionality
+    });
   }
 
-  // Insert product tabs if missing
+  // ✅ OPTIMIZATION: Start product tabs insertion and store promise
+  // We'll await it only when needed by dependent operations
+  let productTabsPromise = Promise.resolve();
   if (!findProductTabsSection()) {
-    await insertProductTabsIfMissing(productRoot);
+    productTabsPromise = insertProductTabsIfMissing(productRoot);
   }
 
   // Enable SPA navigation for main tabs early (before toggle/content moves)
@@ -85,6 +91,9 @@ export default async function productTemplate() {
   // Instead, fetch after tab with options dropdown finishes loading (lazy background fetch)
   // This prevents blocking UI while still having data ready when user needs it
   // See product-toggle-manager.js for the lazy fetch implementation
+
+  // ✅ Await product tabs before operations that depend on them
+  await productTabsPromise;
 
   // Insert futures/options toggle if applicable
   await insertEnhancedSubTabsIfApplicable(productRoot);
