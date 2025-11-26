@@ -51,53 +51,31 @@ export default async function productTemplate() {
 
   const productRoot = computeProductRoot(window.location.pathname);
 
-  // Expose store to window for debugging (dev console access)
   if (!window.productStore) {
     window.productStore = store;
   }
 
-  // Ensure product metadata (including product ID) is available
-  // If missing from page metadata, fetch from search API
   getProductMetadata().then(({ productId }) => {
     loadProductData(productId);
   });
-  // Continue anyway - some functionality may be limited even without product ID
 
-  // Preload path index cache to avoid delays during user interactions
   preloadPathIndex();
 
-  // ✅ OPTIMIZATION: Start hero insertion in background (non-blocking)
-  // Hero is independent and populates via store subscription
   const heroExists = document.querySelector('.hero-baseball');
   if (!heroExists) {
-    // Fire and forget - don't block page initialization
-    insertHeroIfMissing(productRoot).catch(() => {
-      // Silent fail - hero is non-critical for page functionality
-    });
+    insertHeroIfMissing(productRoot).catch(() => {});
   }
 
-  // ✅ OPTIMIZATION: Start product tabs insertion and store promise
-  // We'll await it only when needed by dependent operations
   let productTabsPromise = Promise.resolve();
   if (!findProductTabsSection()) {
     productTabsPromise = insertProductTabsIfMissing(productRoot);
   }
 
-  // Enable SPA navigation for main tabs early (before toggle/content moves)
-  // Uses MutationObserver to wait for async block decoration (no polling!)
   enableProductSpaNavigation(productRoot);
 
-  // ✅ OPTIMIZATION: Don't fetch options data on page load
-  // Instead, fetch after tab with options dropdown finishes loading (lazy background fetch)
-  // This prevents blocking UI while still having data ready when user needs it
-  // See product-toggle-manager.js for the lazy fetch implementation
-
-  // ✅ CRITICAL OPTIMIZATION: Chain tab-dependent operations in background
-  // This allows page content to render immediately without waiting
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
 
   if (onRoot) {
-    // On root path: Must wait for tabs to render default content
     await productTabsPromise;
     await insertEnhancedSubTabsIfApplicable(productRoot);
     moveCurrentPageContentUnderSubTabs();
@@ -105,13 +83,9 @@ export default async function productTemplate() {
     const defaultUrl = `${productRoot}/${defaultTab}`;
     await renderProductPath(defaultUrl, productRoot);
   } else {
-    // On specific path (e.g., /quotes): Let content show immediately!
-    // Organize structure in background without blocking
     productTabsPromise
       .then(() => insertEnhancedSubTabsIfApplicable(productRoot))
       .then(() => moveCurrentPageContentUnderSubTabs())
-      .catch(() => {
-        // Silent fail - page still functional even if organization fails
-      });
+      .catch(() => {});
   }
 }
