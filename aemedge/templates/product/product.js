@@ -51,53 +51,41 @@ export default async function productTemplate() {
 
   const productRoot = computeProductRoot(window.location.pathname);
 
-  // Expose store to window for debugging (dev console access)
   if (!window.productStore) {
     window.productStore = store;
   }
 
-  // Ensure product metadata (including product ID) is available
-  // If missing from page metadata, fetch from search API
   getProductMetadata().then(({ productId }) => {
     loadProductData(productId);
   });
-  // Continue anyway - some functionality may be limited even without product ID
 
-  // Preload path index cache to avoid delays during user interactions
   preloadPathIndex();
 
-  // Insert hero if missing
   const heroExists = document.querySelector('.hero-baseball');
   if (!heroExists) {
-    await insertHeroIfMissing(productRoot);
+    insertHeroIfMissing(productRoot).catch(() => {});
   }
 
-  // Insert product tabs if missing
+  let productTabsPromise = Promise.resolve();
   if (!findProductTabsSection()) {
-    await insertProductTabsIfMissing(productRoot);
+    productTabsPromise = insertProductTabsIfMissing(productRoot);
   }
 
-  // Enable SPA navigation for main tabs early (before toggle/content moves)
-  // Uses MutationObserver to wait for async block decoration (no polling!)
   enableProductSpaNavigation(productRoot);
 
-  // ✅ OPTIMIZATION: Don't fetch options data on page load
-  // Instead, fetch after tab with options dropdown finishes loading (lazy background fetch)
-  // This prevents blocking UI while still having data ready when user needs it
-  // See product-toggle-manager.js for the lazy fetch implementation
-
-  // Insert futures/options toggle if applicable
-  await insertEnhancedSubTabsIfApplicable(productRoot);
-
-  // Move current page content under subtabs
-  moveCurrentPageContentUnderSubTabs();
-
-  // If on root path, render default tab (without changing URL)
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
 
   if (onRoot) {
+    await productTabsPromise;
+    await insertEnhancedSubTabsIfApplicable(productRoot);
+    moveCurrentPageContentUnderSubTabs();
     const defaultTab = await getDefaultTab(productRoot);
     const defaultUrl = `${productRoot}/${defaultTab}`;
     await renderProductPath(defaultUrl, productRoot);
+  } else {
+    productTabsPromise
+      .then(() => insertEnhancedSubTabsIfApplicable(productRoot))
+      .then(() => moveCurrentPageContentUnderSubTabs())
+      .catch(() => {});
   }
 }
