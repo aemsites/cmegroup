@@ -130,9 +130,12 @@ main {
             z-index: 10;
             align-items: stretch;
             flex-shrink: 0;
+            
 
             @media (width < 769px) {
               width: 100%;
+              padding: 30px 0;
+              text-align: center;              
             }
 
             /* Toggle Button Base Styles */
