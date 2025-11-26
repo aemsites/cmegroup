@@ -63,7 +63,7 @@ main {
           max-width: calc(100% - 12.5rem - 1rem - 1.25rem);
         }
       }
-    }
+      }
 
       /* Main tabs navigation */
       & .product-tabs-nav {
@@ -133,6 +133,8 @@ main {
 
             @media (width < 769px) {
               width: 100%;
+              flex-direction: column;
+              gap: 0.5rem;
             }
 
             /* Toggle Button Base Styles */
@@ -152,14 +154,21 @@ main {
               white-space: nowrap;
 
               @media (width < 769px) {
-                flex: 1;
+                width: 100%;
                 justify-content: center;
                 min-width: 0;
+                border-radius: 0.25rem;
+                display: flex;
+                align-items: center;
               }
 
               /* First button (Futures) - rounded left */
               &:first-child {
                 border-radius: 0.25rem 0 0 0.25rem;
+
+                @media (width < 769px) {
+                  border-radius: 0.25rem;
+                }
               }
 
               /* Active toggle button styling */
@@ -184,6 +193,10 @@ main {
             /* Last button/dropdown - rounded right */
             & > *:last-child .toggle-btn {
               border-radius: 0 0.25rem 0.25rem 0;
+
+              @media (width < 769px) {
+                border-radius: 0.25rem;
+              }
             }
 
             /* Options Dropdown Container */
@@ -193,7 +206,7 @@ main {
               align-items: stretch;
 
               @media (width < 769px) {
-                flex: 1;
+                width: 100%;
               }
 
               /* Dropdown Button */
@@ -218,9 +231,11 @@ main {
                 transition: all 0.2s ease;
 
                 @media (width < 769px) {
-                  flex: 1;
+                  width: 100%;
                   justify-content: center;
                   min-width: 0;
+                  border-left: 0.0625rem solid var(--gray4);
+                  border-radius: 0.25rem;
                 }
 
                 &:hover {
