@@ -1543,6 +1543,22 @@ main > .section:not(.full-width) > div,
       height: 100%;
     }
   }
+
+  &.sub-string-red {
+    sub {
+      vertical-align: baseline;
+      font-size: inherit;
+      color: var(--active-red);
+    }
+  }
+
+  &.sup-string-green {
+    sup {
+      vertical-align: baseline;
+      font-size: inherit;
+      color: var(--green3);
+    }
+  }
 }
 
 main .section.divider > div:last-of-type {
@@ -1559,6 +1575,10 @@ main .section.divider[has-sidebar="true"] > div:nth-last-of-type(2) {
 
 main .section > [class*="-wrapper"] + [class*="-wrapper"]:not(.default-content-wrapper, .hero-wrapper) {
   margin-top: 1.875rem;
+
+  &:has(.hidden-content) {
+    display: none !important;
+  }
 }
 
 /* Parallax section styling */
@@ -2248,4 +2268,8 @@ p.center-img {
   @media (width >=993px) {
     min-height: 25rem;
   }
+}
+
+.hidden-content {
+  display: none !important;
 }
