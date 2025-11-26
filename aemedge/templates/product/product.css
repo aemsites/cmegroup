@@ -377,8 +377,6 @@ main {
 
   /* Content area below tabs */
   & .product-subtabs-content {
-    min-height: 50vh;
-
     /* Content cards with alternating background colors */
     & > div > .section {
       border-radius: 0.25rem;
