@@ -34,12 +34,24 @@
     & > .columns-img-col {
       & img {
         display: block;
+        height: auto;
+      }
+
+      & picture {
+        display: block;
       }
     }
   }
 
-  &:not(.icons) img {
-    width: 100%;
+  &:not(.icons) {
+    & img {
+      width: 100%;
+      height: auto;
+    }
+
+    & picture {
+      display: block;
+    }
   }
 
   &.author-bio {
