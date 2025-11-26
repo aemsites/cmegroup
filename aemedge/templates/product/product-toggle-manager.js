@@ -282,7 +282,7 @@ export async function toggleSubTabsVisibility(productRoot) {
   if (!shouldShowSubTabs) {
     // Hide toggle for overview
     if (existingToggle) {
-      existingToggle.style.display = 'none';
+      existingToggle.classList.add('hidden');
     }
     return;
   }
@@ -299,14 +299,14 @@ export async function toggleSubTabsVisibility(productRoot) {
   if (!hasFutures || !hasOptions) {
     // Tab doesn't support options - hide toggle
     if (existingToggle) {
-      existingToggle.style.display = 'none';
+      existingToggle.classList.add('hidden');
     }
     return;
   }
 
   // Tab supports options - show toggle
   if (existingToggle) {
-    existingToggle.style.display = '';
+    existingToggle.classList.remove('hidden');
     existingToggle.dataset.primaryTab = primaryTab;
 
     // ✅ UPDATE DATA-HREF: Point futures button to current tab

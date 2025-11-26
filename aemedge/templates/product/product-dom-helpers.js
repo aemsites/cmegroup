@@ -273,6 +273,7 @@ export async function insertProductTabsIfMissing(productRoot) {
 
   const block = await buildProductTabsBlock(productRoot, rowsForBuild);
   const section = createSectionWithBlock(block);
+  section.classList.add('product-tabs-container', 'full-width');
   const heroSection = findHeroSection();
 
   if (heroSection && heroSection.parentNode) {
@@ -322,7 +323,7 @@ export function ensureSubTabsContentContainer() {
   let container = tabsSection.nextElementSibling;
   if (!container || !container.classList.contains('product-subtabs-content')) {
     container = document.createElement('div');
-    container.className = 'section product-subtabs-content';
+    container.className = 'section product-subtabs-content full-width';
     const inner = document.createElement('div');
     container.appendChild(inner);
     tabsSection.parentNode.insertBefore(container, tabsSection.nextSibling);
