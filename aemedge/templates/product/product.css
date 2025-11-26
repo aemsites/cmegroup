@@ -180,12 +180,12 @@ main {
 
               /* Inactive toggle button styling */
               &:not(.active) {
-                background: transparent;
-                color: var(--gray3);
+                background: #e8eaed;
+                color: var(--gray2);
                 border-color: var(--gray4);
 
                 &:hover {
-                  background: var(--gray6);
+                  background: #d4d7db;
                 }
               }
             }
@@ -211,8 +211,8 @@ main {
 
               /* Dropdown Button */
               & .dropdown-btn {
-                background: transparent;
-                color: var(--gray3);
+                background: #e8eaed;
+                color: var(--gray2);
                 border: 0.0625rem solid var(--gray4);
                 border-left: 0;
                 border-radius: 0 0.25rem 0.25rem 0;
@@ -239,8 +239,8 @@ main {
                 }
 
                 &:hover {
-                  background: var(--gray6);
-                  color: var(--gray3);
+                  background: #d4d7db;
+                  color: var(--gray2);
                 }
 
                 &.active {
