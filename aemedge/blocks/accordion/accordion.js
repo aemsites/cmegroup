@@ -45,7 +45,7 @@ function createAccordionItem(title, content) {
   return details;
 }
 
-function createLinksAccordionItem(title, content, isFirstOpen = false) {
+function createLinksAccordionItem(title, content, isFirstOpen = false, block = null) {
   const card = createElement('div', { class: 'accordion-card' });
   const header = createElement('div', { class: 'card-header' });
   if (isFirstOpen) {
@@ -94,6 +94,16 @@ function createLinksAccordionItem(title, content, isFirstOpen = false) {
       };
       collapse.addEventListener('transitionend', handleTransitionEnd);
     } else {
+      // Close all other accordions in the same block
+      if (block) {
+        const allHeaders = block.querySelectorAll('.card-header.open');
+        allHeaders.forEach((otherHeader) => {
+          if (otherHeader !== header) {
+            otherHeader.click();
+          }
+        });
+      }
+
       // Opening animation
       header.classList.add('open');
       collapse.classList.add('collapsing');
@@ -183,6 +193,20 @@ function decorateAccordion(block) {
     );
     row.replaceWith(accordion);
   });
+
+  // Add toggle event listener to ensure only one accordion is open at a time
+  const allDetails = block.querySelectorAll('details');
+  allDetails.forEach((details) => {
+    details.addEventListener('toggle', (event) => {
+      if (event.target.open) {
+        allDetails.forEach((other) => {
+          if (other !== event.target && other.open) {
+            other.open = false;
+          }
+        });
+      }
+    });
+  });
 }
 
 function decorateLinksAccordion(block) {
@@ -197,6 +221,7 @@ function decorateLinksAccordion(block) {
         label.textContent.trim(),
         body,
         isFirstOpen,
+        block,
       );
       accordionItems.push(accordionItem);
     }
