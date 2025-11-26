@@ -170,7 +170,7 @@ export async function loadProductData(productId) {
       loaded: true,
       isTrading: false,
     }));
-    return;
+    return null;
   }
   if (!productDataPromise) {
     productDataPromise = new Promise((resolve, reject) => {
