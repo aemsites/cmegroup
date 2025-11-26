@@ -63,7 +63,6 @@ main {
           max-width: calc(100% - 12.5rem - 1rem - 1.25rem);
         }
       }
-    }
 
       /* Main tabs navigation */
       & .product-tabs-nav {
@@ -135,7 +134,8 @@ main {
             @media (width < 769px) {
               width: 100%;
               padding: 30px 24px;
-              text-align: center;              
+              text-align: center;
+              flex-shrink: 1;
             }
 
             /* Toggle Button Base Styles */
