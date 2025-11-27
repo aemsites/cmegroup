@@ -3,7 +3,9 @@
  * Handles CSV upload, validation, and batch product creation
  */
 
-import { copyResource, createOrUpdateHTML } from '../shared/api.js';
+import {
+  copyResource, createOrUpdateHTML, getHTML, checkProductExists,
+} from '../shared/api.js';
 import { $, showToast, addToActivityLog } from '../shared/ui.js';
 import { getToken } from '../shared/state.js';
 
@@ -159,6 +161,63 @@ function checkDuplicateSlugs(rows) {
 }
 
 /**
+ * Check for conflicts (existing products)
+ */
+async function checkConflictsForRows(rows) {
+  const token = getToken();
+  if (!token) return;
+
+  const orgSite = parseOrgSiteBulk();
+  if (!orgSite) return;
+
+  const { org, site } = orgSite;
+
+  showToast('Checking for existing products...', 'info');
+
+  const conflictChecks = rows.map(async (row) => {
+    try {
+      const dest = row.destination || '';
+      const cleanDest = dest.startsWith('/') ? dest.substring(1) : dest;
+      const productPath = `${cleanDest}/${row.product_slug}`;
+      const exists = await checkProductExists(token, org, site, productPath);
+      return { rowNumber: row.rowNumber, exists };
+    } catch (error) {
+      return { rowNumber: row.rowNumber, exists: false };
+    }
+  });
+
+  const results = await Promise.all(conflictChecks);
+
+  results.forEach((result) => {
+    const row = rows.find((r) => r.rowNumber === result.rowNumber);
+    if (row) {
+      row.conflict = result.exists;
+    }
+  });
+
+  const conflictCount = results.filter((r) => r.exists).length;
+  if (conflictCount > 0) {
+    showToast(`Found ${conflictCount} existing product(s)`, 'warning');
+  }
+}
+
+/**
+ * Parse org/site from bulk config
+ */
+function parseOrgSiteBulk() {
+  const orgSitePath = $('#bulk-org-site-path')?.value?.trim();
+  if (!orgSitePath) return null;
+
+  const cleanPath = orgSitePath.startsWith('/') ? orgSitePath.substring(1) : orgSitePath;
+  const parts = cleanPath.split('/').filter((part) => part.length > 0);
+
+  if (parts.length >= 2) {
+    return { org: parts[0], site: parts[1] };
+  }
+  return null;
+}
+
+/**
  * Render preview table
  */
 function renderPreviewTable(rows) {
@@ -189,6 +248,7 @@ function renderPreviewTable(rows) {
   rows.forEach((row) => {
     const validation = validateRow(row);
     const isDuplicate = duplicates.includes(row.product_slug);
+    const hasConflict = row.conflict === true;
     const tabCount = row.tabs ? row.tabs.split('|').filter((t) => t.trim()).length : 0;
 
     let statusBadge = '';
@@ -199,6 +259,9 @@ function renderPreviewTable(rows) {
       const allErrors = [...validation.errors];
       if (isDuplicate) allErrors.push('Duplicate slug');
       statusBadge = `<span class="status-badge ${statusClass}">❌ ${allErrors[0]}</span>`;
+    } else if (hasConflict) {
+      statusClass = 'warning';
+      statusBadge = '<span class="status-badge warning">⚠️ EXISTS</span>';
     } else if (validation.warnings.length > 0) {
       statusClass = 'warning';
       statusBadge = `<span class="status-badge ${statusClass}">⚠️ ${validation.warnings[0]}</span>`;
@@ -208,7 +271,6 @@ function renderPreviewTable(rows) {
     }
 
     const destDisplay = row.destination || '(missing)';
-    const destTitle = row.destination || '';
     
     html += `
       <tr data-row="${row.rowNumber}" class="${statusClass}">
@@ -221,7 +283,7 @@ function renderPreviewTable(rows) {
         <td>${row.product_id}</td>
         <td>${row.product_slug}</td>
         <td>${tabCount}</td>
-        <td title="${destTitle}">${destDisplay.substring(0, 25)}${destDisplay.length > 25 ? '...' : ''}</td>
+        <td class="destination-cell" title="${destDisplay}">${destDisplay}</td>
         <td class="status-cell">${statusBadge}</td>
       </tr>
     `;
@@ -562,6 +624,9 @@ async function bulkCreateProducts() {
       bulkState.results.success.push({
         slug: row.product_slug,
         message: 'Created successfully',
+        org: config.org,
+        site: config.site,
+        path: `${row.destination}/${row.product_slug}`,
       });
 
       if (result.warnings.length > 0) {
@@ -614,7 +679,12 @@ function displayResults(isDryRun) {
   if (success.length > 0) {
     detailsHTML += '<h3>✅ Success</h3>';
     success.forEach((item) => {
-      detailsHTML += `<div class="result-item success"><strong>${item.slug}</strong>: ${item.message}</div>`;
+      let linkHTML = '';
+      if (!isDryRun && item.org && item.site && item.path) {
+        const daUrl = `https://da.live/edit#/${item.org}/${item.site}${item.path}`;
+        linkHTML = ` <a href="${daUrl}" target="_blank" class="result-link" title="Open in DA Live">→</a>`;
+      }
+      detailsHTML += `<div class="result-item success"><strong>${item.slug}</strong>: ${item.message}${linkHTML}</div>`;
     });
   }
 
@@ -711,7 +781,7 @@ function handleFileUpload(file) {
   }
 
   const reader = new FileReader();
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     try {
       const csvText = e.target.result;
       const rows = parseCSV(csvText);
@@ -727,6 +797,9 @@ function handleFileUpload(file) {
       $('#file-name').textContent = file.name;
       $('#file-rows').textContent = rows.length;
       $('#file-info').classList.remove('hidden');
+
+      // Check for conflicts before rendering
+      await checkConflictsForRows(rows);
 
       // Render preview
       renderPreviewTable(rows);
@@ -748,7 +821,8 @@ export function setupBulkListeners() {
   const browseBtn = $('#browse-btn');
   const uploadArea = $('#upload-area');
 
-  browseBtn?.addEventListener('click', () => {
+  browseBtn?.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevent event from bubbling to uploadArea
     fileInput?.click();
   });
 
@@ -757,8 +831,12 @@ export function setupBulkListeners() {
     if (file) handleFileUpload(file);
   });
 
-  // Drag and drop
-  uploadArea?.addEventListener('click', () => {
+  // Drag and drop - click on upload area (but not on buttons/links inside)
+  uploadArea?.addEventListener('click', (e) => {
+    // Don't trigger if clicking on buttons or links
+    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') {
+      return;
+    }
     fileInput?.click();
   });
 

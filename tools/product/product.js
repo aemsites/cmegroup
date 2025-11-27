@@ -13,40 +13,71 @@ import { setupCreateListeners } from './modules/create.js';
 import { setupBulkListeners } from './modules/bulk.js';
 
 /**
- * Switch between tabs
+ * Switch between main tabs (Single/Bulk)
  */
-function switchTab(tabName) {
-  // Update tab buttons
-  document.querySelectorAll('.tab-btn').forEach((btn) => {
+function switchMainTab(mainTabName) {
+  // Update main tab buttons
+  document.querySelectorAll('.main-tab-btn').forEach((btn) => {
     btn.classList.remove('active');
-    if (btn.dataset.tab === tabName) {
+    if (btn.dataset.mainTab === mainTabName) {
       btn.classList.add('active');
     }
   });
 
-  // Update tab content
-  document.querySelectorAll('.tab-content').forEach((content) => {
+  // Update main tab content
+  document.querySelectorAll('.main-tab-content').forEach((content) => {
     content.classList.remove('active');
   });
-  const activeContent = $(`#tab-${tabName}`);
+  const activeContent = $(`#main-tab-${mainTabName}`);
   if (activeContent) {
     activeContent.classList.add('active');
   }
 
   // Update state
-  setCurrentTab(tabName);
+  setCurrentTab(mainTabName);
+}
+
+/**
+ * Switch between sub-tabs (Create/Move/Delete)
+ */
+function switchSubTab(subTabName) {
+  // Find the parent main tab
+  const subTab = $(`#sub-tab-${subTabName}`);
+  if (!subTab) return;
+
+  const parentMainTab = subTab.closest('.main-tab-content');
+  if (!parentMainTab) return;
+
+  // Update sub-tab buttons within this main tab
+  parentMainTab.querySelectorAll('.sub-tab-btn').forEach((btn) => {
+    btn.classList.remove('active');
+    if (btn.dataset.subTab === subTabName) {
+      btn.classList.add('active');
+    }
+  });
+
+  // Update sub-tab content within this main tab
+  parentMainTab.querySelectorAll('.sub-tab-content').forEach((content) => {
+    content.classList.remove('active');
+  });
+  subTab.classList.add('active');
 }
 
 /**
  * Setup global event listeners
  */
 function setupGlobalListeners() {
-  // Tab navigation
-  document.querySelectorAll('.tab-btn').forEach((btn) => {
+  // Main tab navigation
+  document.querySelectorAll('.main-tab-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      if (!btn.disabled) {
-        switchTab(btn.dataset.tab);
-      }
+      switchMainTab(btn.dataset.mainTab);
+    });
+  });
+
+  // Sub-tab navigation
+  document.querySelectorAll('.sub-tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      switchSubTab(btn.dataset.subTab);
     });
   });
 

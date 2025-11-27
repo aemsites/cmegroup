@@ -3,8 +3,8 @@
  * Handles product creation from templates
  */
 
-import { copyResource, createOrUpdateHTML } from '../shared/api.js';
-import { $, showToast } from '../shared/ui.js';
+import { copyResource, createOrUpdateHTML, checkProductExists } from '../shared/api.js';
+import { $, showToast, addToActivityLog } from '../shared/ui.js';
 import { getToken } from '../shared/state.js';
 
 // Tab display name mapping
@@ -202,11 +202,32 @@ export async function createProduct() {
       return;
     }
 
-    showToast('Creating product page...', 'info');
-
     // Build paths
     const cleanSourcePath = sourcePath.startsWith('/') ? sourcePath.substring(1) : sourcePath;
     const cleanDestFolder = destinationFolder.startsWith('/') ? destinationFolder.substring(1) : destinationFolder;
+    const productPath = `${cleanDestFolder}/${productSlug}`;
+
+    // Check if product already exists
+    const exists = await checkProductExists(token, org, site, productPath);
+    const overwrite = $('#overwrite-existing-single')?.checked || false;
+
+    if (exists && !overwrite) {
+      showToast('Product already exists at this path. Check "Overwrite if exists" to replace it.', 'error');
+      return;
+    }
+
+    if (exists && overwrite) {
+      // eslint-disable-next-line no-alert
+      const confirmed = window.confirm(
+        `⚠️ WARNING: This will REPLACE the existing product "${productSlug}" and ALL its files.\n\nAre you sure you want to continue?`,
+      );
+      if (!confirmed) {
+        showToast('Operation cancelled', 'info');
+        return;
+      }
+    }
+
+    showToast('Creating product page...', 'info');
 
     // Step 1: Copy only selected tab folders
     const folderCopyPromises = tabs.map(async (tab, index) => {
@@ -281,7 +302,14 @@ export async function createProduct() {
       tabs,
     });
 
+    // Build DA Live URL
+    const daUrl = `https://da.live/edit#/${org}/${site}/${cleanDestFolder}/${productSlug}`;
+    
     showToast(`Product created successfully: ${productSlug}`, 'success');
+    addToActivityLog(`✅ Created: ${productSlug} - View: ${daUrl}`, 'success');
+    
+    // eslint-disable-next-line no-console
+    console.log(`✅ Product created: ${productSlug}\n→ View in DA Live: ${daUrl}`);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error creating product:', error);

@@ -6,7 +6,8 @@ export const appState = {
   context: null,
   token: null,
   actions: null,
-  currentTab: 'create',
+  currentTab: 'single',
+  currentSubTab: 'single-create',
 };
 
 export function setAuth(context, token, actions) {

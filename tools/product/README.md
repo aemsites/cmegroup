@@ -17,16 +17,19 @@ The Product Manager provides two modes of operation:
 - Selectively copy tab-specific folders and HTML files
 - Generate landing pages with custom metadata
 - Support for multiple product tabs (Overview, Quotes, Settlements, Volume & OI, Specs, Margins, Calendar)
+- Conflict detection with optional overwrite
 - Real-time validation and feedback
 
 ### Bulk Product Mode
 
 - CSV file upload with drag-and-drop support
 - Preview and validate products before creation
+- Automatic conflict detection for existing products
 - Dry run mode to test without creating
 - Progress tracking with detailed status
 - Results summary with success/warning/error categorization
 - Per-product destination folder configuration
+- Optional overwrite mode for replacing existing products
 
 ## Prerequisites
 
@@ -201,6 +204,73 @@ Access via the Activity Log button in the header. Log entries persist in browser
 - Tab names must match valid tab list
 - No duplicate slugs within a CSV file
 
+## Conflict Handling
+
+The Product Manager detects and handles conflicts when a product already exists at the destination path.
+
+### Single Product Mode
+
+**Default Behavior**: Product creation fails if a product already exists at the destination path.
+
+**Overwrite Option**: Check the "Overwrite if exists" checkbox to replace existing products.
+
+- When checked, the system prompts for confirmation before replacing
+- All existing files (landing page, tab folders, tab HTML files) will be replaced
+- Destructive operation - use with caution
+
+**Workflow**:
+1. System checks if product exists at `/destination/product-slug.html`
+2. If exists and overwrite is unchecked: Error message displayed
+3. If exists and overwrite is checked: Confirmation dialog shown
+4. If confirmed: Existing product is replaced with new content
+
+### Bulk Product Mode
+
+**Default Behavior**: Existing products are skipped during bulk creation.
+
+**Overwrite Option**: Check the "Overwrite existing products" checkbox to replace them.
+
+**Preview Table Indicators**:
+- `✓ Valid` - Product does not exist, ready to create
+- `⚠️ EXISTS` - Product already exists at destination (will be skipped unless overwrite is enabled)
+- `❌ Error` - Validation failed, will not be processed
+
+**Workflow**:
+1. After CSV upload, system checks all destination paths for existing products
+2. Preview table shows `⚠️ EXISTS` badge for conflicts
+3. User can choose to skip or overwrite existing products
+4. During processing:
+   - If overwrite unchecked: Existing products are skipped
+   - If overwrite checked: Existing products are replaced
+5. Results summary shows which products were created, skipped, or failed
+
+**Dry Run with Conflicts**:
+- Dry run mode detects and reports conflicts without making changes
+- Use to preview which products would be skipped or replaced
+
+### Conflict Detection
+
+The system checks for product existence by:
+1. Constructing the full product path: `/org/site/destination/slug.html`
+2. Using HTTP HEAD request to DA Admin API
+3. Caching results to avoid repeated checks
+
+### Best Practices
+
+- **Before Bulk Creation**: Always run a dry run to check for conflicts
+- **Review Preview Table**: Check for `⚠️ EXISTS` badges before proceeding
+- **Selective Overwrite**: Uncheck conflicting products if you don't want to replace them
+- **Backup Important Data**: Make backups before using overwrite mode
+- **Test First**: Use a test destination folder when unsure
+
+### Design Philosophy
+
+**CREATE Mode**: Designed for new products - fails safely when conflicts detected  
+**UPDATE Mode** (Coming Soon): Designed for modifications - requires product to exist  
+**DELETE Mode** (Coming Soon): Designed for removal - warns if product doesn't exist
+
+This separation ensures clear intent and prevents accidental data loss.
+
 ## Dry Run Mode
 
 Dry run validates all products without creating anything:
@@ -230,11 +300,12 @@ Results are categorized as:
 
 ## Limitations
 
-- No undo functionality
-- Products with duplicate slugs will fail validation
+- No undo functionality (use overwrite with caution)
+- Products with duplicate slugs within CSV will fail validation
 - Source template must exist and be accessible
 - Tab folders and files must follow naming conventions
-- Sequential processing (one product at a time)
+- Sequential processing in bulk mode (one product at a time)
+- Conflict detection requires network request per product
 
 ## Notes
 

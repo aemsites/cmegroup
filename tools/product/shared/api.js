@@ -64,3 +64,31 @@ export async function getHTML(token, org, site, path) {
 
   return response.text();
 }
+
+/**
+ * Check if a product exists at the given path
+ * @param {string} token - DA authentication token
+ * @param {string} org - Organization name
+ * @param {string} site - Site/repo name
+ * @param {string} productPath - Path to product (with or without .html)
+ * @returns {Promise<boolean>} - True if product exists, false otherwise
+ */
+export async function checkProductExists(token, org, site, productPath) {
+  try {
+    const htmlPath = productPath.endsWith('.html') ? productPath : `${productPath}.html`;
+    const cleanPath = htmlPath.startsWith('/') ? htmlPath.substring(1) : htmlPath;
+    const sourceUrl = `${API_BASE.SOURCE}/${org}/${site}/${cleanPath}`;
+
+    const response = await fetch(sourceUrl, {
+      method: 'HEAD',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.ok;
+  } catch (error) {
+    // If there's an error, assume it doesn't exist
+    return false;
+  }
+}
