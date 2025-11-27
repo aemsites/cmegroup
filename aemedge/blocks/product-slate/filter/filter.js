@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-/* eslint-disable no-console */
 import { createElement, i18n, debounce } from '../../../scripts/utils.js';
 import createDropdowns from './controls/dropdown-filter.js';
 import { createSearchInput } from './controls/search-input.js';
@@ -44,59 +42,50 @@ function getFiltersFromURL() {
 function updateURLWithFilters(filters) {
   const params = new URLSearchParams();
 
-  // Add parameters in the same order as the React component for consistency
-
-  // subGroups first (note: capital G)
   if (filters.subgroup && filters.subgroup.length > 0) {
     params.set('subGroups', filters.subgroup.join(','));
   }
 
-  // sortDirection and sortField (if they exist)
-  if (filters.sortDirection) {
-    params.set('sortDirection', filters.sortDirection);
+  if (filters.group && filters.group.length > 0) {
+    params.set('groups', filters.group.join(','));
+  }
+
+  if (filters.searchTerm) {
+    params.set('search', filters.searchTerm);
+  }
+
+  if (filters.exch && filters.exch.length > 0) {
+    params.set('exch', filters.exch.join(','));
+  }
+
+  if (filters.venues && filters.venues.length > 0) {
+    params.set('venues', filters.venues.join(','));
+  }
+
+  if (filters.cleared && filters.cleared.length > 0) {
+    params.set('cleared', filters.cleared.join(','));
+  }
+
+  if (filters.tags === 1) {
+    params.set('tags', '1');
   }
 
   if (filters.sortField) {
     params.set('sortField', filters.sortField);
   }
 
-  // groups (parent groups)
-  if (filters.group && filters.group.length > 0) {
-    params.set('groups', filters.group.join(','));
+  if (filters.sortDirection) {
+    params.set('sortDirection', filters.sortDirection);
   }
 
-  // search term
-  if (filters.searchTerm) {
-    params.set('search', filters.searchTerm);
-  }
+  const entries = [...params.entries()].map(([key, value]) => (key === 'search'
+    ? `${key}=${value}`
+    : `${key}=${value.replace(/%2C/g, ',')}`));
 
-  // exch (exchanges)
-  if (filters.exch && filters.exch.length > 0) {
-    params.set('exch', filters.exch.join(','));
-  }
+  const query = entries.join('&');
 
-  // venues
-  if (filters.venues && filters.venues.length > 0) {
-    params.set('venues', filters.venues.join(','));
-  }
-
-  // cleared (URL encoded for spaces)
-  if (filters.cleared && filters.cleared.length > 0) {
-    // Join and encode special characters (like spaces)
-    params.set(
-      'cleared',
-      filters.cleared.map((c) => encodeURIComponent(c)).join(','),
-    );
-  }
-
-  // tags
-  if (filters.tags === 1) {
-    params.set('tags', '1');
-  }
-
-  // Update URL without page reload using pushState
-  const newURL = params.toString()
-    ? `${window.location.pathname}?${params.toString()}`
+  const newURL = query
+    ? `${window.location.pathname}?${query}`
     : window.location.pathname;
 
   window.history.pushState({}, '', newURL);
@@ -110,9 +99,7 @@ function convertURLFiltersToSelections(urlFilters, groupData, options) {
     venues: [],
   };
 
-  // Process GROUPS and SUBGROUPS from URL (note: 'groups' and 'subGroups')
   if (groupData) {
-    // Add parent groups
     if (urlFilters.groups && urlFilters.groups.length > 0) {
       urlFilters.groups.forEach((groupId) => {
         const group = groupData.find((g) => String(g.id) === String(groupId));
@@ -122,7 +109,6 @@ function convertURLFiltersToSelections(urlFilters, groupData, options) {
       });
     }
 
-    // Add subgroups (children) - note: capital G in subGroups
     if (urlFilters.subGroups && urlFilters.subGroups.length > 0) {
       urlFilters.subGroups.forEach((subgroupId) => {
         groupData.forEach((group) => {
@@ -173,30 +159,24 @@ function convertURLFiltersToSelections(urlFilters, groupData, options) {
 
 async function fetchTableData(filters) {
   try {
-    // Update URL with current filters (without page reload)
     updateURLWithFilters(filters);
 
-    const response = await fetch('/endpoint', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(filters),
-    });
+    if (typeof window.fetchProductSlateData === 'function') {
+      await window.fetchProductSlateData(filters);
+      return;
+    }
 
-    const data = await response.json();
-
-    // Dispatch custom event to notify other components (e.g., table)
     window.dispatchEvent(
-      new CustomEvent('tableDataUpdated', {
-        detail: { data, filters },
+      new CustomEvent('tableDataError', {
+        detail: { error: new Error('fetchProductSlateData not available'), filters },
       }),
     );
-
-    return data;
   } catch (error) {
-    console.error('Error fetching data:', error);
-    return null;
+    window.dispatchEvent(
+      new CustomEvent('tableDataError', {
+        detail: { error, filters },
+      }),
+    );
   }
 }
 
@@ -213,10 +193,8 @@ function buildFiltersObject(
     exch: [],
     cleared: [],
     searchTerm: searchTerm || '',
-    timestamp: new Date().toISOString(),
   };
 
-  // Handle GROUP dropdown (hierarchical structure)
   if (
     dropdownSelections.group
     && dropdownSelections.group.length > 0
@@ -227,19 +205,28 @@ function buildFiltersObject(
       const id = parts[parts.length - 1];
       const name = parts.slice(0, -1).join('_');
 
-      const group = groupData.find(
+      const parentGroup = groupData.find(
         (g) => g.name === name && String(g.id) === String(id),
       );
 
-      if (group && group.children && group.children.length > 0) {
+      if (parentGroup) {
         filters.group.push(id);
       } else {
-        filters.subgroup.push(id);
+        for (const g of groupData) {
+          if (g.children) {
+            const child = g.children.find(
+              (c) => c.name === name && String(c.id) === String(id),
+            );
+            if (child) {
+              filters.subgroup.push(id);
+              break;
+            }
+          }
+        }
       }
     });
   }
 
-  // Handle VENUES (send IDs only)
   if (dropdownSelections.venues && dropdownSelections.venues.length > 0) {
     dropdownSelections.venues.forEach((itemKey) => {
       const parts = itemKey.split('_');
@@ -248,7 +235,6 @@ function buildFiltersObject(
     });
   }
 
-  // Handle EXCH (send names only)
   if (dropdownSelections.exch && dropdownSelections.exch.length > 0) {
     dropdownSelections.exch.forEach((itemKey) => {
       const parts = itemKey.split('_');
@@ -257,7 +243,6 @@ function buildFiltersObject(
     });
   }
 
-  // Handle CLEARED (send names only)
   if (dropdownSelections.cleared && dropdownSelections.cleared.length > 0) {
     dropdownSelections.cleared.forEach((itemKey) => {
       const parts = itemKey.split('_');
@@ -266,7 +251,6 @@ function buildFiltersObject(
     });
   }
 
-  // Include tags only if checkbox is selected
   if (checkboxValue === true) {
     filters.tags = 1;
   }
@@ -281,7 +265,6 @@ export function createFilter(options) {
   let pillsContainer;
   let groupData;
 
-  // Base containers
   const filter = createElement('div', {
     class: 'product-slate-filter reverse',
   });
@@ -311,7 +294,8 @@ export function createFilter(options) {
   const secondFilterRow = createElement('div', { class: 'filter-row' });
   const searchRow = createElement('div', { class: 'search-row' });
 
-  // Create dropdowns with callback
+  groupData = options.group || [];
+
   const dropdownsContainer = createDropdowns(options, {
     onSelectionChange: () => {
       const allSelections = dropdownsContainer.getSelections();
@@ -332,9 +316,6 @@ export function createFilter(options) {
     },
   });
 
-  groupData = options.group || [];
-
-  // Create filter pills linked to dropdowns
   pillsContainer = createFilterPillsFromDropdowns(dropdownsContainer, {
     hideWhenEmpty: true,
     onRemove: (pill) => {
@@ -356,7 +337,6 @@ export function createFilter(options) {
     },
   });
 
-  // Create checkbox with change listener
   const checkbox = createCheckbox({
     onChange: (isChecked) => {
       checkboxValue = isChecked;
@@ -376,7 +356,6 @@ export function createFilter(options) {
   filterButton.textContent = filterText;
   applyButton.textContent = applyText;
 
-  // Create search input with debounce
   const debouncedFetch = debounce((value) => {
     const allSelections = dropdownsContainer.getSelections();
     const filters = buildFiltersObject(
@@ -407,7 +386,6 @@ export function createFilter(options) {
     },
   });
 
-  // Reset button listener
   resetButton.addEventListener('click', (e) => {
     e.preventDefault();
     customSearch.clear();
@@ -427,11 +405,11 @@ export function createFilter(options) {
     const venuesInstance = dropdownsContainer.getDropdownInstance('venues');
     if (venuesInstance) venuesInstance.updateAllCheckboxes();
 
-    const filters = buildFiltersObject({}, '', false, groupData);
-    fetchTableData(filters);
+    if (typeof window.resetProductSlate === 'function') {
+      window.resetProductSlate();
+    }
   });
 
-  // Mobile modal handlers
   filterButton.addEventListener('click', (e) => {
     e.preventDefault();
     mainFilters.classList.remove('hide-modal');
@@ -459,7 +437,6 @@ export function createFilter(options) {
     fetchTableData(filters);
   });
 
-  // Responsive behavior
   if (isDesktop) {
     mainFilters.classList.remove('hide-modal');
   } else {
@@ -477,7 +454,6 @@ export function createFilter(options) {
     }
   });
 
-  // Build final structure
   filterBy.appendChild(pillsContainer);
   filter.appendChild(mainFilters);
   mainFilters.appendChild(filtersContent);
@@ -497,7 +473,6 @@ export function createFilter(options) {
   filter.appendChild(buttonsContainer);
   filter.appendChild(filterBy);
 
-  // Expose public API methods for external use
   filter.getFilters = () => {
     const allSelections = dropdownsContainer.getSelections();
     return buildFiltersObject(
@@ -519,7 +494,6 @@ export function createFilter(options) {
 
   const urlFilters = getFiltersFromURL();
 
-  // Check if there are any filters in the URL
   const hasURLFilters = Object.keys(urlFilters).some((key) => {
     const value = urlFilters[key];
     return Array.isArray(value) ? value.length > 0 : value;
