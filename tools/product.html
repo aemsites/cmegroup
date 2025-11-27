@@ -35,6 +35,7 @@
         <button class="tab-btn" data-tab="move">Move</button>
         <button class="tab-btn" data-tab="update">Update</button>
         <button class="tab-btn" data-tab="delete">Delete</button>
+        <button class="tab-btn" data-tab="bulk">Bulk</button>
       </nav>
 
       <main class="app-main">
@@ -224,8 +225,8 @@
                     type="text" 
                     id="source-path" 
                     class="input-field" 
-                    placeholder="/drafts/kunwar/markets/corn" 
-                    value="/drafts/kunwar/markets/corn"
+                    placeholder="/drafts/kunwar/product-app/product-template/product" 
+                    value="/drafts/kunwar/product-app/product-template/product"
                     required 
                   />
                 </div>
@@ -317,6 +318,171 @@
           <div class="placeholder-content">
             <h2>Delete Product</h2>
             <p>Coming soon</p>
+          </div>
+        </div>
+
+        <!-- Bulk Operations Tab -->
+        <div id="tab-bulk" class="tab-content">
+          <div class="config-container">
+            <!-- Main Bulk Section -->
+            <div class="main-config-section">
+              <!-- Upload CSV Section -->
+              <div class="config-card">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <img src="./product/icons/settings.svg" alt="Upload" class="icon">
+                  </div>
+                  <h2>Upload CSV</h2>
+                </div>
+                <div class="card-content">
+                  <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">📂</div>
+                    <p class="upload-text">Drop CSV file here or click to browse</p>
+                    <input type="file" id="csv-file-input" accept=".csv" hidden>
+                    <button class="btn btn-outline" id="browse-btn">Browse Files</button>
+                  </div>
+                  <div id="file-info" class="file-info hidden">
+                    <p><strong>File:</strong> <span id="file-name"></span></p>
+                    <p><strong>Rows:</strong> <span id="file-rows"></span></p>
+                    <button class="btn btn-sm btn-outline" id="clear-file-btn">Clear</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Preview & Validation Table -->
+              <div class="config-card hidden" id="preview-card">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <img src="./product/icons/settings.svg" alt="Preview" class="icon">
+                  </div>
+                  <h2>Preview & Validation</h2>
+                  <div class="card-actions">
+                    <button class="btn btn-sm btn-outline" id="select-all-rows">Select All</button>
+                    <button class="btn btn-sm btn-outline" id="unselect-all-rows">Unselect All</button>
+                  </div>
+                </div>
+                <div class="card-content">
+                  <div class="table-container" id="preview-table-container">
+                    <!-- Table will be dynamically inserted -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Progress Section -->
+              <div class="config-card hidden" id="progress-card">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <img src="./product/icons/settings.svg" alt="Progress" class="icon">
+                  </div>
+                  <h2>Progress</h2>
+                </div>
+                <div class="card-content">
+                  <div class="progress-info">
+                    <p id="progress-status">Starting...</p>
+                    <div class="progress-bar">
+                      <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <p id="progress-details">0 of 0 processed</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Results Section -->
+              <div class="config-card hidden" id="results-card">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <img src="./product/icons/settings.svg" alt="Results" class="icon">
+                  </div>
+                  <h2>Results</h2>
+                </div>
+                <div class="card-content">
+                  <div class="results-summary">
+                    <div class="result-stat success">
+                      <span class="result-icon">✅</span>
+                      <span class="result-label">Success:</span>
+                      <span class="result-value" id="success-count">0</span>
+                    </div>
+                    <div class="result-stat warning">
+                      <span class="result-icon">⚠️</span>
+                      <span class="result-label">Warnings:</span>
+                      <span class="result-value" id="warning-count">0</span>
+                    </div>
+                    <div class="result-stat error">
+                      <span class="result-icon">❌</span>
+                      <span class="result-label">Failed:</span>
+                      <span class="result-value" id="error-count">0</span>
+                    </div>
+                  </div>
+                  <div class="results-details" id="results-details">
+                    <!-- Details will be dynamically inserted -->
+                  </div>
+                  <div class="results-actions">
+                    <button class="btn btn-outline" id="download-report-btn">Download Report</button>
+                    <button class="btn btn-outline" id="reset-bulk-btn">Start Over</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Configuration Sidebar -->
+            <div class="filters-sidebar">
+              <div class="config-card config-priority">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <img src="./product/icons/settings.svg" alt="Configuration" class="icon">
+                  </div>
+                  <h2>Configuration</h2>
+                </div>
+                
+                <div class="card-content">
+                  <div class="input-group">
+                    <label for="bulk-org-site-path" class="input-label">
+                      <span class="label-text">Organization/Site <span class="required">*</span></span>
+                    </label>
+                    <input 
+                      type="text" 
+                      id="bulk-org-site-path" 
+                      class="input-field" 
+                      placeholder="/org/site" 
+                      value="/cmegroup/www"
+                      required 
+                    />
+                  </div>
+
+                  <div class="input-group">
+                    <label for="bulk-source-path" class="input-label">
+                      <span class="label-text">Source Template <span class="required">*</span></span>
+                      <span class="label-hint">Template to copy from</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      id="bulk-source-path" 
+                      class="input-field" 
+                      placeholder="/drafts/kunwar/product-app/product-template/product" 
+                      value="/drafts/kunwar/product-app/product-template/product"
+                      required 
+                    />
+                  </div>
+
+                  <div class="config-note">
+                    <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: var(--spacing-md);"><strong>Note:</strong> Destination folder is specified per-product in the CSV file (last column).</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-bar" id="bulk-action-bar">
+            <div class="primary-actions">
+              <button id="dry-run-btn" class="btn btn-outline" disabled>
+                <img src="./product/icons/check.svg" alt="Test" class="icon">
+                <span>Dry Run (Preview)</span>
+              </button>
+              <button id="bulk-create-btn" class="btn btn-primary" disabled>
+                <img src="./product/icons/check.svg" alt="Create" class="icon">
+                <span>Create Products</span>
+              </button>
+            </div>
           </div>
         </div>
 

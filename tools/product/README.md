@@ -1,61 +1,109 @@
 # Product Manager
 
-A web-based tool for creating and managing product pages in the CME Group website using the DA (Document Authoring) Admin API.
+Web-based tool for creating and managing product pages in the CME Group website using the DA Admin API.
+
+## Overview
+
+The Product Manager provides two modes of operation:
+
+- **Single Product Creation**: Create individual product pages with full control over metadata and tab selection
+- **Bulk Product Creation**: Create multiple products from CSV files for efficient batch operations
 
 ## Features
 
-### Product Creation
+### Single Product Mode
+
 - Copy product templates from a source location
 - Selectively copy tab-specific folders and HTML files
 - Generate landing pages with custom metadata
 - Support for multiple product tabs (Overview, Quotes, Settlements, Volume & OI, Specs, Margins, Calendar)
+- Real-time validation and feedback
 
-### User Interface
-- **Visual Hierarchy**: Configuration sidebar prioritized with distinct styling
-- **Grouped Sections**: Organized into SEO Metadata, Product Information, and Template Selection
-- **Required Field Indicators**: Red asterisks (*) mark mandatory fields
-- **Configuration inputs** for organization/site, source, and destination paths
-- **Product metadata fields** (Title, Description, Product Name, Product ID, Product Slug)
-- **3-column tab grid** (responsive: 2 columns on tablets, 1 column on mobile)
-- **Tab selection** with "Select All" and "Unselect All" options
-- **Activity log modal** for tracking operations
-- **Toast notifications** for real-time feedback
+### Bulk Product Mode
 
-### Technical Features
-- DA SDK authentication and token management
-- Parallel API calls for efficient tab copying
-- Automatic metadata generation in AEM Edge Delivery format
-- Local storage for activity log persistence
+- CSV file upload with drag-and-drop support
+- Preview and validate products before creation
+- Dry run mode to test without creating
+- Progress tracking with detailed status
+- Results summary with success/warning/error categorization
+- Per-product destination folder configuration
+
+## Prerequisites
+
+- Access to DA Admin API with valid authentication
+- Source product template at the specified path
+- Appropriate folder permissions
+
+## Configuration
+
+### Global Settings
+
+- **Organization/Site**: `/cmegroup/www`
+- **Source Template**: `/drafts/kunwar/product-app/product-template/product`
+
+### Per-Product Settings (Bulk Mode)
+
+Each product in the CSV specifies:
+- Title, description, and metadata
+- Product ID and slug
+- Tab selection
+- Destination folder path
 
 ## Usage
 
-### Prerequisites
-- Access to DA Admin API with valid authentication
-- Source product template at the specified path
-- Destination folder permissions
+### Single Product Creation
 
-### Creating a Product
+1. Navigate to the Create tab
+2. Configure paths (org/site, source template, destination)
+3. Enter product metadata (title, description, name, ID, slug)
+4. Select tabs to include
+5. Click "Create Product"
 
-1. **Configure Paths**
-   - Organization/Site: `/cmegroup/www`
-   - Source: Path to template (e.g., `/drafts/kunwar/markets/corn`)
-   - Destination: Target folder (e.g., `/drafts/kunwar/product-app/markets`)
+### Bulk Product Creation
 
-2. **Enter Product Details**
-   - Title: Page title for SEO
-   - Description: Meta description
-   - Product Name: Display name (e.g., "Soybeans")
-   - Product ID: Unique identifier (e.g., "300")
-   - Product Slug: URL-friendly filename (e.g., "soybeans")
+1. Navigate to the Bulk tab
+2. Configure global settings (org/site, source template)
+3. Upload CSV file or drag-and-drop
+4. Review preview table and validation status
+5. Select products to create using checkboxes
+6. Run "Dry Run" to validate (optional)
+7. Click "Create Products" to execute
 
-3. **Select Tabs**
-   - Choose which tabs to include in the product
-   - Only selected tab folders and files will be copied
+## CSV Format
 
-4. **Create Product**
-   - Click "Create Product" button
-   - Monitor progress via toast notifications
-   - Check Activity Log for detailed operation history
+### Required Columns
+
+```
+title,description,product_name,product_id,product_slug,tabs,destination
+```
+
+### Column Descriptions
+
+- **title**: Page title for SEO (minimum 3 characters)
+- **description**: Meta description for search engines (minimum 10 characters)
+- **product_name**: Display name for the product (minimum 2 characters)
+- **product_id**: Unique identifier
+- **product_slug**: URL-friendly name, lowercase alphanumeric with hyphens
+- **tabs**: Pipe-separated list (e.g., `overview|quotes|settlements`)
+- **destination**: Destination folder path (e.g., `/drafts/kunwar/product-app/grains`)
+
+### Valid Tab Names
+
+- overview
+- quotes
+- settlements
+- volume
+- specs
+- margins
+- calendar
+
+### Example CSV
+
+```csv
+title,description,product_name,product_id,product_slug,tabs,destination
+"Corn Futures","Trade corn futures and options","Corn","300","corn","overview|quotes|settlements","/drafts/kunwar/product-app/grains"
+"Crude Oil Futures","Energy futures for crude oil","Crude Oil","CL","crude-oil","overview|quotes","/drafts/kunwar/product-app/energy"
+```
 
 ## Output Structure
 
@@ -63,13 +111,12 @@ The tool creates the following structure:
 
 ```
 /destination/product-slug/
-├── overview/                 (if selected)
-├── quotes/                   (if selected)
-├── settlements/              (if selected)
-├── overview.html             (if exists in template)
-├── quotes.html               (if exists in template)
-├── settlements.html          (if exists in template)
-└── ...
+├── overview/           (if selected)
+├── quotes/             (if selected)
+├── settlements/        (if selected)
+├── overview.html       (if exists in template)
+├── quotes.html         (if exists in template)
+└── settlements.html    (if exists in template)
 
 /destination/product-slug.html (landing page)
 ```
@@ -77,107 +124,122 @@ The tool creates the following structure:
 ## Landing Page Structure
 
 Generated landing pages include:
+
 - Hero section with baseball card block
 - Product tabs block with selected tabs
-- Metadata block with:
+- Metadata block containing:
   - Title
   - Description
   - Template (set to "product")
   - Product name
   - Product ID
 
+## API Endpoints
+
+- `https://admin.da.live/source` - Create/update HTML content
+- `https://admin.da.live/copy` - Copy folders and files
+
+## Technical Architecture
+
+### Modular Structure
+
+```
+tools/product/
+├── product.html          Main UI with tab navigation
+├── product.css           Shared styles
+├── product.js            App initialization and routing
+├── shared/               Shared utilities
+│   ├── api.js           DA Admin API wrapper
+│   ├── ui.js            Toast notifications, activity log
+│   └── state.js         Application state management
+├── modules/              Tab-specific functionality
+│   ├── create.js        Single product creation
+│   ├── bulk.js          Bulk operations
+│   ├── move.js          Move operations (planned)
+│   ├── update.js        Update operations (planned)
+│   └── delete.js        Delete operations (planned)
+└── sample-products.csv  Example CSV file
+```
+
+### Design Benefits
+
+- Separation of concerns with clear module boundaries
+- Reusable API and UI components
+- Easy to extend with new tabs and features
+- Independent testing of modules
+- Clear code organization
+
 ## Activity Log
 
-The Activity Log tracks:
+The Activity Log tracks all operations:
+
 - Product creation steps
 - Tab folder copying progress
 - Tab HTML file copying progress
 - Landing page creation
 - Errors and warnings
+- Validation results
 
-Access the Activity Log via the button in the top-right header.
+Access via the Activity Log button in the header. Log entries persist in browser localStorage.
 
-## API Endpoints Used
+## Validation Rules
 
-- `https://admin.da.live/source` - Create/update HTML content
-- `https://admin.da.live/copy` - Copy folders and files
+### Required Fields
 
-## Architecture
+- Title (minimum 3 characters)
+- Description (minimum 10 characters)
+- Product name (minimum 2 characters)
+- Product ID
+- Product slug
+- At least one tab
+- Destination folder (bulk mode)
 
-The application uses a modular, tabbed architecture for easy extension:
+### Format Rules
 
-### File Structure
+- Product slug must be lowercase alphanumeric with hyphens only
+- Destination path should start with `/`
+- Tab names must match valid tab list
+- No duplicate slugs within a CSV file
 
-```
-tools/product/
-├── product.html          - Main UI with tab navigation
-├── product.css           - Shared styles
-├── product.js            - Main app initialization and routing
-├── shared/               - Shared utilities
-│   ├── api.js           - DA Admin API wrapper
-│   ├── ui.js            - Toast notifications, activity log
-│   └── state.js         - Shared application state
-├── modules/              - Tab-specific functionality
-│   ├── create.js        - ✅ Create products (ACTIVE)
-│   ├── move.js          - 🚧 Move products (PLANNED)
-│   ├── update.js        - 🚧 Update products (PLANNED)
-│   ├── delete.js        - 🚧 Delete products (PLANNED)
-│   └── README.md        - Module documentation
-├── icons/                - UI icons
-├── product-old.js        - Legacy monolithic version (backup)
-└── README.md             - This file
-```
+## Dry Run Mode
 
-### Modular Design Benefits
+Dry run validates all products without creating anything:
 
-- **Easy to extend**: Add new tabs without modifying existing code
-- **Separation of concerns**: Each module handles its own functionality
-- **Reusable utilities**: Shared API and UI components
-- **Maintainable**: Clear structure and responsibilities
-- **Testable**: Modules can be tested independently
+- Tests all validation rules
+- Checks for duplicate slugs
+- Verifies tab names
+- Identifies missing required fields
+- No API calls are made
+- Safe to run multiple times
 
-## Current Tabs
+## Error Handling
 
-### Create Product (✅ Active)
-Full product creation from templates with tab selection and metadata.
-- Organized into clear sections: Configuration, SEO Metadata, Product Information, Template Selection
-- Required field validation
-- 3-column responsive tab grid
-- Parallel copy operations for performance
+The tool provides detailed error reporting:
 
-### Move Product (🚧 Planned)
-Move products from one location to another.
+- Invalid CSV format
+- Missing required fields
+- Invalid field formats
+- Duplicate slugs
+- API failures
+- Partial success handling
 
-### Update Product (🚧 Planned)
-Update product metadata without touching tab content.
-
-### Delete Product (🚧 Planned)
-Delete products with confirmation and bulk operations.
-
-## Extending the Application
-
-To add a new tab:
-
-1. Create `modules/your-feature.js`
-2. Export main functions and `setupYourFeatureListeners()`
-3. Import in `product.js` and call setup function
-4. Add tab button to `product.html`
-5. Add tab content section to `product.html`
-
-See `modules/README.md` for detailed instructions.
+Results are categorized as:
+- Success: Product created successfully
+- Warning: Created with non-critical issues
+- Error: Failed to create
 
 ## Limitations
 
 - No undo functionality
-- Overwrites existing products without warning
-- Source path must exist and be accessible
-- Tab folders/files must follow naming conventions
+- Products with duplicate slugs will fail validation
+- Source template must exist and be accessible
+- Tab folders and files must follow naming conventions
+- Sequential processing (one product at a time)
 
 ## Notes
 
 - All operations are logged to browser console and Activity Log
 - Activity Log persists in localStorage
-- Tab display names are automatically mapped (e.g., "volume" → "Volume & OI")
+- Tab display names are automatically mapped (e.g., "volume" becomes "Volume & OI")
 - Copy operations run in parallel for better performance
 - Modular ES6 architecture with clean separation of concerns
-

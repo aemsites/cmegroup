@@ -15,7 +15,7 @@ const app = {
   template: {
     org: 'cmegroup',
     repo: 'www',
-    path: '/drafts/kunwar/markets/corn',
+    path: '/drafts/kunwar/product-app/product-template/product',
   },
 };
 

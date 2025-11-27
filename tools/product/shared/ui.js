@@ -31,7 +31,7 @@ function saveActivityLog() {
   }
 }
 
-function addToActivityLog(message, type = 'info') {
+export function addToActivityLog(message, type = 'info') {
   const entry = {
     timestamp: new Date().toISOString(),
     message,

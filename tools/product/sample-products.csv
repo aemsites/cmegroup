@@ -1,0 +1,4 @@
+title,description,product_name,product_id,product_slug,tabs,destination
+"Corn Futures","Trade corn futures and options","Corn","300","corn","overview|quotes|settlements|specs","/drafts/kunwar/product-app/grains"
+"Soybean Futures","Trade soybean futures","Soybeans","301","soybeans","overview|quotes|settlements","/drafts/kunwar/product-app/grains"
+"Wheat Futures","Trade wheat futures","Wheat","302","wheat","overview|quotes|settlements","/drafts/kunwar/product-app/grains"

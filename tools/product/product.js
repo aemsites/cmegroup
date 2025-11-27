@@ -10,6 +10,7 @@ import {
 } from './shared/ui.js';
 import { setAuth, setCurrentTab } from './shared/state.js';
 import { setupCreateListeners } from './modules/create.js';
+import { setupBulkListeners } from './modules/bulk.js';
 
 /**
  * Switch between tabs
@@ -106,6 +107,7 @@ async function initApp() {
     // Setup event listeners
     setupGlobalListeners();
     setupCreateListeners();
+    setupBulkListeners();
 
     // eslint-disable-next-line no-console
     console.log('Product Manager initialized successfully');
