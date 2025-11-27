@@ -19,6 +19,10 @@
     background-color: var(--blue7);
   }
 
+  &.blue11-background {
+    background-color: var(--blue11);
+  }
+
   &.citron-background {
     background-color: var(--citron);
 
@@ -34,11 +38,16 @@
     color: var(--citron);
   }
 
+  &.white-arrow .cards-body-container a::after {
+    color: var(--white);
+  }
+
   & .cards-body-container {
     background-repeat: repeat;
     background-position: center bottom;
     background-size: cover;
     display: block;
+    background-color: var(--blue2);
 
     & a {
       height: 100%;
@@ -91,6 +100,7 @@
         letter-spacing: 0.0563rem;
         font-size: 1.875rem;
         line-height: 2.1875rem;
+        text-transform: initial;
       }
 
       & em {

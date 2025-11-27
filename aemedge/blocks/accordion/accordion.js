@@ -45,6 +45,90 @@ function createAccordionItem(title, content) {
   return details;
 }
 
+function createLinksAccordionItem(title, content, isFirstOpen = false, block = null) {
+  const card = createElement('div', { class: 'accordion-card' });
+  const header = createElement('div', { class: 'card-header' });
+  if (isFirstOpen) {
+    header.classList.add('open');
+  }
+
+  const titleText = createElement('span', { class: 'card-header-title' });
+  titleText.textContent = title;
+
+  const iconSpan = createElement('span', { class: 'card-header-icon' });
+
+  header.append(titleText, iconSpan);
+
+  const collapse = createElement('div', { class: 'collapse' });
+  if (isFirstOpen) {
+    collapse.classList.add('show');
+  }
+
+  const body = createElement('div', { class: 'card-body' });
+  body.appendChild(content);
+
+  collapse.appendChild(body);
+  card.append(header, collapse);
+
+  header.addEventListener('click', () => {
+    const isOpen = header.classList.contains('open');
+
+    if (isOpen) {
+      // Closing animation
+      header.classList.remove('open');
+      collapse.style.height = `${collapse.scrollHeight}px`;
+      collapse.classList.add('collapsing');
+      collapse.classList.remove('show');
+
+      // Force reflow
+      // eslint-disable-next-line no-unused-expressions
+      collapse.offsetHeight;
+
+      collapse.style.height = '0';
+
+      // After transition completes
+      const handleTransitionEnd = () => {
+        collapse.classList.remove('collapsing');
+        collapse.style.height = '';
+        collapse.removeEventListener('transitionend', handleTransitionEnd);
+      };
+      collapse.addEventListener('transitionend', handleTransitionEnd);
+    } else {
+      // Close all other accordions in the same block
+      if (block) {
+        const allHeaders = block.querySelectorAll('.card-header.open');
+        allHeaders.forEach((otherHeader) => {
+          if (otherHeader !== header) {
+            otherHeader.click();
+          }
+        });
+      }
+
+      // Opening animation
+      header.classList.add('open');
+      collapse.classList.add('collapsing');
+      collapse.style.height = '0';
+
+      // Force reflow
+      // eslint-disable-next-line no-unused-expressions
+      collapse.offsetHeight;
+
+      collapse.style.height = `${collapse.scrollHeight}px`;
+
+      // After transition completes
+      const handleTransitionEnd = () => {
+        collapse.classList.remove('collapsing');
+        collapse.classList.add('show');
+        collapse.style.height = '';
+        collapse.removeEventListener('transitionend', handleTransitionEnd);
+      };
+      collapse.addEventListener('transitionend', handleTransitionEnd);
+    }
+  });
+
+  return card;
+}
+
 async function decorateCardsAccordion(block) {
   try {
     const rows = [...block.children];
@@ -109,11 +193,49 @@ function decorateAccordion(block) {
     );
     row.replaceWith(accordion);
   });
+
+  // Add toggle event listener to ensure only one accordion is open at a time
+  const allDetails = block.querySelectorAll('details');
+  allDetails.forEach((details) => {
+    details.addEventListener('toggle', (event) => {
+      if (event.target.open) {
+        allDetails.forEach((other) => {
+          if (other !== event.target && other.open) {
+            other.open = false;
+          }
+        });
+      }
+    });
+  });
+}
+
+function decorateLinksAccordion(block) {
+  const rows = [...block.children];
+  const accordionItems = [];
+
+  rows.forEach((row, index) => {
+    const [label, body] = [...row.children];
+    if (label && body) {
+      const isFirstOpen = index === 0;
+      const accordionItem = createLinksAccordionItem(
+        label.textContent.trim(),
+        body,
+        isFirstOpen,
+        block,
+      );
+      accordionItems.push(accordionItem);
+    }
+  });
+
+  block.textContent = '';
+  block.append(...accordionItems);
 }
 
 export default async function decorate(block) {
   if (block.classList.contains('cards')) {
     decorateCardsAccordion(block);
+  } else if (block.classList.contains('links')) {
+    decorateLinksAccordion(block);
   } else {
     decorateAccordion(block);
   }

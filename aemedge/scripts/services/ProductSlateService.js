@@ -88,6 +88,7 @@ export default async function getProductSlateData({
       downloadExcelUrl,
     };
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.error('ProductSlateService => getProductSlate error:', e);
     return {
       products: [],

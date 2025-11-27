@@ -201,6 +201,38 @@ export async function getCourseData(loginInfo) {
   }
 }
 
+export function flattenLessons(courseData) {
+  const lessons = courseData.lessons || [];
+  const chapters = courseData.chapters || [];
+  const modulesOrder = courseData.modulesOrder?.split(',').map((s) => s.trim()) || [];
+
+  const flatLessons = [];
+
+  const lessonMap = new Map(
+    lessons.map((lesson) => [lesson.pathSuffix, lesson]),
+  );
+
+  const chapterMap = new Map(
+    chapters.map((chapter) => [
+      chapter.path.split('/').pop(),
+      chapter.lessons?.map((lesson) => ({
+        ...lesson,
+        chapterPath: chapter.path,
+      })) || [],
+    ]),
+  );
+
+  modulesOrder.forEach((key) => {
+    if (lessonMap.has(key)) {
+      flatLessons.push({ ...lessonMap.get(key), chapterPath: null });
+    } else if (chapterMap.has(key)) {
+      flatLessons.push(...chapterMap.get(key));
+    }
+  });
+
+  return flatLessons;
+}
+
 async function getCourseDataProgress(courseData) {
   return import('../services/EducationTrackService.js').then(async ({ getProgress }) => {
     if (isLessonStandalone(courseData.template)) {
@@ -337,6 +369,13 @@ export function getCurrentLesson(courseData) {
     ...(courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || []),
     ...courseData.lessons];
   return lessons.find(({ path }) => currentPath === path);
+}
+
+export function buildCourseSurveyLink(courseData) {
+  const link = document.querySelector('a.course-survey-link');
+  if (!link) return;
+  const surveyLink = link.getAttribute('href') || '/education/course-survey.html';
+  link.setAttribute('href', `${surveyLink}#${courseData.moduleTitle}`);
 }
 
 /**

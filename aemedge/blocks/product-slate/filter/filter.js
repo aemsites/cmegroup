@@ -30,7 +30,6 @@ function getFiltersFromURL() {
       ? params
         .get('cleared')
         .split(',')
-        .map((c) => decodeURIComponent(c))
       : [],
     searchTerm: params.get('search') || '',
     tags: params.get('tags') === '1',
@@ -258,7 +257,7 @@ function buildFiltersObject(
   return filters;
 }
 
-export function createFilter(options) {
+export default function createFilter(options) {
   let isDesktop = window.innerWidth >= 769;
   let currentSearchTerm = '';
   let checkboxValue = false;

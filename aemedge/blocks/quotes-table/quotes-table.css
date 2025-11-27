@@ -1,0 +1,146 @@
+/* Quotes Table Block - Follows DOM structure from quotes-table.js */
+
+.quotes-table {
+  margin: 2rem 0;
+
+  /* Loading state */
+  & .loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--gray3);
+    font-size: 1.125rem;
+  }
+
+  /* Error/no results state */
+  & .no-results {
+    border: 1px solid #112b4a;
+    color: #112b4a;
+    font-size: 1.5rem;
+    margin: 0.9375rem auto;
+    text-align: center;
+    padding: 2rem;
+
+    & h4 {
+      margin: 0;
+      padding: 1.25rem;
+    }
+  }
+
+  /* Options type header (shown for options mode) */
+  & .options-type-header {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--blue6);
+    border-left: 3px solid var(--blue4);
+    border-radius: 0.25rem;
+
+    & .options-type-note {
+      margin: 0;
+      color: var(--blue2);
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+  }
+
+  /* Table styling */
+  & table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    font-size: 0.875rem;
+
+    @media (width < 769px) {
+      font-size: 0.75rem;
+    }
+
+    & thead {
+      background: var(--gray6);
+      border-bottom: 2px solid var(--gray4);
+
+      & th {
+        padding: 0.75rem 0.5rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--gray2);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+
+        @media (width < 769px) {
+          font-size: 0.65rem;
+          padding: 0.5rem 0.25rem;
+        }
+      }
+    }
+
+    & tbody {
+      & tr {
+        border-bottom: 1px solid var(--gray5);
+
+        &:hover {
+          background: var(--gray6);
+        }
+
+        & td {
+          padding: 0.75rem 0.5rem;
+          color: var(--gray2);
+
+          @media (width < 769px) {
+            padding: 0.5rem 0.25rem;
+          }
+        }
+      }
+    }
+  }
+
+  /* Price change colors (used within table cells) */
+  & .change-positive {
+    color: #008000;
+    font-weight: 500;
+  }
+
+  & .change-negative {
+    color: #d00;
+    font-weight: 500;
+  }
+
+  /* Options month selector dropdown (rendered inside table) */
+  & .options-month-selector {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--gray4);
+    border-radius: 0.25rem;
+    background: white;
+    font-size: 0.875rem;
+    color: var(--gray2);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--blue4);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--blue4);
+      box-shadow: 0 0 0 2px rgb(0 100 200 / 10%);
+    }
+  }
+
+  /* About report link */
+  & .about-report-wrapper {
+    margin-top: 1rem;
+    text-align: right;
+
+    & .about-report-link {
+      color: var(--blue4);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+

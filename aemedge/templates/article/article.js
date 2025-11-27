@@ -144,14 +144,28 @@ async function buildBookmark(bookmark, bookmarkIcons, saveText) {
   authenticationData.loginPromise.then(async () => {
     const saveIcons = bookmark.querySelectorAll('.icon');
     let savedArticle = false;
+    const isSavePending = localStorage.getItem('save-article-pending') === 'true';
+    if (authenticationData.isLoggedIn && isSavePending) {
+      const saveResponse = await saveArticle();
+      if (saveResponse) {
+        savedArticle = true;
+        saveText.textContent = savedLabel;
+        showBookmarkTooltip(bookmarkIcons);
+        showSaveIcon(saveIcons, !savedArticle);
+        toggleSaveIcon(bookmark, saveIcons, !savedArticle);
+      }
+      localStorage.removeItem('save-article-pending');
+    }
     if (authenticationData.isLoggedIn) {
-      const response = await hasArticle();
-      if (response) {
-        const [userHasArticle] = response;
-        if (userHasArticle) {
-          savedArticle = true;
-          saveText.textContent = savedLabel;
-          showSaveIcon(saveIcons, false);
+      if (!savedArticle) {
+        const response = await hasArticle();
+        if (response) {
+          const [userHasArticle] = response;
+          if (userHasArticle) {
+            savedArticle = true;
+            saveText.textContent = savedLabel;
+            showSaveIcon(saveIcons, false);
+          }
         }
       }
       bookmark.addEventListener('click', async (e) => {
@@ -177,6 +191,7 @@ async function buildBookmark(bookmark, bookmarkIcons, saveText) {
       });
     } else {
       bookmark.addEventListener('click', async () => {
+        localStorage.setItem('save-article-pending', 'true');
         const { showModal } = await createAuthModal();
         showModal();
       });
@@ -279,6 +294,8 @@ async function decorateArticleHero(main) {
 }
 
 export default function articleTemplate() {
-  const main = document.querySelector('main');
-  decorateArticleHero(main);
+  (async () => {
+    const main = document.querySelector('main');
+    await decorateArticleHero(main);
+  })();
 }

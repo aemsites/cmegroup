@@ -1,4 +1,4 @@
-import { createFilter } from './filter/filter.js';
+import createFilter from './filter/filter.js';
 import getProductSlateData from '../../scripts/services/ProductSlateService.js';
 import { createManagedProductTable } from './table/table.js';
 import { readBlockConfig } from '../../scripts/aem.js';

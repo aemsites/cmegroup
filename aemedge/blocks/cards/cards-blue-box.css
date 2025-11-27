@@ -1,98 +1,124 @@
-.cards.blue-box ul {
-  display: block;
-  justify-content: space-between;
-}
+.cards {
+  &.blue-box {
+    & ul {
+      display: block;
+      justify-content: space-between;
 
-.cards.blue-box li {
-  width: 100%;
-  background-color: var(--blue3);
-  border: none;
-}
+      @media (width >=993px) {
+        display: flex;
+      }
+    }
 
-.cards.blue-box li .cards-card-body {
-  padding: 1.25rem;
-  margin: 0;
-  position: relative;
-}
+    & li {
+      width: 100%;
+      background-color: var(--blue3);
+      border: none;
 
-@media (width >=769px) {
-  .cards.blue-box li .cards-card-body {
-    padding: 1.875rem;
+      & .cards-card-body {
+        padding: 1.25rem;
+        margin: 0;
+        position: relative;
+
+        & h5 {
+          color: var(--citron);
+          margin: 0 0 0.625rem;
+          font-size: 1rem;
+        }
+
+        & h3 {
+          color: var(--white);
+        }
+
+        & .button-container {
+          margin: 0;
+          position: relative;
+
+          & a:not(.button) {
+            padding: 0;
+            text-transform: none;
+            font-size: 1rem;
+            font-weight: 600;
+            display: inline-block;
+            color: var(--blue5);
+
+            &:hover {
+              text-decoration: underline !important;
+              background-position: unset;
+            }
+          }
+
+          & a::before {
+            font-family: var(--cme-group-icons);
+            content: var(--icon-chevron-down);
+            width: 0.875rem;
+            height: 0.875rem;
+            margin-right: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 400;
+            display: inline-block;
+          }
+
+          & a:hover::before {
+            text-decoration: none;
+          }
+
+          @media (width >=993px) {
+            position: absolute;
+            bottom: 1.875rem;
+          }
+        }
+
+        @media (width >=769px) {
+          padding: 1.875rem;
+        }
+
+        @media (width >=993px) {
+          min-height: 12rem;
+        }
+      }
+    }
+
+    &.blue5 {
+      & li {
+        background-color: var(--blue5);
+
+        & .cards-card-body,
+        & h3 {
+          color: var(--blue2);
+        }
+
+        & a.button {
+          box-shadow:rgb(60 64 67 / 30%) 0 1px 2px 0, rgb(60 64 67 / 15%) 0 2px 6px 2px;
+        }
+      }
+    }
+
+    &.no-icon-btn {
+      & li {
+        & .cards-card-body {
+          & .button-container {
+            & a::before {
+              display: none;
+            }
+          }
+        }
+      }
+    }
+
+    &.blue6 {
+      & li {
+        background-color: var(--blue6);
+      }
+    }
+
+    &.right-footer {
+      & .cards-card-body {
+        & > *:last-child {
+          text-align: right;
+          border-top: 0.0625rem solid var(--gray3);
+          padding: 1.25rem 0 0;
+        }
+      }
+    }
   }
-}
-
-.cards.blue-box li .cards-card-body h5 {
-  color: var(--citron);
-  margin: 0 0 0.625rem;
-  font-size: 1rem;
-}
-
-.cards.blue-box li .cards-card-body h3 {
-  color: var(--white);
-}
-
-.cards.blue-box li .cards-card-body .button-container {
-  margin: 0;
-  position: relative;
-}
-
-.cards.blue-box li .cards-card-body .button-container a:not(.button) {
-  padding: 0;
-  text-transform: none;
-  font-size: 1rem;
-  font-weight: 600;
-  display: inline-block;
-  color: var(--blue5);
-
-  &:hover {
-    text-decoration: underline !important;
-    background-position: unset;
-  }
-}
-
-.cards.blue-box li .cards-card-body .button-container a::before {
-  font-family: var(--cme-group-icons);
-  content: var(--icon-chevron-down);
-  width: 0.875rem;
-  height: 0.875rem;
-  margin-right: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 400;
-  display: inline-block;
-}
-
-.cards.blue-box li .cards-card-body .button-container a:hover::before {
-  text-decoration: none;
-}
-
-@media (width >=993px) {
-  .cards.blue-box ul {
-    display: flex;
-  }
-
-  .cards.blue-box li .cards-card-body {
-    min-height: 12rem;
-  }
-
-  .cards.blue-box li .cards-card-body .button-container {
-    position: absolute;
-    bottom: 1.875rem;
-  }
-}
-
-.cards.blue-box.blue5 li {
-  background-color: var(--blue5);
-  
-  & .cards-card-body,
-  & h3 {
-    color: var(--blue2);
-  }
-
-  & a.button {
-    box-shadow:rgb(60 64 67 / 30%) 0 1px 2px 0, rgb(60 64 67 / 15%) 0 2px 6px 2px;
-  }
-}
-
-.cards.blue-box.no-icon-btn li .cards-card-body .button-container a::before {
-  display: none;
 }

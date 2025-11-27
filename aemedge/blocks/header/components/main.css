@@ -385,6 +385,7 @@ body {
                 & a {
                   @media (width >= 481px) {
                     font-size: 1rem;
+                    font-weight: 700;
                   }
                   @media (width >= 993px) {
                     padding: 0;
@@ -537,7 +538,7 @@ body {
                     @media (width >= 993px) {
                       display: flex;
                       margin: 0 auto;
-                      max-width: 100rem;
+                      max-width: 94.5rem;
                       position: relative;
                       width: 100%;
                       padding-left: 4.125rem;

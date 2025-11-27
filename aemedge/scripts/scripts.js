@@ -305,6 +305,8 @@ export function decorateExternalLinks(main) {
 function isExternalImage(element) {
   // if the element is not an anchor, it's not an external image
   if (element.tagName !== 'A') return false;
+  // if the element is a button to open an image, it's not an external image
+  if (element.classList.contains('button')) return false;
   // IMPLICIT via CME Group Delivery URLs or OOTB DMOpenAPI Delivery URLs
   return /\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/i.test(element.getAttribute('href'));
 }
@@ -512,16 +514,31 @@ export function decorateButtons(element) {
     const oneCLickRegex = /\[[^\]]*\bone-click\b[^\]]*\]/i;
     const loginRegex = /\[[^\]]*\blogin\b[^\]]*\]/i;
     const registrationRegex = /\[[^\]]*\bregistration\b[^\]]*\]/i;
+    const downloadRegex = /\[[^\]]*\bdownload\b[^\]]*\]/i;
     const isOneClick = oneCLickRegex.test(a.textContent);
     const isLogin = loginRegex.test(a.textContent);
     const isRegistration = registrationRegex.test(a.textContent);
+    const isDownload = downloadRegex.test(a.textContent);
     let textIndex = -1;
     let iconIndex = -1;
 
     // Button decoration
     if (a.href !== text && !a.querySelector('img')) {
-      const up = a.parentElement || null;
-      const twoup = up?.parentElement || null;
+      let up = a.parentElement || null;
+      let twoup = up?.parentElement || null;
+
+      // Normalize mark order for DA preview (https://github.com/adobe/da-live/issues/627)
+      if (a.children.length === 1 && a.firstElementChild) {
+        const child = a.firstElementChild;
+        if (child.tagName === 'STRONG' || child.tagName === 'EM') {
+          const wrapper = child.cloneNode(false);
+          a.innerHTML = child.innerHTML;
+          a.parentElement.insertBefore(wrapper, a);
+          wrapper.appendChild(a);
+          up = a.parentElement;
+          twoup = up?.parentElement || null;
+        }
+      }
 
       if (up?.childNodes.length === 1 && (up.tagName === 'P' || up.tagName === 'DIV')) {
         up.classList.add('button-container');
@@ -602,14 +619,15 @@ export function decorateButtons(element) {
         handleLoginRedirection(event, a);
       }, { capture: true });
     }
-
     if (isRegistration) {
       a.addEventListener('click', (event) => {
         event.preventDefault();
         handleRegistrationRedirection(event, a);
       }, { capture: true });
     }
-
+    if (isDownload) {
+      a.setAttribute('download', '');
+    }
     if (domainCheck.isKnown && isFragmentLink(a)) {
       const block = buildBlock('fragment', url.pathname);
       a.replaceWith(block);
@@ -758,7 +776,10 @@ async function loadEager(doc) {
     document.body.classList.add('appear');
 
     const templatePromise = templateName ? loadTemplate(doc, templateName) : Promise.resolve();
-    await loadSection(main.querySelector('.section'), async (section) => Promise.all([templatePromise, waitForFirstImage(section)]));
+    await loadSection(main.querySelector('.section'), async (section) => {
+      await templatePromise;
+      waitForFirstImage(section);
+    });
   }
 
   try {
