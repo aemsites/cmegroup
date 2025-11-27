@@ -181,7 +181,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 6%);
 }
 
 .main-tab-btn {
@@ -220,12 +220,13 @@ body {
 .sub-tab-navigation {
   display: flex;
   gap: 0;
-  background: var(--color-background-alt);
+  background: var(--color-background);
   border-bottom: 1px solid var(--color-border);
   padding: 0 var(--spacing-lg);
   position: sticky;
-  top: 57px;
+  top: 72px;
   z-index: 90;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 6%);
 }
 
 .sub-tab-btn {
@@ -249,7 +250,6 @@ body {
 .sub-tab-btn.active {
   color: var(--color-primary);
   border-bottom-color: var(--color-primary);
-  background: var(--color-background);
 }
 
 /* Sub-Tab Content */
@@ -299,9 +299,9 @@ body {
 
 .filters-sidebar {
   position: sticky;
-  top: var(--spacing-lg);
+  top: 130px;
   align-self: start;
-  max-height: calc(100vh - 2 * var(--spacing-lg));
+  max-height: calc(100vh - 130px - var(--spacing-lg));
   overflow: hidden auto;
 }
 
