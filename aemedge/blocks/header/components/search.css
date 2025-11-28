@@ -181,12 +181,15 @@
     & .suggestion-searches {
       & .title,
       & .searches .search button span:first-child {
-        padding-top: 3.3125rem;
         color: var(--citron);
         font-size: 0.625rem;
         font-weight: bold;
         letter-spacing: 0.0625rem;
         text-transform: uppercase;
+      }
+
+      & .title {
+        padding-top: 3.3125rem;
       }
 
       & .searches {
