@@ -119,9 +119,8 @@
     }
 
     & .popular-searches {
-      padding-top: 2.6875rem;
-
       & .title {
+        padding-top: 2.6875rem;
         color: var(--citron);
         font-size: 0.625rem;
         font-weight: bold;
@@ -179,14 +178,10 @@
       }
     }
 
-    & .suggestion-searches,
-    & .recent-searches {
-      padding-top: 3.3125rem;
-    }
-
     & .suggestion-searches {
       & .title,
       & .searches .search button span:first-child {
+        padding-top: 3.3125rem;
         color: var(--citron);
         font-size: 0.625rem;
         font-weight: bold;
@@ -244,6 +239,7 @@
       display: inline-block;
 
       & .title {
+        padding-top: 3.3125rem;
         color: var(--citron);
         font-size: 0.625rem;
         font-weight: bold;
