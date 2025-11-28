@@ -90,7 +90,7 @@
         "component": "text",
         "valueType": "string",
         "name": "div:nth-child(2)>div:nth-child(2)>p:nth-child(1)",
-        "value": "",
+        "value": "6065813008001",
         "label": "Video ID",
         "description": "Brightcove video ID (If you have a REF ID, 'ref:' is part of the actual Id!)"
       },
@@ -105,7 +105,7 @@
       {
         "component": "select",
         "valueType": "string",
-        "name": "div:nth-child(4)>div:nth-child(2)",
+        "name": "div:nth-child(4)>div:nth-child(2)>p:nth-child(1)",
         "value": "",
         "label": "Playlist Location",
         "options": [
@@ -127,7 +127,7 @@
       {
         "component": "select",
         "valueType": "string",
-        "name": "div:nth-child(5)>div:nth-child(2)",
+        "name": "div:nth-child(5)>div:nth-child(2)>p:nth-child(1)",
         "value": "",
         "label": "Aspect Ratio",
         "options": [
@@ -145,7 +145,7 @@
       {
         "component": "select",
         "valueType": "string",
-        "name": "div:nth-child(6)>div:nth-child(2)",
+        "name": "div:nth-child(6)>div:nth-child(2)>p:nth-child(1)",
         "value": "",
         "label": "Close Captions",
         "options": [
@@ -215,7 +215,7 @@
       {
         "component": "select",
         "valueType": "string",
-        "name": "div:nth-child(7)>div:nth-child(2)",
+        "name": "div:nth-child(7)>div:nth-child(2)>p:nth-child(1)",
         "value": "",
         "label": "Language Audio",
         "options": [
