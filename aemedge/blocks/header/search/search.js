@@ -39,6 +39,7 @@ const handleClickRecentSearches = async (term) => {
 
 const buildSuggestionSearches = (suggestions) => {
   if (isEmpty(suggestions)) {
+    suggestionSearchesContainer.innerHTML = '';
     return suggestionSearchesContainer;
   }
 
@@ -74,6 +75,7 @@ const buildSuggestionSearches = (suggestions) => {
 
 const buildRecentSearches = (recentSearches) => {
   if (isEmpty(recentSearches)) {
+    recentSearchesContainer.innerHTML = '';
     return recentSearchesContainer;
   }
 
@@ -107,6 +109,7 @@ const buildRecentSearches = (recentSearches) => {
 
 const buildPopularSearches = (popularSearches) => {
   if (isEmpty(popularSearches)) {
+    popularSearchesContainer.innerHTML = '';
     return popularSearchesContainer;
   }
 
@@ -134,53 +137,20 @@ const buildPopularSearches = (popularSearches) => {
 
 const updatePopularSearches = async () => {
   popularSearchesVar = await getPopularSearch();
-  if (popularSearchesVar.length > 0) {
-    if (customSearch.contains(popularSearchesContainer)) {
-      popularSearchesContainer.remove();
-    }
-    const builtPopularSearches = buildPopularSearches(popularSearchesVar);
-
-    if (customSearch.contains(suggestionSearchesContainer)) {
-      customSearch.insertBefore(builtPopularSearches, suggestionSearchesContainer);
-    } else {
-      customSearch.append(builtPopularSearches);
-    }
-  }
+  buildPopularSearches(popularSearchesVar);
 };
 
 const updateRecentSearches = async (loginInfo) => {
   recentSearchesVar = await getRecentSearch(loginInfo);
-  if (recentSearchesVar.length > 0) {
-    if (customSearch.contains(recentSearchesContainer)) {
-      recentSearchesContainer.remove();
-    }
-    const builtRecentSearches = buildRecentSearches(recentSearchesVar);
-
-    if (customSearch.contains(popularSearchesContainer)) {
-      customSearch.insertBefore(builtRecentSearches, popularSearchesContainer);
-    } else {
-      customSearch.append(builtRecentSearches);
-    }
-  }
+  buildRecentSearches(recentSearchesVar);
 };
 
 const getSuggestions = async (searchValue) => {
   if (searchValue !== '') {
-    if (customSearch.contains(recentSearchesContainer)) {
-      recentSearchesContainer.remove();
-    }
-
-    if (customSearch.contains(popularSearchesContainer)) {
-      popularSearchesContainer.remove();
-    }
-
+    recentSearchesContainer.innerHTML = '';
+    popularSearchesContainer.innerHTML = '';
     suggestionsVar = await getSearchSuggestions(searchValue, 5);
-    if (suggestionsVar.length > 0) {
-      if (customSearch.contains(suggestionSearchesContainer)) {
-        suggestionSearchesContainer.remove();
-      }
-      customSearch.append(buildSuggestionSearches(suggestionsVar));
-    }
+    buildSuggestionSearches(suggestionsVar);
   }
 };
 
@@ -192,12 +162,9 @@ const handleChange = (e) => {
       getSuggestions(searchValueVar);
     }, 400);
   } else {
-    if (recentSearchesVar && recentSearchesVar.length > 0) {
-      customSearch.append(buildRecentSearches(recentSearchesVar));
-    }
-    if (popularSearchesVar && popularSearchesVar.length > 0) {
-      customSearch.append(buildPopularSearches(popularSearchesVar));
-    }
+    buildSuggestionSearches([]);
+    updateRecentSearches(thisLoginInfo);
+    updatePopularSearches();
   }
 };
 
@@ -216,17 +183,21 @@ const handleEnter = (e) => {
 };
 
 const init = async () => {
-  updatePopularSearches();
-  updateRecentSearches();
+  await updateRecentSearches(thisLoginInfo);
+  await updatePopularSearches();
 };
 
 const renderSearch = () => {
-  init();
+  customSearch.append(searchContainer);
+  customSearch.append(recentSearchesContainer);
+  customSearch.append(popularSearchesContainer);
+  customSearch.append(suggestionSearchesContainer);
 
   buttonSearch.addEventListener('click', async () => {
     handleSearch();
   });
   buttonSearch.append(spanSearch);
+
   inputSearch.addEventListener('input', async (e) => {
     handleChange(e);
   });
@@ -239,7 +210,8 @@ const renderSearch = () => {
 
   searchContainer.append(inputSearch);
   searchContainer.append(buttonSearch);
-  customSearch.append(searchContainer);
+
+  init();
 
   store.subscribe(({ authentication }) => authentication, ({ isLoggedIn, loginInfo }) => {
     if (isLoggedIn !== loggedIn) {
