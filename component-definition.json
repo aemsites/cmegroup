@@ -52,7 +52,7 @@
           "id": "brightcove",
           "plugins": {
             "da": {
-              "unsafeHtml": "<div><div class=\"brightcove\"><div><div>accountID</div><div>49919183001</div></div><div><div>videoID</div><div>6065813008001</div></div><div><div>playlistId</div><div></div></div><div><div>playlistLocation</div><div></div></div><div><div>aspectRatio</div><div></div></div><div><div>cc</div><div></div></div><div><div>language</div><div></div></div><div><div>defaultPlaylistPoster</div><div></div></div></div></div><div>"
+              "unsafeHTML": "<div class=\"brightcove\"><div><div>accountID</div><div>49919183001</div></div><div><div>videoID</div><div>6065813008001</div></div><div><div>playlistId</div><div></div></div><div><div>playlistLocation</div><div></div></div><div><div>aspectRatio</div><div></div></div><div><div>cc</div><div></div></div><div><div>language</div><div></div></div><div><div>defaultPlaylistPoster</div><div></div></div></div></div>"
             }
           }
         }
