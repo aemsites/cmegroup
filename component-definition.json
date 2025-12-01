@@ -52,7 +52,6 @@
           "id": "brightcove",
           "plugins": {
             "da": {
-              "name": "brightcove",
               "unsafeHtml": "<div class=\"brightcove-player\">  <div class=\"brightcove-placeholder\">        <div class=\"spinner-in-video\">      <div></div>      <div></div>      <div></div>      <div></div>    </div>  </div>    <div class=\"brightcove-video\">    <div class=\"brightcove-wrapper\">            <div        id=\"cmeVideoContainer_0\"        class=\"brightcove-player aspect-ratio169 brightcove-video\"      >        <video          id=\"cmeVideo_0\"          data-account=\"\"          data-player=\"46f29b5c-718a-4f1f-aabc-37aadea1426c\"          data-embed=\"default\"          class=\"cmeBcVideo video-js video-hidden\"           controls=\"\"          data-video-id=\"\"          data-application-id=\"true\"          preload=\"none\"          loading=\"lazy\"        ></video>                      </div>          </div>  </div></div>"
             }
           }
