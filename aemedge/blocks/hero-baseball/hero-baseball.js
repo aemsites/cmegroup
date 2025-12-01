@@ -63,9 +63,21 @@ const updateElement = (element, content, className) => {
   }, 150);
 };
 
-function buildBreadcrumbLink(items) {
-  const productRoot = computeProductRoot(window.location.pathname);
+function buildBreadcrumbLink(items, config) {
   const breadcrumb = createElement('div', { class: 'hero-breadcrumb' }, '');
+  const arrow = createElement('img', {
+    src: '/aemedge/icons/arrow-left-bold.svg',
+    alt: 'Current product',
+  });
+  if (config['breadcrumb-link'] && config['breadcrumb-label']) {
+    const link = createElement('a', {
+      href: config['breadcrumb-link'],
+    }, config['breadcrumb-label']);
+    link.prepend(arrow);
+    breadcrumb.append(link);
+    return breadcrumb;
+  }
+  const productRoot = computeProductRoot(window.location.pathname);
   let subgroup = null;
   items.forEach((sub) => {
     sub.products.forEach((prod) => {
@@ -73,10 +85,6 @@ function buildBreadcrumbLink(items) {
         subgroup = sub;
       }
     });
-  });
-  const arrow = createElement('img', {
-    src: '/aemedge/icons/arrow-left-bold.svg',
-    alt: 'Current product',
   });
   if (subgroup) {
     const link = createElement('a', { href: subgroup.linkUrl }, subgroup.text);
@@ -92,14 +100,14 @@ function buildBreadcrumbLink(items) {
   return breadcrumb;
 }
 
-function createHeroInitialStructure() {
+function createHeroInitialStructure(config) {
   const container = createElement('div', { class: 'container' });
   const h1 = createElement('h1', {}, '');
   const subtitle = createElement('div', { class: 'hero-subtitle' }, '\u00A0');
   const navigationBar = createElement('div', { class: 'hero-navigation' }, '');
   const assetClassName = computeAssetClass(window.location.pathname);
   getViewAnotherProductDropdown(assetClassName).then((assetClass) => {
-    const breadcrumb = buildBreadcrumbLink(assetClass.items || []);
+    const breadcrumb = buildBreadcrumbLink(assetClass.items || [], config);
     navigationBar.append(breadcrumb);
     if (assetClass.items) {
       import('./product-selector.js').then((mod) => {
@@ -163,8 +171,10 @@ async function createHeroStructure(productData, config, block) {
     createElement('div', { class: 'label' }, volumeLabel),
     createElement('div', { class: 'value' }, '-'),
   ]);
+  const briefcaseIcon = createElement('img', { src: '/aemedge/icons/briefcase.svg' });
+  const briefcaseIconSpan = createElement('span', { class: 'icon' }, briefcaseIcon);
   const actions = createElement('div', { class: 'actions reverse' }, [
-    createElement('a', { class: 'button primary' }, watchlistsLabel),
+    createElement('a', { class: 'button primary' }, briefcaseIconSpan, watchlistsLabel),
   ]);
   contractData.append(globexCode, lastValue, priceChange, volumeInfo, actions);
   container.append(contractData);
@@ -256,7 +266,7 @@ export default async function decorate(block) {
   const hasContainer = block.querySelector('.container');
   if (!hasContainer) {
     block.innerHTML = '';
-    const container = createHeroInitialStructure();
+    const container = createHeroInitialStructure(config);
     block.append(container);
   }
   store.subscribe(({ productData }) => productData, (productData) => {

@@ -7,6 +7,7 @@
   margin: 0;
   overflow: visible;
   padding: 2.5rem 0 1.875rem;
+  min-height: 18.9375rem;
 
   @media (width < 768px) {
     padding: 1.5rem 0 1.5625rem;
@@ -479,6 +480,19 @@
 
     @media (width >= 1201px) {
       width: 16%;
+    }
+
+    & .button {
+      flex-flow: row;
+      justify-content: center;
+      gap: 0.3125rem;
+      align-items: end;
+      width: fit-content;
+      max-width: fit-content;
+
+      @media (width >= 1201px) {
+        align-self: end;
+      }
     }
   }
 
