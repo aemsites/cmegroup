@@ -8,7 +8,7 @@
           "name": "brightcove",
           "rows": 10,
           "columns": 2,
-          "unsafeHTML": "<div><div><p></p></div><div><p></p></div></div><div><div><p></p></div><div><p>></p></div></div><div><div><p></p></div><div></div></div><div><div><p></p></div><div><p></p></div></div><div><div><p></p></div><div><p></p></div></div><div><div><p></p></div><div><p></p></div></div><div><div><p></p></div><div><p></p></div></div><div><div><p></p></div><div></div></div>"
+          "unsafeHtml": "<div class=\"brightcove-player\">\n  <div class=\"brightcove-placeholder\">\n    \n    <div class=\"spinner-in-video\">\n      <div></div>\n      <div></div>\n      <div></div>\n      <div></div>\n    </div>\n  </div>\n  \n  <div class=\"brightcove-video\">\n    <div class=\"brightcove-wrapper\">\n      \n      <div\n        id=\"cmeVideoContainer_0\"\n        class=\"brightcove-player aspect-ratio169 brightcove-video\"\n      >\n        <video\n          id=\"cmeVideo_0\"\n          data-account=\"\"\n          data-player=\"46f29b5c-718a-4f1f-aabc-37aadea1426c\"\n          data-embed=\"default\"\n          class=\"cmeBcVideo video-js video-hidden\" \n          controls=\"\"\n          data-video-id=\"\"\n          data-application-id=\"true\"\n          preload=\"none\"\n          loading=\"lazy\"\n        ></video>\n        \n        \n      </div>\n\n      \n    </div>\n  </div>\n</div>"
         }
       }
     }
