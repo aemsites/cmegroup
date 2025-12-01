@@ -52,7 +52,7 @@
           "id": "brightcove",
           "plugins": {
             "da": {
-              "unsafeHtml": "<div class=\"brightcove-player\">  <div class=\"brightcove-placeholder\">        <div class=\"spinner-in-video\">      <div></div>      <div></div>      <div></div>      <div></div>    </div>  </div>    <div class=\"brightcove-video\">    <div class=\"brightcove-wrapper\">            <div        id=\"cmeVideoContainer_0\"        class=\"brightcove-player aspect-ratio169 brightcove-video\"      >        <video          id=\"cmeVideo_0\"          data-account=\"\"          data-player=\"46f29b5c-718a-4f1f-aabc-37aadea1426c\"          data-embed=\"default\"          class=\"cmeBcVideo video-js video-hidden\"           controls=\"\"          data-video-id=\"\"          data-application-id=\"true\"          preload=\"none\"          loading=\"lazy\"        ></video>                      </div>          </div>  </div></div>"
+              "unsafeHtml": "<div><div class=\"brightcove\"><div><div>accountID</div><div>49919183001</div></div><div><div>videoID</div><div>6065813008001</div></div><div><div>playlistId</div><div></div></div><div><div>playlistLocation</div><div></div></div><div><div>aspectRatio</div><div></div></div><div><div>cc</div><div></div></div><div><div>language</div><div></div></div><div><div>defaultPlaylistPoster</div><div></div></div></div></div><div>"
             }
           }
         }
