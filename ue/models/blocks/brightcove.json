@@ -5,9 +5,7 @@
       "id": "brightcove",
       "plugins": {
         "da": {
-          "name": "brightcove",
-          "rows": 10,
-          "columns": 2
+          "unsafeHTML": "<div class=\"brightcove\"><div><div><p>accountID</p></div><div><p>49919183001</p></div></div><div><div><p>videoID</p></div><div><p>6065813008001</p></div></div><div><div><p>playlistId</p></div><div><p></p></div></div><div><div><p>playlistLocation</p></div><div><p></p></div></div><div><div><p>aspectRatio</p></div><div><p></p></div></div><div><div><p>cc</p></div><div><p></p></div></div><div><div><p>language</p></div><div><p></p></div></div><div><div><p>defaultPlaylistPoster</p></div><div><p><a href=\"\"></a></p></div></div></div>"
         }
       }
     }
@@ -35,7 +33,7 @@
         {
           "component": "text",
           "valueType": "string",
-          "name": "div:nth-child(3)>div:nth-child(2)",
+          "name": "div:nth-child(3)>div:nth-child(2)>p:nth-child(1)",
           "value": "",
           "label": "Playlist ID",
           "description": "Optional playlist ID (If you have a REF ID, 'ref:' is part of the actual Id!)"
@@ -184,6 +182,7 @@
           "component": "text",
           "valueType": "string",
           "name": "div:nth-child(8)>div:nth-child(2)>p:nth-child(1)>a:nth-child(1)[href]",
+          "value": "",
           "label": "Placeholder Image",
           "multi": false,
           "description": "URL to custom poster image to display while playlist/video loads"

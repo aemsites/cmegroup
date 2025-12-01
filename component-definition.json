@@ -52,9 +52,7 @@
           "id": "brightcove",
           "plugins": {
             "da": {
-              "name": "brightcove",
-              "rows": 10,
-              "columns": 2
+              "unsafeHTML": "<div class=\"brightcove\"><div><div><p>accountID</p></div><div><p>49919183001</p></div></div><div><div><p>videoID</p></div><div><p>6065813008001</p></div></div><div><div><p>playlistId</p></div><div><p></p></div></div><div><div><p>playlistLocation</p></div><div><p></p></div></div><div><div><p>aspectRatio</p></div><div><p></p></div></div><div><div><p>cc</p></div><div><p></p></div></div><div><div><p>language</p></div><div><p></p></div></div><div><div><p>defaultPlaylistPoster</p></div><div><p><a href=\"\"></a></p></div></div></div>"
             }
           }
         }
