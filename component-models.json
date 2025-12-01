@@ -105,7 +105,7 @@
       {
         "component": "select",
         "valueType": "string",
-        "name": "div:nth-child(4)",
+        "name": "div:nth-child(4)>div:nth-child(2)",
         "value": "",
         "label": "Playlist Location",
         "options": [
