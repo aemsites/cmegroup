@@ -7,7 +7,8 @@
         "da": {
           "unsafeHTML": "<div class=\"brightcove\"><div><div><p>accountID</p></div><div><p data-aue-type=\"text\" data-aue-prop=\"div:nth-child(1)>div:nth-child(2)>p:nth-child(1)\" data-aue-label=\"Account ID\">49919183001</p></div></div><div><div><p>videoID</p></div><div><p data-aue-type=\"text\" data-aue-prop=\"div:nth-child(2)>div:nth-child(2)>p:nth-child(1)\" data-aue-label=\"Video ID\">6065813008001</p></div></div><div><div><p>playlistId</p></div><div><p data-aue-type=\"text\" data-aue-prop=\"div:nth-child(3)>div:nth-child(2)>p:nth-child(1)\" data-aue-label=\"Playlist ID\"></p></div></div><div><div><p>playlistLocation</p></div><div><p data-aue-type=\"select\" data-aue-prop=\"div:nth-child(4)>div:nth-child(2)>p:nth-child(1)\" data-aue-label=\"Playlist Location\"></p></div></div><div><div><p>aspectRatio</p></div><div><p data-aue-type=\"select\" data-aue-prop=\"div:nth-child(5)>div:nth-child(2)>p:nth-child(1)\" data-aue-label=\"Aspect Ratio\"></p></div></div><div><div><p>cc</p></div><div><p data-aue-type=\"select\" data-aue-prop=\"div:nth-child(6)>div:nth-child(2)>p:nth-child(1)\" data-aue-label=\"Closed Captions\"></p></div></div><div><div><p>language</p></div><div><p data-aue-type=\"select\" data-aue-prop=\"div:nth-child(7)>div:nth-child(2)>p:nth-child(1)\" data-aue-label=\"Language\"></p></div></div><div><div><p>defaultPlaylistPoster</p></div><div><p data-aue-type=\"text\" data-aue-prop=\"div:nth-child(8)>div:nth-child(2)>p:nth-child(1)>a:nth-child(1)[href]\" data-aue-label=\"Default Playlist Poster\"></p></div></div></div>"
         }
-      }
+      },
+      "model": "brightcove"
     }
   ],
   "models": [
