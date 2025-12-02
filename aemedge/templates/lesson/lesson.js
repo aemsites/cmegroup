@@ -162,22 +162,24 @@ async function loadUserProgress(courseData, authenticationData) {
 }
 
 export default async function lessonTemplate() {
-  //  static section
-  const courseData = await getCourseData();
-  await createCourseBaseTemplate(courseData);
+  (async () => {
+    //  static section
+    const courseData = await getCourseData();
+    await createCourseBaseTemplate(courseData);
 
-  //  dynamic section - user progress
-  import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
-    const { authenticationData } = authentication;
-    authenticationData.loginPromise.then(async () => {
-      const { isLoggedIn, loginInfo } = authenticationData;
-      const data = await getCourseData(loginInfo);
-      initLateralNav(courseData);
-      loadUserProgress(data, authenticationData);
-      buildCourseSurveyLink(courseData);
-      if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
-        import('../../scripts/course/auth-modal.js');
-      }
+    //  dynamic section - user progress
+    import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
+      const { authenticationData } = authentication;
+      authenticationData.loginPromise.then(async () => {
+        const { isLoggedIn, loginInfo } = authenticationData;
+        const data = await getCourseData(loginInfo);
+        initLateralNav(courseData);
+        loadUserProgress(data, authenticationData);
+        buildCourseSurveyLink(courseData);
+        if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
+          import('../../scripts/course/auth-modal.js');
+        }
+      });
     });
-  });
+  })();
 }

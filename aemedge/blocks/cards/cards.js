@@ -165,26 +165,29 @@ async function createStaticCards(block) {
     const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
     [...block.children].forEach((row) => {
       const li = document.createElement('li');
-      const link = document.createElement('a');
-      const linkSrc = row.firstElementChild.querySelector('p a').href;
-      link.href = linkSrc;
-      li.append(link);
-      while (row.firstElementChild) link.append(row.firstElementChild);
-      [...li.children].forEach((anchor) => {
-        const div = anchor.querySelector('div');
-        if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
-        else div.className = 'cards-card-body';
-
-        if (textClass) {
-          const paragraphs = div.querySelectorAll('p');
-          paragraphs.forEach((p) => {
-            p.classList.add(textClass);
-          });
-        }
-        if (!div.hasChildNodes()) {
-          div.parentElement.classList.add('empty-card');
-        }
-      });
+      if (row.querySelector('div').hasChildNodes()) {
+        const link = document.createElement('a');
+        const linkSrc = row.firstElementChild.querySelector('p a')?.href;
+        link.href = linkSrc;
+        li.append(link);
+        while (row.firstElementChild) link.append(row.firstElementChild);
+        [...li.children].forEach((anchor) => {
+          const div = anchor.querySelector('div');
+          if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
+          else div.className = 'cards-card-body';
+          if (textClass) {
+            const paragraphs = div.querySelectorAll('p');
+            paragraphs.forEach((p) => {
+              p.classList.add(textClass);
+            });
+          }
+          if (!div.hasChildNodes()) {
+            div.parentElement.classList.add('empty-card');
+          }
+        });
+      } else {
+        li.classList.add('empty-card');
+      }
       ul.append(li);
     });
     ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
@@ -679,6 +682,7 @@ async function createRecommendedFromService(data, block) {
     class: 'cards recommended-ai block',
   });
   blockDiv.setAttribute('data-block-name', 'cards');
+  blockDiv.classList.add(...block.classList);
   const containerDiv = createElement('div');
   const ul = createElement('ul');
   ul.style.setProperty('--columns', Math.min(data.length, 4));

@@ -801,11 +801,11 @@ function renderResultListSection(days) {
   const filteredDays = getResultDays(days);
   lateralDaysList.innerHTML = `
   <ul>
-    ${filteredDays.map(({ date, totalEventsCount }, index) => {
-    if (index === 0) {
+    ${filteredDays.map(({ date, totalEventsCount }) => {
+    const isActiveDate = dayjs.utc(leftPanelSelectedDay).format('YYYY-MM-DD') === dayjs.utc(date).format('YYYY-MM-DD');
+    if (isActiveDate) {
       nthEvents = totalEventsCount;
     }
-    const isActiveDate = dayjs.utc(leftPanelSelectedDay).format('YYYY-MM-DD') === dayjs.utc(date).format('YYYY-MM-DD');
     const dayName = dayjs.utc(date).format('dddd');
     const dayWithSuffix = dayjs.utc(date).format('Do');
     const li = `
@@ -1259,13 +1259,18 @@ function renderDaysDropdown() {
 function renderDatePicker() {
   const inputDateContainer = createElement('div', { class: 'event-calendar-datepicker-container' });
   const inputDate = createElement('input', { class: 'event-calendar-datepicker' });
-  inputDate.addEventListener('click', () => {
+  const buttonPicker = createElement('button', { class: 'event-calendar-datepicker-button' });
+  buttonPicker.addEventListener('click', (e) => {
+    e.stopPropagation();
     if (!isDesktop) {
       openDatePickerMobileContainer();
     }
+    const isHidden = datePicker.calendarContainer.classList.contains('qs-hidden');
+    datePicker[isHidden ? 'show' : 'hide']();
   });
   inputDate.readOnly = true;
   inputDateContainer.append(inputDate);
+  inputDateContainer.append(buttonPicker);
   filtersDateContainer.append(inputDateContainer);
 
   const dateFilterSubContainer = createElement('div', { class: 'date-filter-sub-container' });
