@@ -30,8 +30,379 @@ import {
 } from '../../scripts/utils/index.js';
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
+import { getProductMetadata } from '../../scripts/utils/product.js';
+import { apiGet, getResponseData } from '../../scripts/utils/fetch.js';
 
 const fallbackImage = `url(${urlByEnvType()}/content/dam/cmegroup/images/common/default/article-940x600.jpg)`;
+
+/**
+ * Format field value from API data
+ * Handles complex fields like ProductCode, TradingHours, etc.
+ */
+function formatFieldValue(fieldName, apiData) {
+  const value = apiData[fieldName];
+  if (!value) return '';
+
+  // Handle string values
+  if (typeof value === 'string') {
+    return value.trim() || '';
+  }
+
+  // Handle ProductCode object
+  if (fieldName === 'ProductCode' && typeof value === 'object') {
+    const parts = [];
+    if (value.CmeGlobex) parts.push(`CME Globex: ${value.CmeGlobex}`);
+    if (value.ClearPort) parts.push(`CME ClearPort: ${value.ClearPort}`);
+    if (value.ClearingCode) parts.push(`Clearing: ${value.ClearingCode}`);
+    if (value.TAS) parts.push(`TAS: ${value.TAS}`);
+    return parts.join('<br />');
+  }
+
+  // Handle TradingHours object
+  if (fieldName === 'TradingHours' && typeof value === 'object' && value.vandhr) {
+    return value.vandhr.map((item) => {
+      const hours = item.hours || '';
+      const venue = item.venue || '';
+      return venue ? `${venue} ${hours}` : hours;
+    }).join('<br /><br />');
+  }
+
+  // Handle arrays
+  if (Array.isArray(value) && value.length > 0) {
+    if (value[0].type && value[0].termsOfTrading) {
+      // TerminationOfTrading format
+      return value.map((item) => item.termsOfTrading).join('<br />');
+    }
+    if (value[0].mintk) {
+      // MinimumPriceFluctuation format
+      return value.map((item) => item.mintk).join('<br />');
+    }
+    if (value[0].contrMonth) {
+      // ListedContracts format
+      return value.map((item) => item.contrMonth).join('<br />');
+    }
+    return value.join('<br />');
+  }
+
+  // Handle objects with nested structure
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+
+  return String(value);
+}
+
+/**
+ * Format field name for display (convert camelCase to Title Case)
+ */
+function formatFieldName(fieldName) {
+  return fieldName
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (str) => str.toUpperCase())
+    .trim();
+}
+
+/**
+ * LOCAL DEV FALLBACK - TODO: Remove this function before production
+ * Fetches mock contract specs data from local JSON file for localhost development
+ */
+async function fetchContractSpecsLocalDev() {
+  try {
+    const response = await fetch('/aemedge/blocks/cards/300.json');
+    if (response.ok) {
+      const data = await response.json();
+      // eslint-disable-next-line no-console
+      console.log('Using local dev contract specs data from 300.json');
+      return data;
+    }
+    // eslint-disable-next-line no-console
+    console.warn('Local dev file not found, falling back to API');
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('Error fetching local dev contract specs:', e);
+  }
+  return null;
+}
+
+/**
+ * Fetch contract specs from API or use local dev fallback
+ */
+async function fetchContractSpecs(productId) {
+  // LOCAL DEV FALLBACK - TODO: Remove this block before production
+  const isLocalhost = window.location.hostname === 'localhost'
+    || window.location.hostname === '127.0.0.1'
+    || window.location.hostname === '';
+  if (isLocalhost) {
+    const localData = await fetchContractSpecsLocalDev();
+    if (localData) {
+      return localData;
+    }
+  }
+
+  // Production API call
+  try {
+    const endpoint = `${urlByEnvType()}/CmeWS/mvc/ContractSpecs/List/productId/${productId}`;
+    const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+    const data = getResponseData(response) || response.data;
+    return data;
+  } catch (e) {
+    console.error('Error fetching contract specs:', e);
+    return null;
+  }
+}
+
+/**
+ * Create contract specs cards
+ * Fetches data from API and merges with authored overrides
+ */
+async function createContractSpecsCards(block) {
+  block.textContent = '';
+  block.appendChild(createSpinner());
+
+  try {
+    // Parse block config
+    const config = readBlockConfig(block);
+    const widgetSettings = {};
+    const specItems = [];
+
+    // Separate widget settings from spec items
+    Object.keys(config).forEach((key) => {
+      // Skip empty keys
+      if (!key || key.trim() === '') {
+        return;
+      }
+      if (key.startsWith('override-') || key === 'contract-spec-type' || key === 'data-source') {
+        widgetSettings[key] = config[key];
+      } else {
+        // This is a spec field name - only add if field name is not empty
+        if (key.trim() !== '') {
+          specItems.push({
+            fieldName: key,
+            overrideValue: config[key],
+          });
+        }
+      }
+    });
+
+    // Get product ID
+    let productId = widgetSettings['override-product'];
+    if (!productId) {
+      const metadata = await getProductMetadata();
+      productId = metadata?.productId;
+    }
+
+    // LOCAL DEV FALLBACK - TODO: Remove this block before production
+    // For localhost, allow proceeding without productId since we use mock data
+    const isLocalhost = window.location.hostname === 'localhost'
+      || window.location.hostname === '127.0.0.1'
+      || window.location.hostname === '';
+    if (!productId && !isLocalhost) {
+      throw new Error('Product ID not found');
+    }
+
+    // Fetch contract specs from API (or local dev fallback)
+    const apiData = await fetchContractSpecs(productId || '300');
+    if (!apiData) {
+      throw new Error('Failed to fetch contract specs');
+    }
+
+    // Filter out items with empty field names
+    const validSpecItems = specItems.filter((item) => item.fieldName && item.fieldName.trim() !== '');
+
+    // LOCAL DEV FALLBACK - TODO: Remove this block before production
+    // If no valid spec items authored, use default fields for localhost
+    let finalSpecItems = validSpecItems;
+    if (validSpecItems.length === 0 && isLocalhost) {
+      const defaultFields = ['ContractUnit', 'PriceQuotation', 'ProductCode', 'TradingHours'];
+      finalSpecItems = defaultFields.map((fieldName) => ({
+        fieldName,
+        overrideValue: '',
+      }));
+      // eslint-disable-next-line no-console
+      console.log('No spec items authored, using default fields for localhost:', defaultFields);
+    }
+
+    // LOCAL DEV DEBUG - TODO: Remove before production
+    if (isLocalhost) {
+      // eslint-disable-next-line no-console
+      console.log('Contract specs API data:', apiData);
+      // eslint-disable-next-line no-console
+      console.log('Spec items to render:', finalSpecItems);
+    }
+
+    // Build widget container
+    const widgetContainer = createElement('div');
+
+    // Add header with title
+    const headerTitle = widgetSettings['override-main-title'] || 'Review contract highlights';
+    const header = createElement('div', { class: 'contract-specs-header' });
+    const headerHeading = createElement('h3', { class: 'main-title' });
+    headerHeading.textContent = headerTitle;
+    header.appendChild(headerHeading);
+    widgetContainer.appendChild(header);
+
+    // Build spec data container
+    const specDataContainer = createElement('div', { class: 'spec-data-container' });
+    const ul = createElement('ul');
+    const cardElements = [];
+
+    finalSpecItems.forEach((item) => {
+      const { fieldName, overrideValue } = item;
+
+      // Skip items with empty field names
+      if (!fieldName || fieldName.trim() === '') {
+        return;
+      }
+
+      // Get value: override if provided, otherwise format from API
+      let displayValue = '';
+      let specItemClass = 'single';
+      if (overrideValue && overrideValue.trim()) {
+        // Use authored override (can contain HTML)
+        displayValue = overrideValue;
+        // Determine class from content
+        if (displayValue.includes('<p>') || displayValue.includes('<div>')) {
+          specItemClass = 'multi';
+        }
+      } else {
+        // Format from API
+        const apiValue = apiData[fieldName];
+        if (!apiValue && apiValue !== '') {
+          // Field doesn't exist in API data, skip it
+          return;
+        }
+        if (fieldName === 'ProductCode' && typeof apiValue === 'object') {
+          specItemClass = 'object';
+          displayValue = formatFieldValue(fieldName, apiData);
+        } else if (fieldName === 'TradingHours' && typeof apiValue === 'object') {
+          specItemClass = 'multi';
+          displayValue = formatFieldValue(fieldName, apiData);
+        } else {
+          displayValue = formatFieldValue(fieldName, apiData);
+        }
+      }
+
+      // Skip if no value
+      if (!displayValue || displayValue.trim() === '') {
+        return;
+      }
+
+      // Create list item
+      const li = createElement('li');
+
+      // Field name with info icon
+      const fieldHeading = createElement('h5', { class: 'list-title' });
+      const fieldNameText = document.createTextNode(formatFieldName(fieldName));
+      fieldHeading.appendChild(fieldNameText);
+
+      // Info tooltip with icon
+      const infoTooltip = createElement('div', { class: 'info-tooltip' });
+      const infoIcon = createElement('span', { class: 'info-icon' });
+      infoTooltip.appendChild(infoIcon);
+      fieldHeading.appendChild(infoTooltip);
+
+      li.appendChild(fieldHeading);
+
+      // Field value container
+      const specItem = createElement('div', { class: `spec-item ${specItemClass}` });
+
+      // For object/multi types, parse and structure the HTML
+      if (specItemClass === 'object' || specItemClass === 'multi') {
+        // Parse HTML and wrap in item-container divs
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = displayValue;
+
+        // If it's ProductCode object format
+        if (specItemClass === 'object') {
+          const lines = displayValue.split('<br />').filter((line) => line.trim());
+          lines.forEach((line) => {
+            const itemContainer = createElement('div', { class: 'item-container' });
+            const colonIndex = line.indexOf(':');
+            if (colonIndex > -1) {
+              const title = createElement('span', { class: 'title' });
+              title.textContent = line.substring(0, colonIndex + 1);
+              const value = createElement('span');
+              value.textContent = line.substring(colonIndex + 1).trim();
+              itemContainer.appendChild(title);
+              itemContainer.appendChild(value);
+            } else {
+              itemContainer.textContent = line;
+            }
+            specItem.appendChild(itemContainer);
+          });
+        } else {
+          // For multi (TradingHours), parse venue/hours pairs
+          const lines = displayValue.split('<br /><br />').filter((line) => line.trim());
+          lines.forEach((line) => {
+            const itemContainer = createElement('div', { class: 'item-container' });
+            const colonIndex = line.indexOf(':');
+            if (colonIndex > -1) {
+              const title = createElement('div', { class: 'title' });
+              title.textContent = line.substring(0, colonIndex + 1).trim();
+              const hours = createElement('div');
+              hours.innerHTML = line.substring(colonIndex + 1).trim().replace(/<br \/>/g, '<br>');
+              itemContainer.appendChild(title);
+              itemContainer.appendChild(hours);
+            } else {
+              itemContainer.innerHTML = line;
+            }
+            specItem.appendChild(itemContainer);
+          });
+        }
+      } else {
+        // Simple single value
+        specItem.innerHTML = displayValue;
+      }
+
+      li.appendChild(specItem);
+      cardElements.push(li);
+    });
+
+    if (cardElements.length === 0) {
+      const noResults = createElement('div', { class: 'no-results' });
+      const noResultsLabel = createElement('h4');
+      noResultsLabel.textContent = 'No contract specs found';
+      noResults.appendChild(noResultsLabel);
+      block.textContent = '';
+      block.appendChild(noResults);
+      return;
+    }
+
+    // Add list items to ul
+    cardElements.forEach((card) => ul.appendChild(card));
+    specDataContainer.appendChild(ul);
+    widgetContainer.appendChild(specDataContainer);
+
+    // Add footer with last updated
+    const footer = createElement('div', { class: 'contract-specs-footer' });
+    const lastUpdated = createElement('p', { class: 'last-updated' });
+    const updateDate = new Date().toLocaleString('en-US', {
+      timeZone: 'America/Chicago',
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    });
+    lastUpdated.textContent = `Last Updated ${updateDate} CT.`;
+    footer.appendChild(lastUpdated);
+    widgetContainer.appendChild(footer);
+
+    // Render to block
+    block.textContent = '';
+    block.appendChild(widgetContainer);
+  } catch (error) {
+    console.error('Error creating contract specs cards:', error);
+    block.textContent = '';
+    const errorDiv = createElement('div', { class: 'error-message' });
+    const errorHeading = createElement('h4');
+    errorHeading.textContent = 'Unable to load contract specifications';
+    errorDiv.appendChild(errorHeading);
+    block.appendChild(errorDiv);
+  }
+}
 
 async function createStaticCards(block) {
   const size = block.children.length;
@@ -802,7 +1173,9 @@ async function createRecommendedCards(block) {
 }
 
 export default async function decorate(block) {
-  if (block.classList.contains('dynamic')) {
+  if (block.classList.contains('contract-specs')) {
+    createContractSpecsCards(block);
+  } else if (block.classList.contains('dynamic')) {
     createDynamicCards(block);
   } else if (block.classList.contains('recommended-ai')) {
     createRecommendedCards(block);
