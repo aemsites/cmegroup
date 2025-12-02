@@ -110,10 +110,16 @@
             color: var(--blue5);
           }
 
-          & .icon-search::before {
-            content: var(--icon-search);
-            font-family: var(--cme-group-icons);
+          & .icon-search {
+            display: flex;
+            align-items: center;
+
+            &::before {
+              content: var(--icon-search);
+              font-family: var(--cme-group-icons);
+            }
           }
+          
         }
       }
     }
