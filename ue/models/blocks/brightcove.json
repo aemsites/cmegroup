@@ -35,7 +35,6 @@
           "component": "text",
           "valueType": "string",
           "name": "div:nth-child(3)>div:nth-child(2)",
-          "value": "",
           "label": "Playlist ID",
           "description": "Optional playlist ID (If you have a REF ID, 'ref:' is part of the actual Id!)"
         },
