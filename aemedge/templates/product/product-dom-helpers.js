@@ -4,8 +4,13 @@
  */
 
 import { normalizePath, loadProductIndex, indexHasPath } from '../../scripts/utils/product.js';
-import { buildBlock, decorateBlock, loadBlock } from '../../scripts/aem.js';
-import { i18n } from '../../scripts/utils.js';
+import {
+  buildBlock,
+  decorateBlock,
+  loadBlock,
+  getMetadata,
+} from '../../scripts/aem.js';
+import { i18n, createElement } from '../../scripts/utils.js';
 
 /**
  * Find the product tabs section in the DOM
@@ -347,4 +352,28 @@ export function moveCurrentPageContentUnderSubTabs() {
 
   if (!movable.length) return;
   movable.forEach((sec) => container.appendChild(sec));
+}
+
+/**
+ * Insert shared asset class content block at the end of every product page
+ * This block loads a fragment with shared content for the asset class
+ */
+export async function buildSharedContent() {
+  const main = document.querySelector('main');
+  if (!main) return;
+
+  // Get asset class from metadata
+  const assetClass = getMetadata('asset-class');
+  if (!assetClass) return;
+
+  // Create section with fragment block
+  const section = createElement('div', { class: 'section shared-content' });
+  const fragmentUrl = `/fragments/markets/shared/${assetClass}`;
+  const fragmentBlock = buildBlock('fragment', fragmentUrl);
+
+  section.appendChild(fragmentBlock);
+  main.appendChild(section);
+
+  decorateBlock(fragmentBlock);
+  await loadBlock(fragmentBlock);
 }

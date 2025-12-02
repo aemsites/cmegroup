@@ -12,7 +12,7 @@ import {
   setGlobalOptionSelection,
   clearGlobalOptionSelection,
 } from '../../scripts/actions/product.js';
-import { getDefaultTab, ensureSubTabsContentContainer } from './product-dom-helpers.js';
+import { getDefaultTab, ensureSubTabsContentContainer, buildSharedContent } from './product-dom-helpers.js';
 
 // Export for use in other modules
 export const PREFETCH_CACHE = new Map();
@@ -420,7 +420,7 @@ export async function renderProductPath(url, productRoot) {
     Promise.all([
       ...clones.map((cl) => loadSection(cl)),
       domOpsPromise, // Let toggle populate in background
-    ]).catch(() => {});
+    ]).then(() => buildSharedContent()).catch(() => {});
   } catch (e) {
     const container = ensureSubTabsContentContainer();
     if (container) {

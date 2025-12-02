@@ -27,6 +27,7 @@ import {
   getDefaultTab,
   findProductTabsSection,
   preloadPathIndex,
+  buildSharedContent,
 } from './product-dom-helpers.js';
 
 import {
@@ -88,4 +89,7 @@ export default async function productTemplate() {
       .then(() => moveCurrentPageContentUnderSubTabs())
       .catch(() => {});
   }
+
+  // Insert shared asset class content on all product pages
+  await buildSharedContent();
 }
