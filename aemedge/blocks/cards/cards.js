@@ -682,6 +682,7 @@ async function createRecommendedFromService(data, block) {
     class: 'cards recommended-ai block',
   });
   blockDiv.setAttribute('data-block-name', 'cards');
+  blockDiv.classList.add(...block.classList);
   const containerDiv = createElement('div');
   const ul = createElement('ul');
   ul.style.setProperty('--columns', Math.min(data.length, 4));
