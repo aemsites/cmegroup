@@ -63,7 +63,7 @@
         {
           "component": "select",
           "valueType": "string",
-          "name": "div:nth-child(5)>div:nth-child(2)",
+          "name": "div:nth-child(5)>div:nth-child(2)>p:nth-child(1)",
           "value": "16:9",
           "label": "Aspect Ratio",
           "options": [
