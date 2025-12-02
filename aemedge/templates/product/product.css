@@ -29,7 +29,7 @@ main {
     background-color: white;
     box-shadow: 0 .125rem .25rem 0 rgba(60, 64, 67, .3);
     position: relative;
-    z-index: 10;
+    z-index: 60;
     margin-bottom: 0 !important;
 
     @media (width < 769px) {
@@ -133,7 +133,7 @@ main {
           & .futures-options-toggle {
             display: flex;
             gap: 0;
-            z-index: 10;
+            z-index: 60;
             align-items: stretch;
             flex-shrink: 0;
             
@@ -264,7 +264,7 @@ main {
                 border: 0.0625rem solid var(--gray4);
                 border-radius: 0.25rem;
                 box-shadow: 0 0.25rem 0.375rem rgb(0 0 0 / 10%);
-                z-index: 20;
+                z-index: 61;
                 margin-top: 0.25rem;
                 display: none;
 
