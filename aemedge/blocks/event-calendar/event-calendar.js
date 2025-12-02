@@ -801,11 +801,11 @@ function renderResultListSection(days) {
   const filteredDays = getResultDays(days);
   lateralDaysList.innerHTML = `
   <ul>
-    ${filteredDays.map(({ date, totalEventsCount }, index) => {
-    if (index === 0) {
+    ${filteredDays.map(({ date, totalEventsCount }) => {
+    const isActiveDate = dayjs.utc(leftPanelSelectedDay).format('YYYY-MM-DD') === dayjs.utc(date).format('YYYY-MM-DD');
+    if (isActiveDate) {
       nthEvents = totalEventsCount;
     }
-    const isActiveDate = dayjs.utc(leftPanelSelectedDay).format('YYYY-MM-DD') === dayjs.utc(date).format('YYYY-MM-DD');
     const dayName = dayjs.utc(date).format('dddd');
     const dayWithSuffix = dayjs.utc(date).format('Do');
     const li = `

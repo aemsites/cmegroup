@@ -40,3 +40,21 @@ export function setTracking(
     event, eventCategory, status, detail, value,
   });
 }
+
+export async function trackGA4Event(
+  origin,
+  eventName,
+  details = {},
+) {
+  try {
+    const params = new URLSearchParams({
+      event: eventName,
+      ...details,
+    });
+    const response = await fetch(`${origin}/ga-hit.html?${params.toString()}`);
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('Tracking error:', error);
+  }
+}
