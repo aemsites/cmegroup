@@ -1,4 +1,4 @@
-import { createElement, i18n } from '../../../scripts/utils.js';
+import { createElement, i18n, setupDayjsLibs } from '../../../scripts/utils.js';
 import { createModal } from '../../modal/modal.js';
 
 const [
@@ -299,19 +299,95 @@ export async function createProductTable(options = {}) {
   const voiInfo = createElement('div', { class: 'voi-info' });
 
   if (voi && voi.tradeDate) {
+    await setupDayjsLibs();
     const tradeDate = new Date(voi.tradeDate.timestamp);
     const formattedDate = dayjs.utc(tradeDate).format('dddd DD MMM YYYY');
-
     voiInfo.innerHTML = `
-      <span class="voi-label">${tradeDateText || 'Trade Date'}:</span>
-      <span class="voi-date">${formattedDate}</span>
-      <span class="voi-separator">-</span>
-      <span class="voi-report-type">${voi.reportType || ''}</span>
-    `;
+    <span class="voi-label">${tradeDateText || 'Trade Date'}:</span>
+    <span class="voi-date">${formattedDate}</span>
+    <span class="voi-separator">-</span>
+    <span class="voi-report-type">${voi.reportType || ''}</span>
+  `;
   }
 
   const actionsContainer = createElement('div', { class: 'actions-container' });
-  const MODAL_CONTENT = '';
+  const MODAL_CONTENT = `
+    <div>
+      <h5>Symbols Used on the Product Slate</h5>
+      <ul>
+        <li>A dash (-) means there is no data.</li>
+        <li>
+          Volume and Open Interest Date Stamp
+          <ul>
+            <li>
+              Daily Volume and Open Interest data is released at the end of each
+              trading day and is a preliminary report. CME Group releases
+              official data the following morning. Preliminary reports may be
+              different from the final report.
+            </li>
+          </ul>
+        </li>
+        <li>
+          New Product
+          <ul>
+            <li>
+              Products are classified as &quot;New&quot; for two weeks before
+              they launch and for two weeks after
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h5>Product Slate Data</h5>
+      <ul>
+        <li>
+          Clearing - the product code on CME Clearing to monitor and process its
+          trades
+        </li>
+        <li>
+          Globex - the product is traded on Globex under the symbol provided
+        </li>
+        <li>
+          Floor - also known as Open Outcry, the product is traded on the floor
+          under the symbol provided
+        </li>
+        <li>
+          ClearPort - the product is traded on CME ClearPort under the symbol
+          provided
+        </li>
+        <li>Product Name - the CME Group product name</li>
+        <li>Product Group - the asset class of the product</li>
+        <li>Subgroup - grouping under asset class</li>
+        <li>Category</li>
+        <li>Subcategory</li>
+        <li>
+          Cleared As - whether the product is a Cleared Forward, Cleared Swap,
+          Future or Options
+        </li>
+        <li>
+          Exchange - where the product is traded
+          <ul>
+            <li>CME = Chicago Mercantile Exchange</li>
+            <li>CBOT or CBT = Chicago Board of Trade</li>
+            <li>NYMEX or NYM = NYMEX</li>
+            <li>COMEX or CMX = COMEX</li>
+            <li>CMED = CME Europe</li>
+            <li>CEE = CME Clearing Europe</li>
+          </ul>
+        </li>
+        <li>
+          Volume - summarizes exchange-wide volume, including futures and
+          options volume, for Globex, ClearPort/PNT and Open Outcry. Volume
+          figures are reported across divisions and asset classes to give you an
+          instant grasp of market activity.
+        </li>
+        <li>
+          Open Interest - is inclusive of all venues (ClearPort, Globex, and
+          Open Outcry).
+        </li>
+      </ul>
+    </div>`;
 
   const helpButton = createElement('button', {
     type: 'button',

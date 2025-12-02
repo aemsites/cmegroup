@@ -1,6 +1,6 @@
 import { createElement, i18n, debounce } from '../../../scripts/utils.js';
 import createDropdowns from './controls/dropdown-filter.js';
-import { createSearchInput } from './controls/search-input.js';
+import createSearchInput from './controls/search-input.js';
 import { createFilterPillsFromDropdowns } from './controls/pills.js';
 import createCheckbox from './controls/checkbox.js';
 
@@ -36,58 +36,6 @@ function getFiltersFromURL() {
     sortField: params.get('sortField') || '',
     sortDirection: params.get('sortDirection') || '',
   };
-}
-
-function updateURLWithFilters(filters) {
-  const params = new URLSearchParams();
-
-  if (filters.subgroup && filters.subgroup.length > 0) {
-    params.set('subGroups', filters.subgroup.join(','));
-  }
-
-  if (filters.group && filters.group.length > 0) {
-    params.set('groups', filters.group.join(','));
-  }
-
-  if (filters.searchTerm) {
-    params.set('search', filters.searchTerm);
-  }
-
-  if (filters.exch && filters.exch.length > 0) {
-    params.set('exch', filters.exch.join(','));
-  }
-
-  if (filters.venues && filters.venues.length > 0) {
-    params.set('venues', filters.venues.join(','));
-  }
-
-  if (filters.cleared && filters.cleared.length > 0) {
-    params.set('cleared', filters.cleared.join(','));
-  }
-
-  if (filters.tags === 1) {
-    params.set('tags', '1');
-  }
-
-  if (filters.sortField) {
-    params.set('sortField', filters.sortField);
-  }
-
-  if (filters.sortDirection) {
-    params.set('sortDirection', filters.sortDirection);
-  }
-
-  const entries = [...params.entries()].map(([key, value]) => (key === 'search'
-    ? `${key}=${value}`
-    : `${key}=${value.replace(/%2C/g, ',')}`));
-
-  const query = entries.join('&');
-
-  const newURL = query
-    ? `${window.location.pathname}?${query}`
-    : window.location.pathname;
-
-  window.history.pushState({}, '', newURL);
 }
 
 function convertURLFiltersToSelections(urlFilters, groupData, options) {
@@ -158,8 +106,6 @@ function convertURLFiltersToSelections(urlFilters, groupData, options) {
 
 async function fetchTableData(filters) {
   try {
-    updateURLWithFilters(filters);
-
     if (typeof window.fetchProductSlateData === 'function') {
       await window.fetchProductSlateData(filters);
       return;
@@ -211,17 +157,18 @@ function buildFiltersObject(
       if (parentGroup) {
         filters.group.push(id);
       } else {
-        for (const g of groupData) {
-          if (g.children) {
+        let found = false;
+        groupData.forEach((g) => {
+          if (!found && g.children) {
             const child = g.children.find(
               (c) => c.name === name && String(c.id) === String(id),
             );
             if (child) {
               filters.subgroup.push(id);
-              break;
+              found = true;
             }
           }
-        }
+        });
       }
     });
   }
@@ -257,12 +204,22 @@ function buildFiltersObject(
   return filters;
 }
 
-export default function createFilter(options) {
+export default function createFilter(options, filterConfig = {}) {
+  const visibleFilters = {
+    group: filterConfig.group !== false,
+    venues: filterConfig.venues !== false,
+    exch: filterConfig.exch !== false,
+    cleared: filterConfig.cleared !== false,
+    search: filterConfig.search !== false,
+    tags: filterConfig.tags !== false,
+  };
+
   let isDesktop = window.innerWidth >= 769;
   let currentSearchTerm = '';
   let checkboxValue = false;
   let pillsContainer;
-  let groupData;
+
+  const groupData = options.group || [];
 
   const filter = createElement('div', {
     class: 'product-slate-filter reverse',
@@ -293,9 +250,8 @@ export default function createFilter(options) {
   const secondFilterRow = createElement('div', { class: 'filter-row' });
   const searchRow = createElement('div', { class: 'search-row' });
 
-  groupData = options.group || [];
-
   const dropdownsContainer = createDropdowns(options, {
+    visibleFilters,
     onSelectionChange: () => {
       const allSelections = dropdownsContainer.getSelections();
 
@@ -336,7 +292,7 @@ export default function createFilter(options) {
     },
   });
 
-  const checkbox = createCheckbox({
+  const checkbox = visibleFilters.tags ? createCheckbox({
     onChange: (isChecked) => {
       checkboxValue = isChecked;
 
@@ -349,7 +305,7 @@ export default function createFilter(options) {
       );
       fetchTableData(filters);
     },
-  });
+  }) : null;
 
   resetButton.textContent = resetText;
   filterButton.textContent = filterText;
@@ -370,7 +326,7 @@ export default function createFilter(options) {
     fetchTableData(filters);
   }, 500);
 
-  const customSearch = createSearchInput({
+  const customSearch = visibleFilters.search ? createSearchInput({
     onSearch: (value) => {
       currentSearchTerm = value;
       debouncedFetch(value);
@@ -387,7 +343,7 @@ export default function createFilter(options) {
       );
       fetchTableData(filters);
     },
-  });
+  }) : null;
 
   resetButton.addEventListener('click', (e) => {
     e.preventDefault();
@@ -403,13 +359,22 @@ export default function createFilter(options) {
       venues: [],
     });
 
-    checkbox.reset();
-    checkboxValue = false;
+    if (checkbox) {
+      checkbox.reset();
+      checkboxValue = false;
+    }
 
     const venuesInstance = dropdownsContainer.getDropdownInstance('venues');
     if (venuesInstance) venuesInstance.updateAllCheckboxes();
 
     currentSearchTerm = '';
+
+    if (customSearch) {
+      const searchInput = customSearch.querySelector('input');
+      if (searchInput) {
+        searchInput.value = '';
+      }
+    }
 
     isResetting = false;
 
@@ -467,8 +432,8 @@ export default function createFilter(options) {
   mainFilters.appendChild(filtersContent);
   filtersContent.appendChild(title);
   filtersContent.appendChild(searchRow);
-  searchRow.appendChild(customSearch);
-  searchRow.appendChild(checkbox);
+  if (customSearch) searchRow.appendChild(customSearch);
+  if (checkbox) searchRow.appendChild(checkbox);
   filtersContent.appendChild(closeModal);
   filtersContent.appendChild(wrap);
   wrap.appendChild(scrollMobileWrapper);
@@ -512,12 +477,12 @@ export default function createFilter(options) {
 
     dropdownsContainer.setSelections(selections);
 
-    if (urlFilters.searchTerm) {
+    if (urlFilters.searchTerm && customSearch) {
       currentSearchTerm = urlFilters.searchTerm;
       customSearch.setValue(urlFilters.searchTerm);
     }
 
-    if (urlFilters.tags) {
+    if (urlFilters.tags && checkbox) {
       checkboxValue = true;
       checkbox.setChecked(true);
     }

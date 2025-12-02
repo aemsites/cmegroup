@@ -141,8 +141,7 @@
             &.open {
               max-height: 25rem;
               opacity: 1;
-              overflow-y: auto;
-              overflow-x: hidden;
+              overflow: hidden auto;
             }
 
             &:focus-within {

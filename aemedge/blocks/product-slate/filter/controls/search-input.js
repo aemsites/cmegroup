@@ -6,7 +6,7 @@ const [
   i18n('Search by product name or symbol'),
 ]);
 
-function createSearchInput(options = {}) {
+export default function createSearchInput(options = {}) {
   const searchComponent = createElement('div', {
     class: 'search-component',
   });
@@ -75,12 +75,3 @@ function createSearchInput(options = {}) {
 
   return searchComponent;
 }
-
-function createQuickSearch() {
-  return createSearchInput({
-    onSearch: (value) => console.log('Typing:', value),
-    onSearchClick: (value) => console.log('Clicked search:', value),
-  });
-}
-
-export { createSearchInput, createQuickSearch };

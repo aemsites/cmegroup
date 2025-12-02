@@ -505,6 +505,7 @@ class UniversalDropdown {
 }
 
 function createDropdowns(apiData, options = {}) {
+  const { visibleFilters = {} } = options;
   const container = createElement('div', { class: 'dropdowns-container' });
 
   const dropdownConfigs = {
@@ -517,6 +518,8 @@ function createDropdowns(apiData, options = {}) {
   const dropdownInstances = new Map();
 
   Object.keys(dropdownConfigs).forEach((key) => {
+    if (visibleFilters[key] === false) return;
+
     const data = apiData[key];
     const config = dropdownConfigs[key];
 

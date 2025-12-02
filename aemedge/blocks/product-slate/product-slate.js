@@ -6,15 +6,14 @@ import { readBlockConfig } from '../../scripts/aem.js';
 export default async function decorate(block) {
   const config = readBlockConfig(block);
   block.textContent = '';
-  const urlParams = new URLSearchParams(window.location.search);
 
   const defaultPageSize = parseInt(config['result-per-page'], 10) || 500;
   const defaultSortField = config['sort-field'] || 'oi';
   const defaultSortDirection = config['sort-direction'] || 'desc';
-
   const columnsToHide = config['columns-hiding']
     ? config['columns-hiding'].split(',').map((col) => col.trim())
     : [];
+  const displayAsWidget = config['display-as-widget'] === 'true';
 
   const columnConfig = {
     productName: !columnsToHide.includes('name'),
@@ -32,6 +31,20 @@ export default async function decorate(block) {
     openInterest: !columnsToHide.includes('oi'),
   };
 
+  const filtersToHide = config['hide-filters']
+    ? config['hide-filters'].split(',').map((f) => f.trim())
+    : [];
+
+  const filterConfig = {
+    group: !filtersToHide.includes('group'),
+    venues: !filtersToHide.includes('venues'),
+    exch: !filtersToHide.includes('exch'),
+    cleared: !filtersToHide.includes('cleared'),
+    search: !filtersToHide.includes('search'),
+    tags: !filtersToHide.includes('tags'),
+  };
+
+  const urlParams = new URLSearchParams(window.location.search);
   const hasURLParams = urlParams.toString().length > 0;
   const initialSortField = hasURLParams ? (urlParams.get('sortField') || defaultSortField) : defaultSortField;
   const initialSortDirection = hasURLParams ? (urlParams.get('sortDirection') || defaultSortDirection) : defaultSortDirection;
@@ -39,7 +52,12 @@ export default async function decorate(block) {
   const tableContainer = document.createElement('div');
   tableContainer.className = 'product-slate-table-container';
 
-  const tableManager = await createManagedProductTable(tableContainer, columnConfig, initialSortField, initialSortDirection);
+  const tableManager = await createManagedProductTable(
+    tableContainer,
+    columnConfig,
+    initialSortField,
+    initialSortDirection,
+  );
 
   window.fetchProductSlateData = async (filters = {}) => {
     try {
@@ -62,53 +80,40 @@ export default async function decorate(block) {
         exactMatchFirst: true,
       };
 
-      const currentUrlParams = new URLSearchParams(window.location.search);
-      currentUrlParams.set('sortField', sortState.sortField || defaultSortField);
-      currentUrlParams.set('sortDirection', sortState.sortDirection || defaultSortDirection);
+      const urlParamsArray = [];
+
+      urlParamsArray.push(`sortField=${sortState.sortField || defaultSortField}`);
+      urlParamsArray.push(`sortDirection=${sortState.sortDirection || defaultSortDirection}`);
 
       if (filters.group && filters.group.length > 0) {
-        currentUrlParams.set('groups', filters.group.join(','));
-      } else {
-        currentUrlParams.delete('groups');
+        urlParamsArray.push(`groups=${filters.group.join(',')}`);
       }
 
       if (filters.subgroup && filters.subgroup.length > 0) {
-        currentUrlParams.set('subGroups', filters.subgroup.join(','));
-      } else {
-        currentUrlParams.delete('subGroups');
+        urlParamsArray.push(`subGroups=${filters.subgroup.join(',')}`);
       }
 
       if (filters.searchTerm) {
-        currentUrlParams.set('search', filters.searchTerm);
-      } else {
-        currentUrlParams.delete('search');
+        urlParamsArray.push(`search=${encodeURIComponent(filters.searchTerm)}`);
       }
 
       if (filters.exch && filters.exch.length > 0) {
-        currentUrlParams.set('exch', filters.exch.join(','));
-      } else {
-        currentUrlParams.delete('exch');
+        urlParamsArray.push(`exch=${filters.exch.join(',')}`);
       }
 
       if (filters.venues && filters.venues.length > 0) {
-        currentUrlParams.set('venues', filters.venues.join(','));
-      } else {
-        currentUrlParams.delete('venues');
+        urlParamsArray.push(`venues=${filters.venues.join(',')}`);
       }
 
       if (filters.cleared && filters.cleared.length > 0) {
-        currentUrlParams.set('cleared', filters.cleared.join(','));
-      } else {
-        currentUrlParams.delete('cleared');
+        urlParamsArray.push(`cleared=${filters.cleared.join(',')}`);
       }
 
       if (filters.tags === 1) {
-        currentUrlParams.set('tags', '1');
-      } else {
-        currentUrlParams.delete('tags');
+        urlParamsArray.push('tags=1');
       }
 
-      const newURL = `${window.location.pathname}?${currentUrlParams.toString()}`;
+      const newURL = `${window.location.pathname}?${urlParamsArray.join('&')}`;
       window.history.pushState({}, '', newURL);
 
       const response = await getProductSlateData(serviceParams);
@@ -182,18 +187,22 @@ export default async function decorate(block) {
     sortField: initialSortField,
     pageNumber: 1,
     pageSize: defaultPageSize,
-    groups: '',
-    subGroups: '',
-    venues: '',
-    exch: '',
-    cleared: '',
-    search: '',
-    tags: '',
+    groups: urlParams.get('groups') || '',
+    subGroups: urlParams.get('subGroups') || '',
+    venues: urlParams.get('venues') || '',
+    exch: urlParams.get('exch') || '',
+    cleared: urlParams.get('cleared') || '',
+    search: urlParams.get('search') || '',
+    tags: urlParams.get('tags') || '',
     exactMatchFirst: true,
   });
 
-  const filter = createFilter(initialData.filters);
-  block.append(filter);
+  const filter = createFilter(initialData.filters, filterConfig);
+
+  if (!displayAsWidget) {
+    block.append(filter);
+  }
+
   block.append(tableContainer);
 
   await tableManager.updateProducts(initialData.products);
