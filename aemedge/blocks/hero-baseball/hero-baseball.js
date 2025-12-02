@@ -90,14 +90,9 @@ function buildBreadcrumbLink(items, config) {
     const link = createElement('a', { href: subgroup.linkUrl }, subgroup.text);
     link.prepend(arrow);
     breadcrumb.append(link);
-  } else {
-    i18n('Markets').then((marketsLbl) => {
-      const link = createElement('a', { href: '/markets' }, marketsLbl);
-      link.prepend(arrow);
-      breadcrumb.append(link);
-    });
+    return breadcrumb;
   }
-  return breadcrumb;
+  return null;
 }
 
 function createHeroInitialStructure(config) {
@@ -108,7 +103,9 @@ function createHeroInitialStructure(config) {
   const assetClassName = computeAssetClass(window.location.pathname);
   getViewAnotherProductDropdown(assetClassName).then((assetClass) => {
     const breadcrumb = buildBreadcrumbLink(assetClass.items || [], config);
-    navigationBar.append(breadcrumb);
+    if (breadcrumb) {
+      navigationBar.append(breadcrumb);
+    }
     if (assetClass.items) {
       import('./product-selector.js').then((mod) => {
         const productSelector = mod.default(assetClass);
