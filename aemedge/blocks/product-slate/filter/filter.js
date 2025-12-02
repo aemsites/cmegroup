@@ -355,7 +355,11 @@ export default function createFilter(options) {
   filterButton.textContent = filterText;
   applyButton.textContent = applyText;
 
+  let isResetting = false;
+
   const debouncedFetch = debounce((value) => {
+    if (isResetting) return;
+
     const allSelections = dropdownsContainer.getSelections();
     const filters = buildFiltersObject(
       allSelections,
@@ -387,8 +391,9 @@ export default function createFilter(options) {
 
   resetButton.addEventListener('click', (e) => {
     e.preventDefault();
-    customSearch.clear();
-    currentSearchTerm = '';
+
+    isResetting = true;
+
     pillsContainer.clear();
 
     dropdownsContainer.setSelections({
@@ -403,6 +408,10 @@ export default function createFilter(options) {
 
     const venuesInstance = dropdownsContainer.getDropdownInstance('venues');
     if (venuesInstance) venuesInstance.updateAllCheckboxes();
+
+    currentSearchTerm = '';
+
+    isResetting = false;
 
     if (typeof window.resetProductSlate === 'function') {
       window.resetProductSlate();
@@ -513,19 +522,9 @@ export default function createFilter(options) {
       checkbox.setChecked(true);
     }
 
-    Promise.resolve().then(() => {
-      const allSelections = dropdownsContainer.getSelections();
-      pillsContainer.clear();
-      pillsContainer.syncWithDropdowns(allSelections);
-
-      const filters = buildFiltersObject(
-        allSelections,
-        currentSearchTerm,
-        checkboxValue,
-        groupData,
-      );
-      fetchTableData(filters);
-    });
+    const allSelections = dropdownsContainer.getSelections();
+    pillsContainer.clear();
+    pillsContainer.syncWithDropdowns(allSelections);
   }
 
   return filter;

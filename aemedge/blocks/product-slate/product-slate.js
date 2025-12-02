@@ -17,33 +17,29 @@ export default async function decorate(block) {
     : [];
 
   const columnConfig = {
-    productName: !columnsToHide.includes('productName'),
+    productName: !columnsToHide.includes('name'),
     clearing: !columnsToHide.includes('clearing'),
     globex: !columnsToHide.includes('globex'),
     floor: !columnsToHide.includes('floor'),
     clearPort: !columnsToHide.includes('clearport'),
-    exchange: !columnsToHide.includes('exchange'),
-    assetClass: !columnsToHide.includes('group'),
-    group: !columnsToHide.includes('subGroup'),
-    category: !columnsToHide.includes('category'),
-    subCategory: !columnsToHide.includes('subCategory'),
+    exchange: !columnsToHide.includes('exch'),
+    productGroup: !columnsToHide.includes('group'),
+    subGroup: !columnsToHide.includes('subGroup'),
+    category: !columnsToHide.includes('cat'),
+    subCategory: !columnsToHide.includes('subCat'),
     clearedAs: !columnsToHide.includes('cleared'),
-    volume: !columnsToHide.includes('volume'),
+    volume: !columnsToHide.includes('vol'),
     openInterest: !columnsToHide.includes('oi'),
   };
 
-  const urlSortField = urlParams.get('sortField') || defaultSortField;
-  const urlSortDirection = urlParams.get('sortDirection') || defaultSortDirection;
+  const hasURLParams = urlParams.toString().length > 0;
+  const initialSortField = hasURLParams ? (urlParams.get('sortField') || defaultSortField) : defaultSortField;
+  const initialSortDirection = hasURLParams ? (urlParams.get('sortDirection') || defaultSortDirection) : defaultSortDirection;
 
   const tableContainer = document.createElement('div');
   tableContainer.className = 'product-slate-table-container';
 
-  const tableManager = await createManagedProductTable(
-    tableContainer,
-    columnConfig,
-    urlSortField,
-    urlSortDirection,
-  );
+  const tableManager = await createManagedProductTable(tableContainer, columnConfig, initialSortField, initialSortDirection);
 
   window.fetchProductSlateData = async (filters = {}) => {
     try {
@@ -146,7 +142,7 @@ export default async function decorate(block) {
     const newURL = window.location.pathname;
     window.history.pushState({}, '', newURL);
 
-    window.dispatchEvent(new CustomEvent('tableLoadingStart'));
+    await tableManager.setLoading(true);
 
     const response = await getProductSlateData({
       sortDirection: resetSortDirection,
@@ -182,8 +178,8 @@ export default async function decorate(block) {
   });
 
   const initialData = await getProductSlateData({
-    sortDirection: urlSortDirection,
-    sortField: urlSortField,
+    sortDirection: initialSortDirection,
+    sortField: initialSortField,
     pageNumber: 1,
     pageSize: defaultPageSize,
     groups: '',
@@ -191,20 +187,20 @@ export default async function decorate(block) {
     venues: '',
     exch: '',
     cleared: '',
+    search: '',
+    tags: '',
     exactMatchFirst: true,
   });
 
   const filter = createFilter(initialData.filters);
   block.append(filter);
-
   block.append(tableContainer);
 
-  window.dispatchEvent(
-    new CustomEvent('tableDataUpdated', {
-      detail: {
-        data: initialData,
-        filters: {},
-      },
-    }),
-  );
+  await tableManager.updateProducts(initialData.products);
+  if (initialData.props && initialData.props.voi) {
+    await tableManager.setVoi(initialData.props.voi);
+  }
+  if (initialData.downloadExcelUrl) {
+    await tableManager.setDownloadUrl(initialData.downloadExcelUrl);
+  }
 }

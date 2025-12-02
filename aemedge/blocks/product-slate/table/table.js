@@ -54,6 +54,7 @@ export async function createProductTable(options = {}) {
   const mainWrapper = createElement('div', { class: 'main-wrapper' });
   const tableWrapper = createElement('div', { class: 'table-wrapper' });
   const mainTableWrapper = createElement('div', { class: 'main-table-wrapper' });
+  const fixedTableColumn = createElement('div', { class: 'fixed-table-column sticky-first-col' });
   const table = createElement('table', { class: 'product-slate-table' });
   const thead = createElement('thead', { class: 'sticky-header' });
   const headerRow = createElement('tr');
@@ -69,10 +70,20 @@ export async function createProductTable(options = {}) {
     return spinner;
   }
 
-  if (loading) {
-    const spinner = createSpinner();
-    prodTableWrapper.append(spinner);
-    return prodTableWrapper;
+  function handleScroll(event) {
+    const el = event.target;
+
+    const { scrollLeft, offsetWidth, scrollWidth } = el;
+
+    if (scrollWidth > 0) {
+      const endOfTable = scrollLeft + offsetWidth >= scrollWidth - 4;
+
+      if (endOfTable) {
+        el.classList.add('no-gradient');
+      } else {
+        el.classList.remove('no-gradient');
+      }
+    }
   }
 
   if (products.length === 0) {
@@ -167,12 +178,26 @@ export async function createProductTable(options = {}) {
 
   const tbody = createElement('tbody');
 
+  if (loading) {
+    const spinner = createSpinner();
+    table.appendChild(spinner);
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    mainTableWrapper.appendChild(table);
+    tableWrapper.appendChild(mainTableWrapper);
+    mainWrapper.appendChild(tableWrapper);
+    prodTableWrapper.appendChild(mainWrapper);
+
+    return prodTableWrapper;
+  }
+
   products.forEach((product, index) => {
     const row = createElement('tr');
     row.setAttribute('data-row-index', index);
 
     if (columns.productName !== false) {
-      const td = createElement('td', { class: 'product-name-cell' });
+      const td = createElement('td', { class: 'link text-left' });
       if (product.url) {
         const link = createElement('a', {
           href: product.url,
@@ -263,8 +288,10 @@ export async function createProductTable(options = {}) {
   });
 
   table.appendChild(tbody);
+  tableWrapper.addEventListener('scroll', handleScroll);
   mainTableWrapper.appendChild(table);
-  tableWrapper.appendChild(mainTableWrapper);
+  tableWrapper.appendChild(fixedTableColumn);
+  fixedTableColumn.appendChild(mainTableWrapper);
   mainWrapper.appendChild(tableWrapper);
   prodTableWrapper.appendChild(mainWrapper);
 
@@ -273,11 +300,7 @@ export async function createProductTable(options = {}) {
 
   if (voi && voi.tradeDate) {
     const tradeDate = new Date(voi.tradeDate.timestamp);
-    const formattedDate = tradeDate.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    const formattedDate = dayjs.utc(tradeDate).format('dddd DD MMM YYYY');
 
     voiInfo.innerHTML = `
       <span class="voi-label">${tradeDateText || 'Trade Date'}:</span>
