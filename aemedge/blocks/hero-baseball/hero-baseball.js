@@ -269,7 +269,7 @@ export default async function decorate(block) {
   store.subscribe(({ productData }) => productData, (productData) => {
     if (productData.loaded) {
       const image = config['custom-background'];
-      if (image && (productData.productId || !productData.isTrading)) {
+      if (image && (!productData.productId || !productData.isTrading)) {
         block.classList.add('custom-background');
         block.style['background-image'] = `url(${image}`;
       }
