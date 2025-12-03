@@ -1,5 +1,6 @@
 import { createElement, i18n, setupDayjsLibs } from '../../../scripts/utils.js';
 import { createModal } from '../../modal/modal.js';
+import { authentication } from '../../../scripts/modules/Authentication.js';
 
 const [
   productNameText,
@@ -38,6 +39,42 @@ const [
   i18n('Help'),
   i18n('Download data'),
 ]);
+
+async function createAuthModal() {
+  const [
+    title,
+    loginLabel,
+    orLabel,
+    accountLabel,
+    bookmarkText,
+  ] = await Promise.all([
+    i18n('CME Group Login'),
+    i18n('Login'),
+    i18n('or'),
+    i18n('create an account'),
+    i18n('to bookmark content on cmegroup.com'),
+  ]);
+  const iconLock = createElement('img', {
+    src: '/aemedge/icons/lock.svg',
+    alt: 'Lock Icon',
+    loading: 'eager',
+  });
+  const iconLockSpan = createElement('span', { class: 'icon icon-lock' }, iconLock);
+  const modalTitle = createElement('h5', { class: 'modal-title' }, title);
+  const modalHeader = createElement('div', { class: 'modal-header' }, iconLockSpan, modalTitle);
+  const login = createElement('span', { class: 'login-handler' }, loginLabel);
+  login.addEventListener('click', async () => {
+    authentication.login();
+  });
+  const account = createElement('span', { class: 'registration-handler' }, accountLabel);
+  account.addEventListener('click', async () => {
+    authentication.registration();
+  });
+  const modalBody = createElement('div', { class: 'modal-body' }, login, ` ${orLabel} `, account, ` ${bookmarkText}`);
+  const modal = await createModal([modalHeader, modalBody]);
+  modal.block?.classList.add('prod-slate-auth-modal');
+  return modal;
+}
 
 export async function createProductTable(options = {}) {
   const {
@@ -415,19 +452,30 @@ export async function createProductTable(options = {}) {
     <span class="text">${downloadDataText || 'Download data'}</span>
   `;
 
-  if (downloadExcelUrl) {
-    downloadButton.href = downloadExcelUrl;
-    downloadButton.addEventListener('click', (e) => {
-      if (!downloadExcelUrl) {
-        e.preventDefault();
+  const { authenticationData } = authentication;
+  authenticationData.loginPromise.then(async () => {
+    if (authenticationData.isLoggedIn) {
+      if (downloadExcelUrl) {
+        downloadButton.href = downloadExcelUrl;
+        downloadButton.addEventListener('click', (e) => {
+          if (!downloadExcelUrl) {
+            e.preventDefault();
+          }
+        });
+      } else {
+        downloadButton.classList.add('disabled');
+        downloadButton.addEventListener('click', (e) => {
+          e.preventDefault();
+        });
       }
-    });
-  } else {
-    downloadButton.classList.add('disabled');
-    downloadButton.addEventListener('click', (e) => {
-      e.preventDefault();
-    });
-  }
+    } else {
+      downloadButton.addEventListener('click', async () => {
+        localStorage.setItem('save-article-pending', 'true');
+        const { showModal } = await createAuthModal();
+        showModal();
+      });
+    }
+  });
 
   authTooltipContainer.appendChild(downloadButton);
   actionsContainer.appendChild(helpButton);
