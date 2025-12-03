@@ -1,5 +1,11 @@
 .cards {
   &.contract-specs {
+    /* Main container with white background and box shadow */
+    background-color: var(--white);
+    box-shadow: 0 0.0625rem 0.125rem 0 rgb(60 64 67 / 30%), 0 0.125rem 0.375rem 0.125rem rgb(60 64 67 / 15%);
+    padding: 1.25rem;
+    border-radius: 0;
+
     & .contract-specs-header {
       margin-bottom: 1.25rem;
 
@@ -40,31 +46,106 @@
 
     & .list-title {
       color: rgb(17 43 74);
-      margin: 0 0 0.625rem;
+      margin: 0 0 1rem;
       font-size: 0.6875rem;
       line-height: 1rem;
       font-weight: 700;
       text-transform: uppercase;
       display: block;
 
-      & .info-tooltip {
+      & .tooltip-container {
         display: inline-block;
         margin-left: 0.5rem;
         vertical-align: middle;
+        position: relative;
       }
 
       & .info-icon {
         display: inline-block;
-        width: 0.9688rem;
-        height: 1.125rem;
-        color: rgb(17 43 74);
-        font-family: var(--cme-group-icons);
-        font-size: 1rem;
-        line-height: 1;
+        width: 0.875rem;
+        height: 0.875rem;
+        vertical-align: middle;
         cursor: pointer;
+        background-color: #006eb6;
+        opacity: 0.6;
+        mask-image: url('/aemedge/icons/info-filled.svg');
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        mask-position: center;
+        -webkit-mask-image: url('/aemedge/icons/info-filled.svg');
+        -webkit-mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+      }
+
+      & .tooltip {
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 0.5rem;
+        opacity: 0;
+        z-index: 100;
+        pointer-events: none;
+        transition: opacity 0.3s ease-in-out;
+        max-width: 200px;
+        text-align: center;
+
+        &.show {
+          opacity: 1;
+        }
 
         &::before {
-          content: var(--icon-info);
+          content: '';
+          position: absolute;
+          left: -0.5rem;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 0;
+          height: 0;
+          border-style: solid;
+          border-width: 0.5rem 0.5rem 0.5rem 0;
+          border-color: transparent #fff transparent transparent;
+          z-index: 101;
+        }
+
+        &::after {
+          content: '';
+          position: absolute;
+          left: -0.53125rem;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 0;
+          height: 0;
+          border-style: solid;
+          border-width: 0.53125rem 0.53125rem 0.53125rem 0;
+          border-color: transparent rgb(60 64 67 / 15%) transparent transparent;
+          z-index: 100;
+        }
+
+        & .tooltip-inner {
+          background-color: #fff;
+          box-shadow: 0 0.0625rem 0.125rem 0 rgb(60 64 67 / 30%), 0 0.125rem 0.375rem 0.125rem rgb(60 64 67 / 15%);
+          color: #000;
+          min-width: 13.75rem;
+          opacity: 1;
+          padding: 0.625rem;
+        }
+
+        & .info-tooltip-content {
+          & p {
+            color: #25323c;
+            font-family: Averta, var(--averta);
+            font-size: 0.75rem;
+            font-weight: 400;
+            line-height: 1rem;
+            margin-bottom: 0.9375rem;
+            text-align: left;
+
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
         }
       }
     }
@@ -74,7 +155,7 @@
       font-size: 1rem;
       line-height: 1.5rem;
       color: rgb(90 104 116);
-      margin: 0 0 1.25rem;
+      margin: 0;
 
       &:last-child {
         margin-bottom: 0;

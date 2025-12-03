@@ -35,9 +35,26 @@ import { apiGet, getResponseData } from '../../scripts/utils/fetch.js';
 
 const fallbackImage = `url(${urlByEnvType()}/content/dam/cmegroup/images/common/default/article-940x600.jpg)`;
 
+// Contract Specs Constants
+const IS_LOCALHOST = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+
+/**
+ * Development logging utility - only logs in localhost environment
+ * @param {...any} args - Arguments to log
+ */
+function devLog(...args) {
+  if (IS_LOCALHOST) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+}
+
 /**
  * Format field value from API data
  * Handles complex fields like ProductCode, TradingHours, etc.
+ * @param {string} fieldName - The field name from API
+ * @param {Object} apiData - The API response data
+ * @returns {string} Formatted field value for display
  */
 function formatFieldValue(fieldName, apiData) {
   const value = apiData[fieldName];
@@ -94,6 +111,8 @@ function formatFieldValue(fieldName, apiData) {
 
 /**
  * Format field name for display (convert camelCase to Title Case)
+ * @param {string} fieldName - The camelCase field name from API
+ * @returns {string} Formatted field name (e.g., "Contract Unit")
  */
 function formatFieldName(fieldName) {
   return fieldName
@@ -103,36 +122,68 @@ function formatFieldName(fieldName) {
 }
 
 /**
+ * Get tooltip text for a given field name
+ * @param {string} fieldName - The field name to get tooltip for
+ * @returns {string} Tooltip text explaining the field
+ */
+function getTooltipText(fieldName) {
+  const tooltips = {
+    ContractUnit: 'The contract unit is the quantity of the product delivered for a single contract.',
+    PriceQuotation: 'The price quotation specifies how the contract price is expressed.',
+    ProductCode: 'Product codes are used to identify the product across different trading platforms.',
+    TradingHours: 'Trading hours specify when the contract can be traded on each platform.',
+    MinimumPriceFluctuation: 'The minimum price fluctuation is the smallest price movement allowed for the contract.',
+    SettlementMethod: 'The settlement method describes how the contract is settled at expiration.',
+    DeliveryProcedure: 'The delivery procedure outlines how physical delivery is handled.',
+    LastDeliveryDate: 'The last delivery date is the final date on which delivery can be made.',
+    TerminationOfTrading: 'Termination of trading specifies when trading in the contract ends.',
+    PositionLimits: 'Position limits define the maximum number of contracts a trader can hold.',
+    PriceLimitOrCircuit: 'Price limits or circuit breakers restrict the maximum price movement allowed.',
+    SettlementProcedures: 'Settlement procedures describe the process for settling the contract.',
+    ExchangeRulebook: 'The exchange rulebook contains the official rules governing the contract.',
+    BlockMinimum: 'Block minimum specifies the minimum size for block trades.',
+    ListedContracts: 'Listed contracts specify which contract months are available for trading.',
+    GradeAndQuality: 'Grade and quality standards define the acceptable specifications for delivery.',
+    TradeAtMarkerOrTradeAtSettlementRules: 'TAS/TAM rules describe trading at settlement or marker procedures.',
+    VendorCodes: 'Vendor codes are symbols used by data vendors to identify the contract.',
+  };
+  return tooltips[fieldName] || `Information about ${formatFieldName(fieldName).toLowerCase()}.`;
+}
+
+/**
  * LOCAL DEV FALLBACK - TODO: Remove this function before production
  * Fetches mock contract specs data from local JSON file for localhost development
+ * @returns {Promise<Object|null>} Mock contract specs data or null
  */
 async function fetchContractSpecsLocalDev() {
   try {
     const response = await fetch('/aemedge/blocks/cards/300.json');
     if (response.ok) {
       const data = await response.json();
-      // eslint-disable-next-line no-console
-      console.log('Using local dev contract specs data from 300.json');
+      devLog('Using local dev contract specs data from 300.json');
       return data;
     }
-    // eslint-disable-next-line no-console
-    console.warn('Local dev file not found, falling back to API');
+    if (IS_LOCALHOST) {
+      // eslint-disable-next-line no-console
+      console.warn('Local dev file not found, falling back to API');
+    }
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error('Error fetching local dev contract specs:', e);
+    if (IS_LOCALHOST) {
+      // eslint-disable-next-line no-console
+      console.error('Error fetching local dev contract specs:', e);
+    }
   }
   return null;
 }
 
 /**
  * Fetch contract specs from API or use local dev fallback
+ * @param {string|number} productId - The product ID to fetch specs for
+ * @returns {Promise<Object|null>} Contract specs data or null on error
  */
 async function fetchContractSpecs(productId) {
   // LOCAL DEV FALLBACK - TODO: Remove this block before production
-  const isLocalhost = window.location.hostname === 'localhost'
-    || window.location.hostname === '127.0.0.1'
-    || window.location.hostname === '';
-  if (isLocalhost) {
+  if (IS_LOCALHOST) {
     const localData = await fetchContractSpecsLocalDev();
     if (localData) {
       return localData;
@@ -146,7 +197,10 @@ async function fetchContractSpecs(productId) {
     const data = getResponseData(response) || response.data;
     return data;
   } catch (e) {
-    console.error('Error fetching contract specs:', e);
+    if (IS_LOCALHOST) {
+      // eslint-disable-next-line no-console
+      console.error('Error fetching contract specs:', e);
+    }
     return null;
   }
 }
@@ -154,6 +208,7 @@ async function fetchContractSpecs(productId) {
 /**
  * Create contract specs cards
  * Fetches data from API and merges with authored overrides
+ * @param {HTMLElement} block - The block element to render into
  */
 async function createContractSpecsCards(block) {
   block.textContent = '';
@@ -193,10 +248,7 @@ async function createContractSpecsCards(block) {
 
     // LOCAL DEV FALLBACK - TODO: Remove this block before production
     // For localhost, allow proceeding without productId since we use mock data
-    const isLocalhost = window.location.hostname === 'localhost'
-      || window.location.hostname === '127.0.0.1'
-      || window.location.hostname === '';
-    if (!productId && !isLocalhost) {
+    if (!productId && !IS_LOCALHOST) {
       throw new Error('Product ID not found');
     }
 
@@ -212,22 +264,19 @@ async function createContractSpecsCards(block) {
     // LOCAL DEV FALLBACK - TODO: Remove this block before production
     // If no valid spec items authored, use default fields for localhost
     let finalSpecItems = validSpecItems;
-    if (validSpecItems.length === 0 && isLocalhost) {
+    if (validSpecItems.length === 0 && IS_LOCALHOST) {
       const defaultFields = ['ContractUnit', 'PriceQuotation', 'ProductCode', 'TradingHours'];
       finalSpecItems = defaultFields.map((fieldName) => ({
         fieldName,
         overrideValue: '',
       }));
-      // eslint-disable-next-line no-console
-      console.log('No spec items authored, using default fields for localhost:', defaultFields);
+      devLog('No spec items authored, using default fields for localhost:', defaultFields);
     }
 
     // LOCAL DEV DEBUG - TODO: Remove before production
-    if (isLocalhost) {
-      // eslint-disable-next-line no-console
-      console.log('Contract specs API data:', apiData);
-      // eslint-disable-next-line no-console
-      console.log('Spec items to render:', finalSpecItems);
+    if (IS_LOCALHOST) {
+      devLog('Contract specs API data:', apiData);
+      devLog('Spec items to render:', finalSpecItems);
     }
 
     // Build widget container
@@ -245,6 +294,22 @@ async function createContractSpecsCards(block) {
     const specDataContainer = createElement('div', { class: 'spec-data-container' });
     const ul = createElement('ul');
     const cardElements = [];
+    
+    // Add document-level click handler for closing tooltips (only once per block)
+    if (!block.hasAttribute('data-tooltip-listener')) {
+      block.setAttribute('data-tooltip-listener', 'true');
+      document.addEventListener('click', (e) => {
+        // If clicking outside this block or outside any tooltip container, close all tooltips
+        const clickedTooltipContainer = e.target.closest('.tooltip-container');
+        const clickedInsideBlock = block.contains(e.target);
+        
+        if (!clickedInsideBlock || !clickedTooltipContainer) {
+          block.querySelectorAll('.tooltip.show').forEach((t) => {
+            t.classList.remove('show');
+          });
+        }
+      });
+    }
 
     finalSpecItems.forEach((item) => {
       const { fieldName, overrideValue } = item;
@@ -296,10 +361,37 @@ async function createContractSpecsCards(block) {
       fieldHeading.appendChild(fieldNameText);
 
       // Info tooltip with icon
-      const infoTooltip = createElement('div', { class: 'info-tooltip' });
+      const tooltipContainer = createElement('div', { class: 'tooltip-container' });
       const infoIcon = createElement('span', { class: 'info-icon' });
-      infoTooltip.appendChild(infoIcon);
-      fieldHeading.appendChild(infoTooltip);
+      const tooltip = createElement('div', { class: 'tooltip' });
+      const tooltipInner = createElement('div', { class: 'tooltip-inner' });
+      const tooltipContent = createElement('div', { class: 'info-tooltip-content' });
+      const tooltipText = createElement('p');
+      tooltipText.textContent = getTooltipText(fieldName);
+      tooltipContent.appendChild(tooltipText);
+      tooltipInner.appendChild(tooltipContent);
+      tooltip.appendChild(tooltipInner);
+      tooltipContainer.appendChild(infoIcon);
+      tooltipContainer.appendChild(tooltip);
+      
+      // Add click handler to toggle tooltip
+      infoIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const isVisible = tooltip.classList.contains('show');
+        
+        // Always close all visible tooltips first
+        block.querySelectorAll('.tooltip.show').forEach((t) => {
+          t.classList.remove('show');
+        });
+        
+        // If this tooltip wasn't visible, show it now
+        if (!isVisible) {
+          tooltip.classList.add('show');
+        }
+      });
+      
+      fieldHeading.appendChild(tooltipContainer);
 
       li.appendChild(fieldHeading);
 
@@ -394,7 +486,10 @@ async function createContractSpecsCards(block) {
     block.textContent = '';
     block.appendChild(widgetContainer);
   } catch (error) {
-    console.error('Error creating contract specs cards:', error);
+    if (IS_LOCALHOST) {
+      // eslint-disable-next-line no-console
+      console.error('Error creating contract specs cards:', error);
+    }
     block.textContent = '';
     const errorDiv = createElement('div', { class: 'error-message' });
     const errorHeading = createElement('h4');
@@ -403,6 +498,7 @@ async function createContractSpecsCards(block) {
     block.appendChild(errorDiv);
   }
 }
+
 
 async function createStaticCards(block) {
   const size = block.children.length;
