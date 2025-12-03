@@ -3,12 +3,16 @@
  * Handles DOM manipulation, section building, and tab discovery
  */
 
-import { normalizePath, loadProductIndex, indexHasPath } from '../../scripts/utils/product.js';
+import {
+  normalizePath,
+  loadProductIndex,
+  indexHasPath,
+  computeAssetClass,
+} from '../../scripts/utils/product.js';
 import {
   buildBlock,
   decorateBlock,
   loadBlock,
-  getMetadata,
 } from '../../scripts/aem.js';
 import { i18n, createElement } from '../../scripts/utils.js';
 
@@ -372,8 +376,8 @@ export async function buildSharedContent() {
   // Check if shared content already exists
   if (main.querySelector('.shared-content')) return;
 
-  // Get asset class from metadata
-  const assetClass = getMetadata('asset-class');
+  // Get asset class from URL path
+  const assetClass = computeAssetClass(window.location.pathname);
   if (!assetClass) return;
 
   // Create section with fragment block
