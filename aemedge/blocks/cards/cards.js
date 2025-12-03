@@ -220,6 +220,11 @@ async function createContractSpecsCards(block) {
     const widgetSettings = {};
     const specItems = [];
 
+    // Debug: Log config to help diagnose configuration issues
+    if (IS_LOCALHOST) {
+      devLog('Block config parsed:', config);
+    }
+
     // Separate widget settings from spec items
     Object.keys(config).forEach((key) => {
       // Skip empty keys
@@ -261,21 +266,15 @@ async function createContractSpecsCards(block) {
     // Filter out items with empty field names
     const validSpecItems = specItems.filter((item) => item.fieldName && item.fieldName.trim() !== '');
 
-    // LOCAL DEV FALLBACK - TODO: Remove this block before production
-    // If no valid spec items authored, use default fields for localhost
+    // If no valid spec items authored, use default fields
     let finalSpecItems = validSpecItems;
-    if (validSpecItems.length === 0 && IS_LOCALHOST) {
+    if (validSpecItems.length === 0) {
       const defaultFields = ['ContractUnit', 'PriceQuotation', 'ProductCode', 'TradingHours'];
       finalSpecItems = defaultFields.map((fieldName) => ({
         fieldName,
         overrideValue: '',
       }));
-      devLog('No spec items authored, using default fields for localhost:', defaultFields);
-    }
-
-    // In production, if no spec items are configured, show error
-    if (finalSpecItems.length === 0 && !IS_LOCALHOST) {
-      throw new Error('No contract spec items configured. Please add spec items in the block configuration.');
+      devLog('No spec items authored, using default fields:', defaultFields);
     }
 
     // LOCAL DEV DEBUG - TODO: Remove before production
