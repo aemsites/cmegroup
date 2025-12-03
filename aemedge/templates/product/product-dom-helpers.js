@@ -362,6 +362,18 @@ export async function buildSharedContent() {
   const main = document.querySelector('main');
   if (!main) return;
 
+  // Skip on overview tab (check URL and active nav)
+  const path = window.location.pathname;
+  const activeTab = document.querySelector('.product-tabs-nav a.is-active');
+  const isOverview = path.endsWith('/overview')
+    || (activeTab && activeTab.getAttribute('href')?.endsWith('/overview'));
+
+  if (isOverview) {
+    // Remove shared content if navigating back to overview
+    main.querySelector('.shared-content')?.remove();
+    return;
+  }
+
   // Check if shared content already exists
   if (main.querySelector('.shared-content')) return;
 
