@@ -362,6 +362,9 @@ export async function buildSharedContent() {
   const main = document.querySelector('main');
   if (!main) return;
 
+  // Check if shared content already exists
+  if (main.querySelector('.shared-content')) return;
+
   // Get asset class from metadata
   const assetClass = getMetadata('asset-class');
   if (!assetClass) return;
