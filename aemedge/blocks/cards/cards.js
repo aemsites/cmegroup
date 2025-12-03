@@ -700,7 +700,7 @@ async function createRecommendedFromService(data, block) {
       const subtitleDiv = createElement('div', {
         class: 'card-subtitle',
       });
-      subtitleDiv.textContent = `${item.image_name || ''} `;
+      subtitleDiv.innerHTML = `${item.image_name || ''} `;
 
       const span = createElement('span');
       parseTime(convertMMSSToHHMM(item.media_duration)).then((i) => {
@@ -712,7 +712,7 @@ async function createRecommendedFromService(data, block) {
         class: 'cards-card-title',
       });
       const h3 = createElement('h3');
-      h3.textContent = item.title || '';
+      h3.innerHTML = item.title || '';
       titleDiv.appendChild(h3);
 
       const descDiv = createElement('div', {
@@ -720,7 +720,7 @@ async function createRecommendedFromService(data, block) {
       });
 
       const p = createElement('p');
-      p.textContent = item.description || '';
+      p.innerHTML = item.description || '';
       descDiv.appendChild(p);
 
       const bodyDiv = createElement('div', {
