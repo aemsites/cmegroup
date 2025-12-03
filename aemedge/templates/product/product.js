@@ -82,6 +82,8 @@ export default async function productTemplate() {
     moveCurrentPageContentUnderSubTabs();
     const defaultTab = await getDefaultTab(productRoot);
     const defaultUrl = `${productRoot}/${defaultTab}`;
+    // Update URL to reflect default tab before rendering
+    window.history.replaceState({}, '', defaultUrl);
     await renderProductPath(defaultUrl, productRoot);
   } else {
     productTabsPromise

@@ -362,14 +362,9 @@ export async function buildSharedContent() {
   const main = document.querySelector('main');
   if (!main) return;
 
-  // Skip on overview tab (check URL and active nav)
+  // Skip on overview tab - check if URL ends with /overview or if we're at product root
   const path = window.location.pathname;
-  const activeTab = document.querySelector('.product-tabs-nav a.is-active');
-  const isOverview = path.endsWith('/overview')
-    || (activeTab && activeTab.getAttribute('href')?.endsWith('/overview'));
-
-  if (isOverview) {
-    // Remove shared content if navigating back to overview
+  if (path.endsWith('/overview')) {
     main.querySelector('.shared-content')?.remove();
     return;
   }
