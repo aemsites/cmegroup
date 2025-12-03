@@ -273,6 +273,11 @@ async function createContractSpecsCards(block) {
       devLog('No spec items authored, using default fields for localhost:', defaultFields);
     }
 
+    // In production, if no spec items are configured, show error
+    if (finalSpecItems.length === 0 && !IS_LOCALHOST) {
+      throw new Error('No contract spec items configured. Please add spec items in the block configuration.');
+    }
+
     // LOCAL DEV DEBUG - TODO: Remove before production
     if (IS_LOCALHOST) {
       devLog('Contract specs API data:', apiData);
@@ -486,10 +491,9 @@ async function createContractSpecsCards(block) {
     block.textContent = '';
     block.appendChild(widgetContainer);
   } catch (error) {
-    if (IS_LOCALHOST) {
-      // eslint-disable-next-line no-console
-      console.error('Error creating contract specs cards:', error);
-    }
+    // Log error for debugging (always log, not just localhost)
+    // eslint-disable-next-line no-console
+    console.error('Error creating contract specs cards:', error);
     block.textContent = '';
     const errorDiv = createElement('div', { class: 'error-message' });
     const errorHeading = createElement('h4');
@@ -1270,11 +1274,11 @@ async function createRecommendedCards(block) {
 
 export default async function decorate(block) {
   if (block.classList.contains('contract-specs')) {
-    createContractSpecsCards(block);
+    await createContractSpecsCards(block);
   } else if (block.classList.contains('dynamic')) {
-    createDynamicCards(block);
+    await createDynamicCards(block);
   } else if (block.classList.contains('recommended-ai')) {
-    createRecommendedCards(block);
+    await createRecommendedCards(block);
   } else {
     createStaticCards(block);
   }
