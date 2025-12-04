@@ -59,8 +59,8 @@ store.subscribe(({ courseData }) => courseData, (courseData) => {
   const authShowedKey = `authShowedCount_${courseData.moduleId}`;
   const authShowedCount = Number(localStorage.getItem(authShowedKey));
 
-  //  first lesson completed or standalone lesson
-  if ((courseData.completedLessons === 1 || courseData.isLessonStandalone) && authShowedCount < 1) {
+  //  first lesson completed or standalone module
+  if ((courseData.completedLessons === 1 || courseData.isStandalone) && authShowedCount < 1) {
     openAuthModal();
     localStorage.setItem(authShowedKey, 1);
   //  course at 50%
