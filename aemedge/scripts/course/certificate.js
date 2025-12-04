@@ -18,8 +18,9 @@ async function createCertificateModal({
   lessonTitle,
   userName,
   completedModule,
-  certificateTitle,
+  template,
 }) {
+  const isAssessment = template === 'assessment';
   const [
     modalTitleLabel,
     certificateTitleLabel,
@@ -27,8 +28,8 @@ async function createCertificateModal({
     downloadLabel,
     shareLabel,
   ] = await Promise.all([
-    i18n('Course Completion Certificate'),
-    i18n('Certificate of Course Completion'),
+    i18n(isAssessment ? 'Assessment Certificate' : 'Course Completion Certificate'),
+    i18n(isAssessment ? 'Certificate of Assessment Completion' : 'Certificate of Course Completion'),
     i18n('Presented to'),
     i18n('Download'),
     i18n('Share'),
@@ -84,7 +85,7 @@ async function createCertificateModal({
           { class: 'certificate-header' },
           createElement('p', { class: 'eyebrow' }, 'Cme Group Institute'),
           createElement('p', { class: 'divider' }),
-          createElement('p', { class: 'title' }, certificateTitle || certificateTitleLabel),
+          createElement('p', { class: 'title' }, certificateTitleLabel),
         ),
         createElement(
           'div',
@@ -225,7 +226,7 @@ async function openCertificateModal({
   moduleId,
   lessonTitle,
   completedModule,
-  certificateTitle,
+  template,
 }) {
   const scriptPromises = [
     loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js'),
@@ -239,7 +240,7 @@ async function openCertificateModal({
     lessonTitle,
     userName,
     completedModule,
-    certificateTitle,
+    template,
   });
 
   const downloadBtn = block.querySelectorAll('.print-pdf')[0];
@@ -265,7 +266,7 @@ export async function addCourseCertificate({
   showModal,
   container,
   isFromHistory = false,
-  certificateTitle,
+  template = 'course',
 }) {
   // Disable if educationIframe query parameter is set
   if (isFeatureToggled('educationIframe')) return;
@@ -294,7 +295,7 @@ export async function addCourseCertificate({
         moduleId,
         lessonTitle,
         completedModule,
-        certificateTitle,
+        template,
       });
     }
   };

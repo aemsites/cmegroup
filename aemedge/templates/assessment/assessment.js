@@ -4,7 +4,7 @@ import {
   updateLessonStatus,
 } from '../../scripts/course/course.js';
 import { addCourseCertificate } from '../../scripts/course/certificate.js';
-import { i18n, isFeatureToggled } from '../../scripts/utils.js';
+import { isFeatureToggled } from '../../scripts/utils.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
 
@@ -43,44 +43,42 @@ async function loadUserProgress(courseData, authenticationData) {
           assessmentTitle: courseData.title,
         },
       );
-    } else if (quizStatus && !quizStatus.isCorrect && quizStatus !== courseData?.quiz) {
-      //  quiz tracking
-      await updateLessonStatus(false, quizStatus?.status ? quizStatus : null);
     }
   });
   //  courseData subscriber
   store.subscribe(({ courseData: course }) => course, async (course) => {
     if (course?.completed) {
-      const certificateTitle = await i18n('Certificate of Assessment Completion');
       addCourseCertificate({
         isLoggedIn,
         userName: loginInfo?.userName,
-        moduleId: course?.moduleId,
-        lessonTitle: course?.title,
-        completedModule: course?.endDate,
+        moduleId: courseData.moduleId,
+        lessonTitle: courseData.title,
+        completedModule: course.endDate,
         // the modal is opened automatically when the user completes the assessment
-        showModal: !courseData?.completed,
-        certificateTitle,
+        showModal: !courseData.completed,
+        template: courseData.template,
       });
     }
   });
 }
 
 export default async function lessonTemplate() {
-  //  static section
-  const courseData = await getCourseData();
-  await createCourseBaseTemplate(courseData);
+  (async () => {
+    //  static section
+    const courseData = await getCourseData();
+    await createCourseBaseTemplate(courseData);
 
-  //  dynamic section - user progress
-  import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
-    const { authenticationData } = authentication;
-    authenticationData.loginPromise.then(async () => {
-      const { isLoggedIn, loginInfo } = authenticationData;
-      const data = await getCourseData(loginInfo);
-      loadUserProgress(data, authenticationData);
-      if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
-        import('../../scripts/course/auth-modal.js');
-      }
+    //  dynamic section - user progress
+    import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
+      const { authenticationData } = authentication;
+      authenticationData.loginPromise.then(async () => {
+        const { isLoggedIn, loginInfo } = authenticationData;
+        const data = await getCourseData(loginInfo);
+        loadUserProgress(data, authenticationData);
+        if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
+          import('../../scripts/course/auth-modal.js');
+        }
+      });
     });
-  });
+  })();
 }

@@ -5,9 +5,10 @@ import { authentication } from '../../../scripts/modules/Authentication.js';
 // eslint-disable-next-line import/prefer-default-export
 export async function createEducationCard(item, isLesson = false) {
   const {
-    launchUrl, title, completed, updated, description,
+    launchUrl, title, completed, updated, description, template,
   } = item;
   const lastLaunchedDate = getCdtDate(updated);
+  const isAssessment = isLesson && template === 'assessment';
 
   const [
     courseLabel,
@@ -21,7 +22,7 @@ export async function createEducationCard(item, isLesson = false) {
     lessonsText,
   ] = await Promise.all([
     i18n('Course'),
-    i18n('Lesson'),
+    i18n(isAssessment ? 'Assessment' : 'Lesson'),
     i18n('Launch Course'),
     i18n('Launch Lesson'),
     i18n('Lessons complete'),
@@ -44,7 +45,7 @@ export async function createEducationCard(item, isLesson = false) {
   let launchBtn;
 
   if (completed) {
-    if (!isLesson) {
+    if (!isLesson || isAssessment) {
       const container = createElement('div');
       launchBtn = container;
 
@@ -59,6 +60,7 @@ export async function createEducationCard(item, isLesson = false) {
           completedModule: item?.endDate,
           container,
           isFromHistory: true,
+          template,
         });
 
         if (typeof buttonContent === 'string') {
