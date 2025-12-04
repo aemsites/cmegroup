@@ -20,9 +20,10 @@ export async function createEducationCard(item, isLesson = false) {
     courseCompletedLabel,
     lessonCompletedLabel,
     lessonsText,
+    assessmentLabel,
   ] = await Promise.all([
     i18n('Course'),
-    i18n(isAssessment ? 'Assessment' : 'Lesson'),
+    i18n('Lesson'),
     i18n('Launch Course'),
     i18n('Launch Lesson'),
     i18n('Lessons complete'),
@@ -30,7 +31,17 @@ export async function createEducationCard(item, isLesson = false) {
     i18n('Course completed'),
     i18n('Lesson completed'),
     i18n('Lessons'),
+    i18n('Assessment'),
   ]);
+
+  let headerTitle;
+  if (isAssessment) {
+    headerTitle = assessmentLabel;
+  } else if (isLesson) {
+    headerTitle = lessonLabel;
+  } else {
+    headerTitle = courseLabel;
+  }
 
   const header = createElement(
     'div',
@@ -38,7 +49,7 @@ export async function createEducationCard(item, isLesson = false) {
     createElement(
       'div',
       { class: 'labels' },
-      createElement('span', {}, isLesson ? lessonLabel : courseLabel),
+      createElement('span', {}, headerTitle),
     ),
   );
 

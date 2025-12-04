@@ -27,12 +27,16 @@ async function createCertificateModal({
     presentedToLabel,
     downloadLabel,
     shareLabel,
+    assessmentTitleLabel,
+    assessmentCertLabel,
   ] = await Promise.all([
-    i18n(isAssessment ? 'Assessment Certificate' : 'Course Completion Certificate'),
-    i18n(isAssessment ? 'Certificate of Assessment Completion' : 'Certificate of Course Completion'),
+    i18n('Course Completion Certificate'),
+    i18n('Certificate of Course Completion'),
     i18n('Presented to'),
     i18n('Download'),
     i18n('Share'),
+    i18n('Assessment Certificate'),
+    i18n('Certificate of Assessment Completion'),
   ]);
 
   const shareButton = createElement(
@@ -54,7 +58,7 @@ async function createCertificateModal({
       createElement(
         'div',
         { class: 'modal-buttons' },
-        modalTitleLabel,
+        isAssessment ? assessmentTitleLabel : modalTitleLabel,
         ' | ',
         createElement(
           'div',
@@ -85,7 +89,7 @@ async function createCertificateModal({
           { class: 'certificate-header' },
           createElement('p', { class: 'eyebrow' }, 'Cme Group Institute'),
           createElement('p', { class: 'divider' }),
-          createElement('p', { class: 'title' }, certificateTitleLabel),
+          createElement('p', { class: 'title' }, isAssessment ? assessmentCertLabel : certificateTitleLabel),
         ),
         createElement(
           'div',
