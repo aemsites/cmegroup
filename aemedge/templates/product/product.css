@@ -11,8 +11,6 @@
 
 /* Main content area */
 main {
-  background-color: var(--gray5);
-
   /* Author override sections - hidden by default */
   & .section[data-override="true"] {
     display: none !important;
@@ -63,14 +61,6 @@ main {
         padding: 0;
       }
 
-      /* ✅ CSS-only: Adjust nav width when toggle is visible */
-      @media (width >= 769px) {
-        &:has(.product-subtabs.enhanced:not(.hidden)) .product-tabs-nav {
-          margin-right: 1.25rem;
-          max-width: calc(100% - 12.5rem - 1rem - 1.25rem);
-        }
-      }
-
       /* Main tabs navigation */
       & .product-tabs-nav {
         flex: 1 1 auto;
@@ -93,17 +83,10 @@ main {
         display: flex;
         align-items: center;
         flex-shrink: 0;
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
         z-index: 20;
+        justify-content: center;
 
         @media (width < 769px) {
-          position: relative;
-          right: auto;
-          top: auto;
-          transform: none;
           margin-left: 0;
           width: 100%;
           padding: 0 1rem 0.75rem;
@@ -135,14 +118,12 @@ main {
             gap: 0;
             z-index: 60;
             align-items: stretch;
-            flex-shrink: 0;
-            
+            padding: 30px 0;
+            flex-shrink: 1;
 
-            @media (width < 769px) {
-              width: 100%;
-              padding: 30px 24px;
-              text-align: center;
-              flex-shrink: 1;
+            @media (width >= 769px) {
+              padding: 0;
+              flex-shrink: 0;
             }
 
             /* Toggle Button Base Styles */
@@ -174,20 +155,18 @@ main {
 
               /* Active toggle button styling */
               &.active {
-                background: var(--blue2);
-                color: white;
-                border-color: var(--blue2);
+                background: var(--blue4);
+                color: var(--white);
+                border-color: var(--blue4);
+                font-weight: 700;
               }
 
               /* Inactive toggle button styling */
               &:not(.active) {
-                background: transparent;
+                background-color: var(--gray5);
                 color: var(--gray3);
-                border-color: var(--gray4);
-
-                &:hover {
-                  background: var(--gray6);
-                }
+                border: 0.0625rem solid var(--gray5);
+                font-weight: 700;
               }
             }
 
@@ -208,24 +187,24 @@ main {
 
               /* Dropdown Button */
               & .dropdown-btn {
-                background: transparent;
+                background-color: var(--gray5);
                 color: var(--gray3);
-                border: 0.0625rem solid var(--gray4);
+                border: 0.0625rem solid var(--gray5);
                 border-left: 0;
                 border-radius: 0 0.25rem 0.25rem 0;
                 padding: 0.625rem 1rem;
                 cursor: pointer;
-                font-weight: 500;
                 text-transform: uppercase;
                 font-size: 0.75rem;
-                font-family: Averta, "Helvetica Neue", arial, sans-serif;
-                letter-spacing: 0.0938rem;
+                font-family: var(--averta);
                 display: flex;
                 align-items: center;
                 gap: 0.25rem;
                 min-width: 6.875rem;
                 white-space: nowrap;
                 transition: all 0.2s ease;
+                font-weight: 700;
+                letter-spacing: normal;
 
                 @media (width < 769px) {
                   flex: 1;
@@ -239,9 +218,10 @@ main {
                 }
 
                 &.active {
-                  background: var(--blue2);
-                  color: white;
-                  border-color: var(--blue2);
+                  background: var(--blue4);
+                  color: var(--white);
+                  border-color: var(--blue4);
+                  font-weight: 700;
                 }
               }
 
@@ -257,53 +237,49 @@ main {
                 position: absolute;
                 top: 100%;
                 right: 0;
-                min-width: 17.5rem;
-                max-height: 18.75rem;
-                overflow-y: auto;
-                background: white;
+                background: var(--white);
                 border: 0.0625rem solid var(--gray4);
                 border-radius: 0.25rem;
                 box-shadow: 0 0.25rem 0.375rem rgb(0 0 0 / 10%);
                 z-index: 61;
-                margin-top: 0.25rem;
                 display: none;
 
                 @media (width < 769px) {
                   right: 0;
                   left: auto;
-                  min-width: 15rem;
                 }
               }
 
               /* Dropdown Items */
               & .dropdown-item {
                 display: block;
-                padding: 0.75rem 1rem;
-                color: var(--gray2);
+                padding: 0.3125rem 2rem;
+                color: var(--gray3);
                 text-decoration: none;
-                border-bottom: 0.0625rem solid var(--gray5);
                 cursor: pointer;
                 transition: background-color 0.2s ease;
-
-                &:last-child {
-                  border-bottom: none;
-                }
+                position: relative;
 
                 &:hover {
-                  background: var(--gray6);
-                  color: var(--gray1);
+                  background: var(--blue6);
                 }
 
-                &.selected {
-                  background: var(--blue6);
-                  color: var(--blue2);
-                  font-weight: 600;
+                &.selected::before {
+                  font-family: var(--cme-group-icons);
+                  content: var(--icon-check);
+                  color: var(--blue4);
+                  font-size: 0.75rem;
+                  font-weight: 400;
+                  display: inline-block;
+                  position: absolute;
+                  left: 0.625rem
                 }
 
                 & .link {
                   font-size: 0.875rem;
                   font-weight: 500;
                   display: block;
+                  white-space: nowrap;
                 }
               }
 
@@ -375,47 +351,11 @@ main {
     }
   }
 
-  /* Content area below tabs */
-  & .product-subtabs-content {
-    /* Content cards with alternating background colors */
-    & > div > .section {
-      border-radius: 0.25rem;
-      box-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 6%);
-      padding: 1.875rem 0;
+  .product-subtabs-content > div > div:first-child{
+    padding-top: 1.875rem !important;
 
-      @media (width >= 769px) {
-        padding: 3.75rem 0;
-      }
-
-      /* ✅ Alternating background colors - odd sections light gray, even white */
-      &:nth-child(odd) {
-        background-color: #f1f5f7;
-      }
-
-      &:nth-child(even) {
-        background-color: #fff;
-      }
-
-      /* Content wrapper with max-width and horizontal padding */
-      & > div {
-        max-width: var(--container-xxl-max);
-        margin: 0 auto;
-        padding: 0 3.375rem;
-
-        /* Override global section padding at xxl breakpoint */
-        @media (width > 1400px) {
-          padding-left: 3.375rem;
-          padding-right: 3.375rem;
-        }
-      }
-
-      /* Remove background/shadow from nested sections to avoid double-boxing */
-      & .section {
-        background-color: transparent;
-        box-shadow: none;
-        padding: 0;
-        margin-bottom: 1rem;
-      }
+    @media (width >= 769px) {
+      padding-top: 3.75rem !important;
     }
   }
 }

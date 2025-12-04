@@ -210,6 +210,7 @@ function updateScrollIndicators(nav) {
 
 function renderNav(block, items) {
   const currentPath = normalizePath(window.location.pathname);
+  block.classList.add('container');
   const nav = document.createElement('nav');
   nav.className = 'product-tabs-nav';
   nav.setAttribute('aria-label', 'Product tabs');
@@ -265,7 +266,8 @@ function renderNav(block, items) {
 
     links.forEach((link) => {
       const linkPath = normalizePath(new URL(link.href).pathname);
-      if (linkPath === newPath) {
+      const active = (newPath === linkPath) || isEquivalentToTab(newPath, linkPath);
+      if (active) {
         link.classList.add('is-active');
       } else {
         link.classList.remove('is-active');
