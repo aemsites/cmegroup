@@ -64,11 +64,10 @@ async function loadUserProgress(courseData, authenticationData) {
 
 export default async function lessonTemplate() {
   (async () => {
-    //  static section
     const courseData = await getCourseData();
     await createCourseBaseTemplate(courseData);
 
-    //  dynamic section - user progress
+    //  user progress
     import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
       const { authenticationData } = authentication;
       authenticationData.loginPromise.then(async () => {
