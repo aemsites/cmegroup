@@ -13,11 +13,21 @@ const FRAGMENTS_BASE = '/fragments';
 const CONSTANTS = {
   AUTO_HIDE_DELAY: 1000,
   CRAWL_THROTTLE: 10,
+  PREVIEW_SHOW_DELAY: 300,
+  PREVIEW_HIDE_DELAY: 200,
   ICONS: {
     FOLDER: '/.da/icons/folder-icon.png',
     FOLDER_OPEN: '/.da/icons/folder-open-icon.png',
     FRAGMENT: '/.da/icons/fragment-icon.png',
   },
+};
+
+// Preview state management
+const previewState = {
+  timeoutId: null,
+  hideTimeoutId: null,
+  currentPath: null,
+  cache: new Map(),
 };
 
 /**
@@ -60,13 +70,105 @@ function hideMessageContainer() {
 }
 
 /**
+ * Shows the fragment preview
+ * @param {string} fragmentPath - Path to the fragment
+ * @param {HTMLElement} triggerElement - Element that triggered the preview
+ * @param {Object} context - SDK context
+ */
+function showPreview(fragmentPath, triggerElement, context) {
+  const previewContainer = document.querySelector('.fragment-preview-container');
+  const previewFrame = previewContainer.querySelector('.preview-frame');
+  const previewLoading = previewContainer.querySelector('.preview-loading');
+
+  // Clear any pending hide timeout
+  if (previewState.hideTimeoutId) {
+    clearTimeout(previewState.hideTimeoutId);
+    previewState.hideTimeoutId = null;
+  }
+
+  // Position the preview near the trigger element
+  const rect = triggerElement.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  // Calculate position - prefer showing to the right, but flip if not enough space
+  let left = rect.right + 10;
+  const previewWidth = 400;
+
+  if (left + previewWidth > viewportWidth - 20) {
+    left = rect.left - previewWidth - 10;
+  }
+
+  // Vertical positioning - center vertically relative to trigger, but keep in viewport
+  let top = rect.top - 100;
+  const previewHeight = 300;
+
+  if (top + previewHeight > viewportHeight - 20) {
+    top = viewportHeight - previewHeight - 20;
+  }
+  if (top < 20) {
+    top = 20;
+  }
+
+  previewContainer.style.left = `${Math.max(20, left)}px`;
+  previewContainer.style.top = `${top}px`;
+
+  // Show loading state
+  previewLoading.classList.remove('hidden');
+  previewFrame.classList.add('hidden');
+  previewContainer.classList.remove('hidden');
+
+  // Build the preview URL
+  const basePath = `/${context.org}/${context.repo}`;
+  const displayPath = fragmentPath.replace(basePath, '').replace(/\.html$/, '');
+  const previewUrl = `https://main--${context.repo}--${context.org}.aem.page${displayPath}`;
+
+  // Check cache first
+  if (previewState.cache.has(fragmentPath)) {
+    previewFrame.srcdoc = previewState.cache.get(fragmentPath);
+    previewLoading.classList.add('hidden');
+    previewFrame.classList.remove('hidden');
+    return;
+  }
+
+  // Load the fragment content
+  previewState.currentPath = fragmentPath;
+
+  // Use iframe with the actual URL for preview
+  previewFrame.onload = () => {
+    if (previewState.currentPath === fragmentPath) {
+      previewLoading.classList.add('hidden');
+      previewFrame.classList.remove('hidden');
+    }
+  };
+
+  previewFrame.onerror = () => {
+    previewLoading.textContent = 'Preview unavailable';
+  };
+
+  previewFrame.src = previewUrl;
+}
+
+/**
+ * Hides the fragment preview
+ */
+function hidePreview() {
+  previewState.hideTimeoutId = setTimeout(() => {
+    const previewContainer = document.querySelector('.fragment-preview-container');
+    previewContainer.classList.add('hidden');
+    previewState.currentPath = null;
+  }, CONSTANTS.PREVIEW_HIDE_DELAY);
+}
+
+/**
  * Creates a tree item element
  * @param {string} name - Item name
  * @param {Object} node - Tree node data
  * @param {Function} onClick - Click handler for fragment items
+ * @param {Object} context - SDK context for preview
  * @returns {HTMLElement} Tree item element
  */
-function createTreeItem(name, node, onClick) {
+function createTreeItem(name, node, onClick, context) {
   const item = document.createElement('li');
   item.className = 'tree-item';
 
@@ -74,6 +176,9 @@ function createTreeItem(name, node, onClick) {
   content.className = 'tree-item-content';
 
   if (node.isFile) {
+    const fragmentWrapper = document.createElement('div');
+    fragmentWrapper.className = 'fragment-item-wrapper';
+
     const button = document.createElement('button');
     button.className = 'fragment-btn-item';
     button.setAttribute('role', 'button');
@@ -93,7 +198,50 @@ function createTreeItem(name, node, onClick) {
     button.appendChild(textSpan);
     button.title = `Click to insert link for "${displayName}"`;
     button.addEventListener('click', () => onClick({ path: node.path }));
-    content.appendChild(button);
+
+    // Create preview button
+    const previewBtn = document.createElement('button');
+    previewBtn.className = 'preview-btn';
+    previewBtn.setAttribute('role', 'button');
+    previewBtn.setAttribute('aria-label', `Preview fragment "${displayName}"`);
+    previewBtn.title = `Preview "${displayName}"`;
+
+    // Use inline SVG for preview icon (eye icon)
+    previewBtn.innerHTML = `
+      <svg class="preview-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+    `;
+
+    // Preview show/hide handlers
+    let showTimeoutId = null;
+
+    previewBtn.addEventListener('mouseenter', () => {
+      showTimeoutId = setTimeout(() => {
+        showPreview(node.path, previewBtn, context);
+      }, CONSTANTS.PREVIEW_SHOW_DELAY);
+    });
+
+    previewBtn.addEventListener('mouseleave', () => {
+      if (showTimeoutId) {
+        clearTimeout(showTimeoutId);
+        showTimeoutId = null;
+      }
+      hidePreview();
+    });
+
+    previewBtn.addEventListener('focus', () => {
+      showPreview(node.path, previewBtn, context);
+    });
+
+    previewBtn.addEventListener('blur', () => {
+      hidePreview();
+    });
+
+    fragmentWrapper.appendChild(button);
+    fragmentWrapper.appendChild(previewBtn);
+    content.appendChild(fragmentWrapper);
   } else {
     const folderButton = document.createElement('button');
     folderButton.className = 'folder-btn';
@@ -137,7 +285,7 @@ function createTreeItem(name, node, onClick) {
       Object.entries(node.children)
         .sort(([a], [b]) => a.localeCompare(b))
         .forEach(([childName, childNode]) => {
-          list.appendChild(createTreeItem(childName, childNode, onClick));
+          list.appendChild(createTreeItem(childName, childNode, onClick, context));
         });
 
       item.appendChild(content);
@@ -335,6 +483,7 @@ function expandToDepth(item, currentDepth, targetDepth) {
             name,
             node,
             (file) => handleFragmentSelect(actions, file, context),
+            context,
           );
           fragmentsContainer.appendChild(item);
 
@@ -353,4 +502,17 @@ function expandToDepth(item, currentDepth, targetDepth) {
 
   // Add refresh handler
   refreshBtn.addEventListener('click', loadFragments);
+
+  // Keep preview visible when hovering over it
+  const previewContainer = document.querySelector('.fragment-preview-container');
+  previewContainer.addEventListener('mouseenter', () => {
+    if (previewState.hideTimeoutId) {
+      clearTimeout(previewState.hideTimeoutId);
+      previewState.hideTimeoutId = null;
+    }
+  });
+
+  previewContainer.addEventListener('mouseleave', () => {
+    hidePreview();
+  });
 }());
