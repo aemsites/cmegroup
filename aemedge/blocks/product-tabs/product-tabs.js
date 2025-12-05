@@ -8,6 +8,7 @@
 
 import { toClassName } from '../../scripts/aem.js';
 import { i18n } from '../../scripts/utils.js';
+import { store } from '../../scripts/store/store.js';
 
 const CANONICAL_ORDER = ['overview', 'quotes', 'settlements', 'volume', 'specs', 'margins', 'calendar'];
 
@@ -336,7 +337,19 @@ export default async function decorate(block) {
   }
 
   // First time render
-  renderNav(block, items);
+  store.subscribe(({ productData }) => productData, ({ loaded, productId, isActive }) => {
+    if (loaded) {
+      const newItems = items.filter(
+        ({ key }) => (productId
+          ? isActive || ['overview', 'specs', 'calendar'].includes(key)
+          : key === 'overview'),
+      );
+      renderNav(block, newItems);
+    }
+  });
+  store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
+    block.style.top = `${height}px`;
+  });
 
   // Mark as decorated
   block.dataset.decorated = 'true';

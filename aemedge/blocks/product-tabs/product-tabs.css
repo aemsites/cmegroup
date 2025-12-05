@@ -7,6 +7,8 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 .125rem .25rem 0 rgb(60 64 67 / 30%);
+  position: sticky;
+  top: 0;
 
   @media (width >= 769px) {
     box-shadow: none;
@@ -22,7 +24,6 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   position: relative;
-  box-shadow: 0 .125rem .25rem 0 rgb(60 64 67 / 30%);
 
   @media (width >= 769px) {
     box-shadow: none;
@@ -78,11 +79,12 @@
     gap: 1.25rem;
     align-items: center;
     flex-wrap: nowrap;
-    min-height: 3.5rem;
+    min-height: 2.875rem;
     padding: 0;
 
     @media (width >= 769px) {
       gap: 2.5rem;
+      min-height: 5rem;
     }
 
     & .product-tabs-item {
