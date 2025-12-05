@@ -2,7 +2,7 @@
 import { createElement, readBlockConfig, i18n } from '../../scripts/utils.js';
 import { urlByEnvType } from '../../scripts/utils/index.js';
 import { apiGet, getResponseData } from '../../scripts/utils/fetch.js';
-import { getProductMetadata } from '../../scripts/utils/product.js';
+import { getProductMetadata, computeProductRoot, normalizePath } from '../../scripts/utils/product.js';
 
 // Contract Specs Constants
 const IS_LOCALHOST = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
@@ -366,12 +366,38 @@ function createFieldItem(fieldName, displayValue, specItemClass, tooltipText, bl
 }
 
 /**
- * Create footer with last updated timestamp
+ * Build specs URL from current page path
+ * @returns {string} Specs URL path
+ */
+function buildSpecsUrl() {
+  const currentPath = window.location.pathname;
+  const productRoot = computeProductRoot(currentPath);
+  const specsPath = `${productRoot}/specs`;
+  return normalizePath(specsPath);
+}
+
+/**
+ * Create footer with last updated timestamp and view full specs link
  * @param {string} lastUpdatedText - The "Last Updated" label text
+ * @param {string} viewFullSpecsText - The "View full contract specs" link text
+ * @param {boolean} showLink - Whether to show the view full specs link
  * @returns {HTMLElement} Footer element
  */
-function createFooter(lastUpdatedText) {
+function createFooter(lastUpdatedText, viewFullSpecsText, showLink = true) {
   const footer = createElement('div', { class: 'contract-spec-footer' });
+
+  // Add view full specs link
+  if (showLink) {
+    const viewFullLink = createElement('div', { class: 'full-contract-link-large' });
+    const link = createElement('a', { href: buildSpecsUrl() });
+    const linkText = createElement('span', { class: 'link-text' });
+    linkText.textContent = viewFullSpecsText;
+    link.appendChild(linkText);
+    viewFullLink.appendChild(link);
+    footer.appendChild(viewFullLink);
+  }
+
+  // Add last updated timestamp
   const lastUpdated = createElement('p', { class: 'last-updated' });
   const updateDate = new Date().toLocaleString('en-US', {
     timeZone: 'America/Chicago',
@@ -385,6 +411,7 @@ function createFooter(lastUpdatedText) {
   });
   lastUpdated.textContent = `${lastUpdatedText} ${updateDate} CT.`;
   footer.appendChild(lastUpdated);
+
   return footer;
 }
 
@@ -410,6 +437,7 @@ async function createContractSpecsDisplay(
     noResultsText,
     lastUpdatedText,
     regulatoryReviewText,
+    viewFullSpecsText,
     tooltipContractUnit,
     tooltipPriceQuotation,
     tooltipProductCode,
@@ -419,6 +447,7 @@ async function createContractSpecsDisplay(
     i18n('No contract specs found'),
     i18n('Last Updated'),
     i18n('Pending all relevant regulatory reviews'),
+    i18n('View full contract specs'),
     i18n('The contract unit is the quantity of the product delivered for a single contract.'),
     i18n('The price quotation is the contract amount expressed in currency (e.g. dollars and cents) per unit of the product (e.g. per pound, per bushel, etc.).'),
     i18n('The product code is a one- to three-letter code identifying the product, followed by additional characters indicating the month and year of expiration.'),
@@ -520,9 +549,10 @@ async function createContractSpecsDisplay(
   specDataContainer.appendChild(ul);
   widgetContainer.appendChild(specDataContainer);
 
-  // Add footer with last updated (only for API-fetched data)
+  // Add footer with last updated and view full specs link (only for API-fetched data)
   if (widgetSettings['show-last-updated'] !== 'false') {
-    const footer = createFooter(lastUpdatedText);
+    const showLink = widgetSettings['show-view-full-link'] !== 'false';
+    const footer = createFooter(lastUpdatedText, viewFullSpecsText, showLink);
     widgetContainer.appendChild(footer);
   }
 
@@ -734,4 +764,3 @@ export default async function decorate(block) {
     await createFuturesContractSpec(block);
   }
 }
-
