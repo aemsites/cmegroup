@@ -79,10 +79,6 @@
       mask-size: contain;
       mask-repeat: no-repeat;
       mask-position: center;
-      -webkit-mask-image: url('/aemedge/icons/info-filled.svg');
-      -webkit-mask-size: contain;
-      -webkit-mask-repeat: no-repeat;
-      -webkit-mask-position: center;
     }
 
     & .tooltip {
@@ -119,13 +115,13 @@
       &::after {
         content: '';
         position: absolute;
-        left: -0.53125rem;
+        left: -0.5313rem;
         top: 50%;
         transform: translateY(-50%);
         width: 0;
         height: 0;
         border-style: solid;
-        border-width: 0.53125rem 0.53125rem 0.53125rem 0;
+        border-width: 0.5313rem 0.5313rem 0.5313rem 0;
         border-color: transparent rgb(60 64 67 / 15%) transparent transparent;
         z-index: 99;
       }
