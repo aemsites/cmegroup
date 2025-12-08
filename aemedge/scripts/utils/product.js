@@ -38,6 +38,13 @@ export function computeProductRoot(pathname) {
   return `/${trimmed.join('/')}`;
 }
 
+export function computeAssetClass(pathname) {
+  const path = normalizePath(pathname);
+  const segs = path.split('/markets/');
+  if (!segs.length || segs.length < 2) return '';
+  return segs[1].split('/')[0];
+}
+
 let productSearchApiPromise = null;
 
 /**
@@ -211,6 +218,7 @@ export async function loadProductData(productId) {
           resolve(data);
         } catch (e) {
           store.dispatch(setProductData({
+            productId,
             loaded: true,
             isTrading: false,
           }));
@@ -279,4 +287,65 @@ export async function applyAuthorOverride(block, dataAttribute, value) {
 
   block.classList.add('override-active');
   return true;
+}
+
+/**
+ * Asset Class Navigation
+ */
+const viewAnotherProductDropdownEndpoint = '/eds-config/view-another-product-dropdown.json';
+let viewAnotherProductDropdownPromise = null;
+
+function fetchViewAnotherProductDropdown() {
+  if (!viewAnotherProductDropdownPromise) {
+    viewAnotherProductDropdownPromise = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const response = await apiGet(viewAnotherProductDropdownEndpoint);
+          const data = getResponseData(response) || response.data;
+          const assetClassNavigation = {};
+          Object.keys(data).forEach((k) => {
+            if (!data[k].data) {
+              return;
+            }
+            let currentSubgroup = {};
+            assetClassNavigation[k] = {};
+            data[k].data.forEach(({
+              title,
+              subgroup,
+              linkUrl,
+              text,
+            }) => {
+              if (title) {
+                assetClassNavigation[k].title = title;
+                assetClassNavigation[k].items = [];
+              } else if (subgroup) {
+                currentSubgroup = {
+                  subgroup,
+                  linkUrl,
+                  text,
+                  products: [],
+                };
+                assetClassNavigation[k].items.push(currentSubgroup);
+              } else {
+                currentSubgroup.products.push({ linkUrl, text });
+              }
+            });
+          });
+          resolve(assetClassNavigation);
+        } catch (e) {
+          reject(e);
+        }
+      })();
+    });
+  }
+  return viewAnotherProductDropdownPromise;
+}
+
+/**
+ * Returns the subgroup/product structure of an asset class
+ */
+export function getViewAnotherProductDropdown(assetClass) {
+  return fetchViewAnotherProductDropdown().then(
+    (assetClasses) => assetClasses[assetClass] || {},
+  );
 }

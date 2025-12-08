@@ -742,6 +742,7 @@ function showTooltip(parent, content, hideAfter) {
   if (hideAfter) {
     setTimeout(() => { tooltip.remove(); }, hideAfter);
   }
+  return tooltip;
 }
 
 function closeAuthToast(toast) {
