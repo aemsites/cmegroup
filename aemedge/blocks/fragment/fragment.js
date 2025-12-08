@@ -11,7 +11,11 @@ import {
 
 import {
   loadSections,
+  getMetadata,
 } from '../../scripts/aem.js';
+
+import { readBlockConfig } from '../../scripts/utils.js';
+import { computeAssetClass } from '../../scripts/utils/product.js';
 
 /**
  * Loads a fragment.
@@ -47,15 +51,61 @@ export async function loadFragment(path) {
   return null;
 }
 
+/**
+ * Resolve fragment path for shared variant
+ * @param {object} config Block config with type and content
+ * @returns {string} Resolved fragment path
+ */
+function resolveSharedFragmentPath(config) {
+  const type = config.type || '';
+  const content = config.content || '';
+  if (!type) return null;
+
+  switch (type) {
+    case 'asset-class': {
+      // No content needed - derived from URL
+      const assetClass = computeAssetClass(window.location.pathname);
+      return assetClass ? `/fragments/shared/markets/${assetClass}/${assetClass}` : null;
+    }
+    case 'template': {
+      if (!content) return null;
+      const template = getMetadata('template');
+      return template ? `/fragments/shared/${template}/${content}` : null;
+    }
+    default:
+      return content ? `/fragments/shared/${type}/${content}` : null;
+  }
+}
+
 export default async function decorate(block) {
-  const link = block.querySelector('a');
-  const path = link ? link.getAttribute('href') : block.textContent.trim();
+  let path;
+  const isShared = block.classList.contains('shared');
+
+  // Shared variant: resolve path from block config
+  if (isShared) {
+    const config = readBlockConfig(block);
+    path = resolveSharedFragmentPath(config);
+    if (!path) return;
+    block.textContent = '';
+  } else {
+    // Standard variant: get path from link or text
+    const link = block.querySelector('a');
+    path = link ? link.getAttribute('href') : block.textContent.trim();
+  }
+
   const fragment = await loadFragment(path);
   if (fragment) {
     const fragmentSection = fragment.querySelector(':scope .section');
     if (fragmentSection) {
       block.closest('.section')?.classList.add(...fragmentSection.classList);
-      block.closest('.fragment')?.querySelector('div')?.replaceWith(...fragment.childNodes);
+
+      if (isShared) {
+        // Auto variant: append directly since block was cleared
+        block.append(...fragment.childNodes);
+      } else {
+        // Standard variant: replace inner div
+        block.closest('.fragment')?.querySelector('div')?.replaceWith(...fragment.childNodes);
+      }
     }
   }
 }
