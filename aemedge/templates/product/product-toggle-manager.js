@@ -245,7 +245,7 @@ async function updateDropdownActiveState(nav) {
   if (dropdown && selectedContract) {
     const items = dropdown.querySelectorAll(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownItem}`);
     items.forEach((item) => {
-      const isSelected = item.dataset.value === selectedContract;
+      const isSelected = item.dataset.productId === selectedContract;
       item.classList.toggle('selected', isSelected);
     });
   }
@@ -415,7 +415,7 @@ export async function insertEnhancedSubTabsIfApplicable(productRoot) {
     return;
   }
 
-  const wrapper = tabsSection.querySelector('.product-tabs-wrapper')
+  const wrapper = tabsSection.querySelector('.product-tabs')
     || tabsSection.querySelector(':scope > div');
   if (!wrapper) {
     store.dispatch(setCreatingToggle(false));

@@ -13,8 +13,6 @@ body {
     transition: all 0.3s ease;
 
     &.hidden {
-      transform: translateY(-6.25rem);
-      opacity: 0;
       transition-delay: 0.5s;
     }
 
@@ -672,6 +670,10 @@ body {
           font-family: var(--cme-group-icons);
           font-size: 1rem;
           font-weight: normal;
+        }
+
+        &:focus-visible {
+          outline: none;
         }
       }
     }

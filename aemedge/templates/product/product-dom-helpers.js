@@ -5,7 +5,7 @@
 
 import { normalizePath, loadProductIndex, indexHasPath } from '../../scripts/utils/product.js';
 import { buildBlock, decorateBlock, loadBlock } from '../../scripts/aem.js';
-import { i18n } from '../../scripts/utils.js';
+import { i18n, createElement } from '../../scripts/utils.js';
 
 /**
  * Find the product tabs section in the DOM
@@ -48,11 +48,8 @@ export async function preloadPathIndex() {
  * Create a section wrapper with a block inside
  */
 export function createSectionWithBlock(blockEl) {
-  const section = document.createElement('div');
-  section.className = 'section';
-  const wrapper = document.createElement('div');
-  section.appendChild(wrapper);
-  wrapper.appendChild(blockEl);
+  const wrapper = createElement('div', null, blockEl);
+  const section = createElement('div', { class: 'section' }, wrapper);
   return section;
 }
 
@@ -72,7 +69,7 @@ export async function fetchProductRoot(productRoot) {
             resolve();
           }
           const html = await resp.text();
-          const temp = document.createElement('div');
+          const temp = createElement('div');
           temp.innerHTML = html;
           resolve(temp);
         } catch (e) {
@@ -210,10 +207,8 @@ export async function buildProductTabsBlock(productRoot, rowsOverride) {
   }
 
   TABS.forEach(([label, href]) => {
-    const a = document.createElement('a');
-    a.setAttribute('href', href);
-    a.textContent = href;
-    rows.push([{ elems: [document.createElement('p')] }, { elems: [document.createElement('p')] }]);
+    const a = createElement('a', { href }, href);
+    rows.push([{ elems: [createElement('p')] }, { elems: [createElement('p')] }]);
     rows[rows.length - 1][0].elems[0].textContent = label;
     rows[rows.length - 1][1].elems[0].appendChild(a);
   });
@@ -322,10 +317,8 @@ export function ensureSubTabsContentContainer() {
 
   let container = tabsSection.nextElementSibling;
   if (!container || !container.classList.contains('product-subtabs-content')) {
-    container = document.createElement('div');
-    container.className = 'section product-subtabs-content full-width';
-    const inner = document.createElement('div');
-    container.appendChild(inner);
+    const inner = createElement('div');
+    container = createElement('div', { class: 'section product-subtabs-content full-width' }, inner);
     tabsSection.parentNode.insertBefore(container, tabsSection.nextSibling);
   }
 

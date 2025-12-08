@@ -205,6 +205,7 @@ export function createOptionsDropdown(expirationsData = [], selectedValue = null
       const selectedLabel = menuItem.querySelector('.link').textContent;
       const selectedOptionType = menuItem.dataset.optionType;
 
+      dropdown.querySelector('.dropdown-item.selected')?.classList.remove('selected');
       dropdown.classList.remove(TOGGLE_CONSTANTS.toggleClasses.dropdownOpen);
 
       // Dispatch custom event for navigation
