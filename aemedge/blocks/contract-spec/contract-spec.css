@@ -205,12 +205,8 @@
     /* Two-column layout for ProductCode and other configured fields */
     &.two-column {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 0.5rem;
-
-      @media (width >= 769px) {
-        grid-template-columns: 1fr 1fr;
-      }
 
       & .item-container {
         margin-bottom: 0;
