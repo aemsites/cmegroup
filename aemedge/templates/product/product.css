@@ -8,6 +8,13 @@
 /* ============================================
    Product Template Styles
    ============================================ */
+body {
+  &.scrolling-down {
+    & .product-tabs-container {
+      transition: top 0.3s ease-out 0.4s;
+    }
+  }
+}
 
 /* Main content area */
 main {
@@ -31,6 +38,7 @@ main {
     margin-bottom: 0 !important;
     position: sticky;
     top: 0;
+    transition: all 0.3s ease 0.1s;
 
     @media (width < 769px) {
       padding: 0;

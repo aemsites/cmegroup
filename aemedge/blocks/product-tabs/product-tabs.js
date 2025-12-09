@@ -349,7 +349,7 @@ export default async function decorate(block) {
   });
   store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
     const container = block.closest('.product-tabs-container');
-    container.style.top = `${height}px`;
+    container.style.top = `${height - 1}px`;
   });
 
   // Mark as decorated
