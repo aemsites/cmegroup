@@ -29,6 +29,8 @@ main {
     position: relative;
     z-index: 60;
     margin-bottom: 0 !important;
+    position: sticky;
+    top: 0;
 
     @media (width < 769px) {
       padding: 0;

@@ -348,7 +348,8 @@ export default async function decorate(block) {
     }
   });
   store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
-    block.style.top = `${height}px`;
+    const container = block.closest('.product-tabs-container');
+    container.style.top = `${height}px`;
   });
 
   // Mark as decorated
