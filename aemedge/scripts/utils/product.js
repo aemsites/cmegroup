@@ -267,10 +267,7 @@ export async function getCvolIndexData(productIds) {
           }
         }
         return {
-          symbol: item.symbol,
-          cvolPrice: item.cvolPrice,
-          cvolPriceChange: item.cvolPriceChange,
-          insertTime: item.insertTime,
+          ...item,
           changeColor,
         };
       }
