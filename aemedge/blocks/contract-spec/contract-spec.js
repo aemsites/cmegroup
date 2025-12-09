@@ -1,14 +1,20 @@
 /* eslint-disable no-console */
-import { createElement, readBlockConfig, i18n } from '../../scripts/utils.js';
-import { urlByEnvType } from '../../scripts/utils/index.js';
-import { apiGet, getResponseData } from '../../scripts/utils/fetch.js';
-import { getProductMetadata, computeProductRoot, normalizePath } from '../../scripts/utils/product.js';
+import {
+  createElement,
+  readBlockConfig,
+  i18n,
+  setupDayjsLibs,
+  getCdtDate,
+} from '../../scripts/utils.js';
+import {
+  getProductMetadata,
+  computeProductRoot,
+  normalizePath,
+  getContractSpecs,
+} from '../../scripts/utils/product.js';
 
 // Contract Specs Constants
 const IS_LOCALHOST = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
-
-// Configurable API endpoint - can be updated via block config
-const DEFAULT_API_ENDPOINT = '/CmeWS/mvc/ContractSpecs/List/productId';
 
 // Fields that should have two-column layout for children (configurable via array)
 const TWO_COLUMN_FIELDS = ['ProductCode'];
@@ -29,9 +35,10 @@ function devLog(...args) {
  * Handles complex fields like ProductCode, TradingHours, etc.
  * @param {string} fieldName - The field name from API
  * @param {Object} apiData - The API response data
+ * @param {Object} labels - Optional i18n labels for ProductCode fields
  * @returns {string} Formatted field value for display
  */
-function formatFieldValue(fieldName, apiData) {
+function formatFieldValue(fieldName, apiData, labels = {}) {
   const value = apiData[fieldName];
   if (!value) return '';
 
@@ -43,10 +50,14 @@ function formatFieldValue(fieldName, apiData) {
   // Handle ProductCode object
   if (fieldName === 'ProductCode' && typeof value === 'object') {
     const parts = [];
-    if (value.CmeGlobex) parts.push(`CME Globex: ${value.CmeGlobex}`);
-    if (value.ClearPort) parts.push(`CME ClearPort: ${value.ClearPort}`);
-    if (value.ClearingCode) parts.push(`Clearing: ${value.ClearingCode}`);
-    if (value.TAS) parts.push(`TAS: ${value.TAS}`);
+    const globexLabel = labels.globexLabel || 'CME Globex';
+    const clearPortLabel = labels.clearPortLabel || 'CME ClearPort';
+    const clearingLabel = labels.clearingLabel || 'Clearing';
+    const tasLabel = labels.tasLabel || 'TAS';
+    if (value.CmeGlobex) parts.push(`${globexLabel}: ${value.CmeGlobex}`);
+    if (value.ClearPort) parts.push(`${clearPortLabel}: ${value.ClearPort}`);
+    if (value.ClearingCode) parts.push(`${clearingLabel}: ${value.ClearingCode}`);
+    if (value.TAS) parts.push(`${tasLabel}: ${value.TAS}`);
     return parts.join('<br />');
   }
 
@@ -97,22 +108,6 @@ function formatFieldName(fieldName) {
 }
 
 /**
- * Get tooltip text for a given field name
- * Returns the tooltip key for i18n translation
- * @param {string} fieldName - The field name to get tooltip for
- * @returns {string} Tooltip text key for i18n
- */
-function getTooltipText(fieldName) {
-  const tooltips = {
-    ContractUnit: 'The contract unit is the quantity of the product delivered for a single contract.',
-    PriceQuotation: 'The price quotation is the contract amount expressed in currency (e.g. dollars and cents) per unit of the product (e.g. per pound, per bushel, etc.).',
-    ProductCode: 'The product code is a one- to three-letter code identifying the product, followed by additional characters indicating the month and year of expiration.',
-    TradingHours: 'The trading hours are the hours of operation for trading a product.',
-  };
-  return tooltips[fieldName] || `Information about ${formatFieldName(fieldName).toLowerCase()}.`;
-}
-
-/**
  * LOCAL DEV FALLBACK - TODO: Remove this function before production
  * Fetches mock contract specs data from local JSON file for localhost development
  * @returns {Promise<Object|null>} Mock contract specs data or null
@@ -141,10 +136,9 @@ async function fetchContractSpecsLocalDev() {
 /**
  * Fetch contract specs from API or use local dev fallback
  * @param {string|number} productId - The product ID to fetch specs for
- * @param {string} apiEndpoint - The API endpoint path (configurable)
  * @returns {Promise<Object|null>} Contract specs data or null on error
  */
-async function fetchContractSpecs(productId, apiEndpoint = DEFAULT_API_ENDPOINT) {
+async function fetchContractSpecs(productId) {
   // LOCAL DEV FALLBACK - TODO: Remove this block before production
   if (IS_LOCALHOST) {
     const localData = await fetchContractSpecsLocalDev();
@@ -153,11 +147,9 @@ async function fetchContractSpecs(productId, apiEndpoint = DEFAULT_API_ENDPOINT)
     }
   }
 
-  // Production API call
+  // Production API call using centralized method from product.js
   try {
-    const endpoint = `${urlByEnvType()}${apiEndpoint}/${productId}`;
-    const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
-    const data = getResponseData(response) || response.data;
+    const data = await getContractSpecs(productId);
     return data;
   } catch (e) {
     if (IS_LOCALHOST) {
@@ -181,7 +173,7 @@ function parseStaticData(block) {
 
   Object.keys(config).forEach((key) => {
     // Skip override keys and config keys
-    if (key.startsWith('override-') || key === 'api-endpoint' || key === 'two-column-fields') {
+    if (key.startsWith('override-') || key === 'two-column-fields') {
       return;
     }
 
@@ -381,9 +373,10 @@ function buildSpecsUrl() {
  * @param {string} lastUpdatedText - The "Last Updated" label text
  * @param {string} viewFullSpecsText - The "View full contract specs" link text
  * @param {boolean} showLink - Whether to show the view full specs link
- * @returns {HTMLElement} Footer element
+ * @returns {Promise<HTMLElement>} Footer element
  */
-function createFooter(lastUpdatedText, viewFullSpecsText, showLink = true) {
+async function createFooter(lastUpdatedText, viewFullSpecsText, showLink = true) {
+  await setupDayjsLibs();
   const footer = createElement('div', { class: 'contract-spec-footer' });
 
   // Add view full specs link
@@ -399,16 +392,7 @@ function createFooter(lastUpdatedText, viewFullSpecsText, showLink = true) {
 
   // Add last updated timestamp
   const lastUpdated = createElement('p', { class: 'last-updated' });
-  const updateDate = new Date().toLocaleString('en-US', {
-    timeZone: 'America/Chicago',
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  });
+  const updateDate = getCdtDate(Date.now()).format('DD MMM YYYY hh:mm:ss A');
   lastUpdated.textContent = `${lastUpdatedText} ${updateDate} CT.`;
   footer.appendChild(lastUpdated);
 
@@ -442,6 +426,11 @@ async function createContractSpecsDisplay(
     tooltipPriceQuotation,
     tooltipProductCode,
     tooltipTradingHours,
+    tooltipFallback,
+    globexLabel,
+    clearPortLabel,
+    clearingLabel,
+    tasLabel,
   ] = await Promise.all([
     i18n('Review contract highlights'),
     i18n('No contract specs found'),
@@ -452,7 +441,20 @@ async function createContractSpecsDisplay(
     i18n('The price quotation is the contract amount expressed in currency (e.g. dollars and cents) per unit of the product (e.g. per pound, per bushel, etc.).'),
     i18n('The product code is a one- to three-letter code identifying the product, followed by additional characters indicating the month and year of expiration.'),
     i18n('The trading hours are the hours of operation for trading a product.'),
+    i18n('Information about'),
+    i18n('CME Globex'),
+    i18n('CME ClearPort'),
+    i18n('Clearing'),
+    i18n('TAS'),
   ]);
+
+  // Build ProductCode labels map
+  const productCodeLabels = {
+    globexLabel,
+    clearPortLabel,
+    clearingLabel,
+    tasLabel,
+  };
 
   // Build tooltip map with translated text
   const tooltipMap = {
@@ -512,7 +514,7 @@ async function createContractSpecsDisplay(
 
     if (fieldName === 'ProductCode' && typeof apiValue === 'object') {
       specItemClass = isTwoColumn ? 'object two-column' : 'object';
-      displayValue = formatFieldValue(fieldName, data);
+      displayValue = formatFieldValue(fieldName, data, productCodeLabels);
     } else if (fieldName === 'TradingHours' && typeof apiValue === 'object') {
       specItemClass = 'multi';
       displayValue = formatFieldValue(fieldName, data);
@@ -525,9 +527,8 @@ async function createContractSpecsDisplay(
       return;
     }
 
-    // Get tooltip text
-    const tooltipKey = getTooltipText(fieldName);
-    const tooltipText = tooltipMap[fieldName] || tooltipKey;
+    // Get tooltip text - use i18n fallback for unknown fields
+    const tooltipText = tooltipMap[fieldName] || `${tooltipFallback} ${formatFieldName(fieldName).toLowerCase()}.`;
 
     // Create field item
     const fieldItem = createFieldItem(fieldName, displayValue, specItemClass, tooltipText, block);
@@ -552,7 +553,7 @@ async function createContractSpecsDisplay(
   // Add footer with last updated and view full specs link (only for API-fetched data)
   if (widgetSettings['show-last-updated'] !== 'false') {
     const showLink = widgetSettings['show-view-full-link'] !== 'false';
-    const footer = createFooter(lastUpdatedText, viewFullSpecsText, showLink);
+    const footer = await createFooter(lastUpdatedText, viewFullSpecsText, showLink);
     widgetContainer.appendChild(footer);
   }
 
@@ -582,16 +583,13 @@ async function createFuturesContractSpec(block) {
       if (!key || key.trim() === '') {
         return;
       }
-      if (key.startsWith('override-') || key === 'api-endpoint' || key === 'two-column-fields' || key === 'show-last-updated') {
+      if (key.startsWith('override-') || key === 'two-column-fields' || key === 'show-last-updated') {
         widgetSettings[key] = config[key];
       } else if (key.trim() !== '') {
         // This is a field name - preserve order
         fieldOrder.push(key);
       }
     });
-
-    // Get API endpoint (configurable)
-    const apiEndpoint = widgetSettings['api-endpoint'] || DEFAULT_API_ENDPOINT;
 
     // Get two-column fields (configurable)
     let twoColumnFields = TWO_COLUMN_FIELDS;
@@ -618,7 +616,7 @@ async function createFuturesContractSpec(block) {
     }
 
     // Fetch contract specs from API (or local dev fallback)
-    const apiData = await fetchContractSpecs(productId || '300', apiEndpoint);
+    const apiData = await fetchContractSpecs(productId || '300');
     if (!apiData) {
       throw new Error('Failed to fetch contract specs');
     }
