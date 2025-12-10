@@ -11,6 +11,7 @@ const API_CONFIG = {
   // Expirations endpoint - requires productId parameter
   fullProductWithOptionsEndpoint: '/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/',
   contractsByNumberEndpoint: '/CmeWS/mvc/quotes/v2/contracts-by-number',
+  contractSpecsEndpoint: '/CmeWS/mvc/ContractSpecs/List/productId',
   cvolEndpoint: '/services/cvol',
 };
 
@@ -243,6 +244,13 @@ export async function getContractsByNumber(productId) {
     'Content-Type': 'application/json',
   };
   const response = await apiPost(endpoint, payload, headers);
+  const data = getResponseData(response) || response.data;
+  return data;
+}
+
+export async function getContractSpecs(productId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.contractSpecsEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
   const data = getResponseData(response) || response.data;
   return data;
 }
