@@ -266,8 +266,9 @@ export default async function decorate(block) {
     const container = createHeroInitialStructure(config);
     block.append(container);
   }
+  let rendered = false;
   store.subscribe(({ productData }) => productData, (productData) => {
-    if (productData.loaded) {
+    if (productData.loaded && !rendered) {
       const image = config['custom-background'];
       if (image && (!productData.productId || !productData.isTrading)) {
         block.classList.add('custom-background');
@@ -286,6 +287,7 @@ export default async function decorate(block) {
       } else {
         createHeroNoProductId(block, config);
       }
+      rendered = true;
     }
   });
 }

@@ -26,6 +26,10 @@ export const productDataInitState = {
 
 export const tabSelectionsInitState = {};
 
+export const productTabInitState = {
+  loaded: false,
+};
+
 export const globalOptionSelectionInitState = {
   selectedContract: null, // null = futures, string = option product ID
 };
@@ -142,6 +146,23 @@ export function tabSelectionsReducer(state = tabSelectionsInitState, action) {
 
     case PRODUCT_ACTIONS.CLEAR_ALL_TAB_SELECTIONS:
       return {};
+
+    default:
+      return state;
+  }
+}
+
+/**
+ * Product Tab Reducer
+ * Handles product tab load
+ */
+// eslint-disable-next-line default-param-last
+export function productTabReducer(state = productTabInitState, action) {
+  switch (action.type) {
+    case PRODUCT_ACTIONS.LOADED_PRODUCT_TAB:
+      return {
+        loaded: action.payload.loaded,
+      };
 
     default:
       return state;
