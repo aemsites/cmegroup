@@ -20,12 +20,13 @@ import {
 
 const COURSES_BASE_PATH = '/education/courses/';
 const LESSONS_BASE_PATH = '/education/lessons/';
-const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone'];
+const ASSESSMENTS_BASE_PATH = '/education/assessments/';
+const TEMPLATES = ['course', 'chapter', 'lesson', 'lesson-standalone', 'assessment'];
 const CACHE_KEY = 'course_data';
 const CACHE_EXPIRATION_PROD = 15 * 60 * 1000; // 15 minutes in milliseconds
 const CACHE_EXPIRATION_STAGE = 60 * 1000; // 60 seconds in milliseconds
 
-const isLessonStandalone = (template) => template.toLowerCase() === 'lesson-standalone';
+const isStandalone = (template) => ['lesson-standalone', 'assessment'].includes(template?.toLowerCase());
 
 const getCachedCourseData = (coursePath) => {
   const cachedData = localStorage.getItem(CACHE_KEY);
@@ -57,7 +58,14 @@ const addCourseDataToCache = (coursePath, courseData) => {
 
 const parseCurrentPath = () => {
   const path = window.location.pathname.replace(/\.html$/, '').replace(/^\/qa/, '');
-  const basePath = path.startsWith(LESSONS_BASE_PATH) ? LESSONS_BASE_PATH : COURSES_BASE_PATH;
+  let basePath;
+  if (path.startsWith(ASSESSMENTS_BASE_PATH)) {
+    basePath = ASSESSMENTS_BASE_PATH;
+  } else if (path.startsWith(LESSONS_BASE_PATH)) {
+    basePath = LESSONS_BASE_PATH;
+  } else {
+    basePath = COURSES_BASE_PATH;
+  }
   const relevantPath = path.split(basePath)[1];
   return { path, basePath, relevantPath };
 };
@@ -78,8 +86,8 @@ export async function getCourseData(loginInfo) {
 
     const { basePath, relevantPath } = parseCurrentPath();
     const course = relevantPath.split('/')[0];
-    if (template !== 'lesson-standalone' && !course) {
-      throw new Error('No course found in the path');
+    if (!course) {
+      throw new Error('No course/lesson module found in the path');
     }
 
     // build the full course path or lesson path in case of standalone lesson
@@ -114,15 +122,15 @@ export async function getCourseData(loginInfo) {
     }));
 
     const courseData = {
-      isLessonStandalone: isLessonStandalone(template),
+      isStandalone: isStandalone(template),
       hasChapters: false, // Will be determined by data
       chapters: [],
       lessons: [],
     };
 
-    // If the page is a lesson standalone, return the first entry
+    // If the page is a standalone module, return the first entry
     // ideally there should be only one entry in this case
-    if (isLessonStandalone(template)) {
+    if (isStandalone(template)) {
       Object.assign(courseData, entries[0]);
       const data = !loginInfo ? courseData : await getCourseDataProgress(courseData);
       addCourseDataToCache(coursePath, data);
@@ -235,7 +243,7 @@ export function flattenLessons(courseData) {
 
 async function getCourseDataProgress(courseData) {
   return import('../services/EducationTrackService.js').then(async ({ getProgress }) => {
-    if (isLessonStandalone(courseData.template)) {
+    if (isStandalone(courseData.template)) {
       //  standalone progress
       const lessonProgress = await getProgress(courseData.moduleId, 'lesson');
       Object.assign(courseData, lessonProgress);
@@ -301,12 +309,14 @@ export async function createCourseBaseTemplate(courseData) {
   const [
     courseLabel,
     lessonLabel,
+    assessmentLabel,
     ofLabel,
     premiumLabel,
     readTimeParsed,
   ] = await Promise.all([
     i18n('Course'),
     i18n('Lesson'),
+    i18n('Assessment'),
     i18n('of'),
     i18n('Premium'),
     parseTime(readTime),
@@ -331,6 +341,14 @@ export async function createCourseBaseTemplate(courseData) {
       type.textContent = `${premiumLabel} ${courseLabel}`;
     } else {
       type.textContent = courseLabel;
+    }
+    header.appendChild(type);
+  } else if (template.toLowerCase() === 'assessment') {
+    const type = createElement('div', { class: 'metadata type' });
+    if (isPremium) {
+      type.textContent = `${premiumLabel} ${assessmentLabel}`;
+    } else {
+      type.textContent = assessmentLabel;
     }
     header.appendChild(type);
   } else if (template.toLowerCase() === 'lesson' || template.toLowerCase() === 'lesson-standalone') {
@@ -389,7 +407,7 @@ export async function updateLessonStatus(isCompleted, quizStatus) {
     if (updatedCourse && isCompleted) {
       const { lessons: lessonsProgress, ...courseProgress } = updatedCourse;
       Object.assign(courseData, courseProgress);
-      if (!courseData.isLessonStandalone) {
+      if (!courseData.isStandalone) {
         const lessons = [
           ...courseData.chapters?.flatMap(({ lessons: chLessons }) => chLessons) || [],
           ...courseData.lessons];
