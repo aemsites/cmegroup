@@ -9,6 +9,7 @@
 import { toClassName } from '../../scripts/aem.js';
 import { i18n } from '../../scripts/utils.js';
 import { store } from '../../scripts/store/store.js';
+import { loadedProductTab } from '../../scripts/actions/product.js';
 
 const CANONICAL_ORDER = ['overview', 'quotes', 'settlements', 'volume', 'specs', 'margins', 'calendar'];
 
@@ -337,14 +338,18 @@ export default async function decorate(block) {
   }
 
   // First time render
+  let rendered = false;
   store.subscribe(({ productData }) => productData, ({ loaded, productId, isActive }) => {
-    if (loaded) {
+    if (loaded && !rendered) {
       const newItems = items.filter(
         ({ key }) => (productId
           ? isActive || ['overview', 'specs', 'calendar'].includes(key)
           : key === 'overview'),
       );
       renderNav(block, newItems);
+      block.style.opacity = 1;
+      rendered = true;
+      store.dispatch(loadedProductTab(true));
     }
   });
   store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {

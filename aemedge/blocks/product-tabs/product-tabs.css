@@ -8,6 +8,7 @@
   flex-direction: column;
   box-shadow: 0 .125rem .25rem 0 rgb(60 64 67 / 30%);
   position: relative;
+  opacity: 0;
 
   @media (width >= 769px) {
     box-shadow: none;
