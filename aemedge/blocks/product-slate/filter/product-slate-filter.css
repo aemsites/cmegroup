@@ -141,8 +141,7 @@
             &.open {
               max-height: 25rem;
               opacity: 1;
-              overflow-y: auto;
-              overflow-x: hidden;
+              overflow: hidden auto;
             }
 
             &:focus-within {
@@ -239,7 +238,6 @@
         width: 100%;
         gap: 0.9375rem;
         display: flex;
-        margin-bottom: 0.9375rem;
 
         @media (width >= 769px) {
           margin-bottom: 1.875rem;
@@ -448,5 +446,48 @@
         }
       }
     }
+  }
+
+  & .spinner-cards {
+    display: inline-block;
+    position: relative;
+    width: 4rem;
+    height: 4rem;
+    margin-bottom: 2rem;
+
+    & div {
+      box-sizing: border-box;
+      display: block;
+      position: absolute;
+      width: 3.1875rem;
+      height: 3.1875rem;
+      margin: 0.375rem;
+      border: 0.25rem solid var(--gray3);
+      border-radius: 50%;
+      animation: spinner-table 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+      border-color: var(--gray3) transparent transparent;
+
+      &:nth-child(1) {
+        animation-delay: -0.45s;
+      }
+
+      &:nth-child(2) {
+        animation-delay: -0.3s;
+      }
+
+      &:nth-child(3) {
+        animation-delay: -0.15s;
+      }
+    }
+  }
+}
+
+@keyframes spinner-table {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
   }
 }
