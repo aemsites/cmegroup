@@ -13,22 +13,8 @@ import {
   getContractSpecs,
 } from '../../scripts/utils/product.js';
 
-// Contract Specs Constants
-const IS_LOCALHOST = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
-
 // Fields that should have two-column layout for children (configurable via array)
 const TWO_COLUMN_FIELDS = ['ProductCode'];
-
-/**
- * Development logging utility - only logs in localhost environment
- * @param {...any} args - Arguments to log
- */
-function devLog(...args) {
-  if (IS_LOCALHOST) {
-    // eslint-disable-next-line no-console
-    console.log(...args);
-  }
-}
 
 /**
  * Format field value from API data
@@ -50,10 +36,12 @@ function formatFieldValue(fieldName, apiData, labels = {}) {
   // Handle ProductCode object
   if (fieldName === 'ProductCode' && typeof value === 'object') {
     const parts = [];
-    const globexLabel = labels.globexLabel || 'CME Globex';
-    const clearPortLabel = labels.clearPortLabel || 'CME ClearPort';
-    const clearingLabel = labels.clearingLabel || 'Clearing';
-    const tasLabel = labels.tasLabel || 'TAS';
+    const {
+      globexLabel,
+      clearPortLabel,
+      clearingLabel,
+      tasLabel,
+    } = labels;
     if (value.CmeGlobex) parts.push(`${globexLabel}: ${value.CmeGlobex}`);
     if (value.ClearPort) parts.push(`${clearPortLabel}: ${value.ClearPort}`);
     if (value.ClearingCode) parts.push(`${clearingLabel}: ${value.ClearingCode}`);
@@ -108,54 +96,15 @@ function formatFieldName(fieldName) {
 }
 
 /**
- * LOCAL DEV FALLBACK - TODO: Remove this function before production
- * Fetches mock contract specs data from local JSON file for localhost development
- * @returns {Promise<Object|null>} Mock contract specs data or null
- */
-async function fetchContractSpecsLocalDev() {
-  try {
-    const response = await fetch('/aemedge/blocks/contract-spec/300.json');
-    if (response.ok) {
-      const data = await response.json();
-      devLog('Using local dev contract specs data from 300.json');
-      return data;
-    }
-    if (IS_LOCALHOST) {
-      // eslint-disable-next-line no-console
-      console.warn('Local dev file not found, falling back to API');
-    }
-  } catch (e) {
-    if (IS_LOCALHOST) {
-      // eslint-disable-next-line no-console
-      console.error('Error fetching local dev contract specs:', e);
-    }
-  }
-  return null;
-}
-
-/**
- * Fetch contract specs from API or use local dev fallback
+ * Fetch contract specs from API
  * @param {string|number} productId - The product ID to fetch specs for
  * @returns {Promise<Object|null>} Contract specs data or null on error
  */
 async function fetchContractSpecs(productId) {
-  // LOCAL DEV FALLBACK - TODO: Remove this block before production
-  if (IS_LOCALHOST) {
-    const localData = await fetchContractSpecsLocalDev();
-    if (localData) {
-      return localData;
-    }
-  }
-
-  // Production API call using centralized method from product.js
   try {
     const data = await getContractSpecs(productId);
     return data;
   } catch (e) {
-    if (IS_LOCALHOST) {
-      // eslint-disable-next-line no-console
-      console.error('Error fetching contract specs:', e);
-    }
     return null;
   }
 }
@@ -609,14 +558,12 @@ async function createFuturesContractSpec(block) {
       productId = metadata?.productId;
     }
 
-    // LOCAL DEV FALLBACK - TODO: Remove this block before production
-    // For localhost, allow proceeding without productId since we use mock data
-    if (!productId && !IS_LOCALHOST) {
+    if (!productId) {
       throw new Error('Product ID not found');
     }
 
-    // Fetch contract specs from API (or local dev fallback)
-    const apiData = await fetchContractSpecs(productId || '300');
+    // Fetch contract specs from API
+    const apiData = await fetchContractSpecs(productId);
     if (!apiData) {
       throw new Error('Failed to fetch contract specs');
     }
@@ -625,13 +572,6 @@ async function createFuturesContractSpec(block) {
     let finalFieldOrder = fieldOrder;
     if (fieldOrder.length === 0) {
       finalFieldOrder = ['ContractUnit', 'PriceQuotation', 'ProductCode', 'TradingHours'];
-      devLog('No fields authored, using default fields:', finalFieldOrder);
-    }
-
-    // LOCAL DEV DEBUG - TODO: Remove before production
-    if (IS_LOCALHOST) {
-      devLog('Contract specs API data:', apiData);
-      devLog('Field order:', finalFieldOrder);
     }
 
     // Create display
@@ -645,7 +585,6 @@ async function createFuturesContractSpec(block) {
   } catch (error) {
     // Load i18n error message
     const errorMessage = await i18n('Unable to load contract specifications');
-    // Log error for debugging (always log, not just localhost)
     // eslint-disable-next-line no-console
     console.error('Error creating futures contract spec:', error);
     block.textContent = '';
@@ -718,12 +657,6 @@ async function createStaticContractSpec(block) {
     // Use field order from config, or all fields if none specified
     const finalFieldOrder = fieldOrder.length > 0 ? fieldOrder : Object.keys(staticData);
 
-    // LOCAL DEV DEBUG - TODO: Remove before production
-    if (IS_LOCALHOST) {
-      devLog('Static contract specs data:', staticData);
-      devLog('Field order:', finalFieldOrder);
-    }
-
     // Create display (hide last updated for static, show regulatory review)
     widgetSettings['show-last-updated'] = 'false';
     widgetSettings['show-regulatory-review'] = 'true';
@@ -737,7 +670,6 @@ async function createStaticContractSpec(block) {
   } catch (error) {
     // Load i18n error message
     const errorMessage = await i18n('Unable to load contract specifications');
-    // Log error for debugging (always log, not just localhost)
     // eslint-disable-next-line no-console
     console.error('Error creating static contract spec:', error);
     block.textContent = '';
