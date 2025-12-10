@@ -380,20 +380,10 @@ main {
     /* Content cards with alternating background colors */
     & > div > .section {
       border-radius: 0.25rem;
-      box-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 6%);
       padding: 1.875rem 0;
 
       @media (width >= 769px) {
         padding: 3.75rem 0;
-      }
-
-      /* ✅ Alternating background colors - odd sections light gray, even white */
-      &:nth-child(odd) {
-        background-color: #f1f5f7;
-      }
-
-      &:nth-child(even) {
-        background-color: #fff;
       }
 
       /* Content wrapper with max-width and horizontal padding */
