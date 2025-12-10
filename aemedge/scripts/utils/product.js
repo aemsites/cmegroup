@@ -11,6 +11,7 @@ const API_CONFIG = {
   // Expirations endpoint - requires productId parameter
   fullProductWithOptionsEndpoint: '/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/',
   contractsByNumberEndpoint: '/CmeWS/mvc/quotes/v2/contracts-by-number',
+  cvolEndpoint: '/services/cvol',
 };
 
 export function normalizePath(pathname) {
@@ -36,6 +37,13 @@ export function computeProductRoot(pathname) {
     trimmed = trimmed.slice(0, -1);
   }
   return `/${trimmed.join('/')}`;
+}
+
+export function computeAssetClass(pathname) {
+  const path = normalizePath(pathname);
+  const segs = path.split('/markets/');
+  if (!segs.length || segs.length < 2) return '';
+  return segs[1].split('/')[0];
 }
 
 let productSearchApiPromise = null;
@@ -211,6 +219,7 @@ export async function loadProductData(productId) {
           resolve(data);
         } catch (e) {
           store.dispatch(setProductData({
+            productId,
             loaded: true,
             isTrading: false,
           }));
@@ -236,6 +245,43 @@ export async function getContractsByNumber(productId) {
   const response = await apiPost(endpoint, payload, headers);
   const data = getResponseData(response) || response.data;
   return data;
+}
+
+export async function getCvolIndexData(productIds) {
+  const strProductIds = Array.isArray(productIds) ? productIds.join(',') : productIds;
+  const endpoint = `${urlByEnvType()}${API_CONFIG.cvolEndpoint}?symbol=${strProductIds}`;
+
+  try {
+    const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+    const rawResponse = getResponseData(response) || response.data || [];
+
+    return productIds.map((prodId) => {
+      const item = rawResponse.find(({ symbol }) => prodId === symbol);
+      if (item) {
+        let changeColor = '';
+        if (item.cvolPriceChange && item.cvolPriceChange.length > 0) {
+          if (item.cvolPriceChange[0] === '+') {
+            changeColor = 'positive';
+          } else if (item.cvolPriceChange[0] === '-' && item.cvolPriceChange.length > 1) {
+            changeColor = 'negative';
+          }
+        }
+        return {
+          ...item,
+          changeColor,
+        };
+      }
+      return {
+        symbol: prodId,
+        cvolPrice: '-',
+        cvolPriceChange: '-',
+        insertTime: '-',
+        changeColor: '',
+      };
+    });
+  } catch (e) {
+    return [];
+  }
 }
 
 /**
@@ -279,4 +325,65 @@ export async function applyAuthorOverride(block, dataAttribute, value) {
 
   block.classList.add('override-active');
   return true;
+}
+
+/**
+ * Asset Class Navigation
+ */
+const viewAnotherProductDropdownEndpoint = '/eds-config/view-another-product-dropdown.json';
+let viewAnotherProductDropdownPromise = null;
+
+function fetchViewAnotherProductDropdown() {
+  if (!viewAnotherProductDropdownPromise) {
+    viewAnotherProductDropdownPromise = new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const response = await apiGet(viewAnotherProductDropdownEndpoint);
+          const data = getResponseData(response) || response.data;
+          const assetClassNavigation = {};
+          Object.keys(data).forEach((k) => {
+            if (!data[k].data) {
+              return;
+            }
+            let currentSubgroup = {};
+            assetClassNavigation[k] = {};
+            data[k].data.forEach(({
+              title,
+              subgroup,
+              linkUrl,
+              text,
+            }) => {
+              if (title) {
+                assetClassNavigation[k].title = title;
+                assetClassNavigation[k].items = [];
+              } else if (subgroup) {
+                currentSubgroup = {
+                  subgroup,
+                  linkUrl,
+                  text,
+                  products: [],
+                };
+                assetClassNavigation[k].items.push(currentSubgroup);
+              } else {
+                currentSubgroup.products.push({ linkUrl, text });
+              }
+            });
+          });
+          resolve(assetClassNavigation);
+        } catch (e) {
+          reject(e);
+        }
+      })();
+    });
+  }
+  return viewAnotherProductDropdownPromise;
+}
+
+/**
+ * Returns the subgroup/product structure of an asset class
+ */
+export function getViewAnotherProductDropdown(assetClass) {
+  return fetchViewAnotherProductDropdown().then(
+    (assetClasses) => assetClasses[assetClass] || {},
+  );
 }

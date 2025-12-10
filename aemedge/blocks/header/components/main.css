@@ -1,7 +1,7 @@
 body {
   &.scrolling-down {
     & .header {
-      top: -9.375rem;
+      top: -9.375rem !important;
       transition: top 0.7s ease 0.5s;
     }
   }
@@ -11,12 +11,6 @@ body {
     top: 0;
     padding: 0;
     transition: all 0.3s ease;
-
-    &.hidden {
-      transform: translateY(-6.25rem);
-      opacity: 0;
-      transition-delay: 0.5s;
-    }
 
     & .site-header-mobile-bar {
       align-items: center;
@@ -672,6 +666,10 @@ body {
           font-family: var(--cme-group-icons);
           font-size: 1rem;
           font-weight: normal;
+        }
+
+        &:focus-visible {
+          outline: none;
         }
       }
     }
