@@ -7,10 +7,87 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 .125rem .25rem 0 rgb(60 64 67 / 30%);
+  position: relative;
 
   @media (width >= 769px) {
     box-shadow: none;
     flex-direction: row;
+  }
+
+  /* Fade gradient on right edge indicating more tabs */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: var(--container-padding-xs);
+    bottom: 0;
+    width: 1rem;
+    background: linear-gradient(to left, var(--white), rgb(255 255 255 / 0%));
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+
+    @media (width >= 481px) {
+      right: var(--container-padding-sm);
+    }
+
+    @media (width >= 769px) {
+      width: 3rem;
+      right: var(--container-padding-md);
+    }
+
+    @media (width >= 993px) {
+      right: var(--container-padding-lg);
+    }
+
+    @media (width >= 1201px) {
+      right: var(--container-padding-xl);
+    }
+
+    @media (width >= 1401px) {
+      right: var(--container-padding-xxl);
+    }
+  }
+
+  /* Hide right gradient when scrolled to the end */
+  &:has(.scrolled-end)::after {
+    opacity: 0;
+  }
+
+  /* Left gradient when scrolled (indicates more tabs to the left) */
+  &:has(.scrolled)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: var(--container-padding-xs);
+    bottom: 0;
+    width: 0.75rem;
+    background: linear-gradient(to right, var(--white), rgb(255 255 255 / 0%));
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+
+    @media (width >= 481px) {
+      left: var(--container-padding-sm);
+    }
+
+    @media (width >= 769px) {
+      left: var(--container-padding-md);
+    }
+
+    @media (width >= 993px) {
+      left: var(--container-padding-lg);
+    }
+
+    @media (width >= 1201px) {
+      left: var(--container-padding-xl);
+    }
+
+    @media (width >= 1401px) {
+      left: var(--container-padding-xxl);
+    }
   }
 }
 
@@ -29,45 +106,6 @@
 
   &::-webkit-scrollbar {
     display: none;
-  }
-
-  /* Fade gradient on right edge indicating more tabs */
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 1rem;
-    background: linear-gradient(to left, var(--white), rgb(255 255 255 / 0%));
-    pointer-events: none;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-    z-index: 1;
-
-    @media (width >= 769px) {
-      width: 3rem;
-    }
-  }
-
-  /* Hide right gradient when scrolled to the end */
-  &.scrolled-end::after {
-    opacity: 0;
-  }
-
-  /* Left gradient when scrolled (indicates more tabs to the left) */
-  &.scrolled::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 0.75rem;
-    background: linear-gradient(to right, var(--white), rgb(255 255 255 / 0%));
-    pointer-events: none;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-    z-index: 1;
   }
 
   & .product-tabs-list {
