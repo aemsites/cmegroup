@@ -8,6 +8,8 @@
 
 import { toClassName } from '../../scripts/aem.js';
 import { i18n } from '../../scripts/utils.js';
+import { store } from '../../scripts/store/store.js';
+import { loadedProductTab } from '../../scripts/actions/product.js';
 
 const CANONICAL_ORDER = ['overview', 'quotes', 'settlements', 'volume', 'specs', 'margins', 'calendar'];
 
@@ -210,6 +212,7 @@ function updateScrollIndicators(nav) {
 
 function renderNav(block, items) {
   const currentPath = normalizePath(window.location.pathname);
+  block.classList.add('container');
   const nav = document.createElement('nav');
   nav.className = 'product-tabs-nav';
   nav.setAttribute('aria-label', 'Product tabs');
@@ -265,7 +268,8 @@ function renderNav(block, items) {
 
     links.forEach((link) => {
       const linkPath = normalizePath(new URL(link.href).pathname);
-      if (linkPath === newPath) {
+      const active = (newPath === linkPath) || isEquivalentToTab(newPath, linkPath);
+      if (active) {
         link.classList.add('is-active');
       } else {
         link.classList.remove('is-active');
@@ -334,7 +338,24 @@ export default async function decorate(block) {
   }
 
   // First time render
-  renderNav(block, items);
+  let rendered = false;
+  store.subscribe(({ productData }) => productData, ({ loaded, productId, isActive }) => {
+    if (loaded && !rendered) {
+      const newItems = items.filter(
+        ({ key }) => (productId
+          ? isActive || ['overview', 'specs', 'calendar'].includes(key)
+          : key === 'overview'),
+      );
+      renderNav(block, newItems);
+      block.style.opacity = 1;
+      rendered = true;
+      store.dispatch(loadedProductTab(true));
+    }
+  });
+  store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
+    const container = block.closest('.product-tabs-container');
+    container.style.top = `${height - 1}px`;
+  });
 
   // Mark as decorated
   block.dataset.decorated = 'true';

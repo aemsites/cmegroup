@@ -11,6 +11,8 @@ const API_CONFIG = {
   // Expirations endpoint - requires productId parameter
   fullProductWithOptionsEndpoint: '/CmeWS/md/Product/V2/FullProductWithOptions/ProductId/',
   contractsByNumberEndpoint: '/CmeWS/mvc/quotes/v2/contracts-by-number',
+  contractSpecsEndpoint: '/CmeWS/mvc/ContractSpecs/List/productId',
+  cvolEndpoint: '/services/cvol',
 };
 
 export function normalizePath(pathname) {
@@ -244,6 +246,50 @@ export async function getContractsByNumber(productId) {
   const response = await apiPost(endpoint, payload, headers);
   const data = getResponseData(response) || response.data;
   return data;
+}
+
+export async function getContractSpecs(productId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.contractSpecsEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  return data;
+}
+
+export async function getCvolIndexData(productIds) {
+  const strProductIds = Array.isArray(productIds) ? productIds.join(',') : productIds;
+  const endpoint = `${urlByEnvType()}${API_CONFIG.cvolEndpoint}?symbol=${strProductIds}`;
+
+  try {
+    const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+    const rawResponse = getResponseData(response) || response.data || [];
+
+    return productIds.map((prodId) => {
+      const item = rawResponse.find(({ symbol }) => prodId === symbol);
+      if (item) {
+        let changeColor = '';
+        if (item.cvolPriceChange && item.cvolPriceChange.length > 0) {
+          if (item.cvolPriceChange[0] === '+') {
+            changeColor = 'positive';
+          } else if (item.cvolPriceChange[0] === '-' && item.cvolPriceChange.length > 1) {
+            changeColor = 'negative';
+          }
+        }
+        return {
+          ...item,
+          changeColor,
+        };
+      }
+      return {
+        symbol: prodId,
+        cvolPrice: '-',
+        cvolPriceChange: '-',
+        insertTime: '-',
+        changeColor: '',
+      };
+    });
+  } catch (e) {
+    return [];
+  }
 }
 
 /**

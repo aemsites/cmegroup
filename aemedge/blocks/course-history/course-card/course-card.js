@@ -5,9 +5,10 @@ import { authentication } from '../../../scripts/modules/Authentication.js';
 // eslint-disable-next-line import/prefer-default-export
 export async function createEducationCard(item, isLesson = false) {
   const {
-    launchUrl, title, completed, updated, description,
+    launchUrl, title, completed, updated, description, template,
   } = item;
   const lastLaunchedDate = getCdtDate(updated);
+  const isAssessment = isLesson && template === 'assessment';
 
   const [
     courseLabel,
@@ -19,6 +20,7 @@ export async function createEducationCard(item, isLesson = false) {
     courseCompletedLabel,
     lessonCompletedLabel,
     lessonsText,
+    assessmentLabel,
   ] = await Promise.all([
     i18n('Course'),
     i18n('Lesson'),
@@ -29,7 +31,17 @@ export async function createEducationCard(item, isLesson = false) {
     i18n('Course completed'),
     i18n('Lesson completed'),
     i18n('Lessons'),
+    i18n('Assessment'),
   ]);
+
+  let headerTitle;
+  if (isAssessment) {
+    headerTitle = assessmentLabel;
+  } else if (isLesson) {
+    headerTitle = lessonLabel;
+  } else {
+    headerTitle = courseLabel;
+  }
 
   const header = createElement(
     'div',
@@ -37,14 +49,14 @@ export async function createEducationCard(item, isLesson = false) {
     createElement(
       'div',
       { class: 'labels' },
-      createElement('span', {}, isLesson ? lessonLabel : courseLabel),
+      createElement('span', {}, headerTitle),
     ),
   );
 
   let launchBtn;
 
   if (completed) {
-    if (!isLesson) {
+    if (!isLesson || isAssessment) {
       const container = createElement('div');
       launchBtn = container;
 
@@ -59,6 +71,7 @@ export async function createEducationCard(item, isLesson = false) {
           completedModule: item?.endDate,
           container,
           isFromHistory: true,
+          template,
         });
 
         if (typeof buttonContent === 'string') {

@@ -4,9 +4,91 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 .125rem .25rem 0 rgb(60 64 67 / 30%);
+  position: relative;
+  opacity: 0;
 
-  @media (width < 769px) {
-    box-shadow: 0 .125rem .25rem 0 rgb(60 64 67 / 30%);
+  @media (width >= 769px) {
+    box-shadow: none;
+    flex-direction: row;
+  }
+
+  /* Fade gradient on right edge indicating more tabs */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: var(--container-padding-xs);
+    bottom: 0;
+    width: 1rem;
+    background: linear-gradient(to left, var(--white), rgb(255 255 255 / 0%));
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+
+    @media (width >= 481px) {
+      right: var(--container-padding-sm);
+    }
+
+    @media (width >= 769px) {
+      width: 3rem;
+      right: var(--container-padding-md);
+    }
+
+    @media (width >= 993px) {
+      right: var(--container-padding-lg);
+    }
+
+    @media (width >= 1201px) {
+      right: var(--container-padding-xl);
+    }
+
+    @media (width >= 1401px) {
+      right: var(--container-padding-xxl);
+    }
+  }
+
+  /* Hide right gradient when scrolled to the end */
+  &:has(.scrolled-end)::after {
+    opacity: 0;
+  }
+
+  /* Left gradient when scrolled (indicates more tabs to the left) */
+  &:has(.scrolled)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: var(--container-padding-xs);
+    bottom: 0;
+    width: 0.75rem;
+    background: linear-gradient(to right, var(--white), rgb(255 255 255 / 0%));
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+
+    @media (width >= 481px) {
+      left: var(--container-padding-sm);
+    }
+
+    @media (width >= 769px) {
+      left: var(--container-padding-md);
+    }
+
+    @media (width >= 993px) {
+      left: var(--container-padding-lg);
+    }
+
+    @media (width >= 1201px) {
+      left: var(--container-padding-xl);
+    }
+
+    @media (width >= 1401px) {
+      left: var(--container-padding-xxl);
+    }
   }
 }
 
@@ -19,74 +101,36 @@
   scrollbar-width: none;
   position: relative;
 
+  @media (width >= 769px) {
+    box-shadow: none;
+  }
+
   &::-webkit-scrollbar {
     display: none;
-  }
-
-  /* Fade gradient on right edge indicating more tabs */
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 1rem;
-    background: linear-gradient(to left, var(--white), rgb(255 255 255 / 0%));
-    pointer-events: none;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-    z-index: 1;
-
-    @media (width >= 769px) {
-      width: 3rem;
-    }
-  }
-
-  /* Hide right gradient when scrolled to the end */
-  &.scrolled-end::after {
-    opacity: 0;
-  }
-
-  /* Left gradient when scrolled (indicates more tabs to the left) */
-  &.scrolled::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 0.75rem;
-    background: linear-gradient(to right, var(--white), rgb(255 255 255 / 0%));
-    pointer-events: none;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-    z-index: 1;
   }
 
   & .product-tabs-list {
     display: flex;
     list-style: none;
     margin: 0;
-    padding: 0 1rem;
-    gap: 1.5rem;
+    gap: 1.25rem;
     align-items: center;
     flex-wrap: nowrap;
-    min-height: 3.5rem;
+    min-height: 2.875rem;
+    padding: 0;
 
     @media (width >= 769px) {
-      gap: 2rem;
-      padding: 0 3.375rem;
-    }
-
-    @media (width >= 993px) {
-      padding: 0 3.375rem 0 0;
+      gap: 2.5rem;
+      min-height: 5rem;
     }
 
     & .product-tabs-item {
       flex-shrink: 0;
+      margin-bottom: 0;
 
       & a {
         display: inline-block;
-        padding: 0.875rem 0.375rem;
+        padding: 1.0625rem 0;
         text-decoration: none;
         text-transform: uppercase;
         font-size: 0.75rem;
@@ -102,17 +146,17 @@
           font-size: 0.875rem;
           letter-spacing: 0.108em;
           line-height: 1rem;
-          padding: 1.25rem 0.625rem;
+          padding: 2rem 0;
         }
 
         &.is-active {
           font-weight: 700;
           color: var(--blue2);
           border-bottom: 0.1875rem solid var(--blue4);
-          padding-bottom: 0.6875rem;
+          padding-bottom: 0.875rem;
 
           @media (width >= 769px) {
-            padding-bottom: 1.0625rem;
+            padding-bottom: 1.8125rem;
           }
         }
       }

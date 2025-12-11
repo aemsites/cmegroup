@@ -66,26 +66,24 @@ export default async function productTemplate() {
     insertHeroIfMissing(productRoot).catch(() => {});
   }
 
-  let productTabsPromise = Promise.resolve();
   if (!findProductTabsSection()) {
-    productTabsPromise = insertProductTabsIfMissing(productRoot);
+    insertProductTabsIfMissing(productRoot);
   }
-
-  enableProductSpaNavigation(productRoot);
 
   const onRoot = normalizePath(window.location.pathname) === normalizePath(productRoot);
 
-  if (onRoot) {
-    await productTabsPromise;
-    await insertEnhancedSubTabsIfApplicable(productRoot);
-    moveCurrentPageContentUnderSubTabs();
-    const defaultTab = await getDefaultTab(productRoot);
-    const defaultUrl = `${productRoot}/${defaultTab}`;
-    await renderProductPath(defaultUrl, productRoot);
-  } else {
-    productTabsPromise
-      .then(() => insertEnhancedSubTabsIfApplicable(productRoot))
-      .then(() => moveCurrentPageContentUnderSubTabs())
-      .catch(() => {});
-  }
+  let loadingTemplate = false;
+  store.subscribe(({ productTab }) => productTab, async ({ loaded }) => {
+    if (loaded && !loadingTemplate) {
+      loadingTemplate = true;
+      enableProductSpaNavigation(productRoot);
+      await insertEnhancedSubTabsIfApplicable(productRoot);
+      moveCurrentPageContentUnderSubTabs();
+      if (onRoot) {
+        const defaultTab = await getDefaultTab(productRoot);
+        const defaultUrl = `${productRoot}/${defaultTab}`;
+        await renderProductPath(defaultUrl, productRoot);
+      }
+    }
+  });
 }
