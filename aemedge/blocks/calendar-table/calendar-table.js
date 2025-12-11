@@ -1,5 +1,5 @@
 import { getMetadata, loadCSS } from '../../scripts/aem.js';
-import { getProductMetadata, applyAuthorOverride } from '../../scripts/utils/product.js';
+import { getProductMetadata, applyAuthorOverride, getProductTitle } from '../../scripts/utils/product.js';
 import { apiGet, getResponseData, urlByEnvType } from '../../scripts/utils/index.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 
@@ -76,7 +76,7 @@ function buildCollapsible(headers, data, collapsibleId = '') {
 
   headers.forEach((header, index) => {
     const collapsibleItem = createElement('div', { class: 'collapsible-item' });
-    const collapsibleButton = createElement('button', { class: 'collapsible-button' });
+    const collapsibleButton = createElement('button', { class: 'collapsible-button btn-secondary' });
     collapsibleButton.innerHTML = header;
     collapsibleItem.appendChild(collapsibleButton);
     const collapse = createElement('div', { class: 'collapse' });
@@ -85,6 +85,19 @@ function buildCollapsible(headers, data, collapsibleId = '') {
     collapse.appendChild(collapseBody);
     collapsibleItem.appendChild(collapse);
     collapsible.appendChild(collapsibleItem);
+
+    if (index >= maxRows) {
+      collapsibleItem.classList.add('hidden-collapsible');
+    }
+
+    collapsibleButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.currentTarget.classList.toggle('expand');
+      const collapsePanel = e.currentTarget.nextElementSibling;
+      if (collapsePanel && collapsePanel.classList.contains('collapse')) {
+        collapsePanel.classList.toggle('show');
+      }
+    });
   });
 
   return collapsible;
@@ -203,13 +216,13 @@ async function createFuturesTable() {
   ]);
 
   const collapsibleData = calendarData.map((item) => [
-    `<span>${productCode}</span><span>${item.productCode || TABLE_CONSTANTS.placeholders.noData}</span>
-    <div><span>${firstTrade}</span><span>${lastTrade}</div><div><span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span></div>
-    <span>${settlement}</span><span>${item.settlement || TABLE_CONSTANTS.placeholders.noData}</span>
-    <div><span>${firstHolding}</span><span>${lastHolding}</span></div><div><span>${item.firstHolding || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastHolding || TABLE_CONSTANTS.placeholders.noData}</span></div>
-    <div><span>${firstPosition}</span><span>${lastPosition}</span></div><div><span>${item.firstPosition || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastPosition || TABLE_CONSTANTS.placeholders.noData}</span></div>
-    <div><span>${firstNotice}</span><span>${lastNotice}</span></div><div><span>${item.firstNotice || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastNotice || TABLE_CONSTANTS.placeholders.noData}</span></div>
-    <div><span>${firstDelivery}</span><span>${lastDelivery}</span></div><div><span>${item.firstDelivery || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastDelivery || TABLE_CONSTANTS.placeholders.noData}</span></div>
+    `<div class="row-data"><span>${productCode}</span><span>${item.productCode || TABLE_CONSTANTS.placeholders.noData}</span></div>
+    <div class="row-data"><div><span>${firstTrade}</span><span>${lastTrade}</div><div><span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
+    <div class="row-data"><span>${settlement}</span><span>${item.settlement || TABLE_CONSTANTS.placeholders.noData}</span></div>
+    <div class="row-data"><div><span>${firstHolding}</span><span>${lastHolding}</span></div><div><span>${item.firstHolding || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastHolding || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
+    <div class="row-data"><div><span>${firstPosition}</span><span>${lastPosition}</span></div><div><span>${item.firstPosition || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastPosition || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
+    <div class="row-data"><div><span>${firstNotice}</span><span>${lastNotice}</span></div><div><span>${item.firstNotice || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastNotice || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
+    <div class="row-data"><div><span>${firstDelivery}</span><span>${lastDelivery}</span></div><div><span>${item.firstDelivery || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastDelivery || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
     `,
   ]);
 
@@ -268,9 +281,9 @@ async function createOptionsTable(optionProductId) {
   ]);
 
   const collapsibleData = optionsData.map((item) => [
-    `<span>${productCode}</span><span>${item.productCode || TABLE_CONSTANTS.placeholders.noData}</span>
-    <div><span>${firstTrade}</span><span>${lastTrade}</span></div><div><span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span></div>
-    <span>${settlement}</span><span>${item.settlement || TABLE_CONSTANTS.placeholders.noData}</span>`,
+    `<div class="row-data"><span>${productCode}</span><span>${item.productCode || TABLE_CONSTANTS.placeholders.noData}</span></div>
+    <div class="row-data"><div><span>${firstTrade}</span><span>${lastTrade}</span></div><div><span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
+    <div class="row-data"><span>${settlement}</span><span>${item.settlement || TABLE_CONSTANTS.placeholders.noData}</span></div>`,
   ]);
 
   const calendarWrapper = createElement('div', { class: 'calendar-wrapper' });
@@ -359,7 +372,7 @@ function handleAboutReportModal(block) {
       e.preventDefault();
       try {
         const { openModal } = await import('../modal/modal.js');
-        const fragmentUrl = '/drafts/kunwar/corn/fragments/product/about-quotes';
+        const fragmentUrl = '/fragments/disclaimers/markets/calendar';
         await openModal(fragmentUrl);
       } catch (error) {
         // Silent fail
@@ -390,6 +403,12 @@ async function createLoadAllWrapper(block) {
       });
       const fadeTable = block.querySelector('.table-fade');
       fadeTable.classList.remove('table-fade');
+
+      const hiddenCollapsible = block.querySelectorAll('.hidden-collapsible');
+      hiddenCollapsible.forEach((collapsible) => {
+        collapsible.classList.remove('hidden-collapsible');
+      });
+
       e.target.remove();
     });
   }
@@ -406,6 +425,14 @@ export default async function decorate(block) {
   // Add 'table' class to inherit table.css styles
   await loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
   block.classList.add('table');
+
+  const [
+    calendarLabel,
+  ] = await Promise.all([
+    i18n('Calendar'),
+  ]);
+  const { optionProductId } = getDisplayMode();
+  const title = getProductTitle(optionProductId, calendarLabel);
 
   // Show loading state immediately (non-blocking)
   block.innerHTML = '<div class="loading">Loading Calendar...</div>';

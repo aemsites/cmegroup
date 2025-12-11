@@ -123,9 +123,119 @@
   /* Collapsible styling */
   & .collapsible-calendar {
     display: block;
+    margin-bottom: 1.875rem;
 
     @media (width >= 993px) {
       display: none;
+    }
+
+    & .collapsible-item {
+      & .collapsible-button {
+        align-items: center;
+        background-color: var(--blue2);
+        border-bottom: .0625rem solid var(--white);
+        border-radius: 0;
+        color: var(--white);
+        display: flex;
+        justify-content: space-between;
+        padding: .9375rem 1.5rem;
+        text-align: left;
+        cursor: pointer;
+        width: 100%;
+        position: relative;
+
+        &::after {
+          padding-left: .625rem;
+          font-family: var(--cme-group-icons);
+          content: var(--icon-plus);
+          position: absolute;
+          right: 1.5rem;
+          font-size: 0.75rem;
+          color: var(--white);
+        }
+
+        &.expand {
+          &::after {
+            content: var(--icon-minus);
+          }
+        }
+      }
+
+      & .collapse {
+        max-height: 0;
+        transition: max-height 0.35s ease;
+        overflow: hidden;
+
+        &.show {
+          max-height: 500px;
+        }
+
+        & .collapse-body {
+          font-size: .875rem;
+          padding: 1.25rem 1.5625rem;
+
+          & .row-data {
+            color: var(--gray2);
+            font-size: .75rem;
+            letter-spacing: normal;
+            line-height: 1rem;
+            margin-top: 1.25rem;
+            text-align: left;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+
+            &:first-child {
+              margin-top: 0;
+            }
+
+            & span {
+              &:first-child {
+                color: var(--blue2);
+                font-family: var(--averta);
+                font-weight: 700;
+                letter-spacing: .070625rem;
+              }
+  
+              &:last-child {
+                color: var(--gray2);
+                font-family: var(--roboto-mono-font-family);
+                font-weight: 400;
+                letter-spacing: normal;
+                width: 5rem;
+              }
+            }
+
+            & div {
+              display: grid;
+
+              &:first-child {
+                & span {
+                  color: var(--blue2);
+                  font-family: var(--averta);
+                  font-weight: 700;
+                  letter-spacing: .070625rem;
+                  width: auto;
+                }
+              }
+
+              &:last-child {
+                & span {
+                  color: var(--gray2);
+                  font-family: var(--roboto-mono-font-family);
+                  font-weight: 400;
+                  letter-spacing: normal;
+                }
+              }
+            }
+          }
+
+        }
+      }
+
+      &.hidden-collapsible {
+        display: none;
+      }
     }
   }
 

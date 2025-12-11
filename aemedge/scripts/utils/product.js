@@ -165,6 +165,38 @@ export async function getProductMetadata() {
   return productMetaDataPromise;
 }
 
+let productTitle = '';
+
+export async function getProductTitle(optionProductId, componentName) {
+  store.subscribe(
+    ({ productData }) => ({ productData }),
+    (stateSlices) => {
+      const { productData } = stateSlices;
+
+      if (productData && productData.loaded) {
+        const optionSelected = optionProductId;
+        const { optionsLabels } = productData;
+        const fullProductData = productData;
+        let title = '';
+
+        const option = optionsLabels?.find(
+          ({ productId }) => productId === optionSelected,
+        );
+
+        if (option) {
+          ({ name: title } = option);
+        } else if (fullProductData) {
+          ({ fullProductName: title } = fullProductData);
+        }
+
+        const fullTitle = title ? `${title} - ${componentName}` : '';
+        productTitle = fullTitle;
+      }
+    },
+  );
+  return productTitle;
+}
+
 export function isValidTradeDate(date, hoursToSubtract) {
   const today = getCdtDate(Date.now());
   const prevDay = getCdtDate(date).subtract(hoursToSubtract, 'hour');

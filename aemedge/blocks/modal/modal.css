@@ -12,42 +12,45 @@ body.modal-open {
 
 .modal dialog {
   overscroll-behavior: none;
-  overflow-y: hidden;
+  overflow: hidden;
   position: relative;
-  width: calc(100vw - 3rem);
-  max-width: 56.25rem;
-  max-height: calc(100dvh - (2 * var(--header-height)));
-  padding: 0;
+  max-width: 42.5rem;
+  max-height: calc(100dvh - 3.5rem);
   border: 0.0625rem solid var(--dark-color);
+  border-radius: .25rem;
+  box-shadow: 0 .0625rem .125rem 0 rgba(60, 64, 67, .3), 0 .125rem .375rem .125rem rgba(60, 64, 67, .15);
+  padding: 1.625rem 1.875rem;
 }
 
 .modal dialog .modal-content {
-  box-sizing: border-box;
-  overflow-y: auto;
-  overscroll-behavior: none;
-  width: 100%;
-  max-height: calc(100dvh - (2 * var(--header-height)) - 3rem);
-  padding: 1.5rem;
-  padding-top: 0;
-  margin-top: 2.75rem;
-}
+  color: var(--gray3);
+  font-family: var(--averta);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.5rem;
+  margin-bottom: 1.75rem;
+  max-height: calc(100vh - 150px);
+  overflow: auto;
+  padding: 0;
+  margin-top: .75rem;
+  letter-spacing: normal;
 
-@media (width >= 900px) {
-  .modal dialog {
-    width: calc(100vw - 4rem);
+  & p {
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: normal;
   }
-  
-  .modal dialog .modal-content {
-    max-height: calc(100dvh - (2 * var(--header-height)) - 4rem);
-    padding: 2rem;
-    padding-top: 0;
+
+  & ul li {
+    margin-bottom: 0;
   }
 }
 
 .modal .close-button {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 0.5rem;
+  right: -0.375rem;
   width: 2.75rem;
   height: 2.75rem;
   margin: 0;
@@ -59,25 +62,30 @@ body.modal-open {
   line-height: 1;
   cursor: pointer;
   box-shadow: none;
-}
 
-.modal .close-button:hover {
-  color: var(--text-color);
-}
+  &:hover {
+    color: var(--text-color);
+  }
 
-.modal .close-button::before {
-  content: "×";
-  font-size: 1.5rem;
-  font-weight: 400;
+  &::before {
+    content: "×";
+    font-size: 1.75rem;
+    font-weight: 400;
+  }
 }
 
 .modal dialog .section {
-  padding: 0;
+  padding: 0.625rem 0.3125rem;
+
+  & > div {
+    padding: 0 !important;
+
+  }
 }
 
 .modal dialog:has(.login) {
-  width: 500px;
-  height: 175px;
+  width: 31.25rem;
+  height: 10.9375rem;
 }
 
 .modal dialog:has(.login) .modal-content {
