@@ -165,36 +165,36 @@ export async function getProductMetadata() {
   return productMetaDataPromise;
 }
 
-let productTitle = '';
-
 export async function getProductTitle(optionProductId, componentName) {
-  store.subscribe(
-    ({ productData }) => ({ productData }),
-    (stateSlices) => {
-      const { productData } = stateSlices;
+  return new Promise((resolve) => {
+    const unsubscribe = store.subscribe(
+      ({ productData }) => ({ productData }),
+      (stateSlices) => {
+        const { productData } = stateSlices;
+        if (productData && productData.loaded) {
+          const { optionsLabels, fullProductName } = productData;
+          const optionSelected = optionProductId;
+          let title = '';
 
-      if (productData && productData.loaded) {
-        const optionSelected = optionProductId;
-        const { optionsLabels } = productData;
-        const fullProductData = productData;
-        let title = '';
+          const option = optionsLabels?.find(
+            ({ productId }) => productId === optionSelected,
+          );
 
-        const option = optionsLabels?.find(
-          ({ productId }) => productId === optionSelected,
-        );
+          if (option) {
+            title = option.name;
+          } else {
+            title = fullProductName;
+          }
 
-        if (option) {
-          ({ name: title } = option);
-        } else if (fullProductData) {
-          ({ fullProductName: title } = fullProductData);
+          const fullTitle = title ? `${title} - ${componentName}` : '';
+          resolve(fullTitle);
+          if (unsubscribe) {
+            unsubscribe();
+          }
         }
-
-        const fullTitle = title ? `${title} - ${componentName}` : '';
-        productTitle = fullTitle;
-      }
-    },
-  );
-  return productTitle;
+      },
+    );
+  });
 }
 
 export function isValidTradeDate(date, hoursToSubtract) {
