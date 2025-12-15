@@ -819,6 +819,18 @@ function convertMMSSToHHMM(timeStr) {
   return `${hh}:${mm}`;
 }
 
+export default function loadExtraCss(block) {
+  const { blockName } = block.dataset;
+  import(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}-extra-css.js`).then((mod) => {
+    const extraCssMapping = mod.default;
+    extraCssMapping.forEach(({ variation, file }) => {
+      if (variation.every((c) => block.classList.contains(c))) {
+        loadCSS(`${window.hlx.codeBasePath}${file}`);
+      }
+    });
+  });
+}
+
 export {
   loadScript,
   createElement,
@@ -851,4 +863,5 @@ export {
   getLanguageLabel,
   debounce,
   convertMMSSToHHMM,
+  loadExtraCss,
 };
