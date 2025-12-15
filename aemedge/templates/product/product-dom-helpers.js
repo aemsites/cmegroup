@@ -468,7 +468,6 @@ export function buildFragmentBlock(fragmentPath) {
 /**
  * Insert fragment if applicable (not on overview or root page)
  * Called during SPA navigation after content loads
- * Non-blocking: Fragment loads asynchronously without delaying page rendering
  * @param {string} productRoot - The product root path
  */
 export async function insertFragmentIfApplicable(productRoot) {
@@ -496,78 +495,47 @@ export async function insertFragmentIfApplicable(productRoot) {
   // Remove any existing fragment before inserting new one (for re-insertion)
   removeExistingFragment(container);
 
-  // ✅ NON-BLOCKING: Use requestIdleCallback or setTimeout to defer fragment loading
-  // This ensures fragment loading doesn't block page rendering or user interactions
-  const loadFragmentAsync = async () => {
-    try {
-      // Fetch fragment block from product root (uses cached promise if available)
-      const fragmentBlock = await fetchFragment(productRoot);
-      if (!fragmentBlock) {
-        // eslint-disable-next-line no-console
-        console.log('[Fragment] Fragment block not found in product root, aborting');
-        return; // Fragment block doesn't exist in product root
-      }
+  // Fetch fragment block from product root (uses cached promise if available)
+  const fragmentBlock = await fetchFragment(productRoot);
+  if (!fragmentBlock) {
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Fragment block not found in product root, aborting');
+    return; // Fragment block doesn't exist in product root
+  }
 
-      // Extract fragment path
-      const fragmentPath = extractFragmentPath(fragmentBlock);
-      if (!fragmentPath) {
-        // eslint-disable-next-line no-console
-        console.log('[Fragment] Fragment path not found, aborting');
-        return; // No fragment path found
-      }
+  // Extract fragment path
+  const fragmentPath = extractFragmentPath(fragmentBlock);
+  if (!fragmentPath) {
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Fragment path not found, aborting');
+    return; // No fragment path found
+  }
 
-      // Build fragment block using buildBlock method
-      const newFragmentBlock = buildFragmentBlock(fragmentPath);
+  // Build fragment block using buildBlock method
+  const newFragmentBlock = buildFragmentBlock(fragmentPath);
 
-      // Create wrapper section for fragment block
-      const fragmentWrapper = createSectionWithBlock(newFragmentBlock);
-      fragmentWrapper.classList.add('fragment-section', 'full-width');
-      // eslint-disable-next-line no-console
-      console.log('[Fragment] Fragment wrapper created:', fragmentWrapper);
+  // Create wrapper section for fragment block
+  const fragmentWrapper = createSectionWithBlock(newFragmentBlock);
+  fragmentWrapper.classList.add('fragment-section', 'full-width');
+  // eslint-disable-next-line no-console
+  console.log('[Fragment] Fragment wrapper created:', fragmentWrapper);
 
-      // Insert at bottom of product-subtabs-content container
-      const contentContainer = container.parentElement;
-      if (contentContainer) {
-        // eslint-disable-next-line no-console
-        console.log('[Fragment] Inserting fragment wrapper into content container');
-        contentContainer.appendChild(fragmentWrapper);
+  // Insert at bottom of product-subtabs-content container
+  const contentContainer = container.parentElement;
+  if (contentContainer) {
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Inserting fragment wrapper into content container');
+    contentContainer.appendChild(fragmentWrapper);
 
-        // Decorate and load fragment block asynchronously (non-blocking)
-        // eslint-disable-next-line no-console
-        console.log('[Fragment] Decorating and loading fragment block');
-        decorateBlock(newFragmentBlock);
-        // ✅ NON-BLOCKING: loadBlock is async but not awaited - fires and forgets
-        loadBlock(newFragmentBlock).then(() => {
-          // eslint-disable-next-line no-console
-          console.log('[Fragment] Fragment block loaded successfully');
-        }).catch((error) => {
-          // eslint-disable-next-line no-console
-          console.error('[Fragment] Error loading fragment block:', error);
-        });
-      } else {
-        // eslint-disable-next-line no-console
-        console.error('[Fragment] Content container not found, cannot insert fragment');
-      }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('[Fragment] Error in fragment loading process:', error);
-    }
-  };
-
-  // ✅ DEFER LOADING: Use requestIdleCallback if available, fallback to setTimeout
-  // This ensures fragment loading happens during idle time and doesn't block rendering
-  if (window.requestIdleCallback) {
-    requestIdleCallback(() => {
-      loadFragmentAsync().catch(() => {
-        // Silent fail - fragment is optional
-      });
-    }, { timeout: 2000 }); // Max 2s delay to ensure fragment loads even if browser is busy
+    // Decorate and load fragment block
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Decorating and loading fragment block');
+    decorateBlock(newFragmentBlock);
+    await loadBlock(newFragmentBlock);
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Fragment block loaded successfully');
   } else {
-    // Fallback for browsers without requestIdleCallback
-    setTimeout(() => {
-      loadFragmentAsync().catch(() => {
-        // Silent fail - fragment is optional
-      });
-    }, 0);
+    // eslint-disable-next-line no-console
+    console.error('[Fragment] Content container not found, cannot insert fragment');
   }
 }

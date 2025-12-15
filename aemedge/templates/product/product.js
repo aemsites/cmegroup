@@ -27,6 +27,7 @@ import {
   getDefaultTab,
   findProductTabsSection,
   preloadPathIndex,
+  insertFragmentIfApplicable,
 } from './product-dom-helpers.js';
 
 import {
@@ -83,6 +84,12 @@ export default async function productTemplate() {
         const defaultTab = await getDefaultTab(productRoot);
         const defaultUrl = `${productRoot}/${defaultTab}`;
         await renderProductPath(defaultUrl, productRoot);
+      } else {
+        // ✅ DIRECT PAGE LOAD: Insert fragment for tab pages loaded directly
+        // Content is already rendered on the page, insert fragment after DOM is ready
+        insertFragmentIfApplicable(productRoot).catch(() => {
+          // Silent fail - fragment is optional
+        });
       }
     }
   });
