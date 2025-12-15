@@ -423,7 +423,6 @@ export async function renderProductPath(url, productRoot) {
     ]).then(() => {
       // eslint-disable-next-line no-console
       console.log('[Fragment] Main content loaded, attempting to insert fragment');
-      // Insert fragment after main content finishes loading
       insertFragmentIfApplicable(productRoot).then(() => {
         // eslint-disable-next-line no-console
         console.log('[Fragment] insertFragmentIfApplicable completed');

@@ -85,11 +85,7 @@ export default async function productTemplate() {
         const defaultUrl = `${productRoot}/${defaultTab}`;
         await renderProductPath(defaultUrl, productRoot);
       } else {
-        // ✅ DIRECT PAGE LOAD: Insert fragment for tab pages loaded directly
-        // Content is already rendered on the page, insert fragment after DOM is ready
-        insertFragmentIfApplicable(productRoot).catch(() => {
-          // Silent fail - fragment is optional
-        });
+        insertFragmentIfApplicable(productRoot, false).catch(() => {});
       }
     }
   });

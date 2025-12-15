@@ -342,11 +342,6 @@ export function moveCurrentPageContentUnderSubTabs() {
   movable.forEach((sec) => container.appendChild(sec));
 }
 
-/**
- * Fetch fragment block from product root HTML
- * @param {string} productRoot - The product root path
- * @returns {Promise<HTMLElement|null>} Fragment block element or null if not found
- */
 export async function fetchFragment(productRoot) {
   try {
     // eslint-disable-next-line no-console
@@ -373,12 +368,6 @@ export async function fetchFragment(productRoot) {
   }
 }
 
-/**
- * Check if fragment should be inserted based on current page path
- * Fragment should not appear on overview tab or product root page
- * @param {string} productRoot - The product root path
- * @returns {boolean} True if fragment should be inserted
- */
 export function isFragmentApplicable(productRoot) {
   const currentPath = normalizePath(window.location.pathname);
   const normalizedRoot = normalizePath(productRoot);
@@ -402,12 +391,6 @@ export function isFragmentApplicable(productRoot) {
   return !isRoot && !isOverview;
 }
 
-/**
- * Extract fragment path from fragment block element
- * Looks for <a href> first, falls back to textContent
- * @param {HTMLElement} fragmentBlock - The fragment block element
- * @returns {string|null} Fragment path or null if not found
- */
 export function extractFragmentPath(fragmentBlock) {
   if (!fragmentBlock) {
     // eslint-disable-next-line no-console
@@ -437,10 +420,6 @@ export function extractFragmentPath(fragmentBlock) {
   return null;
 }
 
-/**
- * Remove existing fragment section from DOM if present
- * @param {HTMLElement} container - The container element to search within
- */
 export function removeExistingFragment(container) {
   if (!container || !container.parentElement) return;
 
@@ -450,11 +429,6 @@ export function removeExistingFragment(container) {
   }
 }
 
-/**
- * Build fragment block using buildBlock method
- * @param {string} fragmentPath - The fragment path/URL
- * @returns {HTMLElement} Fragment block element
- */
 export function buildFragmentBlock(fragmentPath) {
   // eslint-disable-next-line no-console
   console.log('[Fragment] Building fragment block with path:', fragmentPath);
@@ -465,12 +439,7 @@ export function buildFragmentBlock(fragmentPath) {
   return block;
 }
 
-/**
- * Insert fragment if applicable (not on overview or root page)
- * Called during SPA navigation after content loads
- * @param {string} productRoot - The product root path
- */
-export async function insertFragmentIfApplicable(productRoot) {
+export async function insertFragmentIfApplicable(productRoot, blocking = true) {
   // eslint-disable-next-line no-console
   console.log('[Fragment] insertFragmentIfApplicable called with productRoot:', productRoot);
 
@@ -483,57 +452,58 @@ export async function insertFragmentIfApplicable(productRoot) {
   // eslint-disable-next-line no-console
   console.log('[Fragment] Container found:', container);
 
-  // Check if fragment should be inserted
   if (!isFragmentApplicable(productRoot)) {
     // eslint-disable-next-line no-console
     console.log('[Fragment] Fragment not applicable for current page, removing existing fragment');
-    // Remove existing fragment if navigating away from a tab
     removeExistingFragment(container);
     return;
   }
 
-  // Remove any existing fragment before inserting new one (for re-insertion)
   removeExistingFragment(container);
 
-  // Fetch fragment block from product root (uses cached promise if available)
   const fragmentBlock = await fetchFragment(productRoot);
   if (!fragmentBlock) {
     // eslint-disable-next-line no-console
     console.log('[Fragment] Fragment block not found in product root, aborting');
-    return; // Fragment block doesn't exist in product root
+    return;
   }
 
-  // Extract fragment path
   const fragmentPath = extractFragmentPath(fragmentBlock);
   if (!fragmentPath) {
     // eslint-disable-next-line no-console
     console.log('[Fragment] Fragment path not found, aborting');
-    return; // No fragment path found
+    return;
   }
 
-  // Build fragment block using buildBlock method
   const newFragmentBlock = buildFragmentBlock(fragmentPath);
-
-  // Create wrapper section for fragment block
   const fragmentWrapper = createSectionWithBlock(newFragmentBlock);
   fragmentWrapper.classList.add('fragment-section', 'full-width');
   // eslint-disable-next-line no-console
   console.log('[Fragment] Fragment wrapper created:', fragmentWrapper);
 
-  // Insert at bottom of product-subtabs-content container
   const contentContainer = container.parentElement;
   if (contentContainer) {
     // eslint-disable-next-line no-console
     console.log('[Fragment] Inserting fragment wrapper into content container');
     contentContainer.appendChild(fragmentWrapper);
 
-    // Decorate and load fragment block
     // eslint-disable-next-line no-console
     console.log('[Fragment] Decorating and loading fragment block');
     decorateBlock(newFragmentBlock);
-    await loadBlock(newFragmentBlock);
-    // eslint-disable-next-line no-console
-    console.log('[Fragment] Fragment block loaded successfully');
+
+    if (blocking) {
+      await loadBlock(newFragmentBlock);
+      // eslint-disable-next-line no-console
+      console.log('[Fragment] Fragment block loaded successfully');
+    } else {
+      loadBlock(newFragmentBlock).then(() => {
+        // eslint-disable-next-line no-console
+        console.log('[Fragment] Fragment block loaded successfully');
+      }).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('[Fragment] Error loading fragment block:', error);
+      });
+    }
   } else {
     // eslint-disable-next-line no-console
     console.error('[Fragment] Content container not found, cannot insert fragment');
