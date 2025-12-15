@@ -12,7 +12,7 @@ import {
   setGlobalOptionSelection,
   clearGlobalOptionSelection,
 } from '../../scripts/actions/product.js';
-import { getDefaultTab, ensureSubTabsContentContainer } from './product-dom-helpers.js';
+import { getDefaultTab, ensureSubTabsContentContainer, insertFragmentIfApplicable } from './product-dom-helpers.js';
 
 // Export for use in other modules
 export const PREFETCH_CACHE = new Map();
@@ -420,7 +420,18 @@ export async function renderProductPath(url, productRoot) {
     Promise.all([
       ...clones.map((cl) => loadSection(cl)),
       domOpsPromise, // Let toggle populate in background
-    ]).catch(() => {});
+    ]).then(() => {
+      // eslint-disable-next-line no-console
+      console.log('[Fragment] Main content loaded, attempting to insert fragment');
+      // Insert fragment after main content finishes loading
+      insertFragmentIfApplicable(productRoot).then(() => {
+        // eslint-disable-next-line no-console
+        console.log('[Fragment] insertFragmentIfApplicable completed');
+      }).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('[Fragment] Error in insertFragmentIfApplicable:', error);
+      });
+    }).catch(() => {});
   } catch (e) {
     const container = ensureSubTabsContentContainer();
     if (container) {

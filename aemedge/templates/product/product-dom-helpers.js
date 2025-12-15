@@ -341,3 +341,205 @@ export function moveCurrentPageContentUnderSubTabs() {
   if (!movable.length) return;
   movable.forEach((sec) => container.appendChild(sec));
 }
+
+/**
+ * Fetch fragment block from product root HTML
+ * @param {string} productRoot - The product root path
+ * @returns {Promise<HTMLElement|null>} Fragment block element or null if not found
+ */
+export async function fetchFragment(productRoot) {
+  try {
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Fetching fragment block from product root:', productRoot);
+    const temp = await fetchProductRoot(productRoot);
+    if (!temp) {
+      // eslint-disable-next-line no-console
+      console.log('[Fragment] Product root HTML not found');
+      return null;
+    }
+    const block = temp.querySelector('.fragment');
+    if (block) {
+      // eslint-disable-next-line no-console
+      console.log('[Fragment] Fragment block found in product root');
+    } else {
+      // eslint-disable-next-line no-console
+      console.log('[Fragment] Fragment block not found in product root HTML');
+    }
+    return block || null;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('[Fragment] Error fetching fragment block:', e);
+    return null;
+  }
+}
+
+/**
+ * Check if fragment should be inserted based on current page path
+ * Fragment should not appear on overview tab or product root page
+ * @param {string} productRoot - The product root path
+ * @returns {boolean} True if fragment should be inserted
+ */
+export function isFragmentApplicable(productRoot) {
+  const currentPath = normalizePath(window.location.pathname);
+  const normalizedRoot = normalizePath(productRoot);
+  const rel = currentPath.replace(normalizedRoot, '');
+  const parts = rel.split('/').filter((p) => p && p !== 'options');
+
+  const isRoot = currentPath === normalizedRoot;
+  const isOverview = parts.length === 0 || parts[0] === 'overview';
+
+  // eslint-disable-next-line no-console
+  console.log('[Fragment] Checking applicability:', {
+    currentPath,
+    normalizedRoot,
+    rel,
+    parts,
+    isRoot,
+    isOverview,
+    shouldInsert: !isRoot && !isOverview,
+  });
+
+  return !isRoot && !isOverview;
+}
+
+/**
+ * Extract fragment path from fragment block element
+ * Looks for <a href> first, falls back to textContent
+ * @param {HTMLElement} fragmentBlock - The fragment block element
+ * @returns {string|null} Fragment path or null if not found
+ */
+export function extractFragmentPath(fragmentBlock) {
+  if (!fragmentBlock) {
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Fragment block is null, cannot extract path');
+    return null;
+  }
+
+  const link = fragmentBlock.querySelector('a');
+  if (link) {
+    const href = link.getAttribute('href');
+    if (href) {
+      // eslint-disable-next-line no-console
+      console.log('[Fragment] Extracted fragment path from link:', href.trim());
+      return href.trim();
+    }
+  }
+
+  const textContent = fragmentBlock.textContent.trim();
+  if (textContent) {
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Extracted fragment path from textContent:', textContent);
+    return textContent;
+  }
+
+  // eslint-disable-next-line no-console
+  console.log('[Fragment] No fragment path found in block');
+  return null;
+}
+
+/**
+ * Remove existing fragment section from DOM if present
+ * @param {HTMLElement} container - The container element to search within
+ */
+export function removeExistingFragment(container) {
+  if (!container || !container.parentElement) return;
+
+  const existingFragment = container.parentElement.querySelector('.fragment-section');
+  if (existingFragment) {
+    existingFragment.remove();
+  }
+}
+
+/**
+ * Build fragment block using buildBlock method
+ * @param {string} fragmentPath - The fragment path/URL
+ * @returns {HTMLElement} Fragment block element
+ */
+export function buildFragmentBlock(fragmentPath) {
+  // eslint-disable-next-line no-console
+  console.log('[Fragment] Building fragment block with path:', fragmentPath);
+  const fragmentLink = createElement('a', { href: fragmentPath }, fragmentPath);
+  const block = buildBlock('fragment', [[fragmentLink]]);
+  // eslint-disable-next-line no-console
+  console.log('[Fragment] Fragment block built:', block);
+  return block;
+}
+
+/**
+ * Insert fragment if applicable (not on overview or root page)
+ * Called during SPA navigation after content loads
+ * @param {string} productRoot - The product root path
+ */
+export async function insertFragmentIfApplicable(productRoot) {
+  // eslint-disable-next-line no-console
+  console.log('[Fragment] insertFragmentIfApplicable called with productRoot:', productRoot);
+
+  const container = ensureSubTabsContentContainer();
+  if (!container) {
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Container not found, cannot insert fragment');
+    return;
+  }
+  // eslint-disable-next-line no-console
+  console.log('[Fragment] Container found:', container);
+
+  // Check if fragment should be inserted
+  if (!isFragmentApplicable(productRoot)) {
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Fragment not applicable for current page, removing existing fragment');
+    // Remove existing fragment if navigating away from a tab
+    removeExistingFragment(container);
+    return;
+  }
+
+  // Remove any existing fragment before inserting new one (for re-insertion)
+  removeExistingFragment(container);
+
+  // Fetch fragment block from product root
+  const fragmentBlock = await fetchFragment(productRoot);
+  if (!fragmentBlock) {
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Fragment block not found in product root, aborting');
+    return; // Fragment block doesn't exist in product root
+  }
+
+  // Extract fragment path
+  const fragmentPath = extractFragmentPath(fragmentBlock);
+  if (!fragmentPath) {
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Fragment path not found, aborting');
+    return; // No fragment path found
+  }
+
+  // Build fragment block using buildBlock method
+  const newFragmentBlock = buildFragmentBlock(fragmentPath);
+
+  // Create wrapper section for fragment block
+  const fragmentWrapper = createSectionWithBlock(newFragmentBlock);
+  fragmentWrapper.classList.add('fragment-section', 'full-width');
+  // eslint-disable-next-line no-console
+  console.log('[Fragment] Fragment wrapper created:', fragmentWrapper);
+
+  // Insert at bottom of product-subtabs-content container
+  const contentContainer = container.parentElement;
+  if (contentContainer) {
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Inserting fragment wrapper into content container');
+    contentContainer.appendChild(fragmentWrapper);
+
+    // Decorate and load fragment block asynchronously
+    // eslint-disable-next-line no-console
+    console.log('[Fragment] Decorating and loading fragment block');
+    decorateBlock(newFragmentBlock);
+    loadBlock(newFragmentBlock).then(() => {
+      // eslint-disable-next-line no-console
+      console.log('[Fragment] Fragment block loaded successfully');
+    }).catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error('[Fragment] Error loading fragment block:', error);
+    });
+  } else {
+    // eslint-disable-next-line no-console
+    console.error('[Fragment] Content container not found, cannot insert fragment');
+  }
+}
