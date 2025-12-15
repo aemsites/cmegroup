@@ -344,26 +344,13 @@ export function moveCurrentPageContentUnderSubTabs() {
 
 export async function fetchFragment(productRoot) {
   try {
-    // eslint-disable-next-line no-console
-    console.log('[Fragment] Fetching fragment block from product root:', productRoot);
     const temp = await fetchProductRoot(productRoot);
     if (!temp) {
-      // eslint-disable-next-line no-console
-      console.log('[Fragment] Product root HTML not found');
       return null;
     }
     const block = temp.querySelector('.fragment');
-    if (block) {
-      // eslint-disable-next-line no-console
-      console.log('[Fragment] Fragment block found in product root');
-    } else {
-      // eslint-disable-next-line no-console
-      console.log('[Fragment] Fragment block not found in product root HTML');
-    }
     return block || null;
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error('[Fragment] Error fetching fragment block:', e);
     return null;
   }
 }
@@ -377,24 +364,11 @@ export function isFragmentApplicable(productRoot) {
   const isRoot = currentPath === normalizedRoot;
   const isOverview = parts.length === 0 || parts[0] === 'overview';
 
-  // eslint-disable-next-line no-console
-  console.log('[Fragment] Checking applicability:', {
-    currentPath,
-    normalizedRoot,
-    rel,
-    parts,
-    isRoot,
-    isOverview,
-    shouldInsert: !isRoot && !isOverview,
-  });
-
   return !isRoot && !isOverview;
 }
 
 export function extractFragmentPath(fragmentBlock) {
   if (!fragmentBlock) {
-    // eslint-disable-next-line no-console
-    console.log('[Fragment] Fragment block is null, cannot extract path');
     return null;
   }
 
@@ -402,22 +376,12 @@ export function extractFragmentPath(fragmentBlock) {
   if (link) {
     const href = link.getAttribute('href');
     if (href) {
-      // eslint-disable-next-line no-console
-      console.log('[Fragment] Extracted fragment path from link:', href.trim());
       return href.trim();
     }
   }
 
   const textContent = fragmentBlock.textContent.trim();
-  if (textContent) {
-    // eslint-disable-next-line no-console
-    console.log('[Fragment] Extracted fragment path from textContent:', textContent);
-    return textContent;
-  }
-
-  // eslint-disable-next-line no-console
-  console.log('[Fragment] No fragment path found in block');
-  return null;
+  return textContent || null;
 }
 
 export function removeExistingFragment(container) {
@@ -430,31 +394,17 @@ export function removeExistingFragment(container) {
 }
 
 export function buildFragmentBlock(fragmentPath) {
-  // eslint-disable-next-line no-console
-  console.log('[Fragment] Building fragment block with path:', fragmentPath);
   const fragmentLink = createElement('a', { href: fragmentPath }, fragmentPath);
-  const block = buildBlock('fragment', [[fragmentLink]]);
-  // eslint-disable-next-line no-console
-  console.log('[Fragment] Fragment block built:', block);
-  return block;
+  return buildBlock('fragment', [[fragmentLink]]);
 }
 
 export async function insertFragmentIfApplicable(productRoot, blocking = true) {
-  // eslint-disable-next-line no-console
-  console.log('[Fragment] insertFragmentIfApplicable called with productRoot:', productRoot);
-
   const container = ensureSubTabsContentContainer();
   if (!container) {
-    // eslint-disable-next-line no-console
-    console.log('[Fragment] Container not found, cannot insert fragment');
     return;
   }
-  // eslint-disable-next-line no-console
-  console.log('[Fragment] Container found:', container);
 
   if (!isFragmentApplicable(productRoot)) {
-    // eslint-disable-next-line no-console
-    console.log('[Fragment] Fragment not applicable for current page, removing existing fragment');
     removeExistingFragment(container);
     return;
   }
@@ -463,49 +413,27 @@ export async function insertFragmentIfApplicable(productRoot, blocking = true) {
 
   const fragmentBlock = await fetchFragment(productRoot);
   if (!fragmentBlock) {
-    // eslint-disable-next-line no-console
-    console.log('[Fragment] Fragment block not found in product root, aborting');
     return;
   }
 
   const fragmentPath = extractFragmentPath(fragmentBlock);
   if (!fragmentPath) {
-    // eslint-disable-next-line no-console
-    console.log('[Fragment] Fragment path not found, aborting');
     return;
   }
 
   const newFragmentBlock = buildFragmentBlock(fragmentPath);
   const fragmentWrapper = createSectionWithBlock(newFragmentBlock);
   fragmentWrapper.classList.add('fragment-section', 'full-width');
-  // eslint-disable-next-line no-console
-  console.log('[Fragment] Fragment wrapper created:', fragmentWrapper);
 
   const contentContainer = container.parentElement;
   if (contentContainer) {
-    // eslint-disable-next-line no-console
-    console.log('[Fragment] Inserting fragment wrapper into content container');
     contentContainer.appendChild(fragmentWrapper);
-
-    // eslint-disable-next-line no-console
-    console.log('[Fragment] Decorating and loading fragment block');
     decorateBlock(newFragmentBlock);
 
     if (blocking) {
       await loadBlock(newFragmentBlock);
-      // eslint-disable-next-line no-console
-      console.log('[Fragment] Fragment block loaded successfully');
     } else {
-      loadBlock(newFragmentBlock).then(() => {
-        // eslint-disable-next-line no-console
-        console.log('[Fragment] Fragment block loaded successfully');
-      }).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error('[Fragment] Error loading fragment block:', error);
-      });
+      loadBlock(newFragmentBlock).catch(() => {});
     }
-  } else {
-    // eslint-disable-next-line no-console
-    console.error('[Fragment] Content container not found, cannot insert fragment');
   }
 }

@@ -421,15 +421,7 @@ export async function renderProductPath(url, productRoot) {
       ...clones.map((cl) => loadSection(cl)),
       domOpsPromise, // Let toggle populate in background
     ]).then(() => {
-      // eslint-disable-next-line no-console
-      console.log('[Fragment] Main content loaded, attempting to insert fragment');
-      insertFragmentIfApplicable(productRoot).then(() => {
-        // eslint-disable-next-line no-console
-        console.log('[Fragment] insertFragmentIfApplicable completed');
-      }).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error('[Fragment] Error in insertFragmentIfApplicable:', error);
-      });
+      insertFragmentIfApplicable(productRoot).catch(() => {});
     }).catch(() => {});
   } catch (e) {
     const container = ensureSubTabsContentContainer();
