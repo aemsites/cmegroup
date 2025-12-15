@@ -24,8 +24,6 @@
     }
 
     & > div {
-      order: 1;
-
       @media (width >= 769px) {
         flex: 1;
         order: unset;
@@ -34,8 +32,6 @@
     }
 
     & > .columns-img-col {
-      order: 0;
-
       & img {
         display: block;
       }
@@ -124,7 +120,11 @@
 
     & > div > div {
       flex: auto;
-      width: 75%;
+      width: 100%;
+
+      @media (width >= 769px) {
+        width: 75%;
+      }
 
       &:last-child {
         width: 100%;
@@ -157,7 +157,11 @@
 
     & > div > div {
       flex: auto;
-      width: 60%;
+      width: 100%;
+
+      @media (width >= 769px) {
+        width: 60%;
+      }
 
       &:last-child {
         width: 100%;

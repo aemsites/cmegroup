@@ -1,28 +1,31 @@
-import { createCourseBaseTemplate, getCourseData, updateLessonStatus } from '../../scripts/course/course.js';
+import {
+  createCourseBaseTemplate,
+  getCourseData,
+  updateLessonStatus,
+} from '../../scripts/course/course.js';
+import { addCourseCertificate } from '../../scripts/course/certificate.js';
+import { isFeatureToggled } from '../../scripts/utils.js';
 import { courseDataChange } from '../../scripts/actions/course.js';
 import { quizAnswered } from '../../scripts/actions/quiz.js';
-import { isFeatureToggled, addFragmentBlock } from '../../scripts/utils.js';
-
-const FRAGMENT_URL = '/fragments/courses-lessons/extend-your-learning';
 
 if (window.ga) {
   window.ga();
 }
 
-async function loadUserProgress(courseData) {
+async function loadUserProgress(courseData, authenticationData) {
+  const { isLoggedIn, loginInfo } = authenticationData;
   const { store } = await import('../../scripts/store/store.js');
+  //  dispatch courseData event
+  store.dispatch(courseDataChange({ ...courseData }));
+  //  quiz prefill
   if (courseData?.quiz || courseData?.completed) {
-    //  quiz prefill
     store.dispatch(quizAnswered(courseData?.quiz || { isCorrect: true }));
   }
-  if (!courseData.started) {
-    //  start lesson
-    await updateLessonStatus(false);
-  }
   const { setTracking } = await import('../../scripts/gtm.js').catch(() => ({
+    // eslint-disable-next-line no-console
     setTracking: () => () => console.warn('GTM is unavailable'),
   }));
-  const fireTrackingLessonStandalone = setTracking('custom', 'lesson_complete', 'Lessons and Courses');
+  const fireTrackingAssessment = setTracking('custom', 'assessment_complete', 'Assessments');
   //  quiz completion event subscriber
   store.subscribe(({ quiz }) => quiz, async ({ quizStatus }) => {
     if (quizStatus?.isCorrect && !courseData.completed) {
@@ -31,35 +34,46 @@ async function loadUserProgress(courseData) {
         quizStatus?.status ? quizStatus : null,
       );
       store.dispatch(courseDataChange(updatedCourse));
-      fireTrackingLessonStandalone(
-        `Lesson standalone "${courseData.title}" - completed`,
+      fireTrackingAssessment(
+        `Assessment "${courseData.title}" - completed`,
         'completed',
         {
-          lessonID: courseData.moduleId,
+          assessmentID: courseData.moduleId,
           parentCourse: '',
-          lessonTitle: courseData.title,
+          assessmentTitle: courseData.title,
         },
       );
-    } else if (quizStatus && !quizStatus.isCorrect && quizStatus !== courseData?.quiz) {
-      await updateLessonStatus(false, quizStatus?.status ? quizStatus : null);
+    }
+  });
+  //  courseData subscriber
+  store.subscribe(({ courseData: course }) => course, async (course) => {
+    if (course?.completed) {
+      addCourseCertificate({
+        isLoggedIn,
+        userName: loginInfo?.userName,
+        moduleId: courseData.moduleId,
+        lessonTitle: courseData.title,
+        completedModule: course.endDate,
+        // the modal is opened automatically when the user completes the assessment
+        showModal: !courseData.completed,
+        template: courseData.template,
+      });
     }
   });
 }
 
-export default async function lessonStandaloneTemplate() {
+export default async function lessonTemplate() {
   (async () => {
-    //  static section
     const courseData = await getCourseData();
     await createCourseBaseTemplate(courseData);
-    addFragmentBlock(FRAGMENT_URL);
 
-    //  dynamic section - user progress
+    //  user progress
     import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
       const { authenticationData } = authentication;
       authenticationData.loginPromise.then(async () => {
         const { isLoggedIn, loginInfo } = authenticationData;
         const data = await getCourseData(loginInfo);
-        loadUserProgress(data);
+        loadUserProgress(data, authenticationData);
         if (!isLoggedIn && !isFeatureToggled('educationIframe')) {
           import('../../scripts/course/auth-modal.js');
         }

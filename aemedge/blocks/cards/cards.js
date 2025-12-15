@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {
   buildIndexFilter,
   getIndexedContent,
@@ -15,6 +16,7 @@ import {
   getTag,
   i18n,
   convertMMSSToHHMM,
+  loadExtraCss,
 } from '../../scripts/utils.js';
 import {
   legacyArticleTemplates,
@@ -24,9 +26,13 @@ import {
   legacyNewsTemplates,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
-
+import {
+  urlByEnvType,
+} from '../../scripts/utils/index.js';
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
+
+const fallbackImage = `url(${urlByEnvType()}/content/dam/cmegroup/images/common/default/article-940x600.jpg)`;
 
 async function createStaticCards(block) {
   const size = block.children.length;
@@ -160,26 +166,29 @@ async function createStaticCards(block) {
     const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
     [...block.children].forEach((row) => {
       const li = document.createElement('li');
-      const link = document.createElement('a');
-      const linkSrc = row.firstElementChild.querySelector('p a').href;
-      link.href = linkSrc;
-      li.append(link);
-      while (row.firstElementChild) link.append(row.firstElementChild);
-      [...li.children].forEach((anchor) => {
-        const div = anchor.querySelector('div');
-        if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
-        else div.className = 'cards-card-body';
-
-        if (textClass) {
-          const paragraphs = div.querySelectorAll('p');
-          paragraphs.forEach((p) => {
-            p.classList.add(textClass);
-          });
-        }
-        if (!div.hasChildNodes()) {
-          div.parentElement.classList.add('empty-card');
-        }
-      });
+      if (row.querySelector('div').hasChildNodes()) {
+        const link = document.createElement('a');
+        const linkSrc = row.firstElementChild.querySelector('p a')?.href;
+        link.href = linkSrc;
+        li.append(link);
+        while (row.firstElementChild) link.append(row.firstElementChild);
+        [...li.children].forEach((anchor) => {
+          const div = anchor.querySelector('div');
+          if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
+          else div.className = 'cards-card-body';
+          if (textClass) {
+            const paragraphs = div.querySelectorAll('p');
+            paragraphs.forEach((p) => {
+              p.classList.add(textClass);
+            });
+          }
+          if (!div.hasChildNodes()) {
+            div.parentElement.classList.add('empty-card');
+          }
+        });
+      } else {
+        li.classList.add('empty-card');
+      }
       ul.append(li);
     });
     ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
@@ -226,7 +235,7 @@ export async function createDynamicCardCourse(contentData) {
   } = contentData;
   const imageWrapper = createElement('div', { class: 'cards-card-image' });
   const link = createElement('a', { href: path });
-  imageWrapper.style.backgroundImage = `url('${ogimage || image}')`;
+  imageWrapper.style.backgroundImage = `url('${ogimage || image || fallbackImage}')`;
 
   const bodyWrapper = createElement('div', { class: 'cards-card-body' });
   bodyWrapper.innerHTML = `
@@ -674,8 +683,10 @@ async function createRecommendedFromService(data, block) {
     class: 'cards recommended-ai block',
   });
   blockDiv.setAttribute('data-block-name', 'cards');
+  blockDiv.classList.add(...block.classList);
   const containerDiv = createElement('div');
   const ul = createElement('ul');
+  ul.style.setProperty('--columns', Math.min(data.length, 4));
 
   const elements = await Promise.all(
     data.map(async (item) => {
@@ -683,14 +694,14 @@ async function createRecommendedFromService(data, block) {
         class: 'cards-card-image',
       });
       const imgSrc = item.image_uri;
-      imageDiv.style.backgroundImage = imgSrc ? `url('https://www.cmegroup.com/${imgSrc}')` : '';
+      imageDiv.style.backgroundImage = imgSrc ? `url('https://www.cmegroup.com/${imgSrc}')` : fallbackImage;
 
       const link = createElement('a', { href: params ? `${item.uri}?${params}` : item.uri });
 
       const subtitleDiv = createElement('div', {
         class: 'card-subtitle',
       });
-      subtitleDiv.textContent = `${item.image_name || ''} `;
+      subtitleDiv.innerHTML = `${item.image_name || ''} `;
 
       const span = createElement('span');
       parseTime(convertMMSSToHHMM(item.media_duration)).then((i) => {
@@ -702,7 +713,7 @@ async function createRecommendedFromService(data, block) {
         class: 'cards-card-title',
       });
       const h3 = createElement('h3');
-      h3.textContent = item.title || '';
+      h3.innerHTML = item.title || '';
       titleDiv.appendChild(h3);
 
       const descDiv = createElement('div', {
@@ -710,7 +721,7 @@ async function createRecommendedFromService(data, block) {
       });
 
       const p = createElement('p');
-      p.textContent = item.description || '';
+      p.innerHTML = item.description || '';
       descDiv.appendChild(p);
 
       const bodyDiv = createElement('div', {
@@ -763,29 +774,37 @@ async function createRecommendedCards(block) {
   block.textContent = '';
   block.appendChild(createSpinner());
   let dataAi = [];
+  let useAiData = false;
 
   try {
     const { getRecommendationAi } = await import('../../scripts/services/RecommendationAiService.js');
     dataAi = await getRecommendationAi();
+
+    if (dataAi && dataAi.length > 0) {
+      const result = limit ? dataAi.slice(0, limit) : dataAi;
+      const cardsAi = await createRecommendedFromService(result, blockData);
+      block.replaceWith(cardsAi);
+      useAiData = true;
+    }
   } catch (error) {
-    dataAi = [];
+    console.log('Error fetching Recommendation AI service:', error);
   }
-  const result = limit ? dataAi.slice(0, limit) : dataAi;
-  if (dataAi && dataAi.length > 0) {
-    const cardsAi = await createRecommendedFromService(result, blockData);
-    block.replaceWith(cardsAi);
-  } else if (blockData) {
-    blockData.classList.remove('recommended-ai');
-    await createDynamicCards(blockData);
-    block.replaceWith(blockData);
-  } else {
-    const noResultsLabel = createElement('h4', null, 'No results found');
-    const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
-    block.replaceWith(noResults);
+
+  if (!useAiData) {
+    if (blockData) {
+      blockData.classList.remove('recommended-ai');
+      await createDynamicCards(blockData);
+      block.replaceWith(blockData);
+    } else {
+      const noResultsLabel = createElement('h4', null, 'No results found');
+      const noResults = createElement('div', { class: 'no-results' }, noResultsLabel);
+      block.replaceWith(noResults);
+    }
   }
 }
 
 export default async function decorate(block) {
+  loadExtraCss(block);
   if (block.classList.contains('dynamic')) {
     createDynamicCards(block);
   } else if (block.classList.contains('recommended-ai')) {

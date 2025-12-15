@@ -372,3 +372,11 @@
     left: 0;
     z-index: 1;
 }
+
+.table.green-icons {
+  & .icon {
+    & img {
+      filter: var(--check-green-filter);
+    }
+  }
+}

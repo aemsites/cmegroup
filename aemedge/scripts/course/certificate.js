@@ -18,19 +18,25 @@ async function createCertificateModal({
   lessonTitle,
   userName,
   completedModule,
+  template,
 }) {
+  const isAssessment = template === 'assessment';
   const [
     modalTitleLabel,
     certificateTitleLabel,
     presentedToLabel,
     downloadLabel,
     shareLabel,
+    assessmentTitleLabel,
+    assessmentCertLabel,
   ] = await Promise.all([
     i18n('Course Completion Certificate'),
     i18n('Certificate of Course Completion'),
     i18n('Presented to'),
     i18n('Download'),
     i18n('Share'),
+    i18n('Assessment Certificate'),
+    i18n('Certificate of Assessment Completion'),
   ]);
 
   const shareButton = createElement(
@@ -52,7 +58,7 @@ async function createCertificateModal({
       createElement(
         'div',
         { class: 'modal-buttons' },
-        modalTitleLabel,
+        isAssessment ? assessmentTitleLabel : modalTitleLabel,
         ' | ',
         createElement(
           'div',
@@ -83,7 +89,7 @@ async function createCertificateModal({
           { class: 'certificate-header' },
           createElement('p', { class: 'eyebrow' }, 'Cme Group Institute'),
           createElement('p', { class: 'divider' }),
-          createElement('p', { class: 'title' }, certificateTitleLabel),
+          createElement('p', { class: 'title' }, isAssessment ? assessmentCertLabel : certificateTitleLabel),
         ),
         createElement(
           'div',
@@ -224,6 +230,7 @@ async function openCertificateModal({
   moduleId,
   lessonTitle,
   completedModule,
+  template,
 }) {
   const scriptPromises = [
     loadScript('/aemedge/scripts/third-party/datepicker/datepicker.min.js'),
@@ -237,6 +244,7 @@ async function openCertificateModal({
     lessonTitle,
     userName,
     completedModule,
+    template,
   });
 
   const downloadBtn = block.querySelectorAll('.print-pdf')[0];
@@ -262,6 +270,7 @@ export async function addCourseCertificate({
   showModal,
   container,
   isFromHistory = false,
+  template = 'course',
 }) {
   // Disable if educationIframe query parameter is set
   if (isFeatureToggled('educationIframe')) return;
@@ -290,6 +299,7 @@ export async function addCourseCertificate({
         moduleId,
         lessonTitle,
         completedModule,
+        template,
       });
     }
   };

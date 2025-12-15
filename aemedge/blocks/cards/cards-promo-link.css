@@ -1,4 +1,6 @@
 .cards.cards.promo-link {
+  background-color: var(--blue2);
+  
   &.blue1-background {
     background-color: var(--blue1);
   }
@@ -36,6 +38,10 @@
 
   &.yellow-arrow .cards-body-container a::after {
     color: var(--citron);
+  }
+
+  &.white-arrow .cards-body-container a::after {
+    color: var(--white);
   }
 
   & .cards-body-container {
