@@ -499,7 +499,7 @@
   /* Values - use Roboto Mono font */
   & .value {
     color: white;
-    font-family: var(---mono), monospace;
+    font-family: var(--roboto-mono), monospace;
     font-weight: 300;
     font-size: 1.25rem;
     line-height: 1.25rem;
