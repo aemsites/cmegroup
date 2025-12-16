@@ -6,7 +6,6 @@ import { createElement, i18n } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 
 // API Configuration
-// Uses urlByEnvType() to automatically select correct environment
 const API_CONFIG = {
   calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
   optionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
@@ -301,7 +300,7 @@ async function createOptionsTable(optionProductId) {
 
 async function renderTable(block) {
   const { isOptions, optionProductId } = getDisplayMode();
-  block.innerHTML = '<div class="loading">Loading Calendar...</div>';
+  block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
 
   // Get productId for API calls
   const productMetadata = await getProductMetadata();
@@ -340,7 +339,6 @@ async function renderTable(block) {
       icon: !isLoggedIn && 'icon-lock',
       tooltipText: accountRequiredLabel,
       isLoggedIn,
-      placement: 'right',
     };
 
     if (isOptions) {
@@ -467,7 +465,8 @@ export default async function decorate(block) {
   block.classList.add('table');
 
   // Show loading state immediately (non-blocking)
-  block.innerHTML = '<div class="loading">Loading Calendar...</div>';
+  block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
+  titleWrapper.innerHTML = '';
 
   const [
     calendarLabel,
