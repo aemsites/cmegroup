@@ -300,6 +300,30 @@ function renderNav(block, items) {
       setTimeout(handleNavigation, 50);
     }
   });
+
+  // Scroll on desktop mouse events
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+  nav.addEventListener('mousedown', (e) => {
+    isDown = true;
+    startX = e.pageX - nav.offsetLeft;
+    scrollLeft = nav.scrollLeft;
+  });
+  nav.addEventListener('mouseleave', () => {
+    isDown = false;
+  });
+  nav.addEventListener('mouseup', () => {
+    isDown = false;
+    nav.classList.remove('active-drag');
+  });
+  nav.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - nav.offsetLeft;
+    const walk = (x - startX);
+    nav.scrollLeft = scrollLeft - walk;
+  });
 }
 
 export default async function decorate(block) {

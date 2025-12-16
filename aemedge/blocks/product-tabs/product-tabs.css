@@ -127,6 +127,23 @@
     & .product-tabs-item {
       flex-shrink: 0;
       margin-bottom: 0;
+      cursor: pointer;
+
+      &:last-child {
+        @media (width >= 769px) {
+          padding-right: 1rem;
+        }
+      }
+
+      &:hover {
+        & a {
+          color: var(--blue4);
+        }
+      }
+
+      &:has(.is-active) {
+        cursor: default;
+      }
 
       & a {
         display: inline-block;
@@ -136,7 +153,7 @@
         font-size: 0.75rem;
         letter-spacing: 0.129em;
         color: var(--gray3);
-        font-weight: 700;
+        font-weight: 600;
         transition: color 0.2s ease;
         white-space: nowrap;
         position: relative;
