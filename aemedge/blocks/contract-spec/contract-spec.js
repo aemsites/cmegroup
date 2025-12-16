@@ -378,7 +378,7 @@ async function createContractSpecsDisplay(
   fieldOrder,
   widgetSettings,
   twoColumnFields = TWO_COLUMN_FIELDS,
-  ) {
+) {
   const [
     defaultTitle,
     noResultsText,
