@@ -427,3 +427,12 @@ export function getViewAnotherProductDropdown(assetClass) {
     (assetClasses) => assetClasses[assetClass] || {},
   );
 }
+
+/* Get options/optionProductId mode from URL */
+export function getDisplayMode() {
+  const isOptions = window.location.pathname.includes('/options');
+  const urlParams = new URLSearchParams(window.location.search);
+  const optionProductId = urlParams.get('optionProductId');
+
+  return { isOptions, optionProductId };
+}

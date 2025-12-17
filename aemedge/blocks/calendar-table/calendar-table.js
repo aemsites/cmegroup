@@ -1,5 +1,10 @@
 import { getMetadata, loadCSS } from '../../scripts/aem.js';
-import { getProductMetadata, applyAuthorOverride, getProductTitle } from '../../scripts/utils/product.js';
+import {
+  getProductMetadata,
+  applyAuthorOverride,
+  getProductTitle,
+  getDisplayMode,
+} from '../../scripts/utils/product.js';
 import { createAuthTooltip } from '../../scripts/utils/authTooltip.js';
 import { apiGet, getResponseData, urlByEnvType } from '../../scripts/utils/index.js';
 import { createElement, i18n } from '../../scripts/utils.js';
@@ -22,15 +27,6 @@ let needShowAll = false;
 const maxRows = 12;
 const titleWrapper = createElement('div', { class: 'title-wrapper' });
 let isLoggedIn = false;
-
-/* Get current mode from URL */
-function getDisplayMode() {
-  const isOptions = window.location.pathname.includes('/options');
-  const urlParams = new URLSearchParams(window.location.search);
-  const optionProductId = urlParams.get('optionProductId');
-
-  return { isOptions, optionProductId };
-}
 
 /* Fetch calendar table data for futures */
 async function fetchCalendarTableData(productId) {
