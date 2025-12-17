@@ -820,6 +820,21 @@ function convertMMSSToHHMM(timeStr) {
   return `${hh}:${mm}`;
 }
 
+/**
+ * Convert hyphenated key to camelCase
+ * @param {string} key - The hyphenated key (e.g., "contract-unit")
+ * @returns {string} CamelCase key (e.g., "ContractUnit")
+ */
+function hyphenToCamelCase(key) {
+  if (!key.includes('-')) {
+    return key.charAt(0).toUpperCase() + key.slice(1);
+  }
+  return key
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+}
+
 export default function loadExtraCss(block) {
   const { blockName } = block.dataset;
   import(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}-extra-css.js`).then((mod) => {
@@ -864,5 +879,6 @@ export {
   getLanguageLabel,
   debounce,
   convertMMSSToHHMM,
+  hyphenToCamelCase,
   loadExtraCss,
 };

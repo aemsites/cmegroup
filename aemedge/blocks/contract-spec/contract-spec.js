@@ -5,6 +5,7 @@ import {
   i18n,
   setupDayjsLibs,
   getCdtDate,
+  hyphenToCamelCase,
 } from '../../scripts/utils.js';
 import {
   getProductMetadata,
@@ -106,21 +107,6 @@ async function fetchContractSpecs(productId) {
   } catch (e) {
     return null;
   }
-}
-
-/**
- * Convert hyphenated key to camelCase
- * @param {string} key - The hyphenated key (e.g., "contract-unit")
- * @returns {string} CamelCase key (e.g., "ContractUnit")
- */
-function hyphenToCamelCase(key) {
-  if (!key.includes('-')) {
-    return key.charAt(0).toUpperCase() + key.slice(1);
-  }
-  return key
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('');
 }
 
 /**
