@@ -73,3 +73,4 @@ export default function buildProductSelector(assetClass) {
   window.addEventListener('scroll', togglePosition);
   return createElement('div', { class: 'hero-products' }, button, dropdown);
 }
+
