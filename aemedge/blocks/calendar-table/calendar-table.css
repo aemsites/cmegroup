@@ -36,7 +36,7 @@
             font-family: var(--averta);
             font-size: .6875rem;
             font-weight: 400;
-            letter-spacing: .06875rem;
+            letter-spacing: .0688rem;
             line-height: .9375rem;
             padding: 1.25rem .3125rem;
             text-align: center;
@@ -102,7 +102,7 @@
         position: relative;
   
         &::after {
-          background: linear-gradient(180deg, hsla(0, 0%, 100%, 0), #fff);
+          background: linear-gradient(180deg, hsl(0deg 0% 100% / 0%), #fff);
           bottom: 0;
           content: "";
           height: 3.5rem;
@@ -195,7 +195,7 @@
                   color: var(--blue2);
                   font-family: var(--averta);
                   font-weight: 700;
-                  letter-spacing: .070625rem;
+                  letter-spacing: .0706rem;
                 }
     
                 &:last-child {
@@ -215,7 +215,7 @@
                     color: var(--blue2);
                     font-family: var(--averta);
                     font-weight: 700;
-                    letter-spacing: .070625rem;
+                    letter-spacing: 0.0706rem;
                     width: auto;
                   }
                 }
@@ -251,7 +251,7 @@
         margin-top: .625rem;
     
         @media (width >= 993px) {
-          width: 16.66666667%;
+          width: 16.6667%;
           order: -1 !important;
           margin-top: 0;
         }
@@ -274,7 +274,7 @@
           text-align: center;
     
           @media (width >= 993px) {
-            width: 66.66666667%;
+            width: 66.6667%;
             order: 6 !important;
           }
     
@@ -308,7 +308,7 @@
   
       @media (width >= 993px) {
         display: inline-block;
-        width: 66.66666667%;
+        width: 66.6667%;
       }
     }
   

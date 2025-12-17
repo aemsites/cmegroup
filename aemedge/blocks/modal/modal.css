@@ -18,7 +18,7 @@ body.modal-open {
   max-height: calc(100dvh - 3.5rem);
   border: 0.0625rem solid var(--dark-color);
   border-radius: .25rem;
-  box-shadow: 0 .0625rem .125rem 0 rgba(60, 64, 67, .3), 0 .125rem .375rem .125rem rgba(60, 64, 67, .15);
+  box-shadow: 0 .0625rem .125rem 0 rgba(60 64 67 / 30%), 0 .125rem .375rem .125rem rgba(60 64 67 / 15%);
   padding: 1.625rem 1.875rem;
 }
 
@@ -34,7 +34,6 @@ body.modal-open {
   overflow: auto;
   padding: 0;
   margin-top: .75rem;
-  letter-spacing: normal;
 
   & p {
     font-size: 0.875rem;
