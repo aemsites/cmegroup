@@ -16,6 +16,7 @@ import {
   getTag,
   i18n,
   convertMMSSToHHMM,
+  loadExtraCss,
 } from '../../scripts/utils.js';
 import {
   legacyArticleTemplates,
@@ -803,6 +804,7 @@ async function createRecommendedCards(block) {
 }
 
 export default async function decorate(block) {
+  loadExtraCss(block);
   if (block.classList.contains('dynamic')) {
     createDynamicCards(block);
   } else if (block.classList.contains('recommended-ai')) {

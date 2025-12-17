@@ -5,6 +5,7 @@ import {
   getTag,
   setupDayjsLibs,
   getCdtDate,
+  loadExtraCss,
 } from '../../scripts/utils.js';
 
 /**
@@ -137,6 +138,7 @@ function decorateGenericHero(block) {
  * Main decorate function
  */
 export default async function decorate(block) {
+  loadExtraCss(block);
   const { classList } = block;
   if (classList.contains('econoday-event')) {
     decorateEconodayEventPageHero(block);
