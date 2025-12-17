@@ -342,13 +342,21 @@ export function moveCurrentPageContentUnderSubTabs() {
   movable.forEach((sec) => container.appendChild(sec));
 }
 
-export async function fetchFragment(productRoot) {
+export async function fetchFragment(productRoot, option = null) {
   try {
     const temp = await fetchProductRoot(productRoot);
     if (!temp) {
       return null;
     }
-    const block = temp.querySelector('.fragment');
+    let block = null;
+    if (option) {
+      const selector = `.fragment.${option}`;
+      block = temp.querySelector(selector);
+      // If option is truthy but block is not found, return null explicitly
+      if (!block) return null;
+    } else {
+      block = temp.querySelector('.fragment');
+    }
     return block || null;
   } catch (e) {
     return null;
@@ -393,9 +401,13 @@ export function removeExistingFragment(container) {
   }
 }
 
-export function buildFragmentBlock(fragmentPath) {
+export function buildFragmentBlock(fragmentPath, option = null) {
   const fragmentLink = createElement('a', { href: fragmentPath }, fragmentPath);
-  return buildBlock('fragment', [[fragmentLink]]);
+  const block = buildBlock('fragment', [[fragmentLink]]);
+  if (option) {
+    block.classList.add(option);
+  }
+  return block;
 }
 
 export async function insertFragmentIfApplicable(productRoot, blocking = true) {
@@ -411,7 +423,7 @@ export async function insertFragmentIfApplicable(productRoot, blocking = true) {
 
   removeExistingFragment(container);
 
-  const fragmentBlock = await fetchFragment(productRoot);
+  const fragmentBlock = await fetchFragment(productRoot, 'all-tabs-bottom');
   if (!fragmentBlock) {
     return;
   }
@@ -421,7 +433,11 @@ export async function insertFragmentIfApplicable(productRoot, blocking = true) {
     return;
   }
 
-  const newFragmentBlock = buildFragmentBlock(fragmentPath);
+  // Extract option from fragment block classes (any class that isn't 'fragment' or 'block')
+  const fragmentClasses = Array.from(fragmentBlock.classList);
+  const option = fragmentClasses.find((cls) => cls !== 'fragment' && cls !== 'block') || null;
+
+  const newFragmentBlock = buildFragmentBlock(fragmentPath, option);
   const fragmentWrapper = createSectionWithBlock(newFragmentBlock);
   fragmentWrapper.classList.add('fragment-section', 'full-width');
 
