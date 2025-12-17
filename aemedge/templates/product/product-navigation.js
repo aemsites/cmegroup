@@ -244,7 +244,7 @@ function wireNavClicks(container, productRoot) {
     a.dataset.spaWired = 'true';
     a.dataset.spaIndex = index;
 
-    a.addEventListener('click', (e) => {
+    a.parentElement.addEventListener('click', (e) => {
       // ✅ UX: Prevent clicking on already active tab
       if (a.classList.contains('is-active')) {
         e.preventDefault();

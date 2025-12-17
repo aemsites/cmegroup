@@ -82,9 +82,12 @@ main {
         }
 
         /* ✅ UX: Active tab not clickable */
-        & a.is-active {
-          cursor: default;
+        & a {
           pointer-events: none;
+          &.is-active {
+            cursor: default;
+            pointer-events: none;
+          }
         }
       }
 
@@ -96,25 +99,40 @@ main {
         z-index: 20;
         justify-content: center;
         position: relative;
+        width: 100%;
+
+        @media (width >= 769px) {
+          width: auto;
+          margin-left: 1rem;
+        }
 
         &::before {
           content: '';
           position: absolute;
+          width: calc(100% + var(--container-padding-xs) * 2);
+          left: 0;
           top: 0;
-          left: -1rem;
-          bottom: 0;
-          width: 1rem;
-          background: linear-gradient(to left, var(--white), rgb(255 255 255 / 0%));
-          pointer-events: none;
-          opacity: 1;
-          transition: opacity 0.3s ease;
-          z-index: 1;
-        }
+          left: calc(var(--container-padding-xs) * (-1));
+          height: 0.25rem;
+          background: linear-gradient(to bottom, rgba(60, 64, 67, 0.3), rgba(60, 64, 67, 0));
 
-        @media (width < 769px) {
-          margin-left: 0;
-          width: 100%;
-          padding: 0 1rem 0.75rem;
+          @media (width >= 481px) {
+            width: calc(100% + var(--container-padding-sm) * 2);
+            left: calc(var(--container-padding-sm) * (-1));
+          }
+          
+          @media (width >= 769px) {
+            top: 0;
+            right: auto;
+            bottom: 0;
+            left: -2rem;
+            width: 1rem;
+            height: auto;
+            background: linear-gradient(to left, var(--white), rgb(255 255 255 / 0%));
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+          }
         }
 
         /* Enhanced sub-tabs with futures/options toggle */
@@ -145,6 +163,11 @@ main {
             align-items: stretch;
             padding: 30px 0;
             flex-shrink: 1;
+            width: 100%;
+
+            @media (width >= 481px) {
+              width: auto;
+            }
 
             @media (width >= 769px) {
               padding: 0;
@@ -162,16 +185,10 @@ main {
               font-size: 0.75rem;
               color: var(--gray3);
               transition: all 0.2s ease;
-              font-family: Averta, "Helvetica Neue", arial, sans-serif;
+              font-family: var(--averta);
               letter-spacing: 0.0938rem;
-              min-width: 5.625rem;
               white-space: nowrap;
-
-              @media (width < 769px) {
-                flex: 1;
-                justify-content: center;
-                min-width: 0;
-              }
+              flex: 1;
 
               /* First button (Futures) - rounded left */
               &:first-child {
@@ -205,10 +222,7 @@ main {
               position: relative;
               display: inline-flex;
               align-items: stretch;
-
-              @media (width < 769px) {
-                flex: 1;
-              }
+              flex: 1;
 
               /* Dropdown Button */
               & .dropdown-btn {
@@ -261,7 +275,7 @@ main {
               & .dropdown-menu {
                 position: absolute;
                 top: 100%;
-                right: -65%;
+                right: 0;
                 background: var(--white);
                 border: 0.0625rem solid var(--gray4);
                 border-radius: 0.25rem;
