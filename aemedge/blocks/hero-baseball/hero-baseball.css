@@ -502,7 +502,6 @@
       justify-content: center;
       gap: 0.3125rem;
       align-items: end;
-      width: fit-content;
       max-width: 9.8125rem;
       width: fill-available;
       width: -webkit-fill-available;
