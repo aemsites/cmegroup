@@ -27,6 +27,7 @@ import {
   getDefaultTab,
   findProductTabsSection,
   preloadPathIndex,
+  insertFragmentIfApplicable,
 } from './product-dom-helpers.js';
 
 import {
@@ -83,6 +84,8 @@ export default async function productTemplate() {
         const defaultTab = await getDefaultTab(productRoot);
         const defaultUrl = `${productRoot}/${defaultTab}`;
         await renderProductPath(defaultUrl, productRoot);
+      } else {
+        insertFragmentIfApplicable(productRoot, false).catch(() => {});
       }
     }
   });

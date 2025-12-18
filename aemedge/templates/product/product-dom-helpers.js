@@ -341,3 +341,115 @@ export function moveCurrentPageContentUnderSubTabs() {
   if (!movable.length) return;
   movable.forEach((sec) => container.appendChild(sec));
 }
+
+export async function fetchFragment(productRoot, option = null) {
+  try {
+    const temp = await fetchProductRoot(productRoot);
+    if (!temp) {
+      return null;
+    }
+    let block = null;
+    if (option) {
+      const selector = `.fragment.${option}`;
+      block = temp.querySelector(selector);
+      // If option is truthy but block is not found, return null explicitly
+      if (!block) return null;
+    } else {
+      block = temp.querySelector('.fragment');
+    }
+    return block || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function isFragmentApplicable(productRoot) {
+  const currentPath = normalizePath(window.location.pathname);
+  const normalizedRoot = normalizePath(productRoot);
+  const rel = currentPath.replace(normalizedRoot, '');
+  const parts = rel.split('/').filter((p) => p && p !== 'options');
+
+  const isRoot = currentPath === normalizedRoot;
+  const isOverview = parts.length === 0 || parts[0] === 'overview';
+
+  return !isRoot && !isOverview;
+}
+
+export function extractFragmentPath(fragmentBlock) {
+  if (!fragmentBlock) {
+    return null;
+  }
+
+  const link = fragmentBlock.querySelector('a');
+  if (link) {
+    const href = link.getAttribute('href');
+    if (href) {
+      return href.trim();
+    }
+  }
+
+  const textContent = fragmentBlock.textContent.trim();
+  return textContent || null;
+}
+
+export function removeExistingFragment(container) {
+  if (!container || !container.parentElement) return;
+
+  const existingFragment = container.parentElement.querySelector('.fragment-section');
+  if (existingFragment) {
+    existingFragment.remove();
+  }
+}
+
+export function buildFragmentBlock(fragmentPath, option = null) {
+  const fragmentLink = createElement('a', { href: fragmentPath }, fragmentPath);
+  const block = buildBlock('fragment', [[fragmentLink]]);
+  if (option) {
+    block.classList.add(option);
+  }
+  return block;
+}
+
+export async function insertFragmentIfApplicable(productRoot, blocking = true) {
+  const container = ensureSubTabsContentContainer();
+  if (!container) {
+    return;
+  }
+
+  if (!isFragmentApplicable(productRoot)) {
+    removeExistingFragment(container);
+    return;
+  }
+
+  removeExistingFragment(container);
+
+  const fragmentBlock = await fetchFragment(productRoot, 'all-tabs-bottom');
+  if (!fragmentBlock) {
+    return;
+  }
+
+  const fragmentPath = extractFragmentPath(fragmentBlock);
+  if (!fragmentPath) {
+    return;
+  }
+
+  // Extract option from fragment block classes (any class that isn't 'fragment' or 'block')
+  const fragmentClasses = Array.from(fragmentBlock.classList);
+  const option = fragmentClasses.find((cls) => cls !== 'fragment' && cls !== 'block') || null;
+
+  const newFragmentBlock = buildFragmentBlock(fragmentPath, option);
+  const fragmentWrapper = createSectionWithBlock(newFragmentBlock);
+  fragmentWrapper.classList.add('fragment-section', 'full-width');
+
+  const contentContainer = container.parentElement;
+  if (contentContainer) {
+    contentContainer.appendChild(fragmentWrapper);
+    decorateBlock(newFragmentBlock);
+
+    if (blocking) {
+      await loadBlock(newFragmentBlock);
+    } else {
+      loadBlock(newFragmentBlock).catch(() => {});
+    }
+  }
+}
