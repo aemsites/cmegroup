@@ -3,14 +3,10 @@ import {
   getProductMetadata,
   getProductTitle,
   getDisplayMode,
+  getContractSpecs,
+  getSpecItemView,
 } from '../../scripts/utils/product.js';
-import { apiGet, getResponseData, urlByEnvType } from '../../scripts/utils/index.js';
 import { createElement, i18n } from '../../scripts/utils.js';
-
-// API Configuration
-const API_CONFIG = {
-  specsEndpoint: '/CmeWS/mvc/ContractSpecs/List/productId',
-};
 
 // Table Constants
 const TABLE_CONSTANTS = {
@@ -21,42 +17,14 @@ const TABLE_CONSTANTS = {
 
 const titleWrapper = createElement('div', { class: 'title-wrapper' });
 
-/* Fetch specs table data for futures */
+/* Fetch specs table data  */
 async function fetchSpecsTableData(productId) {
   try {
-    const url = `${urlByEnvType()}${API_CONFIG.specsEndpoint}/${productId}`;
-    const response = await apiGet(url);
-    const data = getResponseData(response) || response.data;
-
-    if (data) {
-      return data;
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to fetch specs table data:', error);
+    const data = await getContractSpecs(productId);
+    return data;
+  } catch (e) {
     return null;
   }
-
-  return null;
-}
-
-/* Fetch options labels for a specific product */
-async function fetchOptionTableData(optionProductId) {
-  try {
-    const url = `${urlByEnvType()}${API_CONFIG.specsEndpoint}/${optionProductId}`;
-    const response = await apiGet(url);
-    const data = getResponseData(response) || response.data;
-
-    if (data) {
-      return data;
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to fetch specs option table data:', error);
-    return null;
-  }
-
-  return null;
 }
 
 /* Build HTML collapsible structure */
@@ -197,22 +165,29 @@ async function createFuturesTable() {
     gradeAndQuality,
   ];
 
-  const tableData = [
-    specsData.ContractUnit || TABLE_CONSTANTS.placeholders.noData,
-    specsData.MinimumPriceFluctuation || TABLE_CONSTANTS.placeholders.noData,
-    specsData.PriceQuotation || TABLE_CONSTANTS.placeholders.noData,
-    specsData.TradingHours || TABLE_CONSTANTS.placeholders.noData,
-    specsData.ProductCode || TABLE_CONSTANTS.placeholders.noData,
-    specsData.ListedContracts || TABLE_CONSTANTS.placeholders.noData,
-    specsData.TerminationOfTrading || TABLE_CONSTANTS.placeholders.noData,
-    specsData.PositionLimits || TABLE_CONSTANTS.placeholders.noData,
-    specsData.ExchangeRulebook || TABLE_CONSTANTS.placeholders.noData,
-    specsData.BlockMinimum || TABLE_CONSTANTS.placeholders.noData,
-    specsData.VendorCodes || TABLE_CONSTANTS.placeholders.noData,
-    specsData.StrikePricesStrikePriceInterval || TABLE_CONSTANTS.placeholders.noData,
-    specsData.SettlementMethod || TABLE_CONSTANTS.placeholders.noData,
-    specsData.Underlying || TABLE_CONSTANTS.placeholders.noData,
+  const order = [
+    'ContractUnit',
+    'MinimumPriceFluctuation',
+    'PriceQuotation',
+    'TradingHours',
+    'ProductCode',
+    'ListedContracts',
+    'TerminationOfTrading',
+    'PositionLimits',
+    'ExchangeRulebook',
+    'BlockMinimum',
+    'VendorCodes',
+    'StrikePricesStrikePriceInterval',
+    'SettlementMethod',
+    'Underlying',
   ];
+
+  const tableData = order
+    .filter(key => Object.prototype.hasOwnProperty.call(specsData, key))
+    .map((key) => {
+      const value = specsData[key];
+      return getSpecItemView(value, key);
+  });
 
   const specsWrapper = createElement('div', { class: 'specs-wrapper' });
   const buildedTable = buildTable(headers, tableData, 'futures-specs-table');
@@ -230,7 +205,7 @@ async function createOptionsTable(optionProductId) {
 
   if (!productId) return null;
 
-  const optionsData = await fetchOptionTableData(optionProductId);
+  const optionsData = await fetchSpecsTableData(optionProductId);
 
   if (!optionsData || optionsData.length === 0) {
     return null;
@@ -360,29 +335,29 @@ function handleAboutReportModal(block) {
   });
 }
 
-export default async function decorate(block) {
-  // Add 'table' class to inherit table.css styles
-  await loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
+export default function decorate(block) {
   block.classList.add('table');
-
-  // Show loading state immediately (non-blocking)
-  block.innerHTML = '<div class="spinner-specs"><div></div><div></div><div></div><div></div></div>';
+  block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
   titleWrapper.innerHTML = '';
 
-  const [
-    specsLabel,
-  ] = await Promise.all([
-    i18n('Contract Specs'),
-  ]);
-  const { optionProductId } = getDisplayMode();
-  const title = await getProductTitle(optionProductId, specsLabel);
-  const titleHtml = createElement('h2', { class: 'specs-title' });
-  titleHtml.innerHTML = title;
-  titleWrapper.appendChild(titleHtml);
+  loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
 
-  block.insertAdjacentElement('beforebegin', titleWrapper);
+  Promise.all([i18n('Contract Specs')])
+    .then(([specsLabel]) => {
+      const { optionProductId } = getDisplayMode();
+      return getProductTitle(optionProductId, specsLabel);
+    })
+    .then((title) => {
+      const titleHtml = createElement('h2', { class: 'specs-title' });
+      titleHtml.innerHTML = title;
+      titleWrapper.prepend(titleHtml);
+      if (!titleWrapper.isConnected) {
+        block.insertAdjacentElement('beforebegin', titleWrapper);
+      }
+    })
+    // eslint-disable-next-line no-console
+    .catch((err) => console.error('load title error:', err));
 
-  // Load table data in background (non-blocking)
   renderTable(block).catch((error) => {
     block.innerHTML = `
       <div class="no-results">
