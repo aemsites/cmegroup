@@ -206,6 +206,14 @@ function createHeader(headerTitle, regulatoryReviewText, widgetSettings) {
  * @param {HTMLElement} block - The block element for event handling
  * @returns {HTMLElement} Tooltip container element
  */
+/**
+ * Check if device supports touch (checked dynamically)
+ * @returns {boolean} True if device supports touch
+ */
+function isTouchDevice() {
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+}
+
 function createTooltip(tooltipText, block) {
   const tooltipContainer = createElement('div', { class: 'tooltip-container' });
   const infoIcon = createElement('span', { class: 'info-icon' });
@@ -222,7 +230,6 @@ function createTooltip(tooltipText, block) {
 
   let hideTimeout = null;
   let showTimeout = null;
-  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
   infoIcon.addEventListener('click', (e) => {
     // eslint-disable-next-line no-console
@@ -270,11 +277,12 @@ function createTooltip(tooltipText, block) {
 
   // Show tooltip on hover (disabled on touch devices to prevent interference with click)
   tooltipContainer.addEventListener('mouseenter', (e) => {
+    const touchDevice = isTouchDevice();
     // eslint-disable-next-line no-console
-    console.log('[Tooltip Debug] Tooltip container mouseenter, isTouchDevice:', isTouchDevice);
+    console.log('[Tooltip Debug] Tooltip container mouseenter, isTouchDevice:', touchDevice);
     
     // Skip hover behavior on touch devices - let click handle it
-    if (isTouchDevice) {
+    if (touchDevice) {
       // eslint-disable-next-line no-console
       console.log('[Tooltip Debug] Skipping hover on touch device');
       return;
@@ -303,11 +311,12 @@ function createTooltip(tooltipText, block) {
 
   // Hide tooltip when mouse leaves (with small delay to allow moving to tooltip)
   tooltipContainer.addEventListener('mouseleave', (e) => {
+    const touchDevice = isTouchDevice();
     // eslint-disable-next-line no-console
-    console.log('[Tooltip Debug] Tooltip container mouseleave, isTouchDevice:', isTouchDevice);
+    console.log('[Tooltip Debug] Tooltip container mouseleave, isTouchDevice:', touchDevice);
     
     // Skip hover behavior on touch devices
-    if (isTouchDevice) {
+    if (touchDevice) {
       // eslint-disable-next-line no-console
       console.log('[Tooltip Debug] Skipping mouseleave on touch device');
       return;
@@ -325,11 +334,12 @@ function createTooltip(tooltipText, block) {
 
   // Keep tooltip visible when hovering over the tooltip itself (disabled on touch devices)
   tooltip.addEventListener('mouseenter', () => {
+    const touchDevice = isTouchDevice();
     // eslint-disable-next-line no-console
-    console.log('[Tooltip Debug] Tooltip itself mouseenter, isTouchDevice:', isTouchDevice);
+    console.log('[Tooltip Debug] Tooltip itself mouseenter, isTouchDevice:', touchDevice);
     
     // Skip hover behavior on touch devices
-    if (isTouchDevice) {
+    if (touchDevice) {
       // eslint-disable-next-line no-console
       console.log('[Tooltip Debug] Skipping tooltip hover on touch device');
       return;
@@ -347,11 +357,12 @@ function createTooltip(tooltipText, block) {
   });
 
   tooltip.addEventListener('mouseleave', () => {
+    const touchDevice = isTouchDevice();
     // eslint-disable-next-line no-console
-    console.log('[Tooltip Debug] Tooltip itself mouseleave, isTouchDevice:', isTouchDevice);
+    console.log('[Tooltip Debug] Tooltip itself mouseleave, isTouchDevice:', touchDevice);
     
     // Skip hover behavior on touch devices
-    if (isTouchDevice) {
+    if (touchDevice) {
       // eslint-disable-next-line no-console
       console.log('[Tooltip Debug] Skipping tooltip mouseleave on touch device');
       return;
@@ -580,6 +591,27 @@ async function createContractSpecsDisplay(
         // eslint-disable-next-line no-console
         console.log('[Tooltip Debug] Not closing tooltips (clicked on tooltip element)');
       }
+    });
+
+    // Add resize listener to handle viewport changes (close tooltips on significant viewport change)
+    let resizeTimeout = null;
+    window.addEventListener('resize', () => {
+      // Debounce resize events
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
+      resizeTimeout = setTimeout(() => {
+        const touchDevice = isTouchDevice();
+        // eslint-disable-next-line no-console
+        console.log('[Tooltip Debug] Viewport resized, isTouchDevice:', touchDevice);
+        // Close all tooltips on viewport change to ensure clean state
+        block.querySelectorAll('.tooltip.show').forEach((t) => {
+          // eslint-disable-next-line no-console
+          console.log('[Tooltip Debug] Closing tooltip due to viewport change');
+          t.classList.remove('show');
+        });
+        resizeTimeout = null;
+      }, 150);
     });
   }
 
