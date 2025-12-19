@@ -80,7 +80,7 @@
       width: 0.875rem;
       height: 0.875rem;
       vertical-align: middle;
-      cursor: pointer;
+      cursor: default;
       background-color: var(--blue4);
       opacity: 0.6;
       mask-image: url('/aemedge/icons/info-filled.svg');
