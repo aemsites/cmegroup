@@ -65,28 +65,23 @@ const mapModule = (data) => (
     description: data.description,
     completed: data.status === 'COMPLETED',
     progressPercentage: data.completionPercentage || 0,
-    lessons: data.lessons?.map((lesson) => ({
-      moduleId: lesson.educationElementId,
-      title: lesson.title,
-      completed: lesson.status === 'COMPLETED',
-      started: !!lesson.startDate || lesson.status !== 'PENDING',
-      url: lesson.url,
-      ...(lesson.quiz
-        ? {
-          quiz: {
-            ...lesson.quiz,
-            isCorrect:
-              lesson.quiz.status === 'COMPLETED' && lesson.status === 'COMPLETED',
-          },
-        }
-        : {}),
-    })),
+    lessons: data.lessons?.map(mapModule),
     completedLessons: data.lessons?.filter(({ status }) => status === 'COMPLETED').length,
     totalLessons: data.lessons?.length || 0,
     started: !!data.startDate || data.status !== 'PENDING',
     endDate: data.endDate,
     updated: data.updated,
     url: data.url,
+    template: data.template,
+    ...(data.quiz
+      ? {
+        quiz: {
+          ...data.quiz,
+          isCorrect:
+            data.quiz.status === 'COMPLETED' && data.status === 'COMPLETED',
+        },
+      }
+      : {}),
   }
 );
 

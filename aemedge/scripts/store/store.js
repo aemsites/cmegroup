@@ -4,10 +4,12 @@ import { quizInitState, quizReducer } from '../reducers/quiz.js';
 import { floatingElementsInitState, floatingElementsReducer } from '../reducers/floatingElements.js';
 import {
   productDataInitState,
+  productTabInitState,
   tabSelectionsInitState,
   globalOptionSelectionInitState,
   navigationInitState,
   productDataReducer,
+  productTabReducer,
   tabSelectionsReducer,
   globalOptionSelectionReducer,
   navigationReducer,
@@ -80,6 +82,7 @@ const rootReducer = combineReducers({
   quiz: quizReducer,
   floatingElements: floatingElementsReducer,
   productData: productDataReducer,
+  productTab: productTabReducer,
   tabSelections: tabSelectionsReducer,
   globalOptionSelection: globalOptionSelectionReducer,
   navigation: navigationReducer,
@@ -92,6 +95,7 @@ export const store = new Store(rootReducer, {
   quiz: quizInitState,
   floatingElements: floatingElementsInitState,
   productData: productDataInitState,
+  productTab: productTabInitState,
   tabSelections: tabSelectionsInitState,
   globalOptionSelection: globalOptionSelectionInitState,
   navigation: navigationInitState,

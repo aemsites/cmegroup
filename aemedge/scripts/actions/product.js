@@ -47,6 +47,13 @@ export function clearFetchPromise(apiName) {
 
 // ==================== TAB SELECTION ACTIONS (LEGACY) ====================
 
+export function loadedProductTab(loaded) {
+  return {
+    type: PRODUCT_ACTIONS.LOADED_PRODUCT_TAB,
+    payload: { loaded },
+  };
+}
+
 export function setTabSelection(tab, contractId) {
   return {
     type: PRODUCT_ACTIONS.SET_TAB_SELECTION,

@@ -8,6 +8,8 @@
 
 import { toClassName } from '../../scripts/aem.js';
 import { i18n } from '../../scripts/utils.js';
+import { store } from '../../scripts/store/store.js';
+import { loadedProductTab } from '../../scripts/actions/product.js';
 
 const CANONICAL_ORDER = ['overview', 'quotes', 'settlements', 'volume', 'specs', 'margins', 'calendar'];
 
@@ -210,6 +212,7 @@ function updateScrollIndicators(nav) {
 
 function renderNav(block, items) {
   const currentPath = normalizePath(window.location.pathname);
+  block.classList.add('container');
   const nav = document.createElement('nav');
   nav.className = 'product-tabs-nav';
   nav.setAttribute('aria-label', 'Product tabs');
@@ -265,7 +268,8 @@ function renderNav(block, items) {
 
     links.forEach((link) => {
       const linkPath = normalizePath(new URL(link.href).pathname);
-      if (linkPath === newPath) {
+      const active = (newPath === linkPath) || isEquivalentToTab(newPath, linkPath);
+      if (active) {
         link.classList.add('is-active');
       } else {
         link.classList.remove('is-active');
@@ -295,6 +299,30 @@ function renderNav(block, items) {
       // Wait for the SPA framework to update the URL and active state
       setTimeout(handleNavigation, 50);
     }
+  });
+
+  // Scroll on desktop mouse events
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+  nav.addEventListener('mousedown', (e) => {
+    isDown = true;
+    startX = e.pageX - nav.offsetLeft;
+    scrollLeft = nav.scrollLeft;
+  });
+  nav.addEventListener('mouseleave', () => {
+    isDown = false;
+  });
+  nav.addEventListener('mouseup', () => {
+    isDown = false;
+    nav.classList.remove('active-drag');
+  });
+  nav.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - nav.offsetLeft;
+    const walk = (x - startX);
+    nav.scrollLeft = scrollLeft - walk;
   });
 }
 
@@ -334,7 +362,24 @@ export default async function decorate(block) {
   }
 
   // First time render
-  renderNav(block, items);
+  let rendered = false;
+  store.subscribe(({ productData }) => productData, ({ loaded, productId, isActive }) => {
+    if (loaded && !rendered) {
+      const newItems = items.filter(
+        ({ key }) => (productId
+          ? isActive || ['overview', 'specs', 'calendar'].includes(key)
+          : key === 'overview'),
+      );
+      renderNav(block, newItems);
+      block.style.opacity = 1;
+      rendered = true;
+      store.dispatch(loadedProductTab(true));
+    }
+  });
+  store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
+    const container = block.closest('.product-tabs-container');
+    container.style.top = `${height - 1}px`;
+  });
 
   // Mark as decorated
   block.dataset.decorated = 'true';

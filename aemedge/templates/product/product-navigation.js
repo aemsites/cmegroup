@@ -12,7 +12,7 @@ import {
   setGlobalOptionSelection,
   clearGlobalOptionSelection,
 } from '../../scripts/actions/product.js';
-import { getDefaultTab, ensureSubTabsContentContainer } from './product-dom-helpers.js';
+import { getDefaultTab, ensureSubTabsContentContainer, insertFragmentIfApplicable } from './product-dom-helpers.js';
 
 // Export for use in other modules
 export const PREFETCH_CACHE = new Map();
@@ -244,7 +244,7 @@ function wireNavClicks(container, productRoot) {
     a.dataset.spaWired = 'true';
     a.dataset.spaIndex = index;
 
-    a.addEventListener('click', (e) => {
+    a.parentElement.addEventListener('click', (e) => {
       // ✅ UX: Prevent clicking on already active tab
       if (a.classList.contains('is-active')) {
         e.preventDefault();
@@ -420,7 +420,9 @@ export async function renderProductPath(url, productRoot) {
     Promise.all([
       ...clones.map((cl) => loadSection(cl)),
       domOpsPromise, // Let toggle populate in background
-    ]).catch(() => {});
+    ]).then(() => {
+      insertFragmentIfApplicable(productRoot).catch(() => {});
+    }).catch(() => {});
   } catch (e) {
     const container = ensureSubTabsContentContainer();
     if (container) {

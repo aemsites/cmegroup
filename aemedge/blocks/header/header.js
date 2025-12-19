@@ -225,6 +225,12 @@ class Nav {
       scrollTimeout = setTimeout(updateHeaderState, 10);
     });
 
+    window.addEventListener('keydown', async (e) => {
+      if (e.key === 'Escape') {
+        this.closeSearchDrawer();
+      }
+    });
+
     this.el.querySelectorAll('a').forEach((a) => {
       const href = a.getAttribute('href');
       if (href) {

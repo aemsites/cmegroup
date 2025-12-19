@@ -742,6 +742,7 @@ function showTooltip(parent, content, hideAfter) {
   if (hideAfter) {
     setTimeout(() => { tooltip.remove(); }, hideAfter);
   }
+  return tooltip;
 }
 
 function closeAuthToast(toast) {
@@ -819,6 +820,33 @@ function convertMMSSToHHMM(timeStr) {
   return `${hh}:${mm}`;
 }
 
+/**
+ * Convert hyphenated key to camelCase
+ * @param {string} key - The hyphenated key (e.g., "contract-unit")
+ * @returns {string} CamelCase key (e.g., "ContractUnit")
+ */
+function hyphenToCamelCase(key) {
+  if (!key.includes('-')) {
+    return key.charAt(0).toUpperCase() + key.slice(1);
+  }
+  return key
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+}
+
+export default function loadExtraCss(block) {
+  const { blockName } = block.dataset;
+  import(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}-extra-css.js`).then((mod) => {
+    const extraCssMapping = mod.default;
+    extraCssMapping.forEach(({ variation, file }) => {
+      if (variation.every((c) => block.classList.contains(c))) {
+        loadCSS(`${window.hlx.codeBasePath}${file}`);
+      }
+    });
+  });
+}
+
 export {
   loadScript,
   createElement,
@@ -851,4 +879,6 @@ export {
   getLanguageLabel,
   debounce,
   convertMMSSToHHMM,
+  hyphenToCamelCase,
+  loadExtraCss,
 };
