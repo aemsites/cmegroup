@@ -13,6 +13,8 @@ const API_CONFIG = {
   contractsByNumberEndpoint: '/CmeWS/mvc/quotes/v2/contracts-by-number',
   contractSpecsEndpoint: '/CmeWS/mvc/ContractSpecs/List/productId',
   cvolEndpoint: '/services/cvol',
+  calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
+  optionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
 };
 
 export function normalizePath(pathname) {
@@ -322,6 +324,21 @@ export async function getCvolIndexData(productIds) {
   } catch (e) {
     return [];
   }
+}
+
+export async function getCalendarFutures(productId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.calendarEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  return data;
+}
+
+export async function getCalendarOptions(productId, optionProductId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.optionsEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  const optionData = data.filter((item) => item.productIds[0] === Number(optionProductId));
+  return optionData[0].calendarEntries;
 }
 
 /**

@@ -317,7 +317,7 @@ export function ensureSubTabsContentContainer() {
 
   let container = tabsSection.nextElementSibling;
   if (!container || !container.classList.contains('product-subtabs-content')) {
-    const inner = createElement('div');
+    const inner = createElement('div', { class: 'container' });
     container = createElement('div', { class: 'section product-subtabs-content full-width' }, inner);
     tabsSection.parentNode.insertBefore(container, tabsSection.nextSibling);
   }

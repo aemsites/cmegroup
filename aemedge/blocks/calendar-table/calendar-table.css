@@ -1,4 +1,6 @@
 .calendar-table-wrapper {
+  padding: 0 !important;
+
   & .calendar-table {
     margin: 2rem 0;
   
