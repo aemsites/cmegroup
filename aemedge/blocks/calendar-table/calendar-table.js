@@ -4,17 +4,12 @@ import {
   applyAuthorOverride,
   getProductTitle,
   getDisplayMode,
+  getCalendarFutures,
+  getCalendarOptions,
 } from '../../scripts/utils/product.js';
 import { createAuthTooltip } from '../../scripts/utils/authTooltip.js';
-import { apiGet, getResponseData, urlByEnvType } from '../../scripts/utils/index.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
-
-// API Configuration
-const API_CONFIG = {
-  calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
-  optionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
-};
 
 // Table Constants
 const TABLE_CONSTANTS = {
@@ -31,41 +26,21 @@ let isLoggedIn = false;
 /* Fetch calendar table data for futures */
 async function fetchCalendarTableData(productId) {
   try {
-    const url = `${urlByEnvType()}${API_CONFIG.calendarEndpoint}/${productId}`;
-    const response = await apiGet(url);
-    const data = getResponseData(response) || response.data;
-
-    if (data) {
-      return data;
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to fetch calendar table data:', error);
+    const data = await getCalendarFutures(productId);
+    return data;
+  } catch (e) {
     return null;
   }
-
-  return null;
 }
 
 /* Fetch options labels for a specific product */
 async function fetchOptionTableData(productId, optionProductId) {
   try {
-    const url = `${urlByEnvType()}${API_CONFIG.optionsEndpoint}/${productId}`;
-    const response = await apiGet(url);
-    const data = getResponseData(response) || response.data;
-
-    const optionData = data.filter((item) => item.productIds[0] === Number(optionProductId));
-
-    if (optionData) {
-      return optionData[0].calendarEntries;
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to fetch calendar option table data:', error);
+    const optionData = await getCalendarOptions(productId, optionProductId);
+    return optionData;
+  } catch (e) {
     return null;
   }
-
-  return null;
 }
 
 /* Build HTML collapsible structure */
@@ -449,35 +424,37 @@ async function createLoadAllWrapper(block) {
   return loadAllWrapper;
 }
 
-export default async function decorate(block) {
+export default function decorate(block) {
   const { authenticationData } = authentication;
-  authenticationData.loginPromise.then(async () => {
+
+  authenticationData.loginPromise.then(() => {
     if (authenticationData.isLoggedIn) {
       isLoggedIn = true;
     }
   });
-  // Add 'table' class to inherit table.css styles
-  await loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
-  block.classList.add('table');
 
-  // Show loading state immediately (non-blocking)
+  block.classList.add('table');
   block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
   titleWrapper.innerHTML = '';
 
-  const [
-    calendarLabel,
-  ] = await Promise.all([
-    i18n('Calendar'),
-  ]);
-  const { optionProductId } = getDisplayMode();
-  const title = await getProductTitle(optionProductId, calendarLabel);
-  const titleHtml = createElement('h2', { class: 'calendar-title' });
-  titleHtml.innerHTML = title;
-  titleWrapper.appendChild(titleHtml);
+  loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
 
-  block.insertAdjacentElement('beforebegin', titleWrapper);
+  Promise.all([i18n('Calendar')])
+    .then(([calendarLabel]) => {
+      const { optionProductId } = getDisplayMode();
+      return getProductTitle(optionProductId, calendarLabel);
+    })
+    .then((title) => {
+      const titleHtml = createElement('h2', { class: 'calendar-title' });
+      titleHtml.innerHTML = title;
+      titleWrapper.prepend(titleHtml);
+      if (!titleWrapper.isConnected) {
+        block.insertAdjacentElement('beforebegin', titleWrapper);
+      }
+    })
+    // eslint-disable-next-line no-console
+    .catch((err) => console.error('load title error:', err));
 
-  // Load table data in background (non-blocking)
   renderTable(block).catch((error) => {
     block.innerHTML = `
       <div class="no-results">
