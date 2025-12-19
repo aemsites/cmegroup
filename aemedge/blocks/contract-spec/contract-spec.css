@@ -212,7 +212,7 @@
       & .item-container {
         margin-bottom: 0;
 
-        @media (width < 993px) {
+        @media (width >= 769px) and (width < 993px) {
           display: flex;
           flex-direction: column;
           align-items: flex-start;
@@ -228,33 +228,15 @@
           }
         }
 
-        @media (width < 769px) {
-          flex-direction: row;
-          align-items: flex-start;
-
-          & > * {
-            width: auto;
-          }
-
-          & > span:not(.title) {
-            width: auto;
-          }
-        }
-
         & .title {
           font-weight: 600;
           color: var(--gray3);
           padding-right: 0.3125rem;
 
-          @media (width < 993px) {
+          @media (width >= 769px) and (width < 993px) {
             padding-right: 0;
             margin-bottom: 0.25rem;
             width: 100%;
-          }
-
-          @media (width < 769px) {
-            margin-bottom: 0;
-            max-width: 80%;
           }
         }
       }
