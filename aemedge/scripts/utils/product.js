@@ -14,7 +14,7 @@ const API_CONFIG = {
   contractSpecsEndpoint: '/CmeWS/mvc/ContractSpecs/List/productId',
   cvolEndpoint: '/services/cvol',
   calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
-  optionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
+  calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
 };
 
 const minimumPriceOrderedKeys = [
@@ -385,7 +385,7 @@ export async function getCalendarFutures(productId) {
 }
 
 export async function getCalendarOptions(productId, optionProductId) {
-  const endpoint = `${urlByEnvType()}${API_CONFIG.optionsEndpoint}/${productId}`;
+  const endpoint = `${urlByEnvType()}${API_CONFIG.calendarOptionsEndpoint}/${productId}`;
   const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
   const data = getResponseData(response) || response.data;
   const optionData = data.filter((item) => item.productIds[0] === Number(optionProductId));
