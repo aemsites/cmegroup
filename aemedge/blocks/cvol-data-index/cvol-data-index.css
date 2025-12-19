@@ -1,0 +1,281 @@
+.cvol-data-index {
+  & .cvol-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Single View */
+  & .product {
+    padding-bottom: 0;
+
+    @media (width >= 769px) {
+      padding-bottom: 0.8125rem;
+    }
+
+    & .product-name-single {
+      color: var(--white);
+      font-family: var(--averta);
+      font-weight: 600;
+      font-size: 1.25rem;
+      line-height: 1.625rem;
+      padding: 1rem 0;
+
+      @media (width >= 769px) {
+        font-size: 1.625rem;
+        line-height: 2.125rem;
+        padding-bottom: 1.25rem;
+      }
+    }
+
+    & .values-row {
+      display: block;
+
+      & .title {
+        font-family: var(--averta);
+        font-weight: 700;
+        font-size: 0.6875rem;
+        line-height: 0.6875rem;
+        color: var(--gray4);
+        padding-bottom: 0.625rem;
+      }
+
+      & .single-code {
+        display: flex;
+        align-items: center;
+
+        & .title {
+          display: inline-block;
+          padding-bottom: 0;
+          padding-right: 0.625rem;
+          text-transform: uppercase;
+        }
+
+        & .symbol {
+          font-size: 0.75rem;
+          line-height: 1.375rem;
+          color: var(--white);
+          border: 1px solid var(--gray3);
+          border-radius: 0.25rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          padding: 0 0.5rem;
+
+          @media (width >= 769px) {
+            font-size: 1.125rem;
+            padding: 0.5rem;
+          }
+        }
+      }
+
+      & .single-price,
+      & .single-change {
+        display: inline-block;
+        min-width: 50%;
+        padding-top: 1.4375rem;
+
+        & .title {
+          display: block;
+          padding-bottom: 0.625rem;
+          text-transform: uppercase;
+        }
+
+        & .price {
+          font-size: 1.25rem;
+          font-family: var(--roboto-mono);
+          font-weight: 400;
+          line-height: 1.25rem;
+          color: var(--white);
+
+          @media (width >= 769px) {
+            font-size: 1.75rem;
+            line-height: 3rem;
+          }
+
+          &.positive {
+            color: var(--green-positive-2);
+          }
+
+          &.negative {
+            color: var(--red2);
+          }
+        }
+      }
+    }
+  }
+
+  /* Desktop View - Table */
+  & table {
+    width: 100%;
+    border-spacing: 0;
+
+    & thead {
+      background-color: var(--blue1);
+
+      & th {
+        color: var(--gray4);
+        border: 1px solid var(--gray3);
+        font-family: var(--averta);
+        font-weight: 400;
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 1.25rem;
+        letter-spacing: 0.069rem;
+        line-height: 0.875rem;
+      }
+    }
+
+    & tbody {
+      & tr {
+        background-color: var(--blue2);
+
+        &:nth-child(even) {
+          background-color: var(--blue3-a);
+        }
+
+        &:hover {
+          background-color: var(--blue-active);
+        }
+
+        & td {
+          padding: 1.25rem 1rem;
+          border: 1px solid var(--gray3);
+          font-family: var(--roboto-mono);
+          font-weight: 400;
+          font-size: 0.875rem;
+
+          & .product-data {
+            display: block;
+            color: var(--white);
+
+            @media (width >= 993px) {
+              display: flex;
+              align-items: center;
+            }
+
+            & .symbol {
+              border: 1px solid var(--gray3);
+              border-radius: 0.25rem;
+              font-size: 0.625rem;
+              padding: 0 0.3125rem;
+              max-height: 1.625rem;
+              width: fit-content;
+
+              @media (width >= 993px) {
+                width: auto;
+              }
+            }
+
+            & .product-name {
+              padding-top: 0.625rem;
+              padding-left: 0;
+
+              @media (width >= 993px) {
+                padding-top: 0;
+                padding-left: 1.4375rem;
+              }
+            }
+          }
+
+          &.cvol-price {
+            text-align: right;
+            color: var(--white);
+          }
+
+          &.cvol-price-change {
+            text-align: right;
+            color: var(--white);
+
+            &.positive {
+              color: var(--green-positive-2);
+            }
+
+            &.negative {
+              color: var(--red2);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* Mobile View */
+  & .product-row {
+    border-top: 1px solid var(--gray3);
+    border-bottom: 1px solid var(--gray3);
+
+    & + .product-row {
+      border-top: none;
+    }
+
+    & .product-name {
+      border-bottom: 1px solid var(--gray3);
+      color: var(--white);
+      font-family: var(--averta);
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.9375rem 0;
+    }
+
+    & .multi-values-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 1rem 0;
+
+      & .code-col,
+      & .price-col,
+      & .price-change-col {
+        display: block;
+        text-align: left;
+      }
+
+      & .title {
+        font-family: var(--averta);
+        font-weight: 700;
+        font-size: 0.6875rem;
+        line-height: 0.6875rem;
+        color: var(--gray4);
+        padding-bottom: 0.625rem;
+        text-transform: uppercase;
+      }
+
+      & .symbol {
+        border: 1px solid var(--gray3);
+        border-radius: 0.25rem;
+        font-size: 0.625rem;
+        overflow: hidden;
+        padding: 0 0.5rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--white);
+      }
+
+      & .price {
+        font-family: var(--roboto-mono);
+        font-weight: 400;
+        font-size: 0.8125rem;
+        color: var(--white);
+
+        &.positive {
+          color: var(--green-positive-2);
+        }
+
+        &.negative {
+          color: var(--red2);
+        }
+      }
+    }
+  }
+
+  & .timestamp {
+    padding-top: 1.5625rem;
+    font-size: 0.75rem;
+    color: var(--white);
+    font-style: italic;
+
+    @media (width >= 769px) {
+      padding-top: 0.75rem;
+    }
+  }
+}

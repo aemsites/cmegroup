@@ -2,6 +2,18 @@ import { authInitState, authReducer } from '../reducers/auth.js';
 import { courseInitState, courseReducer } from '../reducers/course.js';
 import { quizInitState, quizReducer } from '../reducers/quiz.js';
 import { floatingElementsInitState, floatingElementsReducer } from '../reducers/floatingElements.js';
+import {
+  productDataInitState,
+  productTabInitState,
+  tabSelectionsInitState,
+  globalOptionSelectionInitState,
+  navigationInitState,
+  productDataReducer,
+  productTabReducer,
+  tabSelectionsReducer,
+  globalOptionSelectionReducer,
+  navigationReducer,
+} from '../reducers/product.js';
 
 class Store {
   constructor(reducer, initialState = {}) {
@@ -69,6 +81,11 @@ const rootReducer = combineReducers({
   courseData: courseReducer,
   quiz: quizReducer,
   floatingElements: floatingElementsReducer,
+  productData: productDataReducer,
+  productTab: productTabReducer,
+  tabSelections: tabSelectionsReducer,
+  globalOptionSelection: globalOptionSelectionReducer,
+  navigation: navigationReducer,
 });
 
 // eslint-disable-next-line import/prefer-default-export
@@ -77,4 +94,9 @@ export const store = new Store(rootReducer, {
   courseData: courseInitState,
   quiz: quizInitState,
   floatingElements: floatingElementsInitState,
+  productData: productDataInitState,
+  productTab: productTabInitState,
+  tabSelections: tabSelectionsInitState,
+  globalOptionSelection: globalOptionSelectionInitState,
+  navigation: navigationInitState,
 });
