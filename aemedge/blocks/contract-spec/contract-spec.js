@@ -235,6 +235,20 @@ function createTooltip(tooltipText, block) {
     }
   });
 
+  // Show tooltip on hover
+  tooltipContainer.addEventListener('mouseenter', () => {
+    // Always close all visible tooltips first
+    block.querySelectorAll('.tooltip.show').forEach((t) => {
+      t.classList.remove('show');
+    });
+    tooltip.classList.add('show');
+  });
+
+  // Hide tooltip when mouse leaves
+  tooltipContainer.addEventListener('mouseleave', () => {
+    tooltip.classList.remove('show');
+  });
+
   return tooltipContainer;
 }
 
