@@ -220,11 +220,30 @@ function createTooltip(tooltipText, block) {
   tooltipContainer.appendChild(infoIcon);
   tooltipContainer.appendChild(tooltip);
 
+  let hideTimeout = null;
+  let showTimeout = null;
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
   infoIcon.addEventListener('click', (e) => {
     // eslint-disable-next-line no-console
     console.log('[Tooltip Debug] Info icon clicked');
     e.stopPropagation();
     e.preventDefault();
+    
+    // Clear any pending timeouts
+    if (hideTimeout) {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Clearing hide timeout on click');
+      clearTimeout(hideTimeout);
+      hideTimeout = null;
+    }
+    if (showTimeout) {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Clearing show timeout on click');
+      clearTimeout(showTimeout);
+      showTimeout = null;
+    }
+    
     const isVisible = tooltip.classList.contains('show');
     // eslint-disable-next-line no-console
     console.log('[Tooltip Debug] Tooltip currently visible:', isVisible);
@@ -249,12 +268,18 @@ function createTooltip(tooltipText, block) {
     }
   });
 
-  let hideTimeout = null;
-
-  // Show tooltip on hover
+  // Show tooltip on hover (disabled on touch devices to prevent interference with click)
   tooltipContainer.addEventListener('mouseenter', (e) => {
     // eslint-disable-next-line no-console
-    console.log('[Tooltip Debug] Tooltip container mouseenter');
+    console.log('[Tooltip Debug] Tooltip container mouseenter, isTouchDevice:', isTouchDevice);
+    
+    // Skip hover behavior on touch devices - let click handle it
+    if (isTouchDevice) {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Skipping hover on touch device');
+      return;
+    }
+    
     e.stopPropagation();
     // Clear any pending hide timeout
     if (hideTimeout) {
@@ -279,7 +304,15 @@ function createTooltip(tooltipText, block) {
   // Hide tooltip when mouse leaves (with small delay to allow moving to tooltip)
   tooltipContainer.addEventListener('mouseleave', (e) => {
     // eslint-disable-next-line no-console
-    console.log('[Tooltip Debug] Tooltip container mouseleave - setting hide timeout');
+    console.log('[Tooltip Debug] Tooltip container mouseleave, isTouchDevice:', isTouchDevice);
+    
+    // Skip hover behavior on touch devices
+    if (isTouchDevice) {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Skipping mouseleave on touch device');
+      return;
+    }
+    
     e.stopPropagation();
     // Small delay to allow mouse to move from icon to tooltip
     hideTimeout = setTimeout(() => {
@@ -290,10 +323,18 @@ function createTooltip(tooltipText, block) {
     }, 100);
   });
 
-  // Keep tooltip visible when hovering over the tooltip itself
+  // Keep tooltip visible when hovering over the tooltip itself (disabled on touch devices)
   tooltip.addEventListener('mouseenter', () => {
     // eslint-disable-next-line no-console
-    console.log('[Tooltip Debug] Tooltip itself mouseenter');
+    console.log('[Tooltip Debug] Tooltip itself mouseenter, isTouchDevice:', isTouchDevice);
+    
+    // Skip hover behavior on touch devices
+    if (isTouchDevice) {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Skipping tooltip hover on touch device');
+      return;
+    }
+    
     if (hideTimeout) {
       // eslint-disable-next-line no-console
       console.log('[Tooltip Debug] Clearing hide timeout on tooltip hover');
@@ -307,7 +348,17 @@ function createTooltip(tooltipText, block) {
 
   tooltip.addEventListener('mouseleave', () => {
     // eslint-disable-next-line no-console
-    console.log('[Tooltip Debug] Tooltip itself mouseleave - hiding');
+    console.log('[Tooltip Debug] Tooltip itself mouseleave, isTouchDevice:', isTouchDevice);
+    
+    // Skip hover behavior on touch devices
+    if (isTouchDevice) {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Skipping tooltip mouseleave on touch device');
+      return;
+    }
+    
+    // eslint-disable-next-line no-console
+    console.log('[Tooltip Debug] Hiding tooltip');
     tooltip.classList.remove('show');
   });
 
@@ -754,3 +805,4 @@ export default async function decorate(block) {
     await createFuturesContractSpec(block);
   }
 }
+
