@@ -204,7 +204,6 @@
       }
     }
 
-    /* Two-column layout for ProductCode and other configured fields */
     &.two-column {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -222,15 +221,22 @@
             display: block;
             width: 100%;
           }
+
+          & > span:not(.title) {
+            display: block;
+            width: 100%;
+          }
         }
 
         @media (width < 769px) {
-          display: flex;
           flex-direction: row;
           align-items: flex-start;
 
           & > * {
-            display: block;
+            width: auto;
+          }
+
+          & > span:not(.title) {
             width: auto;
           }
         }
@@ -247,24 +253,8 @@
           }
 
           @media (width < 769px) {
-            padding-right: 0;
             margin-bottom: 0;
-            width: auto;
             max-width: 80%;
-          }
-        }
-
-        @media (width < 993px) {
-          & > span:not(.title) {
-            display: block;
-            width: 100%;
-          }
-        }
-
-        @media (width < 769px) {
-          & > span:not(.title) {
-            display: block;
-            width: auto;
           }
         }
       }
