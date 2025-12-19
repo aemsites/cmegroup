@@ -764,14 +764,14 @@ async function createStaticContractSpec(block) {
   }
 }
 
-export default async function decorate(block) {
+export default function decorate(block) {
   if (block.classList.contains('futures')) {
-    await createFuturesContractSpec(block);
+    createFuturesContractSpec(block);
   } else if (block.classList.contains('options')) {
-    await createOptionsContractSpec(block);
+    createOptionsContractSpec(block);
   } else if (block.classList.contains('static')) {
-    await createStaticContractSpec(block);
+    createStaticContractSpec(block);
   } else {
-    await createFuturesContractSpec(block);
+    createFuturesContractSpec(block);
   }
 }
