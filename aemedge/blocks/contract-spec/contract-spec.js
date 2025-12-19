@@ -227,25 +227,57 @@ function createTooltip(tooltipText, block) {
 
     // Always close all visible tooltips first
     block.querySelectorAll('.tooltip.show').forEach((t) => {
-      t.classList.remove('show');
+      if (t !== tooltip) {
+        t.classList.remove('show');
+      }
     });
 
     if (!isVisible) {
       tooltip.classList.add('show');
+    } else {
+      tooltip.classList.remove('show');
     }
   });
 
+  let hideTimeout = null;
+
   // Show tooltip on hover
-  tooltipContainer.addEventListener('mouseenter', () => {
+  tooltipContainer.addEventListener('mouseenter', (e) => {
+    e.stopPropagation();
+    // Clear any pending hide timeout
+    if (hideTimeout) {
+      clearTimeout(hideTimeout);
+      hideTimeout = null;
+    }
     // Always close all visible tooltips first
     block.querySelectorAll('.tooltip.show').forEach((t) => {
-      t.classList.remove('show');
+      if (t !== tooltip) {
+        t.classList.remove('show');
+      }
     });
     tooltip.classList.add('show');
   });
 
-  // Hide tooltip when mouse leaves
-  tooltipContainer.addEventListener('mouseleave', () => {
+  // Hide tooltip when mouse leaves (with small delay to allow moving to tooltip)
+  tooltipContainer.addEventListener('mouseleave', (e) => {
+    e.stopPropagation();
+    // Small delay to allow mouse to move from icon to tooltip
+    hideTimeout = setTimeout(() => {
+      tooltip.classList.remove('show');
+      hideTimeout = null;
+    }, 100);
+  });
+
+  // Keep tooltip visible when hovering over the tooltip itself
+  tooltip.addEventListener('mouseenter', () => {
+    if (hideTimeout) {
+      clearTimeout(hideTimeout);
+      hideTimeout = null;
+    }
+    tooltip.classList.add('show');
+  });
+
+  tooltip.addEventListener('mouseleave', () => {
     tooltip.classList.remove('show');
   });
 
@@ -439,11 +471,14 @@ async function createContractSpecsDisplay(
   if (!block.hasAttribute('data-tooltip-listener')) {
     block.setAttribute('data-tooltip-listener', 'true');
     document.addEventListener('click', (e) => {
-      // If clicking outside this block or outside any tooltip container, close all tooltips
+      // If clicking outside this block or outside any tooltip container/tooltip, close all tooltips
       const clickedTooltipContainer = e.target.closest('.tooltip-container');
+      const clickedTooltip = e.target.closest('.tooltip');
+      const clickedInfoIcon = e.target.closest('.info-icon');
       const clickedInsideBlock = block.contains(e.target);
 
-      if (!clickedInsideBlock || !clickedTooltipContainer) {
+      // Don't close if clicking on tooltip container, tooltip, or info icon
+      if (!clickedInsideBlock || (!clickedTooltipContainer && !clickedTooltip && !clickedInfoIcon)) {
         block.querySelectorAll('.tooltip.show').forEach((t) => {
           t.classList.remove('show');
         });

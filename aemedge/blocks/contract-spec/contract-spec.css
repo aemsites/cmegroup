@@ -237,6 +237,7 @@
 
         & .title {
           font-weight: 600;
+          color: var(--gray3);
           padding-right: 0.3125rem;
 
           @media (width < 993px) {
