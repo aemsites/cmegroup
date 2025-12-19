@@ -221,20 +221,30 @@ function createTooltip(tooltipText, block) {
   tooltipContainer.appendChild(tooltip);
 
   infoIcon.addEventListener('click', (e) => {
+    // eslint-disable-next-line no-console
+    console.log('[Tooltip Debug] Info icon clicked');
     e.stopPropagation();
     e.preventDefault();
     const isVisible = tooltip.classList.contains('show');
+    // eslint-disable-next-line no-console
+    console.log('[Tooltip Debug] Tooltip currently visible:', isVisible);
 
     // Always close all visible tooltips first
     block.querySelectorAll('.tooltip.show').forEach((t) => {
       if (t !== tooltip) {
+        // eslint-disable-next-line no-console
+        console.log('[Tooltip Debug] Closing other visible tooltip');
         t.classList.remove('show');
       }
     });
 
     if (!isVisible) {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Showing tooltip');
       tooltip.classList.add('show');
     } else {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Hiding tooltip');
       tooltip.classList.remove('show');
     }
   });
@@ -243,26 +253,38 @@ function createTooltip(tooltipText, block) {
 
   // Show tooltip on hover
   tooltipContainer.addEventListener('mouseenter', (e) => {
+    // eslint-disable-next-line no-console
+    console.log('[Tooltip Debug] Tooltip container mouseenter');
     e.stopPropagation();
     // Clear any pending hide timeout
     if (hideTimeout) {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Clearing pending hide timeout');
       clearTimeout(hideTimeout);
       hideTimeout = null;
     }
     // Always close all visible tooltips first
     block.querySelectorAll('.tooltip.show').forEach((t) => {
       if (t !== tooltip) {
+        // eslint-disable-next-line no-console
+        console.log('[Tooltip Debug] Closing other visible tooltip on hover');
         t.classList.remove('show');
       }
     });
+    // eslint-disable-next-line no-console
+    console.log('[Tooltip Debug] Showing tooltip on hover');
     tooltip.classList.add('show');
   });
 
   // Hide tooltip when mouse leaves (with small delay to allow moving to tooltip)
   tooltipContainer.addEventListener('mouseleave', (e) => {
+    // eslint-disable-next-line no-console
+    console.log('[Tooltip Debug] Tooltip container mouseleave - setting hide timeout');
     e.stopPropagation();
     // Small delay to allow mouse to move from icon to tooltip
     hideTimeout = setTimeout(() => {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Hide timeout fired - hiding tooltip');
       tooltip.classList.remove('show');
       hideTimeout = null;
     }, 100);
@@ -270,14 +292,22 @@ function createTooltip(tooltipText, block) {
 
   // Keep tooltip visible when hovering over the tooltip itself
   tooltip.addEventListener('mouseenter', () => {
+    // eslint-disable-next-line no-console
+    console.log('[Tooltip Debug] Tooltip itself mouseenter');
     if (hideTimeout) {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Clearing hide timeout on tooltip hover');
       clearTimeout(hideTimeout);
       hideTimeout = null;
     }
+    // eslint-disable-next-line no-console
+    console.log('[Tooltip Debug] Keeping tooltip visible');
     tooltip.classList.add('show');
   });
 
   tooltip.addEventListener('mouseleave', () => {
+    // eslint-disable-next-line no-console
+    console.log('[Tooltip Debug] Tooltip itself mouseleave - hiding');
     tooltip.classList.remove('show');
   });
 
@@ -471,17 +501,33 @@ async function createContractSpecsDisplay(
   if (!block.hasAttribute('data-tooltip-listener')) {
     block.setAttribute('data-tooltip-listener', 'true');
     document.addEventListener('click', (e) => {
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Document click detected');
       // If clicking outside this block or outside any tooltip container/tooltip, close all tooltips
       const clickedTooltipContainer = e.target.closest('.tooltip-container');
       const clickedTooltip = e.target.closest('.tooltip');
       const clickedInfoIcon = e.target.closest('.info-icon');
       const clickedInsideBlock = block.contains(e.target);
 
+      // eslint-disable-next-line no-console
+      console.log('[Tooltip Debug] Click details:', {
+        clickedTooltipContainer: !!clickedTooltipContainer,
+        clickedTooltip: !!clickedTooltip,
+        clickedInfoIcon: !!clickedInfoIcon,
+        clickedInsideBlock,
+        target: e.target,
+      });
+
       // Don't close if clicking on tooltip container, tooltip, or info icon
       if (!clickedInsideBlock || (!clickedTooltipContainer && !clickedTooltip && !clickedInfoIcon)) {
+        // eslint-disable-next-line no-console
+        console.log('[Tooltip Debug] Closing tooltips (clicked outside)');
         block.querySelectorAll('.tooltip.show').forEach((t) => {
           t.classList.remove('show');
         });
+      } else {
+        // eslint-disable-next-line no-console
+        console.log('[Tooltip Debug] Not closing tooltips (clicked on tooltip element)');
       }
     });
   }
