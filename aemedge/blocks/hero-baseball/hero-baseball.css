@@ -24,22 +24,27 @@
 
   /* Title */
   & h1 {
-    font-size: 2.25rem;
+    font-size: 1.5rem;
     font-weight: 600;
     margin: 0 0 0.5rem;
     color: white;
 
     @media (width >= 769px) {
-      font-size: 3rem;
+      font-size: 2.625rem;
     }
   }
 
   /* Subtitle */
   & .hero-subtitle {
-    font-size: 1.125rem;
+    font-size: 0.875rem;
+    letter-spacing: 0.09rem;
     font-weight: 400;
     margin-bottom: 2rem;
     color: rgb(255 255 255 / 90%);
+
+    @media (width >= 769px) {
+      font-size: 1rem;
+    }
   }
 
   /* Launch date */
@@ -66,6 +71,10 @@
       flex-direction: column;
       gap: 0.25rem;
       margin-bottom: 1.875rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
     }
   }
 
@@ -131,6 +140,12 @@
     }
 
     & .hero-breadcrumb {
+      padding-bottom: 1.25rem;
+
+      @media (width >= 481px) {
+        padding-bottom: 0;
+      }
+
       & a {
         color: var(--white);
         cursor: pointer;
@@ -487,8 +502,10 @@
       justify-content: center;
       gap: 0.3125rem;
       align-items: end;
-      width: fit-content;
-      max-width: fit-content;
+      max-width: 9.8125rem;
+      width: fill-available;
+      width: -webkit-fill-available;
+      cursor: pointer;
 
       @media (width >= 1201px) {
         align-self: end;
