@@ -23,26 +23,6 @@ const maxRows = 12;
 const titleWrapper = createElement('div', { class: 'title-wrapper' });
 let isLoggedIn = false;
 
-/* Fetch calendar table data for futures */
-async function fetchCalendarTableData(productId) {
-  try {
-    const data = await getCalendarFutures(productId);
-    return data;
-  } catch (e) {
-    return null;
-  }
-}
-
-/* Fetch options labels for a specific product */
-async function fetchOptionTableData(productId, optionProductId) {
-  try {
-    const optionData = await getCalendarOptions(productId, optionProductId);
-    return optionData;
-  } catch (e) {
-    return null;
-  }
-}
-
 /* Build HTML collapsible structure */
 function buildCollapsible(headers, data, collapsibleId = '') {
   const collapsible = createElement('div', { class: 'collapsible-calendar' });
@@ -127,7 +107,7 @@ async function createFuturesTable() {
 
   if (!productId) return null;
 
-  const calendarData = await fetchCalendarTableData(productId);
+  const calendarData = await getCalendarFutures(productId);
 
   if (!calendarData || calendarData.length === 0) {
     return null;
@@ -216,7 +196,7 @@ async function createOptionsTable(optionProductId) {
 
   if (!productId) return null;
 
-  const optionsData = await fetchOptionTableData(productId, optionProductId);
+  const optionsData = await getCalendarOptions(productId, optionProductId);
 
   if (!optionsData || optionsData.length === 0) {
     return null;
