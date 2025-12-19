@@ -99,7 +99,7 @@
         }
 
         & .product-slate-table {
-          border: solid 0.0625rem var(--gray4);
+          border-collapse: collapse;
           border-spacing: 0;
           box-sizing: border-box !important;
           font-family: var(--averta);
@@ -155,6 +155,10 @@
             border-top: solid 0.0625rem var(--gray3);
             letter-spacing: 0.0688rem;
 
+            @media (width >= 993px) {
+              border-top-width: 0.125rem;
+            }
+
             @media (width >= 1588px) {
               position: sticky;
               top: 0;
@@ -191,6 +195,12 @@
             font-stretch: 100%;
             text-transform: uppercase;
             vertical-align: middle;
+
+            &:last-of-type {
+              @media (width >= 993px) {
+                border-right: solid 0.0625rem transparent;
+              }
+            }
 
             & .sort-column {
               place-content: space-between;
@@ -276,6 +286,12 @@
             white-space: pre-wrap;
             height: auto;
             text-align: center;
+
+            &:last-of-type {
+              @media (width >= 993px) {
+                border-right: solid 0.0625rem transparent;
+              }
+            }
 
             &.fixed {
               color: var(--blue5);
