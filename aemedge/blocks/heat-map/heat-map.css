@@ -94,7 +94,7 @@
   & .product-code {
     display: inline-block;
     position: relative;
-    padding: 0 0.5rem 0 0.5rem;
+    padding: 0 0.5rem;
     border: 0.0625rem solid var(--gray3);
     height: 1.25rem;
     line-height: 1.125rem;
