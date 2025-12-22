@@ -6,6 +6,7 @@ import {
   getDisplayMode,
   getCalendarFutures,
   getCalendarOptions,
+  handleAboutReportModal,
 } from '../../scripts/utils/product.js';
 import { createAuthTooltip } from '../../scripts/utils/authTooltip.js';
 import { createElement, i18n } from '../../scripts/utils.js';
@@ -348,22 +349,6 @@ async function renderTable(block) {
   }
 }
 
-/* Handle "About this Report" modal */
-function handleAboutReportModal(block) {
-  block.addEventListener('click', async (e) => {
-    if (e.target.classList.contains('about-report-link')) {
-      e.preventDefault();
-      try {
-        const { openModal } = await import('../modal/modal.js');
-        const fragmentUrl = '/fragments/disclaimers/markets/calendar';
-        await openModal(fragmentUrl);
-      } catch (error) {
-        // Silent fail
-      }
-    }
-  });
-}
-
 async function createLoadAllWrapper(block) {
   const loadAllWrapper = createElement('div', { class: 'load-all-wrapper' });
   if (needShowAll) {
@@ -444,5 +429,7 @@ export default function decorate(block) {
     `;
   });
 
-  handleAboutReportModal(block);
+  const fragmentUrl = '/fragments/disclaimers/markets/calendar';
+  const modalItemClass = 'about-report-link';
+  handleAboutReportModal(block, modalItemClass, fragmentUrl);
 }
