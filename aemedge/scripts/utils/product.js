@@ -539,6 +539,9 @@ function renderRow(
   orderedKeys,
   formattedKey,
 ) {
+  // null or undefined data
+  if (items === null || items === undefined || items === '') return '';
+
   // Case 1: Simple String/Number
   if (typeof items !== 'object') {
     return `
@@ -626,4 +629,18 @@ export function getSpecItemView(spec, key) {
     default:
       return renderRow(spec);
   }
+}
+
+export function handleAboutReportModal(block, modalItemClass, fragmentUrl) {
+  block.addEventListener('click', async (e) => {
+    if (e.target.classList.contains(modalItemClass)) {
+      e.preventDefault();
+      try {
+        const { openModal } = await import('../../blocks/modal/modal.js');
+        await openModal(fragmentUrl);
+      } catch (error) {
+        // Silent fail
+      }
+    }
+  });
 }

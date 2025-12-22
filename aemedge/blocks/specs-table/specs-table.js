@@ -8,24 +8,7 @@ import {
 } from '../../scripts/utils/product.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 
-// Table Constants
-const TABLE_CONSTANTS = {
-  placeholders: {
-    noData: '-',
-  },
-};
-
 const titleWrapper = createElement('div', { class: 'title-wrapper' });
-
-/* Fetch specs table data  */
-async function fetchSpecsTableData(productId) {
-  try {
-    const data = await getContractSpecs(productId);
-    return data;
-  } catch (e) {
-    return null;
-  }
-}
 
 /* Build HTML collapsible structure */
 function buildCollapsible(headers, data, collapsibleId = '') {
@@ -33,13 +16,18 @@ function buildCollapsible(headers, data, collapsibleId = '') {
   if (collapsibleId) collapsible.id = collapsibleId;
 
   headers.forEach((header, index) => {
+    const itemData = data[index];
     const collapsibleItem = createElement('div', { class: 'collapsible-item' });
+    const isEmpty = itemData === null || itemData === undefined || itemData === '';
+    if (isEmpty) {
+      collapsibleItem.classList.add('hidden-collapsible');
+    }
     const collapsibleButton = createElement('button', { class: 'collapsible-button btn-secondary' });
     collapsibleButton.innerHTML = header;
     collapsibleItem.appendChild(collapsibleButton);
     const collapse = createElement('div', { class: 'collapse' });
     const collapseBody = createElement('div', { class: 'collapse-body' });
-    collapseBody.innerHTML = data[index];
+    collapseBody.innerHTML = itemData ?? '';
     collapse.appendChild(collapseBody);
     collapsibleItem.appendChild(collapse);
     collapsible.appendChild(collapsibleItem);
@@ -62,46 +50,56 @@ function buildTable(headers, data, tableId = '') {
   const table = createElement('table', { class: 'table-specs' });
   if (tableId) table.id = tableId;
 
-  const thead = createElement('thead');
-  const headerRow = createElement('tr');
-
-  headers.forEach((header) => {
-    const th = createElement('th');
-    th.innerHTML = header;
-    headerRow.appendChild(th);
-  });
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
-
   const tbody = createElement('tbody');
-  data.forEach((rowData) => {
+
+  headers.forEach((headerText, index) => {
     const tr = createElement('tr');
-    rowData.forEach((cellData) => {
-      const td = createElement('td');
-      if (typeof cellData === 'string') {
-        td.innerHTML = cellData;
-      } else if (cellData instanceof HTMLElement) {
-        td.appendChild(cellData);
-      } else {
-        td.innerHTML = cellData;
-      }
-      tr.appendChild(td);
-    });
+
+    const tdLabel = createElement('td', { class: 'primary-group' });
+    tdLabel.innerHTML = headerText;
+    tr.appendChild(tdLabel);
+
+    const tdValue = createElement('td');
+    const cellData = data[index];
+
+    const isEmpty = cellData === null || cellData === undefined || cellData === '';
+
+    if (isEmpty) {
+      tr.classList.add('hidden-row');
+    }
+
+    if (typeof cellData === 'string') {
+      tdValue.innerHTML = cellData;
+    } else if (cellData instanceof HTMLElement) {
+      tdValue.appendChild(cellData);
+    } else {
+      tdValue.innerHTML = cellData;
+    }
+
+    tr.appendChild(tdValue);
     tbody.appendChild(tr);
   });
-  table.appendChild(tbody);
 
+  table.appendChild(tbody);
   return table;
 }
 
-/* Create futures specs table */
-async function createFuturesTable() {
+/* Create specs table */
+async function createSpecsTable(optionProductId) {
   const productMetadata = await getProductMetadata();
   const productId = productMetadata.productId || getMetadata('product-id');
+  let specsData;
+  let headers;
+  let order;
 
   if (!productId) return null;
 
-  const specsData = await fetchSpecsTableData(productId);
+  /* Fetch specs table data  */
+  if (optionProductId) {
+    specsData = await getContractSpecs(optionProductId);
+  } else {
+    specsData = await getContractSpecs(productId);
+  }
 
   if (!specsData || specsData.length === 0) {
     return null;
@@ -125,6 +123,8 @@ async function createFuturesTable() {
     vendorCodes,
     lastDeliveryDate,
     gradeAndQuality,
+    strikePricesStrikePriceInterval,
+    underlying,
   ] = await Promise.all([
     i18n('Contract Unit'),
     i18n('Price Quotation'),
@@ -143,115 +143,96 @@ async function createFuturesTable() {
     i18n('Vendor Codes'),
     i18n('Last Delivery Date'),
     i18n('Grade and Quality'),
+    i18n('Strike Prices Strike Price Interval'),
+    i18n('Underlying'),
   ]);
 
-  const headers = [
-    contractUnit,
-    priceQuotation,
-    tradingHours,
-    minimumPriceFluctuation,
-    productCode,
-    listedContracts,
-    settlementMethod,
-    terminationOfTrading,
-    tamOrTasRules,
-    settlementProcedures,
-    positionLimits,
-    exchangeRulebook,
-    blockMinimum,
-    priceLimitOrCircuit,
-    vendorCodes,
-    lastDeliveryDate,
-    gradeAndQuality,
-  ];
+  if (optionProductId) {
+    headers = [
+      contractUnit,
+      minimumPriceFluctuation,
+      priceQuotation,
+      tradingHours,
+      productCode,
+      listedContracts,
+      terminationOfTrading,
+      exchangeRulebook,
+      blockMinimum,
+      priceLimitOrCircuit,
+      vendorCodes,
+      strikePricesStrikePriceInterval,
+      settlementMethod,
+      underlying,
+    ];
 
-  const order = [
-    'ContractUnit',
-    'MinimumPriceFluctuation',
-    'PriceQuotation',
-    'TradingHours',
-    'ProductCode',
-    'ListedContracts',
-    'TerminationOfTrading',
-    'PositionLimits',
-    'ExchangeRulebook',
-    'BlockMinimum',
-    'VendorCodes',
-    'StrikePricesStrikePriceInterval',
-    'SettlementMethod',
-    'Underlying',
-  ];
+    order = [
+      'ContractUnit',
+      'MinimumPriceFluctuation',
+      'PriceQuotation',
+      'TradingHours',
+      'ProductCode',
+      'ListedContracts',
+      'TerminationOfTrading',
+      'ExchangeRulebook',
+      'BlockMinimum',
+      'PriceLimitOrCircuit',
+      'VendorCodes',
+      'StrikePricesStrikePriceInterval',
+      'SettlementMethod',
+      'Underlying',
+    ];
+  } else {
+    headers = [
+      contractUnit,
+      priceQuotation,
+      tradingHours,
+      minimumPriceFluctuation,
+      productCode,
+      listedContracts,
+      settlementMethod,
+      terminationOfTrading,
+      tamOrTasRules,
+      settlementProcedures,
+      positionLimits,
+      exchangeRulebook,
+      blockMinimum,
+      priceLimitOrCircuit,
+      vendorCodes,
+      lastDeliveryDate,
+      gradeAndQuality,
+    ];
+
+    order = [
+      'ContractUnit',
+      'PriceQuotation',
+      'TradingHours',
+      'MinimumPriceFluctuation',
+      'ProductCode',
+      'ListedContracts',
+      'SettlementMethod',
+      'TerminationOfTrading',
+      'TradeAtMarkerOrTradeAtSettlementRules',
+      'SettlementProcedures',
+      'PositionLimits',
+      'ExchangeRulebook',
+      'BlockMinimum',
+      'PriceLimitOrCircuit',
+      'VendorCodes',
+      'LastDeliveryDate',
+      'GradeAndQuality',
+    ];
+  }
 
   const tableData = order
-    .filter(key => Object.prototype.hasOwnProperty.call(specsData, key))
+    .filter((key) => Object.prototype.hasOwnProperty.call(specsData, key))
     .map((key) => {
       const value = specsData[key];
       return getSpecItemView(value, key);
-  });
+    });
 
   const specsWrapper = createElement('div', { class: 'specs-wrapper' });
   const buildedTable = buildTable(headers, tableData, 'futures-specs-table');
   const buildedCollapsible = buildCollapsible(headers, tableData, 'futures-specs-collapsible');
-  specsWrapper.appendChild(buildedTable);
-  specsWrapper.appendChild(buildedCollapsible);
-
-  return specsWrapper;
-}
-
-/* Create option specs table */
-async function createOptionsTable(optionProductId) {
-  const productMetadata = await getProductMetadata();
-  const productId = productMetadata.productId || getMetadata('product-id');
-
-  if (!productId) return null;
-
-  const optionsData = await fetchSpecsTableData(optionProductId);
-
-  if (!optionsData || optionsData.length === 0) {
-    return null;
-  }
-
-  const [
-    contractMonth,
-    productCode,
-    firstTrade,
-    lastTrade,
-    settlement,
-  ] = await Promise.all([
-    i18n('Contract Month'),
-    i18n('Product Code'),
-    i18n('First Trade'),
-    i18n('Last Trade'),
-    i18n('Settlement'),
-  ]);
-
-  const headers = [
-    contractMonth,
-    productCode,
-    `<span>${firstTrade}</span><span>${lastTrade}</span>`,
-    settlement,
-  ];
-
-  const tableData = optionsData.map((item) => [
-    item.contractMonth || TABLE_CONSTANTS.placeholders.noData,
-    item.productCode || TABLE_CONSTANTS.placeholders.noData,
-    `<span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span>`,
-    item.settlement || TABLE_CONSTANTS.placeholders.noData,
-  ]);
-
-  const collapsibleHeaders = optionsData.map((item) => [
-    item.contractMonth || TABLE_CONSTANTS.placeholders.noData,
-  ]);
-
-  const collapsibleData = optionsData.map((item) => [
-    `<div class="row-data"><span>${productCode}</span><span>${item.productCode || TABLE_CONSTANTS.placeholders.noData}</span></div>
-    <div class="row-data"><div><span>${firstTrade}</span><span>${lastTrade}</span></div><div><span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
-    <div class="row-data"><span>${settlement}</span><span>${item.settlement || TABLE_CONSTANTS.placeholders.noData}</span></div>`,
-  ]);
-
-  const specsWrapper = createElement('div', { class: 'specs-wrapper' });
-  const buildedTable = buildTable(headers, tableData, 'option-specs-table');
-  const buildedCollapsible = buildCollapsible(collapsibleHeaders, collapsibleData, 'option-specs-collapsible');
   specsWrapper.appendChild(buildedTable);
   specsWrapper.appendChild(buildedCollapsible);
 
@@ -280,34 +261,21 @@ async function renderTable(block) {
     let table = null;
 
     if (isOptions) {
-      table = await createOptionsTable(optionProductId);
-
-      if (table) {
-        block.innerHTML = '';
-        block.appendChild(table);
-      } else {
-        block.innerHTML = `
-          <div class="no-results">
-            <h4>Unable to load options specs</h4>
-            <p>specs data is currently unavailable.</p>
-          </div>
-        `;
-      }
+      table = await createSpecsTable(optionProductId);
     } else {
-      // Futures mode
-      table = await createFuturesTable();
+      table = await createSpecsTable();
+    }
 
-      if (table) {
-        block.innerHTML = '';
-        block.appendChild(table);
-      } else {
-        block.innerHTML = `
-          <div class="no-results">
-            <h4>Unable to load futures specs</h4>
-            <p>specs data is currently unavailable.</p>
-          </div>
-        `;
-      }
+    if (table) {
+      block.innerHTML = '';
+      block.appendChild(table);
+    } else {
+      block.innerHTML = `
+        <div class="no-results">
+          <h4>Unable to load specs</h4>
+          <p>specs data is currently unavailable.</p>
+        </div>
+      `;
     }
   } catch (error) {
     block.innerHTML = `
@@ -317,22 +285,6 @@ async function renderTable(block) {
       </div>
     `;
   }
-}
-
-/* Handle "About this Report" modal */
-function handleAboutReportModal(block) {
-  block.addEventListener('click', async (e) => {
-    if (e.target.classList.contains('about-report-link')) {
-      e.preventDefault();
-      try {
-        const { openModal } = await import('../modal/modal.js');
-        const fragmentUrl = '/fragments/disclaimers/markets/specs';
-        await openModal(fragmentUrl);
-      } catch (error) {
-        // Silent fail
-      }
-    }
-  });
 }
 
 export default function decorate(block) {
@@ -366,6 +318,4 @@ export default function decorate(block) {
       </div>
     `;
   });
-
-  handleAboutReportModal(block);
 }
