@@ -195,16 +195,16 @@ export async function createProductTable(options = {}) {
     headerRow.appendChild(createSortableHeader('subGroup', productGroupText));
   }
   if (columns.category !== false) {
-    headerRow.appendChild(createSortableHeader('category', categoryText));
+    headerRow.appendChild(createSortableHeader('cat', categoryText));
   }
   if (columns.subCategory !== false) {
-    headerRow.appendChild(createSortableHeader('subCategory', subCategoryText));
+    headerRow.appendChild(createSortableHeader('subCat', subCategoryText));
   }
   if (columns.clearedAs !== false) {
     headerRow.appendChild(createSortableHeader('cleared', clearedAsText));
   }
   if (columns.volume !== false) {
-    headerRow.appendChild(createSortableHeader('volume', volumeText));
+    headerRow.appendChild(createSortableHeader('vol', volumeText));
   }
   if (columns.openInterest !== false) {
     headerRow.appendChild(createSortableHeader('oi', openInterestText));
