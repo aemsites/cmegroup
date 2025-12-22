@@ -317,13 +317,18 @@ export async function loadProductData(productId) {
   return productDataPromise;
 }
 
-export async function getContractsByNumber(productId) {
+export async function getContractsByNumber(
+  productIds,
+  contractsNumber = [1],
+  showQuarterly = [0],
+  type = 'VOLUME',
+) {
   const endpoint = `${urlByEnvType()}${API_CONFIG.contractsByNumberEndpoint}`;
   const payload = {
-    productIds: [productId],
-    contractsNumber: [1],
-    type: 'VOLUME',
-    showQuarterly: [0],
+    productIds,
+    contractsNumber,
+    type,
+    showQuarterly,
   };
   const headers = {
     'Content-Type': 'application/json',

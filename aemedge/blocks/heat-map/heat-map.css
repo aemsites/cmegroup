@@ -1,0 +1,124 @@
+.heat-map {
+  & a {
+    text-decoration: none;
+  }
+
+  & .portfolio-icon {
+    display: inline-block;
+    position: absolute;
+    top: 0.375rem;
+    right: 0.5rem;
+    z-index: 1;
+    color: var(--gray3);
+
+    &:hover {
+      color: var(--white);
+      cursor: pointer;
+    }
+
+    &:active {
+      color: var(--gray3);
+    }
+
+    &.authenticated {
+      color: var(--blue5);
+      opacity: 1;
+      cursor: inherit;
+
+      &.enabled {
+        opacity: 0.3;
+
+        &:hover {
+          cursor: pointer;
+          opacity: 1;
+        }
+
+        &:active {
+          opacity: 0.3;
+        }
+      }
+    }
+
+    &::before {
+      font-size: 0.75rem;
+      padding: 0.25rem;
+      font-family: var(--cme-group-icons);
+      content: var(--icon-briefcase);
+    }
+  }
+
+  & .product-options {
+    display: inline-block;
+    position: absolute;
+    top: 3.8125rem;
+    right: 1.375rem;
+    z-index: 1;
+    font-size: 0.625rem;
+    line-height: 0.625rem;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.125rem;
+    font-weight: bold;
+    background-color: var(--blue5);
+    color: var(--blue3-a);
+
+    &:hover,
+    &:active {
+      color: var(--white);
+      background-color: rgb(60 200 255 / 30%);
+    }
+  }
+
+  & .heat-map-card {
+    background-color: var(--blue3-a);
+    border-left: 0.375rem solid var(--blue3-a);
+
+    &.heat-map-color_0 { border-color: #5a6874; }
+    &.heat-map-color_1 { border-color: #557a66; }
+    &.heat-map-color_2 { border-color: #508c57; }
+    &.heat-map-color_3 { border-color: #4b9d49; }
+    &.heat-map-color_4 { border-color: #46af3a; }
+    &.heat-map-color_5 { border-color: #41c12c; }
+    &.heat-map-color_6 { border-color: #3cd31d; }
+    &.heat-map-color_7 { border-color: #37e40f; }
+    &.heat-map-color_8 { border-color: #32f600; }
+    &.heat-map-color_-1 { border-color: #6f5b6d; }
+    &.heat-map-color_-2 { border-color: #834e66; }
+    &.heat-map-color_-3 { border-color: #98415f; }
+    &.heat-map-color_-4 { border-color: #ad3459; }
+    &.heat-map-color_-5 { border-color: #c12752; }
+    &.heat-map-color_-6 { border-color: #d61a4b; }
+    &.heat-map-color_-7 { border-color: #ea0d44; }
+    &.heat-map-color_-8 { border-color: #ff003d; }
+  }
+
+  & .product-code {
+    display: inline-block;
+    position: relative;
+    padding: 0 0.5rem 0 0.5rem;
+    border: 0.0625rem solid var(--gray3);
+    height: 1.25rem;
+    line-height: 1.125rem;
+    font-size: 0.625rem;
+    color: var(--white);
+    border-radius: 0.25rem;
+    margin-bottom: 0.375rem;
+    top: -0.125rem;
+  }
+
+  & .product-name {
+    font-size: 0.8125rem;
+    font-family: var(--averta);
+    font-weight: 600;
+    color: var(--white);
+    padding-top: 0.25rem;
+    line-height: 1rem;
+  }
+
+  & .product-values {
+    font-size: 0.75rem;
+    line-height: 0.875rem;
+    font-family: var(--roboto-mono);
+    font-weight: 400;
+    color: var(--gray5);
+  }
+}

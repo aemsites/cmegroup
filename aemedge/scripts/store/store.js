@@ -14,6 +14,7 @@ import {
   globalOptionSelectionReducer,
   navigationReducer,
 } from '../reducers/product.js';
+import { heatMapInitState, heatMapReducer } from '../reducers/heatMap.js';
 
 class Store {
   constructor(reducer, initialState = {}) {
@@ -86,6 +87,7 @@ const rootReducer = combineReducers({
   tabSelections: tabSelectionsReducer,
   globalOptionSelection: globalOptionSelectionReducer,
   navigation: navigationReducer,
+  heatMap: heatMapReducer,
 });
 
 // eslint-disable-next-line import/prefer-default-export
@@ -99,4 +101,5 @@ export const store = new Store(rootReducer, {
   tabSelections: tabSelectionsInitState,
   globalOptionSelection: globalOptionSelectionInitState,
   navigation: navigationInitState,
+  heatMap: heatMapInitState,
 });
