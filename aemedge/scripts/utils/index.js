@@ -1,3 +1,4 @@
+export * from './arrays.js';
 export * from './cookie.js';
 export * from './dataCache.js';
 export * from './dom.js';
