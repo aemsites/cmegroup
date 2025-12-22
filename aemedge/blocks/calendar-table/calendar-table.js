@@ -6,6 +6,7 @@ import {
   getDisplayMode,
   getCalendarFutures,
   getCalendarOptions,
+  handleAboutReportModal,
 } from '../../scripts/utils/product.js';
 import { createAuthTooltip } from '../../scripts/utils/authTooltip.js';
 import { createElement, i18n } from '../../scripts/utils.js';
