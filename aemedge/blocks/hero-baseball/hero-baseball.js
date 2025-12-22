@@ -138,6 +138,7 @@ async function createHeroStructure(productData, config, block) {
     updatedLabel,
     marketNoteLabel,
     watchlistsLabel,
+    tradingSimulatorLabel,
   ] = await Promise.all([
     i18n('Globex Code'),
     i18n('Last'),
@@ -146,6 +147,7 @@ async function createHeroStructure(productData, config, block) {
     i18n('Last Updated'),
     i18n('Market data is delayed by at least 10 minutes'),
     i18n('Watchlists'),
+    i18n('Trading Simulator'),
   ]);
   const contractData = createElement('div', { class: 'contract-data' });
   const globex = createElement('div', { class: 'label' }, globexLabel);
@@ -173,6 +175,22 @@ async function createHeroStructure(productData, config, block) {
   const actions = createElement('div', { class: 'actions reverse' }, [
     createElement('a', { class: 'button primary' }, briefcaseIconSpan, watchlistsLabel),
   ]);
+  if (config['trading-simulator'] === 'enabled') {
+    const tradingSimulator = createElement('a', { class: 'button secondary' }, tradingSimulatorLabel);
+    actions.prepend(tradingSimulator);
+    import('../../scripts/modules/Authentication.js').then(({ authentication }) => {
+      const { authenticationData } = authentication;
+      authenticationData.loginPromise.then(async () => {
+        const { isLoggedIn } = authenticationData;
+        const { productSymbol } = productData;
+        let url = `/education/practice/about-the-trading-simulator?itm_source=${productSymbol}pdp&itm_medium=button&itm_campaign=pdpsimulator&itm_content=aboutsimulatorunregistered`;
+        if (isLoggedIn) {
+          url = `/trading_tools/simulator?symbol=${productSymbol}&itm_source=${productSymbol}pdp&itm_medium=button&itm_campaign=pdpsimulator&itm_content=simulator`;
+        }
+        tradingSimulator.setAttribute('href', url);
+      });
+    });
+  }
   contractData.append(globexCode, lastValue, priceChange, volumeInfo, actions);
   container.append(contractData);
   if (isActive) {

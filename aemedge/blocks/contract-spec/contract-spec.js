@@ -5,6 +5,7 @@ import {
   i18n,
   setupDayjsLibs,
   getCdtDate,
+  hyphenToCamelCase,
 } from '../../scripts/utils.js';
 import {
   getProductMetadata,
@@ -28,7 +29,6 @@ function formatFieldValue(fieldName, apiData, labels = {}) {
   const value = apiData[fieldName];
   if (!value) return '';
 
-  // Handle string values
   if (typeof value === 'string') {
     return value.trim() || '';
   }
@@ -110,42 +110,51 @@ async function fetchContractSpecs(productId) {
 }
 
 /**
- * Parse static data from HTML block options
+ * Parse static data from block config
  * Handles key-value pairs where keys match API field names
  * For ProductCode, uses colon and comma as separator: "CmeGlobex: ZC, ClearPort: C"
- * @param {HTMLElement} block - The block element containing HTML options
+ * @param {Object} config - The block config object from readBlockConfig
  * @returns {Object} Parsed static data object
  */
-function parseStaticData(block) {
-  const config = readBlockConfig(block);
+function parseStaticData(config) {
   const staticData = {};
 
   Object.keys(config).forEach((key) => {
-    // Skip override keys and config keys
-    if (key.startsWith('override-') || key === 'two-column-fields') {
+    // Skip override keys, config keys, and widget settings
+    if (key.startsWith('override-') || key === 'two-column-fields' || key === 'show-last-updated' || key === 'show-regulatory-review' || key === 'regulatory-review-text') {
       return;
     }
 
-    const value = config[key];
-    if (!value || typeof value !== 'string') {
+    let value = config[key];
+    if (!value) {
       return;
     }
+
+    // Handle arrays (from multiple paragraphs/links) - join them
+    if (Array.isArray(value)) {
+      value = value.join(' ');
+    }
+
+    if (typeof value !== 'string') {
+      value = String(value);
+    }
+
+    const camelKey = hyphenToCamelCase(key);
 
     // Handle ProductCode with colon/comma separator
-    if (key === 'ProductCode') {
+    if (camelKey === 'ProductCode') {
       const parts = value.split(',').map((part) => part.trim());
-      staticData[key] = {};
+      staticData[camelKey] = {};
       parts.forEach((part) => {
         const colonIndex = part.indexOf(':');
         if (colonIndex > -1) {
           const fieldName = part.substring(0, colonIndex).trim();
           const fieldValue = part.substring(colonIndex + 1).trim();
-          staticData[key][fieldName] = fieldValue;
+          staticData[camelKey][fieldName] = fieldValue;
         }
       });
     } else {
-      // Regular field - store as string
-      staticData[key] = value;
+      staticData[camelKey] = value;
     }
   });
 
@@ -197,6 +206,14 @@ function createHeader(headerTitle, regulatoryReviewText, widgetSettings) {
  * @param {HTMLElement} block - The block element for event handling
  * @returns {HTMLElement} Tooltip container element
  */
+/**
+ * Check if device supports touch (checked dynamically)
+ * @returns {boolean} True if device supports touch
+ */
+function isTouchDevice() {
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+}
+
 function createTooltip(tooltipText, block) {
   const tooltipContainer = createElement('div', { class: 'tooltip-container' });
   const infoIcon = createElement('span', { class: 'info-icon' });
@@ -211,21 +228,105 @@ function createTooltip(tooltipText, block) {
   tooltipContainer.appendChild(infoIcon);
   tooltipContainer.appendChild(tooltip);
 
-  // Add click handler to toggle tooltip
+  let hideTimeout = null;
+  let showTimeout = null;
+
   infoIcon.addEventListener('click', (e) => {
     e.stopPropagation();
     e.preventDefault();
+
+    // Clear any pending timeouts
+    if (hideTimeout) {
+      clearTimeout(hideTimeout);
+      hideTimeout = null;
+    }
+    if (showTimeout) {
+      clearTimeout(showTimeout);
+      showTimeout = null;
+    }
+
     const isVisible = tooltip.classList.contains('show');
 
     // Always close all visible tooltips first
     block.querySelectorAll('.tooltip.show').forEach((t) => {
-      t.classList.remove('show');
+      if (t !== tooltip) {
+        t.classList.remove('show');
+      }
     });
 
-    // If this tooltip wasn't visible, show it now
     if (!isVisible) {
       tooltip.classList.add('show');
+    } else {
+      tooltip.classList.remove('show');
     }
+  });
+
+  // Show tooltip on hover (disabled on touch devices to prevent interference with click)
+  tooltipContainer.addEventListener('mouseenter', (e) => {
+    const touchDevice = isTouchDevice();
+
+    // Skip hover behavior on touch devices - let click handle it
+    if (touchDevice) {
+      return;
+    }
+
+    e.stopPropagation();
+    // Clear any pending hide timeout
+    if (hideTimeout) {
+      clearTimeout(hideTimeout);
+      hideTimeout = null;
+    }
+    // Always close all visible tooltips first
+    block.querySelectorAll('.tooltip.show').forEach((t) => {
+      if (t !== tooltip) {
+        t.classList.remove('show');
+      }
+    });
+    tooltip.classList.add('show');
+  });
+
+  // Hide tooltip when mouse leaves (with small delay to allow moving to tooltip)
+  tooltipContainer.addEventListener('mouseleave', (e) => {
+    const touchDevice = isTouchDevice();
+
+    // Skip hover behavior on touch devices
+    if (touchDevice) {
+      return;
+    }
+
+    e.stopPropagation();
+    // Small delay to allow mouse to move from icon to tooltip
+    hideTimeout = setTimeout(() => {
+      tooltip.classList.remove('show');
+      hideTimeout = null;
+    }, 100);
+  });
+
+  // Keep tooltip visible when hovering over the tooltip itself (disabled on touch devices)
+  tooltip.addEventListener('mouseenter', () => {
+    const touchDevice = isTouchDevice();
+
+    // Skip hover behavior on touch devices
+    if (touchDevice) {
+      return;
+    }
+
+    if (hideTimeout) {
+      clearTimeout(hideTimeout);
+      hideTimeout = null;
+    }
+    tooltip.classList.add('show');
+  });
+
+  tooltip.addEventListener('mouseleave', () => {
+    const touchDevice = isTouchDevice();
+
+    // Skip hover behavior on touch devices
+    if (touchDevice) {
+      return;
+    }
+
+    tooltip.classList.remove('show');
   });
 
   return tooltipContainer;
@@ -243,12 +344,10 @@ function createTooltip(tooltipText, block) {
 function createFieldItem(fieldName, displayValue, specItemClass, tooltipText, block) {
   const li = createElement('li');
 
-  // Field name with info icon
   const fieldHeading = createElement('h5', { class: 'list-title' });
   const fieldNameText = document.createTextNode(formatFieldName(fieldName));
   fieldHeading.appendChild(fieldNameText);
 
-  // Add tooltip if text is available
   if (tooltipText) {
     const tooltipContainer = createTooltip(tooltipText, block);
     fieldHeading.appendChild(tooltipContainer);
@@ -256,7 +355,6 @@ function createFieldItem(fieldName, displayValue, specItemClass, tooltipText, bl
 
   li.appendChild(fieldHeading);
 
-  // Field value container
   const specItem = createElement('div', { class: `spec-item ${specItemClass}` });
 
   // For object/multi types, parse and structure the HTML
@@ -298,7 +396,6 @@ function createFieldItem(fieldName, displayValue, specItemClass, tooltipText, bl
       });
     }
   } else {
-    // Simple single value
     specItem.innerHTML = displayValue;
   }
 
@@ -328,7 +425,6 @@ async function createFooter(lastUpdatedText, viewFullSpecsText, showLink = true)
   await setupDayjsLibs();
   const footer = createElement('div', { class: 'contract-spec-footer' });
 
-  // Add view full specs link
   if (showLink) {
     const viewFullLink = createElement('div', { class: 'full-contract-link-large' });
     const link = createElement('a', { href: buildSpecsUrl() });
@@ -339,7 +435,6 @@ async function createFooter(lastUpdatedText, viewFullSpecsText, showLink = true)
     footer.appendChild(viewFullLink);
   }
 
-  // Add last updated timestamp
   const lastUpdated = createElement('p', { class: 'last-updated' });
   const updateDate = getCdtDate(Date.now()).format('DD MMM YYYY hh:mm:ss A');
   lastUpdated.textContent = `${lastUpdatedText} ${updateDate} CT.`;
@@ -364,7 +459,6 @@ async function createContractSpecsDisplay(
   widgetSettings,
   twoColumnFields = TWO_COLUMN_FIELDS,
 ) {
-  // Load i18n strings
   const [
     defaultTitle,
     noResultsText,
@@ -397,7 +491,6 @@ async function createContractSpecsDisplay(
     i18n('TAS'),
   ]);
 
-  // Build ProductCode labels map
   const productCodeLabels = {
     globexLabel,
     clearPortLabel,
@@ -405,7 +498,6 @@ async function createContractSpecsDisplay(
     tasLabel,
   };
 
-  // Build tooltip map with translated text
   const tooltipMap = {
     ContractUnit: tooltipContractUnit,
     PriceQuotation: tooltipPriceQuotation,
@@ -413,15 +505,12 @@ async function createContractSpecsDisplay(
     TradingHours: tooltipTradingHours,
   };
 
-  // Build widget container
   const widgetContainer = createElement('div');
 
-  // Add header with title
   const headerTitle = widgetSettings['override-main-title'] || defaultTitle;
   const header = createHeader(headerTitle, regulatoryReviewText, widgetSettings);
   widgetContainer.appendChild(header);
 
-  // Build spec data container
   const specDataContainer = createElement('div', { class: 'spec-data-container' });
   const ul = createElement('ul');
   const cardElements = [];
@@ -430,33 +519,50 @@ async function createContractSpecsDisplay(
   if (!block.hasAttribute('data-tooltip-listener')) {
     block.setAttribute('data-tooltip-listener', 'true');
     document.addEventListener('click', (e) => {
-      // If clicking outside this block or outside any tooltip container, close all tooltips
+      // If clicking outside this block or outside any tooltip container/tooltip, close all tooltips
       const clickedTooltipContainer = e.target.closest('.tooltip-container');
+      const clickedTooltip = e.target.closest('.tooltip');
+      const clickedInfoIcon = e.target.closest('.info-icon');
       const clickedInsideBlock = block.contains(e.target);
 
-      if (!clickedInsideBlock || !clickedTooltipContainer) {
+      // Don't close if clicking on tooltip container, tooltip, or info icon
+      const shouldClose = !clickedInsideBlock
+        || (!clickedTooltipContainer && !clickedTooltip && !clickedInfoIcon);
+      if (shouldClose) {
         block.querySelectorAll('.tooltip.show').forEach((t) => {
           t.classList.remove('show');
         });
       }
     });
+
+    // Add resize listener to handle viewport changes
+    // (close tooltips on significant viewport change)
+    let resizeTimeout = null;
+    window.addEventListener('resize', () => {
+      // Debounce resize events
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
+      resizeTimeout = setTimeout(() => {
+        // Close all tooltips on viewport change to ensure clean state
+        block.querySelectorAll('.tooltip.show').forEach((t) => {
+          t.classList.remove('show');
+        });
+        resizeTimeout = null;
+      }, 150);
+    });
   }
 
-  // Process fields in order
   fieldOrder.forEach((fieldName) => {
-    // Skip items with empty field names
     if (!fieldName || fieldName.trim() === '') {
       return;
     }
 
-    // Get value from data
     const apiValue = data[fieldName];
     if (!apiValue && apiValue !== '') {
-      // Field doesn't exist in data, skip it
       return;
     }
 
-    // Format value
     let displayValue = '';
     let specItemClass = 'single';
     const isTwoColumn = twoColumnFields.includes(fieldName);
@@ -471,15 +577,12 @@ async function createContractSpecsDisplay(
       displayValue = formatFieldValue(fieldName, data);
     }
 
-    // Skip if no value
     if (!displayValue || displayValue.trim() === '') {
       return;
     }
 
-    // Get tooltip text - use i18n fallback for unknown fields
     const tooltipText = tooltipMap[fieldName] || `${tooltipFallback} ${formatFieldName(fieldName).toLowerCase()}.`;
 
-    // Create field item
     const fieldItem = createFieldItem(fieldName, displayValue, specItemClass, tooltipText, block);
     cardElements.push(fieldItem);
   });
@@ -494,19 +597,16 @@ async function createContractSpecsDisplay(
     return;
   }
 
-  // Add list items to ul
   cardElements.forEach((card) => ul.appendChild(card));
   specDataContainer.appendChild(ul);
   widgetContainer.appendChild(specDataContainer);
 
-  // Add footer with last updated and view full specs link (only for API-fetched data)
   if (widgetSettings['show-last-updated'] !== 'false') {
     const showLink = widgetSettings['show-view-full-link'] !== 'false';
     const footer = await createFooter(lastUpdatedText, viewFullSpecsText, showLink);
     widgetContainer.appendChild(footer);
   }
 
-  // Render to block
   block.textContent = '';
   block.appendChild(widgetContainer);
 }
@@ -521,37 +621,30 @@ async function createFuturesContractSpec(block) {
   block.appendChild(createSpinner());
 
   try {
-    // Parse block config
     const config = readBlockConfig(block);
     const widgetSettings = {};
     const fieldOrder = [];
 
-    // Separate widget settings from field names
     Object.keys(config).forEach((key) => {
-      // Skip empty keys
       if (!key || key.trim() === '') {
         return;
       }
       if (key.startsWith('override-') || key === 'two-column-fields' || key === 'show-last-updated') {
         widgetSettings[key] = config[key];
       } else if (key.trim() !== '') {
-        // This is a field name - preserve order
         fieldOrder.push(key);
       }
     });
 
-    // Get two-column fields (configurable)
     let twoColumnFields = TWO_COLUMN_FIELDS;
     if (widgetSettings['two-column-fields']) {
       try {
         twoColumnFields = JSON.parse(widgetSettings['two-column-fields']);
       } catch (e) {
-        // If not valid JSON, treat as comma-separated string
         twoColumnFields = widgetSettings['two-column-fields'].split(',').map((f) => f.trim());
       }
     }
 
-    // Get product ID
     let productId = widgetSettings['override-product'];
     if (!productId) {
       const metadata = await getProductMetadata();
@@ -562,19 +655,16 @@ async function createFuturesContractSpec(block) {
       throw new Error('Product ID not found');
     }
 
-    // Fetch contract specs from API
     const apiData = await fetchContractSpecs(productId);
     if (!apiData) {
       throw new Error('Failed to fetch contract specs');
     }
 
-    // If no fields authored, use default fields
     let finalFieldOrder = fieldOrder;
     if (fieldOrder.length === 0) {
       finalFieldOrder = ['ContractUnit', 'PriceQuotation', 'ProductCode', 'TradingHours'];
     }
 
-    // Create display
     await createContractSpecsDisplay(
       block,
       apiData,
@@ -602,8 +692,6 @@ async function createFuturesContractSpec(block) {
  * @param {HTMLElement} block - The block element to render into
  */
 async function createOptionsContractSpec(block) {
-  // For now, options uses the same API endpoint as futures
-  // This can be updated later when a different endpoint is available
   await createFuturesContractSpec(block);
 }
 
@@ -613,53 +701,48 @@ async function createOptionsContractSpec(block) {
  * @param {HTMLElement} block - The block element to render into
  */
 async function createStaticContractSpec(block) {
+  const config = readBlockConfig(block);
+  const staticData = parseStaticData(config);
+
   block.textContent = '';
   block.appendChild(createSpinner());
 
   try {
-    // Parse block config
-    const config = readBlockConfig(block);
     const widgetSettings = {};
     const fieldOrder = [];
 
-    // Separate widget settings from field names
     Object.keys(config).forEach((key) => {
-      // Skip empty keys
       if (!key || key.trim() === '') {
         return;
       }
       if (key.startsWith('override-') || key === 'two-column-fields' || key === 'show-last-updated' || key === 'show-regulatory-review' || key === 'regulatory-review-text') {
         widgetSettings[key] = config[key];
       } else if (key.trim() !== '') {
-        // This is a field name - preserve order
-        fieldOrder.push(key);
+        const camelKey = hyphenToCamelCase(key);
+        fieldOrder.push(camelKey);
       }
     });
 
-    // Get two-column fields (configurable)
     let twoColumnFields = TWO_COLUMN_FIELDS;
     if (widgetSettings['two-column-fields']) {
       try {
-        twoColumnFields = JSON.parse(widgetSettings['two-column-fields']);
+        const parsed = JSON.parse(widgetSettings['two-column-fields']);
+        twoColumnFields = Array.isArray(parsed)
+          ? parsed.map((f) => hyphenToCamelCase(f.trim()))
+          : parsed;
       } catch (e) {
-        // If not valid JSON, treat as comma-separated string
-        twoColumnFields = widgetSettings['two-column-fields'].split(',').map((f) => f.trim());
+        twoColumnFields = widgetSettings['two-column-fields']
+          .split(',')
+          .map((f) => hyphenToCamelCase(f.trim()));
       }
     }
-
-    // Parse static data from HTML block options
-    const staticData = parseStaticData(block);
 
     if (Object.keys(staticData).length === 0) {
       throw new Error('No static data provided');
     }
 
-    // Use field order from config, or all fields if none specified
     const finalFieldOrder = fieldOrder.length > 0 ? fieldOrder : Object.keys(staticData);
 
-    // Create display (hide last updated for static, show regulatory review)
-    widgetSettings['show-last-updated'] = 'false';
-    widgetSettings['show-regulatory-review'] = 'true';
     await createContractSpecsDisplay(
       block,
       staticData,
@@ -681,16 +764,14 @@ async function createStaticContractSpec(block) {
   }
 }
 
-export default async function decorate(block) {
-  // Determine variant: futures, options, or static
+export default function decorate(block) {
   if (block.classList.contains('futures')) {
-    await createFuturesContractSpec(block);
+    createFuturesContractSpec(block);
   } else if (block.classList.contains('options')) {
-    await createOptionsContractSpec(block);
+    createOptionsContractSpec(block);
   } else if (block.classList.contains('static')) {
-    await createStaticContractSpec(block);
+    createStaticContractSpec(block);
   } else {
-    // Default to futures if no variant specified
-    await createFuturesContractSpec(block);
+    createFuturesContractSpec(block);
   }
 }
