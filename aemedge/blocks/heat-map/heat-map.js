@@ -104,7 +104,7 @@ function getHeatIndexClass(options = {}) {
     ? 0
     : Math.min(Math.floor(absolutePercentage / step) + offset, min);
   const value = percentage > 0 ? index : -index;
-  return `heat-map-color-${index > 0 ? value : 0}`;
+  return `heat-map-color${index > 0 ? value : 0}`;
 }
 
 function mapQuote(componentId, quote) {
