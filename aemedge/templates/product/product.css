@@ -396,11 +396,37 @@ main {
     }
   }
 
-  .product-subtabs-content > div > div:first-child{
-    padding-top: 1.875rem !important;
+  /* Content area below tabs */
+  & .product-subtabs-content {
+    /* Content cards with alternating background colors */
+    & > div > .section {
+      border-radius: 0.25rem;
+      padding: 1.875rem 0;
 
-    @media (width >= 769px) {
-      padding-top: 3.75rem !important;
+      @media (width >= 769px) {
+        padding: 3.75rem 0;
+      }
+
+      /* Content wrapper with max-width and horizontal padding */
+      & > div {
+        max-width: var(--container-xxl-max);
+        margin: 0 auto;
+        padding: 0 3.375rem;
+
+        /* Override global section padding at xxl breakpoint */
+        @media (width > 1400px) {
+          padding-left: 3.375rem;
+          padding-right: 3.375rem;
+        }
+      }
+
+      /* Remove background/shadow from nested sections to avoid double-boxing */
+      & .section {
+        background-color: transparent;
+        box-shadow: none;
+        padding: 0;
+        margin-bottom: 1rem;
+      }
     }
   }
 }

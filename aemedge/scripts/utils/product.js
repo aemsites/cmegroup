@@ -13,6 +13,59 @@ const API_CONFIG = {
   contractsByNumberEndpoint: '/CmeWS/mvc/quotes/v2/contracts-by-number',
   contractSpecsEndpoint: '/CmeWS/mvc/ContractSpecs/List/productId',
   cvolEndpoint: '/services/cvol',
+  calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
+  calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
+};
+
+const minimumPriceOrderedKeys = [
+  'CME Globex:',
+  'CME ClearPort:',
+  'CME ClearPort and Open Outcry:',
+  'Default:',
+  'Outright:',
+  'Spreads',
+  'HALF TICK',
+  'Reduced Tick:',
+  'CAB',
+  'CALENDAR SPREAD',
+  'All Mid-Curves',
+  'Quarterly and Serial',
+  'Note',
+];
+
+const tradingHoursOrderedKeys = [
+  'CME Globex:',
+  'CME ClearPort:',
+  'Open Outcry:',
+  'Default:',
+];
+
+const productOrderedKeys = [
+  'CmeGlobex',
+  'ClearPort',
+  'OpenOutCry',
+  'tickerPut',
+  'tickerCall',
+  'ClearingCode',
+  'TAS',
+  'TAM',
+  'BTIC',
+  'TACO',
+  'TMAC',
+];
+
+const productFormattedKey = {
+  CmeGlobex: 'CME Globex',
+  ClearPort: 'CME ClearPort',
+  OpenOutCry: 'Open Outcry',
+  ClearingCode: 'Clearing',
+  tickerCall: 'Open Outcry Call',
+  tickerPut: 'Open Outcry Put',
+  TAS: 'TAS',
+  TAM: 'TAM',
+  BTIC: 'BTIC',
+  TACO: 'TACO',
+  TMAC: 'TMAC',
 };
 
 export function normalizePath(pathname) {
@@ -165,6 +218,38 @@ export async function getProductMetadata() {
   return productMetaDataPromise;
 }
 
+export async function getProductTitle(optionProductId, componentName) {
+  return new Promise((resolve) => {
+    const unsubscribe = store.subscribe(
+      ({ productData }) => ({ productData }),
+      (stateSlices) => {
+        const { productData } = stateSlices;
+        if (productData && productData.loaded) {
+          const { optionsLabels, fullProductName } = productData;
+          const optionSelected = optionProductId;
+          let title = '';
+
+          const option = optionsLabels?.find(
+            ({ productId }) => productId === optionSelected,
+          );
+
+          if (option) {
+            title = option.name;
+          } else {
+            title = fullProductName;
+          }
+
+          const fullTitle = title ? `${title} - ${componentName}` : '';
+          resolve(fullTitle);
+          if (unsubscribe) {
+            unsubscribe();
+          }
+        }
+      },
+    );
+  });
+}
+
 export function isValidTradeDate(date, hoursToSubtract) {
   const today = getCdtDate(Date.now());
   const prevDay = getCdtDate(date).subtract(hoursToSubtract, 'hour');
@@ -292,6 +377,21 @@ export async function getCvolIndexData(productIds) {
   }
 }
 
+export async function getCalendarFutures(productId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.calendarEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  return data;
+}
+
+export async function getCalendarOptions(productId, optionProductId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.calendarOptionsEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  const optionData = data.filter((item) => item.productIds[0] === Number(optionProductId));
+  return optionData[0].calendarEntries;
+}
+
 /**
  * Replace block content with matching authored override section (if any).
  */
@@ -394,4 +494,153 @@ export function getViewAnotherProductDropdown(assetClass) {
   return fetchViewAnotherProductDropdown().then(
     (assetClasses) => assetClasses[assetClass] || {},
   );
+}
+
+/* Get options/optionProductId mode from URL */
+export function getDisplayMode() {
+  const isOptions = window.location.pathname.includes('/options');
+  const urlParams = new URLSearchParams(window.location.search);
+  const optionProductId = urlParams.get('optionProductId');
+
+  return { isOptions, optionProductId };
+}
+
+function fixAnchors(html) {
+  if (typeof html !== 'string') {
+    return html;
+  }
+
+  let newHtml = html;
+  const replacements = [
+    {
+      // 1. Force https: added 's?' and simplified the capture group
+      pattern: /href="http(?::)/gi,
+      replace: 'href="https:',
+    },
+    {
+      // 2. Add target="_blank" only if NOT already present
+      // This looks for <a> tags that do NOT contain the word 'target'
+      pattern: /<a\s+(?![^>]*target=)([^>]+)>/gi,
+      replace: '<a $1 target="_blank">',
+    },
+  ];
+
+  replacements.forEach(({ pattern, replace }) => {
+    newHtml = newHtml.replace(pattern, replace);
+  });
+
+  return newHtml;
+}
+
+function renderRow(
+  items,
+  key,
+  def,
+  orderedKeys,
+  formattedKey,
+) {
+  // null or undefined data
+  if (items === null || items === undefined || items === '') return '';
+
+  // Case 1: Simple String/Number
+  if (typeof items !== 'object') {
+    return `
+      <div class="spec-item single">
+        ${fixAnchors(items)}
+      </div>
+    `;
+  }
+
+  let nItems = items;
+  if (orderedKeys) {
+    nItems = orderedKeys.reduce((acc, item) => {
+      const element = def ? items.find((x) => x[def] === item) : items[item];
+      if (element) {
+        acc.push(Array.isArray(items) ? element : item);
+      }
+      return acc;
+    }, []);
+  }
+
+  // Case 2: Array of Items
+  if (Array.isArray(items)) {
+    const content = nItems.map((element) => {
+      const showTitle = def && element[def].toLowerCase() !== 'default:';
+      return `
+        <div class="item-container">
+          ${showTitle ? `<div class="title">${element[def]}</div>` : ''}
+          <div>${fixAnchors(element[key])}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `<div class="spec-item multi">${content}</div>`;
+  }
+
+  // Case 3: Objects
+  const objectContent = nItems.map((item) => {
+    const label = (formattedKey && formattedKey[item]) || item;
+    return `
+      <div class="item-container">
+        <span class="title">${label}: </span>
+        <span>${fixAnchors(items[item])}</span>
+      </div>
+    `;
+  }).join('');
+
+  return `<div class="spec-item object">${objectContent}</div>`;
+}
+
+export function getSpecItemView(spec, key) {
+  switch (key) {
+    case 'MinimumPriceFluctuation':
+      return renderRow(
+        spec.ticks ? spec.ticks : spec,
+        'mintk',
+        'type',
+        typeof minimumPriceOrderedKeys !== 'undefined' ? minimumPriceOrderedKeys : null,
+      );
+    case 'TerminationOfTrading':
+      return renderRow(
+        spec.terminationOfTrading ? spec.terminationOfTrading : spec,
+        'termsOfTrading',
+      );
+    case 'ListedContracts':
+      return renderRow(
+        spec.contractMonthsList ? spec.contractMonthsList : spec,
+        'contrMonth',
+        'type',
+      );
+    case 'TradingHours':
+      return renderRow(
+        spec.vandhr ? spec.vandhr : spec,
+        'hours',
+        'venue',
+        typeof tradingHoursOrderedKeys !== 'undefined' ? tradingHoursOrderedKeys : null,
+      );
+    case 'ProductCode':
+      return renderRow(
+        spec,
+        '',
+        '',
+        typeof productOrderedKeys !== 'undefined' ? productOrderedKeys : null,
+        typeof productFormattedKey !== 'undefined' ? productFormattedKey : null,
+      );
+    default:
+      return renderRow(spec);
+  }
+}
+
+export function handleAboutReportModal(block, modalItemClass, fragmentUrl) {
+  block.addEventListener('click', async (e) => {
+    if (e.target.classList.contains(modalItemClass)) {
+      e.preventDefault();
+      try {
+        const { openModal } = await import('../../blocks/modal/modal.js');
+        await openModal(fragmentUrl);
+      } catch (error) {
+        // Silent fail
+      }
+    }
+  });
 }
