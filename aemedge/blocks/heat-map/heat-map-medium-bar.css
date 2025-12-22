@@ -9,6 +9,7 @@
       & .portfolio-icon {
         top: 1.375rem;
         right: 1.5rem;
+
         &::before {
           font-size: 1.125rem;
         }
