@@ -13,6 +13,8 @@ const API_CONFIG = {
   contractsByNumberEndpoint: '/CmeWS/mvc/quotes/v2/contracts-by-number',
   contractSpecsEndpoint: '/CmeWS/mvc/ContractSpecs/List/productId',
   cvolEndpoint: '/services/cvol',
+  calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
+  calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
 };
 
 export function normalizePath(pathname) {
@@ -165,6 +167,38 @@ export async function getProductMetadata() {
   return productMetaDataPromise;
 }
 
+export async function getProductTitle(optionProductId, componentName) {
+  return new Promise((resolve) => {
+    const unsubscribe = store.subscribe(
+      ({ productData }) => ({ productData }),
+      (stateSlices) => {
+        const { productData } = stateSlices;
+        if (productData && productData.loaded) {
+          const { optionsLabels, fullProductName } = productData;
+          const optionSelected = optionProductId;
+          let title = '';
+
+          const option = optionsLabels?.find(
+            ({ productId }) => productId === optionSelected,
+          );
+
+          if (option) {
+            title = option.name;
+          } else {
+            title = fullProductName;
+          }
+
+          const fullTitle = title ? `${title} - ${componentName}` : '';
+          resolve(fullTitle);
+          if (unsubscribe) {
+            unsubscribe();
+          }
+        }
+      },
+    );
+  });
+}
+
 export function isValidTradeDate(date, hoursToSubtract) {
   const today = getCdtDate(Date.now());
   const prevDay = getCdtDate(date).subtract(hoursToSubtract, 'hour');
@@ -292,6 +326,21 @@ export async function getCvolIndexData(productIds) {
   }
 }
 
+export async function getCalendarFutures(productId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.calendarEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  return data;
+}
+
+export async function getCalendarOptions(productId, optionProductId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.calendarOptionsEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  const optionData = data.filter((item) => item.productIds[0] === Number(optionProductId));
+  return optionData[0].calendarEntries;
+}
+
 /**
  * Replace block content with matching authored override section (if any).
  */
@@ -394,4 +443,13 @@ export function getViewAnotherProductDropdown(assetClass) {
   return fetchViewAnotherProductDropdown().then(
     (assetClasses) => assetClasses[assetClass] || {},
   );
+}
+
+/* Get options/optionProductId mode from URL */
+export function getDisplayMode() {
+  const isOptions = window.location.pathname.includes('/options');
+  const urlParams = new URLSearchParams(window.location.search);
+  const optionProductId = urlParams.get('optionProductId');
+
+  return { isOptions, optionProductId };
 }
