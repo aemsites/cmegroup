@@ -24,6 +24,7 @@ import {
   isLegacyContent,
   legacyOpenMarketsTemplates,
   legacyNewsTemplates,
+  legacyNoticesTemplates,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 import {
@@ -372,6 +373,22 @@ function createDynamicCardUpcomingEvent(content) {
   return createElement('li', null, link);
 }
 
+function createDynamicCardNotice(content) {
+  const {
+    path,
+    title,
+    metadata: {
+      advisoryNoticeDate,
+    },
+  } = content;
+  const cardTitle = createElement('h3');
+  cardTitle.innerHTML = title;
+  const cardDate = createElement('span', { class: 'cards-date' }, getCdtDate(advisoryNoticeDate).format('DD MMM YYYY'));
+  const mainContainer = createElement('div', { class: 'cards-body-container' }, cardTitle, cardDate);
+  const linkEl = createElement('a', { href: path }, mainContainer);
+  return createElement('li', null, linkEl);
+}
+
 function simpleDynamicCard(content) {
   const curatedContent = isLegacyContent(content) ? mapLegacyArticleData(content) : content;
   const {
@@ -641,6 +658,27 @@ export async function createDynamicCards(block) {
         ],
       };
     }
+  } else if (block.classList.contains('notices')) {
+    const indexFilter = buildIndexFilter(config);
+    if (!indexFilter.templates || indexFilter.templates.length === 0) {
+      indexFilter.templates = legacyNoticesTemplates;
+    }
+    if (!indexFilter.basePaths || indexFilter.basePaths.length === 0) {
+      indexFilter.basePaths = ['/content/cmegroup/en/notices/ser'];
+    }
+    if (!indexFilter.limit) {
+      indexFilter.limit = 4;
+    }
+    // TODO: chane to advisoryNoticeDate once the BE API supports metadata ordering
+    if (!indexFilter.orderBy) {
+      indexFilter.orderBy = 'date';
+    }
+    [filteredData] = await Promise.all([
+      getIndexedContent(indexFilter),
+      setupDayjsLibs(),
+    ]);
+    cardElements = filteredData.map(createDynamicCardNotice);
+    disableSliderOnDesktop = true;
   } else {
     cardElements = [];
   }
