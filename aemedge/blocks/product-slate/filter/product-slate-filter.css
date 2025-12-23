@@ -398,6 +398,12 @@
           margin-bottom: 0.9375rem;
           font-size: 1.125rem;
           line-height: 1.5rem;
+          letter-spacing: 0;
+
+          @media (width >= 993px) {
+            font-size: 1.25rem;
+            line-height: 1.625rem;
+          }
         }
 
         & .filter-pills-wrapper {
