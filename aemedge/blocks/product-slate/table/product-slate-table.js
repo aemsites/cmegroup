@@ -123,13 +123,6 @@ export async function createProductTable(options = {}) {
     }
   }
 
-  if (products.length === 0) {
-    const noResults = createElement('div', { class: 'no-results' });
-    noResults.textContent = noResultsText;
-    prodTableWrapper.appendChild(noResults);
-    return prodTableWrapper;
-  }
-
   const isDesktop = window.innerWidth >= 769;
   window.addEventListener('resize', () => {
     if (isDesktop) {
@@ -335,7 +328,7 @@ export async function createProductTable(options = {}) {
   const topContainer = createElement('div', { class: 'top-container' });
   const voiInfo = createElement('div', { class: 'voi-info' });
 
-  if (voi && voi.tradeDate) {
+  if (products.length > 0 && voi && voi.tradeDate) {
     await setupDayjsLibs();
     const tradeDate = new Date(voi.tradeDate.timestamp);
     const formattedDate = dayjs.utc(tradeDate).format('dddd DD MMM YYYY');
@@ -479,12 +472,25 @@ export async function createProductTable(options = {}) {
 
   authTooltipContainer.appendChild(downloadButton);
   actionsContainer.appendChild(helpButton);
-  actionsContainer.appendChild(authTooltipContainer);
 
-  topContainer.append(voiInfo);
+  if (products.length > 0) {
+    topContainer.append(voiInfo);
+    actionsContainer.appendChild(authTooltipContainer);
+  }
   topContainer.append(actionsContainer);
 
   prodTableWrapper.insertBefore(topContainer, prodTableWrapper.firstChild);
+
+  if (products.length === 0) {
+    const mainWrapperToRemove = prodTableWrapper.querySelector('.main-wrapper');
+    topContainer.classList.add('no-products');
+    if (mainWrapperToRemove) {
+      prodTableWrapper.removeChild(mainWrapperToRemove);
+    }
+    const noResults = createElement('div', { class: 'no-results' });
+    noResults.textContent = noResultsText;
+    prodTableWrapper.appendChild(noResults);
+  }
 
   return prodTableWrapper;
 }

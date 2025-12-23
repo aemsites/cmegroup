@@ -11,6 +11,10 @@
         flex-direction: row;
       }
 
+      &.no-products {
+        justify-content: end;
+      }
+
       & .voi-info {
         display: flex;
         align-items: center;
@@ -49,6 +53,7 @@
           line-height: 2.125rem;
           color: var(--blue5);
           font-family: var(--averta);
+          box-shadow: none;
 
           &:hover {
             text-decoration: underline;
