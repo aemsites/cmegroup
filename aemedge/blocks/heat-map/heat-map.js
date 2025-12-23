@@ -206,7 +206,7 @@ export default async function decorate(block) {
       clearInterval(autoUpdateTimer);
     }, 3600000);
     getQuotes(heatMapItems, componentId, isMidpoint);
-  }, 200);
+  }, 100);
   //  quotes data subscriber
   store.subscribe(({ heatMap }) => heatMap, ({ quotes }) => {
     if (quotes) {
