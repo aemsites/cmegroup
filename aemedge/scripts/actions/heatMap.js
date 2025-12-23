@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { heatMapConstants } from '../constants/index.js';
-import { chunk } from '../utils/arrays.js';
+import { chunk } from '../utils/array.js';
 
 // eslint-disable-next-line import/prefer-default-export
 export function addHeatMap(items) {

@@ -6,7 +6,7 @@ import {
 } from '../../scripts/utils.js';
 import { addHeatMap, getAllQuotes } from '../../scripts/actions/heatMap.js';
 import { store } from '../../scripts/store/store.js';
-import { sortByReferenceOrder } from '../../scripts/utils/arrays.js';
+import { sortByReferenceOrder } from '../../scripts/utils/array.js';
 
 function formatNumber(num) {
   if (!num && num !== 0) return '-';
