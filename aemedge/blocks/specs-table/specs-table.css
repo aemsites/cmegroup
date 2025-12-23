@@ -101,59 +101,9 @@
   
     /* Collapsible styling */
     & .collapsible-specs {
-      display: block;
-      margin-bottom: 1.875rem;
-  
-      @media (width >= 993px) {
-        display: none;
-      }
-  
       & .collapsible-item {
-        & .collapsible-button {
-          align-items: center;
-          background-color: var(--blue2);
-          border-bottom: .0625rem solid var(--white);
-          border-radius: 0;
-          color: var(--white);
-          display: flex;
-          justify-content: space-between;
-          padding: .9375rem 1.5rem;
-          text-align: left;
-          cursor: pointer;
-          width: 100%;
-          position: relative;
-  
-          &::after {
-            padding-left: .625rem;
-            font-family: var(--cme-group-icons);
-            content: var(--icon-plus);
-            position: absolute;
-            right: 1.5rem;
-            font-size: 0.75rem;
-            color: var(--white);
-          }
-  
-          &.expand {
-            &::after {
-              content: var(--icon-minus);
-            }
-          }
-        }
-  
         & .collapse {
-          max-height: 0;
-          transition: max-height 0.35s ease;
-          overflow: hidden;
-          color: var(--blue2);
-  
-          &.show {
-            max-height: 500px;
-          }
-  
           & .collapse-body {
-            font-size: .875rem;
-            padding: 1.25rem 1.5625rem;
-
             & .spec-item {
               & .title {
                 font-weight: 700;
@@ -178,10 +128,6 @@
           }
         }
   
-        &.hidden-collapsible {
-          display: none;
-        }
-
         &:nth-child(even) {
           & .collapse {
             background-color: var(--white);
