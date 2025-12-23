@@ -126,6 +126,10 @@ const legacyOpenMarketsTemplates = [
   '/conf/openmarkets/settings/wcm/templates/openmarkets-video-template',
 ];
 
+const legacyNoticesTemplates = [
+  '/conf/cmegroupaem/settings/wcm/templates/cme-group-advisory-notice-template',
+];
+
 const legacyNewsTemplates = [
   '/conf/cmegroupaem/settings/wcm/templates/cme-group-press-release-template',
 ];
@@ -137,5 +141,6 @@ export {
   legacyEducationTemplates,
   normalizeLegacyPath,
   legacyOpenMarketsTemplates,
+  legacyNoticesTemplates,
   legacyNewsTemplates,
 };

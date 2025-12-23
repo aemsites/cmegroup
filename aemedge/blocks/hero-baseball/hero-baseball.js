@@ -204,7 +204,7 @@ async function createHeroStructure(productData, config, block) {
 
 async function populateHeroData(productData, block) {
   const { productId, isActive, productSubtitle } = productData;
-  const data = await getContractsByNumber(productId);
+  const data = await getContractsByNumber([productId]);
   if (!data || !Array.isArray(data) || data.length === 0) return;
   const {
     quoteCode,

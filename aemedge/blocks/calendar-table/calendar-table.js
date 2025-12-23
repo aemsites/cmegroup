@@ -7,6 +7,8 @@ import {
   getCalendarFutures,
   getCalendarOptions,
   handleAboutReportModal,
+  buildCollapsible,
+  buildLoadAllButton,
 } from '../../scripts/utils/product.js';
 import { createAuthTooltip } from '../../scripts/utils/authTooltip.js';
 import { createElement, i18n } from '../../scripts/utils.js';
@@ -23,40 +25,6 @@ let needShowAll = false;
 const maxRows = 12;
 const titleWrapper = createElement('div', { class: 'title-wrapper' });
 let isLoggedIn = false;
-
-/* Build HTML collapsible structure */
-function buildCollapsible(headers, data, collapsibleId = '') {
-  const collapsible = createElement('div', { class: 'collapsible-calendar' });
-  if (collapsibleId) collapsible.id = collapsibleId;
-
-  headers.forEach((header, index) => {
-    const collapsibleItem = createElement('div', { class: 'collapsible-item' });
-    const collapsibleButton = createElement('button', { class: 'collapsible-button btn-secondary' });
-    collapsibleButton.innerHTML = header;
-    collapsibleItem.appendChild(collapsibleButton);
-    const collapse = createElement('div', { class: 'collapse' });
-    const collapseBody = createElement('div', { class: 'collapse-body' });
-    collapseBody.innerHTML = data[index];
-    collapse.appendChild(collapseBody);
-    collapsibleItem.appendChild(collapse);
-    collapsible.appendChild(collapsibleItem);
-
-    if (index >= maxRows) {
-      collapsibleItem.classList.add('hidden-collapsible');
-    }
-
-    collapsibleButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.currentTarget.classList.toggle('expand');
-      const collapsePanel = e.currentTarget.nextElementSibling;
-      if (collapsePanel && collapsePanel.classList.contains('collapse')) {
-        collapsePanel.classList.toggle('show');
-      }
-    });
-  });
-
-  return collapsible;
-}
 
 /* Build HTML table structure */
 function buildTable(headers, data, tableId = '') {
@@ -183,7 +151,7 @@ async function createFuturesTable() {
 
   const calendarWrapper = createElement('div', { class: 'calendar-wrapper' });
   const buildedTable = buildTable(headers, tableData, 'futures-calendar-table');
-  const buildedCollapsible = buildCollapsible(collapsibleHeaders, collapsibleData, 'futures-calendar-collapsible');
+  const buildedCollapsible = buildCollapsible(collapsibleHeaders, collapsibleData, 'collapsible-calendar', maxRows, 'futures-calendar-collapsible');
   calendarWrapper.appendChild(buildedTable);
   calendarWrapper.appendChild(buildedCollapsible);
 
@@ -243,7 +211,7 @@ async function createOptionsTable(optionProductId) {
 
   const calendarWrapper = createElement('div', { class: 'calendar-wrapper' });
   const buildedTable = buildTable(headers, tableData, 'option-calendar-table');
-  const buildedCollapsible = buildCollapsible(collapsibleHeaders, collapsibleData, 'option-calendar-collapsible');
+  const buildedCollapsible = buildCollapsible(collapsibleHeaders, collapsibleData, 'collapsible-calendar', 'option-calendar-collapsible');
   calendarWrapper.appendChild(buildedTable);
   calendarWrapper.appendChild(buildedCollapsible);
 
@@ -352,33 +320,12 @@ async function renderTable(block) {
 async function createLoadAllWrapper(block) {
   const loadAllWrapper = createElement('div', { class: 'load-all-wrapper' });
   if (needShowAll) {
-    const loadAllButtonWrapper = createElement('div', { class: 'load-all-button-wrapper' });
-    const loadAllButton = createElement('button', { class: 'load-all-button primary' });
     const [
       loadAll,
     ] = await Promise.all([
       i18n('Load All'),
     ]);
-    loadAllButton.innerHTML = loadAll;
-    loadAllButtonWrapper.append(loadAllButton);
-    loadAllWrapper.append(loadAllButtonWrapper);
-
-    loadAllButton.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const hiddenRows = block.querySelectorAll('.hidden-row');
-      hiddenRows.forEach((row) => {
-        row.classList.remove('hidden-row');
-      });
-      const fadeTable = block.querySelector('.table-fade');
-      fadeTable.classList.remove('table-fade');
-
-      const hiddenCollapsible = block.querySelectorAll('.hidden-collapsible');
-      hiddenCollapsible.forEach((collapsible) => {
-        collapsible.classList.remove('hidden-collapsible');
-      });
-
-      e.target.remove();
-    });
+    loadAllWrapper.append(buildLoadAllButton(block, loadAll));
   }
 
   // Add "About this Report" link

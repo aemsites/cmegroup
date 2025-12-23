@@ -5,45 +5,12 @@ import {
   getDisplayMode,
   getContractSpecs,
   getSpecItemView,
+  applyAuthorOverride,
+  buildCollapsible,
 } from '../../scripts/utils/product.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 
 const titleWrapper = createElement('div', { class: 'title-wrapper' });
-
-/* Build HTML collapsible structure */
-function buildCollapsible(headers, data, collapsibleId = '') {
-  const collapsible = createElement('div', { class: 'collapsible-specs' });
-  if (collapsibleId) collapsible.id = collapsibleId;
-
-  headers.forEach((header, index) => {
-    const itemData = data[index];
-    const collapsibleItem = createElement('div', { class: 'collapsible-item' });
-    const isEmpty = itemData === null || itemData === undefined || itemData === '';
-    if (isEmpty) {
-      collapsibleItem.classList.add('hidden-collapsible');
-    }
-    const collapsibleButton = createElement('button', { class: 'collapsible-button btn-secondary' });
-    collapsibleButton.innerHTML = header;
-    collapsibleItem.appendChild(collapsibleButton);
-    const collapse = createElement('div', { class: 'collapse' });
-    const collapseBody = createElement('div', { class: 'collapse-body' });
-    collapseBody.innerHTML = itemData ?? '';
-    collapse.appendChild(collapseBody);
-    collapsibleItem.appendChild(collapse);
-    collapsible.appendChild(collapsibleItem);
-
-    collapsibleButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.currentTarget.classList.toggle('expand');
-      const collapsePanel = e.currentTarget.nextElementSibling;
-      if (collapsePanel && collapsePanel.classList.contains('collapse')) {
-        collapsePanel.classList.toggle('show');
-      }
-    });
-  });
-
-  return collapsible;
-}
 
 /* Build HTML table structure */
 function buildTable(headers, data, tableId = '') {
@@ -232,7 +199,7 @@ async function createSpecsTable(optionProductId) {
 
   const specsWrapper = createElement('div', { class: 'specs-wrapper' });
   const buildedTable = buildTable(headers, tableData, 'futures-specs-table');
-  const buildedCollapsible = buildCollapsible(headers, tableData, 'futures-specs-collapsible');
+  const buildedCollapsible = buildCollapsible(headers, tableData, 'collapsible-specs', 0, 'specs-collapsible');
   specsWrapper.appendChild(buildedTable);
   specsWrapper.appendChild(buildedCollapsible);
 
@@ -261,6 +228,9 @@ async function renderTable(block) {
     let table = null;
 
     if (isOptions) {
+      if (optionProductId && await applyAuthorOverride(block, 'options-product-id', optionProductId)) {
+        return;
+      }
       table = await createSpecsTable(optionProductId);
     } else {
       table = await createSpecsTable();
