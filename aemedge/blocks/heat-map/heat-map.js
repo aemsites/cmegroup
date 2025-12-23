@@ -34,7 +34,11 @@ function createHeatMapStructure(items, block, config) {
         const portfolio = createElement('div', { class: 'portfolio-icon' });
         cardContainer.append(portfolio);
       }
-      const opt = createElement('a', { class: 'product-options', target: '_blank', rel: 'noopener noreferrer' }, 'OPT');
+      const opt = createElement('a', {
+        class: 'product-options',
+        target: '_blank',
+        rel: 'noopener noreferrer',
+      }, 'OPT');
       cardContainer.append(opt);
       container.append(cardContainer);
     });
@@ -103,8 +107,8 @@ function getHeatIndexClass(options = {}) {
   const index = initStep > absolutePercentage
     ? 0
     : Math.min(Math.floor(absolutePercentage / step) + offset, min);
-  const value = percentage > 0 ? index : -index;
-  return `heat-map-color${index > 0 ? value : 0}`;
+  const value = percentage > 0 ? `positive-${index}` : `negative-${index}`;
+  return `heat-map-color-${index > 0 ? value : 'zero'}`;
 }
 
 function mapQuote(componentId, quote) {
@@ -178,14 +182,9 @@ export default async function decorate(block) {
   loadExtraCss(block);
   const config = readBlockConfig(block, true);
   const items = buildConfigItems(block);
-  //  midpoint uses different backend service
   const isMidpoint = block.classList.contains('sector-midpoint');
-  const hasContainer = block.querySelector('.container');
-  if (!hasContainer) {
-    block.innerHTML = '';
-    const container = createHeatMapStructure(items, block, config);
-    block.append(container);
-  }
+  block.textContent = '';
+  block.append(createHeatMapStructure(items, block, config));
   store.dispatch(addHeatMap(items));
   const componentId = generateRandomId();
   if (!isMidpoint) {

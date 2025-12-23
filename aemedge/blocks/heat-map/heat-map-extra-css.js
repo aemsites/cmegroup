@@ -1,6 +1,6 @@
 const mapping = [
   {
-    variation: ['heat-map', 'medium-bar'],
+    variation: ['medium-bar'],
     file: '/blocks/heat-map/heat-map-medium-bar.css',
   },
 ];

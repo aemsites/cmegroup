@@ -72,23 +72,23 @@
     background-color: var(--blue3-a);
     border-left: 0.375rem solid var(--blue3-a);
 
-    &.heat-map-color0 { border-color: #5a6874; }
-    &.heat-map-color1 { border-color: #557a66; }
-    &.heat-map-color2 { border-color: #508c57; }
-    &.heat-map-color3 { border-color: #4b9d49; }
-    &.heat-map-color4 { border-color: #46af3a; }
-    &.heat-map-color5 { border-color: #41c12c; }
-    &.heat-map-color6 { border-color: #3cd31d; }
-    &.heat-map-color7 { border-color: #37e40f; }
-    &.heat-map-color8 { border-color: #32f600; }
-    &.heat-map-color-1 { border-color: #6f5b6d; }
-    &.heat-map-color-2 { border-color: #834e66; }
-    &.heat-map-color-3 { border-color: #98415f; }
-    &.heat-map-color-4 { border-color: #ad3459; }
-    &.heat-map-color-5 { border-color: #c12752; }
-    &.heat-map-color-6 { border-color: #d61a4b; }
-    &.heat-map-color-7 { border-color: #ea0d44; }
-    &.heat-map-color-8 { border-color: #ff003d; }
+    &.heat-map-color-zero { border-color: #5a6874; }
+    &.heat-map-color-positive-1 { border-color: #557a66; }
+    &.heat-map-color-positive-2 { border-color: #508c57; }
+    &.heat-map-color-positive-3 { border-color: #4b9d49; }
+    &.heat-map-color-positive-4 { border-color: #46af3a; }
+    &.heat-map-color-positive-5 { border-color: #41c12c; }
+    &.heat-map-color-positive-6 { border-color: #3cd31d; }
+    &.heat-map-color-positive-7 { border-color: #37e40f; }
+    &.heat-map-color-positive-8 { border-color: #32f600; }
+    &.heat-map-color-negative-1 { border-color: #6f5b6d; }
+    &.heat-map-color-negative-2 { border-color: #834e66; }
+    &.heat-map-color-negative-3 { border-color: #98415f; }
+    &.heat-map-color-negative-4 { border-color: #ad3459; }
+    &.heat-map-color-negative-5 { border-color: #c12752; }
+    &.heat-map-color-negative-6 { border-color: #d61a4b; }
+    &.heat-map-color-negative-7 { border-color: #ea0d44; }
+    &.heat-map-color-negative-8 { border-color: #ff003d; }
   }
 
   & .product-code {
