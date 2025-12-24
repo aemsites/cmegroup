@@ -97,7 +97,7 @@ export async function createProductTable(options = {}) {
   const headerRow = createElement('tr');
 
   function createSpinner() {
-    const spinner = createElement('div', { class: 'spinner-cards' });
+    const spinner = createElement('div', { class: 'spinner-table' });
     spinner.innerHTML = `
     <div></div>
     <div></div>
@@ -210,13 +210,13 @@ export async function createProductTable(options = {}) {
 
   if (loading) {
     const spinner = createSpinner();
-    table.appendChild(spinner);
 
     table.appendChild(thead);
     table.appendChild(tbody);
     mainTableWrapper.appendChild(table);
     tableWrapper.appendChild(mainTableWrapper);
     mainWrapper.appendChild(tableWrapper);
+    mainWrapper.appendChild(spinner);
     prodTableWrapper.appendChild(mainWrapper);
 
     return prodTableWrapper;
