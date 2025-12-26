@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CME Group - Tag Picker</title>
+    <script src="/tools/sidekick/table-creator/table-creator.js" type="module"></script>
+    <link rel="stylesheet" href="/tools/sidekick/table-creator/table-creator.css" />
+  </head>
+<body>
+    <header class="app-header">
+        <div class="brand">
+            <h1>DA Table Maker</h1>
+            <span class="divider">|</span>
+            <p>Table Block Builder</p>
+        </div>
+        <div class="header-actions">
+            <button id="resetAllBtn" class="btn-mini-text">Reset Workspace</button>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="panel panel-left">
+            <div class="panel-tabs">
+                <button class="tab-btn active" data-tab="tab-paste">Paste Table</button>
+                <button class="tab-btn" data-tab="tab-create">Create New</button>
+            </div>
+
+            <div id="tab-paste" class="tab-content active">
+                <div class="panel-content">
+                    <div id="editor" class="editor" contenteditable="true" placeholder="Paste table here..."></div>
+                </div>
+                <div class="panel-footer">
+                    <button id="processBtn" class="btn btn-secondary full-width">Clean & Stage &rarr;</button>
+                </div>
+            </div>
+
+            <div id="tab-create" class="tab-content">
+                <div class="panel-content centered-content">
+                    <p class="instruction-text">Select table size:</p>
+                    
+                    <div class="grid-picker-wrapper">
+                        <div id="grid-picker" class="grid-picker">
+                            </div>
+                        <div id="grid-display" class="grid-label">0 x 0 Table</div>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <p class="help-text">Click grid to generate</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-center">
+            <h3>2. Apply Styles</h3>
+            
+            <div class="controls-wrapper">
+                
+                <div class="control-row-flex">
+                    <div class="control-group target-group">
+                        <span class="label-mini">TARGET</span>
+                        <select id="targetMode" class="target-select">
+                            <option value="cell">Single Cell</option>
+                            <option value="range">Range (Merge)</option> <option value="row">Entire Row</option>
+                            <option value="col">Entire Column</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group structure-group" style="margin-right: 15px; padding-right: 15px; border-right: 1px dashed #d5dbdf;">
+                        <span class="label-mini">STRUCTURE</span>
+                        <button id="mergeBtn" class="tag-btn tag-tertiary">Merge Selected</button>
+                    </div>
+
+                    <div class="control-group block-group">
+                        <span class="label-mini">BLOCK FORMAT</span>
+                        <div class="btn-row">
+                            <select id="blockSuffix" class="target-select" style="margin-right: 5px;" title="Style Type">
+                                <option value="header">Header</option>
+                                <option value="group">Group</option>
+                            </select>
+                            <button class="tag-btn tag-primary" data-level="primary">Primary</button>
+                            <button class="tag-btn tag-secondary" data-level="secondary">Secondary</button>
+                            <button class="tag-btn tag-tertiary" data-level="tertiary">Tertiary</button>
+                            <button class="tag-btn tag-clear" data-action="clear-block">Clear</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-row-flex border-top">
+                    <div class="control-group cell-group">
+                        <span class="label-mini">CELL CONTENT</span>
+                        <div class="cell-tools">
+                            <div class="icon-group">
+                                <button class="icon-btn" data-cell-style="text-align:left" title="Left">Left</button>
+                                <button class="icon-btn" data-cell-style="text-align:center" title="Center">Center</button>
+                                <button class="icon-btn" data-cell-style="text-align:right" title="Right">Right</button>
+                            </div>
+                            <div class="input-tool">
+                                <input type="text" id="textColorInput" placeholder="Color..." class="tiny-input">
+                                <button id="applyTextColor" class="tiny-btn">Text Color</button>
+                            </div>
+                            <div class="input-tool">
+                                <input type="text" id="bgColorInput" placeholder="Bg..." class="tiny-input">
+                                <button id="applyBgColor" class="tiny-btn">BG Color</button>
+                            </div>
+                            <button class="tag-btn tag-clear tiny-clear" data-action="clear-cell">Clear</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-row-flex border-top">
+                    <div class="control-group options-group">
+                        <span class="label-mini">OPTIONS</span>
+                        <div class="options-flex">
+                            <label><input type="checkbox" class="table-opt" value="disable-row-banding"> No Banding</label>
+                            <label><input type="checkbox" class="table-opt" value="dark"> Dark</label>
+                            <label><input type="checkbox" class="table-opt" value="compact"> Compact</label>
+                            <label><input type="checkbox" class="table-opt" value="data"> Data</label>
+                            <label><input type="checkbox" class="table-opt" value="simple-first-row"> Simple 1st</label>
+                            <label><input type="checkbox" class="table-opt" value="no-header"> No Header</label>
+                            <label><input type="checkbox" class="table-opt" value="collapsible"> Collapsible</label>
+                            <label><input type="checkbox" class="table-opt" value="contains-header"> Header in Body</label>
+                            <label><input type="checkbox" class="table-opt" value="fixed-row-header"> Fixed Header</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-content no-padding">
+                <div id="staging-container" class="staging-box">
+                    <p class="placeholder-text">Waiting for input...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-right">
+            <h3>3. Output</h3>
+            <div class="panel-content column-flex">
+                
+                <div class="audit-container">
+                    <div class="audit-header">Block Metadata</div>
+                    <div id="metadata-preview" class="code-snippet">table</div>
+                    
+                    <div class="audit-header mt-10">Cell Injections</div>
+                    <div id="cell-style-log" class="log-box">
+                        <span class="empty-log">None</span>
+                    </div>
+                </div>
+                
+                <button id="copyBtn" class="btn btn-primary full-width">Copy to Clipboard</button>
+                <span id="copyStatus"></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="clipboard-buffer" style="position: absolute; left: -9999px; top: -9999px; visibility: hidden;"></div>
+
+    <script src="table-creator.js"></script>
+</body>
+</html>
