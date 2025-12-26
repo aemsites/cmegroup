@@ -20,6 +20,7 @@ const API_CONFIG = {
   cvolEndpoint: '/services/cvol',
   calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
   calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
+  tradeDateAndExpirationsEndpoint: '/CmeWS/mvc/Settlements/Options/TradeDateAndExpirations',
 };
 
 const minimumPriceOrderedKeys = [
@@ -712,4 +713,135 @@ export function buildLoadAllButton(block, loadText) {
   });
 
   return loadAllButtonWrapper;
+}
+
+export async function getTradeDateAndExpirations(productId) {
+  try {
+    const url = `${urlByEnvType()}${API_CONFIG.tradeDateAndExpirationsEndpoint}/${productId}`;
+    return getResponseData(await apiGet(url)).map(
+      ({ productId: pid, expirations }) => ({
+        productId: pid.toString(),
+        expirations: expirations.map(
+          ({
+            productId: pId,
+            label,
+            key,
+            tradeDates,
+            contractId,
+          }) => ({
+            expProductId: pId,
+            label,
+            text: `${key.productId}-${key.expiration.code}`,
+            contractId,
+            tradeDates: tradeDates.map(({ formatedDate, reportType }) => ({
+              label: dayjs(formatedDate).format('dddd, DD MMM YYYY'),
+              text: formatedDate,
+              reportType,
+            })),
+          }),
+        ),
+      }),
+    );
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('SettlementsService => getTradeDateAndExpirations error:', e);
+    return [];
+  }
+}
+
+function toggleProductsSelector(e) {
+  const button = e.target.closest('button');
+  const expanded = button.getAttribute('aria-expanded') === 'true';
+  button.setAttribute('aria-expanded', !expanded);
+}
+
+function closeOnDocClick(e) {
+  const button = document.querySelector('button.products-selector-button[aria-expanded="true"]');
+  if (button && !button.contains(e.target) && !e.target.closest('.products-selector-dropdown')) {
+    button.setAttribute('aria-expanded', false);
+  }
+}
+
+/**
+ * Updates UI when an option is selected
+ */
+function handleOptionSelection(optionObj, button, container, onSelect) {
+  button.textContent = optionObj.label;
+  button.dataset.value = optionObj.text;
+
+  const checkIcon = container.querySelector('.current-product-check');
+  const allOptions = container.querySelectorAll('.option-anchor');
+  const selectedBtn = Array.from(allOptions).find((btn) => btn.dataset.value === optionObj.text);
+
+  if (selectedBtn && checkIcon) {
+    selectedBtn.prepend(checkIcon);
+  }
+
+  button.setAttribute('aria-expanded', 'false');
+
+  // Trigger the callback to return the selected data to the parent
+  if (onSelect) onSelect(optionObj);
+}
+
+export function createProductsDropdown(optionList, selectedValue) {
+  const dropdownElement = createElement('div', { class: 'products-dropdown-container' });
+
+  // Find initial selection object or default to first
+  const initialOption = optionList.find((opt) => opt.text === selectedValue) || optionList[0];
+
+  const button = createElement('button', {
+    class: 'products-selector-button',
+    id: 'products-selector-button',
+    'aria-haspopup': 'listbox',
+    'aria-expanded': false,
+    type: 'button',
+  });
+
+  button.textContent = initialOption.label;
+  button.dataset.value = initialOption.text;
+
+  const check = createElement('img', {
+    src: '/aemedge/icons/check.svg',
+    alt: 'Selected',
+    class: 'current-product-check',
+  });
+
+  const productsList = createElement('ul', { class: 'products-selector-options', role: 'listbox' });
+
+  optionList.forEach((option) => {
+    const li = createElement('li', { class: 'product-item', role: 'presentation' });
+    const optionButton = createElement('button', {
+      type: 'button',
+      text: option.label,
+      class: 'option-anchor',
+      role: 'option',
+    });
+
+    // Store the "text" value (ID) on the element
+    optionButton.textContent = option.label;
+    optionButton.dataset.value = option.text;
+
+    optionButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleOptionSelection(option, button, dropdownElement);
+    });
+
+    if (option.text === initialOption.text) {
+      optionButton.prepend(check);
+    }
+
+    li.appendChild(optionButton);
+    productsList.appendChild(li);
+  });
+
+  const dropdownMenu = createElement('div', {
+    class: 'products-selector-dropdown',
+    'aria-labelledby': 'products-selector-button',
+  }, productsList);
+
+  button.addEventListener('click', toggleProductsSelector);
+  document.addEventListener('click', closeOnDocClick);
+
+  dropdownElement.append(button, dropdownMenu);
+  return dropdownElement;
 }
