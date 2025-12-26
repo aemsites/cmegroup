@@ -228,7 +228,8 @@ export default function createFilter(options, filterConfig = {}) {
     class: 'main-filters hide-modal',
   });
   const filtersContent = createElement('div', { class: 'filters-content' });
-  const buttonsContainer = createElement('div', { class: 'buttons-container' });
+  const buttonsContainerMobile = createElement('div', { class: 'buttons-container mobile' });
+  const buttonsContainerDesktop = createElement('div', { class: 'buttons-container desktop' });
   const filterBy = createElement('div', { class: 'filter-by' });
   const wrap = createElement('div', { class: 'wrap' });
   const resetButton = createElement('button', {
@@ -441,9 +442,12 @@ export default function createFilter(options, filterConfig = {}) {
   scrollMobileWrapper.appendChild(secondFilterRow);
   secondFilterRow.appendChild(dropdownsContainer);
   mainFilters.appendChild(applyButton);
-  buttonsContainer.appendChild(resetButton);
-  buttonsContainer.appendChild(filterButton);
-  filter.appendChild(buttonsContainer);
+  buttonsContainerMobile.appendChild(resetButton);
+  buttonsContainerMobile.appendChild(filterButton);
+  buttonsContainerDesktop.appendChild(resetButton.cloneNode(true));
+  buttonsContainerDesktop.appendChild(filterButton.cloneNode(true));
+  dropdownsContainer.appendChild(buttonsContainerDesktop);
+  filter.appendChild(buttonsContainerMobile);
   filter.appendChild(filterBy);
 
   filter.getFilters = () => {
@@ -464,6 +468,17 @@ export default function createFilter(options, filterConfig = {}) {
   filter.resetFilters = () => {
     resetButton.click();
   };
+
+  const resetButtonDesktop = buttonsContainerDesktop.querySelector('.reset-button');
+  const filterButtonDesktop = buttonsContainerDesktop.querySelector('.filter-button');
+
+  resetButtonDesktop.addEventListener('click', () => {
+    resetButton.click();
+  });
+
+  filterButtonDesktop.addEventListener('click', () => {
+    filterButton.click();
+  });
 
   const urlFilters = getFiltersFromURL();
 

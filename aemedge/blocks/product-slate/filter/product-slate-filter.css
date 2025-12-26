@@ -40,6 +40,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 1rem 1.25rem;
+            width: 100%;
 
             @media (width >= 1201px) {
               justify-content: space-between;
@@ -55,7 +56,18 @@
               }
 
               @media (width >= 1201px) {
-                width: 21%;
+                width: auto;
+                flex: 0 0 auto;
+
+                &:first-of-type {
+                  width: 33.333%;
+                  max-width: 28.4375rem;
+                  padding-left: 0;
+                }
+              }
+
+              @media (width >= 1401px) {
+                width: calc(16.5% - 1.875rem);
               }
 
               &.group {
@@ -241,6 +253,27 @@
 
         @media (width >= 769px) {
           margin-bottom: 1.875rem;
+        }
+
+        &.desktop {
+          display: none;
+
+          @media (width >= 769px) {
+            display: inline-flex;
+            width: auto;
+          }
+
+          @media (width >= 1201px) {
+            flex: 0 0 auto;
+          }
+        }
+
+        &.mobile {
+          display: flex;
+
+          @media (width >= 769px) {
+            display: none;
+          }
         }
 
         & .button {
