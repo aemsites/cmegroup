@@ -513,8 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateVisualPreviewFlags() {
     stagingContainer.classList.remove('preview-dark', 'preview-compact');
-    const isDark = Array.from(tableOptionCheckboxes).find(cb => cb.value === 'dark' && cb.checked);
-    const isCompact = Array.from(tableOptionCheckboxes).find(cb => cb.value === 'compact' && cb.checked);
+    const isDark = Array.from(tableOptionCheckboxes).find((cb) => cb.value === 'dark' && cb.checked);
+    const isCompact = Array.from(tableOptionCheckboxes).find((cb) => cb.value === 'compact' && cb.checked);
     if (isDark) stagingContainer.classList.add('preview-dark');
     if (isCompact) stagingContainer.classList.add('preview-compact');
   }
