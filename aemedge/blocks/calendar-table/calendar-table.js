@@ -2,7 +2,6 @@ import { getMetadata, loadCSS } from '../../scripts/aem.js';
 import {
   getProductMetadata,
   applyAuthorOverride,
-  getProductTitle,
   getDisplayMode,
   getCalendarFutures,
   getCalendarOptions,
@@ -23,7 +22,6 @@ const TABLE_CONSTANTS = {
 
 let needShowAll = false;
 const maxRows = 12;
-const titleWrapper = createElement('div', { class: 'title-wrapper' });
 let isLoggedIn = false;
 
 /* Build HTML table structure */
@@ -225,6 +223,7 @@ async function renderTable(block) {
   // Get productId for API calls
   const productMetadata = await getProductMetadata();
   const productId = productMetadata.productId || getMetadata('product-id');
+  const titleWrapper = document.querySelector('.product-tab-title');
 
   if (!productId) {
     block.innerHTML = `
@@ -273,7 +272,9 @@ async function renderTable(block) {
         block.appendChild(table);
 
         const authTooltipElement = createAuthTooltip(authTooltipProps, downloadLabel);
-        titleWrapper.append(authTooltipElement);
+        if (titleWrapper) {
+          titleWrapper.append(authTooltipElement);
+        }
 
         loadAll = await createLoadAllWrapper(block);
         block.append(loadAll);
@@ -294,7 +295,9 @@ async function renderTable(block) {
         block.appendChild(table);
 
         const authTooltipElement = createAuthTooltip(authTooltipProps, downloadLabel);
-        titleWrapper.append(authTooltipElement);
+        if (titleWrapper) {
+          titleWrapper.append(authTooltipElement);
+        }
 
         loadAll = await createLoadAllWrapper(block);
         block.append(loadAll);
@@ -347,26 +350,7 @@ export default function decorate(block) {
 
   block.classList.add('table');
   block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
-  titleWrapper.innerHTML = '';
-
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
-
-  Promise.all([i18n('Calendar')])
-    .then(([calendarLabel]) => {
-      const { optionProductId } = getDisplayMode();
-      return getProductTitle(optionProductId, calendarLabel);
-    })
-    .then((title) => {
-      const titleHtml = createElement('h2', { class: 'calendar-title' });
-      titleHtml.innerHTML = title;
-      titleWrapper.prepend(titleHtml);
-      if (!titleWrapper.isConnected) {
-        block.insertAdjacentElement('beforebegin', titleWrapper);
-      }
-    })
-    // eslint-disable-next-line no-console
-    .catch((err) => console.error('load title error:', err));
-
   renderTable(block).catch((error) => {
     block.innerHTML = `
       <div class="no-results">

@@ -143,6 +143,18 @@ function filterAlerts(alerts) {
       return false;
     }
 
+    if ([
+      'tabs.OVERVIEW',
+      'tabs.QUOTES',
+      'tabs.TIMEANDSALES',
+      'tabs.VOLUME',
+      'tabs.CONTRACTSPEC',
+      'tabs.MARGINS',
+      'tabs.CALENDAR',
+      'tabs.SETTLEMENTS',
+    ].reduce((acc, curr) => acc || alertContent[curr] === 'true', false)) {
+      return false;
+    }
     return true;
   });
 }
