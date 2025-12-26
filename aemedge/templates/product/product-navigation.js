@@ -422,6 +422,13 @@ export async function renderProductPath(url, productRoot) {
       domOpsPromise, // Let toggle populate in background
     ]).then(() => {
       insertFragmentIfApplicable(productRoot).catch(() => {});
+      const { height } = store.getState().floatingElements;
+      const { offsetTop, offsetHeight } = document.querySelector('.hero-baseball');
+      window.scrollTo({
+        top: (offsetTop + offsetHeight) - height,
+        left: 0,
+        behavior: 'smooth',
+      });
     }).catch(() => {});
   } catch (e) {
     const container = ensureSubTabsContentContainer();

@@ -66,3 +66,18 @@ export function arrayMerge(x, y) {
     [...x],
   );
 }
+
+export function chunk(array, size = 1) {
+  if (!Array.isArray(array) || size < 1) {
+    return [];
+  }
+  return array.reduce((acc, current, index) => {
+    const isNewChunk = index % size === 0;
+    if (isNewChunk) {
+      acc.push([current]);
+    } else {
+      acc[acc.length - 1].push(current);
+    }
+    return acc;
+  }, []);
+}

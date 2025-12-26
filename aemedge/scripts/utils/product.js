@@ -4,7 +4,12 @@ import { store } from '../store/store.js';
 import { setProductData } from '../actions/product.js';
 import { apiGet, apiPost, getResponseData } from './fetch.js';
 import { urlByEnvType } from './env.js';
-import { loadScript, setupDayjsLibs, getCdtDate } from '../utils.js';
+import {
+  loadScript,
+  setupDayjsLibs,
+  getCdtDate,
+  createElement,
+} from '../utils.js';
 
 // API Configuration
 const API_CONFIG = {
@@ -317,13 +322,18 @@ export async function loadProductData(productId) {
   return productDataPromise;
 }
 
-export async function getContractsByNumber(productId) {
+export async function getContractsByNumber(
+  productIds,
+  contractsNumber = [1],
+  showQuarterly = [0],
+  type = 'VOLUME',
+) {
   const endpoint = `${urlByEnvType()}${API_CONFIG.contractsByNumberEndpoint}`;
   const payload = {
-    productIds: [productId],
-    contractsNumber: [1],
-    type: 'VOLUME',
-    showQuarterly: [0],
+    productIds,
+    contractsNumber,
+    type,
+    showQuarterly,
   };
   const headers = {
     'Content-Type': 'application/json',
@@ -643,4 +653,68 @@ export function handleAboutReportModal(block, modalItemClass, fragmentUrl) {
       }
     }
   });
+}
+
+export function buildCollapsible(headers, data, collapsibleClass, maxRows, collapsibleId = '') {
+  const collapsible = createElement('div', { class: `collapsible-component ${collapsibleClass}` });
+  if (collapsibleId) collapsible.id = collapsibleId;
+
+  headers.forEach((header, index) => {
+    const itemData = data[index];
+    const collapsibleItem = createElement('div', { class: 'collapsible-item' });
+    const isEmpty = itemData === null || itemData === undefined || itemData === '';
+    if (isEmpty) {
+      collapsibleItem.classList.add('hidden-empty-collapsible');
+    }
+    const collapsibleButton = createElement('button', { class: 'collapsible-button btn-secondary' });
+    collapsibleButton.innerHTML = header;
+    collapsibleItem.appendChild(collapsibleButton);
+    const collapse = createElement('div', { class: 'collapse' });
+    const collapseBody = createElement('div', { class: 'collapse-body' });
+    collapseBody.innerHTML = itemData ?? '';
+    collapse.appendChild(collapseBody);
+    collapsibleItem.appendChild(collapse);
+    collapsible.appendChild(collapsibleItem);
+
+    if (index >= maxRows && maxRows > 0) {
+      collapsibleItem.classList.add('hidden-collapsible');
+    }
+
+    collapsibleButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.currentTarget.classList.toggle('expand');
+      const collapsePanel = e.currentTarget.nextElementSibling;
+      if (collapsePanel && collapsePanel.classList.contains('collapse')) {
+        collapsePanel.classList.toggle('show');
+      }
+    });
+  });
+
+  return collapsible;
+}
+
+export function buildLoadAllButton(block, loadText) {
+  const loadAllButtonWrapper = createElement('div', { class: 'load-all-button-wrapper' });
+  const loadAllButton = createElement('button', { class: 'load-all-button primary' });
+  loadAllButton.innerHTML = loadText;
+  loadAllButtonWrapper.append(loadAllButton);
+
+  loadAllButton.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const hiddenRows = block.querySelectorAll('.hidden-row');
+    hiddenRows.forEach((row) => {
+      row.classList.remove('hidden-row');
+    });
+    const fadeTable = block.querySelector('.table-fade');
+    fadeTable.classList.remove('table-fade');
+
+    const hiddenCollapsible = block.querySelectorAll('.hidden-collapsible');
+    hiddenCollapsible.forEach((collapsible) => {
+      collapsible.classList.remove('hidden-collapsible');
+    });
+
+    e.target.remove();
+  });
+
+  return loadAllButtonWrapper;
 }
