@@ -1,6 +1,4 @@
 .calendar-table-wrapper {
-  padding: 0 !important;
-
   & .calendar-table {
     margin: 2rem 0;
   
@@ -239,49 +237,6 @@
     }
   }
 
-  & .title-wrapper {
-    @media (width >= 993px) {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    /* Title styling */
-    & .calendar-title {
-      color: var(--blue2);
-      font-family: var(--averta);
-      font-size: 2rem;
-      font-weight: 600;
-      line-height: 2.5rem;
-      text-transform: uppercase;
-  
-      @media (width >= 993px) {
-        display: inline-block;
-        width: 66.6667%;
-      }
-    }
-  
-    /* auth tooltip styling */
-    & .auth-tooltip-container {
-      position: relative;
-      display: block;
-      text-align: right;
-      width: 100%;
-
-      @media (width >= 993px) {
-        display: inline-block;
-        width: auto;
-      }
-
-      & a {
-        &:hover {
-          & .icon-lock {
-            filter: var(--white-filter);
-          }
-        }
-      }
-    }
-  }
-
   & .spinner-calendar {
       width: 3rem;
       height: 3rem;
@@ -311,6 +266,29 @@
           animation-delay: -0.15s;
         }
       }
+  }
+}
+
+.product-tab-title {
+  /* auth tooltip styling */
+  & .auth-tooltip-container {
+    position: relative;
+    display: block;
+    text-align: right;
+    width: 100%;
+
+    @media (width >= 993px) {
+      display: inline-block;
+      width: auto;
+    }
+
+    & a {
+      &:hover {
+        & .icon-lock {
+          filter: var(--white-filter);
+        }
+      }
+    }
   }
 }
 

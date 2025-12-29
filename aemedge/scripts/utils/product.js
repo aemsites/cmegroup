@@ -223,38 +223,6 @@ export async function getProductMetadata() {
   return productMetaDataPromise;
 }
 
-export async function getProductTitle(optionProductId, componentName) {
-  return new Promise((resolve) => {
-    const unsubscribe = store.subscribe(
-      ({ productData }) => ({ productData }),
-      (stateSlices) => {
-        const { productData } = stateSlices;
-        if (productData && productData.loaded) {
-          const { optionsLabels, fullProductName } = productData;
-          const optionSelected = optionProductId;
-          let title = '';
-
-          const option = optionsLabels?.find(
-            ({ productId }) => productId === optionSelected,
-          );
-
-          if (option) {
-            title = option.name;
-          } else {
-            title = fullProductName;
-          }
-
-          const fullTitle = title ? `${title} - ${componentName}` : '';
-          resolve(fullTitle);
-          if (unsubscribe) {
-            unsubscribe();
-          }
-        }
-      },
-    );
-  });
-}
-
 export function isValidTradeDate(date, hoursToSubtract) {
   const today = getCdtDate(Date.now());
   const prevDay = getCdtDate(date).subtract(hoursToSubtract, 'hour');

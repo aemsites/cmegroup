@@ -400,7 +400,7 @@ main {
   /* Content area below tabs */
   & .product-subtabs-content {
     /* Content cards with alternating background colors */
-    & > div > .section {
+    & > .section {
       border-radius: 0.25rem;
       padding: 1.875rem 0;
 
@@ -412,13 +412,6 @@ main {
       & > div {
         max-width: var(--container-xxl-max);
         margin: 0 auto;
-        padding: 0 3.375rem;
-
-        /* Override global section padding at xxl breakpoint */
-        @media (width > 1400px) {
-          padding-left: 3.375rem;
-          padding-right: 3.375rem;
-        }
       }
 
       /* Remove background/shadow from nested sections to avoid double-boxing */
