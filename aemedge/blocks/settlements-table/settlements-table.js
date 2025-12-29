@@ -25,16 +25,17 @@ let needShowAll = false;
 const maxRows = 12;
 const titleWrapper = createElement('div', { class: 'title-wrapper' });
 const tradeWrapper = createElement('div', { class: 'trades-wrapper' });
+const expirationWrapper = createElement('div', { class: 'expiration-wrapper' });
+const tradeDateWrapper = createElement('div', { class: 'trade-date-wrapper' });
 let expirationDate;
 let tradeDate;
 
 async function createTradeDateDropdown(expirationsOptions, expiration) {
-  // 1. Find the specific expiration object that matches the selected expirationDate
-  const selectedExpirationGroup = expirationsOptions[0].expirations.find(
+  tradeDateWrapper.innerHTML = '';
+  const selectedExpirationGroup = expirationsOptions.expirations.find(
     (option) => option.text === expiration,
   );
 
-  // 2. Safety check: ensure the group exists before mapping
   const tradeDateOptions = selectedExpirationGroup
     ? selectedExpirationGroup.tradeDates.map((item) => ({
       label: item.label,
@@ -47,7 +48,6 @@ async function createTradeDateDropdown(expirationsOptions, expiration) {
     console.log(tradeDate);
   };
 
-  // 3. Prevent rendering if no options are found
   if (tradeDateOptions.length > 0) {
     const tradeDateDropdown = createProductsDropdown(
       tradeDateOptions,
@@ -55,21 +55,26 @@ async function createTradeDateDropdown(expirationsOptions, expiration) {
       handleTradeDateChange,
     );
 
-    tradeWrapper.append(tradeDateDropdown);
+    tradeDateWrapper.append(tradeDateDropdown);
+    tradeWrapper.append(tradeDateWrapper);
   }
 }
 
 /* create Trades wrapper */
-async function createTradesWrapper(productId) {
+async function createTradesWrapper(productId, optionProductId) {
+  expirationWrapper.innerHTML = '';
   const tradeDateAndExpirations = await getTradeDateAndExpirations(productId);
-  const expirationsOptions = tradeDateAndExpirations[0].expirations.map((item) => ({
+  const targetTradeDate = tradeDateAndExpirations.find(
+    (item) => item.productId === optionProductId,
+  );
+  const expirationsOptions = targetTradeDate.expirations.map((item) => ({
     label: item.label,
     text: item.text,
   }));
 
   const handleExpirationChange = (selectedExpiration) => {
     expirationDate = selectedExpiration.text;
-    createTradeDateDropdown(tradeDateAndExpirations, expirationDate);
+    createTradeDateDropdown(targetTradeDate, expirationDate);
   };
 
   const expirationDropdown = createProductsDropdown(
@@ -78,9 +83,10 @@ async function createTradesWrapper(productId) {
     handleExpirationChange,
   );
 
-  tradeWrapper.append(expirationDropdown);
+  expirationWrapper.append(expirationDropdown);
+  tradeWrapper.append(expirationWrapper);
 
-  createTradeDateDropdown(tradeDateAndExpirations, expirationsOptions[0].text);
+  createTradeDateDropdown(targetTradeDate, expirationsOptions[0].text);
 }
 
 /* Build HTML table structure */
@@ -305,7 +311,8 @@ async function renderTable(block) {
         return;
       }
       // here create trades-wrapper
-      await createTradesWrapper(optionProductId);
+      tradeWrapper.innerHTML = '';
+      await createTradesWrapper(productId, optionProductId);
 
       table = await createOptionsTable(optionProductId);
       if (table) {

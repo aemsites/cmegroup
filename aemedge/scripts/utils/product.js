@@ -749,12 +749,6 @@ export async function getTradeDateAndExpirations(productId) {
   }
 }
 
-function toggleProductsSelector(e) {
-  const button = e.target.closest('button');
-  const expanded = button.getAttribute('aria-expanded') === 'true';
-  button.setAttribute('aria-expanded', !expanded);
-}
-
 function closeOnDocClick(e) {
   const button = document.querySelector('button.products-selector-button[aria-expanded="true"]');
   if (button && !button.contains(e.target) && !e.target.closest('.products-selector-dropdown')) {
@@ -762,9 +756,13 @@ function closeOnDocClick(e) {
   }
 }
 
-/**
- * Updates UI when an option is selected
- */
+function toggleProductsSelector(e) {
+  closeOnDocClick(e);
+  const button = e.target.closest('button');
+  const expanded = button.getAttribute('aria-expanded') === 'true';
+  button.setAttribute('aria-expanded', !expanded);
+}
+
 function handleOptionSelection(optionObj, button, container, onSelect) {
   button.textContent = optionObj.label;
   button.dataset.value = optionObj.text;
@@ -779,19 +777,16 @@ function handleOptionSelection(optionObj, button, container, onSelect) {
 
   button.setAttribute('aria-expanded', 'false');
 
-  // Trigger the callback to return the selected data to the parent
   if (onSelect) onSelect(optionObj);
 }
 
-export function createProductsDropdown(optionList, selectedValue) {
-  const dropdownElement = createElement('div', { class: 'products-dropdown-container' });
+export function createProductsDropdown(optionList, selectedValue, onSelect) {
+  const dropdownElement = createElement('div', { class: 'products-dropdown-container right-align' });
 
-  // Find initial selection object or default to first
   const initialOption = optionList.find((opt) => opt.text === selectedValue) || optionList[0];
 
   const button = createElement('button', {
     class: 'products-selector-button',
-    id: 'products-selector-button',
     'aria-haspopup': 'listbox',
     'aria-expanded': false,
     type: 'button',
@@ -817,13 +812,12 @@ export function createProductsDropdown(optionList, selectedValue) {
       role: 'option',
     });
 
-    // Store the "text" value (ID) on the element
     optionButton.textContent = option.label;
     optionButton.dataset.value = option.text;
 
     optionButton.addEventListener('click', (e) => {
       e.stopPropagation();
-      handleOptionSelection(option, button, dropdownElement);
+      handleOptionSelection(option, button, dropdownElement, onSelect);
     });
 
     if (option.text === initialOption.text) {
