@@ -20,6 +20,7 @@ const API_CONFIG = {
   cvolEndpoint: '/services/cvol',
   calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
   calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
+  quotesEndpoint: '/CmeWS/mvc/quotes/v2',
 };
 
 const minimumPriceOrderedKeys = [
@@ -368,6 +369,13 @@ export async function getCalendarOptions(productId, optionProductId) {
   const data = getResponseData(response) || response.data;
   const optionData = data.filter((item) => item.productIds[0] === Number(optionProductId));
   return optionData[0].calendarEntries;
+}
+
+export async function getQuotesFutures(productId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.quotesEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  return data;
 }
 
 /**
