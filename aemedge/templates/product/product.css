@@ -402,10 +402,10 @@ main {
     /* Content cards with alternating background colors */
     & > .section {
       border-radius: 0.25rem;
-      padding: 1.875rem 0 !important;
+      padding: 1.875rem 0;
 
       @media (width >= 769px) {
-        padding: 3.75rem 0 !important;
+        padding: 3.75rem 0;
       }
 
       /* Content wrapper with max-width and horizontal padding */
