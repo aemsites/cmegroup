@@ -60,14 +60,38 @@ function buildTable(headers, data, tableId = '') {
   return table;
 }
 
+function createOptionButton(productData, item) {
+  const optionProductId = productData.optionsLabels.length > 0
+    && productData.optionsLabels[0].productId;
+  const year = item.priceChart?.year;
+  const expiration = item.expirationDate.slice(4, 6).replace(/^0+/, '') - 1;
+  const param = (expiration === 0) ? `${year - 1}-12-${item.code}-12${year}` : `${year}-${expiration}-${item.code}-${expiration}${year}`;
+  const button = createElement('a', { class: 'option', href: `${window.location.pathname}/options?optionProductId=${optionProductId}&expiration=${param}` }, 'opt');
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    const customEvent = new CustomEvent('optionContractSelected', {
+      detail: {
+        productId: optionProductId,
+        expiration: param,
+      },
+      bubbles: true,
+    });
+    document.querySelector('.options-dropdown').dispatchEvent(customEvent);
+  });
+  return button;
+}
+
 /* Create futures quotes table */
-async function createFuturesTable() {
-  const productMetadata = await getProductMetadata();
-  const productId = productMetadata.productId || getMetadata('product-id');
-  if (!productId) return null;
-  const quotesData = await getQuotesFutures(productId);
+async function createFuturesTable(productData, block) {
+  const quotesData = await getQuotesFutures(productData.productId);
   if (!quotesData || quotesData.length === 0) {
-    return null;
+    block.innerHTML = `
+      <div class="no-results">
+        <h4>Unable to load futures quotes</h4>
+        <p>quotes data is currently unavailable.</p>
+      </div>
+    `;
+    return;
   }
   const [
     monthLabel,
@@ -111,7 +135,7 @@ async function createFuturesTable() {
   ];
   const tableData = quotesData.quotes.map((item) => [
     `<span>${item.expirationMonth || '-'}</span><span>${item.quoteCode || '-'}</span>`,
-    'opt',
+    item.hasOption ? createOptionButton(productData, item) : '',
     'chart',
     item.last || '-',
     item.change || '-',
@@ -125,7 +149,10 @@ async function createFuturesTable() {
   const quotesWrapper = createElement('div', { class: 'quotes-wrapper' });
   const buildedTable = buildTable(headers, tableData, 'futures-quotes-table');
   quotesWrapper.appendChild(buildedTable);
-  return quotesWrapper;
+  block.innerHTML = '';
+  block.appendChild(quotesWrapper);
+  const loadAll = await createLoadAllWrapper(block);
+  block.append(loadAll);
 }
 
 async function renderTable(block) {
@@ -147,9 +174,6 @@ async function renderTable(block) {
   }
 
   try {
-    let table = null;
-    let loadAll;
-
     if (isOptions) {
       if (optionProductId && await applyAuthorOverride(block, 'options-product-id', optionProductId)) {
         return;
@@ -162,20 +186,13 @@ async function renderTable(block) {
       `;
     } else {
       // Futures mode
-      table = await createFuturesTable();
-      if (table) {
-        block.innerHTML = '';
-        block.appendChild(table);
-        loadAll = await createLoadAllWrapper(block);
-        block.append(loadAll);
-      } else {
-        block.innerHTML = `
-          <div class="no-results">
-            <h4>Unable to load futures quotes</h4>
-            <p>quotes data is currently unavailable.</p>
-          </div>
-        `;
-      }
+      let rendered = false;
+      store.subscribe(({ productData }) => productData, (productData) => {
+        if (productData.loaded && !rendered) {
+          rendered = true;
+          createFuturesTable(productData, block);
+        }
+      });
     }
   } catch (error) {
     block.innerHTML = `

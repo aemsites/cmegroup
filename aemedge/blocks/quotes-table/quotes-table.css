@@ -184,6 +184,24 @@
             & span {
               display: block;
             }
+
+            & .option {
+              background-color: var(--blue4);
+              border-radius: .125rem;
+              color: var(--white);
+              font-family: var(--averta);;
+              font-size: .625rem;
+              font-weight: 700;
+              line-height: .625rem;
+              padding: .125rem .25rem;
+              text-transform: uppercase;
+
+              &:hover {
+                background-color: var(--blue5);
+                color: var(--blue3);
+                text-decoration: none;
+              }
+            }
           }
         }
       }
