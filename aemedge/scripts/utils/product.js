@@ -518,7 +518,7 @@ function renderRow(
   formattedKey,
 ) {
   // null or undefined data
-  if (items === null || items === undefined || items === '') return '';
+  if (items === null || items === undefined || items === '' || items === '-') return '';
 
   // Case 1: Simple String/Number
   if (typeof items !== 'object') {
