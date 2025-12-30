@@ -81,6 +81,31 @@ function createOptionButton(productData, item) {
   return button;
 }
 
+function createChartButton(item) {
+  const {
+    priceChart: {
+      code,
+      title,
+      venue,
+      monthYear,
+      year,
+    },
+    exchangeCode,
+    quoteCode,
+  } = item;
+  const href = '/apps/cmegroup/widgets/productLibs/esignal-charts.html?type=p'
+    + `&code=${code}&title=${title}&venue=${venue}&monthYear=${monthYear}&year=${year}`
+    + `&exchangeCode=${exchangeCode}&interval=1`;
+  const chartIcon = createElement('img', { src: '/aemedge/icons/chart.svg' });
+  const chartIconSpan = createElement('span', { class: 'icon' }, chartIcon);
+  const button = createElement('a', { class: 'chart', href }, chartIconSpan);
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    window.open(href, `chart${quoteCode}`, 'width=780, height=640, popup=true');
+  });
+  return button;
+}
+
 /* Create futures quotes table */
 async function createFuturesTable(productData, block) {
   const quotesData = await getQuotesFutures(productData.productId);
@@ -133,12 +158,17 @@ async function createFuturesTable(productData, block) {
     volumeLabel,
     updatedLabel,
   ];
+  const getChangeClass = (change) => (
+    (change.charAt(0) === '+' ? 'positive' : '')
+    + (change.charAt(0) === '-' && change.length > 1 ? 'negative' : '')
+  );
+  const getChangeText = (change, percentageChange) => (change.length > 1 ? `${change} (${percentageChange})` : '-');
   const tableData = quotesData.quotes.map((item) => [
     `<span>${item.expirationMonth || '-'}</span><span>${item.quoteCode || '-'}</span>`,
     item.hasOption ? createOptionButton(productData, item) : '',
-    'chart',
+    createChartButton(item),
     item.last || '-',
-    item.change || '-',
+    `<span class="${getChangeClass(item.change)}">${getChangeText(item.change, item.percentageChange)}</span>`,
     item.priorSettle || '-',
     item.open || '-',
     item.high || '-',
