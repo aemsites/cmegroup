@@ -10,6 +10,7 @@ import {
   getCdtDate,
   createElement,
 } from '../utils.js';
+import { isEmpty } from './misc.js';
 
 // API Configuration
 const API_CONFIG = {
@@ -21,6 +22,7 @@ const API_CONFIG = {
   calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
   calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
   tradeDateAndExpirationsEndpoint: '/CmeWS/mvc/Settlements/Options/TradeDateAndExpirations',
+  optionSettlementsEndpoint: '/CmeWS/mvc/Settlements/Options/Settlements',
 };
 
 const minimumPriceOrderedKeys = [
@@ -764,9 +766,7 @@ function toggleProductsSelector(e) {
 }
 
 function handleOptionSelection(optionObj, button, container, onSelect) {
-  button.textContent = optionObj.label;
   button.dataset.value = optionObj.text;
-
   const checkIcon = container.querySelector('.current-product-check');
   const allOptions = container.querySelectorAll('.option-anchor');
   const selectedBtn = Array.from(allOptions).find((btn) => btn.dataset.value === optionObj.text);
@@ -794,6 +794,9 @@ export function createProductsDropdown(optionList, selectedValue, onSelect) {
 
   button.textContent = initialOption.label;
   button.dataset.value = initialOption.text;
+  if (initialOption.contract) {
+    button.dataset.contract = initialOption.contract;
+  }
 
   const check = createElement('img', {
     src: '/aemedge/icons/check.svg',
@@ -814,6 +817,9 @@ export function createProductsDropdown(optionList, selectedValue, onSelect) {
 
     optionButton.textContent = option.label;
     optionButton.dataset.value = option.text;
+    if (option.contract) {
+      optionButton.dataset.contract = option.contract;
+    }
 
     optionButton.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -838,4 +844,91 @@ export function createProductsDropdown(optionList, selectedValue, onSelect) {
 
   dropdownElement.append(button, dropdownMenu);
   return dropdownElement;
+}
+
+export async function getOptionSettlements(
+  optionProductId,
+  optionExpiration,
+  tradeDate,
+  contractId,
+) {
+  try {
+    const url = `${API_CONFIG.optionSettlementsEndpoint}/${optionProductId}/OOF?strategy=DEFAULT&optionProductId=${optionProductId}&monthYear=${contractId}&optionExpiration=${optionExpiration}&tradeDate=${tradeDate}&pageSize=500`;
+    const settlementsResponse = getResponseData(await apiGet(url));
+    let { settlements = [] } = settlementsResponse;
+    if (Array.isArray(settlements) && settlements.length) {
+      const totals = settlements.find(({ strike } = {}) => strike === 'Total');
+      settlements = settlements.filter(({ strike } = {}) => strike !== 'Total');
+      const settlementsStraddle = settlements.reduce((acc, curr = {}) => {
+        const { strike, type } = curr;
+        let option = acc.find(({ strike: s }) => s === strike);
+        if (!option) {
+          option = {
+            strike,
+            call: {},
+            put: {},
+          };
+          acc.push(option);
+        }
+        option[type.toLowerCase()] = curr;
+        return acc;
+      }, []);
+
+      const finalData = (data) => {
+        const singleStrikeList = data.reduce((acc, item) => {
+          if (isEmpty(item.call) || isEmpty(item.put)) {
+            acc[item.strike] = item.strike;
+          }
+          return acc;
+        }, {});
+
+        const addEmptyValues = (response, strikeVal) => {
+          const found = response.find((el) => el.strike === strikeVal);
+          const needsCall = isEmpty(found?.call);
+          const noDataObj = {
+            change: '0',
+            high: '-',
+            last: '-',
+            low: '-',
+            open: '-',
+            openInterest: '0',
+            settle: '-',
+            volume: '0',
+          };
+          if (found) {
+            found[needsCall ? 'call' : 'put'] = noDataObj;
+          }
+          return response;
+        };
+
+        // eslint-disable-next-line no-restricted-syntax
+        for (const key in singleStrikeList) {
+          if (key !== 'Total') {
+            addEmptyValues(data, key);
+          }
+        }
+        return data;
+      };
+      return {
+        ...settlementsResponse,
+        totals,
+        settlements,
+        settlementsStraddle: finalData(settlementsStraddle),
+      };
+    }
+    return {
+      ...settlementsResponse,
+      totals: {},
+      settlements: [],
+      settlementsStraddle: [],
+    };
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('SettlementsService => getOptionSettlements error:', e);
+    return {
+      totals: {},
+      settlements: [],
+      settlementsStraddle: [],
+    };
+  }
 }

@@ -4,13 +4,12 @@ import {
   applyAuthorOverride,
   getProductTitle,
   getDisplayMode,
-  getCalendarFutures,
-  getCalendarOptions,
   handleAboutReportModal,
   buildCollapsible,
   buildLoadAllButton,
   getTradeDateAndExpirations,
   createProductsDropdown,
+  getOptionSettlements,
 } from '../../scripts/utils/product.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 
@@ -27,10 +26,83 @@ const titleWrapper = createElement('div', { class: 'title-wrapper' });
 const tradeWrapper = createElement('div', { class: 'trades-wrapper' });
 const expirationWrapper = createElement('div', { class: 'expiration-wrapper' });
 const tradeDateWrapper = createElement('div', { class: 'trade-date-wrapper' });
-let expirationDate;
+let optionExpiration;
 let tradeDate;
+let labels;
+let contractId;
 
-async function createTradeDateDropdown(expirationsOptions, expiration) {
+async function loadSettlements(block, productId) {
+  let table = null;
+  let loadAll;
+
+  const tableDate = await getOptionSettlements(
+    productId,
+    optionExpiration,
+    tradeDate,
+    contractId,
+  );
+
+  table = await createOptionsTable(tableDate);
+  if (table) {
+    block.innerHTML = '';
+    block.appendChild(table);
+    loadAll = await createLoadAllWrapper(block);
+    block.append(loadAll);
+  } else {
+    block.innerHTML = `
+      <div class="no-results">
+        <h4>Unable to load options settlement</h4>
+        <p>Options data is currently unavailable.</p>
+      </div>
+    `;
+  }
+}
+
+// async function loadSettlements(context) {
+//   // 1. Destructure data from your context object (instead of this.state/props)
+//   const { productId } = context.productData;
+//   const {
+//     optionProductId,
+//     expirations,
+//     selectedExpiration,
+//     selectedTradeDate,
+//     optionsListSelected,
+//   } = context.data;
+
+//   // 2. Manual "Loading" state (Update your UI/DOM here)
+//   context.loadingSettlements = true;
+
+//   // 3. Logic for contract and product IDs
+//   const { contractId = '', expProductId = '' } = optionProductId
+//     ? expirations.find(({ text }) => text === selectedExpiration) || {}
+//     : {};
+
+//   // 4. Fetching Data (Ternary remains the same)
+//   const {
+//     settlements = [],
+//     settlementsStraddle = [],
+//     totals = {},
+//     updateTime = '',
+//   } = optionProductId
+//     ? await getOptionSettlements(
+//       expProductId,
+//       selectedExpiration,
+//       selectedTradeDate,
+//       contractId,
+//     )
+//     : await getFutureSettlements(productId, selectedTradeDate);
+
+//   // 5. Data Processing Logic
+//   let tableData = (optionProductId && !optionsListSelected)
+//     ? settlementsStraddle
+//     : settlements;
+
+//   // const lastUpdated = dayjs(updateTime).format('DD MMM YYYY hh:mm:ss A') + ' CT';
+//   lastUpdated = updateTime;
+// }
+
+/* create trade date dropdown */
+async function createTradeDateDropdown(block, expirationsOptions, expiration, optionProductId) {
   tradeDateWrapper.innerHTML = '';
   const selectedExpirationGroup = expirationsOptions.expirations.find(
     (option) => option.text === expiration,
@@ -45,7 +117,7 @@ async function createTradeDateDropdown(expirationsOptions, expiration) {
 
   const handleTradeDateChange = (selectedTradeDate) => {
     tradeDate = selectedTradeDate.text;
-    console.log(tradeDate);
+    loadSettlements(block, optionProductId);
   };
 
   if (tradeDateOptions.length > 0) {
@@ -55,13 +127,19 @@ async function createTradeDateDropdown(expirationsOptions, expiration) {
       handleTradeDateChange,
     );
 
+    tradeDate = tradeDateOptions[0].text;
+
+    const tradeDateLabelP = createElement('p', { class: 'trade-date-label' });
+    tradeDateLabelP.textContent = labels.tradeDateLabel;
+    tradeDateWrapper.append(tradeDateLabelP);
     tradeDateWrapper.append(tradeDateDropdown);
     tradeWrapper.append(tradeDateWrapper);
+    loadSettlements(block, optionProductId);
   }
 }
 
-/* create Trades wrapper */
-async function createTradesWrapper(productId, optionProductId) {
+/* create Trades wrapper and expiration dropdown */
+async function createTradesWrapper(block, productId, optionProductId) {
   expirationWrapper.innerHTML = '';
   const tradeDateAndExpirations = await getTradeDateAndExpirations(productId);
   const targetTradeDate = tradeDateAndExpirations.find(
@@ -70,11 +148,13 @@ async function createTradesWrapper(productId, optionProductId) {
   const expirationsOptions = targetTradeDate.expirations.map((item) => ({
     label: item.label,
     text: item.text,
+    contract: item.contractId,
   }));
 
   const handleExpirationChange = (selectedExpiration) => {
-    expirationDate = selectedExpiration.text;
-    createTradeDateDropdown(targetTradeDate, expirationDate);
+    optionExpiration = selectedExpiration.text;
+    contractId = selectedExpiration.contract;
+    createTradeDateDropdown(block, targetTradeDate, optionExpiration, optionProductId);
   };
 
   const expirationDropdown = createProductsDropdown(
@@ -83,15 +163,21 @@ async function createTradesWrapper(productId, optionProductId) {
     handleExpirationChange,
   );
 
+  optionExpiration = expirationsOptions[0].text;
+  contractId = expirationsOptions[0].contract;
+
+  const expirationLabelP = createElement('p', { class: 'expiration-label' });
+  expirationLabelP.textContent = labels.expirationLabel;
+  expirationWrapper.append(expirationLabelP);
   expirationWrapper.append(expirationDropdown);
   tradeWrapper.append(expirationWrapper);
 
-  createTradeDateDropdown(targetTradeDate, expirationsOptions[0].text);
+  createTradeDateDropdown(block, targetTradeDate, expirationsOptions[0].text, optionProductId);
 }
 
 /* Build HTML table structure */
 function buildTable(headers, data, tableId = '') {
-  const table = createElement('table', { class: 'table-calendar' });
+  const table = createElement('table', { class: 'table-settlement' });
   if (tableId) table.id = tableId;
 
   const thead = createElement('thead');
@@ -132,16 +218,16 @@ function buildTable(headers, data, tableId = '') {
   return table;
 }
 
-/* Create futures calendar table */
+/* Create futures settlement table */
 async function createFuturesTable() {
   const productMetadata = await getProductMetadata();
   const productId = productMetadata.productId || getMetadata('product-id');
 
   if (!productId) return null;
 
-  const calendarData = await getCalendarFutures(productId);
+  const settlementData = {};
 
-  if (!calendarData || calendarData.length === 0) {
+  if (!settlementData || settlementData.length === 0) {
     return null;
   }
 
@@ -186,7 +272,7 @@ async function createFuturesTable() {
     `<span>${firstDelivery}</span><span>${lastDelivery}</span>`,
   ];
 
-  const tableData = calendarData.map((item) => [
+  const tableData = settlementData.map((item) => [
     item.contractMonth || TABLE_CONSTANTS.placeholders.noData,
     item.productCode || TABLE_CONSTANTS.placeholders.noData,
     `<span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span>`,
@@ -197,11 +283,11 @@ async function createFuturesTable() {
     `<span>${item.firstDelivery || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastDelivery || TABLE_CONSTANTS.placeholders.noData}</span>`,
   ]);
 
-  const collapsibleHeaders = calendarData.map((item) => [
+  const collapsibleHeaders = settlementData.map((item) => [
     item.contractMonth || TABLE_CONSTANTS.placeholders.noData,
   ]);
 
-  const collapsibleData = calendarData.map((item) => [
+  const collapsibleData = settlementData.map((item) => [
     `<div class="row-data"><span>${productCode}</span><span>${item.productCode || TABLE_CONSTANTS.placeholders.noData}</span></div>
     <div class="row-data"><div><span>${firstTrade}</span><span>${lastTrade}</div><div><span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
     <div class="row-data"><span>${settlement}</span><span>${item.settlement || TABLE_CONSTANTS.placeholders.noData}</span></div>
@@ -212,30 +298,42 @@ async function createFuturesTable() {
     `,
   ]);
 
-  const calendarWrapper = createElement('div', { class: 'calendar-wrapper' });
-  const buildedTable = buildTable(headers, tableData, 'futures-calendar-table');
-  const buildedCollapsible = buildCollapsible(collapsibleHeaders, collapsibleData, 'collapsible-calendar', maxRows, 'futures-calendar-collapsible');
-  calendarWrapper.appendChild(buildedTable);
-  calendarWrapper.appendChild(buildedCollapsible);
+  const settlementWrapper = createElement('div', { class: 'settlement-wrapper' });
+  const buildedTable = buildTable(headers, tableData, 'futures-settlement-table');
+  const buildedCollapsible = buildCollapsible(collapsibleHeaders, collapsibleData, 'collapsible-settlement', maxRows, 'futures-settlement-collapsible');
+  settlementWrapper.appendChild(buildedTable);
+  settlementWrapper.appendChild(buildedCollapsible);
 
-  return calendarWrapper;
+  return settlementWrapper;
 }
 
-/* Create option calendar table */
-async function createOptionsTable(optionProductId) {
+/* Create option settlement table */
+async function createOptionsTable(tableDate) {
   const productMetadata = await getProductMetadata();
   const productId = productMetadata.productId || getMetadata('product-id');
 
   if (!productId) return null;
 
-  const optionsData = await getCalendarOptions(productId, optionProductId);
+  const optionsData = tableDate;
 
   if (!optionsData || optionsData.length === 0) {
     return null;
   }
+  const settlementWrapper = createElement('div', { class: 'settlement-wrapper' });
+  // totals-info-row
+  const dataInformation = createElement('div', { class: 'data-information' });
+  // timestamp
+  settlementWrapper.appendChild(dataInformation);
 
   // here create totals-info-row
+  const totalsInfoRow = createElement('div', { class: 'totals-info-row' });
+  // totals row
+  settlementWrapper.appendChild(totalsInfoRow);
+
   // here create view-selector-row
+  const viewSelectorRow = createElement('div', { class: 'view-selector-row' });
+  // option-switcher
+  settlementWrapper.appendChild(viewSelectorRow);
 
   const [
     contractMonth,
@@ -265,28 +363,15 @@ async function createOptionsTable(optionProductId) {
     item.settlement || TABLE_CONSTANTS.placeholders.noData,
   ]);
 
-  const collapsibleHeaders = optionsData.map((item) => [
-    item.contractMonth || TABLE_CONSTANTS.placeholders.noData,
-  ]);
+  const buildedTable = buildTable(headers, tableData, 'option-settlement-table');
+  settlementWrapper.appendChild(buildedTable);
 
-  const collapsibleData = optionsData.map((item) => [
-    `<div class="row-data"><span>${productCode}</span><span>${item.productCode || TABLE_CONSTANTS.placeholders.noData}</span></div>
-    <div class="row-data"><div><span>${firstTrade}</span><span>${lastTrade}</span></div><div><span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
-    <div class="row-data"><span>${settlement}</span><span>${item.settlement || TABLE_CONSTANTS.placeholders.noData}</span></div>`,
-  ]);
-
-  const calendarWrapper = createElement('div', { class: 'calendar-wrapper' });
-  const buildedTable = buildTable(headers, tableData, 'option-calendar-table');
-  const buildedCollapsible = buildCollapsible(collapsibleHeaders, collapsibleData, 'collapsible-calendar', 'option-calendar-collapsible');
-  calendarWrapper.appendChild(buildedTable);
-  calendarWrapper.appendChild(buildedCollapsible);
-
-  return calendarWrapper;
+  return settlementWrapper;
 }
 
 async function renderTable(block) {
   const { isOptions, optionProductId } = getDisplayMode();
-  block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
+  block.innerHTML = '<div class="spinner-settlement"><div></div><div></div><div></div><div></div></div>';
 
   // Get productId for API calls
   const productMetadata = await getProductMetadata();
@@ -295,7 +380,7 @@ async function renderTable(block) {
   if (!productId) {
     block.innerHTML = `
       <div class="no-results">
-        <h4>Unable to load calendar</h4>
+        <h4>Unable to load settlement</h4>
         <p>Product ID not found.</p>
       </div>
     `;
@@ -303,31 +388,13 @@ async function renderTable(block) {
   }
 
   try {
-    let table = null;
-    let loadAll;
-
     if (isOptions) {
       if (optionProductId && await applyAuthorOverride(block, 'options-product-id', optionProductId)) {
         return;
       }
-      // here create trades-wrapper
-      tradeWrapper.innerHTML = '';
-      await createTradesWrapper(productId, optionProductId);
 
-      table = await createOptionsTable(optionProductId);
-      if (table) {
-        block.innerHTML = '';
-        block.appendChild(table);
-        loadAll = await createLoadAllWrapper(block);
-        block.append(loadAll);
-      } else {
-        block.innerHTML = `
-          <div class="no-results">
-            <h4>Unable to load options calendar</h4>
-            <p>Options data is currently unavailable.</p>
-          </div>
-        `;
-      }
+      tradeWrapper.innerHTML = '';
+      await createTradesWrapper(block, productId, optionProductId);
     } else {
       // Futures mode
       table = await createFuturesTable();
@@ -340,8 +407,8 @@ async function renderTable(block) {
       } else {
         block.innerHTML = `
           <div class="no-results">
-            <h4>Unable to load futures calendar</h4>
-            <p>Calendar data is currently unavailable.</p>
+            <h4>Unable to load futures settlement</h4>
+            <p>settlement data is currently unavailable.</p>
           </div>
         `;
       }
@@ -349,7 +416,7 @@ async function renderTable(block) {
   } catch (error) {
     block.innerHTML = `
       <div class="no-results">
-        <h4>Error loading calendar data</h4>
+        <h4>Error loading settlement data</h4>
         <p>${error.message}</p>
       </div>
     `;
@@ -382,8 +449,12 @@ export default function decorate(block) {
 
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
 
-  Promise.all([i18n('Settlements')])
-    .then(([settlementsLabel]) => {
+  Promise.all([
+    i18n('Settlements'),
+  ])
+    .then(([
+      settlementsLabel,
+    ]) => {
       const { optionProductId } = getDisplayMode();
       return getProductTitle(optionProductId, settlementsLabel);
     })
@@ -399,10 +470,23 @@ export default function decorate(block) {
     // eslint-disable-next-line no-console
     .catch((err) => console.error('load title error:', err));
 
+  Promise.all([
+    i18n('Expiration'),
+    i18n('Trade date'),
+  ])
+    .then(([
+      expirationLabel,
+      tradeDateLabel,
+    ]) => {
+      labels = { expirationLabel, tradeDateLabel };
+    })
+    // eslint-disable-next-line no-console
+    .catch((err) => console.error('load title error:', err));
+
   renderTable(block).catch((error) => {
     block.innerHTML = `
       <div class="no-results">
-        <h4>Error loading calendar data</h4>
+        <h4>Error loading settlement data</h4>
         <p>${error.message}</p>
       </div>
     `;

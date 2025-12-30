@@ -291,8 +291,56 @@
   }
 
   & .trades-wrapper {
-    & .trade-date-row {
-  
+    & .expiration-wrapper,
+    & .trade-date-wrapper {
+      display: block;
+      margin-bottom: 16px;
+
+      @media (width >= 481px) {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      & p {
+        font-family: var(--averta);
+        font-size: .6875rem;
+        font-weight: 400;
+        letter-spacing: .09375rem;
+        line-height: .6875rem;
+        margin-bottom: .625rem;
+        margin-right: .625rem;
+        text-transform: uppercase;
+        display: block;
+
+        @media (width >= 481px) {
+          margin-bottom: 0;
+        }
+      }
+
+      & .products-dropdown-container {
+        width: 100%;
+
+        @media (width >= 481px) {
+          width: auto;
+        }
+
+        & button {
+          justify-content: space-between;
+          width: 100%;
+
+          @media (width >= 481px) {
+            width: auto;
+          }
+        }
+      }
+    }
+
+    & .expiration-wrapper {
+      margin-right: 0;
+
+      @media (width >= 481px) {
+        margin-right: 1.5625rem;
+      }
     }
   
     & .data-information {
