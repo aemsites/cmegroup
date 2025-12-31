@@ -733,7 +733,7 @@ export async function createDynamicCards(block) {
         slidesToShow: 'auto',
         slidesToScroll: 1,
         scrollLock: false,
-        itemWidth: 274,
+        itemWidth: 264,
         exactWidth: true,
         draggable: true,
         duration: 2,
@@ -741,7 +741,7 @@ export async function createDynamicCards(block) {
           {
             breakpoint: 993,
             settings: {
-              itemWidth: 410,
+              itemWidth: 400,
             },
           },
         ],

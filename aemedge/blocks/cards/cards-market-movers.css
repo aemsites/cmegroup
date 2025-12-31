@@ -104,6 +104,11 @@
       display: flex;
       font-weight: bold;
       color: var(--gray3);
+
+      @media (width >= 993px) {
+        border-left: 0.0625rem solid var(--gray4);
+        padding-left: 3.375rem;
+      }
     }
 
     a[target="_blank"]::after {
