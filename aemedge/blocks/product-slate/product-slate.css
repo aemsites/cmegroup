@@ -1,2 +1,3 @@
-    @import url("./filter/product-slate-filter.css");
-    @import url("./table/product-slate-table.css");
+@import url("./filter/product-slate-filter.css");
+@import url("./table/product-slate-table.css");
+@import url("./pagination/product-slate-pagination.css");

@@ -70,11 +70,12 @@ function buildServiceParams(
   defaultSortField,
   defaultSortDirection,
   defaultPageSize,
+  pageNumber = 1,
 ) {
   return {
     sortDirection: sortState.sortDirection || defaultSortDirection,
     sortField: sortState.sortField || defaultSortField,
-    pageNumber: 1,
+    pageNumber,
     pageSize: defaultPageSize,
     groups: filters.group && filters.group.length > 0 ? filters.group.join(',') : '',
     subGroups: filters.subgroup && filters.subgroup.length > 0 ? filters.subgroup.join(',') : '',
@@ -130,7 +131,7 @@ function createFetchDataFunction(
   defaultSortDirection,
   defaultPageSize,
 ) {
-  return async (filters = {}) => {
+  return async (filters = {}, pageNumber = 1) => {
     try {
       window.dispatchEvent(new CustomEvent('tableLoadingStart'));
 
@@ -141,6 +142,7 @@ function createFetchDataFunction(
         defaultSortField,
         defaultSortDirection,
         defaultPageSize,
+        pageNumber,
       );
       const newURL = buildURLParams(filters, sortState, defaultSortField, defaultSortDirection);
 
@@ -289,6 +291,15 @@ export default async function decorate(block) {
     parsedConfig.defaultPageSize,
   );
 
+  window.dispatchEvent(
+    new CustomEvent('tableDataUpdated', {
+      detail: {
+        data: initialData,
+        filters: {},
+      },
+    }),
+  );
+
   const filter = createFilter(initialData.filters, filterConfig);
 
   if (!parsedConfig.displayAsWidget) {
@@ -296,6 +307,13 @@ export default async function decorate(block) {
   }
 
   block.append(tableContainer);
+
+  if (initialData.props && initialData.props.pageTotal) {
+    await tableManager.setTotalPages(initialData.props.pageTotal);
+  }
+  if (initialData.props && initialData.props.pageNumber) {
+    await tableManager.setCurrentPage(initialData.props.pageNumber);
+  }
 
   await initializeTable(tableManager, initialData);
 }
