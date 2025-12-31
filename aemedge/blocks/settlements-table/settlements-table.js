@@ -11,7 +11,7 @@ import {
   createProductsDropdown,
   getOptionSettlements,
 } from '../../scripts/utils/product.js';
-import { createElement, i18n } from '../../scripts/utils.js';
+import { createElement, i18n, setupDayjsLibs } from '../../scripts/utils.js';
 
 // Table Constants
 const TABLE_CONSTANTS = {
@@ -42,6 +42,8 @@ async function loadSettlements(block, productId) {
     contractId,
   );
 
+  // if option or future goes here
+
   table = await createOptionsTable(tableDate);
   if (table) {
     block.innerHTML = '';
@@ -57,49 +59,6 @@ async function loadSettlements(block, productId) {
     `;
   }
 }
-
-// async function loadSettlements(context) {
-//   // 1. Destructure data from your context object (instead of this.state/props)
-//   const { productId } = context.productData;
-//   const {
-//     optionProductId,
-//     expirations,
-//     selectedExpiration,
-//     selectedTradeDate,
-//     optionsListSelected,
-//   } = context.data;
-
-//   // 2. Manual "Loading" state (Update your UI/DOM here)
-//   context.loadingSettlements = true;
-
-//   // 3. Logic for contract and product IDs
-//   const { contractId = '', expProductId = '' } = optionProductId
-//     ? expirations.find(({ text }) => text === selectedExpiration) || {}
-//     : {};
-
-//   // 4. Fetching Data (Ternary remains the same)
-//   const {
-//     settlements = [],
-//     settlementsStraddle = [],
-//     totals = {},
-//     updateTime = '',
-//   } = optionProductId
-//     ? await getOptionSettlements(
-//       expProductId,
-//       selectedExpiration,
-//       selectedTradeDate,
-//       contractId,
-//     )
-//     : await getFutureSettlements(productId, selectedTradeDate);
-
-//   // 5. Data Processing Logic
-//   let tableData = (optionProductId && !optionsListSelected)
-//     ? settlementsStraddle
-//     : settlements;
-
-//   // const lastUpdated = dayjs(updateTime).format('DD MMM YYYY hh:mm:ss A') + ' CT';
-//   lastUpdated = updateTime;
-// }
 
 /* create trade date dropdown */
 async function createTradeDateDropdown(block, expirationsOptions, expiration, optionProductId) {
@@ -319,52 +278,90 @@ async function createOptionsTable(tableDate) {
   if (!optionsData || optionsData.length === 0) {
     return null;
   }
+  const [
+    lastUpdated,
+    estimatedVolumeTotals,
+    priorDayOpenInterestTotals,
+  ] = await Promise.all([
+    i18n('Last Updated'),
+    i18n('Estimated volume totals'),
+    i18n('Prior day open interest totals'),
+  ]);
+
+  const { updateTime } = optionsData;
+  const { totals } = optionsData;
+
   const settlementWrapper = createElement('div', { class: 'settlement-wrapper' });
-  // totals-info-row
-  const dataInformation = createElement('div', { class: 'data-information' });
   // timestamp
+  const dataInformation = createElement('div', { class: 'data-information' });
+  const timestamp = createElement('div', { class: 'timestamp' });
+  const timestampText = createElement('span', { class: 'text' });
+  timestampText.textContent = lastUpdated;
+  const timestampDate = createElement('span', { class: 'date' });
+  await setupDayjsLibs();
+  timestampDate.textContent = `${dayjs(updateTime).format('DD MMM YYYY hh:mm:ss A')} CT`;
+  timestamp.appendChild(timestampText);
+  timestamp.appendChild(timestampDate);
+  dataInformation.appendChild(timestamp);
   settlementWrapper.appendChild(dataInformation);
 
-  // here create totals-info-row
+  // totals-info-row
+  // Estimated volume totals
   const totalsInfoRow = createElement('div', { class: 'totals-info-row' });
-  // totals row
+  const totalsInfoVolume = createElement('div', { class: 'totals-info' });
+  const totalsInfoLabelVolume = createElement('span', { class: 'totals-info-label' });
+  const totalsInfoValueVolume = createElement('span', { class: 'totals-info-value' });
+  totalsInfoLabelVolume.textContent = estimatedVolumeTotals;
+  totalsInfoValueVolume.textContent = totals.volume || 0;
+  totalsInfoVolume.appendChild(totalsInfoLabelVolume);
+  totalsInfoVolume.appendChild(totalsInfoValueVolume);
+  totalsInfoRow.appendChild(totalsInfoVolume);
+  // Prior day open interest totals
+  const totalsInfoOpenInterest = createElement('div', { class: 'totals-info' });
+  const totalsInfoLabelOpenInterest = createElement('span', { class: 'totals-info-label' });
+  const totalsInfoValueOpenInterest = createElement('span', { class: 'totals-info-value' });
+  totalsInfoLabelOpenInterest.textContent = priorDayOpenInterestTotals;
+  totalsInfoValueOpenInterest.textContent = totals.openInterest || 0;
+  totalsInfoOpenInterest.appendChild(totalsInfoLabelOpenInterest);
+  totalsInfoOpenInterest.appendChild(totalsInfoValueOpenInterest);
+  totalsInfoRow.appendChild(totalsInfoOpenInterest);
   settlementWrapper.appendChild(totalsInfoRow);
 
-  // here create view-selector-row
+  // view-selector-row
   const viewSelectorRow = createElement('div', { class: 'view-selector-row' });
   // option-switcher
   settlementWrapper.appendChild(viewSelectorRow);
 
-  const [
-    contractMonth,
-    productCode,
-    firstTrade,
-    lastTrade,
-    settlement,
-  ] = await Promise.all([
-    i18n('Contract Month'),
-    i18n('Product Code'),
-    i18n('First Trade'),
-    i18n('Last Trade'),
-    i18n('Settlement'),
-  ]);
+  // const [
+  //   contractMonth,
+  //   productCode,
+  //   firstTrade,
+  //   lastTrade,
+  //   settlement,
+  // ] = await Promise.all([
+  //   i18n('Contract Month'),
+  //   i18n('Product Code'),
+  //   i18n('First Trade'),
+  //   i18n('Last Trade'),
+  //   i18n('Settlement'),
+  // ]);
 
-  const headers = [
-    contractMonth,
-    productCode,
-    `<span>${firstTrade}</span><span>${lastTrade}</span>`,
-    settlement,
-  ];
+  // const headers = [
+  //   contractMonth,
+  //   productCode,
+  //   `<span>${firstTrade}</span><span>${lastTrade}</span>`,
+  //   settlement,
+  // ];
 
-  const tableData = optionsData.map((item) => [
-    item.contractMonth || TABLE_CONSTANTS.placeholders.noData,
-    item.productCode || TABLE_CONSTANTS.placeholders.noData,
-    `<span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span>`,
-    item.settlement || TABLE_CONSTANTS.placeholders.noData,
-  ]);
+  // const tableData = optionsData.map((item) => [
+  //   item.contractMonth || TABLE_CONSTANTS.placeholders.noData,
+  //   item.productCode || TABLE_CONSTANTS.placeholders.noData,
+  //   `<span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span>`,
+  //   item.settlement || TABLE_CONSTANTS.placeholders.noData,
+  // ]);
 
-  const buildedTable = buildTable(headers, tableData, 'option-settlement-table');
-  settlementWrapper.appendChild(buildedTable);
+  // const buildedTable = buildTable(headers, tableData, 'option-settlement-table');
+  // settlementWrapper.appendChild(buildedTable);
 
   return settlementWrapper;
 }
@@ -495,4 +492,6 @@ export default function decorate(block) {
   const fragmentUrl = '/fragments/disclaimers/markets/settlements';
   const modalItemClass = 'about-report-link';
   handleAboutReportModal(block, modalItemClass, fragmentUrl);
+
+  // go to top goes here
 }
