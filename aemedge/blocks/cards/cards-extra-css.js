@@ -87,6 +87,10 @@ const mapping = [
     variation: ['notices'],
     file: '/blocks/cards/cards-notices.css',
   },
+  {
+    variation: ['market-movers'],
+    file: '/blocks/cards/cards-market-movers.css',
+  },
 ];
 
 export default mapping;

@@ -20,7 +20,7 @@ function getTooltipVerticalPosition(tooltip) {
 }
 
 /* eslint-disable import/prefer-default-export */
-export function createAuthTooltip(props, children) {
+export function createAuthTooltip(props, children, handleRegister) {
   const {
     color,
     icon,
@@ -82,7 +82,11 @@ export function createAuthTooltip(props, children) {
     buttonElement.textContent = tooltipButtonText || 'Sign up or Log in';
     buttonElement.addEventListener('click', (e) => {
       e.preventDefault();
-      authentication.registration();
+      if (handleRegister) {
+        authentication.registration();
+      } else {
+        authentication.login();
+      }
     });
     tooltipContentDiv.appendChild(buttonElement);
     container.appendChild(tooltipContentDiv);
