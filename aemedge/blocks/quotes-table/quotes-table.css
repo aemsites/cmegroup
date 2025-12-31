@@ -177,6 +177,30 @@
               display: block;
             }
 
+            & .month {
+              display: flex;
+              gap: 0.625rem;
+              flex-direction: row;
+              justify-content: center;
+
+              & .icon {
+                margin: auto 0;
+                min-width: 0.875rem;
+
+                & img {
+                  filter: var(--gray4-filter);
+                }
+              }
+
+              & .month-text {
+                text-align: left;
+
+                & .expiration {
+                  font-weight: 700;
+                }
+              }
+            }
+
             & .option {
               background-color: var(--blue4);
               border-radius: .125rem;
@@ -199,17 +223,34 @@
               display: inline-block;
             }
 
-
-            & .positive {
-              color: green;
-              width: max-content;
+            & .change {
               display: inline-block;
+
+              &.positive {
+                color: green;
+              }
+
+              &.negative {
+                color: var(--red);
+              }
             }
 
-            & .negative {
-              color: var(--red);
+            & .updated {
+              text-align: left;
+            }
+
+            & .month .month-text .expiration,
+            & .change,
+            & .updated {
               width: max-content;
-              display: inline-block;
+
+              @media (width >= 993px) {
+                width: auto;
+              }
+
+              @media (width >= 1201px) {
+                width: max-content;
+              }
             }
           }
         }

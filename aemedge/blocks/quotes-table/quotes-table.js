@@ -8,8 +8,13 @@ import {
   handleAboutReportModal,
   buildLoadAllButton,
 } from '../../scripts/utils/product.js';
+import {
+  createElement,
+  i18n,
+  setupDayjsLibs,
+  getCdtDate,
+} from '../../scripts/utils.js';
 import { createAuthTooltip } from '../../scripts/utils/authTooltip.js';
-import { createElement, i18n } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
 import { store } from '../../scripts/store/store.js';
 
@@ -60,6 +65,15 @@ function buildTable(headers, data, tableId = '') {
   return table;
 }
 
+function createMonthCell(expirationMonth, quoteCode) {
+  const briefcaseIcon = createElement('img', { src: '/aemedge/icons/briefcase.svg' });
+  const briefcaseIconSpan = createElement('span', { class: 'icon' }, briefcaseIcon);
+  const expirationMonthSpan = createElement('span', { class: 'expiration' }, expirationMonth);
+  const quoteCodeSpan = createElement('span', { class: 'quoteCode' }, quoteCode);
+  const monthSpan = createElement('span', { class: 'month-text' }, expirationMonthSpan, quoteCodeSpan);
+  return createElement('span', { class: 'month' }, briefcaseIconSpan, monthSpan);
+}
+
 function createOptionButton(productData, item) {
   const optionProductId = productData.optionsLabels.length > 0
     && productData.optionsLabels[0].productId;
@@ -104,6 +118,30 @@ function createChartButton(item) {
     window.open(href, `chart${quoteCode}`, 'width=780, height=640, popup=true');
   });
   return button;
+}
+
+function getChangeClass(change) {
+  return (change.charAt(0) === '+' ? 'positive' : '')
+    + (change.charAt(0) === '-' && change.length > 1 ? 'negative' : '');
+}
+
+function getChangeText(change, percentageChange) {
+  return change.length > 1 ? `${change} (${percentageChange})` : '-';
+}
+
+function formatUpdated(updated) {
+  if (updated === '-') {
+    return updated;
+  }
+  const cdtUpdated = getCdtDate(updated);
+  return `<span class="updated">${cdtUpdated.format('HH:mm:ss')} CT<br>${cdtUpdated.format('DD MMM YYYY')}</span>`;
+}
+
+function formatVolume(volume) {
+  if (volume === '-') {
+    return volume;
+  }
+  return volume.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 /* Create futures quotes table */
@@ -158,23 +196,18 @@ async function createFuturesTable(productData, block) {
     volumeLabel,
     updatedLabel,
   ];
-  const getChangeClass = (change) => (
-    (change.charAt(0) === '+' ? 'positive' : '')
-    + (change.charAt(0) === '-' && change.length > 1 ? 'negative' : '')
-  );
-  const getChangeText = (change, percentageChange) => (change.length > 1 ? `${change} (${percentageChange})` : '-');
   const tableData = quotesData.quotes.map((item) => [
-    `<span>${item.expirationMonth || '-'}</span><span>${item.quoteCode || '-'}</span>`,
+    createMonthCell(item.expirationMonth, item.quoteCode),
     item.hasOption ? createOptionButton(productData, item) : '',
     createChartButton(item),
     item.last || '-',
-    `<span class="${getChangeClass(item.change)}">${getChangeText(item.change, item.percentageChange)}</span>`,
+    `<span class="change ${getChangeClass(item.change)}">${getChangeText(item.change, item.percentageChange)}</span>`,
     item.priorSettle || '-',
     item.open || '-',
     item.high || '-',
     item.low || '-',
-    item.volume || '-',
-    item.updated || '-',
+    formatVolume(item.volume),
+    formatUpdated(item.updated),
   ]);
   const quotesWrapper = createElement('div', { class: 'quotes-wrapper' });
   const buildedTable = buildTable(headers, tableData, 'futures-quotes-table');
@@ -190,7 +223,7 @@ async function renderTable(block) {
   block.innerHTML = '<div class="spinner-quotes"><div></div><div></div><div></div><div></div></div>';
 
   // Get productId for API calls
-  const productMetadata = await getProductMetadata();
+  const [productMetadata] = await Promise.all([getProductMetadata(), setupDayjsLibs()]);
   const productId = productMetadata.productId || getMetadata('product-id');
 
   if (!productId) {
