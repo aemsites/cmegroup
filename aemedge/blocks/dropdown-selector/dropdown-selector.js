@@ -94,6 +94,6 @@ function buildDropdown(block) {
   block.appendChild(wrapper);
 }
 
-export default async function decorate(block) {
+export default function decorate(block) {
   buildDropdown(block);
 }
