@@ -12,6 +12,7 @@ import {
 import { createAuthTooltip } from '../../scripts/utils/authTooltip.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
+import { urlByEnvType } from '../../scripts/utils/env.js';
 
 // Table Constants
 const TABLE_CONSTANTS = {
@@ -240,7 +241,7 @@ async function renderTable(block) {
     let loadAll;
 
     const downloadLink = productId && isLoggedIn
-      ? '/CmeWS/mvc/ProductCalendar/Download.xls?productId='
+      ? `${urlByEnvType()}/CmeWS/mvc/ProductCalendar/Download.xls?productId=`
       + `${isOptions ? optionProductId : productId}`
       : null;
 
