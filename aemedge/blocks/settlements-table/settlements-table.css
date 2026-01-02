@@ -102,7 +102,6 @@
       & thead {
         & tr {
           & th {
-            background-color: var(--blue1);
             border: .0625rem solid var(--gray4);
             color: var(--white);
             font-family: var(--averta);
@@ -190,71 +189,6 @@
   
       @media (width >= 993px) {
         display: inline-table;
-      }
-    }
-  
-    /* Collapsible styling */
-    & .collapsible-settlements {
-      & .collapsible-item {  
-        & .collapse {
-          & .collapse-body {
-            & .row-data {
-              color: var(--gray2);
-              font-size: .75rem;
-              letter-spacing: normal;
-              line-height: 1rem;
-              margin-top: 1.25rem;
-              text-align: left;
-              text-transform: uppercase;
-              display: flex;
-              justify-content: space-between;
-  
-              &:first-child {
-                margin-top: 0;
-              }
-  
-              & span {
-                &:first-child {
-                  color: var(--blue2);
-                  font-family: var(--averta);
-                  font-weight: 700;
-                  letter-spacing: .0706rem;
-                }
-    
-                &:last-child {
-                  color: var(--gray2);
-                  font-family: var(--roboto-mono-font-family);
-                  font-weight: 400;
-                  letter-spacing: normal;
-                  width: 5rem;
-                }
-              }
-  
-              & div {
-                display: grid;
-  
-                &:first-child {
-                  & span {
-                    color: var(--blue2);
-                    font-family: var(--averta);
-                    font-weight: 700;
-                    letter-spacing: 0.0706rem;
-                    width: auto;
-                  }
-                }
-  
-                &:last-child {
-                  & span {
-                    color: var(--gray2);
-                    font-family: var(--roboto-mono-font-family);
-                    font-weight: 400;
-                    letter-spacing: normal;
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     }
   

@@ -135,40 +135,112 @@ async function createTradesWrapper(block, productId, optionProductId) {
 }
 
 /* Build HTML table structure */
-function buildTable(headers, data, tableId = '') {
-  const table = createElement('table', { class: 'table-settlement' });
+// function buildTable(headers, data, tableId = '') {
+//   const table = createElement('table', { class: 'table-settlement' });
+//   if (tableId) table.id = tableId;
+
+//   const thead = createElement('thead');
+//   const headerRow = createElement('tr');
+
+//   headers.forEach((header) => {
+//     const th = createElement('th');
+//     th.innerHTML = header;
+//     headerRow.appendChild(th);
+//   });
+//   thead.appendChild(headerRow);
+//   table.appendChild(thead);
+
+//   const tbody = createElement('tbody');
+//   data.forEach((rowData, index) => {
+//     const tr = createElement('tr');
+//     if (index >= maxRows) {
+//       tr.classList.add('hidden-row');
+//     }
+//     rowData.forEach((cellData) => {
+//       const td = createElement('td');
+//       if (typeof cellData === 'string') {
+//         td.innerHTML = cellData;
+//       } else if (cellData instanceof HTMLElement) {
+//         td.appendChild(cellData);
+//       } else {
+//         td.innerHTML = cellData;
+//       }
+//       tr.appendChild(td);
+//     });
+//     tbody.appendChild(tr);
+//   });
+//   table.appendChild(tbody);
+
+//   needShowAll = data.length > maxRows;
+//   if (needShowAll) table.classList.add('table-fade');
+
+//   return table;
+// }
+
+function buildOptionStraddleTable(header, data, tableId = '') {
+  const {
+    calls, puts, strikePrice, estVol, priorDayOi, high, low, open, last, settle, change,
+  } = header;
+
+  const table = createElement('table', { class: 'table-straddle-settlement' });
   if (tableId) table.id = tableId;
 
   const thead = createElement('thead');
-  const headerRow = createElement('tr');
 
-  headers.forEach((header) => {
-    const th = createElement('th');
-    th.innerHTML = header;
-    headerRow.appendChild(th);
+  const row1 = createElement('tr');
+  row1.innerHTML = `
+    <th colspan="6" class="side-column half-width secondary-header">${calls}</th>
+    <th rowspan="2" class="primary-column tertiary-header">${strikePrice}</th>
+    <th colspan="6" class="side-column half-width secondary-header">${puts}</th>
+  `;
+
+  const row2 = createElement('tr');
+  const subHeaders = [
+    estVol, priorDayOi, `${high}<br>${low}`, `${open}<br>${last}`, settle, change, // Calls side
+    change, settle, `${open}<br>${last}`, `${high}<br>${low}`, priorDayOi, estVol, // Puts side
+  ];
+
+  subHeaders.forEach((text) => {
+    const th = createElement('th', { class: 'primary-header' });
+    th.innerHTML = text;
+    row2.appendChild(th);
   });
-  thead.appendChild(headerRow);
+
+  thead.append(row1, row2);
   table.appendChild(thead);
 
   const tbody = createElement('tbody');
-  data.forEach((rowData, index) => {
+  data.forEach((item, index) => {
     const tr = createElement('tr');
-    if (index >= maxRows) {
-      tr.classList.add('hidden-row');
-    }
-    rowData.forEach((cellData) => {
+    if (index >= maxRows) tr.classList.add('hidden-row');
+
+    // cell order
+    const cells = [
+      item.call.volume,
+      item.call.openInterest,
+      `${item.call.high}<br>${item.call.low}`,
+      `${item.call.open}<br>${item.call.last}`,
+      item.call.settle,
+      item.call.change,
+      item.strike,
+      item.put.change,
+      item.put.settle,
+      `${item.put.open}<br>${item.put.last}`,
+      `${item.put.high}<br>${item.put.low}`,
+      item.put.openInterest,
+      item.put.volume,
+    ];
+
+    cells.forEach((content, i) => {
       const td = createElement('td');
-      if (typeof cellData === 'string') {
-        td.innerHTML = cellData;
-      } else if (cellData instanceof HTMLElement) {
-        td.appendChild(cellData);
-      } else {
-        td.innerHTML = cellData;
-      }
+      if (i === 6) td.className = 'table-header-td primary-header';
+      td.innerHTML = content;
       tr.appendChild(td);
     });
+
     tbody.appendChild(tr);
   });
+
   table.appendChild(tbody);
 
   needShowAll = data.length > maxRows;
@@ -288,8 +360,7 @@ async function createOptionsTable(tableDate) {
     i18n('Prior day open interest totals'),
   ]);
 
-  const { updateTime } = optionsData;
-  const { totals } = optionsData;
+  const { updateTime, totals, settlementsStraddle } = optionsData;
 
   const settlementWrapper = createElement('div', { class: 'settlement-wrapper' });
   // timestamp
@@ -332,36 +403,48 @@ async function createOptionsTable(tableDate) {
   // option-switcher
   settlementWrapper.appendChild(viewSelectorRow);
 
-  // const [
-  //   contractMonth,
-  //   productCode,
-  //   firstTrade,
-  //   lastTrade,
-  //   settlement,
-  // ] = await Promise.all([
-  //   i18n('Contract Month'),
-  //   i18n('Product Code'),
-  //   i18n('First Trade'),
-  //   i18n('Last Trade'),
-  //   i18n('Settlement'),
-  // ]);
+  const [
+    calls,
+    puts,
+    strikePrice,
+    estVol,
+    priorDayOi,
+    high,
+    low,
+    open,
+    last,
+    settle,
+    change,
+  ] = await Promise.all([
+    i18n('Calls'),
+    i18n('Puts'),
+    i18n('Strike Price'),
+    i18n('Est. Vol'),
+    i18n('Prior day OI'),
+    i18n('High'),
+    i18n('Low'),
+    i18n('Open'),
+    i18n('Last'),
+    i18n('Settle'),
+    i18n('Change'),
+  ]);
 
-  // const headers = [
-  //   contractMonth,
-  //   productCode,
-  //   `<span>${firstTrade}</span><span>${lastTrade}</span>`,
-  //   settlement,
-  // ];
+  const header = {
+    calls,
+    puts,
+    strikePrice,
+    estVol,
+    priorDayOi,
+    high,
+    low,
+    open,
+    last,
+    settle,
+    change,
+  };
 
-  // const tableData = optionsData.map((item) => [
-  //   item.contractMonth || TABLE_CONSTANTS.placeholders.noData,
-  //   item.productCode || TABLE_CONSTANTS.placeholders.noData,
-  //   `<span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span>`,
-  //   item.settlement || TABLE_CONSTANTS.placeholders.noData,
-  // ]);
-
-  // const buildedTable = buildTable(headers, tableData, 'option-settlement-table');
-  // settlementWrapper.appendChild(buildedTable);
+  const buildedOptionStraddleTable = buildOptionStraddleTable(header, settlementsStraddle, 'option-straddle-settlement-table');
+  settlementWrapper.appendChild(buildedOptionStraddleTable);
 
   return settlementWrapper;
 }
