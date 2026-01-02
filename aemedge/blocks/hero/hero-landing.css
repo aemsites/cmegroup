@@ -5,6 +5,7 @@
   background-size: cover;
 
   & .container {
+    position: relative;
     padding-top: 3.125rem;
     padding-bottom: 1.875rem;
 
@@ -38,7 +39,7 @@
       font-size: 1.25rem;
     }
 
-    & a:not(.button, .hero-link, .link-bold) {
+    & a:not(.button, .hero-link, .link-bold, .dropdown-selector-dropdown a) {
       color: var(--white);
       font-family: var(--averta);
       font-size: .875rem;
@@ -151,6 +152,27 @@
       @media (width >= 769px) {
         padding-bottom: 6.75rem;
       }
+    }
+  }
+
+  & .fragment-wrapper {
+    position: relative;
+    max-width: max-content;
+    z-index: 10;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+
+    @media (width >= 769px) {
+      position: absolute;
+      top: 4.5rem;
+      right: calc(20% - 10.625rem);
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    & .dropdown-selector-wrapper {
+      padding-left: 0;
+      padding-right: 0;
     }
   }
 }
