@@ -9,17 +9,10 @@ let daysToShow = window.innerWidth <= 768 ? 7 : 15;
 let productMetadata;
 let prodId;
 
-const [
-  datei18n,
-  futurei18n,
-  optionsi18n,
-  dailyi18n,
-] = await Promise.all([
-  i18n('DATE'),
-  i18n('Future Volume'),
-  i18n('Options Volume'),
-  i18n('Daily Volume'),
-]);
+let datei18n;
+let futurei18n;
+let optionsi18n;
+let dailyi18n;
 
 async function getProductInfo() {
   productMetadata = await getProductMetadata();
@@ -161,8 +154,17 @@ function init(block) {
   Promise.all([
     setupDayjsLibs(),
     setupBillboardLibs(),
-    createComponent(dailyi18n, ''),
-  ]).then(([, , wrapper]) => {
+    i18n('DATE'),
+    i18n('Future Volume'),
+    i18n('Options Volume'),
+    i18n('Daily Volume'),
+  ]).then(([, , date, future, options, daily]) => {
+    datei18n = date;
+    futurei18n = future;
+    optionsi18n = options;
+    dailyi18n = daily;
+    return createComponent(dailyi18n, '');
+  }).then((wrapper) => {
     block.append(wrapper);
     const container = block.querySelector('#chart');
 
