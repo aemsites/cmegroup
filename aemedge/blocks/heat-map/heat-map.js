@@ -6,7 +6,6 @@ import {
 } from '../../scripts/utils.js';
 import { addHeatMap, getAllQuotes } from '../../scripts/actions/heatMap.js';
 import { store } from '../../scripts/store/store.js';
-import { sortByReferenceOrder } from '../../scripts/utils/array.js';
 
 function formatNumber(num) {
   if (!num && num !== 0) return '-';
@@ -18,29 +17,31 @@ function createHeatMapStructure(items, block, config) {
   const container = createElement('div');
   if (block.classList.contains('medium-bar')) {
     items.forEach((item) => {
-      const cardContainer = createElement('div', { class: 'card-container', 'data-product-id': item.productId });
-      container.append(cardContainer);
-      const productCode = createElement('div', { class: 'product-code' }, '-');
-      const productName = createElement('div', { class: 'product-name' }, item.overrideProductName || '');
-      const productInfo = createElement('div', { class: 'product-info' }, productCode, productName);
-      const rate = createElement('div', { class: 'rate' }, '-');
-      const volume = createElement('div', { class: 'volume' }, '-');
-      const change = createElement('div', { class: 'change' }, '-');
-      const percentage = createElement('div', { class: 'percentage-change' }, '-');
-      const productValues = createElement('div', { class: 'product-values' }, rate, volume, change, percentage);
-      const linkEl = createElement('a', { class: 'heat-map-card' }, productInfo, productValues);
-      cardContainer.append(linkEl);
-      if (!isMicroSite) {
-        const portfolio = createElement('div', { class: 'portfolio-icon' });
-        cardContainer.append(portfolio);
-      }
-      const opt = createElement('a', {
-        class: 'product-options',
-        target: '_blank',
-        rel: 'noopener noreferrer',
-      }, 'OPT');
-      cardContainer.append(opt);
-      container.append(cardContainer);
+      Array.from({ length: item.numContracts ?? 1 }).forEach(() => {
+        const cardContainer = createElement('div', { class: 'card-container', 'data-product-id': item.productId });
+        container.append(cardContainer);
+        const productCode = createElement('div', { class: 'product-code' }, '-');
+        const productName = createElement('div', { class: 'product-name' }, item.overrideProductName || '');
+        const productInfo = createElement('div', { class: 'product-info' }, productCode, productName);
+        const rate = createElement('div', { class: 'rate' }, '-');
+        const volume = createElement('div', { class: 'volume' }, '-');
+        const change = createElement('div', { class: 'change' }, '-');
+        const percentage = createElement('div', { class: 'percentage-change' }, '-');
+        const productValues = createElement('div', { class: 'product-values' }, rate, volume, change, percentage);
+        const linkEl = createElement('a', { class: 'heat-map-card' }, productInfo, productValues);
+        cardContainer.append(linkEl);
+        if (!isMicroSite) {
+          const portfolio = createElement('div', { class: 'portfolio-icon' });
+          cardContainer.append(portfolio);
+        }
+        const opt = createElement('a', {
+          class: 'product-options',
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        }, 'OPT');
+        cardContainer.append(opt);
+        container.append(cardContainer);
+      });
     });
   }
   return container;
@@ -63,9 +64,14 @@ function populateHeatMapData(data, block) {
       productName,
       overrideProductName,
     }) => {
-      const container = block.querySelector(`.card-container[data-product-id="${productId}"]`);
-      if (!container) return;
-      const card = container.querySelector('.heat-map-card');
+      const productQuery = `.card-container[data-product-id="${productId}"]`;
+      let heatMap = block.querySelector(`${productQuery}[data-quote-code="${quoteCode}"]`);
+      if (!heatMap) {
+        heatMap = block.querySelector(`${productQuery}:not([data-quote-code])`);
+        if (heatMap) heatMap.dataset.quoteCode = quoteCode;
+      }
+      if (!heatMap) return;
+      const card = heatMap.querySelector('.heat-map-card');
       card.href = uri;
       const oldColor = [...card.classList].find((cl) => cl.startsWith('heat-map-color_'));
       card.classList.remove(oldColor);
@@ -83,7 +89,7 @@ function populateHeatMapData(data, block) {
       pChange.textContent = change || '-';
       pPercentage.textContent = percentageChange || '-';
       if (hasOption) {
-        const opt = container.querySelector('.product-options');
+        const opt = heatMap.querySelector('.product-options');
         if (opt) opt.href = optionUri;
       }
     });
@@ -126,18 +132,15 @@ function processQuotes(quotes, heatMapItems, componentId, isMidpoint = false) {
     return quotes.map((quote) => mapQuote(componentId, quote));
   }
   const filtered = heatMapItems.reduce((acc, item) => {
-    const quote = quotes.find(({ productId }) => item.productId === productId);
-    if (quote) {
+    quotes.filter(({ productId }) => item.productId === productId).forEach((quote) => {
       acc.push({
         ...item,
         ...quote,
       });
-    }
+    });
     return acc;
   }, []);
-  return sortByReferenceOrder(filtered, heatMapItems, 'productId').map(
-    (quote) => mapQuote(componentId, quote),
-  );
+  return filtered.map((quote) => mapQuote(componentId, quote));
 }
 
 function buildConfigItems(block) {
