@@ -1,14 +1,30 @@
 import {
-  setupBillboardLibs, createElement, setupDayjsLibs, i18n, debounce,
+  setupBillboardLibs, createElement, setupDayjsLibs, i18n, debounce, getCdtDate,
 } from '../../scripts/utils.js';
 import { getMetadata } from '../../scripts/aem.js';
-import { getProductMetadata } from '../../scripts/utils/product.js';
+import { getProductMetadata, getVolumeLastTotals } from '../../scripts/utils/product.js';
 import createChart from './chart.js';
-import { getVolumeLastTotals } from '../../scripts/services/VolumeChartService.js';
 
 let daysToShow = window.innerWidth <= 768 ? 7 : 15;
-const productMetadata = await getProductMetadata();
-const prodId = productMetadata.productId || getMetadata('product-id') || 300;
+let productMetadata;
+let prodId;
+
+const [
+  datei18n,
+  futurei18n,
+  optionsi18n,
+  dailyi18n,
+] = await Promise.all([
+  i18n('DATE'),
+  i18n('Future Volume'),
+  i18n('Options Volume'),
+  i18n('Daily Volume'),
+]);
+
+async function getProductInfo() {
+  productMetadata = await getProductMetadata();
+  prodId = productMetadata?.productId || getMetadata('product-id') || 300;
+}
 
 async function getData() {
   const data = await getVolumeLastTotals(prodId, daysToShow);
@@ -36,13 +52,13 @@ async function createComponent(title, lastUpdated) {
 
   const footer = createElement('div', { class: 'footer' });
   const dateLabel = createElement('div', { class: 'date-label' });
-  dateLabel.textContent = await i18n('DATE');
+  dateLabel.textContent = datei18n;
 
   const legends = createElement('div', { class: 'legends' });
   const futureVolume = createElement('span');
-  futureVolume.textContent = await i18n('Future Volume');
+  futureVolume.textContent = futurei18n;
   const optionsVolume = createElement('span');
-  optionsVolume.textContent = await i18n('Options Volume');
+  optionsVolume.textContent = optionsi18n;
 
   legends.append(futureVolume, optionsVolume);
   footer.append(dateLabel, legends);
@@ -90,7 +106,7 @@ export function lastTotalsChartConfig({
       type: 'bar',
       groups: [['futureVolume', 'optionVolume']],
       order: 'asc',
-      names: { futureVolume: 'Future Volume', optionVolume: 'Options Volume' },
+      names: { futureVolume: futurei18n, optionVolume: optionsi18n },
       colors: { futureVolume: '#1f3374', optionVolume: '#3cc8ff' },
     },
     bar: { width: { ratio: 0.85, max: 36.65 } },
@@ -132,95 +148,89 @@ export function lastTotalsChartConfig({
   };
 }
 
-export default async function decorate(block) {
-  if (!prodId) {
-    // eslint-disable-next-line no-console
-    console.error('VolumeChart => No ProductId found');
-    return;
-  }
-
+export default function decorate(block) {
   block.textContent = '';
+  init(block);
+}
 
+function init(block) {
   let chart;
   let chartData = [];
   let lastUpdated;
 
-  const title = await i18n('Daily Volume');
+  Promise.all([
+    setupDayjsLibs(),
+    setupBillboardLibs(),
+    createComponent(dailyi18n, ''),
+  ]).then(([, , wrapper]) => {
+    block.append(wrapper);
+    const container = block.querySelector('#chart');
 
-  await setupDayjsLibs();
-  await setupBillboardLibs();
+    const labels = { y1: 'VOL', y2: '' };
 
-  const wrapper = await createComponent(title, '');
-  block.append(wrapper);
-  const container = block.querySelector('#chart');
+    const styleAxis = () => {
+      const { y1 = '', y2 = '' } = labels;
 
-  const labels = { y1: 'VOL', y2: '' };
+      const yAxis = Array.from(container.querySelectorAll('.bb-axis-y .tick text tspan'));
+      const y2Axis = Array.from(container.querySelectorAll('.bb-axis-y2 .tick text tspan'));
 
-  const styleAxis = () => {
-    const { y1 = '', y2 = '' } = labels;
+      if (yAxis.length && y1) {
+        const label = yAxis.pop();
+        label.textContent = y1;
+        label.classList.add('y1-label');
+      }
 
-    const yAxis = Array.from(container.querySelectorAll('.bb-axis-y .tick text tspan'));
-    const y2Axis = Array.from(container.querySelectorAll('.bb-axis-y2 .tick text tspan'));
+      if (y2Axis.length && y2) {
+        const label = y2Axis.pop();
+        label.textContent = y2;
+        label.classList.add('y2-label');
+      }
+    };
 
-    if (yAxis.length && y1) {
-      const label = yAxis.pop();
-      label.textContent = y1;
-      label.classList.add('y1-label');
-    }
+    async function loadAndUpdateChart() {
+      await getProductInfo();
+      const data = await getData();
 
-    if (y2Axis.length && y2) {
-      const label = y2Axis.pop();
-      label.textContent = y2;
-      label.classList.add('y2-label');
-    }
-  };
+      if (!prodId || !data) {
+        // eslint-disable-next-line no-console
+        console.error('VolumeChart => No ProductId or Data');
+        return;
+      }
 
-  async function loadAndUpdateChart() {
-    if (!prodId) {
-      // eslint-disable-next-line no-console
-      console.error('VolumeChart => No ProductId found');
-      return;
-    }
+      chartData = data.data.slice(-daysToShow);
+      lastUpdated = `${getCdtDate(data?.lastUpdated).format('DD MMM YYYY hh:mm:ss A')} CT`;
 
-    const data = await getData();
-    if (!data) return;
+      const updatedSpan = block.querySelector('.last-updated');
+      if (updatedSpan) updatedSpan.textContent = `Last Updated: ${lastUpdated}`;
 
-    chartData = data.data.slice(-daysToShow);
-    lastUpdated = `${dayjs.utc(data?.lastUpdated).tz('America/Chicago').format('DD MMM YYYY hh:mm:ss A')} CT`;
+      if (chart) {
+        chart.destroy();
+      }
 
-    const updatedSpan = block.querySelector('.last-updated');
-    if (updatedSpan) updatedSpan.textContent = `Last Updated: ${lastUpdated}`;
-
-    if (chart) {
-      chart.destroy();
-    }
-
-    chart = createChart({
-      container,
-      data: chartData,
-      dataSize: chartData.length,
-      chartConfig: (params) => lastTotalsChartConfig({
-        ...params,
+      chart = createChart({
+        container,
         data: chartData,
-        categories: chartData.map((d) => d.formattedDate),
-        onrendered: styleAxis,
-      }),
-      chartUpdate: null,
-      labels,
-      tooltipTop: null,
-    });
-  }
+        dataSize: chartData.length,
+        chartConfig: (params) => lastTotalsChartConfig({
+          ...params,
+          data: chartData,
+          categories: chartData.map((d) => d.formattedDate),
+          onrendered: styleAxis,
+        }),
+        chartUpdate: null,
+        labels,
+        tooltipTop: null,
+      });
+    }
 
-  function resizeHandle() {
-    daysToShow = window.innerWidth <= 768 ? 7 : 15;
+    function resizeHandle() {
+      daysToShow = window.innerWidth <= 768 ? 7 : 15;
+      loadAndUpdateChart();
+    }
+
+    window.addEventListener('resize', debounce(resizeHandle, 250));
+
     loadAndUpdateChart();
-  }
-
-  window.addEventListener('resize', debounce(resizeHandle, 250));
-
-  setTimeout(async () => {
-    await loadAndUpdateChart();
-  }, 50);
-
-  setInterval(loadAndUpdateChart, 60000);
+    setInterval(loadAndUpdateChart, 60000);
+  });
 }
