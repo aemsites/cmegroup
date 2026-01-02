@@ -3,7 +3,7 @@
   font-weight: 400;
   padding: 0.625rem 0;
 
-  .last-updated {
+  & .last-updated {
     display: flex;
     align-items: baseline;
     padding-bottom: 1.875rem;
@@ -16,18 +16,18 @@
     &.last-totals {
       justify-content: space-between;
 
-      h4 {
+      & h4 {
         font-size: 1.25rem;
         font-weight: bold;
       }
 
-      p {
+      & p {
         font-style: italic;
         font-size: 0.875rem;
       }
     }
 
-    h4 {
+    & h4 {
       font-size: 1rem;
       font-family: var(--averta);
       font-weight: 400;
@@ -35,13 +35,13 @@
       color: var(--blue2);
     }
 
-    p {
+    & p {
       margin: 0;
       font-size: 0.75rem;
       color: var(--gray3);
     }
 
-    a {
+    & a {
       padding-right: 2rem !important;
       color: var(--blue2);
 
@@ -51,12 +51,12 @@
     }
   }
 
-  .legends {
+  & .legends {
     @media (width>= 993px) {
       text-align: center;
     }
 
-    span {
+    & span {
       font-size: 0.75rem;
       font-style: italic;
       display: inline-block;
@@ -86,22 +86,22 @@
     }
   }
 
-  .chart-container {
+  & .chart-container {
     position: relative;
     overflow: visible;
 
-    .bb-chart {
+    & .bb-chart {
       position: relative;
       margin: 0 -0.625rem;
 
-      svg {
+      & svg {
         max-width: 100%;
       }
     }
   }
 
-  .bb-legend-item text,
-  .bb-axis text {
+  & .bb-legend-item text,
+  & .bb-axis text {
     font-family: var(--averta);
     font-weight: 600;
     font-size: 0.6875rem;
@@ -109,49 +109,49 @@
     fill: var(--gray3);
   }
 
-  .bb-axis-x {
-    text.bb-axis-x-label {
+  & .bb-axis-x {
+    & text.bb-axis-x-label {
       font-size: 0.75rem;
       text-anchor: middle;
     }
   }
 
-  .bb-xgrid-focus line {
+  & .bb-xgrid-focus line {
     stroke: transparent;
   }
 
-  .bb-axis-y,
-  .bb-axis-y2 {
-    text {
+  & .bb-axis-y,
+  & .bb-axis-y2 {
+    & text {
       font-family: var(--averta);
       font-weight: 700;
     }
 
-    .domain {
+    & .domain {
       display: none;
     }
   }
 
-  .bb-event-rect:hover {
+  & .bb-event-rect:hover {
     cursor: default;
   }
 
-  .bb-bar._expanded_ {
+  & .bb-bar._expanded_ {
     fill-opacity: 1;
   }
 
-  .bb-legend-background {
+  & .bb-legend-background {
     fill: transparent;
     stroke: transparent;
   }
 
-  .bb-legend-item {
+  & .bb-legend-item {
     opacity: 1;
     font-style: italic;
     cursor: default !important;
   }
 
-  .bb-tooltip-container {
+  & .bb-tooltip-container {
     left: -625rem;
     width: 13.75rem;
     pointer-events: auto !important;
@@ -172,12 +172,12 @@
       opacity: 0;
       transition: height 0s 0.15s, opacity 0.15s linear 0s;
 
-      .arrow {
+      & .arrow {
         display: none;
       }
     }
 
-    .arrow {
+    & .arrow {
       position: absolute;
       left: calc(50% - 0.625rem);
       bottom: -0.5625rem;
@@ -187,25 +187,25 @@
       filter: drop-shadow(0 0.375rem 0.375rem rgba(60, 64, 67, 0.15));
     }
 
-    .info-container {
+    & .info-container {
       font-size: 0.6875rem;
       margin-top: 0.3125rem;
       margin-bottom: 0.625rem;
     }
 
-    .info-date {
+    & .info-date {
       font-weight: bold;
       padding-left: 1.375rem;
     }
 
-    .info-row {
+    & .info-row {
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
       align-items: center;
       padding-top: 0.3125rem;
 
-      p {
+      & p {
         font-size: 0.75rem;
         margin: 0;
         color: var(--gray2);
@@ -216,7 +216,7 @@
         align-items: center;
       }
 
-      .legend {
+      & .legend {
         width: 0.75rem;
         height: 0.75rem;
         border-radius: 50%;
@@ -233,12 +233,12 @@
       }
     }
 
-    .button-container {
+    & .button-container {
       position: relative;
       display: flex;
       justify-content: center;
 
-      .click-capture {
+      & .click-capture {
         position: absolute;
         width: 100%;
         height: 100%;
@@ -251,7 +251,7 @@
         }
       }
 
-      button {
+      & button {
         font-size: 0.625rem;
 
         &:disabled {
@@ -262,7 +262,7 @@
     }
   }
 
-  .date-label {
+  & .date-label {
     font-family: var(--averta);
     font-weight: 700;
     font-size: 0.6875rem;
@@ -271,17 +271,17 @@
     color: var(--gray3);
   }
 
-  .line {
+  & .line {
     stroke-width: 0.1875rem;
     stroke: var(--blue2) !important;
   }
 
-  a.chevron-right {
+  & a.chevron-right {
     display: flex;
     align-items: center;
   }
 
-  .title {
+  & .title {
     color: var(--blue2);
     font-size: 1.25rem;
     font-weight: 700;
@@ -298,7 +298,7 @@
     }
   }
 
-  .footer {
+  & .footer {
     margin-top: -3.625rem;
   }
 }
