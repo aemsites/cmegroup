@@ -271,6 +271,11 @@ async function renderTable(block) {
         block.innerHTML = '';
         block.appendChild(table);
 
+        const existingTooltip = titleWrapper?.querySelector('.auth-tooltip-container');
+        if (existingTooltip) {
+          existingTooltip.remove();
+        }
+
         const authTooltipElement = createAuthTooltip(authTooltipProps, downloadLabel);
         if (titleWrapper) {
           titleWrapper.append(authTooltipElement);
@@ -293,6 +298,11 @@ async function renderTable(block) {
       if (table) {
         block.innerHTML = '';
         block.appendChild(table);
+
+        const existingTooltip = titleWrapper?.querySelector('.auth-tooltip-container');
+        if (existingTooltip) {
+          existingTooltip.remove();
+        }
 
         const authTooltipElement = createAuthTooltip(authTooltipProps, downloadLabel);
         if (titleWrapper) {

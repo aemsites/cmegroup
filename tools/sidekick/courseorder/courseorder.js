@@ -120,7 +120,7 @@ class CourseOrganiser {
       // Return comma-separated list with spaces after commas
       return itemsToFormat.map(item => item.name).join(', ');
     } else if (format === "orderedListFormat") {
-      return itemsToFormat.map((item) => `<li>${item.name}</li>`).join('');
+      return `<ol>${itemsToFormat.map((item) => `<li>${item.name}</li>`).join('')}</ol>`;
     }
   }
 
