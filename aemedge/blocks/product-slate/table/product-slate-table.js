@@ -541,7 +541,7 @@ export async function createManagedProductTable(container, columnConfig = {}, de
     tableElement = newTable;
 
     if (totalPages > 1) {
-      const newPagination = createPagination({
+      const newPagination = await createPagination({
         currentPage,
         totalPages,
         onPageChange: (page) => {

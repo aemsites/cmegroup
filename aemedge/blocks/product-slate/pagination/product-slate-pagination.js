@@ -1,14 +1,14 @@
 import { createElement, i18n } from '../../../scripts/utils.js';
 
-const [
-  previousText,
-  nextText,
-] = await Promise.all([
-  i18n('Prev'),
-  i18n('Next'),
-]);
+export default async function createPagination(options = {}) {
+  const [
+    previousText,
+    nextText,
+  ] = await Promise.all([
+    i18n('Prev'),
+    i18n('Next'),
+  ]);
 
-export default function createPagination(options = {}) {
   const {
     currentPage = 1,
     totalPages = 1,
