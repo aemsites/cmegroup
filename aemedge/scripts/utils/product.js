@@ -631,6 +631,19 @@ export function handleAboutReportModal(block, modalItemClass, fragmentUrl) {
   });
 }
 
+export function handleScrollTop(elem) {
+  elem.addEventListener('click', (e) => {
+    e.preventDefault();
+    const { height } = store.getState().floatingElements;
+    const { offsetTop, offsetHeight } = document.querySelector('.hero-baseball');
+    window.scrollTo({
+      top: (offsetTop + offsetHeight) - height,
+      left: 0,
+      behavior: 'smooth',
+    });
+  });
+}
+
 export function buildCollapsible(headers, data, collapsibleClass, maxRows, collapsibleId = '') {
   const collapsible = createElement('div', { class: `collapsible-component ${collapsibleClass}` });
   if (collapsibleId) collapsible.id = collapsibleId;

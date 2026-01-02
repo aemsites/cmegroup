@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { getMetadata, loadCSS } from '../../scripts/aem.js';
 import {
   getProductMetadata,
@@ -7,6 +6,7 @@ import {
   getQuotesFutures,
   handleAboutReportModal,
   buildLoadAllButton,
+  handleScrollTop,
 } from '../../scripts/utils/product.js';
 import {
   createElement,
@@ -14,16 +14,13 @@ import {
   setupDayjsLibs,
   getCdtDate,
 } from '../../scripts/utils.js';
-import { createAuthTooltip } from '../../scripts/utils/authTooltip.js';
-import { authentication } from '../../scripts/modules/Authentication.js';
+import { createAuthSwitch } from '../../scripts/utils/authSwitch.js';
 import { store } from '../../scripts/store/store.js';
 
-let needShowAll = false;
-const maxRows = 18;
-let isLoggedIn = false;
+const maxRows = 10; // 18;
 
 /* Build HTML table structure */
-function buildTable(headers, data, tableId = '') {
+function buildTable(block, headers, data, tableId = '') {
   const table = createElement('table', { class: 'table-quotes' });
   if (tableId) table.id = tableId;
 
@@ -58,10 +55,11 @@ function buildTable(headers, data, tableId = '') {
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
-
-  needShowAll = data.length > maxRows;
-  if (needShowAll) table.classList.add('table-fade');
-
+  if (data.length > maxRows) {
+    table.classList.add('table-fade');
+    const loadAllWrapper = document.querySelector('.load-all-wrapper');
+    i18n('Load All').then((loadAll) => loadAllWrapper.append(buildLoadAllButton(block, loadAll)));
+  }
   return table;
 }
 
@@ -210,12 +208,10 @@ async function createFuturesTable(productData, block) {
     formatUpdated(item.updated),
   ]);
   const quotesWrapper = createElement('div', { class: 'quotes-wrapper' });
-  const buildedTable = buildTable(headers, tableData, 'futures-quotes-table');
+  const buildedTable = buildTable(block, headers, tableData, 'futures-quotes-table');
   quotesWrapper.appendChild(buildedTable);
   block.innerHTML = '';
   block.appendChild(quotesWrapper);
-  const loadAll = await createLoadAllWrapper(block);
-  block.append(loadAll);
 }
 
 async function renderTable(block) {
@@ -267,34 +263,43 @@ async function renderTable(block) {
   }
 }
 
-async function createLoadAllWrapper(block) {
+async function createFooterWrapper(block) {
+  const [
+    aboutThisReport,
+    returnToTop,
+    disclaimer,
+  ] = await Promise.all([
+    i18n('About this Report'),
+    i18n('Return to top'),
+    i18n('All market data contained within the CME Group website should be considered as a reference only and should not be used as validation against, nor as a complement to, real-time market data feeds. Settlement prices on instruments without open interest or volume are provided for web users only and are not published on Market Data Platform (MDP). These prices are not based on market activity.'),
+  ]);
   const loadAllWrapper = createElement('div', { class: 'load-all-wrapper' });
-  if (needShowAll) {
-    const [
-      loadAll,
-    ] = await Promise.all([
-      i18n('Load All'),
-    ]);
-    loadAllWrapper.append(buildLoadAllButton(block, loadAll));
-  }
 
   // Add "About this Report" link
-  const aboutLink = createElement('p', { class: 'about-report-wrapper' });
-  aboutLink.innerHTML = '<a href="#" class="about-report-link">About this Report</a>';
-  loadAllWrapper.append(aboutLink);
+  const aboutLink = createElement('a', { class: 'about-report-link', href: '#' }, aboutThisReport);
+  const aboutLinkWrapper = createElement('p', { class: 'about-report-wrapper' }, aboutLink);
+  const fragmentUrl = '/fragments/disclaimers/markets/quotes';
+  const modalItemClass = 'about-report-link';
+  handleAboutReportModal(aboutLinkWrapper, modalItemClass, fragmentUrl);
 
-  return loadAllWrapper;
+  // Add "Return to top" link
+  const topLink = createElement('a', { class: 'return-top-link', href: '#' }, returnToTop);
+  const topLinkWrapper = createElement('p', { class: 'return-top-wrapper' }, topLink);
+  handleScrollTop(topLink);
+
+  // Add "Disclaimer"
+  const disclaimerWrapper = createElement('p', { class: 'disclaimer-wrapper' }, disclaimer);
+
+  const quotesFooterWrapper = createElement('div', { class: 'quotes-footer-wrapper' }, aboutLinkWrapper, loadAllWrapper, topLinkWrapper, disclaimerWrapper);
+  block.parentElement.append(quotesFooterWrapper);
+}
+
+async function createHeaderWrapper(block) {
+  const authSwitch = await createAuthSwitch();
+  block.parentElement.prepend(authSwitch);
 }
 
 export default function decorate(block) {
-  const { authenticationData } = authentication;
-
-  authenticationData.loginPromise.then(() => {
-    if (authenticationData.isLoggedIn) {
-      isLoggedIn = true;
-    }
-  });
-
   block.classList.add('table');
   block.innerHTML = '<div class="spinner-quotes"><div></div><div></div><div></div><div></div></div>';
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
@@ -306,10 +311,8 @@ export default function decorate(block) {
       </div>
     `;
   });
-
-  const fragmentUrl = '/fragments/disclaimers/markets/quotes';
-  const modalItemClass = 'about-report-link';
-  handleAboutReportModal(block, modalItemClass, fragmentUrl);
+  createHeaderWrapper(block);
+  createFooterWrapper(block);
 
   store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
     const productTabs = document.querySelector('.product-tabs');
