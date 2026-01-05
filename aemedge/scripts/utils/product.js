@@ -717,6 +717,29 @@ export function buildLoadAllButton(block, loadText) {
   return loadAllButtonWrapper;
 }
 
+export function scrollToTop(block, modalItemClass) {
+  block.addEventListener('click', async (e) => {
+    if (e.target.classList.contains(modalItemClass)) {
+      e.preventDefault();
+      try {
+        const productsMainContainer = document.querySelector('.product-subtabs-content');
+        const navbarHeight = document.querySelector('.product-tabs').offsetHeight;
+        // section padding top = 60px
+        const elementPosition = productsMainContainer.getBoundingClientRect().top
+        - 60 + window.scrollY;
+        const offsetPosition = elementPosition - navbarHeight;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth',
+        });
+      } catch (error) {
+        // Silent fail
+      }
+    }
+  });
+}
+
 export async function getTradeDateAndExpirations(productId) {
   try {
     const url = `${urlByEnvType()}${API_CONFIG.tradeDateAndExpirationsEndpoint}/${productId}`;

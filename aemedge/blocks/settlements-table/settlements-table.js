@@ -10,6 +10,7 @@ import {
   getTradeDateAndExpirations,
   createProductsDropdown,
   getOptionSettlements,
+  scrollToTop,
 } from '../../scripts/utils/product.js';
 import { createElement, i18n, setupDayjsLibs } from '../../scripts/utils.js';
 
@@ -26,6 +27,10 @@ const titleWrapper = createElement('div', { class: 'title-wrapper' });
 const tradeWrapper = createElement('div', { class: 'trades-wrapper' });
 const expirationWrapper = createElement('div', { class: 'expiration-wrapper' });
 const tradeDateWrapper = createElement('div', { class: 'trade-date-wrapper' });
+const tableStraddle = createElement('table', { class: 'table-straddle-settlement' });
+const windowWidth = window.innerWidth;
+let isMobile = windowWidth <= 992;
+let isMid = windowWidth > 992 && windowWidth <= 1600;
 let optionExpiration;
 let tradeDate;
 let labels;
@@ -177,27 +182,127 @@ async function createTradesWrapper(block, productId, optionProductId) {
 //   return table;
 // }
 
-function buildOptionStraddleTable(header, data, tableId = '') {
+function buildOptionStraddleTableDesktop(header, data, isMiddlePoint) {
+  tableStraddle.innerHTML = '';
+  let subHeaders;
+  let cells;
+
   const {
     calls, puts, strikePrice, estVol, priorDayOi, high, low, open, last, settle, change,
   } = header;
 
-  const table = createElement('table', { class: 'table-straddle-settlement' });
-  if (tableId) table.id = tableId;
+  const thead = createElement('thead');
+  const row1 = createElement('tr');
+  if (isMiddlePoint) {
+    row1.innerHTML = `
+      <th colspan="6" class="side-column half-width secondary-header">${calls}</th>
+      <th rowspan="2" class="primary-column tertiary-header">${strikePrice}</th>
+      <th colspan="6" class="side-column half-width secondary-header">${puts}</th>
+    `;
+    subHeaders = [
+      estVol, priorDayOi, `${high}<br>${low}`, `${open}<br>${last}`, settle, change, // Calls side
+      change, settle, `${open}<br>${last}`, `${high}<br>${low}`, priorDayOi, estVol, // Puts side
+    ];
+  } else {
+    row1.innerHTML = `
+      <th colspan="8" class="side-column half-width secondary-header">${calls}</th>
+      <th rowspan="2" class="primary-column tertiary-header">${strikePrice}</th>
+      <th colspan="8" class="side-column half-width secondary-header">${puts}</th>
+    `;
+    subHeaders = [
+      estVol, priorDayOi, high, low, open, last, settle, change, // Calls side
+      change, settle, last, open, low, high, priorDayOi, estVol, // Puts side
+    ];
+  }
+  const row2 = createElement('tr');
+  subHeaders.forEach((text) => {
+    const th = createElement('th', { class: 'primary-header' });
+    th.innerHTML = text;
+    row2.appendChild(th);
+  });
+
+  thead.append(row1, row2);
+  tableStraddle.appendChild(thead);
+
+  const tbody = createElement('tbody');
+  data.forEach((item, index) => {
+    const tr = createElement('tr');
+    if (index >= maxRows) tr.classList.add('hidden-row');
+    // cell order
+    if (isMiddlePoint) {
+      cells = [
+        item.call.volume,
+        item.call.openInterest,
+        `${item.call.high}<br>${item.call.low}`,
+        `${item.call.open}<br>${item.call.last}`,
+        item.call.settle,
+        item.call.change,
+        item.strike,
+        item.put.change,
+        item.put.settle,
+        `${item.put.open}<br>${item.put.last}`,
+        `${item.put.high}<br>${item.put.low}`,
+        item.put.openInterest,
+        item.put.volume,
+      ];
+    } else {
+      cells = [
+        item.call.volume,
+        item.call.openInterest,
+        item.call.high,
+        item.call.low,
+        item.call.open,
+        item.call.last,
+        item.call.settle,
+        item.call.change,
+        item.strike,
+        item.put.change,
+        item.put.settle,
+        item.put.last,
+        item.put.open,
+        item.put.low,
+        item.put.high,
+        item.put.openInterest,
+        item.put.volume,
+      ];
+    }
+
+    cells.forEach((content, i) => {
+      const td = createElement('td');
+      if (isMiddlePoint) {
+        if (i === 6) td.className = 'table-header-td primary-header';
+      } else if (i === 8) td.className = 'table-header-td primary-header';
+      td.innerHTML = content;
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  tableStraddle.appendChild(tbody);
+  needShowAll = data.length > maxRows;
+  if (needShowAll) tableStraddle.classList.add('table-fade');
+
+  return tableStraddle;
+}
+
+function buildOptionStraddleTableMobile(header, data) {
+  tableStraddle.innerHTML = '';
+  const {
+    calls, puts, strikePrice, estVol, priorDayOi, high, low, open, last, settle, change,
+  } = header;
 
   const thead = createElement('thead');
-
   const row1 = createElement('tr');
   row1.innerHTML = `
-    <th colspan="6" class="side-column half-width secondary-header">${calls}</th>
     <th rowspan="2" class="primary-column tertiary-header">${strikePrice}</th>
-    <th colspan="6" class="side-column half-width secondary-header">${puts}</th>
+    <th colspan="4" class="side-column half-width secondary-header">${calls}</th>
+    <th colspan="4" class="side-column half-width secondary-header">${puts}</th>
   `;
-
   const row2 = createElement('tr');
   const subHeaders = [
-    estVol, priorDayOi, `${high}<br>${low}`, `${open}<br>${last}`, settle, change, // Calls side
-    change, settle, `${open}<br>${last}`, `${high}<br>${low}`, priorDayOi, estVol, // Puts side
+    `${estVol}<br>${priorDayOi}`, `${high}<br>${low}`, `${open}<br>${last}`, `${settle}<br>${change}`, // Calls
+    `${estVol}<br>${priorDayOi}`, `${high}<br>${low}`, `${open}<br>${last}`, `${settle}<br>${change}`  // Puts
   ];
 
   subHeaders.forEach((text) => {
@@ -207,33 +312,31 @@ function buildOptionStraddleTable(header, data, tableId = '') {
   });
 
   thead.append(row1, row2);
-  table.appendChild(thead);
+  tableStraddle.appendChild(thead);
 
   const tbody = createElement('tbody');
   data.forEach((item, index) => {
     const tr = createElement('tr');
     if (index >= maxRows) tr.classList.add('hidden-row');
 
-    // cell order
+    // Define cell data mapping based on the combined UI requirement
     const cells = [
-      item.call.volume,
-      item.call.openInterest,
+      item.strike,
+      `${item.call.volume}<br>${item.call.openInterest}`,
       `${item.call.high}<br>${item.call.low}`,
       `${item.call.open}<br>${item.call.last}`,
-      item.call.settle,
-      item.call.change,
-      item.strike,
-      item.put.change,
-      item.put.settle,
-      `${item.put.open}<br>${item.put.last}`,
+      `${item.call.settle}<br>${item.call.change}`,
+      `${item.put.volume}<br>${item.put.openInterest}`,
       `${item.put.high}<br>${item.put.low}`,
-      item.put.openInterest,
-      item.put.volume,
+      `${item.put.open}<br>${item.put.last}`,
+      `${item.put.settle}<br>${item.put.change}`,
     ];
 
     cells.forEach((content, i) => {
       const td = createElement('td');
-      if (i === 6) td.className = 'table-header-td primary-header';
+      if (i === 0) {
+        td.className = 'table-header-td primary-header';
+      }
       td.innerHTML = content;
       tr.appendChild(td);
     });
@@ -241,12 +344,42 @@ function buildOptionStraddleTable(header, data, tableId = '') {
     tbody.appendChild(tr);
   });
 
-  table.appendChild(tbody);
-
+  tableStraddle.appendChild(tbody);
   needShowAll = data.length > maxRows;
-  if (needShowAll) table.classList.add('table-fade');
+  if (needShowAll) tableStraddle.classList.add('table-fade');
 
-  return table;
+  return tableStraddle;
+}
+
+function buildOptionStraddleTable(header, data, tableId = '') {
+  const tableContainer = createElement('div', { class: 'table-straddle-settlement-container' });
+  if (tableId) tableContainer.id = tableId;
+
+  let straddleTable;
+
+  if (isMobile) {
+    straddleTable = buildOptionStraddleTableMobile(header, data);
+  } else if (isMid) {
+    straddleTable = buildOptionStraddleTableDesktop(header, data, true);
+  } else {
+    straddleTable = buildOptionStraddleTableDesktop(header, data);
+  }
+
+  tableContainer.appendChild(straddleTable);
+
+  window.addEventListener('resize', () => {
+    const newWidth = window.innerWidth;
+    isMobile = newWidth <= 992;
+    isMid = newWidth > 992 && newWidth <= 1600;
+
+    const refreshedTable = buildOptionStraddleTable(header, data, tableId);
+
+    if (tableContainer.parentNode) {
+      tableContainer.parentNode.replaceChild(refreshedTable, tableContainer);
+    }
+  }, { once: true });
+
+  return tableContainer;
 }
 
 /* Create futures settlement table */
@@ -505,19 +638,29 @@ async function renderTable(block) {
 
 async function createLoadAllWrapper(block) {
   const loadAllWrapper = createElement('div', { class: 'load-all-wrapper' });
+  const [
+    loadAll,
+    AboutThisReport,
+    ReturnToTop,
+  ] = await Promise.all([
+    i18n('Load All'),
+    i18n('About this Report'),
+    i18n('Return to top'),
+  ]);
+
   if (needShowAll) {
-    const [
-      loadAll,
-    ] = await Promise.all([
-      i18n('Load All'),
-    ]);
     loadAllWrapper.append(buildLoadAllButton(block, loadAll));
   }
 
   // Add "About this Report" link
   const aboutLink = createElement('p', { class: 'about-report-wrapper' });
-  aboutLink.innerHTML = '<a href="#" class="about-report-link">About this Report</a>';
+  aboutLink.innerHTML = `<a href="#" class="about-report-link">${AboutThisReport}</a>`;
   loadAllWrapper.append(aboutLink);
+
+  // Add scroll to top link
+  const scrollToTopLink = createElement('p', { class: 'scroll-to-top-wrapper' });
+  scrollToTopLink.innerHTML = `<a href="#" class="scroll-to-top-link">${ReturnToTop}</a>`;
+  loadAllWrapper.append(scrollToTopLink);
 
   return loadAllWrapper;
 }
@@ -576,5 +719,6 @@ export default function decorate(block) {
   const modalItemClass = 'about-report-link';
   handleAboutReportModal(block, modalItemClass, fragmentUrl);
 
-  // go to top goes here
+  const returnToTopClass = 'scroll-to-top-link';
+  scrollToTop(block, returnToTopClass);
 }
