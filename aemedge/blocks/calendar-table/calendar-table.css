@@ -30,9 +30,9 @@
       & thead {
         & tr {
           & th {
-            background-color: var(--blue1);
+            background-color: var(--blue2);
             border: .0625rem solid var(--gray4);
-            color: var(--white);
+            color: var(--gray4);
             font-family: var(--averta);
             font-size: .6875rem;
             font-weight: 400;
