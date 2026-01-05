@@ -705,9 +705,8 @@ export async function createDynamicCards(block) {
     if (!indexFilter.limit) {
       indexFilter.limit = 4;
     }
-    // TODO: chane to advisoryNoticeDate once the BE API supports metadata ordering
     if (!indexFilter.orderBy) {
-      indexFilter.orderBy = 'date';
+      indexFilter.orderBy = 'metadata.advisoryNoticeDateISOUTC';
     }
     [filteredData] = await Promise.all([
       getIndexedContent(indexFilter),
