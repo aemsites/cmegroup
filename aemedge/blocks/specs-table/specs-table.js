@@ -8,6 +8,7 @@ import {
   buildCollapsible,
 } from '../../scripts/utils/product.js';
 import { createElement, i18n } from '../../scripts/utils.js';
+import { urlByEnvType } from '../../scripts/utils/env.js';
 
 /* Build HTML table structure */
 function buildTable(headers, data, tableId = '') {
@@ -215,9 +216,13 @@ async function renderTable(block) {
 
   if (!productId) {
     block.innerHTML = `
-      <div class="no-results">
-        <h4>Unable to load specs</h4>
-        <p>Product ID not found.</p>
+      <div class="no-results" role="alert">
+        <p>
+          <span class="icon-attention-triangle"></span>
+          <span class="primary">There is currently no contract specs data for this product.</span> 
+          If you have any questions, please feel free to 
+          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
+        </p>
       </div>
     `;
     return;
@@ -240,17 +245,25 @@ async function renderTable(block) {
       block.appendChild(table);
     } else {
       block.innerHTML = `
-        <div class="no-results">
-          <h4>Unable to load specs</h4>
-          <p>specs data is currently unavailable.</p>
+        <div class="no-results" role="alert">
+          <p>
+            <span class="icon-attention-triangle"></span>
+            <span class="primary">There is currently no contract specs data for this product.</span> 
+            If you have any questions, please feel free to 
+            <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
+          </p>
         </div>
       `;
     }
   } catch (error) {
     block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading specs data</h4>
-        <p>${error.message}</p>
+      <div class="no-results" role="alert" data-error="${error.message}">
+        <p>
+          <span class="icon-attention-triangle"></span>
+          <span class="primary">There is currently no contract specs data for this product.</span> 
+          If you have any questions, please feel free to 
+          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
+        </p>
       </div>
     `;
   }
@@ -262,9 +275,13 @@ export default function decorate(block) {
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
   renderTable(block).catch((error) => {
     block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading specs data</h4>
-        <p>${error.message}</p>
+      <div class="no-results" role="alert" data-error="${error.message}">
+        <p>
+          <span class="icon-attention-triangle"></span>
+          <span class="primary">There is currently no contract specs data for this product.</span> 
+          If you have any questions, please feel free to 
+          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
+        </p>
       </div>
     `;
   });

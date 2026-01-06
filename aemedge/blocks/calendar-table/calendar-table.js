@@ -261,9 +261,13 @@ async function renderTable(block) {
 
   if (!productId) {
     block.innerHTML = `
-      <div class="no-results">
-        <h4>Unable to load calendar</h4>
-        <p>Product ID not found.</p>
+      <div class="no-results" role="alert">
+        <p>
+          <span class="icon-attention-triangle"></span>
+          <span class="primary">There is currently no calendar data for this product.</span> 
+          If you have any questions, please feel free to 
+          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
+        </p>
       </div>
     `;
     return;
@@ -288,9 +292,13 @@ async function renderTable(block) {
         block.append(loadAll);
       } else {
         block.innerHTML = `
-          <div class="no-results">
-            <h4>Unable to load options calendar</h4>
-            <p>Options data is currently unavailable.</p>
+          <div class="no-results" role="alert">
+            <p>
+              <span class="icon-attention-triangle"></span>
+              <span class="primary">There is currently no calendar data for this product.</span> 
+              If you have any questions, please feel free to 
+              <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
+            </p>
           </div>
         `;
       }
@@ -306,18 +314,26 @@ async function renderTable(block) {
         block.append(loadAll);
       } else {
         block.innerHTML = `
-          <div class="no-results">
-            <h4>Unable to load futures calendar</h4>
-            <p>Calendar data is currently unavailable.</p>
-          </div>
+          <div class="no-results" role="alert">
+        <p>
+          <span class="icon-attention-triangle"></span>
+          <span class="primary">There is currently no calendar data for this product.</span> 
+          If you have any questions, please feel free to 
+          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
+        </p>
+      </div>
         `;
       }
     }
   } catch (error) {
     block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading calendar data</h4>
-        <p>${error.message}</p>
+      <div class="no-results" role="alert" data-error="${error.message}">
+        <p>
+          <span class="icon-attention-triangle"></span>
+          <span class="primary">There is currently no calendar data for this product.</span> 
+          If you have any questions, please feel free to 
+          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
+        </p>
       </div>
     `;
   }
@@ -362,9 +378,13 @@ export default function decorate(block) {
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
   renderTable(block).catch((error) => {
     block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading calendar data</h4>
-        <p>${error.message}</p>
+      <div class="no-results" role="alert" data-error="${error.message}">
+        <p>
+          <span class="icon-attention-triangle"></span>
+          <span class="primary">There is currently no calendar data for this product.</span> 
+          If you have any questions, please feel free to 
+          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
+        </p>
       </div>
     `;
   });
