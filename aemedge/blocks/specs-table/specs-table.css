@@ -142,6 +142,21 @@
                   margin-bottom: 0;
                 }
               }
+
+              & a {
+                &:hover {
+                  text-decoration: none;
+                  color: var(--blue3);
+                }
+
+                &[target="_blank"]::after {
+                  font-family: var(--cme-group-icons);
+                  content: var(--icon-positive);
+                  font-size: 0.625rem;
+                  margin-left: 0.3125rem;
+                  position: relative;
+                }
+              }
             }
           }
         }
