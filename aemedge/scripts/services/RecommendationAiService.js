@@ -6,8 +6,10 @@ import {
   urlByEnvType,
 } from '../utils/index.js';
 
-export async function getRecommendationAi() {
-  const endpoint = `${urlByEnvType()}/services/recommendation-ai`;
+export async function getRecommendationAi(size) {
+  const sizeLimit = size && size > 0 ? `?size=${size}` : '';
+  console.log(sizeLimit);
+  const endpoint = `${urlByEnvType()}/services/recommendation-ai${sizeLimit}`;
 
   try {
     const response = await apiGet(endpoint);
