@@ -144,8 +144,8 @@ function processQuotes(quotes, heatMapItems, componentId, isMidpoint = false) {
 }
 
 function buildProductItems(config) {
-  const numContracts = config.numberContracts || 1;
   const showQuarterly = config.showQuarterly === 'true';
+  const numContracts = Number(config.numberContracts) || 1;
   const products = [].concat(config.productId || []);
   const overrideNamesMap = new Map(
     [].concat(config.overrideName || [])
