@@ -193,6 +193,10 @@ async function createStaticCards(block) {
     });
     ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
     cardsContainer.append(ul);
+  } else if (block.classList.contains('blue-divider')) {
+    const parent = cardsContainer.parentElement;
+    parent.removeChild(cardsContainer);
+    cardsContainer.append(block);
   } else {
     const ul = document.createElement('ul');
     const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));

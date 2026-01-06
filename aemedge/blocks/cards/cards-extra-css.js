@@ -83,6 +83,10 @@ const mapping = [
     variation: ['white-variation'],
     file: '/blocks/cards/cards-white.css',
   },
+  {
+    variation: ['blue-divider'],
+    file: '/blocks/cards/cards-blue-divider.css',
+  },
 ];
 
 export default mapping;
