@@ -1,1 +1,38 @@
-    @import url("./filter/filter.css");
+@import url("./filter/product-slate-filter.css");
+@import url("./table/product-slate-table.css");
+@import url("./pagination/product-slate-pagination.css");
+
+.section.product-slate-container {
+  & .component-spinner {
+    display: inline-block;
+    position: relative;
+    width: 4rem;
+    height: 4rem;
+    margin-bottom: 2rem;
+
+    & div {
+      box-sizing: border-box;
+      display: block;
+      position: absolute;
+      width: 3.1875rem;
+      height: 3.1875rem;
+      margin: 0.375rem;
+      border: 0.25rem solid var(--gray3);
+      border-radius: 50%;
+      animation: spinner-cards 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+      border-color: var(--gray3) transparent transparent;
+
+      &:nth-child(1) {
+        animation-delay: -0.45s;
+      }
+
+      &:nth-child(2) {
+        animation-delay: -0.3s;
+      }
+
+      &:nth-child(3) {
+        animation-delay: -0.15s;
+      }
+    }
+  }
+}

@@ -1060,7 +1060,7 @@ main {
     padding-top: 6.25rem;
   }
 
-  & > .section:not(.divider-container, .hero-container, .hero),
+  & .section:not(.divider-container, .hero-container, .hero),
   & .columns {
     &.text-1,
     &.text-2,
@@ -1335,12 +1335,12 @@ main {
     }
   }
 
-  & > .section:not(.divider-container, .hero-container, .hero) {
+  & .section:not(.divider-container, .hero-container, .hero) {
     margin-bottom: 1.875rem;
   }
 
   @media (width >= 769px) {
-    > .section {
+    .section {
       &.blue1-background,
       &.blue2-background,
       &.blue3-background,
@@ -1356,19 +1356,19 @@ main {
 
 /* sections */
 
-main > .section:first-of-type {
+main .section:first-of-type {
   margin-top: 0;
   padding-top: 0;
 }
 
-main > .section.full-width picture,
-main > .section.full-width picture img {
+main .section.full-width picture,
+main .section.full-width picture img {
   display: block;
   width: 100%;
   height: 28.4375rem;
 }
 
-main > .section:not(.full-width) > div,
+main .section:not(.full-width) > div,
 .container {
   margin-left: auto;
   margin-right: auto;
@@ -1379,7 +1379,7 @@ main > .section:not(.full-width) > div,
 }
 
 @media (width > 480px) {
-  main > .section:not(.full-width) > div,
+  main .section:not(.full-width) > div,
   .container {
     padding-left: var(--container-padding-sm);
     padding-right: var(--container-padding-sm);
@@ -1388,7 +1388,7 @@ main > .section:not(.full-width) > div,
 }
 
 @media (width > 768px) {
-  main > .section:not(.full-width) > div,
+  main .section:not(.full-width) > div,
   .container {
     padding-left: var(--container-padding-md);
     padding-right: var(--container-padding-md);
@@ -1397,7 +1397,7 @@ main > .section:not(.full-width) > div,
 }
 
 @media (width > 992px) {
-  main > .section:not(.full-width) > div,
+  main .section:not(.full-width) > div,
   .container {
     padding-left: var(--container-padding-lg);
     padding-right: var(--container-padding-lg);
@@ -1406,7 +1406,7 @@ main > .section:not(.full-width) > div,
 }
 
 @media (width > 1200px) {
-  main > .section:not(.full-width) > div,
+  main .section:not(.full-width) > div,
   .container {
     padding-left: var(--container-padding-xl);
     padding-right: var(--container-padding-xl);
@@ -1415,7 +1415,7 @@ main > .section:not(.full-width) > div,
 }
 
 @media (width > 1400px) {
-  main > .section:not(.full-width) > div,
+  main .section:not(.full-width) > div,
   .container {
     padding-left: var(--container-padding-xxl);
     padding-right: var(--container-padding-xxl);
@@ -2272,4 +2272,170 @@ p.center-img {
 
 .hidden-content {
   display: none !important;
+}
+
+/* auth tooltip styling */
+.auth-tooltip-container {
+  position: relative;
+
+  & a {
+    display: block;
+
+    @media (width >= 993px) {
+      width: auto;
+      display: inline-block;
+    }
+
+    &:hover {
+      & .icon-lock {
+        filter: var(--white-filter);
+      }
+    }
+
+    & .icon-lock {
+      font-size: .75rem;
+      margin-right: .5rem;
+      text-decoration: none !important;
+      vertical-align: initial;
+
+      &::after {
+        content: var(--icon-lock);
+      }
+    }
+  }
+
+  & .tooltip-container {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 0.0625rem solid var(--gray5);
+    border-radius: 0.375rem;
+    background-color: var(--white);
+    box-shadow: 0 0.0625rem 0.125rem 0 rgba(60 64 67 / 30%), 0 0.125rem 0.375rem 0.125rem rgba(60 64 67 / 15%);
+    color: var(--black);
+    min-width: 13.75rem;
+    padding: .625rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    pointer-events: none;
+    max-width: 12.5rem;
+    z-index: 71;
+
+    &::after {
+      border-bottom: 0.75rem solid var(--white);
+      border-left: 0.375rem solid transparent;
+      border-right: 0.375rem solid transparent;
+      content: "";
+      height: 0;
+      left: auto;
+      margin: 0 auto;
+      opacity: 1;
+      position: absolute;
+      right: calc(50% - 0.1875rem);
+      top: -0.75rem;
+      transition-delay: 0s;
+      visibility: visible;
+      width: 0;
+    }
+
+    &.on-top {
+      top: -6.375rem;
+
+      &::after {
+        border-bottom: none;
+        border-top: 0.75rem solid var(--white);
+        border-left: 0.375rem solid transparent;
+        border-right: 0.375rem solid transparent;
+        top: auto;
+        bottom: -0.75rem;
+      }
+    }
+
+    & .tooltip-text {
+      color: var(--gray2);
+      font-family: var(--averta);
+      font-size: .75rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      line-height: 1.125rem;
+      text-align: left;
+    }
+
+    & button {
+      margin-top: .625rem;
+      width: 100%;
+      display: block;
+    }
+  }
+
+  &:hover .tooltip-container {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+  }
+}
+
+/* PDP collapsible */
+.collapsible-component {
+  display: block;
+  margin-bottom: 1.875rem;
+
+  @media (width >= 993px) {
+    display: none;
+  }
+
+  & .collapsible-item {
+    & .collapsible-button {
+      align-items: center;
+      background-color: var(--blue2);
+      border-bottom: .0625rem solid var(--white);
+      border-radius: 0;
+      color: var(--white);
+      display: flex;
+      justify-content: space-between;
+      padding: .9375rem 1.5rem;
+      text-align: left;
+      cursor: pointer;
+      width: 100%;
+      position: relative;
+
+      &::after {
+        padding-left: .625rem;
+        font-family: var(--cme-group-icons);
+        content: var(--icon-plus);
+        position: absolute;
+        right: 1.5rem;
+        font-size: 0.75rem;
+        color: var(--white);
+      }
+
+      &.expand {
+        &::after {
+          content: var(--icon-minus);
+        }
+      }
+    }
+
+    & .collapse {
+      max-height: 0;
+      transition: max-height 0.35s ease;
+      overflow: hidden;
+      color: var(--blue2);
+
+      &.show {
+        max-height: 500px;
+      }
+
+      & .collapse-body {
+        font-size: .875rem;
+        padding: 1.25rem 1.5625rem;
+      }
+    }
+
+    &.hidden-empty-collapsible,
+    &.hidden-collapsible {
+      display: none;
+    }
+  }
 }

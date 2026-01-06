@@ -1,0 +1,441 @@
+/**
+ * Product Template - Toggle Manager
+ * Handles futures/options toggle building and management
+ */
+
+/* eslint-disable import/no-cycle */
+// Circular dependency with product-navigation.js is intentional and safe
+// Uses dynamic imports to avoid initialization issues
+
+import {
+  normalizePath,
+  indexHasPath,
+  getProductMetadata,
+} from '../../scripts/utils/product.js';
+import { store } from '../../scripts/store/store.js';
+import {
+  setToggleOperation,
+  setCreatingToggle,
+  setTabSelection,
+  clearTabSelection,
+} from '../../scripts/actions/product.js';
+import { findProductTabsSection } from './product-dom-helpers.js';
+import { renderProductPath, PREFETCH_CACHE } from './product-navigation.js';
+import {
+  createOptionsDropdown,
+  getSelectedContractFromURL,
+  prefetchOptionPages,
+  buildContractURL,
+  TOGGLE_CONSTANTS,
+} from './product-toggle-utils.js';
+/* eslint-enable import/no-cycle */
+
+// Local debounce timer for toggle navigation
+let toggleDebounceTimer = null;
+
+/**
+ * Build enhanced subtabs (futures/options toggle)
+ * ✅ OPTIMIZED: Renders dropdown immediately, fetches data in background after render
+ */
+async function buildEnhancedSubTabs(productRoot, currentPath, primaryTab) {
+  const futuresPath = `${productRoot}/${primaryTab}`;
+  const optionsPath = `${futuresPath}/options`;
+
+  const [hasFutures, hasOptions] = await Promise.all([
+    indexHasPath(futuresPath),
+    indexHasPath(optionsPath),
+  ]);
+
+  if (!hasFutures || !hasOptions) {
+    return null;
+  }
+
+  const nav = document.createElement('nav');
+  nav.className = 'product-subtabs enhanced';
+  nav.setAttribute('aria-label', 'Sub tabs');
+  nav.dataset.primaryTab = primaryTab;
+
+  const container = document.createElement('div');
+  container.className = TOGGLE_CONSTANTS.toggleClasses.container;
+
+  const futuresBtn = document.createElement('button');
+  futuresBtn.className = TOGGLE_CONSTANTS.toggleClasses.button;
+  futuresBtn.setAttribute('data-toggle', TOGGLE_CONSTANTS.toggleTypes.futures);
+  futuresBtn.setAttribute('data-href', futuresPath);
+  futuresBtn.textContent = 'FUTURES';
+  futuresBtn.type = 'button';
+
+  const isFuturesActive = normalizePath(currentPath) === normalizePath(futuresPath);
+
+  if (isFuturesActive) {
+    futuresBtn.classList.add(TOGGLE_CONSTANTS.toggleClasses.active);
+  }
+
+  container.appendChild(futuresBtn);
+
+  const productMetadata = await getProductMetadata();
+  const productId = productMetadata?.productId;
+  if (!productId) {
+    return container;
+  }
+
+  const selectedContract = getSelectedContractFromURL();
+
+  // ✅ OPTIMIZED: Create dropdown immediately with existing data (or empty)
+  // Don't wait for API - render first, fetch after
+  const optionsDropdown = createOptionsDropdown([], selectedContract);
+
+  optionsDropdown.setAttribute('data-href', optionsPath);
+
+  // Mark as active if on options path
+  if (normalizePath(currentPath).startsWith(normalizePath(optionsPath))) {
+    const dropdownBtn = optionsDropdown.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownButton}`);
+    if (dropdownBtn) {
+      dropdownBtn.classList.add(TOGGLE_CONSTANTS.toggleClasses.active);
+    }
+  }
+
+  container.appendChild(optionsDropdown);
+  nav.appendChild(container);
+
+  store.subscribe(({ productData }) => productData, (productData) => {
+    if (productData.loaded) {
+      const { optionsLabels } = productData;
+
+      if (optionsLabels && optionsLabels.length > 0) {
+        // Update the dropdown that's already rendered
+        updateDropdownWithData(optionsDropdown, optionsLabels, selectedContract);
+
+        // Prefetch option pages if configured
+        if (TOGGLE_CONSTANTS.prefetch.prefetchOnHover && optionsLabels.length > 0) {
+          const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
+          prefetchOptionPages(optionsPath, optionsLabels, count, PREFETCH_CACHE);
+        }
+      }
+    }
+  });
+
+  return nav;
+}
+
+/**
+ * ✅ NEW: Update an already-rendered dropdown with fetched data
+ */
+function updateDropdownWithData(dropdown, expirationsData, selectedContract) {
+  const dropdownMenu = dropdown.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownMenu}`);
+  if (!dropdownMenu) return;
+
+  // Clear existing items (loading state or empty placeholder)
+  dropdownMenu.innerHTML = '';
+
+  // Populate with real data
+  expirationsData.forEach((option) => {
+    if (!option || !option.productId || !option.label) return;
+
+    const menuItem = document.createElement('a');
+    menuItem.setAttribute('role', 'menuitem');
+    menuItem.setAttribute('data-product-id', option.productId);
+    menuItem.setAttribute('data-option-type', option.optionType || '');
+    menuItem.setAttribute('tabindex', '0');
+    menuItem.className = TOGGLE_CONSTANTS.toggleClasses.dropdownItem;
+
+    if (selectedContract && option.productId === selectedContract) {
+      menuItem.classList.add('selected');
+    }
+
+    const linkSpan = document.createElement('span');
+    linkSpan.className = 'link';
+    linkSpan.textContent = option.label;
+    menuItem.appendChild(linkSpan);
+
+    dropdownMenu.appendChild(menuItem);
+  });
+
+  // Update stored data
+  dropdown.dataset.optionsData = JSON.stringify(expirationsData);
+}
+
+/**
+ * Handle options dropdown navigation events
+ * ✅ FIX: Use current tab from nav.dataset.primaryTab instead of stale parameter
+ */
+async function handleOptionsDropdownNavigation(nav, productRoot, primaryTab) {
+  if (nav.dataset.handlersBound === 'true') return;
+  nav.dataset.handlersBound = 'true';
+
+  const futuresBtn = nav.querySelector('[data-toggle="futures"]');
+  if (futuresBtn) {
+    futuresBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const href = futuresBtn.getAttribute('data-href');
+      if (href) {
+        // ✅ Use current tab from dataset
+        const currentTab = nav.dataset.primaryTab || primaryTab;
+        store.dispatch(clearTabSelection(currentTab));
+
+        if (toggleDebounceTimer) {
+          clearTimeout(toggleDebounceTimer);
+          toggleDebounceTimer = null;
+        }
+
+        window.history.pushState({}, '', href);
+
+        toggleDebounceTimer = setTimeout(() => {
+          renderProductPath(href, productRoot);
+          toggleDebounceTimer = null;
+        }, 100);
+      }
+    });
+  }
+
+  nav.addEventListener('optionsDropdownHovered', (e) => {
+    const { expirationsData } = e.detail;
+    // ✅ Use current tab from dataset
+    const currentTab = nav.dataset.primaryTab || primaryTab;
+    const optionsPath = `${productRoot}/${currentTab}/options`;
+    const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
+    prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
+  }, { once: true });
+
+  nav.addEventListener('optionsDropdownOpened', (e) => {
+    const { expirationsData } = e.detail;
+    // ✅ Use current tab from dataset
+    const currentTab = nav.dataset.primaryTab || primaryTab;
+    const optionsPath = `${productRoot}/${currentTab}/options`;
+    const count = TOGGLE_CONSTANTS.prefetch.optionsCount;
+    prefetchOptionPages(optionsPath, expirationsData, count, PREFETCH_CACHE);
+  });
+
+  nav.addEventListener('optionContractSelected', async (e) => {
+    const { contract, productId } = e.detail;
+    const contractId = contract || productId;
+    // ✅ Use current tab from dataset - THIS IS THE KEY FIX
+    const currentTab = nav.dataset.primaryTab || primaryTab;
+    const optionsPath = `${productRoot}/${currentTab}/options`;
+    const fullUrl = buildContractURL(optionsPath, contractId);
+
+    store.dispatch(setTabSelection(currentTab, contractId));
+
+    if (toggleDebounceTimer) {
+      clearTimeout(toggleDebounceTimer);
+      toggleDebounceTimer = null;
+    }
+
+    nav.classList.add('updating');
+
+    window.history.pushState({}, '', fullUrl);
+
+    toggleDebounceTimer = setTimeout(async () => {
+      await renderProductPath(fullUrl, productRoot);
+      nav.classList.remove('updating');
+      toggleDebounceTimer = null;
+    }, 100);
+  });
+}
+
+/**
+ * Update dropdown active state based on current URL
+ */
+async function updateDropdownActiveState(nav) {
+  if (!nav) return;
+
+  const selectedContract = getSelectedContractFromURL();
+
+  const dropdown = nav.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdown}`);
+  if (dropdown && selectedContract) {
+    const items = dropdown.querySelectorAll(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownItem}`);
+    items.forEach((item) => {
+      const isSelected = item.dataset.productId === selectedContract;
+      item.classList.toggle('selected', isSelected);
+    });
+  }
+
+  const currentPath = normalizePath(window.location.pathname);
+  const futuresBtn = nav.querySelector('[data-toggle="futures"]');
+  const dropdownBtn = nav.querySelector(`.${TOGGLE_CONSTANTS.toggleClasses.dropdownButton}`);
+
+  if (futuresBtn && dropdownBtn) {
+    const futuresPath = futuresBtn.getAttribute('data-href');
+    const isOnFutures = currentPath === normalizePath(futuresPath);
+    const isOnOptions = currentPath.includes('/options');
+
+    futuresBtn.classList.toggle(TOGGLE_CONSTANTS.toggleClasses.active, isOnFutures);
+    dropdownBtn.classList.toggle(TOGGLE_CONSTANTS.toggleClasses.active, isOnOptions);
+  }
+}
+
+/**
+ * ✅ FAST: Just show/hide existing toggle (no rebuild)
+ * Called on navigation after initial load
+ */
+export async function toggleSubTabsVisibility(productRoot) {
+  const tabsSection = findProductTabsSection();
+  if (!tabsSection) return;
+
+  const currentPath = normalizePath(window.location.pathname);
+  const rel = normalizePath(currentPath).replace(normalizePath(productRoot), '');
+  const parts = rel.split('/').filter((p) => p);
+
+  const existingToggle = tabsSection.querySelector('.product-subtabs.enhanced');
+  const shouldShowSubTabs = parts.length > 0 && parts[0] !== 'overview';
+
+  if (!shouldShowSubTabs) {
+    // Hide toggle for overview
+    if (existingToggle) {
+      existingToggle.classList.add('hidden');
+    }
+    return;
+  }
+
+  const primaryTab = parts[0];
+  const futuresPath = `${productRoot}/${primaryTab}`;
+  const optionsPath = `${futuresPath}/options`;
+
+  const [hasFutures, hasOptions] = await Promise.all([
+    indexHasPath(futuresPath),
+    indexHasPath(optionsPath),
+  ]);
+
+  if (!hasFutures || !hasOptions) {
+    // Tab doesn't support options - hide toggle
+    if (existingToggle) {
+      existingToggle.classList.add('hidden');
+    }
+    return;
+  }
+
+  // Tab supports options - show toggle
+  if (existingToggle) {
+    existingToggle.classList.remove('hidden');
+    existingToggle.dataset.primaryTab = primaryTab;
+
+    // ✅ UPDATE DATA-HREF: Point futures button to current tab
+    const futuresBtn = existingToggle.querySelector('[data-toggle="futures"]');
+    if (futuresBtn) {
+      futuresBtn.setAttribute('data-href', futuresPath);
+    }
+
+    // ✅ UPDATE OPTIONS DATA-HREF: Point to current tab's options
+    const optionsBtn = existingToggle.querySelector('[data-toggle="options"]');
+    if (optionsBtn) {
+      optionsBtn.setAttribute('data-href', optionsPath);
+    }
+
+    // Update active state and selected option
+    await updateDropdownActiveState(existingToggle);
+  } else {
+    // First time on a tab with options - build it
+    await insertEnhancedSubTabsIfApplicable(productRoot);
+  }
+}
+
+/**
+ * Insert enhanced subtabs if applicable for current tab
+ * ONLY called on initial load or first time visiting options tab
+ */
+export async function insertEnhancedSubTabsIfApplicable(productRoot) {
+  const myToken = Date.now();
+  store.dispatch(setToggleOperation(myToken));
+
+  const main = document.querySelector('main');
+  if (!main) return;
+
+  const tabsSection = findProductTabsSection();
+  if (!tabsSection) return;
+
+  const currentPath = normalizePath(window.location.pathname);
+  const currentSearch = window.location.search;
+  const rel = normalizePath(currentPath).replace(normalizePath(productRoot), '');
+  const parts = rel.split('/').filter((p) => p);
+
+  const existingToggles = tabsSection.querySelectorAll('.product-subtabs');
+  existingToggles.forEach((toggle) => {
+    if (toggle.parentNode) toggle.parentNode.removeChild(toggle);
+  });
+
+  const shouldHaveSubTabs = parts.length > 0 && parts[0] !== 'overview';
+
+  if (!shouldHaveSubTabs) {
+    store.dispatch(setCreatingToggle(false));
+    store.dispatch(setToggleOperation(null));
+    return;
+  }
+
+  const primaryTab = parts[0];
+
+  // Save initial state if page loaded with an options contract selected
+  if (currentPath.includes('/options') && (currentSearch.includes('productId=') || currentSearch.includes('optionProductId='))) {
+    const urlParams = new URLSearchParams(currentSearch);
+    const selectedContract = urlParams.get('optionProductId') || urlParams.get('productId');
+    const state = store.getState();
+    if (selectedContract && primaryTab && !state.tabSelections[primaryTab]) {
+      store.dispatch(setTabSelection(primaryTab, selectedContract));
+    }
+  }
+
+  const state = store.getState();
+  if (state.navigation.isCreatingToggle) {
+    store.dispatch(setToggleOperation(null));
+    return;
+  }
+
+  store.dispatch(setCreatingToggle(true));
+
+  const futuresPath = `${productRoot}/${primaryTab}`;
+  const optionsPath = `${futuresPath}/options`;
+
+  const [hasFutures, hasOptions] = await Promise.all([
+    indexHasPath(futuresPath),
+    indexHasPath(optionsPath),
+  ]);
+
+  const currentState = store.getState();
+  if (currentState.navigation.currentToggleOperation !== myToken) {
+    store.dispatch(setCreatingToggle(false));
+    return;
+  }
+
+  if (!hasFutures || !hasOptions) {
+    store.dispatch(setCreatingToggle(false));
+    store.dispatch(setToggleOperation(null));
+    return;
+  }
+
+  const nav = await buildEnhancedSubTabs(productRoot, currentPath, primaryTab);
+
+  const stateAfterBuild = store.getState();
+  if (stateAfterBuild.navigation.currentToggleOperation !== myToken) {
+    store.dispatch(setCreatingToggle(false));
+    return;
+  }
+
+  if (!nav) {
+    store.dispatch(setCreatingToggle(false));
+    store.dispatch(setToggleOperation(null));
+    return;
+  }
+
+  const wrapper = tabsSection.querySelector('.product-tabs')
+    || tabsSection.querySelector(':scope > div');
+  if (!wrapper) {
+    store.dispatch(setCreatingToggle(false));
+    store.dispatch(setToggleOperation(null));
+    return;
+  }
+
+  wrapper.appendChild(nav);
+
+  await handleOptionsDropdownNavigation(nav, productRoot, primaryTab);
+
+  const finalState = store.getState();
+  if (finalState.navigation.currentToggleOperation !== myToken) {
+    if (nav.parentNode) nav.parentNode.removeChild(nav);
+    store.dispatch(setCreatingToggle(false));
+    return;
+  }
+
+  await updateDropdownActiveState(nav);
+
+  store.dispatch(setCreatingToggle(false));
+  store.dispatch(setToggleOperation(null));
+}

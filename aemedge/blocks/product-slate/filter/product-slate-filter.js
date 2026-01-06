@@ -1,8 +1,6 @@
-/* eslint-disable import/prefer-default-export */
-/* eslint-disable no-console */
 import { createElement, i18n, debounce } from '../../../scripts/utils.js';
 import createDropdowns from './controls/dropdown-filter.js';
-import { createSearchInput } from './controls/search-input.js';
+import createSearchInput from './controls/search-input.js';
 import { createFilterPillsFromDropdowns } from './controls/pills.js';
 import createCheckbox from './controls/checkbox.js';
 
@@ -40,58 +38,6 @@ function getFiltersFromURL() {
   };
 }
 
-function updateURLWithFilters(filters) {
-  const params = new URLSearchParams();
-
-  if (filters.subgroup && filters.subgroup.length > 0) {
-    params.set('subGroups', filters.subgroup.join(','));
-  }
-
-  if (filters.sortDirection) {
-    params.set('sortDirection', filters.sortDirection);
-  }
-
-  if (filters.sortField) {
-    params.set('sortField', filters.sortField);
-  }
-
-  if (filters.group && filters.group.length > 0) {
-    params.set('groups', filters.group.join(','));
-  }
-
-  if (filters.searchTerm) {
-    params.set('search', filters.searchTerm);
-  }
-
-  if (filters.exch && filters.exch.length > 0) {
-    params.set('exch', filters.exch.join(','));
-  }
-
-  if (filters.venues && filters.venues.length > 0) {
-    params.set('venues', filters.venues.join(','));
-  }
-
-  if (filters.cleared && filters.cleared.length > 0) {
-    params.set('cleared', filters.cleared.join(','));
-  }
-
-  if (filters.tags === 1) {
-    params.set('tags', '1');
-  }
-
-  const entries = [...params.entries()].map(([key, value]) => (key === 'search'
-    ? `${key}=${value}`
-    : `${key}=${value.replace(/%2C/g, ',')}`));
-
-  const query = entries.join('&');
-
-  const newURL = query
-    ? `${window.location.pathname}?${query}`
-    : window.location.pathname;
-
-  window.history.pushState({}, '', newURL);
-}
-
 function convertURLFiltersToSelections(urlFilters, groupData, options) {
   const selections = {
     group: [],
@@ -100,9 +46,7 @@ function convertURLFiltersToSelections(urlFilters, groupData, options) {
     venues: [],
   };
 
-  // Process GROUPS and SUBGROUPS from URL (note: 'groups' and 'subGroups')
   if (groupData) {
-    // Add parent groups
     if (urlFilters.groups && urlFilters.groups.length > 0) {
       urlFilters.groups.forEach((groupId) => {
         const group = groupData.find((g) => String(g.id) === String(groupId));
@@ -112,7 +56,6 @@ function convertURLFiltersToSelections(urlFilters, groupData, options) {
       });
     }
 
-    // Add subgroups (children) - note: capital G in subGroups
     if (urlFilters.subGroups && urlFilters.subGroups.length > 0) {
       urlFilters.subGroups.forEach((subgroupId) => {
         groupData.forEach((group) => {
@@ -163,30 +106,22 @@ function convertURLFiltersToSelections(urlFilters, groupData, options) {
 
 async function fetchTableData(filters) {
   try {
-    // Update URL with current filters (without page reload)
-    updateURLWithFilters(filters);
+    if (typeof window.fetchProductSlateData === 'function') {
+      await window.fetchProductSlateData(filters);
+      return;
+    }
 
-    const response = await fetch('/endpoint', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(filters),
-    });
-
-    const data = await response.json();
-
-    // Dispatch custom event to notify other components (e.g., table)
     window.dispatchEvent(
-      new CustomEvent('tableDataUpdated', {
-        detail: { data, filters },
+      new CustomEvent('tableDataError', {
+        detail: { error: new Error('fetchProductSlateData not available'), filters },
       }),
     );
-
-    return data;
   } catch (error) {
-    console.error('Error fetching data:', error);
-    return null;
+    window.dispatchEvent(
+      new CustomEvent('tableDataError', {
+        detail: { error, filters },
+      }),
+    );
   }
 }
 
@@ -203,10 +138,8 @@ function buildFiltersObject(
     exch: [],
     cleared: [],
     searchTerm: searchTerm || '',
-    timestamp: new Date().toISOString(),
   };
 
-  // Handle GROUP dropdown (hierarchical structure)
   if (
     dropdownSelections.group
     && dropdownSelections.group.length > 0
@@ -217,19 +150,29 @@ function buildFiltersObject(
       const id = parts[parts.length - 1];
       const name = parts.slice(0, -1).join('_');
 
-      const group = groupData.find(
+      const parentGroup = groupData.find(
         (g) => g.name === name && String(g.id) === String(id),
       );
 
-      if (group && group.children && group.children.length > 0) {
+      if (parentGroup) {
         filters.group.push(id);
       } else {
-        filters.subgroup.push(id);
+        let found = false;
+        groupData.forEach((g) => {
+          if (!found && g.children) {
+            const child = g.children.find(
+              (c) => c.name === name && String(c.id) === String(id),
+            );
+            if (child) {
+              filters.subgroup.push(id);
+              found = true;
+            }
+          }
+        });
       }
     });
   }
 
-  // Handle VENUES (send IDs only)
   if (dropdownSelections.venues && dropdownSelections.venues.length > 0) {
     dropdownSelections.venues.forEach((itemKey) => {
       const parts = itemKey.split('_');
@@ -238,7 +181,6 @@ function buildFiltersObject(
     });
   }
 
-  // Handle EXCH (send names only)
   if (dropdownSelections.exch && dropdownSelections.exch.length > 0) {
     dropdownSelections.exch.forEach((itemKey) => {
       const parts = itemKey.split('_');
@@ -247,7 +189,6 @@ function buildFiltersObject(
     });
   }
 
-  // Handle CLEARED (send names only)
   if (dropdownSelections.cleared && dropdownSelections.cleared.length > 0) {
     dropdownSelections.cleared.forEach((itemKey) => {
       const parts = itemKey.split('_');
@@ -256,7 +197,6 @@ function buildFiltersObject(
     });
   }
 
-  // Include tags only if checkbox is selected
   if (checkboxValue === true) {
     filters.tags = 1;
   }
@@ -264,14 +204,23 @@ function buildFiltersObject(
   return filters;
 }
 
-export function createFilter(options) {
+export default function createFilter(options, filterConfig = {}) {
+  const visibleFilters = {
+    group: filterConfig.group !== false,
+    venues: filterConfig.venues !== false,
+    exch: filterConfig.exch !== false,
+    cleared: filterConfig.cleared !== false,
+    search: filterConfig.search !== false,
+    tags: filterConfig.tags !== false,
+  };
+
   let isDesktop = window.innerWidth >= 769;
   let currentSearchTerm = '';
   let checkboxValue = false;
   let pillsContainer;
-  let groupData;
 
-  // Base containers
+  const groupData = options.group || [];
+
   const filter = createElement('div', {
     class: 'product-slate-filter reverse',
   });
@@ -279,7 +228,8 @@ export function createFilter(options) {
     class: 'main-filters hide-modal',
   });
   const filtersContent = createElement('div', { class: 'filters-content' });
-  const buttonsContainer = createElement('div', { class: 'buttons-container' });
+  const buttonsContainerMobile = createElement('div', { class: 'buttons-container mobile' });
+  const buttonsContainerDesktop = createElement('div', { class: 'buttons-container desktop' });
   const filterBy = createElement('div', { class: 'filter-by' });
   const wrap = createElement('div', { class: 'wrap' });
   const resetButton = createElement('button', {
@@ -301,8 +251,8 @@ export function createFilter(options) {
   const secondFilterRow = createElement('div', { class: 'filter-row' });
   const searchRow = createElement('div', { class: 'search-row' });
 
-  // Create dropdowns with callback
   const dropdownsContainer = createDropdowns(options, {
+    visibleFilters,
     onSelectionChange: () => {
       const allSelections = dropdownsContainer.getSelections();
 
@@ -322,9 +272,6 @@ export function createFilter(options) {
     },
   });
 
-  groupData = options.group || [];
-
-  // Create filter pills linked to dropdowns
   pillsContainer = createFilterPillsFromDropdowns(dropdownsContainer, {
     hideWhenEmpty: true,
     onRemove: (pill) => {
@@ -346,8 +293,7 @@ export function createFilter(options) {
     },
   });
 
-  // Create checkbox with change listener
-  const checkbox = createCheckbox({
+  const checkbox = visibleFilters.tags ? createCheckbox({
     onChange: (isChecked) => {
       checkboxValue = isChecked;
 
@@ -360,14 +306,17 @@ export function createFilter(options) {
       );
       fetchTableData(filters);
     },
-  });
+  }) : null;
 
   resetButton.textContent = resetText;
   filterButton.textContent = filterText;
   applyButton.textContent = applyText;
 
-  // Create search input with debounce
+  let isResetting = false;
+
   const debouncedFetch = debounce((value) => {
+    if (isResetting) return;
+
     const allSelections = dropdownsContainer.getSelections();
     const filters = buildFiltersObject(
       allSelections,
@@ -378,7 +327,7 @@ export function createFilter(options) {
     fetchTableData(filters);
   }, 500);
 
-  const customSearch = createSearchInput({
+  const customSearch = visibleFilters.search ? createSearchInput({
     onSearch: (value) => {
       currentSearchTerm = value;
       debouncedFetch(value);
@@ -395,13 +344,13 @@ export function createFilter(options) {
       );
       fetchTableData(filters);
     },
-  });
+  }) : null;
 
-  // Reset button listener
   resetButton.addEventListener('click', (e) => {
     e.preventDefault();
-    customSearch.clear();
-    currentSearchTerm = '';
+
+    isResetting = true;
+
     pillsContainer.clear();
 
     dropdownsContainer.setSelections({
@@ -411,17 +360,30 @@ export function createFilter(options) {
       venues: [],
     });
 
-    checkbox.reset();
-    checkboxValue = false;
+    if (checkbox) {
+      checkbox.reset();
+      checkboxValue = false;
+    }
 
     const venuesInstance = dropdownsContainer.getDropdownInstance('venues');
     if (venuesInstance) venuesInstance.updateAllCheckboxes();
 
-    const filters = buildFiltersObject({}, '', false, groupData);
-    fetchTableData(filters);
+    currentSearchTerm = '';
+
+    if (customSearch) {
+      const searchInput = customSearch.querySelector('input');
+      if (searchInput) {
+        searchInput.value = '';
+      }
+    }
+
+    isResetting = false;
+
+    if (typeof window.resetProductSlate === 'function') {
+      window.resetProductSlate();
+    }
   });
 
-  // Mobile modal handlers
   filterButton.addEventListener('click', (e) => {
     e.preventDefault();
     mainFilters.classList.remove('hide-modal');
@@ -449,7 +411,6 @@ export function createFilter(options) {
     fetchTableData(filters);
   });
 
-  // Responsive behavior
   if (isDesktop) {
     mainFilters.classList.remove('hide-modal');
   } else {
@@ -467,14 +428,13 @@ export function createFilter(options) {
     }
   });
 
-  // Build final structure
   filterBy.appendChild(pillsContainer);
   filter.appendChild(mainFilters);
   mainFilters.appendChild(filtersContent);
   filtersContent.appendChild(title);
   filtersContent.appendChild(searchRow);
-  searchRow.appendChild(customSearch);
-  searchRow.appendChild(checkbox);
+  if (customSearch) searchRow.appendChild(customSearch);
+  if (checkbox) searchRow.appendChild(checkbox);
   filtersContent.appendChild(closeModal);
   filtersContent.appendChild(wrap);
   wrap.appendChild(scrollMobileWrapper);
@@ -482,12 +442,14 @@ export function createFilter(options) {
   scrollMobileWrapper.appendChild(secondFilterRow);
   secondFilterRow.appendChild(dropdownsContainer);
   mainFilters.appendChild(applyButton);
-  buttonsContainer.appendChild(resetButton);
-  buttonsContainer.appendChild(filterButton);
-  filter.appendChild(buttonsContainer);
+  buttonsContainerMobile.appendChild(resetButton);
+  buttonsContainerMobile.appendChild(filterButton);
+  buttonsContainerDesktop.appendChild(resetButton.cloneNode(true));
+  buttonsContainerDesktop.appendChild(filterButton.cloneNode(true));
+  dropdownsContainer.appendChild(buttonsContainerDesktop);
+  filter.appendChild(buttonsContainerMobile);
   filter.appendChild(filterBy);
 
-  // Expose public API methods for external use
   filter.getFilters = () => {
     const allSelections = dropdownsContainer.getSelections();
     return buildFiltersObject(
@@ -507,9 +469,19 @@ export function createFilter(options) {
     resetButton.click();
   };
 
+  const resetButtonDesktop = buttonsContainerDesktop.querySelector('.reset-button');
+  const filterButtonDesktop = buttonsContainerDesktop.querySelector('.filter-button');
+
+  resetButtonDesktop.addEventListener('click', () => {
+    resetButton.click();
+  });
+
+  filterButtonDesktop.addEventListener('click', () => {
+    filterButton.click();
+  });
+
   const urlFilters = getFiltersFromURL();
 
-  // Check if there are any filters in the URL
   const hasURLFilters = Object.keys(urlFilters).some((key) => {
     const value = urlFilters[key];
     return Array.isArray(value) ? value.length > 0 : value;
@@ -520,29 +492,19 @@ export function createFilter(options) {
 
     dropdownsContainer.setSelections(selections);
 
-    if (urlFilters.searchTerm) {
+    if (urlFilters.searchTerm && customSearch) {
       currentSearchTerm = urlFilters.searchTerm;
       customSearch.setValue(urlFilters.searchTerm);
     }
 
-    if (urlFilters.tags) {
+    if (urlFilters.tags && checkbox) {
       checkboxValue = true;
       checkbox.setChecked(true);
     }
 
-    Promise.resolve().then(() => {
-      const allSelections = dropdownsContainer.getSelections();
-      pillsContainer.clear();
-      pillsContainer.syncWithDropdowns(allSelections);
-
-      const filters = buildFiltersObject(
-        allSelections,
-        currentSearchTerm,
-        checkboxValue,
-        groupData,
-      );
-      fetchTableData(filters);
-    });
+    const allSelections = dropdownsContainer.getSelections();
+    pillsContainer.clear();
+    pillsContainer.syncWithDropdowns(allSelections);
   }
 
   return filter;

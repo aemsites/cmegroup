@@ -426,15 +426,20 @@ class UniversalDropdown {
     const group = this.config.data.find((g) => String(g.id) === String(groupId));
     if (!group) return;
 
-    const selectedChildren = (group.children || []).filter((child) => this.selectedItems.has(`${child.name}_${child.id}`));
+    const groupKey = `${group.name}_${group.id}`;
+    const children = group.children || [];
 
-    checkbox.checked = selectedChildren.length === (group.children || []).length
-      && (group.children || []).length > 0;
+    if (children.length === 0) {
+      checkbox.checked = this.selectedItems.has(groupKey);
+    } else {
+      const selectedChildren = children.filter((child) => this.selectedItems.has(`${child.name}_${child.id}`));
+      checkbox.checked = selectedChildren.length === children.length && children.length > 0;
+    }
 
     const checkboxComponent = checkbox.parentElement;
-    const checkmark = checkboxComponent.querySelector('.checkmark');
-    if (checkmark) {
-      this.updateCheckboxVisual(checkbox, checkmark);
+    const svg = checkboxComponent.querySelector('.checkbox-custom .checkmark svg');
+    if (svg) {
+      svg.style.display = checkbox.checked ? 'block' : 'none';
     }
   }
 
@@ -505,6 +510,7 @@ class UniversalDropdown {
 }
 
 function createDropdowns(apiData, options = {}) {
+  const { visibleFilters = {} } = options;
   const container = createElement('div', { class: 'dropdowns-container' });
 
   const dropdownConfigs = {
@@ -517,6 +523,8 @@ function createDropdowns(apiData, options = {}) {
   const dropdownInstances = new Map();
 
   Object.keys(dropdownConfigs).forEach((key) => {
+    if (visibleFilters[key] === false) return;
+
     const data = apiData[key];
     const config = dropdownConfigs[key];
 
