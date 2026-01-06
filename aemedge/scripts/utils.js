@@ -847,6 +847,88 @@ export default function loadExtraCss(block) {
   });
 }
 
+/**
+ * Setup the libs and style for Billboard library
+ */
+async function setupBillboardLibs() {
+  await Promise.all([
+    loadScript('/aemedge/scripts/third-party/billboard/billboard.pkgd.min.js'),
+    loadCSS('/aemedge/scripts/third-party/billboard/billboard.min.css'),
+  ]);
+
+  return window.bb;
+}
+
+async function getClosestClassNameCount(element, className) {
+  const nextParent = element?.parentElement?.closest(className);
+  if (nextParent) {
+    return 1 + getClosestClassNameCount(nextParent, className);
+  }
+  return 0;
+}
+
+async function addMutationObserver(
+  el,
+  callback,
+  options = { attributes: true },
+) {
+  if (!window.MutationObserver) {
+    return null;
+  }
+  let { mutationObserverData } = el;
+  if (!mutationObserverData) {
+    const observer = new MutationObserver((mutations) => {
+      const { callback: _callback } = mutationObserverData;
+      return _callback(mutations);
+    });
+    if (observer) {
+      // eslint-disable-next-line no-param-reassign, no-multi-assign
+      el.mutationObserverData = mutationObserverData = {
+        mutationObserver: observer,
+        observing: false,
+        callback,
+      };
+    }
+  }
+  const { mutationObserver, observing } = mutationObserverData;
+  if (mutationObserver && !observing) {
+    mutationObserver.observe(el, options);
+    mutationObserverData.observing = true;
+  }
+  mutationObserverData.callback = callback;
+  return {
+    disconnect: () => {
+      mutationObserver.disconnect();
+      mutationObserverData.observing = false;
+    },
+    destroy: () => {
+      // eslint-disable-next-line no-param-reassign
+      delete el.mutationObserverData;
+    },
+  };
+}
+
+async function getNodeDOMRect(node) {
+  if (!node || !(node instanceof Element)) {
+    return new DOMRect(0, 0, 0, 0);
+  }
+  const {
+    x,
+    y,
+    width,
+    height,
+  } = node instanceof window.SVGGraphicsElement ? node.getBBox() : ((node.getBoundingClientRect()));
+  return new DOMRect(x, y, width, height);
+}
+
+async function mergeDOMRect(r1, r2) {
+  const left = Math.min(r1.left, r2.left);
+  const top = Math.min(r1.top, r2.top);
+  const right = Math.max(r1.right, r2.right);
+  const bottom = Math.max(r1.bottom, r2.bottom);
+  return new DOMRect(left, top, Math.abs(right - left), Math.abs(bottom - top));
+}
+
 export {
   loadScript,
   createElement,
@@ -881,4 +963,9 @@ export {
   convertMMSSToHHMM,
   hyphenToCamelCase,
   loadExtraCss,
+  setupBillboardLibs,
+  getClosestClassNameCount,
+  addMutationObserver,
+  getNodeDOMRect,
+  mergeDOMRect,
 };
