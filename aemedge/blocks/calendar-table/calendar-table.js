@@ -315,13 +315,13 @@ async function renderTable(block) {
       } else {
         block.innerHTML = `
           <div class="no-results" role="alert">
-        <p>
-          <span class="icon-attention-triangle"></span>
-          <span class="primary">There is currently no calendar data for this product.</span> 
-          If you have any questions, please feel free to 
-          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
-        </p>
-      </div>
+            <p>
+              <span class="icon-attention-triangle"></span>
+              <span class="primary">There is currently no calendar data for this product.</span> 
+              If you have any questions, please feel free to 
+              <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
+            </p>
+          </div>
         `;
       }
     }
