@@ -5,17 +5,27 @@
   gap: 1.25rem;
 
   @media (width>= 769px) {
+    align-items: stretch;
     flex-direction: row;
     gap: 1.875rem;
   }
 
   & > div {
+    align-items: stretch;
     background-color: var(--blue2);
     padding: 1.25rem;
+    justify-content: space-between;
+
+    @media (width>= 769px) {
+      display: flex;
+      flex-direction: column;
+      width: calc(50% - 1.875rem);
+    }
 
     @media (width>= 993px) {
       display: flex;
       padding: 1.875rem;
+      flex-direction: row;
     }
 
     div {
