@@ -35,7 +35,7 @@
           flex: 0 0 auto;
           margin-bottom: 0;
           padding-right: 1.875rem;
-          width: calc(66.66666% - 1.875rem);
+          width: calc(66.6667% - 1.875rem);
         }
 
         h3 {
@@ -50,7 +50,7 @@
       &:last-of-type {
         @media (width>= 993px) {
           padding-left: 1.875rem;
-          width: calc(33.33333% - 1.875rem);
+          width: calc(33.3333% - 1.875rem);
         }
       }
 
