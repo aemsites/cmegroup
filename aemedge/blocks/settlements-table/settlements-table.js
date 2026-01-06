@@ -28,6 +28,8 @@ const tradeWrapper = createElement('div', { class: 'trades-wrapper' });
 const expirationWrapper = createElement('div', { class: 'expiration-wrapper' });
 const tradeDateWrapper = createElement('div', { class: 'trade-date-wrapper' });
 const tableStraddle = createElement('table', { class: 'table-straddle-settlement' });
+const tableList = createElement('table', { class: 'table-list-settlement' });
+const tableContainer = createElement('div', { class: 'table-settlement-container straddle' });
 const windowWidth = window.innerWidth;
 let isMobile = windowWidth <= 992;
 let isMid = windowWidth > 992 && windowWidth <= 1600;
@@ -308,10 +310,7 @@ function buildOptionStraddleTableMobile(header, data) {
   return tableStraddle;
 }
 
-function buildOptionStraddleTable(header, data, tableId = '') {
-  const tableContainer = createElement('div', { class: 'table-straddle-settlement-container' });
-  if (tableId) tableContainer.id = tableId;
-
+function buildOptionStraddleTable(header, data) {
   let straddleTable;
 
   if (isMobile) {
@@ -329,7 +328,7 @@ function buildOptionStraddleTable(header, data, tableId = '') {
     isMobile = newWidth <= 992;
     isMid = newWidth > 992 && newWidth <= 1600;
 
-    const refreshedTable = buildOptionStraddleTable(header, data, tableId);
+    const refreshedTable = buildOptionStraddleTable(header, data);
 
     if (tableContainer.parentNode) {
       tableContainer.parentNode.replaceChild(refreshedTable, tableContainer);
@@ -337,6 +336,88 @@ function buildOptionStraddleTable(header, data, tableId = '') {
   }, { once: true });
 
   return tableContainer;
+}
+
+function buildOptionListTable(header, data) {
+  tableList.innerHTML = '';
+
+  const {
+    strikePrice, open, high, low, last, change, settle, estVol, priorDayOi,
+  } = header;
+
+  const thead = createElement('thead');
+  const headerRow = createElement('tr');
+
+  const headers = [
+    strikePrice, open, high, low, last, change, settle, estVol, priorDayOi,
+  ];
+
+  headers.forEach((text, index) => {
+    const th = createElement('th');
+    if (index === 0) {
+      th.className = 'tertiary-header';
+    } else {
+      th.className = 'primary-header';
+    }
+    th.innerHTML = text;
+    headerRow.appendChild(th);
+  });
+
+  thead.appendChild(headerRow);
+  tableList.appendChild(thead);
+
+  const tbody = createElement('tbody');
+
+  data.forEach((item, index) => {
+    const rowTypes = ['call', 'put'];
+
+    rowTypes.forEach((type) => {
+      const tr = createElement('tr');
+      if (index >= maxRows) tr.classList.add('hidden-row');
+      const optionData = item[type];
+
+      const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+      const strikeDisplay = `${item.strike} ${typeLabel}`;
+
+      const cells = [
+        strikeDisplay,
+        optionData.open || '-',
+        optionData.high || '-',
+        optionData.low || '-',
+        optionData.last || '-',
+        optionData.change || '0',
+        optionData.settle || '-',
+        optionData.volume || '0',
+        optionData.openInterest || '0',
+      ];
+
+      cells.forEach((content, i) => {
+        const td = createElement('td');
+        if (i === 0) td.className = 'table-header-td';
+        td.innerHTML = content;
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+  });
+
+  tableList.appendChild(tbody);
+
+  if (data.length > maxRows) {
+    tableList.classList.add('table-fade');
+  }
+
+  tableContainer.appendChild(tableList);
+  return tableContainer;
+}
+
+function handleViewChange(activeBtn, inactiveBtn, viewType) {
+  activeBtn.classList.add('selected');
+  inactiveBtn.classList.remove('selected');
+  const otherView = viewType === 'list' ? 'straddle' : 'list';
+  tableContainer.classList.remove(otherView);
+  tableContainer.classList.add(viewType);
 }
 
 /* Create futures settlement table */
@@ -444,10 +525,16 @@ async function createOptionsTable(tableDate) {
     lastUpdated,
     estimatedVolumeTotals,
     priorDayOpenInterestTotals,
+    viewLabel,
+    listLabel,
+    straddleLabel,
   ] = await Promise.all([
     i18n('Last Updated'),
     i18n('Estimated volume totals'),
     i18n('Prior day open interest totals'),
+    i18n('View'),
+    i18n('List'),
+    i18n('Straddle'),
   ]);
 
   const { updateTime, totals, settlementsStraddle } = optionsData;
@@ -490,8 +577,26 @@ async function createOptionsTable(tableDate) {
 
   // view-selector-row
   const viewSelectorRow = createElement('div', { class: 'view-selector-row' });
-  // option-switcher
+  const optionSwitcher = createElement('div', { class: 'option-switcher' });
+  const label = createElement('span');
+  label.textContent = `${viewLabel}: `;
+  const ul = createElement('ul');
+  const li1 = createElement('li');
+  const btn1 = createElement('button', { type: 'button' });
+  btn1.textContent = `${listLabel}`;
+  li1.appendChild(btn1);
+  const li2 = createElement('li');
+  const btn2 = createElement('button', { type: 'button', class: 'selected' });
+  btn2.textContent = `${straddleLabel}`;
+  li2.appendChild(btn2);
+  ul.appendChild(li1);
+  ul.appendChild(li2);
+  optionSwitcher.appendChild(label);
+  optionSwitcher.appendChild(ul);
+  viewSelectorRow.appendChild(optionSwitcher);
   settlementWrapper.appendChild(viewSelectorRow);
+  btn1.addEventListener('click', () => handleViewChange(btn1, btn2, 'list'));
+  btn2.addEventListener('click', () => handleViewChange(btn2, btn1, 'straddle'));
 
   const [
     calls,
@@ -533,8 +638,10 @@ async function createOptionsTable(tableDate) {
     change,
   };
 
-  const buildedOptionStraddleTable = buildOptionStraddleTable(header, settlementsStraddle, 'option-straddle-settlement-table');
+  const buildedOptionStraddleTable = buildOptionStraddleTable(header, settlementsStraddle);
   settlementWrapper.appendChild(buildedOptionStraddleTable);
+  const buildedOptionListTable = buildOptionListTable(header, settlementsStraddle);
+  settlementWrapper.appendChild(buildedOptionListTable);
 
   return settlementWrapper;
 }

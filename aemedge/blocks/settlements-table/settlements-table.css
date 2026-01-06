@@ -94,7 +94,64 @@
     }
 
     & .view-selector-row {
+      padding-bottom: 1.25rem;
+      text-align: right;
 
+      & .option-switcher {
+        display: inline-block;
+        font-family: var(--averta);
+        font-size: .875rem;
+        font-weight: 700;
+        line-height: .875rem;
+        text-transform: uppercase;
+
+        & span {
+          color: #25323c;
+          display: inline-block;
+          letter-spacing: .119375rem;
+          margin-right: 1.25rem;
+        }
+
+        & ul {
+          display: inline-block;
+          list-style-type: none;
+          margin: 0 -.625rem;
+          padding-left: 0;
+
+          & li {
+            border-right: .0625rem solid #5a6874;
+            display: inline-block;
+            padding: 0;
+
+            &:last-child {
+              border: none;
+            }
+
+            & button {
+              background: none;
+              border: 0;
+              color: #006eb6;
+              font-family: var(--averta);
+              font-size: .875rem;
+              font-weight: 400;
+              letter-spacing: .09375rem;
+              line-height: .875rem;
+              padding: 0 .625rem;
+              text-transform: uppercase;
+              box-shadow: none;
+              vertical-align: initial;
+              cursor: pointer;
+
+              &.selected {
+                color: #5a6874;
+                font-family: var(--averta);
+                font-weight: 700;
+                cursor: default;
+              }
+            }
+          }
+        }
+      }
     }
   
     /* Table styling */
@@ -134,10 +191,18 @@
         & tr {
           &:nth-child(odd) {
             background-color: var(--white);
+
+            & td.table-header-td {
+              background-color: var(--blue2);
+            }
           }
   
           &:nth-child(even) {
             background-color: var(--gray6);
+
+            & td.table-header-td {
+              background-color: var(--blue3-a);
+            }
           }
   
           &.hidden-row {
@@ -190,9 +255,35 @@
         }
       }
     }
-  
-    & .table-straddle-settlement {
-      display: inline-table;
+
+    & .list {
+      .table-header-td {
+        text-align: center;
+        text-transform: uppercase;
+      }
+    }
+
+    /* tables in view */
+    & .table-settlement-container {
+      &.straddle {
+        & .table-straddle-settlement {
+          display: inline-table;
+        }
+
+        & .table-list-settlement {
+          display: none;
+        }
+      }
+
+      &.list {
+        & .table-straddle-settlement {
+          display: none;
+        }
+
+        & .table-list-settlement {
+          display: inline-table;
+        }
+      }
     }
   
     /* Load All Wrapper styling */
