@@ -139,49 +139,6 @@ async function createTradesWrapper(block, productId, optionProductId) {
   createTradeDateDropdown(block, targetTradeDate, expirationsOptions[0].text, optionProductId);
 }
 
-/* Build HTML table structure */
-// function buildTable(headers, data, tableId = '') {
-//   const table = createElement('table', { class: 'table-settlement' });
-//   if (tableId) table.id = tableId;
-
-//   const thead = createElement('thead');
-//   const headerRow = createElement('tr');
-
-//   headers.forEach((header) => {
-//     const th = createElement('th');
-//     th.innerHTML = header;
-//     headerRow.appendChild(th);
-//   });
-//   thead.appendChild(headerRow);
-//   table.appendChild(thead);
-
-//   const tbody = createElement('tbody');
-//   data.forEach((rowData, index) => {
-//     const tr = createElement('tr');
-//     if (index >= maxRows) {
-//       tr.classList.add('hidden-row');
-//     }
-//     rowData.forEach((cellData) => {
-//       const td = createElement('td');
-//       if (typeof cellData === 'string') {
-//         td.innerHTML = cellData;
-//       } else if (cellData instanceof HTMLElement) {
-//         td.appendChild(cellData);
-//       } else {
-//         td.innerHTML = cellData;
-//       }
-//       tr.appendChild(td);
-//     });
-//     tbody.appendChild(tr);
-//   });
-//   table.appendChild(tbody);
-
-//   needShowAll = data.length > maxRows;
-//   if (needShowAll) table.classList.add('table-fade');
-
-//   return table;
-// }
-
 function buildOptionStraddleTableDesktop(header, data, isMiddlePoint) {
   tableStraddle.innerHTML = '';
   let subHeaders;
