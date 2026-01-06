@@ -12,6 +12,7 @@
     font-weight: 600;
     line-height: 2.5rem;
     text-transform: uppercase;
+    margin-bottom: 0;
 
     @media (width >= 993px) {
       display: inline-block;
