@@ -27,6 +27,7 @@ import {
   legacyOpenMarketsTemplates,
   legacyNewsTemplates,
   legacyNoticesTemplates,
+  normalizeLegacyPath,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 import {
@@ -393,7 +394,7 @@ function createDynamicCardNotice(content) {
   cardTitle.innerHTML = title;
   const cardDate = createElement('span', { class: 'cards-date' }, getCdtDate(advisoryNoticeDate).format('DD MMM YYYY'));
   const mainContainer = createElement('div', { class: 'cards-body-container' }, cardTitle, cardDate);
-  const linkEl = createElement('a', { href: path }, mainContainer);
+  const linkEl = createElement('a', { href: normalizeLegacyPath(path) }, mainContainer);
   return createElement('li', null, linkEl);
 }
 
