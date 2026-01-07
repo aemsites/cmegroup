@@ -27,6 +27,7 @@ import {
   legacyOpenMarketsTemplates,
   legacyNewsTemplates,
   legacyNoticesTemplates,
+  normalizeLegacyPath,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 import {
@@ -198,6 +199,10 @@ async function createStaticCards(block) {
     });
     ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
     cardsContainer.append(ul);
+  } else if (block.classList.contains('blue-divider')) {
+    const parent = cardsContainer.parentElement;
+    parent.removeChild(cardsContainer);
+    cardsContainer.append(block);
   } else {
     const ul = document.createElement('ul');
     const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
@@ -389,7 +394,7 @@ function createDynamicCardNotice(content) {
   cardTitle.innerHTML = title;
   const cardDate = createElement('span', { class: 'cards-date' }, getCdtDate(advisoryNoticeDate).format('DD MMM YYYY'));
   const mainContainer = createElement('div', { class: 'cards-body-container' }, cardTitle, cardDate);
-  const linkEl = createElement('a', { href: path }, mainContainer);
+  const linkEl = createElement('a', { href: normalizeLegacyPath(path) }, mainContainer);
   return createElement('li', null, linkEl);
 }
 
@@ -705,9 +710,8 @@ export async function createDynamicCards(block) {
     if (!indexFilter.limit) {
       indexFilter.limit = 4;
     }
-    // TODO: chane to advisoryNoticeDate once the BE API supports metadata ordering
     if (!indexFilter.orderBy) {
-      indexFilter.orderBy = 'date';
+      indexFilter.orderBy = 'metadata.advisoryNoticeDateISOUTC';
     }
     [filteredData] = await Promise.all([
       getIndexedContent(indexFilter),
@@ -876,7 +880,7 @@ async function createRecommendedFromService(data, block) {
 
 async function createRecommendedCards(block) {
   const blockData = block.cloneNode(true);
-  const { limit } = readBlockConfig(block);
+  const { limit, size } = readBlockConfig(block);
   block.textContent = '';
   block.appendChild(createSpinner());
   let dataAi = [];
@@ -884,7 +888,7 @@ async function createRecommendedCards(block) {
 
   try {
     const { getRecommendationAi } = await import('../../scripts/services/RecommendationAiService.js');
-    dataAi = await getRecommendationAi();
+    dataAi = await getRecommendationAi(size);
 
     if (dataAi && dataAi.length > 0) {
       const result = limit ? dataAi.slice(0, limit) : dataAi;

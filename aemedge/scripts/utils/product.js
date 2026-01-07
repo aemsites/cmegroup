@@ -21,6 +21,7 @@ const API_CONFIG = {
   calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
   calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
   quotesEndpoint: '/CmeWS/mvc/quotes/v2',
+  volumeLastTotalsEndpoint: '/CmeWS/mvc/Volume',
 };
 
 const minimumPriceOrderedKeys = [
@@ -706,4 +707,54 @@ export function buildLoadAllButton(block, loadText) {
   });
 
   return loadAllButtonWrapper;
+}
+
+export async function getVolumeLastTotals(
+  productId,
+  days = 15,
+  isOption = false,
+) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.volumeLastTotalsEndpoint}/${isOption ? 'Total' : 'LastTotals'}/${productId}${days ? `?days=${days}` : ''}`;
+  try {
+    const response = await apiGet(endpoint);
+    const information = {
+      data: getResponseData(response, 'vdate'),
+      timeStamp: new Date(),
+    };
+
+    return information;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('VolumeService => getVolumeLastTotals error:', e);
+    return [];
+  }
+}
+
+export function buildNoResultErrorAlert(productText, errorMessage) {
+  const noResultsWrapper = createElement('div', {
+    class: 'no-results',
+    role: 'alert',
+  });
+  if (errorMessage) {
+    noResultsWrapper.dataset.error = errorMessage;
+  }
+
+  const par = createElement('p');
+  const spanIcon = createElement('span', { class: 'icon-attention-triangle' });
+  const primarySpan = createElement('span', { class: 'primary' });
+  primarySpan.textContent = `There is currently no ${productText} data for this product.`;
+  const contactLink = createElement('a', {
+    class: 'contact-link',
+    href: `${urlByEnvType()}/tools-information/contacts-list.html`,
+  });
+  contactLink.textContent = 'contact us';
+
+  par.append(spanIcon);
+  par.append(primarySpan);
+  par.append(document.createTextNode(' If you have any questions, please feel free to '));
+  par.append(contactLink);
+  par.append(document.createTextNode('.'));
+  noResultsWrapper.append(par);
+
+  return noResultsWrapper;
 }
