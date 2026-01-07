@@ -2399,7 +2399,7 @@ p.center-img {
       cursor: pointer;
       border-radius: 50%;
       position: absolute;
-      transform: translateX(0px);
+      transform: translateX(0);
       top: -0.125rem;
       outline: 0;
       box-shadow: rgba(0 0 0 / 60%) 0 0.0625rem 0.3125rem;
@@ -2407,7 +2407,7 @@ p.center-img {
       transition: background-color 0.25s, transform 0.25s, box-shadow 0.15s;
 
       &.pressed {
-        box-shadow: rgba(0 0 0 / 20%) 0px 0px 0.0625rem 0.625rem;
+        box-shadow: rgba(0 0 0 / 20%) 0 0 0.0625rem 0.625rem;
       }
     }
   }
@@ -2439,7 +2439,7 @@ p.center-img {
     display: inline-block;
     font-size: .6875rem;
     font-weight: 700;
-    letter-spacing: .09375rem;
+    letter-spacing: .0938rem;
     line-height: 1.25rem;
     text-transform: uppercase;
     vertical-align: middle;
