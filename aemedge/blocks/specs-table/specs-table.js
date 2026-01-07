@@ -9,7 +9,6 @@ import {
   buildNoResultErrorAlert,
 } from '../../scripts/utils/product.js';
 import { createElement, i18n } from '../../scripts/utils.js';
-import { urlByEnvType } from '../../scripts/utils/env.js';
 
 /* Build HTML table structure */
 function buildTable(headers, data, tableId = '') {
