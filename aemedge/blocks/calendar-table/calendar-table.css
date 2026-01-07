@@ -196,7 +196,7 @@
         width: 100%;
         margin-top: .625rem;
     
-        @media (width >= 993px) {
+        @media (width >= 769px) {
           width: 16.6667%;
           order: -1 !important;
           margin-top: 0;
@@ -219,7 +219,7 @@
           display: inline-block;
           text-align: center;
     
-          @media (width >= 993px) {
+          @media (width >= 769px) {
             width: 66.6667%;
             order: 6 !important;
           }
@@ -229,7 +229,7 @@
             display: inline-block;
             cursor: pointer;
     
-            @media (width >= 993px) {
+            @media (width >= 769px) {
               width: 20rem;
             }
           }
