@@ -20,6 +20,7 @@ const API_CONFIG = {
   cvolEndpoint: '/services/cvol',
   calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
   calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
+  volumeLastTotalsEndpoint: '/CmeWS/mvc/Volume',
 };
 
 const minimumPriceOrderedKeys = [

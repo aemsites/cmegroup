@@ -27,6 +27,7 @@ import {
   legacyOpenMarketsTemplates,
   legacyNewsTemplates,
   legacyNoticesTemplates,
+  normalizeLegacyPath,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 import {
@@ -198,6 +199,10 @@ async function createStaticCards(block) {
     });
     ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
     cardsContainer.append(ul);
+  } else if (block.classList.contains('blue-divider')) {
+    const parent = cardsContainer.parentElement;
+    parent.removeChild(cardsContainer);
+    cardsContainer.append(block);
   } else {
     const ul = document.createElement('ul');
     const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
@@ -389,7 +394,7 @@ function createDynamicCardNotice(content) {
   cardTitle.innerHTML = title;
   const cardDate = createElement('span', { class: 'cards-date' }, getCdtDate(advisoryNoticeDate).format('DD MMM YYYY'));
   const mainContainer = createElement('div', { class: 'cards-body-container' }, cardTitle, cardDate);
-  const linkEl = createElement('a', { href: path }, mainContainer);
+  const linkEl = createElement('a', { href: normalizeLegacyPath(path) }, mainContainer);
   return createElement('li', null, linkEl);
 }
 
