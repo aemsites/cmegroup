@@ -688,6 +688,27 @@ export function buildLoadAllButton(block, loadText) {
   return loadAllButtonWrapper;
 }
 
+export async function getVolumeLastTotals(
+  productId,
+  days = 15,
+  isOption = false,
+) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.volumeLastTotalsEndpoint}/${isOption ? 'Total' : 'LastTotals'}/${productId}${days ? `?days=${days}` : ''}`;
+  try {
+    const response = await apiGet(endpoint);
+    const information = {
+      data: getResponseData(response, 'vdate'),
+      timeStamp: new Date(),
+    };
+
+    return information;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('VolumeService => getVolumeLastTotals error:', e);
+    return [];
+  }
+}
+
 export function buildNoResultErrorAlert(productText, errorMessage) {
   const noResultsWrapper = createElement('div', {
     class: 'no-results',
