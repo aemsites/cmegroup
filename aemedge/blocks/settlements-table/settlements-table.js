@@ -22,6 +22,7 @@ const TABLE_CONSTANTS = {
 };
 
 let needShowAll = false;
+let loadAllAlreadyClicked = false;
 const maxRows = 12;
 const titleWrapper = createElement('div', { class: 'title-wrapper' });
 const tradeWrapper = createElement('div', { class: 'trades-wrapper' });
@@ -186,7 +187,7 @@ function buildOptionStraddleTableDesktop(header, data, isMiddlePoint) {
   const tbody = createElement('tbody');
   data.forEach((item, index) => {
     const tr = createElement('tr');
-    if (index >= maxRows) tr.classList.add('hidden-row');
+    if (index >= maxRows && !loadAllAlreadyClicked) tr.classList.add('hidden-row');
     // cell order
     if (isMiddlePoint) {
       cells = [
@@ -240,7 +241,7 @@ function buildOptionStraddleTableDesktop(header, data, isMiddlePoint) {
 
   tableStraddle.appendChild(tbody);
   needShowAll = data.length > maxRows;
-  if (needShowAll) tableStraddle.classList.add('table-fade');
+  if (needShowAll && !loadAllAlreadyClicked) tableStraddle.classList.add('table-fade');
 
   return tableStraddle;
 }
@@ -276,7 +277,7 @@ function buildOptionStraddleTableMobile(header, data) {
   const tbody = createElement('tbody');
   data.forEach((item, index) => {
     const tr = createElement('tr');
-    if (index >= maxRows) tr.classList.add('hidden-row');
+    if (index >= maxRows && !loadAllAlreadyClicked) tr.classList.add('hidden-row');
 
     // Define cell data mapping based on the combined UI requirement
     const cells = [
@@ -305,7 +306,7 @@ function buildOptionStraddleTableMobile(header, data) {
 
   tableStraddle.appendChild(tbody);
   needShowAll = data.length > maxRows;
-  if (needShowAll) tableStraddle.classList.add('table-fade');
+  if (needShowAll && !loadAllAlreadyClicked) tableStraddle.classList.add('table-fade');
 
   return tableStraddle;
 }
@@ -373,7 +374,7 @@ function buildOptionListTable(header, data) {
 
     rowTypes.forEach((type) => {
       const tr = createElement('tr');
-      if (index >= maxRows) tr.classList.add('hidden-row');
+      if (index >= maxRows && !loadAllAlreadyClicked) tr.classList.add('hidden-row');
       const optionData = item[type];
 
       const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
@@ -404,7 +405,7 @@ function buildOptionListTable(header, data) {
 
   tableList.appendChild(tbody);
 
-  if (data.length > maxRows) {
+  if (data.length > maxRows && !loadAllAlreadyClicked) {
     tableList.classList.add('table-fade');
   }
 
@@ -713,7 +714,10 @@ async function createLoadAllWrapper(block) {
   ]);
 
   if (needShowAll) {
-    loadAllWrapper.append(buildLoadAllButton(block, loadAll));
+    const loadAllButton = buildLoadAllButton(block, loadAll, (data) => {
+      loadAllAlreadyClicked = data;
+    });
+    loadAllWrapper.append(loadAllButton);
   }
 
   // Add "About this Report" link

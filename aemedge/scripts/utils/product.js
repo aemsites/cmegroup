@@ -691,7 +691,7 @@ export function buildCollapsible(headers, data, collapsibleClass, maxRows, colla
   return collapsible;
 }
 
-export function buildLoadAllButton(block, loadText) {
+export function buildLoadAllButton(block, loadText, callback) {
   const loadAllButtonWrapper = createElement('div', { class: 'load-all-button-wrapper' });
   const loadAllButton = createElement('button', { class: 'load-all-button primary' });
   loadAllButton.innerHTML = loadText;
@@ -703,13 +703,18 @@ export function buildLoadAllButton(block, loadText) {
     hiddenRows.forEach((row) => {
       row.classList.remove('hidden-row');
     });
-    const fadeTable = block.querySelector('.table-fade');
-    fadeTable.classList.remove('table-fade');
+    const fadeTables = block.querySelectorAll('.table-fade');
+    fadeTables.forEach((fadeTable) => {
+      fadeTable.classList.remove('table-fade');
+    });
 
     const hiddenCollapsible = block.querySelectorAll('.hidden-collapsible');
     hiddenCollapsible.forEach((collapsible) => {
       collapsible.classList.remove('hidden-collapsible');
     });
+
+    const clicked = true;
+    if (callback) callback(clicked);
 
     e.target.remove();
   });

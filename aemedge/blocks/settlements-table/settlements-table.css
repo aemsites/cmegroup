@@ -3,6 +3,8 @@
 
   & .settlements-table {
     margin: 0 0 2rem;
+    overflow: inherit;
+    width: 100%;
   
     /* Loading state */
     & .loading {
@@ -157,6 +159,10 @@
     /* Table styling */
     & table {
       & thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+
         & tr {
           & th {
             border-bottom: .0625rem solid var(--gray4);
@@ -170,7 +176,7 @@
             line-height: .875rem;
             padding: 1.125rem .625rem;
             vertical-align: middle;
-  
+
             & span {
               display: block;
             }
@@ -182,6 +188,43 @@
 
             &.primary-column {
               padding: 1.125rem 1.25rem;
+            }
+          }
+
+          &:first-child {
+            & th {
+              @media (width >= 993px) {
+                position: static;
+              }
+
+              &:first-child {
+                left: 0;
+                position: sticky;
+                z-index: 2;
+                border-left: .0625rem solid var(--gray4);
+
+                &::after {
+                  content: '';
+                  position: absolute;
+                  width: 0.5rem;
+                  top: 0;
+                  left: 100%;
+                  height: 100%;
+                  background: linear-gradient(to right, rgba(60 64 67 / 20%), rgba(60 64 67 / 0%));
+                }
+
+                @media (width >= 993px) {
+                  position: initial;
+
+                  &::after {
+                    width: 0;
+                    top: 0;
+                    left: 0;
+                    height: 0;
+                    background: none;
+                  }
+                }
+              }
             }
           }
         }
@@ -229,6 +272,35 @@
             padding: 1.25rem .9375rem;
             text-align: left;
             vertical-align: inherit;
+
+            &:first-child {
+              position: sticky;
+              left: 0;
+              z-index: 1;
+              border-left: .0625rem solid var(--gray4);
+
+              &::after {
+                content: '';
+                position: absolute;
+                width: 0.5rem;
+                top: 0;
+                left: 100%;
+                height: 100%;
+                background: linear-gradient(to right, rgba(60 64 67 / 20%), rgba(60 64 67 / 0%));
+              }
+
+              @media (width >= 993px) {
+                position: initial;
+
+                &::after {
+                  width: 0;
+                  top: 0;
+                  left: 0;
+                  height: 0;
+                  background: none;
+                }
+              }
+            }
   
             & span {
               display: block;
@@ -266,6 +338,12 @@
     /* tables in view */
     & .table-settlement-container {
       &.straddle {
+        overflow-x: auto;
+
+        @media (width >= 993px) {
+          overflow: inherit;
+        }
+
         & .table-straddle-settlement {
           display: inline-table;
         }
@@ -276,6 +354,12 @@
       }
 
       &.list {
+        overflow-x: auto;
+
+        @media (width >= 993px) {
+          overflow: inherit;
+        }
+        
         & .table-straddle-settlement {
           display: none;
         }
