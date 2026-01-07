@@ -1,9 +1,11 @@
 .quotes-table-wrapper {
   & .quotes-table {
-    margin: 2rem 0;
+    margin: 0;
+    margin-bottom: 1.25rem;
     overflow: auto;
 
     @media (width >= 993px) {
+      margin-top: 1.5rem;
       overflow: inherit;
       width: 100%;
     }
@@ -35,6 +37,7 @@
     & table {
       position: relative;
       border-collapse: separate;
+      margin-bottom: 0;
 
       & thead {
         @media (width >= 993px) {
@@ -272,6 +275,48 @@
     }
   }
 
+  & .quotes-header-wrapper {
+    display: flex;
+    flex-direction: column;
+    column-gap: 1.875rem;
+    row-gap: 0.9375rem;
+    justify-content: left;
+
+    @media (width >= 993px) {
+      flex-direction: row;
+    }
+
+    & .auth-tooltip-container {
+      & .tooltip-container {
+        top: 1.625rem;
+
+        &.on-top {
+          top: -7.1875rem;
+        }
+      }
+    }
+
+    & .quotes-time {
+      display: flex;
+      flex-direction: column;
+      column-gap: 0.625rem;
+      row-gap: 0.3125rem;
+      justify-content: left;
+
+      @media (width >= 769px) {
+        flex-direction: row;
+      }
+      
+      & .quotes-timestamp,
+      & .quotes-delayed {
+        font-size: 12px;
+        line-height: 18px;
+        font-style: italic;
+        color: var(--gray3);
+      }
+    }
+  }
+
   & .quotes-footer-wrapper {
     display: flex;
     flex-wrap: wrap;
@@ -312,15 +357,14 @@
       }
       
       & .load-all-button-wrapper {
-        display: inline-block;
         text-align: center;
   
         & .load-all-button {
           width: 100%;
-          display: inline-block;
           cursor: pointer;
+          display: inline;
   
-          @media (width >= 769px) {
+          @media (width >= 481px) {
             width: 20rem;
           }
         }

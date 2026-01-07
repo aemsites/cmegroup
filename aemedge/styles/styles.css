@@ -2391,14 +2391,6 @@ p.center-img {
     cursor: pointer;
     transition: background 0.25s;
 
-    &.checked {
-      background: var(--blue4);
-
-      & .marker {
-        right: 0;
-      }
-    }
-
     & .marker {
       height: 1rem;
       width: 1rem;
@@ -2416,6 +2408,16 @@ p.center-img {
 
       &.pressed {
         box-shadow: rgba(0 0 0 / 20%) 0px 0px 0.0625rem 0.625rem;
+      }
+    }
+  }
+
+  &[data-enabled="true"] {
+    & .slider {
+      background: var(--blue4);
+
+      & .marker {
+        right: 0;
       }
     }
   }

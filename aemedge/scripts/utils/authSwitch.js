@@ -1,33 +1,36 @@
 import { createElement, i18n } from '../utils.js';
 import { authentication } from '../modules/Authentication.js';
-// import { createAuthTooltip } from './authTooltip.js';
+import { createSimpleAuthTooltip } from './authTooltip.js';
 
-let checked = false;
+let loggedIn = false;
 
-function endDrag(e) {
+function endDrag(e, marker) {
   e.preventDefault();
-  const marker = document.querySelector('.marker.pressed');
-  if (marker) {
-    marker.classList.remove('pressed');
-    document.removeEventListener('mouseup', endDrag);
-    document.removeEventListener('touchend', endDrag);
+  marker.classList.remove('pressed');
+  document.removeEventListener('mouseup', endDrag);
+  document.removeEventListener('touchend', endDrag);
+}
+
+function startDrag(e, marker) {
+  e.preventDefault();
+  marker.classList.add('pressed');
+  document.addEventListener('mouseup', (evt) => endDrag(evt, marker));
+  document.addEventListener('touchend', (evt) => endDrag(evt, marker));
+}
+
+function click(e, authSwitch, callback) {
+  e.preventDefault();
+  if (loggedIn) {
+    let checked = authSwitch.dataset.enabled === 'true';
     checked = !checked;
-    const slider = marker.parentElement;
-    slider.classList.toggle('checked', checked);
-    const status = slider.parentElement.querySelector('.status-text');
+    authSwitch.dataset.enabled = checked ? 'true' : 'false';
+    const status = authSwitch.querySelector('.status-text');
     status.innerText = checked ? status.dataset.onText : status.dataset.offText;
+    callback(checked);
   }
 }
 
-function startDrag(e) {
-  e.preventDefault();
-  const marker = e.currentTarget;
-  marker.classList.add('pressed');
-  document.addEventListener('mouseup', endDrag);
-  document.addEventListener('touchend', endDrag);
-}
-
-async function buildSwitch() {
+async function buildSwitch(callback) {
   const [
     offLabel,
     onLabel,
@@ -44,25 +47,34 @@ async function buildSwitch() {
     'data-off-text': offLabel,
     'data-on-text': onLabel,
   }, offLabel);
-  const authSwitch = createElement('div', { class: 'auth-switch' }, lockIconSpan, slider, statusText);
-  marker.addEventListener('mousedown', startDrag);
-  marker.addEventListener('touchstart', startDrag);
+  const authSwitch = createElement('div', {
+    class: 'auth-switch',
+    'data-enabled': 'false',
+  }, lockIconSpan, slider, statusText);
+  slider.addEventListener('mousedown', (e) => startDrag(e, marker));
+  slider.addEventListener('touchstart', (e) => startDrag(e, marker));
+  slider.addEventListener('click', (e) => click(e, authSwitch, callback));
   return authSwitch;
 }
 
-function updateSwitchLoggedIn(authSwitch) {
-  const icon = authSwitch.querySelector('span.icon-lock');
-  icon.classList.add('hidden');
+async function updateSwitchLoggedIn(authSwitch) {
+  if (loggedIn) {
+    const icon = authSwitch.querySelector('span.icon-lock');
+    icon.classList.add('hidden');
+  } else {
+    const slider = authSwitch.querySelector('.slider');
+    const text = await i18n('Login or create a free account to stream product quotes data.');
+    createSimpleAuthTooltip(slider, text);
+  }
 }
 
 /* eslint-disable import/prefer-default-export */
-export async function createAuthSwitch() {
+export async function createAuthSwitch(callback) {
   const { authenticationData } = authentication;
-  const authSwitch = await buildSwitch();
+  const authSwitch = await buildSwitch(callback);
   authenticationData.loginPromise.then(() => {
-    if (authenticationData.isLoggedIn) {
-      updateSwitchLoggedIn(authSwitch);
-    }
+    loggedIn = authenticationData.isLoggedIn;
+    updateSwitchLoggedIn(authSwitch);
   });
   return authSwitch;
 }

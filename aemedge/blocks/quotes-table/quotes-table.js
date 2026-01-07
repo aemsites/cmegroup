@@ -17,7 +17,7 @@ import {
 import { createAuthSwitch } from '../../scripts/utils/authSwitch.js';
 import { store } from '../../scripts/store/store.js';
 
-const maxRows = 10; // 18;
+const maxRows = 18;
 
 /* Build HTML table structure */
 function buildTable(block, headers, data, tableId = '') {
@@ -55,10 +55,18 @@ function buildTable(block, headers, data, tableId = '') {
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
+  const loadAllWrapper = block.parentElement.querySelector('.load-all-wrapper');
   if (data.length > maxRows) {
-    table.classList.add('table-fade');
-    const loadAllWrapper = document.querySelector('.load-all-wrapper');
-    i18n('Load All').then((loadAll) => loadAllWrapper.append(buildLoadAllButton(block, loadAll)));
+    if (!loadAllWrapper.dataset.loadAll) {
+      table.classList.add('table-fade');
+      loadAllWrapper.dataset.loadAll = 'true';
+      i18n('Load All').then((loadAll) => loadAllWrapper.append(buildLoadAllButton(block, loadAll)));
+    } else {
+      const button = loadAllWrapper.querySelector('.load-all-button');
+      if (button) {
+        table.classList.add('table-fade');
+      }
+    }
   }
   return table;
 }
@@ -167,6 +175,8 @@ async function createFuturesTable(productData, block) {
     lowLabel,
     volumeLabel,
     updatedLabel,
+    timestampLabel,
+    delayedLabel,
   ] = await Promise.all([
     i18n('Month'),
     i18n('Options'),
@@ -180,6 +190,8 @@ async function createFuturesTable(productData, block) {
     i18n('Low'),
     i18n('Volume'),
     i18n('Updated'),
+    i18n('Last Updated'),
+    i18n('Market data is delayed by at least'),
   ]);
   const headers = [
     monthLabel,
@@ -212,6 +224,10 @@ async function createFuturesTable(productData, block) {
   quotesWrapper.appendChild(buildedTable);
   block.innerHTML = '';
   block.appendChild(quotesWrapper);
+  const timestamp = block.parentElement.querySelector('.quotes-timestamp');
+  timestamp.innerText = `${timestampLabel} ${getCdtDate(new Date()).format('DD MMM YYYY hh:mm:ss A')} CT.`;
+  const delayed = block.parentElement.querySelector('.quotes-delayed');
+  delayed.innerText = `${delayedLabel} ${quotesData.quoteDelay}.`;
 }
 
 async function renderTable(block) {
@@ -295,8 +311,26 @@ async function createFooterWrapper(block) {
 }
 
 async function createHeaderWrapper(block) {
-  const authSwitch = await createAuthSwitch();
-  block.parentElement.prepend(authSwitch);
+  let interval;
+  let timeout;
+  const updateInterval = 60000; // 1 minute
+  const updateTimeout = 43200000; // 12 hours
+  const callback = (checked) => {
+    if (checked) {
+      interval = setInterval(() => renderTable(block), updateInterval);
+      timeout = setTimeout(() => clearInterval(interval), updateTimeout);
+      renderTable(block);
+    } else {
+      clearInterval(interval);
+      clearInterval(timeout);
+    }
+  };
+  const authSwitch = await createAuthSwitch(callback);
+  const timestamp = createElement('span', { class: 'quotes-timestamp' });
+  const delayed = createElement('span', { class: 'quotes-delayed' });
+  const time = createElement('div', { class: 'quotes-time' }, timestamp, delayed);
+  const headerRow = createElement('div', { class: 'quotes-header-wrapper' }, authSwitch, time);
+  block.parentElement.prepend(headerRow);
 }
 
 export default function decorate(block) {
