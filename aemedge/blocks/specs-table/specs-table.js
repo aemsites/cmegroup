@@ -6,6 +6,7 @@ import {
   getSpecItemView,
   applyAuthorOverride,
   buildCollapsible,
+  buildNoResultErrorAlert,
 } from '../../scripts/utils/product.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import { urlByEnvType } from '../../scripts/utils/env.js';
@@ -215,16 +216,7 @@ async function renderTable(block) {
   const productId = productMetadata.productId || getMetadata('product-id');
 
   if (!productId) {
-    block.innerHTML = `
-      <div class="no-results" role="alert">
-        <p>
-          <span class="icon-attention-triangle"></span>
-          <span class="primary">There is currently no contract specs data for this product.</span> 
-          If you have any questions, please feel free to 
-          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
-        </p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('contract specs'));
     return;
   }
 
@@ -244,28 +236,10 @@ async function renderTable(block) {
       block.innerHTML = '';
       block.appendChild(table);
     } else {
-      block.innerHTML = `
-        <div class="no-results" role="alert">
-          <p>
-            <span class="icon-attention-triangle"></span>
-            <span class="primary">There is currently no contract specs data for this product.</span> 
-            If you have any questions, please feel free to 
-            <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
-          </p>
-        </div>
-      `;
+      block.replaceChildren(buildNoResultErrorAlert('contract specs'));
     }
   } catch (error) {
-    block.innerHTML = `
-      <div class="no-results" role="alert" data-error="${error.message}">
-        <p>
-          <span class="icon-attention-triangle"></span>
-          <span class="primary">There is currently no contract specs data for this product.</span> 
-          If you have any questions, please feel free to 
-          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
-        </p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('contract specs', error.message));
   }
 }
 
@@ -274,15 +248,6 @@ export default function decorate(block) {
   block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
   renderTable(block).catch((error) => {
-    block.innerHTML = `
-      <div class="no-results" role="alert" data-error="${error.message}">
-        <p>
-          <span class="icon-attention-triangle"></span>
-          <span class="primary">There is currently no contract specs data for this product.</span> 
-          If you have any questions, please feel free to 
-          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
-        </p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('contract specs', error.message));
   });
 }

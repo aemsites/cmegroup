@@ -8,6 +8,7 @@ import {
   handleAboutReportModal,
   buildCollapsible,
   buildLoadAllButton,
+  buildNoResultErrorAlert,
 } from '../../scripts/utils/product.js';
 import { createAuthTooltip } from '../../scripts/utils/authTooltip.js';
 import { createElement, i18n } from '../../scripts/utils.js';
@@ -260,16 +261,7 @@ async function renderTable(block) {
   const productId = productMetadata.productId || getMetadata('product-id');
 
   if (!productId) {
-    block.innerHTML = `
-      <div class="no-results" role="alert">
-        <p>
-          <span class="icon-attention-triangle"></span>
-          <span class="primary">There is currently no calendar data for this product.</span> 
-          If you have any questions, please feel free to 
-          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
-        </p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('calendar'));
     return;
   }
 
@@ -291,16 +283,7 @@ async function renderTable(block) {
         loadAll = await createLoadAllWrapper(block);
         block.append(loadAll);
       } else {
-        block.innerHTML = `
-          <div class="no-results" role="alert">
-            <p>
-              <span class="icon-attention-triangle"></span>
-              <span class="primary">There is currently no calendar data for this product.</span> 
-              If you have any questions, please feel free to 
-              <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
-            </p>
-          </div>
-        `;
+        block.replaceChildren(buildNoResultErrorAlert('calendar'));
       }
     } else {
       // Futures mode
@@ -313,29 +296,11 @@ async function renderTable(block) {
         loadAll = await createLoadAllWrapper(block);
         block.append(loadAll);
       } else {
-        block.innerHTML = `
-          <div class="no-results" role="alert">
-            <p>
-              <span class="icon-attention-triangle"></span>
-              <span class="primary">There is currently no calendar data for this product.</span> 
-              If you have any questions, please feel free to 
-              <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
-            </p>
-          </div>
-        `;
+        block.replaceChildren(buildNoResultErrorAlert('calendar'));
       }
     }
   } catch (error) {
-    block.innerHTML = `
-      <div class="no-results" role="alert" data-error="${error.message}">
-        <p>
-          <span class="icon-attention-triangle"></span>
-          <span class="primary">There is currently no calendar data for this product.</span> 
-          If you have any questions, please feel free to 
-          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
-        </p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('calendar', error.message));
   }
 }
 
@@ -377,16 +342,7 @@ export default function decorate(block) {
   block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
   renderTable(block).catch((error) => {
-    block.innerHTML = `
-      <div class="no-results" role="alert" data-error="${error.message}">
-        <p>
-          <span class="icon-attention-triangle"></span>
-          <span class="primary">There is currently no calendar data for this product.</span> 
-          If you have any questions, please feel free to 
-          <a class="contact-link" href='${urlByEnvType()}/tools-information/contacts-list.html'>contact us</a>.
-        </p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('calendar', error.message));
   });
 
   const fragmentUrl = '/fragments/disclaimers/markets/calendar';
