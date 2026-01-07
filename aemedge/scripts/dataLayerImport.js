@@ -1,3 +1,5 @@
+import { getEnvType } from './utils/index.js';
+
 // Google Tag Manager
 // eslint-disable-next-line func-names
 (function (w, d, s, l, i) {
@@ -12,6 +14,6 @@
   j.async = true;
   j.src = `https://www.googletagmanager.com/gtm.js?id=${i}${dl}`;
   f.parentNode.insertBefore(j, f);
-}(window, document, 'script', 'dataLayer', 'GTM-MH2Q'));
+}(window, document, 'script', 'dataLayer', getEnvType() !== 'prod' ? 'GTM-MH2Q' : 'GTM-PLCS'));
 
 // End Google Tag Manager

@@ -694,7 +694,7 @@ async function createRecommendedFromService(data, block) {
         class: 'cards-card-image',
       });
       const imgSrc = item.image_uri;
-      imageDiv.style.backgroundImage = imgSrc ? `url('https://www.cmegroup.com/${imgSrc}')` : fallbackImage;
+      imageDiv.style.backgroundImage = imgSrc ? `url('${urlByEnvType()}/${imgSrc}')` : fallbackImage;
 
       const link = createElement('a', { href: params ? `${item.uri}?${params}` : item.uri });
 
