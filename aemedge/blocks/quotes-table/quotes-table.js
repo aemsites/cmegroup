@@ -7,6 +7,7 @@ import {
   handleAboutReportModal,
   buildLoadAllButton,
   handleScrollTop,
+  buildNoResultErrorAlert,
 } from '../../scripts/utils/product.js';
 import {
   createElement,
@@ -154,12 +155,7 @@ function formatVolume(volume) {
 async function createFuturesTable(productData, block) {
   const quotesData = await getQuotesFutures(productData.productId);
   if (!quotesData || quotesData.length === 0) {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Unable to load futures quotes</h4>
-        <p>quotes data is currently unavailable.</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('quotes'));
     return;
   }
   const [
@@ -239,12 +235,7 @@ async function renderTable(block) {
   const productId = productMetadata.productId || getMetadata('product-id');
 
   if (!productId) {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Unable to load quotes</h4>
-        <p>Product ID not found.</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('quotes'));
     return;
   }
 
@@ -270,12 +261,7 @@ async function renderTable(block) {
       });
     }
   } catch (error) {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading quotes data</h4>
-        <p>${error.message}</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('quotes', error.message));
   }
 }
 
@@ -338,12 +324,7 @@ export default function decorate(block) {
   block.innerHTML = '<div class="spinner-quotes"><div></div><div></div><div></div><div></div></div>';
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
   renderTable(block).catch((error) => {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading quotes data</h4>
-        <p>${error.message}</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('quotes', error.message));
   });
   createHeaderWrapper(block);
   createFooterWrapper(block);
