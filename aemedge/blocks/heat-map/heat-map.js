@@ -6,41 +6,42 @@ import {
 } from '../../scripts/utils.js';
 import { addHeatMap, getAllQuotes } from '../../scripts/actions/heatMap.js';
 import { store } from '../../scripts/store/store.js';
-import { sortByReferenceOrder } from '../../scripts/utils/array.js';
 
 function formatNumber(num) {
   if (!num && num !== 0) return '-';
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-function createHeatMapStructure(items, block, config) {
-  const isMicroSite = config['is-microsite'] === 'true';
+function createHeatMapStructure(items, block) {
+  const isMicroSite = block.classList.contains('microsite');
   const container = createElement('div');
   if (block.classList.contains('medium-bar')) {
     items.forEach((item) => {
-      const cardContainer = createElement('div', { class: 'card-container', 'data-product-id': item.productId });
-      container.append(cardContainer);
-      const productCode = createElement('div', { class: 'product-code' }, '-');
-      const productName = createElement('div', { class: 'product-name' }, item.overrideProductName || '');
-      const productInfo = createElement('div', { class: 'product-info' }, productCode, productName);
-      const rate = createElement('div', { class: 'rate' }, '-');
-      const volume = createElement('div', { class: 'volume' }, '-');
-      const change = createElement('div', { class: 'change' }, '-');
-      const percentage = createElement('div', { class: 'percentage-change' }, '-');
-      const productValues = createElement('div', { class: 'product-values' }, rate, volume, change, percentage);
-      const linkEl = createElement('a', { class: 'heat-map-card' }, productInfo, productValues);
-      cardContainer.append(linkEl);
-      if (!isMicroSite) {
-        const portfolio = createElement('div', { class: 'portfolio-icon' });
-        cardContainer.append(portfolio);
-      }
-      const opt = createElement('a', {
-        class: 'product-options',
-        target: '_blank',
-        rel: 'noopener noreferrer',
-      }, 'OPT');
-      cardContainer.append(opt);
-      container.append(cardContainer);
+      Array.from({ length: item.numContracts ?? 1 }).forEach(() => {
+        const cardContainer = createElement('div', { class: 'card-container', 'data-product-id': item.productId });
+        container.append(cardContainer);
+        const productCode = createElement('div', { class: 'product-code' }, '-');
+        const productName = createElement('div', { class: 'product-name' }, item.overrideProductName || '');
+        const productInfo = createElement('div', { class: 'product-info' }, productCode, productName);
+        const rate = createElement('div', { class: 'rate' }, '-');
+        const volume = createElement('div', { class: 'volume' }, '-');
+        const change = createElement('div', { class: 'change' }, '-');
+        const percentage = createElement('div', { class: 'percentage-change' }, '-');
+        const productValues = createElement('div', { class: 'product-values' }, rate, volume, change, percentage);
+        const linkEl = createElement('a', { class: 'heat-map-card' }, productInfo, productValues);
+        cardContainer.append(linkEl);
+        if (!isMicroSite) {
+          const portfolio = createElement('div', { class: 'portfolio-icon' });
+          cardContainer.append(portfolio);
+        }
+        const opt = createElement('a', {
+          class: 'product-options',
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        }, 'OPT');
+        cardContainer.append(opt);
+        container.append(cardContainer);
+      });
     });
   }
   return container;
@@ -63,9 +64,14 @@ function populateHeatMapData(data, block) {
       productName,
       overrideProductName,
     }) => {
-      const container = block.querySelector(`.card-container[data-product-id="${productId}"]`);
-      if (!container) return;
-      const card = container.querySelector('.heat-map-card');
+      const productQuery = `.card-container[data-product-id="${productId}"]`;
+      let heatMap = block.querySelector(`${productQuery}[data-quote-code="${quoteCode}"]`);
+      if (!heatMap) {
+        heatMap = block.querySelector(`${productQuery}:not([data-quote-code])`);
+        if (heatMap) heatMap.dataset.quoteCode = quoteCode;
+      }
+      if (!heatMap) return;
+      const card = heatMap.querySelector('.heat-map-card');
       card.href = uri;
       const oldColor = [...card.classList].find((cl) => cl.startsWith('heat-map-color_'));
       card.classList.remove(oldColor);
@@ -83,7 +89,7 @@ function populateHeatMapData(data, block) {
       pChange.textContent = change || '-';
       pPercentage.textContent = percentageChange || '-';
       if (hasOption) {
-        const opt = container.querySelector('.product-options');
+        const opt = heatMap.querySelector('.product-options');
         if (opt) opt.href = optionUri;
       }
     });
@@ -126,41 +132,34 @@ function processQuotes(quotes, heatMapItems, componentId, isMidpoint = false) {
     return quotes.map((quote) => mapQuote(componentId, quote));
   }
   const filtered = heatMapItems.reduce((acc, item) => {
-    const quote = quotes.find(({ productId }) => item.productId === productId);
-    if (quote) {
+    quotes.filter(({ productId }) => item.productId === productId).forEach((quote) => {
       acc.push({
         ...item,
         ...quote,
       });
-    }
+    });
     return acc;
   }, []);
-  return sortByReferenceOrder(filtered, heatMapItems, 'productId').map(
-    (quote) => mapQuote(componentId, quote),
-  );
+  return filtered.map((quote) => mapQuote(componentId, quote));
 }
 
-function buildConfigItems(block) {
-  const rows = Array.from(block.querySelectorAll(':scope > div'));
-  let startIndex = 0;
-  for (let i = 0; i < rows.length; i += 1) {
-    if (rows[i].children[0]?.textContent?.trim() === 'Product Id') {
-      startIndex = i + 1;
-      break;
-    }
-  }
-  return rows.slice(startIndex).map((row) => {
-    const productId = Number(row.children[0]?.textContent?.trim() || 0);
-    const overrideProductName = row.children[1]?.textContent || '';
-    const numContracts = Number(row.children[2]?.textContent?.trim() || 1);
-    const showQuarterly = row.children[3]?.textContent?.trim() === 'true';
-    return {
-      productId,
-      overrideProductName,
-      numContracts,
-      showQuarterly,
-    };
-  });
+function buildProductItems(config) {
+  const showQuarterly = config.showQuarterly === 'true';
+  const numContracts = Number(config.numberContracts) || 1;
+  const products = [].concat(config.productId || []);
+  const overrideNamesMap = new Map(
+    [].concat(config.overrideName || [])
+      .map((item) => {
+        const [id, name] = item.split(': ');
+        return [id, name];
+      }),
+  );
+  return products.map((id) => ({
+    productId: Number(id.trim()),
+    numContracts,
+    showQuarterly,
+    overrideProductName: overrideNamesMap.get(id.trim()) || '',
+  }));
 }
 
 async function getQuotes(items, componentId, isMidpoint) {
@@ -181,10 +180,10 @@ async function getQuotes(items, componentId, isMidpoint) {
 export default async function decorate(block) {
   loadExtraCss(block);
   const config = readBlockConfig(block, true);
-  const items = buildConfigItems(block);
+  const items = buildProductItems(config);
   const isMidpoint = block.classList.contains('sector-midpoint');
   block.textContent = '';
-  block.append(createHeatMapStructure(items, block, config));
+  block.append(createHeatMapStructure(items, block));
   store.dispatch(addHeatMap(items));
   const componentId = generateRandomId();
   if (!isMidpoint) {

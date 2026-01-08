@@ -20,6 +20,10 @@ const mapping = [
     file: '/blocks/cards/cards-blue-box.css',
   },
   {
+    variation: ['blue-divider'],
+    file: '/blocks/cards/cards-blue-divider.css',
+  },
+  {
     variation: ['course'],
     file: '/blocks/cards/cards-course.css',
   },
@@ -38,6 +42,14 @@ const mapping = [
   {
     variation: ['links'],
     file: '/blocks/cards/cards-links.css',
+  },
+  {
+    variation: ['market-movers'],
+    file: '/blocks/cards/cards-market-movers.css',
+  },
+  {
+    variation: ['notices'],
+    file: '/blocks/cards/cards-notices.css',
   },
   {
     variation: ['openmarkets', 'blue2'],
@@ -82,10 +94,6 @@ const mapping = [
   {
     variation: ['white-variation'],
     file: '/blocks/cards/cards-white.css',
-  },
-  {
-    variation: ['notices'],
-    file: '/blocks/cards/cards-notices.css',
   },
 ];
 
