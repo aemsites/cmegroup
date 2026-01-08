@@ -2,7 +2,6 @@ import { getMetadata, loadCSS } from '../../scripts/aem.js';
 import {
   getProductMetadata,
   applyAuthorOverride,
-  getProductTitle,
   getDisplayMode,
   getCalendarFutures,
   getCalendarOptions,
@@ -13,6 +12,7 @@ import {
 import { createAuthTooltip } from '../../scripts/utils/authTooltip.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 import { authentication } from '../../scripts/modules/Authentication.js';
+import { urlByEnvType } from '../../scripts/utils/env.js';
 
 // Table Constants
 const TABLE_CONSTANTS = {
@@ -23,7 +23,6 @@ const TABLE_CONSTANTS = {
 
 let needShowAll = false;
 const maxRows = 12;
-const titleWrapper = createElement('div', { class: 'title-wrapper' });
 let isLoggedIn = false;
 
 /* Build HTML table structure */
@@ -218,6 +217,40 @@ async function createOptionsTable(optionProductId) {
   return calendarWrapper;
 }
 
+async function createDownloadBtn(productId, isOptions, optionProductId) {
+  const titleWrapper = document.querySelector('.product-tab-title');
+  const downloadLink = productId && isLoggedIn
+    ? `${urlByEnvType()}/CmeWS/mvc/ProductCalendar/Download.xls?productId=`
+    + `${isOptions ? optionProductId : productId}`
+    : null;
+
+  const [
+    downloadLabel,
+    accountRequiredLabel,
+  ] = await Promise.all([
+    i18n('Download Data'),
+    i18n('An account is required to download calendar file data'),
+  ]);
+  const authTooltipProps = {
+    color: 'primary',
+    className: !isLoggedIn && 'inactive',
+    href: downloadLink,
+    icon: !isLoggedIn && 'icon-lock',
+    tooltipText: accountRequiredLabel,
+    isLoggedIn,
+  };
+
+  const existingTooltip = titleWrapper?.querySelector('.auth-tooltip-container');
+  if (existingTooltip) {
+    existingTooltip.remove();
+  }
+
+  const authTooltipElement = createAuthTooltip(authTooltipProps, downloadLabel);
+  if (titleWrapper) {
+    titleWrapper.append(authTooltipElement);
+  }
+}
+
 async function renderTable(block) {
   const { isOptions, optionProductId } = getDisplayMode();
   block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
@@ -240,27 +273,6 @@ async function renderTable(block) {
     let table = null;
     let loadAll;
 
-    const downloadLink = productId && isLoggedIn
-      ? '/CmeWS/mvc/ProductCalendar/Download.xls?productId='
-      + `${isOptions ? optionProductId : productId}`
-      : null;
-
-    const [
-      downloadLabel,
-      accountRequiredLabel,
-    ] = await Promise.all([
-      i18n('Download Data'),
-      i18n('An account is required to download calendar file data'),
-    ]);
-    const authTooltipProps = {
-      color: 'primary',
-      className: !isLoggedIn && 'inactive',
-      href: downloadLink,
-      icon: !isLoggedIn && 'icon-lock',
-      tooltipText: accountRequiredLabel,
-      isLoggedIn,
-    };
-
     if (isOptions) {
       if (optionProductId && await applyAuthorOverride(block, 'options-product-id', optionProductId)) {
         return;
@@ -271,10 +283,7 @@ async function renderTable(block) {
       if (table) {
         block.innerHTML = '';
         block.appendChild(table);
-
-        const authTooltipElement = createAuthTooltip(authTooltipProps, downloadLabel);
-        titleWrapper.append(authTooltipElement);
-
+        createDownloadBtn(productId, isOptions, optionProductId);
         loadAll = await createLoadAllWrapper(block);
         block.append(loadAll);
       } else {
@@ -292,10 +301,7 @@ async function renderTable(block) {
       if (table) {
         block.innerHTML = '';
         block.appendChild(table);
-
-        const authTooltipElement = createAuthTooltip(authTooltipProps, downloadLabel);
-        titleWrapper.append(authTooltipElement);
-
+        createDownloadBtn(productId, isOptions, optionProductId);
         loadAll = await createLoadAllWrapper(block);
         block.append(loadAll);
       } else {
@@ -338,35 +344,22 @@ async function createLoadAllWrapper(block) {
 
 export default function decorate(block) {
   const { authenticationData } = authentication;
+  const { isOptions, optionProductId } = getDisplayMode();
 
-  authenticationData.loginPromise.then(() => {
-    if (authenticationData.isLoggedIn) {
-      isLoggedIn = true;
-    }
+  getProductMetadata().then((productMetadata) => {
+    const productId = productMetadata.productId || getMetadata('product-id');
+
+    authenticationData.loginPromise.then(() => {
+      if (authenticationData.isLoggedIn) {
+        isLoggedIn = true;
+        createDownloadBtn(productId, isOptions, optionProductId);
+      }
+    });
   });
 
   block.classList.add('table');
   block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
-  titleWrapper.innerHTML = '';
-
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
-
-  Promise.all([i18n('Calendar')])
-    .then(([calendarLabel]) => {
-      const { optionProductId } = getDisplayMode();
-      return getProductTitle(optionProductId, calendarLabel);
-    })
-    .then((title) => {
-      const titleHtml = createElement('h2', { class: 'calendar-title' });
-      titleHtml.innerHTML = title;
-      titleWrapper.prepend(titleHtml);
-      if (!titleWrapper.isConnected) {
-        block.insertAdjacentElement('beforebegin', titleWrapper);
-      }
-    })
-    // eslint-disable-next-line no-console
-    .catch((err) => console.error('load title error:', err));
-
   renderTable(block).catch((error) => {
     block.innerHTML = `
       <div class="no-results">

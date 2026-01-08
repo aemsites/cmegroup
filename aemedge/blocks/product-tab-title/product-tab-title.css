@@ -1,0 +1,21 @@
+.product-tab-title {
+  @media (width >= 993px) {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Title styling */
+  & .product-title {
+    color: var(--blue2);
+    font-family: var(--averta);
+    font-weight: 600;
+    line-height: 2.5rem;
+    text-transform: uppercase;
+    margin-bottom: 0;
+
+    @media (width >= 993px) {
+      display: inline-block;
+      width: 66.6667%;
+    }
+  }
+}

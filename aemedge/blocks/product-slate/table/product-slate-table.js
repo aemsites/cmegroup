@@ -1,6 +1,7 @@
 import { createElement, i18n, setupDayjsLibs } from '../../../scripts/utils.js';
 import { createModal } from '../../modal/modal.js';
 import { authentication } from '../../../scripts/modules/Authentication.js';
+import createPagination from '../pagination/product-slate-pagination.js';
 
 const [
   productNameText,
@@ -97,7 +98,7 @@ export async function createProductTable(options = {}) {
   const headerRow = createElement('tr');
 
   function createSpinner() {
-    const spinner = createElement('div', { class: 'spinner-cards' });
+    const spinner = createElement('div', { class: 'spinner-table' });
     spinner.innerHTML = `
     <div></div>
     <div></div>
@@ -210,13 +211,13 @@ export async function createProductTable(options = {}) {
 
   if (loading) {
     const spinner = createSpinner();
-    table.appendChild(spinner);
 
     table.appendChild(thead);
     table.appendChild(tbody);
     mainTableWrapper.appendChild(table);
     tableWrapper.appendChild(mainTableWrapper);
     mainWrapper.appendChild(tableWrapper);
+    mainWrapper.appendChild(spinner);
     prodTableWrapper.appendChild(mainWrapper);
 
     return prodTableWrapper;
@@ -508,6 +509,9 @@ export async function createManagedProductTable(container, columnConfig = {}, de
   let tableElement = null;
   let loading = false;
   let downloadExcelUrl = '';
+  let currentPage = 1;
+  let totalPages = 1;
+  let paginationElement = null;
 
   const updateTable = async () => {
     const newTable = await createProductTable({
@@ -535,6 +539,32 @@ export async function createManagedProductTable(container, columnConfig = {}, de
     }
 
     tableElement = newTable;
+
+    if (totalPages > 1) {
+      const newPagination = await createPagination({
+        currentPage,
+        totalPages,
+        onPageChange: (page) => {
+          currentPage = page;
+          const filterElement = document.querySelector('.product-slate-filter');
+          if (filterElement && filterElement.getFilters) {
+            const currentFilters = filterElement.getFilters();
+            window.fetchProductSlateData(currentFilters, page);
+          }
+        },
+      });
+
+      if (paginationElement) {
+        container.replaceChild(newPagination, paginationElement);
+      } else {
+        container.appendChild(newPagination);
+      }
+
+      paginationElement = newPagination;
+    } else if (paginationElement) {
+      container.removeChild(paginationElement);
+      paginationElement = null;
+    }
   };
 
   window.addEventListener('tableDataUpdated', async (event) => {
@@ -549,6 +579,14 @@ export async function createManagedProductTable(container, columnConfig = {}, de
 
       if (event.detail.data.downloadExcelUrl) {
         downloadExcelUrl = event.detail.data.downloadExcelUrl;
+      }
+
+      if (event.detail.data.props && event.detail.data.props.pageTotal) {
+        totalPages = event.detail.data.props.pageTotal;
+      }
+
+      if (event.detail.data.props && event.detail.data.props.pageNumber) {
+        currentPage = event.detail.data.props.pageNumber;
       }
 
       loading = false;
@@ -588,6 +626,14 @@ export async function createManagedProductTable(container, columnConfig = {}, de
     },
     setDownloadUrl: (url) => {
       downloadExcelUrl = url;
+      return updateTable();
+    },
+    setTotalPages: (pages) => {
+      totalPages = pages;
+      return updateTable();
+    },
+    setCurrentPage: (page) => {
+      currentPage = page;
       return updateTable();
     },
     getSortState: () => currentSortState,

@@ -1,7 +1,6 @@
 import { getMetadata, loadCSS } from '../../scripts/aem.js';
 import {
   getProductMetadata,
-  getProductTitle,
   getDisplayMode,
   getContractSpecs,
   getSpecItemView,
@@ -9,8 +8,6 @@ import {
   buildCollapsible,
 } from '../../scripts/utils/product.js';
 import { createElement, i18n } from '../../scripts/utils.js';
-
-const titleWrapper = createElement('div', { class: 'title-wrapper' });
 
 /* Build HTML table structure */
 function buildTable(headers, data, tableId = '') {
@@ -123,6 +120,7 @@ async function createSpecsTable(optionProductId) {
       productCode,
       listedContracts,
       terminationOfTrading,
+      positionLimits,
       exchangeRulebook,
       blockMinimum,
       priceLimitOrCircuit,
@@ -140,6 +138,7 @@ async function createSpecsTable(optionProductId) {
       'ProductCode',
       'ListedContracts',
       'TerminationOfTrading',
+      'PositionLimits',
       'ExchangeRulebook',
       'BlockMinimum',
       'PriceLimitOrCircuit',
@@ -260,26 +259,7 @@ async function renderTable(block) {
 export default function decorate(block) {
   block.classList.add('table');
   block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
-  titleWrapper.innerHTML = '';
-
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
-
-  Promise.all([i18n('Contract Specs')])
-    .then(([specsLabel]) => {
-      const { optionProductId } = getDisplayMode();
-      return getProductTitle(optionProductId, specsLabel);
-    })
-    .then((title) => {
-      const titleHtml = createElement('h2', { class: 'specs-title' });
-      titleHtml.innerHTML = title;
-      titleWrapper.prepend(titleHtml);
-      if (!titleWrapper.isConnected) {
-        block.insertAdjacentElement('beforebegin', titleWrapper);
-      }
-    })
-    // eslint-disable-next-line no-console
-    .catch((err) => console.error('load title error:', err));
-
   renderTable(block).catch((error) => {
     block.innerHTML = `
       <div class="no-results">

@@ -23,6 +23,7 @@ const API_CONFIG = {
   calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
   tradeDateAndExpirationsEndpoint: '/CmeWS/mvc/Settlements/Options/TradeDateAndExpirations',
   optionSettlementsEndpoint: '/CmeWS/mvc/Settlements/Options/Settlements',
+  volumeLastTotalsEndpoint: '/CmeWS/mvc/Volume',
 };
 
 const minimumPriceOrderedKeys = [
@@ -226,38 +227,6 @@ export async function getProductMetadata() {
   return productMetaDataPromise;
 }
 
-export async function getProductTitle(optionProductId, componentName) {
-  return new Promise((resolve) => {
-    const unsubscribe = store.subscribe(
-      ({ productData }) => ({ productData }),
-      (stateSlices) => {
-        const { productData } = stateSlices;
-        if (productData && productData.loaded) {
-          const { optionsLabels, fullProductName } = productData;
-          const optionSelected = optionProductId;
-          let title = '';
-
-          const option = optionsLabels?.find(
-            ({ productId }) => productId === optionSelected,
-          );
-
-          if (option) {
-            title = option.name;
-          } else {
-            title = fullProductName;
-          }
-
-          const fullTitle = title ? `${title} - ${componentName}` : '';
-          resolve(fullTitle);
-          if (unsubscribe) {
-            unsubscribe();
-          }
-        }
-      },
-    );
-  });
-}
-
 export function isValidTradeDate(date, hoursToSubtract) {
   const today = getCdtDate(Date.now());
   const prevDay = getCdtDate(date).subtract(hoursToSubtract, 'hour');
@@ -325,13 +294,18 @@ export async function loadProductData(productId) {
   return productDataPromise;
 }
 
-export async function getContractsByNumber(productId) {
+export async function getContractsByNumber(
+  productIds,
+  contractsNumber = [1],
+  showQuarterly = [0],
+  type = 'VOLUME',
+) {
   const endpoint = `${urlByEnvType()}${API_CONFIG.contractsByNumberEndpoint}`;
   const payload = {
-    productIds: [productId],
-    contractsNumber: [1],
-    type: 'VOLUME',
-    showQuarterly: [0],
+    productIds,
+    contractsNumber,
+    type,
+    showQuarterly,
   };
   const headers = {
     'Content-Type': 'application/json',
@@ -548,7 +522,7 @@ function renderRow(
   formattedKey,
 ) {
   // null or undefined data
-  if (items === null || items === undefined || items === '') return '';
+  if (items === null || items === undefined || items === '' || items === '-') return '';
 
   // Case 1: Simple String/Number
   if (typeof items !== 'object') {
@@ -958,5 +932,25 @@ export async function getOptionSettlements(
       settlements: [],
       settlementsStraddle: [],
     };
+  }
+}
+export async function getVolumeLastTotals(
+  productId,
+  days = 15,
+  isOption = false,
+) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.volumeLastTotalsEndpoint}/${isOption ? 'Total' : 'LastTotals'}/${productId}${days ? `?days=${days}` : ''}`;
+  try {
+    const response = await apiGet(endpoint);
+    const information = {
+      data: getResponseData(response, 'vdate'),
+      timeStamp: new Date(),
+    };
+
+    return information;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('VolumeService => getVolumeLastTotals error:', e);
+    return [];
   }
 }

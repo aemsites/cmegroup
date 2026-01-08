@@ -40,6 +40,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 1rem 1.25rem;
+            width: 100%;
 
             @media (width >= 1201px) {
               justify-content: space-between;
@@ -55,7 +56,18 @@
               }
 
               @media (width >= 1201px) {
-                width: 21%;
+                width: auto;
+                flex: 0 0 auto;
+
+                &:first-of-type {
+                  width: 33.333%;
+                  max-width: 28.4375rem;
+                  padding-left: 0;
+                }
+              }
+
+              @media (width >= 1401px) {
+                width: calc(16.5% - 1.875rem);
               }
 
               &.group {
@@ -241,6 +253,27 @@
 
         @media (width >= 769px) {
           margin-bottom: 1.875rem;
+        }
+
+        &.desktop {
+          display: none;
+
+          @media (width >= 769px) {
+            display: inline-flex;
+            width: auto;
+          }
+
+          @media (width >= 1201px) {
+            flex: 0 0 auto;
+          }
+        }
+
+        &.mobile {
+          display: flex;
+
+          @media (width >= 769px) {
+            display: none;
+          }
         }
 
         & .button {
@@ -450,39 +483,6 @@
             color: var(--blue5);
           }
         }
-      }
-    }
-  }
-
-  & .spinner-cards {
-    display: inline-block;
-    position: relative;
-    width: 4rem;
-    height: 4rem;
-    margin-bottom: 2rem;
-
-    & div {
-      box-sizing: border-box;
-      display: block;
-      position: absolute;
-      width: 3.1875rem;
-      height: 3.1875rem;
-      margin: 0.375rem;
-      border: 0.25rem solid var(--gray3);
-      border-radius: 50%;
-      animation: spinner-table 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-      border-color: var(--gray3) transparent transparent;
-
-      &:nth-child(1) {
-        animation-delay: -0.45s;
-      }
-
-      &:nth-child(2) {
-        animation-delay: -0.3s;
-      }
-
-      &:nth-child(3) {
-        animation-delay: -0.15s;
       }
     }
   }
