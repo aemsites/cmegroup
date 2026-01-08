@@ -437,6 +437,10 @@ async function createOptionsTable(tableDate) {
   const { updateTime, totals, settlementsStraddle } = optionsData;
 
   // timestamp
+  const existingDataInformation = settlementWrapper?.querySelector('.data-information');
+  if (existingDataInformation) {
+    existingDataInformation.remove();
+  }
   const dataInformation = createElement('div', { class: 'data-information' });
   const timestamp = createElement('div', { class: 'timestamp' });
   const timestampText = createElement('span', { class: 'text' });
@@ -451,6 +455,10 @@ async function createOptionsTable(tableDate) {
 
   // totals-info-row
   // Estimated volume totals
+  const existingTotalsInfoRow = settlementWrapper?.querySelector('.totals-info-row');
+  if (existingTotalsInfoRow) {
+    existingTotalsInfoRow.remove();
+  }
   const totalsInfoRow = createElement('div', { class: 'totals-info-row' });
   const totalsInfoVolume = createElement('div', { class: 'totals-info' });
   const totalsInfoLabelVolume = createElement('span', { class: 'totals-info-label' });
@@ -461,6 +469,10 @@ async function createOptionsTable(tableDate) {
   totalsInfoVolume.appendChild(totalsInfoValueVolume);
   totalsInfoRow.appendChild(totalsInfoVolume);
   // Prior day open interest totals
+  const existingTotalsInfo = settlementWrapper?.querySelector('.totals-info');
+  if (existingTotalsInfo) {
+    existingTotalsInfo.remove();
+  }
   const totalsInfoOpenInterest = createElement('div', { class: 'totals-info' });
   const totalsInfoLabelOpenInterest = createElement('span', { class: 'totals-info-label' });
   const totalsInfoValueOpenInterest = createElement('span', { class: 'totals-info-value' });
@@ -472,6 +484,10 @@ async function createOptionsTable(tableDate) {
   settlementWrapper.appendChild(totalsInfoRow);
 
   // view-selector-row
+  const existingViewSelectorRow = settlementWrapper?.querySelector('.view-selector-row');
+  if (existingViewSelectorRow) {
+    existingViewSelectorRow.remove();
+  }
   const viewSelectorRow = createElement('div', { class: 'view-selector-row' });
   const optionSwitcher = createElement('div', { class: 'option-switcher' });
   const label = createElement('span');
@@ -620,6 +636,7 @@ export default function decorate(block) {
   block.innerHTML = '<div class="spinner-settlements"><div></div><div></div><div></div><div></div></div>';
 
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
+  settlementWrapper.innerHTML = '';
   settlementWrapper.append(tradeWrapper);
 
   Promise.all([
