@@ -2461,7 +2461,6 @@ p.center-img {
     border-radius: 0;
     cursor: pointer;
     font-family: var(--averta);
-    margin-bottom: 0.75rem;
     text-transform: none;
     align-items: center;
     border-style: solid;
@@ -2520,12 +2519,6 @@ p.center-img {
 
     &[aria-expanded="false"]+.products-selector-dropdown {
       visibility: hidden;
-    }
-
-    &:hover,
-    &:focus {
-      color: var(--blue4);
-      text-decoration: none;
     }
 
     &:focus {
