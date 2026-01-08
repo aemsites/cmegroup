@@ -1,6 +1,4 @@
 .settlements-table-wrapper {
-  padding: 0 !important;
-
   & .settlements-table {
     margin: 0 0 2rem;
     overflow: inherit;
@@ -16,16 +14,50 @@
   
     /* Error/no results state */
     & .no-results {
-      border: 1px solid #112b4a;
-      color: #112b4a;
-      font-size: 1.5rem;
-      margin: 0.9375rem auto;
-      text-align: center;
-      padding: 2rem;
-  
-      & h4 {
-        margin: 0;
-        padding: 1.25rem;
+      background-color: var(--pink);
+      padding: .3125rem .625rem;
+
+      @media (width >= 993px) {
+        padding: .875rem 1.875rem;
+      }
+
+      & p {
+        font-size: .875rem;
+        line-height: 1.25rem;
+        color: var(--gray3);
+        font-family: var(--averta);
+        font-weight: 400;
+        margin-bottom: 0;
+
+        @media (width >= 993px) {
+          font-size: 1.25rem;
+          line-height: 1.75rem;
+        }
+
+        & .icon-attention-triangle {
+          &::before {
+            content: var(--icon-attention-triangle);
+            color: var(--active-red);
+            font-family: var(--cme-group-icons);
+            font-style: normal;
+            margin-right: .625rem;
+          }
+        }
+
+        & .primary {
+          color: var(--blue2);
+          font-family: var(--averta);
+          font-weight: 700;
+        }
+
+        & .contact-link {
+          color: var(--blue4);
+
+          &:hover {
+            text-decoration: none;
+            background-position: 0;
+          }
+        }
       }
     }
 

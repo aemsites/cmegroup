@@ -2,7 +2,6 @@ import { getMetadata, loadCSS } from '../../scripts/aem.js';
 import {
   getProductMetadata,
   applyAuthorOverride,
-  getProductTitle,
   getDisplayMode,
   handleAboutReportModal,
   buildLoadAllButton,
@@ -10,6 +9,7 @@ import {
   createProductsDropdown,
   getOptionSettlements,
   scrollToTop,
+  buildNoResultErrorAlert,
 } from '../../scripts/utils/product.js';
 import { createElement, i18n, setupDayjsLibs } from '../../scripts/utils.js';
 import { store } from '../../scripts/store/store.js';
@@ -17,7 +17,7 @@ import { store } from '../../scripts/store/store.js';
 let needShowAll = false;
 let loadAllAlreadyClicked = false;
 const maxRows = 12;
-const titleWrapper = createElement('div', { class: 'title-wrapper' });
+const settlementWrapper = createElement('div', { class: 'settlement-wrapper' });
 const tradeWrapper = createElement('div', { class: 'trades-wrapper' });
 const expirationWrapper = createElement('div', { class: 'expiration-wrapper' });
 const tradeDateWrapper = createElement('div', { class: 'trade-date-wrapper' });
@@ -43,8 +43,6 @@ async function loadSettlements(block, productId) {
     contractId,
   );
 
-  // if option or future goes here
-
   table = await createOptionsTable(tableDate);
   if (table) {
     block.innerHTML = '';
@@ -52,12 +50,7 @@ async function loadSettlements(block, productId) {
     loadAll = await createLoadAllWrapper(block);
     block.append(loadAll);
   } else {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Unable to load options settlement</h4>
-        <p>Options data is currently unavailable.</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('settlements'));
   }
 }
 
@@ -443,7 +436,6 @@ async function createOptionsTable(tableDate) {
 
   const { updateTime, totals, settlementsStraddle } = optionsData;
 
-  const settlementWrapper = createElement('div', { class: 'settlement-wrapper' });
   // timestamp
   const dataInformation = createElement('div', { class: 'data-information' });
   const timestamp = createElement('div', { class: 'timestamp' });
@@ -559,12 +551,7 @@ async function renderTable(block) {
   const productId = productMetadata.productId || getMetadata('product-id');
 
   if (!productId) {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Unable to load settlement</h4>
-        <p>Product ID not found.</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('settlements'));
     return;
   }
 
@@ -585,12 +572,7 @@ async function renderTable(block) {
       `;
     }
   } catch (error) {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading settlement data</h4>
-        <p>${error.message}</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('settlements', error.message));
   }
 }
 
@@ -636,30 +618,9 @@ async function createLoadAllWrapper(block) {
 export default function decorate(block) {
   block.classList.add('table');
   block.innerHTML = '<div class="spinner-settlements"><div></div><div></div><div></div><div></div></div>';
-  titleWrapper.innerHTML = '';
 
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
-
-  Promise.all([
-    i18n('Settlements'),
-  ])
-    .then(([
-      settlementsLabel,
-    ]) => {
-      const { optionProductId } = getDisplayMode();
-      return getProductTitle(optionProductId, settlementsLabel);
-    })
-    .then((title) => {
-      const titleHtml = createElement('h2', { class: 'settlements-title' });
-      titleHtml.innerHTML = title;
-      titleWrapper.prepend(titleHtml);
-      if (!titleWrapper.isConnected) {
-        block.insertAdjacentElement('beforebegin', titleWrapper);
-      }
-      titleWrapper.after(tradeWrapper);
-    })
-    // eslint-disable-next-line no-console
-    .catch((err) => console.error('load title error:', err));
+  settlementWrapper.append(tradeWrapper);
 
   Promise.all([
     i18n('Expiration'),
@@ -675,12 +636,7 @@ export default function decorate(block) {
     .catch((err) => console.error('load title error:', err));
 
   renderTable(block).catch((error) => {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading settlement data</h4>
-        <p>${error.message}</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('settlements', error.message));
   });
 
   const fragmentUrl = '/fragments/disclaimers/markets/settlements';
