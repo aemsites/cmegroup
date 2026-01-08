@@ -634,8 +634,8 @@ export function buildCollapsible(headers, data, collapsibleClass, maxRows, colla
   headers.forEach((header, index) => {
     const itemData = data[index];
     const collapsibleItem = createElement('div', { class: 'collapsible-item' });
-    const isEmpty = itemData === null || itemData === undefined || itemData === '';
-    if (isEmpty) {
+    const isEmptyCollapsible = itemData === null || itemData === undefined || itemData === '';
+    if (isEmptyCollapsible) {
       collapsibleItem.classList.add('hidden-empty-collapsible');
     }
     const collapsibleButton = createElement('button', { class: 'collapsible-button btn-secondary' });
