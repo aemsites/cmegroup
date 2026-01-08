@@ -880,7 +880,7 @@ async function createRecommendedFromService(data, block) {
 
 async function createRecommendedCards(block) {
   const blockData = block.cloneNode(true);
-  const { limit } = readBlockConfig(block);
+  const { limit, size } = readBlockConfig(block);
   block.textContent = '';
   block.appendChild(createSpinner());
   let dataAi = [];
@@ -888,7 +888,7 @@ async function createRecommendedCards(block) {
 
   try {
     const { getRecommendationAi } = await import('../../scripts/services/RecommendationAiService.js');
-    dataAi = await getRecommendationAi();
+    dataAi = await getRecommendationAi(size);
 
     if (dataAi && dataAi.length > 0) {
       const result = limit ? dataAi.slice(0, limit) : dataAi;
