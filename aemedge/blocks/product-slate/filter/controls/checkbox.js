@@ -23,29 +23,17 @@ function createCheckbox(options = {}) {
 
   function createCheckmarkSvg() {
     const checkmark = createElement('span', { class: 'checkmark' });
-    checkmark.innerHTML = `
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 14 14"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        style="display: none;"
-      >
-        <path
-          d="M11.6666 3.5L5.24998 9.91667L2.33331 7"
-          stroke="blue"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>`;
+    const check = createElement('img', {
+      src: '/aemedge/icons/check.svg',
+      alt: 'Current product',
+    });
+    checkmark.appendChild(check);
     return checkmark;
   }
 
   function updateVisual(checkmark, isChecked) {
-    const svg = checkmark.querySelector('svg');
-    svg.style.display = isChecked ? 'block' : 'none';
+    const img = checkmark.querySelector('img');
+    img.style.display = isChecked ? 'block' : 'none';
   }
 
   function updateAllCheckboxes() {
