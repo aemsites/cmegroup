@@ -158,10 +158,16 @@
   
     /* Table styling */
     & table {
+      border-collapse: separate;
+      
       & thead {
-        position: sticky;
+        position: static;
         top: 0;
         z-index: 1;
+
+        @media (width >= 993px) {
+          position: sticky;
+        }
 
         & tr {
           & th {
@@ -380,10 +386,11 @@
         display: inline-block;
         width: 100%;
         margin-top: .625rem;
+        order: 3;
     
-        @media (width >= 993px) {
+        @media (width >= 769px) {
           width: 16.6667%;
-          order: -1 !important;
+          order: 1;
           margin-top: 0;
         }
     
@@ -404,34 +411,54 @@
         display: none;
         text-align: right;
 
-         @media (width >= 993px) {
+         @media (width >= 769px) {
           display: inline-block;
           width: 16.6667%;
-          order: 7 !important;
+          order: 3;
           margin-top: 0;
         }
       }
   
       & .load-all-button-wrapper {
+        width: 100%;
+        display: inline-block;
+        text-align: center;
+  
+        @media (width >= 769px) {
+          width: 66.6667%;
+          order: 2;
+        }
+  
+        & .load-all-button {
           width: 100%;
           display: inline-block;
-          text-align: center;
-    
-          @media (width >= 993px) {
-            width: 66.6667%;
-            order: 6 !important;
-          }
-    
-          & .load-all-button {
-            width: 100%;
-            display: inline-block;
-            cursor: pointer;
-    
-            @media (width >= 993px) {
-              width: 20rem;
-            }
+          cursor: pointer;
+  
+          @media (width >= 769px) {
+            width: 20rem;
           }
         }
+      }
+
+      & .disclaimer-wrapper {
+        width: 100%;
+        order: 2;
+        display: inline-block;
+        text-align: left;
+        color: var(--gray3);
+        font-size: .75rem;
+        font-style: italic;
+        font-weight: 400;
+        line-height: .875rem;
+        padding-bottom: 1.25rem;
+        padding-top: 1.875rem;
+        margin-bottom: 0;
+
+        @media (width >= 769px) {
+          order: 4;
+          padding-bottom: 0;
+        }
+      }
     }
   }
 

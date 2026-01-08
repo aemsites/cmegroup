@@ -5,7 +5,6 @@ import {
   getProductTitle,
   getDisplayMode,
   handleAboutReportModal,
-  buildCollapsible,
   buildLoadAllButton,
   getTradeDateAndExpirations,
   createProductsDropdown,
@@ -13,13 +12,7 @@ import {
   scrollToTop,
 } from '../../scripts/utils/product.js';
 import { createElement, i18n, setupDayjsLibs } from '../../scripts/utils.js';
-
-// Table Constants
-const TABLE_CONSTANTS = {
-  placeholders: {
-    noData: '-',
-  },
-};
+import { store } from '../../scripts/store/store.js';
 
 let needShowAll = false;
 let loadAllAlreadyClicked = false;
@@ -28,8 +21,8 @@ const titleWrapper = createElement('div', { class: 'title-wrapper' });
 const tradeWrapper = createElement('div', { class: 'trades-wrapper' });
 const expirationWrapper = createElement('div', { class: 'expiration-wrapper' });
 const tradeDateWrapper = createElement('div', { class: 'trade-date-wrapper' });
-const tableStraddle = createElement('table', { class: 'table-straddle-settlement' });
-const tableList = createElement('table', { class: 'table-list-settlement' });
+const tableStraddle = createElement('table', { class: 'table-settlement table-straddle-settlement' });
+const tableList = createElement('table', { class: 'table-settlement table-list-settlement' });
 const tableContainer = createElement('div', { class: 'table-settlement-container straddle' });
 const windowWidth = window.innerWidth;
 let isMobile = windowWidth <= 992;
@@ -262,7 +255,7 @@ function buildOptionStraddleTableMobile(header, data) {
   const row2 = createElement('tr');
   const subHeaders = [
     `${estVol}<br>${priorDayOi}`, `${high}<br>${low}`, `${open}<br>${last}`, `${settle}<br>${change}`, // Calls
-    `${estVol}<br>${priorDayOi}`, `${high}<br>${low}`, `${open}<br>${last}`, `${settle}<br>${change}`  // Puts
+    `${estVol}<br>${priorDayOi}`, `${high}<br>${low}`, `${open}<br>${last}`, `${settle}<br>${change}`, // Puts
   ];
 
   subHeaders.forEach((text) => {
@@ -421,96 +414,6 @@ function handleViewChange(activeBtn, inactiveBtn, viewType) {
   tableContainer.classList.add(viewType);
 }
 
-/* Create futures settlement table */
-async function createFuturesTable() {
-  const productMetadata = await getProductMetadata();
-  const productId = productMetadata.productId || getMetadata('product-id');
-
-  if (!productId) return null;
-
-  const settlementData = {};
-
-  if (!settlementData || settlementData.length === 0) {
-    return null;
-  }
-
-  const [
-    contractMonth,
-    productCode,
-    firstTrade,
-    lastTrade,
-    settlement,
-    firstHolding,
-    lastHolding,
-    firstPosition,
-    lastPosition,
-    firstNotice,
-    lastNotice,
-    firstDelivery,
-    lastDelivery,
-  ] = await Promise.all([
-    i18n('Contract Month'),
-    i18n('Product Code'),
-    i18n('First Trade'),
-    i18n('Last Trade'),
-    i18n('Settlement'),
-    i18n('First Holding'),
-    i18n('Last Holding'),
-    i18n('First Position'),
-    i18n('Last Position'),
-    i18n('First Notice'),
-    i18n('Last Notice'),
-    i18n('First Delivery'),
-    i18n('Last Delivery'),
-  ]);
-
-  const headers = [
-    contractMonth,
-    productCode,
-    `<span>${firstTrade}</span><span>${lastTrade}</span>`,
-    settlement,
-    `<span>${firstHolding}</span><span>${lastHolding}</span>`,
-    `<span>${firstPosition}</span><span>${lastPosition}</span>`,
-    `<span>${firstNotice}</span><span>${lastNotice}</span>`,
-    `<span>${firstDelivery}</span><span>${lastDelivery}</span>`,
-  ];
-
-  const tableData = settlementData.map((item) => [
-    item.contractMonth || TABLE_CONSTANTS.placeholders.noData,
-    item.productCode || TABLE_CONSTANTS.placeholders.noData,
-    `<span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span>`,
-    item.settlement || TABLE_CONSTANTS.placeholders.noData,
-    `<span>${item.firstHolding || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastHolding || TABLE_CONSTANTS.placeholders.noData}</span>`,
-    `<span>${item.firstPosition || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastPosition || TABLE_CONSTANTS.placeholders.noData}</span>`,
-    `<span>${item.firstNotice || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastNotice || TABLE_CONSTANTS.placeholders.noData}</span>`,
-    `<span>${item.firstDelivery || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastDelivery || TABLE_CONSTANTS.placeholders.noData}</span>`,
-  ]);
-
-  const collapsibleHeaders = settlementData.map((item) => [
-    item.contractMonth || TABLE_CONSTANTS.placeholders.noData,
-  ]);
-
-  const collapsibleData = settlementData.map((item) => [
-    `<div class="row-data"><span>${productCode}</span><span>${item.productCode || TABLE_CONSTANTS.placeholders.noData}</span></div>
-    <div class="row-data"><div><span>${firstTrade}</span><span>${lastTrade}</div><div><span>${item.firstTrade || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastTrade || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
-    <div class="row-data"><span>${settlement}</span><span>${item.settlement || TABLE_CONSTANTS.placeholders.noData}</span></div>
-    <div class="row-data"><div><span>${firstHolding}</span><span>${lastHolding}</span></div><div><span>${item.firstHolding || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastHolding || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
-    <div class="row-data"><div><span>${firstPosition}</span><span>${lastPosition}</span></div><div><span>${item.firstPosition || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastPosition || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
-    <div class="row-data"><div><span>${firstNotice}</span><span>${lastNotice}</span></div><div><span>${item.firstNotice || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastNotice || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
-    <div class="row-data"><div><span>${firstDelivery}</span><span>${lastDelivery}</span></div><div><span>${item.firstDelivery || TABLE_CONSTANTS.placeholders.noData}</span><span>${item.lastDelivery || TABLE_CONSTANTS.placeholders.noData}</span></div></div>
-    `,
-  ]);
-
-  const settlementWrapper = createElement('div', { class: 'settlement-wrapper' });
-  const buildedTable = buildTable(headers, tableData, 'futures-settlement-table');
-  const buildedCollapsible = buildCollapsible(collapsibleHeaders, collapsibleData, 'collapsible-settlement', maxRows, 'futures-settlement-collapsible');
-  settlementWrapper.appendChild(buildedTable);
-  settlementWrapper.appendChild(buildedCollapsible);
-
-  return settlementWrapper;
-}
-
-/* Create option settlement table */
 async function createOptionsTable(tableDate) {
   const productMetadata = await getProductMetadata();
   const productId = productMetadata.productId || getMetadata('product-id');
@@ -675,21 +578,11 @@ async function renderTable(block) {
       await createTradesWrapper(block, productId, optionProductId);
     } else {
       // Futures mode
-      table = await createFuturesTable();
-
-      if (table) {
-        block.innerHTML = '';
-        block.appendChild(table);
-        loadAll = await createLoadAllWrapper(block);
-        block.append(loadAll);
-      } else {
-        block.innerHTML = `
-          <div class="no-results">
-            <h4>Unable to load futures settlement</h4>
-            <p>settlement data is currently unavailable.</p>
-          </div>
-        `;
-      }
+      block.innerHTML = `
+        <div>
+          <h4>Future settlements table WIP</h4>
+        </div>
+      `;
     }
   } catch (error) {
     block.innerHTML = `
@@ -707,10 +600,12 @@ async function createLoadAllWrapper(block) {
     loadAll,
     AboutThisReport,
     ReturnToTop,
+    disclaimer,
   ] = await Promise.all([
     i18n('Load All'),
     i18n('About this Report'),
     i18n('Return to top'),
+    i18n('All market data contained within the CME Group website should be considered as a reference only and should not be used as validation against, nor as a complement to, real-time market data feeds. Settlement prices on instruments without open interest or volume are provided for web users only and are not published on Market Data Platform (MDP). These prices are not based on market activity.'),
   ]);
 
   if (needShowAll) {
@@ -729,6 +624,11 @@ async function createLoadAllWrapper(block) {
   const scrollToTopLink = createElement('p', { class: 'scroll-to-top-wrapper' });
   scrollToTopLink.innerHTML = `<a href="#" class="scroll-to-top-link">${ReturnToTop}</a>`;
   loadAllWrapper.append(scrollToTopLink);
+
+  // Add disclaimer
+  const disclaimerWrapper = createElement('p', { class: 'disclaimer-wrapper' });
+  disclaimerWrapper.textContent = disclaimer;
+  loadAllWrapper.append(disclaimerWrapper);
 
   return loadAllWrapper;
 }
@@ -789,4 +689,16 @@ export default function decorate(block) {
 
   const returnToTopClass = 'scroll-to-top-link';
   scrollToTop(block, returnToTopClass);
+
+  store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
+    const productTabs = document.querySelector('.product-tabs');
+    const productTabsHeight = productTabs ? productTabs.getBoundingClientRect().height : 0;
+    document.querySelectorAll('table.table-settlement thead').forEach((headerSection) => {
+      if (getComputedStyle(headerSection.closest('table')).overflow === 'auto') {
+        headerSection.style.top = '0';
+      } else {
+        headerSection.style.top = `${height + productTabsHeight}px`;
+      }
+    });
+  });
 }
