@@ -1,5 +1,14 @@
 {
   "project": "cmegroup.com",
   "editUrlLabel": "Document Authoring",
-  "editUrlPattern": "https://da.live/edit#/{{org}}/{{site}}{{pathname}}"
+  "editUrlPattern": "https://da.live/edit#/{{org}}/{{site}}{{pathname}}",
+  "plugins": [
+    {
+      "id": "library",
+      "title": "Library",
+      "environments": ["edit"],
+      "url": "/tools/sidekick/library.html",
+      "passConfig": true
+    }
+  ]
 }

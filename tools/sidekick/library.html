@@ -36,7 +36,12 @@
       const refBranch = urlParams.get('ref') || 'main';
       library.config = {
         base: '/eds-config/sidekick/blocks.json',
-        ref: refBranch,
+        plugins: {
+          courseorder: {
+            src: '/tools/sidekick/courseorder/courseorder.js',
+            ref: refBranch,
+          }
+        }
       }
       document.body.prepend(library)
     </script>
