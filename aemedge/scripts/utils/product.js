@@ -20,6 +20,7 @@ const API_CONFIG = {
   cvolEndpoint: '/services/cvol',
   calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
   calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
+  quotesEndpoint: '/CmeWS/mvc/quotes/v2',
   volumeLastTotalsEndpoint: '/CmeWS/mvc/Volume',
 };
 
@@ -371,6 +372,13 @@ export async function getCalendarOptions(productId, optionProductId) {
   return optionData[0].calendarEntries;
 }
 
+export async function getQuotesFutures(productId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.quotesEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  return data;
+}
+
 /**
  * Replace block content with matching authored override section (if any).
  */
@@ -621,6 +629,19 @@ export function handleAboutReportModal(block, modalItemClass, fragmentUrl) {
         // Silent fail
       }
     }
+  });
+}
+
+export function handleScrollTop(elem) {
+  elem.addEventListener('click', (e) => {
+    e.preventDefault();
+    const { height } = store.getState().floatingElements;
+    const { offsetTop, offsetHeight } = document.querySelector('.hero-baseball');
+    window.scrollTo({
+      top: (offsetTop + offsetHeight) - height,
+      left: 0,
+      behavior: 'smooth',
+    });
   });
 }
 
