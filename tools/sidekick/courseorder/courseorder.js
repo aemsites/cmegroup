@@ -131,7 +131,7 @@ class CourseOrganiser {
   async fetchPageMetadata() {
     try {
       // Construct the page URL
-      const pageUrl = `https://main--www--cmegroup.aem.page${this.currentPath}`;
+      const pageUrl = `https://main--${this.context.repo}--${this.context.org}.aem.page${this.currentPath}`;
       console.log('Fetching order metadata from:', pageUrl);
       // Fetch the page
       const response = await fetch(pageUrl);

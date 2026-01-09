@@ -31,11 +31,13 @@
       src="https://www.aem.live/tools/sidekick/library/index.js"
     ></script>
     <script>
-      const library = document.createElement('sidekick-library')
+      const library = document.createElement('sidekick-library');
+      const urlParams = new URLSearchParams(window.location.search);
+      const refBranch = urlParams.get('ref') || 'main';
       library.config = {
         base: '/eds-config/sidekick/blocks.json',
+        ref: refBranch,
       }
-
       document.body.prepend(library)
     </script>
   </body>
