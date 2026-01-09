@@ -450,6 +450,10 @@ export class Authentication {
         this.checkRedirection(redirectionCookie);
         return false;
       }
+      if (document.referrer === 'https://login.cmegroup.com/') {
+        this.login(window.location.href);
+        return false;
+      }
       const xAuthToken = this.uriUtil.getQuery('X-Auth-Token');
       if (!xAuthToken) {
         this.resolveLoginPromise();
