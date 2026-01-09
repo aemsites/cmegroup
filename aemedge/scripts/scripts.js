@@ -132,6 +132,20 @@ function decorateSections(main) {
       });
       sectionMeta.parentNode.remove();
     }
+
+    const darkBackgrounds = [
+      'blue1-background',
+      'blue2-background',
+      'blue3-background',
+      'blue4-background',
+      'gray1-background',
+      'gray2-background',
+      'gray3-background',
+    ];
+
+    if (darkBackgrounds.some((bg) => section.classList.contains(bg))) {
+      section.classList.add('reverse');
+    }
   });
 }
 
