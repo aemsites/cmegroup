@@ -52,9 +52,7 @@
   }
 
   & .legends {
-    @media (width>=993px) {
-      text-align: center;
-    }
+      text-align: left;
 
     & span {
       font-size: 0.75rem;
@@ -75,10 +73,6 @@
       }
 
       &:first-child {
-        @media (width>=993px) {
-          margin-left: 1.875rem;
-        }
-
         &::before {
           background-color: var(--blue3);
         }
