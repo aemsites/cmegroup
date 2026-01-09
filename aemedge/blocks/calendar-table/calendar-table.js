@@ -218,7 +218,7 @@ async function createOptionsTable(optionProductId) {
   return calendarWrapper;
 }
 
-async function createDownloadBtn(productId, isOptions, optionProductId) {
+async function createDownloadBtn(productId, isOptions, optionProductId, enabled) {
   const titleWrapper = document.querySelector('.product-tab-title');
   const downloadLink = productId && isLoggedIn
     ? `${urlByEnvType()}/CmeWS/mvc/ProductCalendar/Download.xls?productId=`
@@ -232,9 +232,16 @@ async function createDownloadBtn(productId, isOptions, optionProductId) {
     i18n('Download Data'),
     i18n('An account is required to download calendar file data'),
   ]);
+  const classes = [];
+  if (!isLoggedIn) {
+    classes.push('inactive');
+  }
+  if (!enabled) {
+    classes.push('disabled');
+  }
   const authTooltipProps = {
     color: 'primary',
-    className: !isLoggedIn && 'inactive',
+    classNames: classes,
     href: downloadLink,
     icon: !isLoggedIn && 'icon-lock',
     tooltipText: accountRequiredLabel,
@@ -279,10 +286,11 @@ async function renderTable(block) {
       if (table) {
         block.innerHTML = '';
         block.appendChild(table);
-        createDownloadBtn(productId, isOptions, optionProductId);
+        createDownloadBtn(productId, isOptions, optionProductId, true);
         loadAll = await createLoadAllWrapper(block);
         block.append(loadAll);
       } else {
+        createDownloadBtn(productId, isOptions, optionProductId, false);
         block.replaceChildren(buildNoResultErrorAlert('calendar'));
       }
     } else {
@@ -292,14 +300,16 @@ async function renderTable(block) {
       if (table) {
         block.innerHTML = '';
         block.appendChild(table);
-        createDownloadBtn(productId, isOptions, optionProductId);
+        createDownloadBtn(productId, isOptions, optionProductId, true);
         loadAll = await createLoadAllWrapper(block);
         block.append(loadAll);
       } else {
+        createDownloadBtn(productId, isOptions, optionProductId, false);
         block.replaceChildren(buildNoResultErrorAlert('calendar'));
       }
     }
   } catch (error) {
+    createDownloadBtn(productId, isOptions, optionProductId, false);
     block.replaceChildren(buildNoResultErrorAlert('calendar', error.message));
   }
 }
@@ -333,7 +343,7 @@ export default function decorate(block) {
     authenticationData.loginPromise.then(() => {
       if (authenticationData.isLoggedIn) {
         isLoggedIn = true;
-        createDownloadBtn(productId, isOptions, optionProductId);
+        createDownloadBtn(productId, isOptions, optionProductId, false);
       }
     });
   });
