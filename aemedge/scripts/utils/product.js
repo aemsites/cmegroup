@@ -10,6 +10,7 @@ import {
   getCdtDate,
   createElement,
 } from '../utils.js';
+import { isEmpty } from './misc.js';
 
 // API Configuration
 const API_CONFIG = {
@@ -20,6 +21,9 @@ const API_CONFIG = {
   cvolEndpoint: '/services/cvol',
   calendarEndpoint: '/CmeWS/mvc/ProductCalendar/Future',
   calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
+  tradeDateAndExpirationsEndpoint: '/CmeWS/mvc/Settlements/Options/TradeDateAndExpirations',
+  optionSettlementsEndpoint: '/CmeWS/mvc/Settlements/Options/Settlements',
+  quotesEndpoint: '/CmeWS/mvc/quotes/v2',
   volumeLastTotalsEndpoint: '/CmeWS/mvc/Volume',
 };
 
@@ -371,6 +375,13 @@ export async function getCalendarOptions(productId, optionProductId) {
   return optionData[0].calendarEntries;
 }
 
+export async function getQuotesFutures(productId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.quotesEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  return data;
+}
+
 /**
  * Replace block content with matching authored override section (if any).
  */
@@ -624,6 +635,19 @@ export function handleAboutReportModal(block, modalItemClass, fragmentUrl) {
   });
 }
 
+export function handleScrollTop(elem) {
+  elem.addEventListener('click', (e) => {
+    e.preventDefault();
+    const { height } = store.getState().floatingElements;
+    const { offsetTop, offsetHeight } = document.querySelector('.hero-baseball');
+    window.scrollTo({
+      top: (offsetTop + offsetHeight) - height,
+      left: 0,
+      behavior: 'smooth',
+    });
+  });
+}
+
 export function buildCollapsible(headers, data, collapsibleClass, maxRows, collapsibleId = '') {
   const collapsible = createElement('div', { class: `collapsible-component ${collapsibleClass}` });
   if (collapsibleId) collapsible.id = collapsibleId;
@@ -631,8 +655,8 @@ export function buildCollapsible(headers, data, collapsibleClass, maxRows, colla
   headers.forEach((header, index) => {
     const itemData = data[index];
     const collapsibleItem = createElement('div', { class: 'collapsible-item' });
-    const isEmpty = itemData === null || itemData === undefined || itemData === '';
-    if (isEmpty) {
+    const isEmptyCollapsible = itemData === null || itemData === undefined || itemData === '';
+    if (isEmptyCollapsible) {
       collapsibleItem.classList.add('hidden-empty-collapsible');
     }
     const collapsibleButton = createElement('button', { class: 'collapsible-button btn-secondary' });
@@ -662,7 +686,7 @@ export function buildCollapsible(headers, data, collapsibleClass, maxRows, colla
   return collapsible;
 }
 
-export function buildLoadAllButton(block, loadText) {
+export function buildLoadAllButton(block, loadText, callback) {
   const loadAllButtonWrapper = createElement('div', { class: 'load-all-button-wrapper' });
   const loadAllButton = createElement('button', { class: 'load-all-button primary' });
   loadAllButton.innerHTML = loadText;
@@ -674,13 +698,18 @@ export function buildLoadAllButton(block, loadText) {
     hiddenRows.forEach((row) => {
       row.classList.remove('hidden-row');
     });
-    const fadeTable = block.querySelector('.table-fade');
-    fadeTable.classList.remove('table-fade');
+    const fadeTables = block.querySelectorAll('.table-fade');
+    fadeTables.forEach((fadeTable) => {
+      fadeTable.classList.remove('table-fade');
+    });
 
     const hiddenCollapsible = block.querySelectorAll('.hidden-collapsible');
     hiddenCollapsible.forEach((collapsible) => {
       collapsible.classList.remove('hidden-collapsible');
     });
+
+    const clicked = true;
+    if (callback) callback(clicked);
 
     e.target.remove();
   });
@@ -688,6 +717,244 @@ export function buildLoadAllButton(block, loadText) {
   return loadAllButtonWrapper;
 }
 
+export function scrollToTop(block, modalItemClass) {
+  block.addEventListener('click', async (e) => {
+    if (e.target.classList.contains(modalItemClass)) {
+      e.preventDefault();
+      try {
+        const productsMainContainer = document.querySelector('.product-subtabs-content');
+        const navbarHeight = document.querySelector('.product-tabs').offsetHeight;
+        // section padding top = 60px
+        const elementPosition = productsMainContainer.getBoundingClientRect().top
+        - 60 + window.scrollY;
+        const offsetPosition = elementPosition - navbarHeight;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth',
+        });
+      } catch (error) {
+        // Silent fail
+      }
+    }
+  });
+}
+
+export async function getTradeDateAndExpirations(productId) {
+  try {
+    const url = `${urlByEnvType()}${API_CONFIG.tradeDateAndExpirationsEndpoint}/${productId}`;
+    return getResponseData(await apiGet(url)).map(
+      ({ productId: pid, expirations }) => ({
+        productId: pid.toString(),
+        expirations: expirations.map(
+          ({
+            productId: pId,
+            label,
+            key,
+            tradeDates,
+            contractId,
+          }) => ({
+            expProductId: pId,
+            label,
+            text: `${key.productId}-${key.expiration.code}`,
+            contractId,
+            tradeDates: tradeDates.map(({ formatedDate, reportType }) => ({
+              label: dayjs(formatedDate).format('dddd, DD MMM YYYY'),
+              text: formatedDate,
+              reportType,
+            })),
+          }),
+        ),
+      }),
+    );
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('SettlementsService => getTradeDateAndExpirations error:', e);
+    return [];
+  }
+}
+
+function closeOnDocClick(e) {
+  const button = document.querySelector('button.products-selector-button[aria-expanded="true"]');
+  if (button && !button.contains(e.target) && !e.target.closest('.products-selector-dropdown')) {
+    button.setAttribute('aria-expanded', false);
+  }
+}
+
+function toggleProductsSelector(e) {
+  closeOnDocClick(e);
+  const button = e.target.closest('button');
+  const expanded = button.getAttribute('aria-expanded') === 'true';
+  button.setAttribute('aria-expanded', !expanded);
+}
+
+function handleOptionSelection(optionObj, button, container, onSelect) {
+  button.dataset.value = optionObj.text;
+  const checkIcon = container.querySelector('.current-product-check');
+  const allOptions = container.querySelectorAll('.option-anchor');
+  const selectedBtn = Array.from(allOptions).find((btn) => btn.dataset.value === optionObj.text);
+
+  if (selectedBtn && checkIcon) {
+    selectedBtn.prepend(checkIcon);
+  }
+
+  button.setAttribute('aria-expanded', 'false');
+
+  if (onSelect) onSelect(optionObj);
+}
+
+export function createProductsDropdown(optionList, selectedValue, onSelect) {
+  const dropdownElement = createElement('div', { class: 'products-dropdown-container right-align' });
+
+  const initialOption = optionList.find((opt) => opt.text === selectedValue) || optionList[0];
+
+  const button = createElement('button', {
+    class: 'products-selector-button',
+    'aria-haspopup': 'listbox',
+    'aria-expanded': false,
+    type: 'button',
+  });
+
+  button.textContent = initialOption.label;
+  button.dataset.value = initialOption.text;
+  if (initialOption.contract) {
+    button.dataset.contract = initialOption.contract;
+  }
+
+  const check = createElement('img', {
+    src: '/aemedge/icons/check.svg',
+    alt: 'Selected',
+    class: 'current-product-check',
+  });
+
+  const productsList = createElement('ul', { class: 'products-selector-options', role: 'listbox' });
+
+  optionList.forEach((option) => {
+    const li = createElement('li', { class: 'product-item', role: 'presentation' });
+    const optionButton = createElement('button', {
+      type: 'button',
+      text: option.label,
+      class: 'option-anchor',
+      role: 'option',
+    });
+
+    optionButton.textContent = option.label;
+    optionButton.dataset.value = option.text;
+    if (option.contract) {
+      optionButton.dataset.contract = option.contract;
+    }
+
+    optionButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleOptionSelection(option, button, dropdownElement, onSelect);
+    });
+
+    if (option.text === initialOption.text) {
+      optionButton.prepend(check);
+    }
+
+    li.appendChild(optionButton);
+    productsList.appendChild(li);
+  });
+
+  const dropdownMenu = createElement('div', {
+    class: 'products-selector-dropdown',
+    'aria-labelledby': 'products-selector-button',
+  }, productsList);
+
+  button.addEventListener('click', toggleProductsSelector);
+  document.addEventListener('click', closeOnDocClick);
+
+  dropdownElement.append(button, dropdownMenu);
+  return dropdownElement;
+}
+
+export async function getOptionSettlements(
+  optionProductId,
+  optionExpiration,
+  tradeDate,
+  contractId,
+) {
+  try {
+    const url = `${urlByEnvType()}${API_CONFIG.optionSettlementsEndpoint}/${optionProductId}/OOF?strategy=DEFAULT&optionProductId=${optionProductId}&monthYear=${contractId}&optionExpiration=${optionExpiration}&tradeDate=${tradeDate}&pageSize=500`;
+    const settlementsResponse = getResponseData(await apiGet(url));
+    let { settlements = [] } = settlementsResponse;
+    if (Array.isArray(settlements) && settlements.length) {
+      const totals = settlements.find(({ strike } = {}) => strike === 'Total');
+      settlements = settlements.filter(({ strike } = {}) => strike !== 'Total');
+      const settlementsStraddle = settlements.reduce((acc, curr = {}) => {
+        const { strike, type } = curr;
+        let option = acc.find(({ strike: s }) => s === strike);
+        if (!option) {
+          option = {
+            strike,
+            call: {},
+            put: {},
+          };
+          acc.push(option);
+        }
+        option[type.toLowerCase()] = curr;
+        return acc;
+      }, []);
+
+      const finalData = (data) => {
+        const singleStrikeList = data.reduce((acc, item) => {
+          if (isEmpty(item.call) || isEmpty(item.put)) {
+            acc[item.strike] = item.strike;
+          }
+          return acc;
+        }, {});
+
+        const addEmptyValues = (response, strikeVal) => {
+          const found = response.find((el) => el.strike === strikeVal);
+          const needsCall = isEmpty(found?.call);
+          const noDataObj = {
+            change: '0',
+            high: '-',
+            last: '-',
+            low: '-',
+            open: '-',
+            openInterest: '0',
+            settle: '-',
+            volume: '0',
+          };
+          if (found) {
+            found[needsCall ? 'call' : 'put'] = noDataObj;
+          }
+          return response;
+        };
+
+        // eslint-disable-next-line no-restricted-syntax
+        for (const key in singleStrikeList) {
+          if (key !== 'Total') {
+            addEmptyValues(data, key);
+          }
+        }
+        return data;
+      };
+      return {
+        ...settlementsResponse,
+        totals,
+        settlements,
+        settlementsStraddle: finalData(settlementsStraddle),
+      };
+    }
+    return {
+      ...settlementsResponse,
+      totals: {},
+      settlements: [],
+      settlementsStraddle: [],
+    };
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('SettlementsService => getOptionSettlements error:', e);
+    return {
+      totals: {},
+      settlements: [],
+      settlementsStraddle: [],
+    };
+  }
+}
 export async function getVolumeLastTotals(
   productId,
   days = 15,

@@ -1,12 +1,13 @@
 import { readBlockConfig } from '../../scripts/utils.js';
+import { urlByEnvType } from '../../scripts/utils/index.js';
 
 export default async function decorate(block) {
   const blockConfig = readBlockConfig(block);
 
   // Allowlist of permitted iframe sources
   const ALLOWED_HOSTS = [
+    urlByEnvType({ schemaless: true }),
     'www.google.com',
-    'www.cmegroup.com',
     'cmeg.co1.qualtrics.com',
     'html5-player.libsyn.com',
   ];
