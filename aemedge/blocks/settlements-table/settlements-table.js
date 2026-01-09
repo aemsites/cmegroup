@@ -8,7 +8,7 @@ import {
   getTradeDateAndExpirations,
   createProductsDropdown,
   getOptionSettlements,
-  scrollToTop,
+  handleScrollTop,
   buildNoResultErrorAlert,
 } from '../../scripts/utils/product.js';
 import { createElement, i18n, setupDayjsLibs } from '../../scripts/utils.js';
@@ -596,8 +596,8 @@ async function createLoadAllWrapper(block) {
   const loadAllWrapper = createElement('div', { class: 'load-all-wrapper' });
   const [
     loadAll,
-    AboutThisReport,
-    ReturnToTop,
+    aboutThisReport,
+    returnToTop,
     disclaimer,
   ] = await Promise.all([
     i18n('Load All'),
@@ -615,12 +615,13 @@ async function createLoadAllWrapper(block) {
 
   // Add "About this Report" link
   const aboutLink = createElement('p', { class: 'about-report-wrapper' });
-  aboutLink.innerHTML = `<a href="#" class="about-report-link">${AboutThisReport}</a>`;
+  aboutLink.innerHTML = `<a href="#" class="about-report-link">${aboutThisReport}</a>`;
   loadAllWrapper.append(aboutLink);
 
   // Add scroll to top link
-  const scrollToTopLink = createElement('p', { class: 'scroll-to-top-wrapper' });
-  scrollToTopLink.innerHTML = `<a href="#" class="scroll-to-top-link">${ReturnToTop}</a>`;
+  const topLink = createElement('a', { class: 'scroll-to-top-link', href: '#' }, returnToTop);
+  const scrollToTopLink = createElement('p', { class: 'scroll-to-top-wrapper' }, topLink);
+  handleScrollTop(topLink);
   loadAllWrapper.append(scrollToTopLink);
 
   // Add disclaimer
@@ -659,9 +660,6 @@ export default function decorate(block) {
   const fragmentUrl = '/fragments/disclaimers/markets/settlements';
   const modalItemClass = 'about-report-link';
   handleAboutReportModal(block, modalItemClass, fragmentUrl);
-
-  const returnToTopClass = 'scroll-to-top-link';
-  scrollToTop(block, returnToTopClass);
 
   store.subscribe(({ floatingElements }) => floatingElements, ({ height }) => {
     const productTabs = document.querySelector('.product-tabs');
