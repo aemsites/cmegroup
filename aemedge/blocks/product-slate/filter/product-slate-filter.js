@@ -9,11 +9,13 @@ const [
   filterText,
   filtersText,
   applyText,
+  newProductText,
 ] = await Promise.all([
   i18n('Reset'),
   i18n('Filter'),
   i18n('Filters'),
   i18n('Apply'),
+  i18n('New Products Only'),
 ]);
 
 function getFiltersFromURL() {
@@ -27,14 +29,14 @@ function getFiltersFromURL() {
     venues: params.get('venues') ? params.get('venues').split(',') : [],
     exch: params.get('exch') ? params.get('exch').split(',') : [],
     cleared: params.get('cleared')
-      ? params
-        .get('cleared')
-        .split(',')
+      ? params.get('cleared').split(',')
       : [],
     searchTerm: params.get('search') || '',
     tags: params.get('tags') === '1',
     sortField: params.get('sortField') || '',
     sortDirection: params.get('sortDirection') || '',
+    cat: params.get('cat') ? params.get('cat').split(',') : [],
+    subCat: params.get('subCat') ? params.get('subCat').split(',') : [],
   };
 }
 
@@ -130,6 +132,8 @@ function buildFiltersObject(
   searchTerm,
   checkboxValue,
   groupData = null,
+  catSelections = [],
+  subCatSelections = [],
 ) {
   const filters = {
     group: [],
@@ -138,6 +142,8 @@ function buildFiltersObject(
     exch: [],
     cleared: [],
     searchTerm: searchTerm || '',
+    cat: catSelections,
+    subCat: subCatSelections,
   };
 
   if (
@@ -212,12 +218,22 @@ export default function createFilter(options, filterConfig = {}) {
     cleared: filterConfig.cleared !== false,
     search: filterConfig.search !== false,
     tags: filterConfig.tags !== false,
+    cat: filterConfig.cat !== false,
+    subCat: filterConfig.subCat !== false,
   };
 
   let isDesktop = window.innerWidth >= 769;
   let currentSearchTerm = '';
   let checkboxValue = false;
   let pillsContainer;
+  let catSelections = [];
+  let subCatSelections = [];
+  let catCheckboxFilter = null;
+  let subCatCheckboxFilter = null;
+  let allCategories = options.cat || [];
+  let allSubCategories = options.subCat || [];
+  let lastCategories = [];
+  let lastSubCategories = [];
 
   const groupData = options.group || [];
 
@@ -250,6 +266,7 @@ export default function createFilter(options, filterConfig = {}) {
   const filterRow = createElement('div', { class: 'filter-row' });
   const secondFilterRow = createElement('div', { class: 'filter-row' });
   const searchRow = createElement('div', { class: 'search-row' });
+  const checkboxFiltersContainer = createElement('div', { class: 'checkbox-filters-container' });
 
   const dropdownsContainer = createDropdowns(options, {
     visibleFilters,
@@ -261,16 +278,84 @@ export default function createFilter(options, filterConfig = {}) {
         pillsContainer.syncWithDropdowns(allSelections);
       }
 
-      const filters = buildFiltersObject(
-        allSelections,
-        currentSearchTerm,
-        checkboxValue,
-        groupData,
-      );
-
-      fetchTableData(filters);
+      triggerFetch();
     },
   });
+
+  function triggerFetch() {
+    const allSelections = dropdownsContainer.getSelections();
+    const filters = buildFiltersObject(
+      allSelections,
+      currentSearchTerm,
+      checkboxValue,
+      groupData,
+      catSelections,
+      subCatSelections,
+    );
+    fetchTableData(filters);
+  }
+
+  function updateCheckboxFilters(preserveFocus = false) {
+    const activeElement = preserveFocus ? document.activeElement : null;
+    const activeInputId = activeElement?.closest('li')?.querySelector('input')?.id;
+
+    const catChanged = JSON.stringify(allCategories) !== JSON.stringify(lastCategories);
+    const subCatChanged = JSON.stringify(allSubCategories) !== JSON.stringify(lastSubCategories);
+
+    if (!catChanged && !subCatChanged) {
+      return;
+    }
+
+    lastCategories = [...allCategories];
+    lastSubCategories = [...allSubCategories];
+
+    checkboxFiltersContainer.innerHTML = '';
+    catCheckboxFilter = null;
+    subCatCheckboxFilter = null;
+
+    if (allCategories.length === 0 && allSubCategories.length === 0) {
+      checkboxFiltersContainer.classList.add('hidden');
+      return;
+    }
+
+    checkboxFiltersContainer.classList.remove('hidden');
+
+    if (allCategories.length > 0 && visibleFilters.cat) {
+      catCheckboxFilter = createCheckbox({
+        items: allCategories,
+        fieldName: 'cat',
+        selected: catSelections,
+        onChange: (fieldName, selected) => {
+          catSelections = selected;
+          triggerFetch();
+        },
+      });
+      checkboxFiltersContainer.appendChild(catCheckboxFilter);
+    }
+
+    if (allSubCategories.length > 0 && visibleFilters.subCat) {
+      subCatCheckboxFilter = createCheckbox({
+        items: allSubCategories,
+        fieldName: 'subCat',
+        selected: subCatSelections,
+        onChange: (fieldName, selected) => {
+          subCatSelections = selected;
+          triggerFetch();
+        },
+      });
+      checkboxFiltersContainer.appendChild(subCatCheckboxFilter);
+    }
+
+    if (activeInputId) {
+      const inputToFocus = checkboxFiltersContainer.querySelector(`#${activeInputId}`);
+      if (inputToFocus) {
+        const liToFocus = inputToFocus.closest('li');
+        if (liToFocus) {
+          liToFocus.focus();
+        }
+      }
+    }
+  }
 
   pillsContainer = createFilterPillsFromDropdowns(dropdownsContainer, {
     hideWhenEmpty: true,
@@ -280,31 +365,16 @@ export default function createFilter(options, filterConfig = {}) {
         const allSelections = dropdownsContainer.getSelections();
         pillsContainer.clear();
         pillsContainer.syncWithDropdowns(allSelections);
-
-        const filters = buildFiltersObject(
-          allSelections,
-          currentSearchTerm,
-          checkboxValue,
-          groupData,
-        );
-
-        fetchTableData(filters);
+        triggerFetch();
       }
     },
   });
 
   const checkbox = visibleFilters.tags ? createCheckbox({
+    label: newProductText,
     onChange: (isChecked) => {
       checkboxValue = isChecked;
-
-      const allSelections = dropdownsContainer.getSelections();
-      const filters = buildFiltersObject(
-        allSelections,
-        currentSearchTerm,
-        checkboxValue,
-        groupData,
-      );
-      fetchTableData(filters);
+      triggerFetch();
     },
   }) : null;
 
@@ -317,14 +387,8 @@ export default function createFilter(options, filterConfig = {}) {
   const debouncedFetch = debounce((value) => {
     if (isResetting) return;
 
-    const allSelections = dropdownsContainer.getSelections();
-    const filters = buildFiltersObject(
-      allSelections,
-      value,
-      checkboxValue,
-      groupData,
-    );
-    fetchTableData(filters);
+    currentSearchTerm = value;
+    triggerFetch();
   }, 500);
 
   const customSearch = visibleFilters.search ? createSearchInput({
@@ -335,14 +399,7 @@ export default function createFilter(options, filterConfig = {}) {
 
     onSearchClick: (value) => {
       currentSearchTerm = value;
-      const allSelections = dropdownsContainer.getSelections();
-      const filters = buildFiltersObject(
-        allSelections,
-        value,
-        checkboxValue,
-        groupData,
-      );
-      fetchTableData(filters);
+      triggerFetch();
     },
   }) : null;
 
@@ -364,6 +421,9 @@ export default function createFilter(options, filterConfig = {}) {
       checkbox.reset();
       checkboxValue = false;
     }
+
+    catSelections = [];
+    subCatSelections = [];
 
     const venuesInstance = dropdownsContainer.getDropdownInstance('venues');
     if (venuesInstance) venuesInstance.updateAllCheckboxes();
@@ -400,15 +460,7 @@ export default function createFilter(options, filterConfig = {}) {
     e.preventDefault();
     mainFilters.classList.add('hide-modal');
     mainFilters.classList.remove('show-modal');
-
-    const allSelections = dropdownsContainer.getSelections();
-    const filters = buildFiltersObject(
-      allSelections,
-      currentSearchTerm,
-      checkboxValue,
-      groupData,
-    );
-    fetchTableData(filters);
+    triggerFetch();
   });
 
   if (isDesktop) {
@@ -428,6 +480,23 @@ export default function createFilter(options, filterConfig = {}) {
     }
   });
 
+  window.addEventListener('tableDataUpdated', (e) => {
+    const { data } = e.detail;
+    if (data && data.filters) {
+      allCategories = data.filters.cat || [];
+      allSubCategories = data.filters.subCat || [];
+
+      if (allCategories.length === 0) {
+        catSelections = [];
+      }
+      if (allSubCategories.length === 0) {
+        subCatSelections = [];
+      }
+
+      updateCheckboxFilters();
+    }
+  });
+
   filterBy.appendChild(pillsContainer);
   filter.appendChild(mainFilters);
   mainFilters.appendChild(filtersContent);
@@ -441,6 +510,7 @@ export default function createFilter(options, filterConfig = {}) {
   scrollMobileWrapper.appendChild(filterRow);
   scrollMobileWrapper.appendChild(secondFilterRow);
   secondFilterRow.appendChild(dropdownsContainer);
+  secondFilterRow.appendChild(checkboxFiltersContainer);
   mainFilters.appendChild(applyButton);
   buttonsContainerMobile.appendChild(resetButton);
   buttonsContainerMobile.appendChild(filterButton);
@@ -450,6 +520,8 @@ export default function createFilter(options, filterConfig = {}) {
   filter.appendChild(buttonsContainerMobile);
   filter.appendChild(filterBy);
 
+  updateCheckboxFilters();
+
   filter.getFilters = () => {
     const allSelections = dropdownsContainer.getSelections();
     return buildFiltersObject(
@@ -457,12 +529,13 @@ export default function createFilter(options, filterConfig = {}) {
       currentSearchTerm,
       checkboxValue,
       groupData,
+      catSelections,
+      subCatSelections,
     );
   };
 
   filter.refreshData = () => {
-    const filters = filter.getFilters();
-    fetchTableData(filters);
+    triggerFetch();
   };
 
   filter.resetFilters = () => {
@@ -500,6 +573,20 @@ export default function createFilter(options, filterConfig = {}) {
     if (urlFilters.tags && checkbox) {
       checkboxValue = true;
       checkbox.setChecked(true);
+    }
+
+    if (urlFilters.cat && urlFilters.cat.length > 0) {
+      catSelections = urlFilters.cat;
+      if (catCheckboxFilter) {
+        catCheckboxFilter.setSelected(catSelections);
+      }
+    }
+
+    if (urlFilters.subCat && urlFilters.subCat.length > 0) {
+      subCatSelections = urlFilters.subCat;
+      if (subCatCheckboxFilter) {
+        subCatCheckboxFilter.setSelected(subCatSelections);
+      }
     }
 
     const allSelections = dropdownsContainer.getSelections();

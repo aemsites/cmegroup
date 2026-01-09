@@ -27,6 +27,7 @@ import {
   legacyOpenMarketsTemplates,
   legacyNewsTemplates,
   legacyNoticesTemplates,
+  normalizeLegacyPath,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 import {
@@ -402,7 +403,7 @@ function createDynamicCardNotice(content) {
   cardTitle.innerHTML = title;
   const cardDate = createElement('span', { class: 'cards-date' }, getCdtDate(advisoryNoticeDate).format('DD MMM YYYY'));
   const mainContainer = createElement('div', { class: 'cards-body-container' }, cardTitle, cardDate);
-  const linkEl = createElement('a', { href: path }, mainContainer);
+  const linkEl = createElement('a', { href: normalizeLegacyPath(path) }, mainContainer);
   return createElement('li', null, linkEl);
 }
 
@@ -812,7 +813,7 @@ async function createRecommendedFromService(data, block) {
         class: 'cards-card-image',
       });
       const imgSrc = item.image_uri;
-      imageDiv.style.backgroundImage = imgSrc ? `url('https://www.cmegroup.com/${imgSrc}')` : fallbackImage;
+      imageDiv.style.backgroundImage = imgSrc ? `url('${urlByEnvType()}/${imgSrc}')` : fallbackImage;
 
       const link = createElement('a', { href: params ? `${item.uri}?${params}` : item.uri });
 
@@ -888,7 +889,7 @@ async function createRecommendedFromService(data, block) {
 
 async function createRecommendedCards(block) {
   const blockData = block.cloneNode(true);
-  const { limit } = readBlockConfig(block);
+  const { limit, size } = readBlockConfig(block);
   block.textContent = '';
   block.appendChild(createSpinner());
   let dataAi = [];
@@ -896,7 +897,7 @@ async function createRecommendedCards(block) {
 
   try {
     const { getRecommendationAi } = await import('../../scripts/services/RecommendationAiService.js');
-    dataAi = await getRecommendationAi();
+    dataAi = await getRecommendationAi(size);
 
     if (dataAi && dataAi.length > 0) {
       const result = limit ? dataAi.slice(0, limit) : dataAi;

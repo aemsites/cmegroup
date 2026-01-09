@@ -8,6 +8,7 @@ import {
   handleAboutReportModal,
   buildCollapsible,
   buildLoadAllButton,
+  buildNoResultErrorAlert,
 } from '../../scripts/utils/product.js';
 import { createAuthTooltip } from '../../scripts/utils/authTooltip.js';
 import { createElement, i18n } from '../../scripts/utils.js';
@@ -217,7 +218,7 @@ async function createOptionsTable(optionProductId) {
   return calendarWrapper;
 }
 
-async function createDownloadBtn(productId, isOptions, optionProductId) {
+async function createDownloadBtn(productId, isOptions, optionProductId, enabled) {
   const titleWrapper = document.querySelector('.product-tab-title');
   const downloadLink = productId && isLoggedIn
     ? `${urlByEnvType()}/CmeWS/mvc/ProductCalendar/Download.xls?productId=`
@@ -231,9 +232,16 @@ async function createDownloadBtn(productId, isOptions, optionProductId) {
     i18n('Download Data'),
     i18n('An account is required to download calendar file data'),
   ]);
+  const classes = [];
+  if (!isLoggedIn) {
+    classes.push('inactive');
+  }
+  if (!enabled) {
+    classes.push('disabled');
+  }
   const authTooltipProps = {
     color: 'primary',
-    className: !isLoggedIn && 'inactive',
+    classNames: classes,
     href: downloadLink,
     icon: !isLoggedIn && 'icon-lock',
     tooltipText: accountRequiredLabel,
@@ -260,12 +268,7 @@ async function renderTable(block) {
   const productId = productMetadata.productId || getMetadata('product-id');
 
   if (!productId) {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Unable to load calendar</h4>
-        <p>Product ID not found.</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('calendar'));
     return;
   }
 
@@ -283,16 +286,12 @@ async function renderTable(block) {
       if (table) {
         block.innerHTML = '';
         block.appendChild(table);
-        createDownloadBtn(productId, isOptions, optionProductId);
+        createDownloadBtn(productId, isOptions, optionProductId, true);
         loadAll = await createLoadAllWrapper(block);
         block.append(loadAll);
       } else {
-        block.innerHTML = `
-          <div class="no-results">
-            <h4>Unable to load options calendar</h4>
-            <p>Options data is currently unavailable.</p>
-          </div>
-        `;
+        createDownloadBtn(productId, isOptions, optionProductId, false);
+        block.replaceChildren(buildNoResultErrorAlert('calendar'));
       }
     } else {
       // Futures mode
@@ -301,25 +300,17 @@ async function renderTable(block) {
       if (table) {
         block.innerHTML = '';
         block.appendChild(table);
-        createDownloadBtn(productId, isOptions, optionProductId);
+        createDownloadBtn(productId, isOptions, optionProductId, true);
         loadAll = await createLoadAllWrapper(block);
         block.append(loadAll);
       } else {
-        block.innerHTML = `
-          <div class="no-results">
-            <h4>Unable to load futures calendar</h4>
-            <p>Calendar data is currently unavailable.</p>
-          </div>
-        `;
+        createDownloadBtn(productId, isOptions, optionProductId, false);
+        block.replaceChildren(buildNoResultErrorAlert('calendar'));
       }
     }
   } catch (error) {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading calendar data</h4>
-        <p>${error.message}</p>
-      </div>
-    `;
+    createDownloadBtn(productId, isOptions, optionProductId, false);
+    block.replaceChildren(buildNoResultErrorAlert('calendar', error.message));
   }
 }
 
@@ -352,7 +343,7 @@ export default function decorate(block) {
     authenticationData.loginPromise.then(() => {
       if (authenticationData.isLoggedIn) {
         isLoggedIn = true;
-        createDownloadBtn(productId, isOptions, optionProductId);
+        createDownloadBtn(productId, isOptions, optionProductId, false);
       }
     });
   });
@@ -361,12 +352,7 @@ export default function decorate(block) {
   block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
   renderTable(block).catch((error) => {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading calendar data</h4>
-        <p>${error.message}</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('calendar', error.message));
   });
 
   const fragmentUrl = '/fragments/disclaimers/markets/calendar';
