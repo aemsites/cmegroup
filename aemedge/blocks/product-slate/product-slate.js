@@ -83,9 +83,10 @@ function buildServiceParams(
     venues: filters.venues && filters.venues.length > 0 ? filters.venues.join(',') : '',
     exch: filters.exch && filters.exch.length > 0 ? filters.exch.join(',') : '',
     cleared: filters.cleared && filters.cleared.length > 0 ? filters.cleared.join(',') : '',
+    cat: filters.cat && filters.cat.length > 0 ? filters.cat.join(',') : '',
+    subCat: filters.subCat && filters.subCat.length > 0 ? filters.subCat.join(',') : '',
     search: filters.searchTerm || '',
     tags: filters.tags,
-    exactMatchFirst: true,
   };
 }
 
@@ -117,6 +118,14 @@ function buildURLParams(filters, sortState, defaultSortField, defaultSortDirecti
 
   if (filters.cleared && filters.cleared.length > 0) {
     urlParamsArray.push(`cleared=${filters.cleared.join(',')}`);
+  }
+
+  if (filters.cat && filters.cat.length > 0) {
+    urlParamsArray.push(`cat=${filters.cat.join(',')}`);
+  }
+
+  if (filters.subCat && filters.subCat.length > 0) {
+    urlParamsArray.push(`subCat=${filters.subCat.join(',')}`);
   }
 
   if (filters.tags === 1) {
@@ -194,7 +203,6 @@ function createResetFunction(tableManager, config, defaultPageSize) {
         cleared: '',
         search: '',
         tags: '',
-        exactMatchFirst: true,
       }))
       .then((response) => {
         window.dispatchEvent(
@@ -235,7 +243,6 @@ function fetchInitialData(initialSortField, initialSortDirection, defaultPageSiz
     cleared: urlParams.get('cleared') || '',
     search: urlParams.get('search') || '',
     tags: urlParams.get('tags') || '',
-    exactMatchFirst: true,
   });
 }
 
