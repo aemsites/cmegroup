@@ -199,9 +199,18 @@ async function createStaticCards(block) {
     ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
     cardsContainer.append(ul);
   } else if (block.classList.contains('blue-divider')) {
-    const parent = cardsContainer.parentElement;
-    parent.removeChild(cardsContainer);
-    cardsContainer.append(block);
+    [...block.children].forEach((row) => {
+      const rowChildren = [...row.children];
+      row.className = 'card';
+      if (rowChildren.length === 3) {
+        block.classList.add('blue1-background');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'columns';
+        wrapper.append(rowChildren[1], rowChildren[2]);
+        row.append(wrapper);
+      }
+      cardsContainer.append(row);
+    });
   } else {
     const ul = document.createElement('ul');
     const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
