@@ -876,7 +876,7 @@ export async function getOptionSettlements(
   contractId,
 ) {
   try {
-    const url = `${API_CONFIG.optionSettlementsEndpoint}/${optionProductId}/OOF?strategy=DEFAULT&optionProductId=${optionProductId}&monthYear=${contractId}&optionExpiration=${optionExpiration}&tradeDate=${tradeDate}&pageSize=500`;
+    const url = `${urlByEnvType()}${API_CONFIG.optionSettlementsEndpoint}/${optionProductId}/OOF?strategy=DEFAULT&optionProductId=${optionProductId}&monthYear=${contractId}&optionExpiration=${optionExpiration}&tradeDate=${tradeDate}&pageSize=500`;
     const settlementsResponse = getResponseData(await apiGet(url));
     let { settlements = [] } = settlementsResponse;
     if (Array.isArray(settlements) && settlements.length) {
