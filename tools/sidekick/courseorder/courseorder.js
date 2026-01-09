@@ -6,6 +6,7 @@
 /* eslint-disable */
 import DA_SDK from 'https://da.live/nx/utils/sdk.js';
 import { DA_ORIGIN } from 'https://da.live/nx/public/utils/constants.js';
+import { getEDSSegment, getOrigin } from '../../../aemedge/scripts/utils/index.js'
 
 class CourseOrganiser {
   constructor(context, token, daFetch) {
@@ -130,8 +131,9 @@ class CourseOrganiser {
    */
   async fetchPageMetadata() {
     try {
+      const branch = getEDSSegment(getOrigin(), 'branch') || 'main';
       // Construct the page URL
-      const pageUrl = `https://main--${this.context.repo}--${this.context.org}.aem.page${this.currentPath}`;
+      const pageUrl = `https://${branch}--${this.context.repo}--${this.context.org}.aem.page${this.currentPath}`;
       console.log('Fetching order metadata from:', pageUrl);
       // Fetch the page
       const response = await fetch(pageUrl);
