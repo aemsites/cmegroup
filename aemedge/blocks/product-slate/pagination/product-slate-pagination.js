@@ -28,7 +28,7 @@ export default async function createPagination(options = {}) {
   const renderPagination = () => {
     div.innerHTML = '';
 
-    const maxVisible = isDesktop ? 5 : 4;
+    const maxVisible = isDesktop ? 4 : 3;
 
     const firstLi = createElement('div', { class: currentPage === 1 ? 'controls page-item disabled' : 'controls page-item' });
     const firstButton = createElement('button', { class: 'page-link', 'aria-label': 'First' });

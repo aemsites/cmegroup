@@ -12,7 +12,7 @@
           display: flex;
           justify-content: space-between;
           flex-direction: column;
-          margin: 1.875rem 0 0.9375rem;
+          margin-bottom: 0.9375rem;
 
           @media (width >= 769px) {
             align-items: center;
