@@ -25,7 +25,7 @@ export function createAuthTooltip(props, children, handleRegister) {
     icon,
     href,
     isLoggedIn,
-    className,
+    classNames,
     tooltipClass,
     tooltipText,
     tooltipButtonText,
@@ -38,7 +38,7 @@ export function createAuthTooltip(props, children, handleRegister) {
   anchorElement.setAttribute('rel', 'noopener noreferrer');
   anchorElement.setAttribute('role', 'button');
   anchorElement.setAttribute('id', uniqueId);
-  anchorElement.classList.add('button', color, className);
+  anchorElement.classList.add('button', color, ...classNames);
   const tooltipContentDiv = document.createElement('div');
   tooltipContentDiv.classList.add('tooltip-container', tooltipClass);
   let scrollTimeout;
