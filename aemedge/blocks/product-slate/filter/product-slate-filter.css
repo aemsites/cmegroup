@@ -38,7 +38,7 @@
           overflow-y: scroll;
 
           @media (width >= 481px) {
-            overflow-y: hidden;
+            overflow-y:initial;
           }
 
           & .dropdowns-container {
