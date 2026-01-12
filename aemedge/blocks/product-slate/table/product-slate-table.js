@@ -591,6 +591,12 @@ export async function createManagedProductTable(container, columnConfig = {}, de
 
       loading = false;
       await updateTable();
+
+      const wrapperPaginator = container.querySelector('.wrapper-paginator');
+      if (wrapperPaginator) {
+        const hasProducts = currentProducts && currentProducts.length > 0;
+        wrapperPaginator.classList.toggle('hidden', !hasProducts);
+      }
     }
   });
 

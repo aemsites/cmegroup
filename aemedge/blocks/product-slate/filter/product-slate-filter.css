@@ -14,6 +14,10 @@
     }
 
     & .product-slate-filter {
+      @media (width >= 769px) {
+        margin-bottom: 1.875rem;
+      }
+
       & .main-filters {
         &.show-modal {
           background-color: var(--blue1);
@@ -31,10 +35,6 @@
           height: 100%;
           display: flex;
           flex-direction: column;
-
-          @media (width >= 769px) {
-            margin-bottom: 1.875rem;
-          }
 
           & .dropdowns-container {
             display: flex;
@@ -516,6 +516,10 @@
 
       & .pills-component {
         display: none;
+
+        @media (width >= 769px) {
+          margin-top: 1.875rem;
+        }
 
         & .filter-pills-title {
           color: var(--white);
