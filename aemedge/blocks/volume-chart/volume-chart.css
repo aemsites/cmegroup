@@ -52,9 +52,7 @@
   }
 
   & .legends {
-    @media (width>=993px) {
-      text-align: center;
-    }
+      text-align: left;
 
     & span {
       font-size: 0.75rem;
