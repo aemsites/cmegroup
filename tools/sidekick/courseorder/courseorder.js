@@ -131,7 +131,8 @@ class CourseOrganiser {
    */
   async fetchPageMetadata() {
     try {
-      const branch = getEDSSegment(getOrigin(), 'branch') || 'main';
+      const defaultBranch = this.context.repo !== 'www' ? this.context.repo.replace(/-www/, '') : 'main';
+      const branch = getEDSSegment(getOrigin(), 'branch') || defaultBranch;
       // Construct the page URL
       const pageUrl = `https://${branch}--${this.context.repo}--${this.context.org}.aem.page${this.currentPath}`;
       console.log('Fetching order metadata from:', pageUrl);
