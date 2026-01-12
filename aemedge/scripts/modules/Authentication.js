@@ -1,7 +1,7 @@
 import {
   URIUtil,
   openHiddenIframe,
-  // getEnvType,
+  getEnvType,
   urlByEnvType,
   isCMEEnv,
 } from '../utils/index.js';
@@ -55,13 +55,14 @@ export class Authentication {
 
   initialize() {
     const loginProcessUrl = `${window.location.origin}/login-confirmed${isCMEEnv() ? '.html' : ''}`;
-    // ToDo: the following urls must be updated before going live
-    this.loginUrl = `http://authnr.cmegroup.com/idp/startSSO.ping?PartnerSpId=${urlByEnvType()}&TARGET=${loginProcessUrl}`;
-    this.registerUrl = 'https://loginnr.cmegroup.com/sso/register/';
-    this.logoutProfileUrl = 'https://myprofilenr.cmegroup.com/admin/ssoflo';
-    // this.loginUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping?PartnerSpId=https://main--preview-www--cmegroup.aem.page&TARGET=${loginProcessUrl}`;
-    // this.registerUrl = `https://login${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/sso/register/`;
-    // this.logoutProfileUrl = `https://myprofile${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/admin/ssoflo`;
+    const authUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping`;
+    const authUrlParams = new URLSearchParams({
+      PartnerSpId: getEnvType() !== 'prod' ? urlByEnvType() : 'https%3A%2F%2Fmain-www%E2%80%93cmegroup.aem.live',
+      TARGET: loginProcessUrl,
+    });
+    this.loginUrl = `${authUrl}?${authUrlParams.toString()}`;
+    this.registerUrl = `https://login${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/sso/register/`;
+    this.logoutProfileUrl = `https://myprofile.${getEnvType() !== 'prod' ? 'uat' : 'prod'}.cmegroup.com/admin/ssoflo`;
     this.isMobileLogin = false;
     this.schemaForMobile = '';
     this.isProtectedPage = false;
@@ -450,6 +451,10 @@ export class Authentication {
       if (redirectionCookie?.flow === 'logout') {
         this.resolveLoginPromise();
         this.checkRedirection(redirectionCookie);
+        return false;
+      }
+      if (document.referrer === 'https://login.cmegroup.com/') {
+        this.login(window.location.href);
         return false;
       }
       const xAuthToken = this.uriUtil.getQuery('X-Auth-Token');
