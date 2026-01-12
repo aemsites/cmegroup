@@ -21,41 +21,38 @@ export function urlByEnvType(options = {}) {
 }
 
 /**
- * Extract segments from a URL in EDS
+ * Parse an AEM EDS URL and returns all segments
  * @param {string} url - URL format: https://branch--repo--org.aem.live
- * @param {'branch'|'repo'|'org'} segment - Segment to extract
- * @returns {string|null} Requested segment or null if none is found
+ * @returns {Object|null} Object with branch, repo, org, domain or null
  */
-export function getEDSSegment(url, segment) {
-  try {
-    const regex = /https?:\/\/([^-]+(?:--[^-]+)?)--([^-]+)--([^.]+)\.aem\.(live|page)/;
-    const match = url.match(regex);
+export function parseEDSUrl(url) {
+  const regex = /https?:\/\/(.+?)--(.+?)--([^.]+)\.aem\.(live|page)/;
+  const match = url.match(regex);
 
-    if (!match) {
-      // eslint-disable-next-line no-console
-      console.warn('URL not matching expected format:', url);
-      return null;
-    }
-
-    const segmentMap = {
-      branch: match[1],
-      repo: match[2],
-      org: match[3],
-      domain: match[4],
-    };
-
-    if (!Object.prototype.hasOwnProperty.call(segmentMap, segment)) {
-      // eslint-disable-next-line no-console
-      console.warn(`Segment '${segment}' invalid. Use: branch, repo, org`);
-      return null;
-    }
-
-    return segmentMap[segment];
-  } catch (error) {
+  if (!match) {
     // eslint-disable-next-line no-console
-    console.error('Error while parsing URL:', error);
+    console.warn('URL not matching expected format:', url);
     return null;
   }
+
+  return {
+    branch: match[1],
+    repo: match[2],
+    org: match[3],
+    domain: match[4],
+    full: match[0],
+  };
+}
+
+/**
+ * Extract a specific segment from an AEM EDS URL
+ * @param {string} url - URL format: https://branch--repo--org.aem.live
+ * @param {'branch'|'repo'|'org'|'domain'} segment - Segment type
+ * @returns {string|null} Requested segment
+ */
+export function getEDSSegment(url, segment) {
+  const parsed = parseEDSUrl(url);
+  return parsed ? parsed[segment] || null : null;
 }
 
 /**
