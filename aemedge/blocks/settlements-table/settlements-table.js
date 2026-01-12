@@ -128,7 +128,7 @@ async function createTradesWrapper(block, productId, optionProductId, isOptions)
     if (isOptions) {
       createTradeDateDropdown(block, targetTradeDate, optionExpiration, optionProductId, isOptions);
     } else {
-      loadSettlements(block, optionProductId, isOptions);
+      loadSettlements(block, productId, isOptions);
     }
   };
 
@@ -156,7 +156,7 @@ async function createTradesWrapper(block, productId, optionProductId, isOptions)
       isOptions,
     );
   } else {
-    loadSettlements(block, optionProductId, isOptions);
+    loadSettlements(block, productId, isOptions);
   }
 }
 
