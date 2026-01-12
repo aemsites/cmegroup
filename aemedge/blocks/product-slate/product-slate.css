@@ -2,6 +2,12 @@
 @import url("./table/product-slate-table.css");
 @import url("./pagination/product-slate-pagination.css");
 
+body {
+  &:has(.section.product-slate-container .show-modal) {
+    overflow-y: hidden;
+  }
+}
+
 .section.product-slate-container {
   & .component-spinner {
     display: inline-block;
