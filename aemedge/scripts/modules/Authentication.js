@@ -55,9 +55,12 @@ export class Authentication {
 
   initialize() {
     const loginProcessUrl = `${window.location.origin}/login-confirmed${isCMEEnv() ? '.html' : ''}`;
-    this.loginUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping?PartnerSpId=
-      ${getEnvType() !== 'prod' ? urlByEnvType() : 'https%3A%2F%2Fmain--www%E2%80%93cmegroup.aem.live'}
-      &TARGET=${loginProcessUrl}`;
+    const authUrl = `http://auth${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/idp/startSSO.ping`;
+    const authUrlParams = new URLSearchParams({
+      PartnerSpId: getEnvType() !== 'prod' ? urlByEnvType() : 'https%3A%2F%2Fmain-www%E2%80%93cmegroup.aem.live',
+      TARGET: loginProcessUrl,
+    });
+    this.loginUrl = `${authUrl}?${authUrlParams.toString()}`;
     this.registerUrl = `https://login${getEnvType() !== 'prod' ? 'nr' : ''}.cmegroup.com/sso/register/`;
     this.logoutProfileUrl = `https://myprofile.${getEnvType() !== 'prod' ? 'uat' : 'prod'}.cmegroup.com/admin/ssoflo`;
     this.isMobileLogin = false;
