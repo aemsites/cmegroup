@@ -23,6 +23,7 @@ const API_CONFIG = {
   calendarOptionsEndpoint: '/CmeWS/mvc/ProductCalendar/Options',
   tradeDateAndExpirationsEndpoint: '/CmeWS/mvc/Settlements/Options/TradeDateAndExpirations',
   optionSettlementsEndpoint: '/CmeWS/mvc/Settlements/Options/Settlements',
+  futureSettlementsEndpoint: '/CmeWS/mvc/Settlements/Futures/Settlements',
   quotesEndpoint: '/CmeWS/mvc/quotes/v2',
   volumeLastTotalsEndpoint: '/CmeWS/mvc/Volume',
 };
@@ -869,6 +870,36 @@ export function createProductsDropdown(optionList, selectedValue, onSelect) {
   return dropdownElement;
 }
 
+export async function getFutureSettlements(
+  productId,
+  tradeDate,
+) {
+  try {
+    const url = `${urlByEnvType()}${API_CONFIG.futureSettlementsEndpoint}/${productId}/FUT?strategy=DEFAULT&tradeDate=${tradeDate}&pageSize=500`;
+    const settlementsResponse = getResponseData(await apiGet(url));
+    const { settlements = [] } = settlementsResponse;
+    if (Array.isArray(settlements) && settlements.length) {
+      return {
+        ...settlementsResponse,
+        totals: settlements.find(({ month }) => month === 'Total'),
+        settlements: settlements.filter(({ month }) => month !== 'Total'),
+      };
+    }
+    return {
+      ...settlementsResponse,
+      totals: {},
+      settlements: [],
+    };
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('SettlementsService => getFutureSettlements error:', e);
+    return {
+      totals: {},
+      settlements: [],
+    };
+  }
+}
+
 export async function getOptionSettlements(
   optionProductId,
   optionExpiration,
@@ -955,6 +986,7 @@ export async function getOptionSettlements(
     };
   }
 }
+
 export async function getVolumeLastTotals(
   productId,
   days = 15,

@@ -8,6 +8,7 @@ import {
   getTradeDateAndExpirations,
   createProductsDropdown,
   getOptionSettlements,
+  getFutureSettlements,
   handleScrollTop,
   buildNoResultErrorAlert,
 } from '../../scripts/utils/product.js';
@@ -24,6 +25,9 @@ const tradeDateWrapper = createElement('div', { class: 'trade-date-wrapper' });
 const tableStraddle = createElement('table', { class: 'table-settlement table-straddle-settlement' });
 const tableList = createElement('table', { class: 'table-settlement table-list-settlement' });
 const tableContainer = createElement('div', { class: 'table-settlement-container straddle' });
+
+const tableFuture = createElement('table', { class: 'table-settlement table-future-settlement' });
+
 const windowWidth = window.innerWidth;
 let isMobile = windowWidth <= 992;
 let isMid = windowWidth > 992 && windowWidth <= 1600;
@@ -32,18 +36,26 @@ let tradeDate;
 let labels;
 let contractId;
 
-async function loadSettlements(block, productId) {
+async function loadSettlements(block, productId, isOptions) {
   let table = null;
   let loadAll;
 
-  const tableDate = await getOptionSettlements(
-    productId,
-    optionExpiration,
-    tradeDate,
-    contractId,
-  );
+  if (isOptions) {
+    const tableDate = await getOptionSettlements(
+      productId,
+      optionExpiration,
+      tradeDate,
+      contractId,
+    );
+    table = await createSettlementTable(tableDate, isOptions);
+  } else {
+    const tableDate = await getFutureSettlements(
+      productId,
+      tradeDate,
+    );
+    table = await createSettlementTable(tableDate, isOptions);
+  }
 
-  table = await createOptionsTable(tableDate);
   if (table) {
     block.innerHTML = '';
     block.appendChild(table);
@@ -55,7 +67,13 @@ async function loadSettlements(block, productId) {
 }
 
 /* create trade date dropdown */
-async function createTradeDateDropdown(block, expirationsOptions, expiration, optionProductId) {
+async function createTradeDateDropdown(
+  block,
+  expirationsOptions,
+  expiration,
+  optionProductId,
+  isOptions,
+) {
   tradeDateWrapper.innerHTML = '';
   const selectedExpirationGroup = expirationsOptions.expirations.find(
     (option) => option.text === expiration,
@@ -70,7 +88,7 @@ async function createTradeDateDropdown(block, expirationsOptions, expiration, op
 
   const handleTradeDateChange = (selectedTradeDate) => {
     tradeDate = selectedTradeDate.text;
-    loadSettlements(block, optionProductId);
+    loadSettlements(block, optionProductId, isOptions);
   };
 
   if (tradeDateOptions.length > 0) {
@@ -87,16 +105,16 @@ async function createTradeDateDropdown(block, expirationsOptions, expiration, op
     tradeDateWrapper.append(tradeDateLabelP);
     tradeDateWrapper.append(tradeDateDropdown);
     tradeWrapper.append(tradeDateWrapper);
-    loadSettlements(block, optionProductId);
+    loadSettlements(block, optionProductId, isOptions);
   }
 }
 
 /* create Trades wrapper and expiration dropdown */
-async function createTradesWrapper(block, productId, optionProductId) {
+async function createTradesWrapper(block, productId, optionProductId, isOptions) {
   expirationWrapper.innerHTML = '';
   const tradeDateAndExpirations = await getTradeDateAndExpirations(productId);
   const targetTradeDate = tradeDateAndExpirations.find(
-    (item) => item.productId === optionProductId,
+    (item) => item.productId === optionProductId || productId,
   );
   const expirationsOptions = targetTradeDate.expirations.map((item) => ({
     label: item.label,
@@ -107,7 +125,11 @@ async function createTradesWrapper(block, productId, optionProductId) {
   const handleExpirationChange = (selectedExpiration) => {
     optionExpiration = selectedExpiration.text;
     contractId = selectedExpiration.contract;
-    createTradeDateDropdown(block, targetTradeDate, optionExpiration, optionProductId);
+    if (isOptions) {
+      createTradeDateDropdown(block, targetTradeDate, optionExpiration, optionProductId, isOptions);
+    } else {
+      loadSettlements(block, optionProductId, isOptions);
+    }
   };
 
   const expirationDropdown = createProductsDropdown(
@@ -125,7 +147,17 @@ async function createTradesWrapper(block, productId, optionProductId) {
   expirationWrapper.append(expirationDropdown);
   tradeWrapper.append(expirationWrapper);
 
-  createTradeDateDropdown(block, targetTradeDate, expirationsOptions[0].text, optionProductId);
+  if (isOptions) {
+    createTradeDateDropdown(
+      block,
+      targetTradeDate,
+      expirationsOptions[0].text,
+      optionProductId,
+      isOptions,
+    );
+  } else {
+    loadSettlements(block, optionProductId, isOptions);
+  }
 }
 
 function buildOptionStraddleTableDesktop(header, data, isMiddlePoint) {
@@ -407,17 +439,90 @@ function handleViewChange(activeBtn, inactiveBtn, viewType) {
   tableContainer.classList.add(viewType);
 }
 
-async function createOptionsTable(tableDate) {
+function buildFutureTable(header, data) {
+  tableFuture.innerHTML = '';
+  const {
+    month,
+    open,
+    high,
+    low,
+    last,
+    change,
+    settle,
+    estVolume,
+    priorDayOi,
+  } = header;
+
+  const thead = createElement('thead');
+  const headerRow = createElement('tr');
+  
+  // Define the column order to match your example table
+  const subHeaders = [
+    month, open, high, low, last, change, settle, estVolume, priorDayOi
+  ];
+
+  subHeaders.forEach((text) => {
+    const th = createElement('th');
+    th.innerHTML = text;
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  tableFuture.appendChild(thead);
+
+  // 3. Create the Body
+  const tbody = createElement('tbody');
+  
+  data.forEach((item, index) => {
+    const tr = createElement('tr');
+    
+    // Logic for hiding rows if you have a "Load More" feature
+    if (typeof maxRows !== 'undefined' && index >= maxRows && !loadAllAlreadyClicked) {
+      tr.classList.add('hidden-row');
+    }
+
+    // Map data fields to match the header order
+    // Note: I'm using the property names commonly found in futures data objects
+    const cells = [
+      item.month || item.contract,
+      item.open,
+      item.high,
+      item.low,
+      item.last,
+      item.change,
+      item.settle,
+      item.volume || item.estVolume,
+      item.openInterest || item.priorDayOi
+    ];
+
+    cells.forEach((content) => {
+      const td = createElement('td');
+      td.innerHTML = content !== undefined && content !== null ? content : '-';
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  tableFuture.appendChild(tbody);
+
+  needShowAll = data.length > maxRows;
+  if (needShowAll && !loadAllAlreadyClicked) tableStraddle.classList.add('table-fade');
+
+  return tableFuture;
+}
+
+async function createSettlementTable(tableDate, isOptions) {
   const productMetadata = await getProductMetadata();
   const productId = productMetadata.productId || getMetadata('product-id');
 
   if (!productId) return null;
 
-  const optionsData = tableDate;
+  const settData = tableDate;
 
-  if (!optionsData || optionsData.length === 0) {
+  if (!settData || settData.length === 0) {
     return null;
   }
+
   const [
     lastUpdated,
     estimatedVolumeTotals,
@@ -434,7 +539,12 @@ async function createOptionsTable(tableDate) {
     i18n('Straddle'),
   ]);
 
-  const { updateTime, totals, settlementsStraddle } = optionsData;
+  const {
+    updateTime,
+    totals,
+    settlementsStraddle,
+    settlements,
+  } = settData;
 
   // timestamp
   const existingDataInformation = settlementWrapper?.querySelector('.data-information');
@@ -483,33 +593,6 @@ async function createOptionsTable(tableDate) {
   totalsInfoRow.appendChild(totalsInfoOpenInterest);
   settlementWrapper.appendChild(totalsInfoRow);
 
-  // view-selector-row
-  const existingViewSelectorRow = settlementWrapper?.querySelector('.view-selector-row');
-  if (existingViewSelectorRow) {
-    existingViewSelectorRow.remove();
-  }
-  const viewSelectorRow = createElement('div', { class: 'view-selector-row' });
-  const optionSwitcher = createElement('div', { class: 'option-switcher' });
-  const label = createElement('span');
-  label.textContent = `${viewLabel}: `;
-  const ul = createElement('ul');
-  const li1 = createElement('li');
-  const btn1 = createElement('button', { type: 'button' });
-  btn1.textContent = `${listLabel}`;
-  li1.appendChild(btn1);
-  const li2 = createElement('li');
-  const btn2 = createElement('button', { type: 'button', class: 'selected' });
-  btn2.textContent = `${straddleLabel}`;
-  li2.appendChild(btn2);
-  ul.appendChild(li1);
-  ul.appendChild(li2);
-  optionSwitcher.appendChild(label);
-  optionSwitcher.appendChild(ul);
-  viewSelectorRow.appendChild(optionSwitcher);
-  settlementWrapper.appendChild(viewSelectorRow);
-  btn1.addEventListener('click', () => handleViewChange(btn1, btn2, 'list'));
-  btn2.addEventListener('click', () => handleViewChange(btn2, btn1, 'straddle'));
-
   const [
     calls,
     puts,
@@ -522,6 +605,8 @@ async function createOptionsTable(tableDate) {
     last,
     settle,
     change,
+    month,
+    estVolume,
   ] = await Promise.all([
     i18n('Calls'),
     i18n('Puts'),
@@ -534,26 +619,72 @@ async function createOptionsTable(tableDate) {
     i18n('Last'),
     i18n('Settle'),
     i18n('Change'),
+    i18n('Month'),
+    i18n('Est. Volume'),
   ]);
 
-  const header = {
-    calls,
-    puts,
-    strikePrice,
-    estVol,
-    priorDayOi,
-    high,
-    low,
-    open,
-    last,
-    settle,
-    change,
-  };
+  if (isOptions) {
+    // view-selector-row
+    const existingViewSelectorRow = settlementWrapper?.querySelector('.view-selector-row');
+    if (existingViewSelectorRow) {
+      existingViewSelectorRow.remove();
+    }
+    const viewSelectorRow = createElement('div', { class: 'view-selector-row' });
+    const optionSwitcher = createElement('div', { class: 'option-switcher' });
+    const label = createElement('span');
+    label.textContent = `${viewLabel}: `;
+    const ul = createElement('ul');
+    const li1 = createElement('li');
+    const btn1 = createElement('button', { type: 'button' });
+    btn1.textContent = `${listLabel}`;
+    li1.appendChild(btn1);
+    const li2 = createElement('li');
+    const btn2 = createElement('button', { type: 'button', class: 'selected' });
+    btn2.textContent = `${straddleLabel}`;
+    li2.appendChild(btn2);
+    ul.appendChild(li1);
+    ul.appendChild(li2);
+    optionSwitcher.appendChild(label);
+    optionSwitcher.appendChild(ul);
+    viewSelectorRow.appendChild(optionSwitcher);
+    settlementWrapper.appendChild(viewSelectorRow);
+    btn1.addEventListener('click', () => handleViewChange(btn1, btn2, 'list'));
+    btn2.addEventListener('click', () => handleViewChange(btn2, btn1, 'straddle'));
 
-  const buildedOptionStraddleTable = buildOptionStraddleTable(header, settlementsStraddle);
-  settlementWrapper.appendChild(buildedOptionStraddleTable);
-  const buildedOptionListTable = buildOptionListTable(header, settlementsStraddle);
-  settlementWrapper.appendChild(buildedOptionListTable);
+    const header = {
+      calls,
+      puts,
+      strikePrice,
+      estVol,
+      priorDayOi,
+      high,
+      low,
+      open,
+      last,
+      settle,
+      change,
+    };
+
+    const buildedOptionStraddleTable = buildOptionStraddleTable(header, settlementsStraddle);
+    settlementWrapper.appendChild(buildedOptionStraddleTable);
+    const buildedOptionListTable = buildOptionListTable(header, settlementsStraddle);
+    settlementWrapper.appendChild(buildedOptionListTable);
+  } else {
+    const header = {
+      month,
+      open,
+      high,
+      low,
+      last,
+      change,
+      settle,
+      estVolume,
+      priorDayOi,
+    };
+
+    const buildedFutureTable = buildFutureTable(header, settlements);
+    settlementWrapper.appendChild(buildedFutureTable);
+  }
 
   return settlementWrapper;
 }
@@ -572,21 +703,12 @@ async function renderTable(block) {
   }
 
   try {
-    if (isOptions) {
-      if (optionProductId && await applyAuthorOverride(block, 'options-product-id', optionProductId)) {
-        return;
-      }
-
-      tradeWrapper.innerHTML = '';
-      await createTradesWrapper(block, productId, optionProductId);
-    } else {
-      // Futures mode
-      block.innerHTML = `
-        <div>
-          <h4>Future settlements table WIP</h4>
-        </div>
-      `;
+    if (isOptions && optionProductId && await applyAuthorOverride(block, 'options-product-id', optionProductId)) {
+      return;
     }
+
+    tradeWrapper.innerHTML = '';
+    await createTradesWrapper(block, productId, optionProductId, isOptions);
   } catch (error) {
     block.replaceChildren(buildNoResultErrorAlert('settlements', error.message));
   }
