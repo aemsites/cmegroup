@@ -6,6 +6,7 @@ import {
   getSpecItemView,
   applyAuthorOverride,
   buildCollapsible,
+  buildNoResultErrorAlert,
 } from '../../scripts/utils/product.js';
 import { createElement, i18n } from '../../scripts/utils.js';
 
@@ -214,12 +215,7 @@ async function renderTable(block) {
   const productId = productMetadata.productId || getMetadata('product-id');
 
   if (!productId) {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Unable to load specs</h4>
-        <p>Product ID not found.</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('contract specs'));
     return;
   }
 
@@ -239,20 +235,10 @@ async function renderTable(block) {
       block.innerHTML = '';
       block.appendChild(table);
     } else {
-      block.innerHTML = `
-        <div class="no-results">
-          <h4>Unable to load specs</h4>
-          <p>specs data is currently unavailable.</p>
-        </div>
-      `;
+      block.replaceChildren(buildNoResultErrorAlert('contract specs'));
     }
   } catch (error) {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading specs data</h4>
-        <p>${error.message}</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('contract specs', error.message));
   }
 }
 
@@ -261,11 +247,6 @@ export default function decorate(block) {
   block.innerHTML = '<div class="spinner-calendar"><div></div><div></div><div></div><div></div></div>';
   loadCSS(`${window.hlx.codeBasePath}/blocks/table/table.css`);
   renderTable(block).catch((error) => {
-    block.innerHTML = `
-      <div class="no-results">
-        <h4>Error loading specs data</h4>
-        <p>${error.message}</p>
-      </div>
-    `;
+    block.replaceChildren(buildNoResultErrorAlert('contract specs', error.message));
   });
 }

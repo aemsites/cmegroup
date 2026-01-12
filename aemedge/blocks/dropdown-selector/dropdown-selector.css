@@ -1,0 +1,135 @@
+.dropdown-selector {
+  position: relative;
+  max-width: max-content;
+  z-index: 10;
+
+  & .dropdown-selector-wrapper {
+    position: relative;
+  }
+
+  & .dropdown-selector-button {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    cursor: pointer;
+    font-family: var(--averta);
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.375rem;
+    padding: 0;
+    text-transform: none;
+    color: var(--white);
+    outline: none;
+    letter-spacing: normal;
+
+    &::after {
+      border-bottom: 0;
+      border-left: 0.3em solid transparent;
+      border-right: 0.3em solid transparent;
+      border-top: 0.3em solid;
+      content: "";
+      display: inline-block;
+      margin-left: 0.255em;
+      align-self: center;
+    }
+
+    &[aria-expanded="true"] {
+      &::after {
+        border-bottom: 0.3em solid;
+        border-left: 0.3em solid transparent;
+        border-right: 0.3em solid transparent;
+        border-top: 0;
+      }
+    }
+
+    &:hover,
+    &:focus {
+      color: var(--blue5);
+      text-decoration: none;
+    }
+
+    &:focus-visible {
+      outline: none;
+    }
+  }
+
+  & .dropdown-selector-dropdown {
+    background-color: var(--gray3);
+    border: 0;
+    border-radius: 0;
+    box-shadow: 0 0.25rem 0.5rem 0 rgb(0 0 0 / 20%);
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.25rem;
+    min-width: 10rem;
+    z-index: 20;
+
+    @media (width >= 769px) {
+      left: auto;
+      right: 0;
+    }
+
+    & .dropdown-selector-title {
+      padding: 0.75rem 0 0 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 700;
+      line-height: 1.25rem;
+      color: var(--white);
+      letter-spacing: normal;
+    }
+
+    & ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      & li {
+        list-style-type: none;
+        margin-bottom: 0;
+
+        &:hover {
+          background-color: var(--blue-active);
+        }
+
+        & a {
+          cursor: pointer;
+          position: relative;
+          background-color: transparent;
+          background-image: none;
+          border: 0;
+          color: var(--white);
+          display: block;
+          font-size: 0.875rem;
+          font-weight: 400;
+          line-height: 1.25rem;
+          padding: 0.313rem 2.375rem 0.313rem 2rem;
+          text-align: left;
+          text-decoration: none;
+          white-space: nowrap;
+
+          &:hover {
+            background-image: none;
+            color: var(--white);
+          }
+
+          &.active,
+          &[aria-current="page"] {
+            &::before {
+              content: "✓";
+              position: absolute;
+              left: 1rem;
+              top: 58%;
+              transform: translateY(-50%);
+              color: var(--blue5);
+              font-size: 1rem;
+              font-weight: 700;
+            }
+          }
+        }
+      }
+    }
+  }
+}
