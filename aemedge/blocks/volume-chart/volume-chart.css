@@ -73,9 +73,7 @@
       }
 
       &:first-child {
-        @media (width>=993px) {
-          margin-left: 1.875rem;
-        }
+        margin-left: 3.75rem;
 
         &::before {
           background-color: var(--blue3);
