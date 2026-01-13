@@ -17,6 +17,8 @@ import {
   i18n,
   convertMMSSToHHMM,
   loadExtraCss,
+  loadScript,
+  toStartCase,
 } from '../../scripts/utils.js';
 import {
   legacyArticleTemplates,
@@ -24,10 +26,14 @@ import {
   isLegacyContent,
   legacyOpenMarketsTemplates,
   legacyNewsTemplates,
+  legacyNoticesTemplates,
+  normalizeLegacyPath,
 } from '../../scripts/legacyContentMapping.js';
 import { wrapImgsInLinks } from '../../scripts/utils/dom.js';
 import {
   urlByEnvType,
+  apiGet,
+  getResponseData,
 } from '../../scripts/utils/index.js';
 import createOptimizedPicture from '../../scripts/utils/picture.js';
 import { getEconomicReleaseEvents } from '../../scripts/services/EconomicReleaseService.js';
@@ -193,6 +199,19 @@ async function createStaticCards(block) {
     });
     ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
     cardsContainer.append(ul);
+  } else if (block.classList.contains('blue-divider')) {
+    [...block.children].forEach((row) => {
+      const rowChildren = [...row.children];
+      row.className = 'card';
+      if (rowChildren.length === 3) {
+        block.classList.add('blue1-background');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'columns';
+        wrapper.append(rowChildren[1], rowChildren[2]);
+        row.append(wrapper);
+      }
+      cardsContainer.append(row);
+    });
   } else {
     const ul = document.createElement('ul');
     const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
@@ -369,6 +388,54 @@ function createDynamicCardUpcomingEvent(content) {
   const datetag = createElement('div', { class: 'card-date' }, getCdtDate(date).format('DD MMM YYYY'));
   const cardBody = createElement('div', { class: 'card-body' }, titletag, datetag);
   const link = createElement('a', { href: url }, cardBody);
+  return createElement('li', null, link);
+}
+
+function createDynamicCardNotice(content) {
+  const {
+    path,
+    title,
+    metadata: {
+      advisoryNoticeDate,
+    },
+  } = content;
+  const cardTitle = createElement('h3');
+  cardTitle.innerHTML = title;
+  const cardDate = createElement('span', { class: 'cards-date' }, getCdtDate(advisoryNoticeDate).format('DD MMM YYYY'));
+  const mainContainer = createElement('div', { class: 'cards-body-container' }, cardTitle, cardDate);
+  const linkEl = createElement('a', { href: normalizeLegacyPath(path) }, mainContainer);
+  return createElement('li', null, linkEl);
+}
+
+function createDynamicCardMarketMover(content) {
+  const {
+    time,
+    url,
+    text,
+    productName,
+    move,
+  } = content;
+  const regTime = getCdtDate(time).fromNow();
+  let encodedUrl = url;
+  try {
+    //  fix encoding
+    encodedUrl = encodeURIComponent(url).replace('.json', '%2Ejson');
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.info(`Error: invalid url parameter value: ${url}`);
+  }
+  const movement = createElement('div', { class: `movement-icon ${move}` });
+  const details = createElement('div', { class: 'details' }, [
+    createElement('div', { class: 'product-name' }, productName),
+    createElement('div', { class: 'product-text' }, text),
+    createElement('div', { class: 'last-update' }, regTime),
+  ]);
+  const link = createElement('a', {
+    class: 'card-body',
+    href: `/market-alerts/details.html?feedURL=${encodedUrl}`,
+    target: '_blank',
+    rel: 'noopener noreferrer',
+  }, movement, details);
   return createElement('li', null, link);
 }
 
@@ -636,6 +703,58 @@ export async function createDynamicCards(block) {
             breakpoint: 993,
             settings: {
               itemWidth: 324,
+            },
+          },
+        ],
+      };
+    }
+  } else if (block.classList.contains('notices')) {
+    const indexFilter = buildIndexFilter(config);
+    if (!indexFilter.templates || indexFilter.templates.length === 0) {
+      indexFilter.templates = legacyNoticesTemplates;
+    }
+    if (!indexFilter.basePaths || indexFilter.basePaths.length === 0) {
+      indexFilter.basePaths = ['/content/cmegroup/en/notices/ser'];
+    }
+    if (!indexFilter.limit) {
+      indexFilter.limit = 4;
+    }
+    if (!indexFilter.orderBy) {
+      indexFilter.orderBy = 'metadata.advisoryNoticeDateISOUTC';
+    }
+    [filteredData] = await Promise.all([
+      getIndexedContent(indexFilter),
+      setupDayjsLibs(),
+    ]);
+    cardElements = filteredData.map(createDynamicCardNotice);
+    disableSliderOnDesktop = true;
+  } else if (block.classList.contains('market-movers')) {
+    const { computeAssetClass } = await import('../../scripts/utils/product.js');
+    const assetClass = computeAssetClass(window.location.pathname);
+    const endpoint = `${urlByEnvType()}/services/market-movers?sector=${toStartCase(assetClass)}`;
+    const [response] = await Promise.all([
+      apiGet(endpoint),
+      setupDayjsLibs(),
+      loadScript('/aemedge/scripts/third-party/dayjs/relativeTime.js'),
+    ]);
+    /* eslint-disable no-undef */
+    dayjs.extend(dayjs_plugin_relativeTime);
+    const data = getResponseData(response, 'results');
+    if (data.length > 0) {
+      cardElements = data.map(createDynamicCardMarketMover);
+      sliderConfig = {
+        slidesToShow: 'auto',
+        slidesToScroll: 1,
+        scrollLock: false,
+        itemWidth: 264,
+        exactWidth: true,
+        draggable: true,
+        duration: 2,
+        responsive: [
+          {
+            breakpoint: 993,
+            settings: {
+              itemWidth: 400,
             },
           },
         ],
