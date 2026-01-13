@@ -2391,6 +2391,11 @@ p.center-img {
   flex-direction: row;
   gap:0.9375rem;
 
+  & .auth-wrapper {
+    padding: 0.75rem;
+    margin: -0.75rem;
+  }
+
   & .slider {
     height: 0.75rem;
     width: 1.625rem;
