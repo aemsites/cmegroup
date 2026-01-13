@@ -204,7 +204,6 @@ async function createStaticCards(block) {
       const rowChildren = [...row.children];
       row.className = 'card';
       if (rowChildren.length === 3) {
-        block.classList.add('blue1-background');
         const wrapper = document.createElement('div');
         wrapper.className = 'columns';
         wrapper.append(rowChildren[1], rowChildren[2]);
