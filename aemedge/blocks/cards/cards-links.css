@@ -101,3 +101,12 @@
     }
   }
 }
+
+& div:has(.cards-wrapper .links.align-bottom) {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+& .cards-wrapper:has(.links.align-bottom) {
+  align-self: flex-end !important;
+}
