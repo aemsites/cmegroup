@@ -68,6 +68,9 @@
     }
 
     &.no-arrows {
+      & h6 {
+        margin-bottom: 0.9375rem;
+      }
       & .cards-card-body {
         & a {
           &::before {
