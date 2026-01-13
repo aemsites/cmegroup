@@ -681,6 +681,7 @@ async function createRecommendedFromService(data, block) {
   const { params } = readBlockConfig(block);
   const blockDiv = createElement('div', {
     class: 'cards recommended-ai block',
+    id: block.id,
   });
   blockDiv.setAttribute('data-block-name', 'cards');
   blockDiv.classList.add(...block.classList);
