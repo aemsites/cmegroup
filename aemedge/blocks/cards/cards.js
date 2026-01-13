@@ -681,6 +681,7 @@ async function createRecommendedFromService(data, block) {
   const { params } = readBlockConfig(block);
   const blockDiv = createElement('div', {
     class: 'cards recommended-ai block',
+    id: block.id,
   });
   blockDiv.setAttribute('data-block-name', 'cards');
   blockDiv.classList.add(...block.classList);
@@ -694,7 +695,7 @@ async function createRecommendedFromService(data, block) {
         class: 'cards-card-image',
       });
       const imgSrc = item.image_uri;
-      imageDiv.style.backgroundImage = imgSrc ? `url('https://www.cmegroup.com/${imgSrc}')` : fallbackImage;
+      imageDiv.style.backgroundImage = imgSrc ? `url('${urlByEnvType()}/${imgSrc}')` : fallbackImage;
 
       const link = createElement('a', { href: params ? `${item.uri}?${params}` : item.uri });
 
@@ -770,7 +771,7 @@ async function createRecommendedFromService(data, block) {
 
 async function createRecommendedCards(block) {
   const blockData = block.cloneNode(true);
-  const { limit } = readBlockConfig(block);
+  const { limit, size } = readBlockConfig(block);
   block.textContent = '';
   block.appendChild(createSpinner());
   let dataAi = [];
@@ -778,7 +779,7 @@ async function createRecommendedCards(block) {
 
   try {
     const { getRecommendationAi } = await import('../../scripts/services/RecommendationAiService.js');
-    dataAi = await getRecommendationAi();
+    dataAi = await getRecommendationAi(size);
 
     if (dataAi && dataAi.length > 0) {
       const result = limit ? dataAi.slice(0, limit) : dataAi;

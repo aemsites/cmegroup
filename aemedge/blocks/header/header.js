@@ -1,5 +1,6 @@
 import { getMetadata } from '../../scripts/aem.js';
 import { createElement, i18n, setupDayjsLibs } from '../../scripts/utils.js';
+import { urlByEnvType } from '../../scripts/utils/index.js';
 
 const IS_OPEN = 'is-open';
 
@@ -235,7 +236,7 @@ class Nav {
       const href = a.getAttribute('href');
       if (href) {
         const isExternal = !href.startsWith('/') && !href.startsWith('#');
-        const isCMEPage = href.includes('www.cmegroup.com');
+        const isCMEPage = href.includes(urlByEnvType({ schemaless: true }));
         const isLogin = href.includes('https://login.cmegroup.com');
         const isCMEDirect = href.includes('https://cmedirect.cmegroup.com');
         if (isExternal && !isCMEPage && !isLogin && !isCMEDirect) {

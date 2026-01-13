@@ -355,7 +355,7 @@ export async function createCourseBaseTemplate(courseData) {
     const type = createElement('div', { class: 'metadata type' });
     type.textContent = lessonLabel;
     const { path: currentPath } = parseCurrentPath();
-    const modules = [{ lessons: courseData.lessons }, ...courseData.chapters];
+    const modules = [{ lessons: courseData.lessons || [] }, ...courseData.chapters];
     // eslint-disable-next-line no-restricted-syntax
     for (const module of modules) {
       const lessonIndex = module.lessons.findIndex(({ path }) => path === currentPath);
