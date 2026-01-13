@@ -4,18 +4,15 @@ import { createSimpleAuthTooltip } from './authTooltip.js';
 
 let loggedIn = false;
 
-function endDrag(e, marker) {
-  e.preventDefault();
-  marker.classList.remove('pressed');
-  document.removeEventListener('mouseup', endDrag);
-  document.removeEventListener('touchend', endDrag);
-}
-
 function startDrag(e, marker) {
-  e.preventDefault();
   marker.classList.add('pressed');
-  document.addEventListener('mouseup', (evt) => endDrag(evt, marker));
-  document.addEventListener('touchend', (evt) => endDrag(evt, marker));
+  const endDrag = () => {
+    marker.classList.remove('pressed');
+    document.removeEventListener('mouseup', endDrag);
+    document.removeEventListener('touchend', endDrag);
+  };
+  document.addEventListener('mouseup', endDrag);
+  document.addEventListener('touchend', endDrag);
 }
 
 function click(e, authSwitch, callback) {
