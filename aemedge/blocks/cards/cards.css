@@ -204,12 +204,12 @@
   }
 }
 
-& div:has(.cards-wrapper .align-bottom) {
+div:has(.cards-wrapper .align-bottom) {
   display: flex;
   flex-wrap: wrap;
 }
 
-& .cards-wrapper:has(.align-bottom) {
+.cards-wrapper:has(.align-bottom) {
   align-self: flex-end !important;
 }
 
