@@ -27,17 +27,22 @@ const tableContainer = createElement('div', { class: 'table-settlement-container
 const windowWidth = window.innerWidth;
 let isMobile = windowWidth <= 992;
 let isMid = windowWidth > 992 && windowWidth <= 1600;
+let expirationsOptions;
 let optionExpiration;
 let tradeDate;
 let labels;
 let contractId;
 
 async function loadSettlements(block, productId) {
+  block.innerHTML = '';
+  block.innerHTML = '<div class="spinner-settlements"><div></div><div></div><div></div><div></div></div>';
   let table = null;
   let loadAll;
 
+  const { expProductId } = expirationsOptions.find(({ text }) => text === optionExpiration);
+
   const tableDate = await getOptionSettlements(
-    productId,
+    expProductId || productId,
     optionExpiration,
     tradeDate,
     contractId,
@@ -55,9 +60,14 @@ async function loadSettlements(block, productId) {
 }
 
 /* create trade date dropdown */
-async function createTradeDateDropdown(block, expirationsOptions, expiration, optionProductId) {
+async function createTradeDateDropdown(
+  block,
+  expirationsOptionsArray,
+  expiration,
+  optionProductId,
+) {
   tradeDateWrapper.innerHTML = '';
-  const selectedExpirationGroup = expirationsOptions.expirations.find(
+  const selectedExpirationGroup = expirationsOptionsArray.expirations.find(
     (option) => option.text === expiration,
   );
 
@@ -98,10 +108,11 @@ async function createTradesWrapper(block, productId, optionProductId) {
   const targetTradeDate = tradeDateAndExpirations.find(
     (item) => item.productId === optionProductId,
   );
-  const expirationsOptions = targetTradeDate.expirations.map((item) => ({
+  expirationsOptions = targetTradeDate.expirations.map((item) => ({
     label: item.label,
     text: item.text,
     contract: item.contractId,
+    expProductId: item.expProductId,
   }));
 
   const handleExpirationChange = (selectedExpiration) => {
@@ -606,7 +617,7 @@ async function createLoadAllWrapper(block) {
     i18n('All market data contained within the CME Group website should be considered as a reference only and should not be used as validation against, nor as a complement to, real-time market data feeds. Settlement prices on instruments without open interest or volume are provided for web users only and are not published on Market Data Platform (MDP). These prices are not based on market activity.'),
   ]);
 
-  if (needShowAll) {
+  if (needShowAll && !loadAllAlreadyClicked) {
     const loadAllButton = buildLoadAllButton(block, loadAll, (data) => {
       loadAllAlreadyClicked = data;
     });

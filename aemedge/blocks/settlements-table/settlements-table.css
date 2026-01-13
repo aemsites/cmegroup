@@ -130,7 +130,10 @@
 
     & .view-selector-row {
       padding-bottom: 1.25rem;
-      text-align: right;
+
+      @media (width >= 481px) {
+        text-align: right;
+      }
 
       & .option-switcher {
         display: inline-block;
@@ -413,6 +416,7 @@
     & .load-all-wrapper {
       display: flex;
       flex-wrap: wrap;
+      justify-content: space-between;
   
       & .about-report-wrapper,
       & .scroll-to-top-wrapper {
