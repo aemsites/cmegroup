@@ -19,14 +19,13 @@ function getTooltipVerticalPosition(tooltip) {
   }
 }
 
-/* eslint-disable import/prefer-default-export */
 export function createAuthTooltip(props, children, handleRegister) {
   const {
     color,
     icon,
     href,
     isLoggedIn,
-    className,
+    classNames,
     tooltipClass,
     tooltipText,
     tooltipButtonText,
@@ -39,7 +38,7 @@ export function createAuthTooltip(props, children, handleRegister) {
   anchorElement.setAttribute('rel', 'noopener noreferrer');
   anchorElement.setAttribute('role', 'button');
   anchorElement.setAttribute('id', uniqueId);
-  anchorElement.classList.add('button', color, className);
+  anchorElement.classList.add('button', color, ...classNames);
   const tooltipContentDiv = document.createElement('div');
   tooltipContentDiv.classList.add('tooltip-container', tooltipClass);
   let scrollTimeout;
@@ -106,4 +105,39 @@ export function createAuthTooltip(props, children, handleRegister) {
   }
 
   return container;
+}
+
+export function createSimpleAuthTooltip(container, tooltipText, handleRegister) {
+  const tooltipContentDiv = document.createElement('div');
+  tooltipContentDiv.classList.add('tooltip-container');
+  const tooltipTextDiv = document.createElement('div');
+  tooltipTextDiv.className = 'tooltip-text';
+  tooltipTextDiv.textContent = tooltipText || 'An account is required to continue';
+  tooltipContentDiv.appendChild(tooltipTextDiv);
+  const buttonElement = document.createElement('button');
+  buttonElement.classList.add('btn', 'primary');
+  buttonElement.textContent = 'Sign up or Log in';
+  buttonElement.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (handleRegister) {
+      authentication.registration();
+    } else {
+      authentication.login();
+    }
+  });
+  tooltipContentDiv.appendChild(buttonElement);
+  container.classList.add('auth-tooltip-container');
+  container.appendChild(tooltipContentDiv);
+  let scrollTimeout;
+
+  container.addEventListener('mouseenter', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      getTooltipVerticalPosition(tooltipContentDiv);
+    }, 50);
+  });
+
+  container.addEventListener('mouseleave', () => {
+    clearTimeout(scrollTimeout);
+  });
 }

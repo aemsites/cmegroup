@@ -3,9 +3,9 @@
   background-repeat: no-repeat;
   background-position: center top;
   background-size: cover;
+  position: relative;
 
   & .container {
-    position: relative;
     padding-top: 3.125rem;
     padding-bottom: 1.875rem;
 
@@ -165,9 +165,21 @@
     @media (width >= 769px) {
       position: absolute;
       top: 4.5rem;
-      right: calc(20% - 10.625rem);
+      right: var(--container-padding-md);
       margin-top: 0;
       margin-bottom: 0;
+    }
+
+    @media (width >= 993px) {
+      right: var(--container-padding-lg);
+    }
+
+    @media (width >= 1201px) {
+      right: var(--container-padding-xl);
+    }
+
+    @media (width >= 1601px) {
+      right: calc((100% - var(--container-xxl-max)) / 2 + var(--container-padding-xxl));
     }
 
     & .dropdown-selector-wrapper {
