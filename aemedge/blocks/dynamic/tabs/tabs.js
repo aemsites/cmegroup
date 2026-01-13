@@ -76,9 +76,9 @@ class TabsManager {
       }
     });
 
+    // Skip processing if no valid tab IDs found
     if (uniqueTabIds.size === 0) {
-      uniqueTabIds.add('default-tab');
-      sections.forEach((section) => tabIdMap.set(section, 'default-tab'));
+      return Array.from(new Map().entries()).map(([id, data]) => ({ id, ...data }));
     }
 
     sections.forEach((section) => {

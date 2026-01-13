@@ -14,6 +14,10 @@
     }
 
     & .product-slate-filter {
+      @media (width >= 769px) {
+        margin-bottom: 1.875rem;
+      }
+
       & .main-filters {
         &.show-modal {
           background-color: var(--blue1);
@@ -31,15 +35,22 @@
           height: 100%;
           display: flex;
           flex-direction: column;
+          overflow-y: scroll;
 
-          @media (width >= 769px) {
-            margin-bottom: 1.875rem;
+          @media (width >= 481px) {
+            overflow-y:initial;
           }
 
           & .dropdowns-container {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem 1.25rem;
+            width: 100%;
+            margin-bottom: 1.5625rem;
+
+            @media (width >= 769px) {
+              margin: 0;
+            }
 
             @media (width >= 1201px) {
               justify-content: space-between;
@@ -55,7 +66,18 @@
               }
 
               @media (width >= 1201px) {
-                width: 21%;
+                width: auto;
+                flex: 0 0 auto;
+
+                &:first-of-type {
+                  width: 33.333%;
+                  max-width: 28.4375rem;
+                  padding-left: 0;
+                }
+              }
+
+              @media (width >= 1401px) {
+                width: calc(16.5% - 1.875rem);
               }
 
               &.group {
@@ -69,6 +91,103 @@
                 position: relative;
                 display: inline-block;
                 width: 100%;
+              }
+            }
+          }
+
+          & .checkbox-filters-container {
+            width: 100%;
+            margin-bottom: 1.25rem;
+
+            @media (width >= 769px) {
+              margin: 0;
+            }
+
+            & .checkbox-filter {
+              @media (width >= 769px) {
+                background-color: var(--blue2);
+                padding: 0.75rem 1.25rem;
+              }
+
+              &:first-of-type {
+                padding-bottom: 1.25rem;
+                margin-bottom: 1.25rem;
+                border-bottom: 0.0625rem solid var(--white);
+
+                @media (width>= 769px) {
+                  padding-bottom: 0.75rem;
+                  border-bottom: 0;
+                  margin-bottom: 0.625rem;
+                }
+              }
+
+              & .checkbox-filter-items {
+                list-style: none;
+                gap: 0.625rem 1.25rem;
+                display: flex;
+                padding: 0;
+                flex-wrap: wrap;
+                margin: 0;
+
+                & li {
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 0.625rem;
+                  cursor: pointer;
+                  user-select: none;
+                  margin: 0;
+
+                  &:focus {
+                    outline: 0.125rem solid var(--blue5);
+                    outline-offset: 0.0625rem;
+                    border-radius: 0.125rem;
+                  }
+
+                  &:focus:not(:focus-visible) {
+                    outline: none;
+                  }
+
+                  & label {
+                    cursor: pointer;
+                  }
+                }
+
+                & .checkbox-input {
+                  position: absolute;
+                  opacity: 0;
+                  cursor: pointer;
+                  height: 0;
+                  width: 0;
+
+                  &:checked + .checkbox-custom svg {
+                    display: block;
+                  }
+
+                  &:checked + .checkbox-custom {
+                    background-color: var(--white);
+                    border-color: var(--white);
+                  }
+                }
+
+                & .checkbox-custom {
+                  position: relative;
+                  display: inline-block;
+                  width: 0.75rem;
+                  height: 0.75rem;
+                  border: 0.0625rem solid var(--gray4);
+
+                  & .checkmark {
+                    & img {
+                      filter: var(--blue4-filter);
+                    }
+                  }
+                }
+
+                & .checkbox-label {
+                  color: var(--white);
+                  cursor: pointer;
+                  font-size: 0.875rem;
+                }
               }
             }
           }
@@ -141,8 +260,7 @@
             &.open {
               max-height: 25rem;
               opacity: 1;
-              overflow-y: auto;
-              overflow-x: hidden;
+              overflow: hidden auto;
             }
 
             &:focus-within {
@@ -205,7 +323,7 @@
           display: block;
           position: absolute;
           right: 0;
-          top: -0.625rem;
+          top: 0.25rem;
           padding: 0;
           background: none;
           color: var(--white);
@@ -239,10 +357,31 @@
         width: 100%;
         gap: 0.9375rem;
         display: flex;
-        margin-bottom: 0.9375rem;
 
         @media (width >= 769px) {
           margin-bottom: 1.875rem;
+        }
+
+        &.desktop {
+          display: none;
+
+          @media (width >= 769px) {
+            display: inline-flex;
+            width: auto;
+          }
+
+          @media (width >= 1201px) {
+            flex: 0 0 auto;
+          }
+        }
+
+        &.mobile {
+          display: flex;
+          margin-bottom: 1.25rem;
+
+          @media (width >= 769px) {
+            display: none;
+          }
         }
 
         & .button {
@@ -372,15 +511,10 @@
           height: 0.75rem;
           border: 0.0625rem solid var(--gray4);
 
-          & svg {
-            display: none;
-          }
-
           & .checkmark {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            & img {
+              filter: var(--blue4-filter);
+            }
           }
         }
 
@@ -394,12 +528,22 @@
       & .pills-component {
         display: none;
 
+        @media (width >= 769px) {
+          margin-top: 1.875rem;
+        }
+
         & .filter-pills-title {
           color: var(--white);
           font-weight: 600;
           margin-bottom: 0.9375rem;
           font-size: 1.125rem;
           line-height: 1.5rem;
+          letter-spacing: 0;
+
+          @media (width >= 993px) {
+            font-size: 1.25rem;
+            line-height: 1.625rem;
+          }
         }
 
         & .filter-pills-wrapper {
@@ -448,5 +592,15 @@
         }
       }
     }
+  }
+}
+
+@keyframes spinner-table {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
   }
 }

@@ -1,0 +1,455 @@
+/* ======================================================================
+ * PRODUCT PAGE TEMPLATE STYLES - CME Group
+ * Merged from original site extraction + custom enhancements
+ * Date: 2025-10-31
+ * Restructured to match actual DOM hierarchy
+ ====================================================================== */
+
+/* ============================================
+   Product Template Styles
+   ============================================ */
+body {
+  &.scrolling-down {
+    & .product-tabs-container {
+      transition: top 0.3s ease-out 0.4s;
+    }
+  }
+}
+
+/* Main content area */
+main {
+  /* Author override sections - hidden by default */
+  & .section[data-override="true"] {
+    display: none !important;
+  }
+
+  /* Hero section - keep dark blue, no background override needed */
+  & .section.full-width:has(.hero-baseball) {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Product tabs container - white background */
+  & .product-tabs-container {
+    background-color: white;
+    box-shadow: 0 .125rem .25rem 0 rgba(60, 64, 67, .3);
+    position: relative;
+    z-index: 60;
+    margin-bottom: 0 !important;
+    position: sticky;
+    top: 0;
+    transition: all 0.3s ease 0.1s;
+
+    @media (width < 769px) {
+      padding: 0;
+    }
+
+    /* Constrained content wrapper for desktop */
+    & > div {
+      max-width: var(--container-xxl-max);
+      margin: 0 auto;
+      position: relative;
+
+      @media (width < 769px) {
+        max-width: none;
+      }
+    }
+
+    /* Tabs wrapper - contains both nav and subtabs */
+    & .product-tabs-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: nowrap;
+      padding: 0;
+
+      @media (width < 769px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0;
+      }
+
+      /* Main tabs navigation */
+      & .product-tabs-nav {
+        flex: 1 1 auto;
+        min-width: 0;
+
+        @media (width < 769px) {
+          width: 100%;
+          margin-right: 0;
+        }
+
+        /* ✅ UX: Active tab not clickable */
+        & a {
+          pointer-events: none;
+          &.is-active {
+            cursor: default;
+            pointer-events: none;
+          }
+        }
+      }
+
+      /* Sub-tabs container (Futures/Options toggle OR list) */
+      & .product-subtabs {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        z-index: 20;
+        justify-content: center;
+        position: relative;
+        width: 100%;
+
+        @media (width >= 769px) {
+          width: auto;
+          margin-left: 1rem;
+        }
+
+        &::before {
+          content: '';
+          position: absolute;
+          width: calc(100% + var(--container-padding-xs) * 2);
+          left: 0;
+          top: 0;
+          left: calc(var(--container-padding-xs) * (-1));
+          height: 0.25rem;
+          background: linear-gradient(to bottom, rgba(60, 64, 67, 0.3), rgba(60, 64, 67, 0));
+
+          @media (width >= 481px) {
+            width: calc(100% + var(--container-padding-sm) * 2);
+            left: calc(var(--container-padding-sm) * (-1));
+          }
+          
+          @media (width >= 769px) {
+            top: 0;
+            right: auto;
+            bottom: 0;
+            left: -2rem;
+            width: 1rem;
+            height: auto;
+            background: linear-gradient(to left, var(--white), rgb(255 255 255 / 0%));
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+          }
+        }
+
+        /* Enhanced sub-tabs with futures/options toggle */
+        &.enhanced {
+          display: flex;
+          align-items: center;
+          padding: 0;
+          opacity: 1;
+          transition: opacity 0.2s ease;
+          flex-shrink: 0;
+          background: white;
+
+          @media (width < 769px) {
+            width: 100%;
+            background: transparent;
+          }
+
+          /* Prevent flash during state updates */
+          &.updating {
+            opacity: 0.7;
+          }
+
+          /* Futures/Options Toggle Container */
+          & .futures-options-toggle {
+            display: flex;
+            gap: 0;
+            z-index: 60;
+            align-items: stretch;
+            padding: 30px 0;
+            flex-shrink: 1;
+            width: 100%;
+
+            @media (width >= 481px) {
+              width: auto;
+            }
+
+            @media (width >= 769px) {
+              padding: 0;
+              flex-shrink: 0;
+            }
+
+            & > * {
+              flex: 0 0 50%;
+              box-sizing: border-box;
+            }
+
+            /* Toggle Button Base Styles */
+            & .toggle-btn {
+              background: var(--gray6);
+              border: 0.0625rem solid var(--gray4);
+              padding: 0.625rem 1rem;
+              cursor: pointer;
+              font-weight: 500;
+              text-transform: uppercase;
+              font-size: 0.75rem;
+              color: var(--gray3);
+              transition: all 0.2s ease;
+              font-family: var(--averta);
+              letter-spacing: 0.0938rem;
+              white-space: nowrap;
+
+              /* First button (Futures) - rounded left */
+              &:first-child {
+                border-radius: 0.25rem 0 0 0.25rem;
+              }
+
+              /* Active toggle button styling */
+              &.active {
+                background: var(--blue4);
+                color: var(--white);
+                border-color: var(--blue4);
+                font-weight: 700;
+              }
+
+              /* Inactive toggle button styling */
+              &:not(.active) {
+                background-color: var(--gray5);
+                color: var(--gray3);
+                border: 0.0625rem solid var(--gray5);
+                font-weight: 700;
+              }
+            }
+
+            /* Last button/dropdown - rounded right */
+            & > *:last-child .toggle-btn {
+              border-radius: 0 0.25rem 0.25rem 0;
+            }
+
+            /* Options Dropdown Container */
+            & .options-dropdown {
+              position: relative;
+              display: inline-flex;
+              align-items: stretch;
+
+              /* Dropdown Button */
+              & .dropdown-btn {
+                background-color: var(--gray5);
+                color: var(--gray3);
+                border: 0.0625rem solid var(--gray5);
+                border-left: 0;
+                border-radius: 0 0.25rem 0.25rem 0;
+                padding: 0.625rem 1rem;
+                cursor: pointer;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+                font-family: var(--averta);
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                white-space: nowrap;
+                transition: all 0.2s ease;
+                font-weight: 700;
+                letter-spacing: normal;
+
+                @media (width < 769px) {
+                  flex: 1;
+                  justify-content: center;
+                }
+
+                &:hover {
+                  background: var(--gray6);
+                  color: var(--gray3);
+                }
+
+                &.active {
+                  background: var(--blue4);
+                  color: var(--white);
+                  border-color: var(--blue4);
+                  font-weight: 700;
+                }
+              }
+
+              /* Dropdown Arrow */
+              & .dropdown-arrow {
+                font-size: 0.625rem;
+                transition: transform 0.2s ease;
+                margin-left: 0.25rem;
+              }
+
+              /* Dropdown Menu - HIDDEN by default */
+              & .dropdown-menu {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: var(--white);
+                border: 0.0625rem solid var(--gray4);
+                border-radius: 0.25rem;
+                box-shadow: 0 0.25rem 0.375rem rgb(0 0 0 / 10%);
+                z-index: 61;
+                display: none;
+                max-width: 90vw;
+                overflow: auto;
+
+                @media (width >= 481px) {
+                  right: -85%;
+                  max-width: 95vw;
+                }
+
+                @media (width >= 769px) {
+                  right: 0;
+                }
+              }
+
+              /* Dropdown Items */
+              & .dropdown-item {
+                display: block;
+                padding: 0.3125rem 2rem;
+                color: var(--gray3);
+                text-decoration: none;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+                position: relative;
+
+                &:hover {
+                  background: var(--blue6);
+                }
+
+                &.selected::before {
+                  font-family: var(--cme-group-icons);
+                  content: var(--icon-check);
+                  color: var(--blue4);
+                  font-size: 0.75rem;
+                  font-weight: 400;
+                  display: inline-block;
+                  position: absolute;
+                  left: 0.625rem
+                }
+
+                & .link {
+                  font-size: 0.875rem;
+                  font-weight: 500;
+                  display: block;
+                  white-space: nowrap;
+                }
+              }
+
+              /* Dropdown open state */
+              &.dropdown-open {
+                & .dropdown-arrow {
+                  transform: rotate(180deg);
+                }
+
+                & .dropdown-menu {
+                  display: block;
+                }
+              }
+            }
+          }
+        }
+
+        /* ✅ CSS class for hiding toggle - must come after .enhanced for specificity */
+        &.enhanced.hidden {
+          display: none !important;
+        }
+      }
+
+      /* Legacy sub-tabs list (non-enhanced) */
+      & .product-subtabs-list {
+        display: flex;
+        gap: 0.5rem;
+        list-style: none;
+        margin: 0 0 0 1rem;
+        padding: 0.75rem 0;
+
+        @media (width < 769px) {
+          width: 100%;
+          justify-content: flex-start;
+          margin-left: 0;
+        }
+
+        & a {
+          display: inline-block;
+          text-decoration: none;
+          padding: 0.5rem 1rem;
+          text-transform: uppercase;
+          font-size: 0.75rem;
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          color: var(--gray3);
+          border: 0.0625rem solid var(--gray4);
+          border-radius: 0.25rem;
+          background-color: white;
+          transition: all 0.2s ease;
+
+          @media (width < 769px) {
+            flex: 1;
+            text-align: center;
+          }
+
+          &:hover {
+            color: var(--blue4);
+            border-color: var(--blue4);
+          }
+
+          &.is-active {
+            color: white;
+            background-color: var(--blue4);
+            border-color: var(--blue4);
+          }
+        }
+      }
+    }
+  }
+
+  /* Content area below tabs */
+  & .product-subtabs-content {
+    /* Content cards with alternating background colors */
+    & > .section {
+      border-radius: 0.25rem;
+      padding: 1.875rem 0;
+
+      @media (width >= 769px) {
+        padding: 3.75rem 0;
+      }
+
+      /* Content wrapper with max-width and horizontal padding */
+      & > div {
+        max-width: var(--container-xxl-max);
+        margin: 0 auto;
+      }
+
+      /* Remove background/shadow from nested sections to avoid double-boxing */
+      & .section {
+        background-color: transparent;
+        box-shadow: none;
+        padding: 0;
+        margin-bottom: 1rem;
+      }
+    }
+  }
+}
+
+/* Navigation error styling */
+.navigation-error {
+  background: white;
+  border-radius: 0.25rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 6%);
+
+  & h3 {
+    color: var(--gray1);
+    margin-bottom: 1rem;
+  }
+
+  & p {
+    color: var(--gray3);
+    margin: 0.5rem 0;
+  }
+
+  & a {
+    color: var(--blue4);
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

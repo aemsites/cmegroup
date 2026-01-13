@@ -1,0 +1,594 @@
+/* Hero Baseball Block - Follows DOM structure from hero-baseball.js */
+
+.hero-baseball {
+  position: relative;
+  background: var(--blue1);
+  color: white;
+  margin: 0;
+  overflow: visible;
+  padding: 2.5rem 0 1.875rem;
+  min-height: 18.9375rem;
+
+  @media (width < 768px) {
+    padding: 1.5rem 0 1.5625rem;
+  }
+
+  @media (width >= 993px) {
+    padding: 2.5rem 0 1.5625rem;
+  }
+
+  &.custom-background {
+    background-repeat: repeat;
+    background-position: left top;
+  }
+
+  /* Title */
+  & h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: white;
+
+    @media (width >= 769px) {
+      font-size: 2.625rem;
+    }
+  }
+
+  /* Subtitle */
+  & .hero-subtitle {
+    font-size: 0.875rem;
+    letter-spacing: 0.09rem;
+    font-weight: 400;
+    margin-bottom: 2rem;
+    color: rgb(255 255 255 / 90%);
+
+    @media (width >= 769px) {
+      font-size: 1rem;
+    }
+  }
+
+  /* Launch date */
+  & .launch-date-title {
+    font-family: var(--averta);
+    font-weight: 700;
+    margin-bottom: 0;
+    padding-top: .4375rem;
+    text-transform: uppercase;
+  }
+
+  /* Contract data container */
+  & .contract-data {
+    display: flex;
+    align-items: flex-start;
+    flex-flow: row wrap;
+
+    & .globex-code,
+    & .last-value,
+    & .price-change,
+    & .volume-info,
+    & .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      margin-bottom: 1.875rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  /* Market update timestamp */
+  & .market-update {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    @media (width >= 769px) {
+      flex-direction: row;
+    }
+
+    & .update-time {
+      font-size: 0.875rem;
+      color: rgb(255 255 255 / 80%);
+    }
+
+    & .market-note {
+      font-size: 0.75rem;
+      color: rgb(255 255 255 / 60%);
+    }
+  }
+
+  /* Common labels */
+  & .label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.0625rem;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 70%);
+  }
+
+  /* Common values */
+  & .value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  /* Price change states */
+  & .change-negative {
+    color: #ff6b6b;
+  }
+
+  & .change-positive {
+    color: #51cf66;
+  }
+
+  & .hero-navigation {
+    padding-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+
+    @media (width >= 481px) {
+      padding-bottom: 1.875rem;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+
+    @media (width >= 769px) {
+      padding-bottom: 3.125rem;
+    }
+
+    & .hero-breadcrumb {
+      padding-bottom: 1.25rem;
+
+      @media (width >= 481px) {
+        padding-bottom: 0;
+      }
+
+      & a {
+        color: var(--white);
+        cursor: pointer;
+        font-family: var(--body-font-family);
+        font-size: 0.875rem;
+        font-weight: 400;
+        line-height: 1.25rem;
+        margin-bottom: 0.75rem;
+        padding: 0;
+        text-transform: none;
+        letter-spacing: normal;
+
+        &:hover,
+        &:focus {
+          color: var(--blue5);
+          text-decoration: none;
+
+          & img {
+            filter: var(--blue5-filter);
+          }
+        }
+
+        & img {
+          padding-right: 0.3125rem;
+          filter: var(--white-filter);
+        }
+      }
+    }
+
+    & .hero-products {
+      position: relative;
+
+      & .product-selector-button {
+        align-items: center;
+        background-color: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        color: var(--white);
+        cursor: pointer;
+        font-family: var(--body-font-family);
+        font-size: 0.875rem;
+        font-weight: 400;
+        line-height: 1.25rem;
+        margin-bottom: 0.75rem;
+        padding: 0;
+        text-transform: none;
+        letter-spacing: normal;
+
+        &::after {
+          border-bottom: 0;
+          border-left: 0.3em solid transparent;
+          border-right: 0.3em solid transparent;
+          border-top: 0.3em solid;
+          content: "";
+          display: inline-block;
+          margin-left: 0.255em;
+          vertical-align: 0.155em;
+        }
+
+        &:hover,
+        &:focus {
+          color: var(--blue5);
+          text-decoration: none;
+        }
+
+        &:focus {
+          border: 0.063rem solid var(--blue5);
+        }
+
+        &[aria-expanded="true"] {
+          &::after {
+            border-bottom: 0.3em solid;
+            border-left: 0.3em solid transparent;
+            border-right: 0.3em solid transparent;
+            border-top: 0;
+            content: "";
+            display: inline-block;
+            margin-left: 0.255em;
+            vertical-align: 0.155em;
+          }
+
+          & + .product-selector-dropdown {
+            visibility: visible;
+          }
+        }
+
+        &[aria-expanded="false"] {
+          & + .product-selector-dropdown {
+            visibility: hidden;
+          }
+        }
+      }
+
+      & .product-selector-dropdown {
+        background-color: var(--gray3);
+        color: var(--white);
+        border: 0;
+        box-shadow: 0 0.063rem 0.125rem 0 rgb(60 64 67 / 30%),
+            0 0.125rem 0.375rem 0.125rem rgb(60 64 67 / 15%);
+        margin: 0 !important;
+        padding: 0;
+        position: absolute;
+        inset: 0.1875rem auto auto 0;
+        transform: translate3d(0, 1.375rem, 0);
+        overflow: auto;
+        max-width: 95vw;
+        border-radius: 0;
+        z-index: 65;
+        max-height: 33.0625rem;
+
+        @media (width >= 481px) {
+            inset: 0.1875rem 0 auto auto;
+        }
+
+        &.open-up {
+          top: calc(var(--height) - 1.375rem);
+        }
+
+        & ul {
+          margin: 0;
+          padding: 0;
+
+          & li {
+            list-style-type: none;
+            margin-bottom: 0;
+            padding: 0.75rem 1.125rem 0;
+            font-size: 0.875rem;
+            font-weight: 700;
+            line-height: 1.375rem;
+
+            &:hover {
+              background-color: var(--blue-active);
+            }
+
+            &.product-item {
+              font-size: 0.875rem;
+              font-weight: 400;
+              line-height: 1.25rem;
+              padding: 0.3125rem 2rem;
+              position: relative;
+
+              & a {
+                cursor: pointer;
+                position: relative;
+                background-color: transparent;
+                border: 0;
+                clear: both;
+                color: var(--white);
+                font-size: 0.875rem;
+                font-weight: 400;
+                line-height: 1.25rem;
+                padding: 0;
+                text-align: inherit;
+                text-decoration: none;
+                white-space: nowrap;
+                display: inline;
+              }
+
+              & img {
+                left: 0.75rem;
+                top: 0.625rem;
+                filter: var(--blue5-filter);
+                position: absolute;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ======================================================================
+ * PRODUCT PAGE SPECIFIC STYLES
+ * Adapted from original CME site baseball card component
+ * These styles only apply on product template pages
+ ====================================================================== */
+
+.product .hero-baseball {
+  background-color: var(--blue2);
+  margin-top: -3.125rem;
+  padding-bottom: 1.875rem;
+  padding-top: 5rem;
+
+  @media (width >= 769px) {
+    margin-top: -6.25rem;
+    padding-bottom: 1.5625rem;
+    padding-top: 8.125rem;
+  }
+
+  /* Container max-width */
+  & .container {
+    max-width: var(--container-xxl-max);
+    margin: 0 auto;
+  }
+
+  /* Headline section */
+  & h1 {
+    margin-bottom: 0;
+    padding-bottom: 0.625rem;
+    transition: opacity 0.2s ease-in-out;
+
+    @media (width >= 769px) {
+      padding-bottom: 0;
+    }
+  }
+
+  /* Subtitle */
+  & .hero-subtitle {
+    color: var(--gray4);
+    font-family: var(--averta), arial, sans-serif;
+    font-weight: 400;
+    margin-bottom: 0;
+    text-transform: none;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  /* Data title (labels like CURRENT PRICE, CHANGE, VOLUME) */
+  & .label {
+    align-items: flex-start;
+    color: var(--gray4);
+    display: flex;
+    font-family: var(--averta), arial, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.0938rem;
+    line-height: 0.875rem;
+    margin-bottom: 0.625rem;
+    text-transform: uppercase;
+
+    @media (width >= 769px) {
+      margin-bottom: 0.75rem;
+    }
+  }
+
+  /* Data row */
+  & .contract-data {
+    margin-bottom: 1.25rem;
+    padding-top: 1.875rem;
+
+    @media (width >= 481px) {
+      margin-bottom: 0.625rem;
+    }
+
+    @media (width >= 769px) {
+      margin-bottom: 1.25rem;
+      padding-top: 4.1875rem;
+    }
+  }
+
+  & .globex-code {
+    width: 42%;
+    order: 1;
+
+    @media (width >= 769px) {
+      width: 25%;
+    }
+
+    @media (width >= 1201px) {
+      width: 16%;
+    }
+    
+    @media (width >= 993px) {
+      margin-bottom: 1.375rem;
+    }
+
+    &.has-value .value {
+      border: .0625rem solid var(--blue5);
+      border-radius: .25rem;
+      font-family: var(--averta);
+      font-size: .875rem;
+      font-weight: 400;
+      line-height: 1.125rem;
+      padding: .25rem .3125rem;
+      width: fit-content;
+
+      @media (width >= 769px) {
+        font-size: 1.125rem;
+        line-height: 1.375rem;
+      }
+    }
+
+    & .globex-info {
+      margin-left: 0.5rem;
+
+      & img {
+        filter: var(--blue5-filter);
+        opacity: .4;
+      }
+    }
+  }
+
+  & .last-value {
+    width: 58%;
+    order: 2;
+
+    @media (width >= 769px) {
+      margin-bottom: 1.875rem;
+      width: 25%;
+    }
+
+    @media (width >= 1201px) {
+      width: 16%;
+    }
+  }
+
+  & .price-change {
+    width: 58%;
+    order: 4;
+
+    @media (width >= 769px) {
+      width: 34%;
+      order: 3;
+    }
+
+    @media (width >= 993px) {
+      margin-bottom: 0;
+    }
+
+    @media (width >= 1201px) {
+      width: 34%;
+    }
+  }
+
+  & .volume-info {
+    width: 42%;
+    order: 3;
+
+    @media (width >= 769px) {
+      width: 16%;
+      order: 4;
+    }
+
+    @media (width >= 993px) {
+      margin-bottom: 1.375rem;
+    }
+
+    @media (width >= 1201px) {
+      width: 16%;
+    }
+  }
+
+  & .actions {
+    width: 100%;
+    order: 5;
+    row-gap: 0.75rem;
+
+    @media (width >= 1201px) {
+      width: 16%;
+    }
+
+    & .button {
+      flex-flow: row;
+      justify-content: center;
+      gap: 0.3125rem;
+      align-items: end;
+      max-width: 9.8125rem;
+      width: fill-available;
+      width: -webkit-fill-available;
+      cursor: pointer;
+
+      @media (width >= 1201px) {
+        align-self: end;
+      }
+    }
+  }
+
+  /* Values - use Roboto Mono font */
+  & .value {
+    color: white;
+    font-family: var(--roboto-mono), monospace;
+    font-weight: 300;
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+    transition: opacity 0.2s ease-in-out;
+
+    @media (width >= 769px) {
+      font-size: 1.75rem;
+      line-height: 2.5rem;
+    }
+  }
+
+  /* Positive/Negative change colors - original CME colors */
+  & .change-positive {
+    color: rgb(42 227 3);
+  }
+
+  & .change-negative {
+    color: rgb(223 0 53);
+  }
+
+  /* Timestamp */
+  & .update-time {
+    color: var(--gray4);
+    font-family: var(--averta), arial, sans-serif;
+    font-size: 0.75rem;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0.0125rem;
+    line-height: 1rem;
+  }
+
+  & .market-note {
+    color: var(--gray4);
+    font-family: var(--averta), arial, sans-serif;
+    font-size: 0.75rem;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0.0125rem;
+    line-height: 1rem;
+  }
+
+  & .tooltip {
+    cursor: default;
+
+    & .tooltip-content {
+      width: 12.5rem;
+      color: #25323c;
+      text-transform: none;
+      letter-spacing: normal;
+      padding: 0.625rem;
+      transform: translateY(-50%);
+      left: 1.5rem;
+      top: calc(50% - 0.4375rem);
+
+      &::before {
+        border-right: 0.5625rem solid var(--white);
+        border-left: none;
+        border-top: 0.5625rem solid transparent;
+        border-bottom: 0.5625rem solid transparent;
+        inset: auto auto calc(50% - 0.3125rem) -0.5625rem;
+      }
+
+      & p,
+      & a {
+        font-family: var(--averta);
+        font-size: .75rem;
+        font-weight: 400;
+        line-height: 1rem;
+        margin-bottom: .9375rem;
+        text-align: left;
+      }
+    }
+  }
+}
