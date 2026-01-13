@@ -318,8 +318,9 @@ export class Authentication {
     return false;
   };
 
-  logout = async () => {
-    const logoutUrl = '/';
+  logout = async (hostname) => {
+    const logoutPage = `/logout${isCMEEnv() ? '.html' : ''}`;
+    const logoutUrl = !hostname ? logoutPage : `${hostname}${logoutPage}`;
     window.LocalStorageUtil?.remove('ali');
     window.LocalStorageUtil?.remove('userInfo');
     if (!this.isProtectedPage) {
