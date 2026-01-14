@@ -1370,3 +1370,122 @@ header p {
   background-color: var(--gray5);
   margin: 4px 0;
 }
+
+/* Color Picker Button */
+.color-picker-btn {
+  background: linear-gradient(135deg,
+    #081d37 0%, #081d37 14.28%,
+    #112b4a 14.28%, #112b4a 28.56%,
+    #1f3374 28.56%, #1f3374 42.84%,
+    #006eb6 42.84%, #006eb6 57.12%,
+    #16202a 57.12%, #16202a 71.4%,
+    #25323c 71.4%, #25323c 85.68%,
+    #5a6874 85.68%, #5a6874 100%
+  );
+  border: 1px solid var(--gray4);
+  border-radius: 3px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  cursor: pointer;
+  margin: 0 4px;
+  font-size: 16px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.color-picker-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.color-picker-btn:active {
+  transform: scale(0.95);
+}
+
+/* Color Picker Dropdown */
+.color-picker-dropdown {
+  position: fixed;
+  background: white;
+  border: 1px solid var(--gray4);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  z-index: 10001;
+  min-width: 280px;
+  max-width: 320px;
+  display: none;
+  max-height: 400px;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.color-picker-dropdown.visible {
+  display: flex;
+}
+
+.color-picker-header {
+  background: var(--blue2);
+  color: white;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px 6px 0 0;
+}
+
+.color-picker-content {
+  overflow-y: auto;
+  padding: 8px;
+  max-height: 350px;
+}
+
+.color-picker-group {
+  margin-bottom: 12px;
+}
+
+.color-picker-group:last-child {
+  margin-bottom: 0;
+}
+
+.color-picker-group-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+}
+
+.color-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.15s;
+  margin-bottom: 2px;
+}
+
+.color-picker-item:hover {
+  background-color: var(--blue6);
+}
+
+.color-picker-item-name {
+  font-size: 13px;
+  color: var(--gray1);
+  font-weight: 500;
+  flex: 1;
+}
+
+.color-picker-item-swatch {
+  width: 40px;
+  height: 24px;
+  border-radius: 3px;
+  border: 1px solid var(--gray4);
+  margin-left: 12px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}

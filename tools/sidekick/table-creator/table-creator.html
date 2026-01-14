@@ -98,10 +98,12 @@
                             <button id="editContentBtn" class="tag-btn tag-secondary" style="margin: 0 10px;">Edit Content</button>
                             <div class="input-tool">
                                 <input type="text" id="textColorInput" placeholder="Color..." class="tiny-input">
+                                <button id="textColorPickerBtn" class="color-picker-btn" title="Choose from palette"></button>
                                 <button id="applyTextColor" class="tiny-btn">Text Color</button>
                             </div>
                             <div class="input-tool">
                                 <input type="text" id="bgColorInput" placeholder="Bg..." class="tiny-input">
+                                <button id="bgColorPickerBtn" class="color-picker-btn" title="Choose from palette"></button>
                                 <button id="applyBgColor" class="tiny-btn">BG Color</button>
                             </div>
                             <button class="tag-btn tag-clear tiny-clear" data-action="clear-cell">Clear</button>
@@ -166,6 +168,14 @@
         <div class="context-menu-separator"></div>
         <div class="context-menu-item" data-action="delete-row">Delete Row</div>
         <div class="context-menu-item" data-action="delete-col">Delete Column</div>
+    </div>
+
+    <!-- Color Picker Dropdown -->
+    <div id="colorPickerDropdown" class="color-picker-dropdown">
+        <div class="color-picker-header">Select Color</div>
+        <div id="colorPickerContent" class="color-picker-content">
+            <!-- Colors will be populated dynamically -->
+        </div>
     </div>
 </body>
 </html>

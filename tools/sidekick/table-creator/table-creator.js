@@ -38,6 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const contextMenu = document.getElementById('context-menu');
   const contextMenuItems = document.querySelectorAll('.context-menu-item');
 
+  // Color Picker
+  const textColorPickerBtn = document.getElementById('textColorPickerBtn');
+  const bgColorPickerBtn = document.getElementById('bgColorPickerBtn');
+  const colorPickerDropdown = document.getElementById('colorPickerDropdown');
+  const colorPickerContent = document.getElementById('colorPickerContent');
+
   // --- STATE ---
   let currentTable = null;
   let activeSelection = null;
@@ -51,6 +57,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Context menu state
   let contextMenuTargetCell = null;
+
+  // Color picker state
+  let colorPickerTargetInput = null;
+
+  // Color palette data
+  const colorPalette = {
+    Blues: [
+      { name: 'Blue 1', value: '#081d37' },
+      { name: 'Blue 2', value: '#112b4a' },
+      { name: 'Blue 3', value: '#1f3374' },
+      { name: 'Blue 4', value: '#006eb6' },
+      { name: 'Blue 5', value: '#3cc8ff' },
+      { name: 'Blue 6', value: '#ebf9ff' },
+      { name: 'Blue 7', value: '#0090ff' },
+      { name: 'Blue 8', value: '#0195e7' },
+      { name: 'Blue 9', value: '#357cc7' },
+      { name: 'Blue 10', value: '#002d74' },
+    ],
+    Grays: [
+      { name: 'Gray 1', value: '#16202a' },
+      { name: 'Gray 2', value: '#25323c' },
+      { name: 'Gray 3', value: '#5a6874' },
+      { name: 'Gray 4', value: '#c2cace' },
+      { name: 'Gray 5', value: '#ebedee' },
+      { name: 'Gray 6', value: '#f1f5f7' },
+      { name: 'Gray 7', value: '#3a464f' },
+      { name: 'Gray 8', value: '#3c4043' },
+      { name: 'Gray 9', value: '#b2b2b2' },
+      { name: 'Gray 10', value: '#d5dbdf' },
+      { name: 'Gray 11', value: '#e5e5e5' },
+      { name: 'Gray 12', value: '#979797' },
+      { name: 'Gray 13', value: '#2e2e2e' },
+    ],
+    Greens: [
+      { name: 'Green', value: '#00e473' },
+      { name: 'Green 2', value: '#01ff70' },
+      { name: 'Green 3', value: '#197b00' },
+      { name: 'Green Positive', value: '#2ae303' },
+    ],
+    Reds: [
+      { name: 'Red', value: '#ff0000' },
+      { name: 'Red 2', value: '#ff003d' },
+    ],
+    Navy: [
+      { name: 'Navy 1', value: '#1f3655' },
+      { name: 'Navy 2', value: '#354a66' },
+    ],
+    Other: [
+      { name: 'White', value: '#ffffff' },
+    ],
+  };
 
   // --- 1. INITIALIZATION & EVENT LISTENERS ---
 
@@ -212,8 +269,36 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       hideContextMenu();
+      hideColorPicker();
     }
   });
+
+  // Color Picker event listeners
+  if (textColorPickerBtn) {
+    textColorPickerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showColorPicker(e.target, textColorInput);
+    });
+  }
+
+  if (bgColorPickerBtn) {
+    bgColorPickerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showColorPicker(e.target, bgColorInput);
+    });
+  }
+
+  // Close color picker on click outside
+  document.addEventListener('click', (e) => {
+    if (!colorPickerDropdown.contains(e.target) &&
+        e.target !== textColorPickerBtn &&
+        e.target !== bgColorPickerBtn) {
+      hideColorPicker();
+    }
+  });
+
+  // Initialize color picker content
+  populateColorPicker();
 
   // --- 2. CORE LOGIC ---
 
@@ -1008,6 +1093,68 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHiddenOutput();
 
     return true;
+  }
+
+  // --- 6.7. COLOR PICKER ---
+
+  function populateColorPicker() {
+    colorPickerContent.innerHTML = '';
+
+    Object.entries(colorPalette).forEach(([groupName, colors]) => {
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'color-picker-group';
+
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'color-picker-group-title';
+      titleDiv.textContent = groupName;
+      groupDiv.appendChild(titleDiv);
+
+      colors.forEach((color) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'color-picker-item';
+        itemDiv.dataset.color = color.value;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'color-picker-item-name';
+        nameSpan.textContent = color.name;
+
+        const swatchDiv = document.createElement('div');
+        swatchDiv.className = 'color-picker-item-swatch';
+        swatchDiv.style.backgroundColor = color.value;
+
+        itemDiv.appendChild(nameSpan);
+        itemDiv.appendChild(swatchDiv);
+
+        itemDiv.addEventListener('click', () => selectColor(color.value));
+
+        groupDiv.appendChild(itemDiv);
+      });
+
+      colorPickerContent.appendChild(groupDiv);
+    });
+  }
+
+  function showColorPicker(button, targetInput) {
+    colorPickerTargetInput = targetInput;
+
+    // Position dropdown below the button
+    const rect = button.getBoundingClientRect();
+    colorPickerDropdown.style.left = `${rect.left}px`;
+    colorPickerDropdown.style.top = `${rect.bottom + 5}px`;
+
+    colorPickerDropdown.classList.add('visible');
+  }
+
+  function hideColorPicker() {
+    colorPickerDropdown.classList.remove('visible');
+    colorPickerTargetInput = null;
+  }
+
+  function selectColor(colorValue) {
+    if (colorPickerTargetInput) {
+      colorPickerTargetInput.value = colorValue;
+    }
+    hideColorPicker();
   }
 
   // --- 7. VISUALIZATION ---
