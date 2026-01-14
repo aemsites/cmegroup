@@ -1530,6 +1530,15 @@ main .section:not(.full-width) > div,
         width: 90%;
       }
     }
+
+    & div:is([class^="w-"]):has(.align-bottom) {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    & div:is([class*="-wrapper"]):has(.align-bottom) {
+      align-self: flex-end !important;
+    }
   }
 
   &.no-gap .layout > div {

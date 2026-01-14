@@ -204,15 +204,6 @@
   }
 }
 
-div:has(.cards-wrapper .align-bottom) {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.cards-wrapper:has(.align-bottom) {
-  align-self: flex-end !important;
-}
-
 @keyframes spinner-cards {
   0% {
     transform: rotate(0deg);
