@@ -81,9 +81,22 @@
       }
     }
 
+    &.no-heading {
+      & h6 {
+        display: none;
+      }
+    }
+
     &.blue1-background {
       background-color: var(--blue1);
+    }
 
+    &.blue2-background {
+      background-color: var(--blue2);
+    }
+
+    &.blue1-background,
+    &.blue2-background {
       & h6 {
         color: var(--blue1) !important;
       }
