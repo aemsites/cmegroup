@@ -376,10 +376,14 @@ export async function getCalendarOptions(productId, optionProductId) {
 }
 
 export async function getQuotesFutures(productId) {
-  const endpoint = `${urlByEnvType()}${API_CONFIG.quotesEndpoint}/${productId}`;
-  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
-  const data = getResponseData(response) || response.data;
-  return data;
+  try {
+    const endpoint = `${urlByEnvType()}${API_CONFIG.quotesEndpoint}/${productId}`;
+    const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+    const data = getResponseData(response) || response.data;
+    return data;
+  } catch (e) {
+    return [];
+  }
 }
 
 /**

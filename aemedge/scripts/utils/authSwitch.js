@@ -39,6 +39,7 @@ async function buildSwitch(callback) {
   const lockIconSpan = createElement('span', { class: 'icon icon-lock' }, lockIcon);
   const marker = createElement('div', { class: 'marker' });
   const slider = createElement('div', { class: 'slider' }, marker);
+  const authWrapper = createElement('div', { class: 'auth-wrapper' }, slider);
   const statusText = createElement('span', {
     class: 'status-text',
     'data-off-text': offLabel,
@@ -47,7 +48,7 @@ async function buildSwitch(callback) {
   const authSwitch = createElement('div', {
     class: 'auth-switch',
     'data-enabled': 'false',
-  }, lockIconSpan, slider, statusText);
+  }, lockIconSpan, authWrapper, statusText);
   slider.addEventListener('mousedown', (e) => startDrag(e, marker));
   slider.addEventListener('touchstart', (e) => startDrag(e, marker));
   slider.addEventListener('click', (e) => click(e, authSwitch, callback));
@@ -59,9 +60,9 @@ async function updateSwitchLoggedIn(authSwitch) {
     const icon = authSwitch.querySelector('span.icon-lock');
     icon.classList.add('hidden');
   } else {
-    const slider = authSwitch.querySelector('.slider');
+    const authWrapper = authSwitch.querySelector('.auth-wrapper');
     const text = await i18n('Login or create a free account to stream product quotes data.');
-    createSimpleAuthTooltip(slider, text);
+    createSimpleAuthTooltip(authWrapper, text);
   }
 }
 
