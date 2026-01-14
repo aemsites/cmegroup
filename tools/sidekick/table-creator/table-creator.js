@@ -767,12 +767,8 @@ document.addEventListener('DOMContentLoaded', () => {
     selection.removeAllRanges();
     selection.addRange(range);
 
-    // Declare functions first to avoid linting errors
-    let saveAndExit;
-    let handleKeydown;
-
     // Handle Enter key to save and exit
-    handleKeydown = (e) => {
+    function handleKeydown(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         saveAndExit();
@@ -781,10 +777,10 @@ document.addEventListener('DOMContentLoaded', () => {
         cell.textContent = originalContent;
         saveAndExit();
       }
-    };
+    }
 
     // Function to save and exit edit mode
-    saveAndExit = () => {
+    function saveAndExit() {
       cell.contentEditable = 'false';
       cell.blur();
 
@@ -794,7 +790,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Remove listeners
       cell.removeEventListener('blur', saveAndExit);
       cell.removeEventListener('keydown', handleKeydown);
-    };
+    }
 
     // Add listeners
     cell.addEventListener('blur', saveAndExit);
