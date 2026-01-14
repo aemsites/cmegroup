@@ -14,30 +14,18 @@ let futurei18n;
 let optionsi18n;
 let dailyi18n;
 
-function toggleSpinner(show) {
-  const chartDiv = document.getElementById('chart');
-  if (!chartDiv) return;
-
-  let spinner = chartDiv.querySelector('.chart-spinner');
-
-  if (show) {
-    if (spinner) return;
-
-    spinner = createElement('div', { class: 'chart-spinner' });
-    spinner.innerHTML = `
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-    `;
-    chartDiv.appendChild(spinner);
-  } else if (spinner) {
-    spinner.remove();
-  }
+function createSpinner() {
+  const spinner = createElement('div', { class: 'chart-spinner' });
+  spinner.innerHTML = `
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  `;
+  return spinner;
 }
 
 async function getProductInfo() {
-  toggleSpinner(true);
   productMetadata = await getProductMetadata();
   prodId = productMetadata?.productId || getMetadata('product-id') || 300;
 }
@@ -54,7 +42,7 @@ async function createComponent(title, lastUpdated) {
 
   const titleSpan = createElement('span', { class: 'title' });
   titleSpan.textContent = `${title}`;
-  const updatedSpan = createElement('span');
+  const updatedSpan = createElement('span', { class: 'last-updated' });
   updatedSpan.textContent = `Last Updated: ${lastUpdated}`;
 
   if (addLastUpdated) {
@@ -166,6 +154,7 @@ export function lastTotalsChartConfig({
 
 export default function decorate(block) {
   block.textContent = '';
+  block.append(createSpinner());
   init(block);
 }
 
@@ -186,9 +175,31 @@ function init(block) {
     futurei18n = future;
     optionsi18n = options;
     dailyi18n = daily;
-    return createComponent(dailyi18n, '');
-  }).then((wrapper) => {
+  });
+
+  async function loadAndUpdateChart() {
+    block.textContent = '';
+    block.append(createSpinner());
+
+    if (chart) {
+      chart.destroy();
+      chart = null;
+    }
+
+    await getProductInfo();
+    const data = await getData();
+
+    if (!prodId || !data) {
+      return;
+    }
+
+    chartData = data.data.slice(-daysToShow);
+    lastUpdated = `${getCdtDate(data?.lastUpdated).format('DD MMM YYYY hh:mm:ss A')} CT`;
+
+    const wrapper = await createComponent(dailyi18n, lastUpdated);
+    block.textContent = '';
     block.append(wrapper);
+
     const container = block.querySelector('#chart');
 
     const labels = { y1: 'VOL', y2: '' };
@@ -212,58 +223,29 @@ function init(block) {
       }
     };
 
-    async function loadAndUpdateChart() {
-      toggleSpinner(true);
-
-      if (chart) {
-        chart.destroy();
-        chart = null;
-        Array.from(container.children).forEach((child) => {
-          if (!child.classList.contains('chart-spinner')) {
-            child.remove();
-          }
-        });
-      }
-
-      await getProductInfo();
-      const data = await getData();
-
-      if (!prodId || !data) {
-        return;
-      }
-
-      chartData = data.data.slice(-daysToShow);
-      lastUpdated = `${getCdtDate(data?.lastUpdated).format('DD MMM YYYY hh:mm:ss A')} CT`;
-
-      const updatedSpan = block.querySelector('.last-updated');
-      if (updatedSpan) updatedSpan.textContent = `Last Updated: ${lastUpdated}`;
-
-      chart = createChart({
-        container,
+    chart = createChart({
+      container,
+      data: chartData,
+      dataSize: chartData.length,
+      chartConfig: (params) => lastTotalsChartConfig({
+        ...params,
         data: chartData,
-        dataSize: chartData.length,
-        chartConfig: (params) => lastTotalsChartConfig({
-          ...params,
-          data: chartData,
-          categories: chartData.map((d) => d.formattedDate),
-          onrendered: styleAxis,
-        }),
-        chartUpdate: null,
-        labels,
-        tooltipTop: null,
-      });
+        categories: chartData.map((d) => d.formattedDate),
+        onrendered: styleAxis,
+      }),
+      chartUpdate: null,
+      labels,
+      tooltipTop: null,
+    });
+  }
 
-      toggleSpinner(false);
-    }
-
-    function resizeHandle() {
-      daysToShow = window.innerWidth <= 768 ? 7 : 15;
-      loadAndUpdateChart();
-    }
-
-    window.addEventListener('resize', debounce(resizeHandle, 250));
-
+  function resizeHandle() {
+    daysToShow = window.innerWidth <= 768 ? 7 : 15;
     loadAndUpdateChart();
-    setInterval(loadAndUpdateChart, 60000);
-  });
+  }
+
+  window.addEventListener('resize', debounce(resizeHandle, 250));
+
+  loadAndUpdateChart();
+  setInterval(loadAndUpdateChart, 60000);
 }
