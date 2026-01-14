@@ -14,7 +14,30 @@ let futurei18n;
 let optionsi18n;
 let dailyi18n;
 
+function toggleSpinner(show) {
+  const chartDiv = document.getElementById('chart');
+  if (!chartDiv) return;
+
+  let spinner = chartDiv.querySelector('.chart-spinner');
+
+  if (show) {
+    if (spinner) return;
+
+    spinner = createElement('div', { class: 'chart-spinner' });
+    spinner.innerHTML = `
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    `;
+    chartDiv.appendChild(spinner);
+  } else if (spinner) {
+    spinner.remove();
+  }
+}
+
 async function getProductInfo() {
+  toggleSpinner(true);
   productMetadata = await getProductMetadata();
   prodId = productMetadata?.productId || getMetadata('product-id') || 300;
 }
@@ -190,12 +213,22 @@ function init(block) {
     };
 
     async function loadAndUpdateChart() {
+      toggleSpinner(true);
+
+      if (chart) {
+        chart.destroy();
+        chart = null;
+        Array.from(container.children).forEach((child) => {
+          if (!child.classList.contains('chart-spinner')) {
+            child.remove();
+          }
+        });
+      }
+
       await getProductInfo();
       const data = await getData();
 
       if (!prodId || !data) {
-        // eslint-disable-next-line no-console
-        console.error('VolumeChart => No ProductId or Data');
         return;
       }
 
@@ -204,10 +237,6 @@ function init(block) {
 
       const updatedSpan = block.querySelector('.last-updated');
       if (updatedSpan) updatedSpan.textContent = `Last Updated: ${lastUpdated}`;
-
-      if (chart) {
-        chart.destroy();
-      }
 
       chart = createChart({
         container,
@@ -223,6 +252,8 @@ function init(block) {
         labels,
         tooltipTop: null,
       });
+
+      toggleSpinner(false);
     }
 
     function resizeHandle() {
