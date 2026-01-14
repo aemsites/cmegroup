@@ -152,25 +152,25 @@ export function lastTotalsChartConfig({
   };
 }
 
-export default async function decorate(block) {
+export default function decorate(block) {
   block.textContent = '';
   block.append(createSpinner());
 
-  const [, , date, future, options, daily] = await Promise.all([
+  Promise.all([
     setupDayjsLibs(),
     setupBillboardLibs(),
     i18n('DATE'),
     i18n('Future Volume'),
     i18n('Options Volume'),
     i18n('Daily Volume'),
-  ]);
+  ]).then(([, , date, future, options, daily]) => {
+    datei18n = date;
+    futurei18n = future;
+    optionsi18n = options;
+    dailyi18n = daily;
 
-  datei18n = date;
-  futurei18n = future;
-  optionsi18n = options;
-  dailyi18n = daily;
-
-  init(block);
+    init(block);
+  });
 }
 
 function init(block) {
