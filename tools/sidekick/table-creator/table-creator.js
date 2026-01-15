@@ -290,9 +290,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Close color picker on click outside
   document.addEventListener('click', (e) => {
-    if (!colorPickerDropdown.contains(e.target) &&
-        e.target !== textColorPickerBtn &&
-        e.target !== bgColorPickerBtn) {
+    if (!colorPickerDropdown.contains(e.target)
+      && e.target !== textColorPickerBtn
+      && e.target !== bgColorPickerBtn) {
       hideColorPicker();
     }
   });
