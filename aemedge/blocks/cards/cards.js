@@ -212,6 +212,37 @@ async function createStaticCards(block) {
       }
       cardsContainer.append(row);
     });
+  } else if (block.classList.contains('overview')) {
+    const backgroundUrl = block.querySelector('picture img').src;
+    const cols = block.firstElementChild.children;
+    const isTwoColumn = cols.length === 2;
+    const title = block.querySelector(isTwoColumn ? 'h4' : 'h3');
+    const titleContainer = createElement('div', { class: 'title-container' });
+    const textContainer = createElement('div', { class: 'text-container' });
+    const linksContainer = createElement('div', { class: 'links-container' });
+    const text = isTwoColumn
+      ? title.nextElementSibling
+      : title.parentElement.nextElementSibling;
+
+    const mainContainer = title.parentElement;
+    const buttons = Array.from(mainContainer.querySelectorAll('.button-container'));
+
+    mainContainer.className = 'cards-body-container';
+    mainContainer.style.backgroundImage = `url('${backgroundUrl}')`;
+
+    titleContainer.appendChild(title);
+    textContainer.appendChild(text);
+
+    mainContainer.appendChild(titleContainer);
+    mainContainer.appendChild(textContainer);
+    if (isTwoColumn) {
+      buttons.forEach((button) => linksContainer.appendChild(button));
+      mainContainer.appendChild(linksContainer);
+    } else {
+      block.classList.add('columns');
+      buttons.forEach((button) => mainContainer.appendChild(button));
+    }
+    cardsContainer.appendChild(mainContainer);
   } else {
     const ul = document.createElement('ul');
     const textClass = Array.from(block.classList).find((className) => className.startsWith('text-'));
