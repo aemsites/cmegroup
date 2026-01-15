@@ -100,9 +100,14 @@ function decorateSections(main) {
             .split('-')
             .filter((width) => width)
             .map((width) => toClassName(`w-${width.trim()}`));
-          columnWidths.forEach((columnWidth) => {
+          columnWidths.forEach((columnWidth, index) => {
             const column = document.createElement('div');
-            column.classList.add(columnWidth);
+            const columnStyles = meta[`style-column-${index + 1}`] || meta['style-column'];
+            const styles = columnStyles
+              ?.split(',')
+              .filter((style) => style)
+              .map((style) => toClassName(style.trim())) || [];
+            column.classList.add(columnWidth, ...styles);
             columns.push(column);
           });
         } else if (key === 'arrange') {
