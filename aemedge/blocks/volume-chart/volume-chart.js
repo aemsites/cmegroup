@@ -155,13 +155,6 @@ export function lastTotalsChartConfig({
 export default function decorate(block) {
   block.textContent = '';
   block.append(createSpinner());
-  init(block);
-}
-
-function init(block) {
-  let chart;
-  let chartData = [];
-  let lastUpdated;
 
   Promise.all([
     setupDayjsLibs(),
@@ -175,7 +168,15 @@ function init(block) {
     futurei18n = future;
     optionsi18n = options;
     dailyi18n = daily;
+
+    init(block);
   });
+}
+
+function init(block) {
+  let chart;
+  let chartData = [];
+  let lastUpdated;
 
   async function loadAndUpdateChart() {
     block.textContent = '';
