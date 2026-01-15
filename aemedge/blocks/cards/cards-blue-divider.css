@@ -1,5 +1,5 @@
 .cards.blue-divider {
-  &.blue1-background {
+  &.background-blue1 {
     .card {
       background-color: var(--blue1);
     }

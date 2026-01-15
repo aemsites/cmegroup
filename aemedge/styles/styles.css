@@ -1061,7 +1061,8 @@ main {
   }
 
   & .section:not(.divider-container, .hero-container, .hero),
-  & .columns {
+  & .columns,
+  & div:is([class*="w-"]) {
     &.text-1,
     &.text-2,
     &.text-3,
@@ -1529,6 +1530,15 @@ main .section:not(.full-width) > div,
       @media (width > 768px) {
         width: 90%;
       }
+    }
+
+    & div:is([class*="w-"]):has(.align-bottom) {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    & div:is([class*="-wrapper"]):has(.align-bottom) {
+      align-self: flex-end !important;
     }
   }
 
@@ -2390,6 +2400,11 @@ p.center-img {
   display: flex;
   flex-direction: row;
   gap:0.9375rem;
+
+  & .auth-wrapper {
+    padding: 0.75rem;
+    margin: -0.75rem;
+  }
 
   & .slider {
     height: 0.75rem;
