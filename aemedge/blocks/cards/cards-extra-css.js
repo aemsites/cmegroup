@@ -72,6 +72,10 @@ const mapping = [
     file: '/blocks/cards/cards-related-courses.css',
   },
   {
+    variation: ['overview'],
+    file: '/blocks/cards/cards-overview.css',
+  },
+  {
     variation: ['starter'],
     file: '/blocks/cards/cards-starter.css',
   },
