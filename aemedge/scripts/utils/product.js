@@ -24,6 +24,8 @@ const API_CONFIG = {
   tradeDateAndExpirationsEndpoint: '/CmeWS/mvc/Settlements/Options/TradeDateAndExpirations',
   optionSettlementsEndpoint: '/CmeWS/mvc/Settlements/Options/Settlements',
   quotesEndpoint: '/CmeWS/mvc/quotes/v2',
+  quotesOptionsExpirationsEndpoint: '/CmeWS/mvc/atm/expirations/',
+  quotesOptionsData: '/CmeWS/mvc/atm/strike-prices',
   volumeLastTotalsEndpoint: '/CmeWS/mvc/Volume',
 };
 
@@ -378,6 +380,49 @@ export async function getCalendarOptions(productId, optionProductId) {
 export async function getQuotesFutures(productId) {
   try {
     const endpoint = `${urlByEnvType()}${API_CONFIG.quotesEndpoint}/${productId}`;
+    const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+    const data = getResponseData(response) || response.data;
+    return data;
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function getQuotesUnderlyingFutures(productId, contract) {
+  try {
+    const endpoint = `${urlByEnvType()}${API_CONFIG.quotesEndpoint}/${productId}/${contract}`;
+    const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+    const data = getResponseData(response) || response.data;
+    return data;
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function getQuotesOptionsExpirationMonth(productId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.quotesEndpoint}/${productId}?getLabels=true`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  return data;
+}
+
+export async function getQuotesOptionExpirations(productId, optionProductId) {
+  const endpoint = `${urlByEnvType()}${API_CONFIG.quotesOptionsExpirationsEndpoint}/${productId}`;
+  const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+  const data = getResponseData(response) || response.data;
+  // eslint-disable-next-line eqeqeq
+  const expirations = data.filter((item) => item.productId == optionProductId);
+  if (!expirations.length) {
+    return null;
+  }
+  const expiration = expirations[0];
+  expiration.synthetic = expiration.contractExpirations[0]?.underlyingIsSynthetic;
+  return expiration;
+}
+
+export async function getQuotesOptionsData(optionProductId, year, month, strikeRange) {
+  try {
+    const endpoint = `${urlByEnvType()}${API_CONFIG.quotesOptionsData}/${optionProductId}/${year}/${month}/${strikeRange}`;
     const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
     const data = getResponseData(response) || response.data;
     return data;
@@ -803,6 +848,7 @@ function handleOptionSelection(optionObj, button, container, onSelect) {
   }
 
   button.setAttribute('aria-expanded', 'false');
+  button.textContent = optionObj.label;
 
   if (onSelect) onSelect(optionObj);
 }
