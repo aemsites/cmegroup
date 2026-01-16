@@ -212,35 +212,40 @@ async function createStaticCards(block) {
       cardsContainer.append(row);
     });
   } else if (block.classList.contains('overview')) {
-    const backgroundUrl = block.querySelector('picture img').src;
+    const isGrayBackground = block.classList.contains('background-gray');
+    const backgroundUrl = !isGrayBackground && block.querySelector('picture img')?.src;
     const cols = block.firstElementChild.children;
     const isTwoColumn = cols.length === 2;
     const title = block.querySelector(isTwoColumn ? 'h4' : 'h3');
     const titleContainer = createElement('div', { class: 'title-container' });
     const textContainer = createElement('div', { class: 'text-container' });
     const linksContainer = createElement('div', { class: 'links-container' });
-    const text = isTwoColumn
-      ? title.nextElementSibling
-      : title.parentElement.nextElementSibling;
-
+    const text = isTwoColumn ? title.nextElementSibling : title.parentElement.nextElementSibling;
     const mainContainer = title.parentElement;
     const buttons = Array.from(mainContainer.querySelectorAll('.button-container'));
 
     mainContainer.className = 'cards-body-container';
-    mainContainer.style.backgroundImage = `url('${backgroundUrl}')`;
+    if (backgroundUrl) mainContainer.style.backgroundImage = `url('${backgroundUrl}')`;
 
-    titleContainer.appendChild(title);
+    if (!isTwoColumn && isGrayBackground) {
+      const paragraph = title.nextElementSibling;
+      paragraph.className = 'text-2';
+      titleContainer.append(title, paragraph);
+    } else {
+      titleContainer.appendChild(title);
+    }
+
     textContainer.appendChild(text);
+    mainContainer.append(titleContainer, textContainer);
 
-    mainContainer.appendChild(titleContainer);
-    mainContainer.appendChild(textContainer);
     if (isTwoColumn) {
-      buttons.forEach((button) => linksContainer.appendChild(button));
+      linksContainer.append(...buttons);
       mainContainer.appendChild(linksContainer);
     } else {
       block.classList.add('columns');
-      buttons.forEach((button) => mainContainer.appendChild(button));
+      mainContainer.append(...buttons);
     }
+
     cardsContainer.appendChild(mainContainer);
   } else {
     const ul = document.createElement('ul');

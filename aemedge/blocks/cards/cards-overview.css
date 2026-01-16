@@ -84,4 +84,23 @@
       }
     }
   }
+
+  &.background-gray {
+    .cards-body-container {
+      .title-container,
+      .text-container {
+        @media (width>= 769px) {
+          width: 50%;
+        }
+      }
+
+      h3 {
+        color: var(--blue2);
+      }
+
+      ol {
+        color: var(--gray3);
+      }
+    }
+  }
 }
