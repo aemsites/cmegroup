@@ -9,6 +9,7 @@
     flex-direction: column;
     margin-top: 3.75rem;
     background-color: var(--blue2);
+    height: 100%;
 
     &.primary {
       background-color: var(--blue2);
@@ -184,6 +185,12 @@
           }
         }
       }
+    }
+
+    &.h-100 {
+      & a {
+        height: 100% !important;
+      } 
     }
 
     & .promo-wrapper {

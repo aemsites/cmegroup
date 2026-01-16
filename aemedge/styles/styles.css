@@ -1540,6 +1540,10 @@ main .section:not(.full-width) > div,
     & div:is([class*="-wrapper"]):has(.align-bottom) {
       align-self: flex-end !important;
     }
+
+    & div:is([class*="-wrapper"]):has(.h-100) {
+      height: 100% !important;
+    }
   }
 
   &.no-gap .layout > div {

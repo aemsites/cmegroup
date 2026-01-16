@@ -41,8 +41,17 @@ export default function decorate(block) {
           case 'eyebrow color':
             linkWrapper.querySelector('.eyebrow p').style.color = `var(--${content.textContent.trim()})`;
             break;
-          case 'arrow color':
-            linkWrapper.querySelector('.footer').style.setProperty('--after-background-color', `var(--${content.textContent.trim()})`);
+          case 'arrow color': {
+            let footer = linkWrapper.querySelector('.footer');
+            if (!footer) {
+              footer = createElement('div', { class: 'footer' });
+              linkWrapper.append(footer);
+            }
+            footer.style.setProperty('--after-background-color', `var(--${content.textContent.trim()})`);
+            break;
+          }
+          case 'description color':
+            contentWrapper.querySelector('.description p').style.color = `var(--${content.textContent.trim()})`;
             break;
           default:
             break;
@@ -101,6 +110,9 @@ export default function decorate(block) {
             break;
           case 'arrow color':
             linkWrapper.querySelector('.footer').style.setProperty('--after-background-color', `var(--${content.textContent.trim()})`);
+            break;
+          case 'description color':
+            rightContentWrapper.querySelector('.description p').style.color = `var(--${content.textContent.trim()})`;
             break;
           default:
             break;
