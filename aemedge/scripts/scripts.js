@@ -559,14 +559,14 @@ export function decorateButtons(element) {
         }
       }
 
-      if (up?.childNodes.length === 1 && (up.tagName === 'P' || up.tagName === 'DIV')) {
+      if (up?.children.length === 1 && (up.tagName === 'P' || up.tagName === 'DIV')) {
         up.classList.add('button-container');
       }
 
       if (
-        up?.childNodes.length === 1
+        up?.children.length === 1
         && up.tagName === 'STRONG'
-        && twoup?.childNodes.length === 1
+        && twoup?.children.length === 1
         && (twoup.tagName === 'P' || twoup.tagName === 'DIV')
       ) {
         a.className = 'button primary';
@@ -574,9 +574,9 @@ export function decorateButtons(element) {
       }
 
       if (
-        up?.childNodes.length === 1
+        up?.children.length === 1
         && up.tagName === 'EM'
-        && twoup?.childNodes.length === 1
+        && twoup?.children.length === 1
         && (twoup.tagName === 'P' || twoup.tagName === 'DIV')
       ) {
         a.className = 'button secondary';
@@ -584,7 +584,7 @@ export function decorateButtons(element) {
       }
 
       // Add classes from brackets text
-      Array.from(a.childNodes).forEach((node, index) => {
+      Array.from(a.children).forEach((node, index) => {
         if (node.nodeType === Node.TEXT_NODE) {
           let nodeText = node.textContent;
           const bracketMatch = nodeText.match(/\[([^\]]+)\]/);
