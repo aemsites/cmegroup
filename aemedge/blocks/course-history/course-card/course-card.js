@@ -68,7 +68,7 @@ export async function createEducationCard(item, isLesson = false) {
           userName: loginInfo?.userName,
           moduleId: item?.courseId,
           lessonTitle: item?.title,
-          completedModule: item?.endDate,
+          completedModule: item?.updated,
           container,
           isFromHistory: true,
           template,

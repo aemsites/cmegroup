@@ -43,7 +43,7 @@ export default async function courseTemplate() {
             userName: loginInfo?.userName,
             moduleId: data?.moduleId,
             lessonTitle: data?.title,
-            completedModule: data?.endDate,
+            completedModule: data?.updated,
           });
         }
         import('../../scripts/store/store.js').then(({ store }) => {

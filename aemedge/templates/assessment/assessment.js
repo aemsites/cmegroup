@@ -53,7 +53,7 @@ async function loadUserProgress(courseData, authenticationData) {
         userName: loginInfo?.userName,
         moduleId: courseData.moduleId,
         lessonTitle: courseData.title,
-        completedModule: course.endDate,
+        completedModule: course.updated,
         // the modal is opened automatically when the user completes the assessment
         showModal: !courseData.completed,
         template: courseData.template,

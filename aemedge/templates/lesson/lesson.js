@@ -154,7 +154,7 @@ async function loadUserProgress(courseData, authenticationData) {
         userName: loginInfo?.userName,
         moduleId: course?.moduleId,
         lessonTitle: course?.title,
-        completedModule: course?.endDate,
+        completedModule: course?.updated,
         // the modal is opened automatically when the user completes the lesson
         showModal: !lesson?.completed,
       });
