@@ -14,6 +14,7 @@ import {
   createProductsDropdown,
   getQuotesUnderlyingFutures,
   getQuotesOptionsData,
+  getQuotesBySymbol,
 } from '../../scripts/utils/product.js';
 import {
   createElement,
@@ -21,6 +22,7 @@ import {
   setupDayjsLibs,
   getCdtDate,
 } from '../../scripts/utils.js';
+import { chunk } from '../../scripts/utils/array.js';
 import { createAuthSwitch } from '../../scripts/utils/authSwitch.js';
 import { store } from '../../scripts/store/store.js';
 
@@ -241,7 +243,7 @@ function decodeExpiration(exp) {
   };
 }
 
-async function buildUnderlyingFutureTable(block, productId, optionProductId, contract, expMonth) {
+async function buildUnderlyingFutureTable(block, productId, optionProductId, contract, expMonth, underlyingCallback) {
   const underlyingRow = block.querySelector('.underlying-row');
   underlyingRow.innerHTML = spinnerHtml;
   const underlying = await getQuotesUnderlyingFutures(productId, contract);
@@ -288,7 +290,7 @@ async function buildUnderlyingFutureTable(block, productId, optionProductId, con
     updatedLabel,
   ];
   const callback = (selection) => {
-    buildUnderlyingFutureTable(block, productId, optionProductId, selection.text, expMonth);
+    underlyingCallback(selection.text);
   };
   const tableData = underlying.quotes.map((item) => [
     createProductsDropdown(expMonth.map(({ quoteCode, expirationMonth }) => ({
@@ -368,15 +370,23 @@ async function buildExpirationDropdown(
     );
     const expirationTemp = expirationDropdownMap[0];
     const expirationLabel = await i18n('Expiration');
-    const callback = (exp) => {
-      const expiration = decodeExpiration(exp.text);
-      buildUnderlyingFutureTable(block, productId, optionProductId, expiration.contract, expMonth);
-      onSelect(expiration);
+    let currentExpiration = decodeExpiration(expirationTemp.text);
+    let underlyingExpiration = currentExpiration.contract;
+    const underlyingCallback = (exp) => {
+      underlyingExpiration = exp;
+      buildUnderlyingFutureTable(block, productId, optionProductId, underlyingExpiration, expMonth, underlyingCallback);
     };
+    const callback = (exp) => {
+      currentExpiration = decodeExpiration(exp.text);
+      buildUnderlyingFutureTable(block, productId, optionProductId, currentExpiration.contract, expMonth, underlyingCallback);
+      onSelect(currentExpiration);
+    };
+    block.addEventListener('autorefresh', () => {
+      buildUnderlyingFutureTable(block, productId, optionProductId, underlyingExpiration, expMonth, underlyingCallback);
+    });
     const dropdown = createProductsDropdown(expirationDropdownMap, expirationTemp, callback);
-    const initialExpiration = decodeExpiration(expirationTemp.text);
-    buildUnderlyingFutureTable(block, productId, optionProductId, initialExpiration.contract, expMonth);
-    onSelect(initialExpiration);
+    buildUnderlyingFutureTable(block, productId, optionProductId, currentExpiration.contract, expMonth, underlyingCallback);
+    onSelect(currentExpiration);
     return createElement('div', { class: 'selection-item' }, createElement('span', null, expirationLabel), dropdown);
   }
   if (expirationDropdownTemp.length > 0) {
@@ -461,7 +471,7 @@ async function buildOptionsList(listContainer, quotesData) {
     i18n('Updated'),
   ]);
   const headers = [
-    `<span>${strikeLabel}</span><span>${priceLabel}</span>`,
+    `<span class="strike-price table-header-th">${strikeLabel} ${priceLabel}</span>`,
     lastLabel,
     changeLabel,
     `<span>${priorLabel}</span><span>${settleLabel}</span>`,
@@ -471,9 +481,12 @@ async function buildOptionsList(listContainer, quotesData) {
     updatedLabel,
   ];
   const tableData = [];
+  const callLabelFull = `<span class="full">${callLabel}</span><span class="first">${callLabel.charAt(0)}</span>`;
+  const putLabelFull = `<span class="full">${putLabel}</span><span class="first">${putLabel.charAt(0)}</span>`;
   quotesData.strikePrices.forEach((item) => {
+    const strikeClass = `strike-price table-header-td ${item.strikeRank === 1 ? 'atm-price' : ''}`;
     tableData.push([
-      `<span>${item.strikePrice}</span><span>${callLabel}</span>`,
+      `<span class="${strikeClass}">${item.strikePrice} ${callLabelFull}</span>`,
       item.call.last || '-',
       `<span class="change ${getChangeClass(item.call.change)}">${item.call.change}</span>`,
       item.call.priorSettle || '-',
@@ -483,7 +496,7 @@ async function buildOptionsList(listContainer, quotesData) {
       formatUpdated(item.call.updated),
     ]);
     tableData.push([
-      `<span>${item.strikePrice}</span><span>${putLabel}</span>`,
+      `<span class="${strikeClass}">${item.strikePrice} ${putLabelFull}</span>`,
       item.put.last || '-',
       `<span class="change ${getChangeClass(item.put.change)}">${item.put.change}</span>`,
       item.put.priorSettle || '-',
@@ -497,6 +510,30 @@ async function buildOptionsList(listContainer, quotesData) {
   const quotesWrapper = createElement('div', { class: 'quotes-wrapper table' }, buildedTable);
   listContainer.innerHTML = '';
   listContainer.appendChild(quotesWrapper);
+  const loadAllWrapper = listContainer.closest('.quotes-table-wrapper').querySelector('.load-all-wrapper');
+  loadAllWrapper.dataset.loadAll = 'false';
+}
+
+async function addOptionsExtraInfo(quotesData) {
+  const chunks = chunk(quotesData.strikePrices, 80);
+  await Promise.all(chunks.map(async (quotesDataChunk) => {
+    const quoteCodes = quotesDataChunk.reduce((acc, current) => {
+      acc.push(current.call.quoteCode);
+      acc.push(current.put.quoteCode);
+      return acc;
+    }, []);
+    const quotesBySymbol = await getQuotesBySymbol(quoteCodes);
+    quotesDataChunk.forEach((quote) => {
+      const callExtraInfo = quotesBySymbol.find((item) => item.quoteCode === quote.call.quoteCode);
+      if (callExtraInfo) {
+        quote.call = callExtraInfo;
+      }
+      const putExtraInfo = quotesBySymbol.find((item) => item.quoteCode === quote.put.quoteCode);
+      if (putExtraInfo) {
+        quote.put = putExtraInfo;
+      }
+    });
+  }));
 }
 
 async function createOptionsTable(block, optionProductId, year, month, strikeRange) {
@@ -507,6 +544,7 @@ async function createOptionsTable(block, optionProductId, year, month, strikeRan
     quotesRow.replaceChildren(buildNoResultErrorAlert('quotes'));
     return;
   }
+  await addOptionsExtraInfo(quotesData);
   const listContainer = createElement('div', { class: 'list-container' });
   buildOptionsList(listContainer, quotesData);
   quotesRow.innerHTML = '';
@@ -526,6 +564,9 @@ async function buildExpirationsSelector(block, productId, optionProductId, expir
     currentStrike = strike.text;
     createOptionsTable(block, optionProductId, currentExpirationYear, currentExpirationMonth, currentStrike);
   };
+  block.addEventListener('autorefresh', () => {
+    createOptionsTable(block, optionProductId, currentExpirationYear, currentExpirationMonth, currentStrike);
+  });
   const [
     expiration,
     strikeLabel,
@@ -604,6 +645,9 @@ async function renderTable(block) {
         if (productData.loaded && !rendered) {
           rendered = true;
           createFuturesTable(productData, block);
+          block.addEventListener('autorefresh', () => {
+            createFuturesTable(productData, block);
+          });
         }
       });
     }
@@ -650,9 +694,9 @@ async function createHeaderWrapper(block) {
   const updateTimeout = 43200000; // 12 hours
   const callback = (checked) => {
     if (checked) {
-      interval = setInterval(() => renderTable(block), updateInterval);
+      interval = setInterval(() => block.dispatchEvent(new Event('autorefresh', { bubbles: true })), updateInterval);
       timeout = setTimeout(() => clearInterval(interval), updateTimeout);
-      renderTable(block);
+      block.dispatchEvent(new Event('autorefresh', { bubbles: true }));
     } else {
       clearInterval(interval);
       clearInterval(timeout);

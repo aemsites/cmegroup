@@ -85,6 +85,10 @@
                 }
               }
 
+              &:has(.table-header-th) {
+                background-color: var(--gray1);
+              }
+
               & span {
                 display: block;
               }
@@ -99,9 +103,15 @@
             &:nth-child(odd) {
               & td {
                 background-color: var(--white);
-      
-                &:hover {
-                  background-color: var(--white) !important;
+
+                &:has(.table-header-td) {
+                  background-color: var(--blue2);
+                }
+              }
+
+              &:hover {
+                & td:not(:has(.table-header-td)) {
+                  background-color: var(--blue6);
                 }
               }
             }
@@ -109,9 +119,15 @@
             &:nth-child(even) {
               & td {
                 background-color: var(--gray6);
-      
-                &:hover {
-                  background-color: var(--gray6) !important;
+
+                &:has(.table-header-td) {
+                  background-color: var(--blue3-a);
+                }
+              }
+
+              &:hover {
+                & td:not(:has(.table-header-td)) {
+                  background-color: var(--blue6);
                 }
               }
             }
@@ -160,6 +176,15 @@
                     background: none;
                   }
                 }
+              }
+
+              &:has(.table-header-td) {
+                text-transform: uppercase;
+                color: var(--white);
+              }
+
+              &:has(.atm-price) {
+                color: var(--citron);
               }
     
               & span {
@@ -230,7 +255,8 @@
 
               & .month .month-text .expiration,
               & .change,
-              & .updated {
+              & .updated,
+              & .strike-price {
                 width: max-content;
 
                 @media (width >= 993px) {
@@ -242,8 +268,31 @@
                 }
               }
 
+              & .strike-price {
+                .full {
+                  display: none;
+
+                  @media (width >= 993px) {
+                    display: inline;
+                  }
+                }
+
+                .first {
+                  display: inline;
+
+                  @media (width >= 993px) {
+                    display: none;
+                  }
+                }
+              }
+
               & .products-selector-button {
                 width: max-content;
+              }
+
+              & .table-header-td {
+                margin-left: auto;
+                margin-right: auto;
               }
             }
           }

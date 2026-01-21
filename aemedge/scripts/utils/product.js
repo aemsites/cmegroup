@@ -25,7 +25,8 @@ const API_CONFIG = {
   optionSettlementsEndpoint: '/CmeWS/mvc/Settlements/Options/Settlements',
   quotesEndpoint: '/CmeWS/mvc/quotes/v2',
   quotesOptionsExpirationsEndpoint: '/CmeWS/mvc/atm/expirations/',
-  quotesOptionsData: '/CmeWS/mvc/atm/strike-prices',
+  quotesOptionsDataEndpoint: '/CmeWS/mvc/atm/strike-prices',
+  quotesBySymbolEndpoint: '/CmeWS/mvc/quotes/v2/quotes-by-symbol',
   volumeLastTotalsEndpoint: '/CmeWS/mvc/Volume',
 };
 
@@ -422,8 +423,26 @@ export async function getQuotesOptionExpirations(productId, optionProductId) {
 
 export async function getQuotesOptionsData(optionProductId, year, month, strikeRange) {
   try {
-    const endpoint = `${urlByEnvType()}${API_CONFIG.quotesOptionsData}/${optionProductId}/${year}/${month}/${strikeRange}`;
+    const endpoint = `${urlByEnvType()}${API_CONFIG.quotesOptionsDataEndpoint}/${optionProductId}/${year}/${month}/${strikeRange}`;
     const response = await apiGet(endpoint, {}, {}, { withCredentials: false });
+    const data = getResponseData(response) || response.data;
+    return data;
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function getQuotesBySymbol(quotesCodes) {
+  try {
+    const endpoint = `${urlByEnvType()}${API_CONFIG.quotesBySymbolEndpoint}`;
+    const payload = {
+      quotesCodes,
+      returnMissingContracts: true,
+    };
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    const response = await apiPost(endpoint, payload, headers);
     const data = getResponseData(response) || response.data;
     return data;
   } catch (e) {
