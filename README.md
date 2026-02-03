@@ -1,9 +1,7 @@
+# NOTE: This repository is not in use anymore. Code/Content has now been moved to customer managed code/content repository.
+
 # CME Group
 All project code for cmegroup.com on AEM Edge Delivery Services
-
-## Environments
-- Preview: https://main--www--cmegroup.aem.page/
-- Live: https://main--www--cmegroup.aem.live/
 
 ## Documentation
 
